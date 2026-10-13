@@ -4,14 +4,14 @@ Lab.register({
   intro: '네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.',
   terms: ['안전한 메서드와 멱등한 메서드', 'HTTP 메서드', '멱등성과 멱등키', 'HTTP 상태 코드'], ranks: ['rest', 'http'],
   controls: [
-    { id: 'm', label: '보내는 요청', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (조회)'], ['PUT', 'PUT /orders/1 (수량을 3으로 교체)'], ['DELETE', 'DELETE /orders/1 (삭제)'], ['POST', 'POST /orders (새 주문 생성)'], ['PATCH', 'PATCH /orders/1 (수량을 1 증가)']] },
+    { id: 'm', label: '보내는 요청', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (조회)'], ['PUT', 'PUT /orders/1 (주문을 수량 3인 내용으로 교체)'], ['DELETE', 'DELETE /orders/1 (삭제)'], ['POST', 'POST /orders (새 주문 생성)'], ['PATCH', 'PATCH /orders/1 (수량을 1 증가)']] },
     { id: 'lost', label: '네트워크에서 사라지는 것', type: 'select', value: 'res', options: [['none', '없음 (정상)'], ['req', '요청 (서버에 도착하지 못함)'], ['res', '응답 (서버는 처리했는데 응답이 사라짐)']] },
     { id: 'n', label: '사라지는 횟수', type: 'range', min: 1, max: 3, value: 1, fmt: function (v) { return v + '번'; }, show: function (c) { return c.lost !== 'none'; } },
     { id: 'key', label: '멱등키(Idempotency-Key) 헤더를 함께 보낸다', type: 'check', value: false, show: function (c) { return c.m === 'POST' || c.m === 'PATCH'; } },
   ],
   presets: [
     { t: '처음 설정으로', q: 'POST /orders로 새 주문을 만드는 요청의 응답이 1번 사라져 다시 보내면 어떻게 되나', d: 'POST의 응답이 한 번 사라집니다. 주문이 두 건 만들어집니다.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
-    { t: '같은 상황에서 PUT', q: '응답이 1번 사라지는 같은 상황에서 PUT /orders/1로 수량을 3으로 교체하면', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
+    { t: '같은 상황에서 PUT', q: '응답이 1번 사라지는 같은 상황에서 PUT /orders/1로 주문을 수량 3인 내용으로 교체하면', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
     { t: 'DELETE를 다시 보내면', q: '응답이 1번 사라지는 같은 상황에서 DELETE /orders/1로 삭제하면', d: '두 번째 응답 코드는 다르지만 서버 상태는 같습니다.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
     { t: '증가시키는 PATCH', q: 'PATCH /orders/1로 수량을 1 증가시키는데 응답이 2번 사라지면', d: '재시도한 만큼 수량이 더 올라갑니다.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
     { t: 'POST에 멱등키를 붙이면', q: 'POST /orders에 멱등키(Idempotency-Key) 헤더를 함께 보내고 응답이 2번 사라지면', d: '서버가 같은 요청임을 알아보고 한 번만 처리합니다.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
@@ -53,7 +53,7 @@ Lab.register({
     var sum = [];
     if (same && exec > 1) sum.push(M + ' 요청은 멱등해서 ' + exec + '번 실행돼도 서버 상태가 한 번 실행한 것과 같습니다.' + (M === 'DELETE' ? ' 두 번째부터 응답 코드는 404로 달라지지만, 멱등성은 응답이 아니라 서버 상태를 기준으로 합니다.' : '') + (M === 'GET' ? ' GET은 서버 상태를 바꾸지 않는 안전한 메서드이기도 합니다.' : ''));
     if (!same) sum.push(M === 'POST' ? 'POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 ' + (orders.length - 1) + '건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.' : '수량을 "1 증가"시키는 PATCH는 멱등하지 않습니다. 실행된 횟수만큼 더 올라갔습니다. 같은 변경을 "수량을 3으로" 같은 절댓값으로 표현하면 멱등해집니다.');
-    if (useKey && sent > exec) sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
+    if (useKey && sent > exec && c.lost !== 'req') sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
     if (c.lost === 'req') sum.push('요청이 사라진 경우는 서버가 실행한 적이 없으므로 어떤 메서드든 재시도해도 됩니다. 문제는 클라이언트 입장에서 요청이 사라진 것인지 응답이 사라진 것인지 구별할 수 없다는 점입니다.');
     if (c.lost === 'none') sum.push('유실이 없으면 어떤 메서드든 한 번만 실행됩니다.');
     return { events: ev, summary: sum, row: [sent + '번', exec + '번', st, same ? '같음' : '다름'], idem: idem };

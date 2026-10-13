@@ -1,7 +1,7 @@
 Lab.register({
   id: 'proxy', nav: 'Proxies and self-invocation', cat: 'Spring', mode: 'step',
   title: 'Why does the annotation have no effect?',
-  intro: '@Transactional and @Async do not change the method itself. Spring wraps the bean in a proxy (a stand-in object) and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.',
+  intro: '@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.',
   terms: ['Proxy', 'Self-invocation', 'Aspect-oriented programming (AOP)', 'JDK dynamic proxy and CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [
     { id: 'feat', label: 'Annotation on the method', type: 'select', value: 'tx', options: [['tx', '@Transactional'], ['async', '@Async']] },
@@ -30,10 +30,10 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     var S = { caller: '', proxy: 'Waiting', target: 'Waiting', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
-    push('When the application starts, Spring finds a bean that has a method annotated with ' + (tx ? '@Transactional' : '@Async') + ' and registers, as the bean, a proxy that wraps the original object instead of the object itself. This proxy is what other beans receive by injection.', '', snap({ caller: 'Not called yet' }));
+    push('When the application starts, Spring finds a bean that has a method annotated with ' + (tx ? '@Transactional' : '@Async') + ' and registers, as the bean, a proxy that receives the calls in place of the original object. This proxy is what other beans receive by injection. A bean with no such method is registered as the original object itself.', '', snap({ caller: 'Not called yet' }));
     if (c.path === 'ext') push('The controller calls orderService.' + m + '. The reference that the controller holds is the proxy, so the call reaches the proxy first.', '', snap({ caller: 'Controller → proxy.' + m, proxy: 'Received the call' }));
     else {
-      push('The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.', '', snap({ caller: 'Controller → proxy.placeOrder()', proxy: 'Passed it on, nothing added', target: 'OrderService.placeOrder() running' }));
+      if (c.path === 'split') push('The controller calls orderService.placeOrder(). OrderService in this code has no annotated method, so Spring did not create a proxy for it. What the controller received by injection is the real object, and the real object receives the call directly.', '', snap({ caller: 'Controller → OrderService.placeOrder()', target: 'OrderService.placeOrder() running' })); else push('The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.', '', snap({ caller: 'Controller → proxy.placeOrder()', proxy: 'Passed it on, nothing added', target: 'OrderService.placeOrder() running' }));
       if (c.path === 'self' || c.path === 'priv') push('Inside the real object, the code calls ' + m + '. This call is this.' + m + '. Here, this is the real object itself, not the proxy, so the call does not go through the proxy.' + (c.path === 'priv' ? ' On top of that, a proxy cannot override a private method, so there is no way to call the method from outside and no way to intercept it.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: 'Does not see this call', target: m + ' runs' }));
       if (c.path === 'inject') push('The real object calls self.' + m + ' on the injected self reference. The self reference is the proxy of this same bean, so the call goes through the proxy again.', '', snap({ caller: 'OrderService → self (proxy).' + m, proxy: 'Received the call' }));
       if (c.path === 'split') push('The real object calls a method of another bean, ' + target + ': ' + m + '. The injected ' + target + ' reference is a proxy, so the call goes through the proxy.', '', snap({ caller: 'OrderService → ' + target + ' proxy.' + m, proxy: 'Received the call' }));
@@ -75,32 +75,32 @@ Lab.register({
     H.lane(ln, 'Proxy', s.proxy, s.proxy.indexOf('Does not see') >= 0 ? 'bad' : s.proxy === 'Waiting' ? 'none' : 'hot');
     H.lane(ln, 'Real object', s.target, s.target === 'Waiting' ? 'none' : s.target.indexOf('Exception') >= 0 ? 'bad' : '');
   },
-  // Diagram: The proxy is the outer box that wraps the real object. A call that comes from outside passes through the outer box, and a call made from inside with this does not.
+  // Diagram: The proxy (upper) and the real object (lower) are two different objects joined by a reference. A call that comes from outside goes through the proxy, and a call the real object makes with this does not.
   draw: function (P, sim, shown) {
     var c = sim.c, tx = sim.tx, m = tx ? 'saveAll()' : 'sendMail()', last = shown[shown.length - 1], s = last ? last.snap : { caller: '', proxy: 'Waiting', target: 'Waiting', rows: [], thread: '', wait: '' };
     var split = c.path === 'split', other = split ? (tx ? 'OrderWriter' : 'MailSender') : '', called = s.caller && s.caller !== 'Not called yet', at2 = split && s.caller.indexOf(other) >= 0, step = shown.length;
     var pcls = function (x) { return x.indexOf('Does not see') >= 0 ? 'bad' : x === 'Waiting' ? 'plain' : 'hot'; }, tcls = function (x) { return x.indexOf('Exception') >= 0 ? 'bad' : x === 'Waiting' ? 'plain' : 'wait'; }, short = function (x) { return x.replace('OrderService.', '').replace(' (task-1)', ''); };
     P.size(680, 300);
-    P.box('ctrl', 16, 96, 124, 50, { cls: called ? 'wait' : 'plain', title: 'Controller', sub: 'another bean' });
-    P.box('px1', 170, 36, 230, 164, { cls: at2 ? 'plain' : pcls(s.proxy), title: 'OrderService proxy', sub: at2 ? 'Passed it on, nothing added' : s.proxy });
-    P.box('tg1', 186, 112, 198, 74, { cls: at2 ? 'wait' : tcls(s.target), title: 'Real OrderService', sub: at2 ? 'placeOrder() running' : short(s.target) });
-    if (called) P.arrow('in', 'ctrl:r', 'px1:l:0.4', { label: 'call' });
+    P.box('ctrl', 16, 42, 104, 50, { cls: called ? 'wait' : 'plain', title: 'Controller', sub: 'another bean' });
+    P.box('px1', 170, 36, 230, 62, { cls: split ? 'ghost' : pcls(s.proxy), title: 'OrderService proxy', sub: split ? 'Not created' : s.proxy });
+    P.box('tg1', 170, 138, 230, 62, { cls: at2 ? 'wait' : tcls(s.target), title: 'Real OrderService', sub: at2 ? 'placeOrder() running' : short(s.target) });
+    if (called) P.arrow('in', 'ctrl:r', split ? 'tg1:l' : 'px1:l', { label: 'call' });
     var entered = c.path === 'ext' ? step >= 3 && s.target !== 'Waiting' : called && step >= 2;
-    if (entered) P.arrow('pass', [285, 86], 'tg1:t');
+    if (!split) P.arrow('pass', 'px1:b', 'tg1:t', entered ? { label: 'passes on' } : { cls: 'mut', label: 'reference' });
     if ((c.path === 'self' || c.path === 'priv') && step >= 3) P.arrow('self', 'tg1:r:0.3', 'tg1:r:0.75', { cls: 'bad', label: 'this.' + m });
     if (c.path === 'inject' && step >= 3) P.arrow('self', 'tg1:l:0.6', 'px1:l:0.75', { cls: 'good', label: 'self.' + m });
     if (split) {
-      P.box('px2', 430, 36, 234, 164, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' proxy', sub: at2 ? s.proxy : 'Waiting' });
-      P.box('tg2', 446, 112, 202, 74, { cls: at2 ? tcls(s.target) : 'plain', title: 'Real ' + other, sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : 'Waiting' });
+      P.box('px2', 430, 36, 234, 62, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' proxy', sub: at2 ? s.proxy : 'Waiting' });
+      P.box('tg2', 430, 138, 234, 62, { cls: at2 ? tcls(s.target) : 'plain', title: 'Real ' + other, sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : 'Waiting' });
       if (at2) P.arrow('out', 'tg1:r', 'px2:l:0.6', { cls: 'good', label: m });
-      if (at2 && step >= 4) P.arrow('pass2', [547, 86], 'tg2:t');
+      P.arrow('pass2', 'px2:b', 'tg2:t', at2 && step >= 4 ? { label: 'passes on' } : { cls: 'mut', label: 'reference' });
     }
     if (tx) [0, 1].forEach(function (i) { var r = s.rows[i]; P.box('row' + i, 16 + i * 330, 236, 318, 36, r ? { cls: r[2], title: r[0], right: r[1] } : { cls: 'ghost', title: i ? 'Order B' : 'Order A', right: 'None yet' }); });
     else {
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: 'Thread that sends the mail', sub: s.thread || 'Not run yet' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0s' ? 'good' : 'bad', title: 'Time the caller waited', sub: s.wait || '-' });
     }
-    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
+    P.note('The upper box is the proxy, and the lower box is the real object. They are two different objects, and the proxy holds a reference to the real object and passes calls on to it. The red arrow, where the real object calls its own method with this, does not go through the proxy.');
   },
   assume: 'This lab is based on proxy-based AOP, which is the default in Spring (with AspectJ weaving, the annotations can also be applied to self-invocation, but that is uncommon). For @Async, @EnableAsync is assumed to be turned on. That each INSERT is committed right away when there is no transaction follows the auto-commit default of a JDBC connection. All 10 combinations were run and confirmed with @Transactional and @Async beans on a real Spring (Spring Framework 7.0.9). Only in calls that went through the proxy was a transaction open inside the method and no rows were left after the exception, and with self-invocation and with the private method the two rows stayed as they were. For @Async too, only the calls that went through the proxy ran on a separate thread (task-1), and with self-invocation the method ran to the end on the calling thread (the 3 seconds of sending the mail were shortened to 0.3 seconds for the test).',
 });

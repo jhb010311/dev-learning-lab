@@ -16,7 +16,7 @@ Lab.register({
     { t: '로그 실패가 주문을 망치지 않게', q: '전파 속성을 REQUIRES_NEW로 바꾸고 안쪽 예외를 try-catch로 잡으면', d: 'REQUIRES_NEW로 분리하고 예외를 잡습니다.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
     { t: '주문이 실패해도 로그는 남기기', q: '전파 속성을 REQUIRES_NEW로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: 'REQUIRES_NEW에서 바깥 메서드가 실패합니다.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
     { t: 'NESTED는 무엇이 다른가', q: '전파 속성을 NESTED로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: '바깥이 실패하면 안쪽도 함께 롤백됩니다. 바로 위와 비교해 보세요.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: '체크 예외는 롤백되지 않는다', q: '예외 종류를 체크 예외인 IOException으로 바꾸면', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
+    { t: '체크 예외는 기본 설정에서 롤백되지 않는다', q: '예외 종류를 체크 예외인 IOException으로 바꾸면', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
     { t: 'rollbackFor를 지정하면', q: '예외 종류를 체크 예외인 IOException으로 바꾸고 rollbackFor = Exception.class를 지정하면', d: '체크 예외에도 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
   ],
   code: function (c) {
@@ -87,7 +87,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === '여기로 되돌림' ? 'bad' : s.SP ? 'wait' : 'ghost', title: '세이브포인트 뒤 (A 안의 한 구간)', sub: s.SP || '아직 없음' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: '로그 1건', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === '아직 호출 전' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'placeOrder()를 호출한 쪽이 받는 것', right: s.caller });
-    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다.');
+    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자는 그 트랜잭션에서 한 INSERT입니다. 트랜잭션이 롤백되면 그 INSERT가 함께 취소됩니다.');
   },
   assume: 'saveLog()는 다른 빈의 메서드라서 프록시를 거쳐 호출됩니다(같은 클래스 안에서 부르면 안쪽 @Transactional이 적용되지 않습니다. 이 내용은 "프록시와 자기 호출" 실습에서 다룹니다). 규칙은 스프링 프레임워크의 기본 동작을 따랐습니다. 언체크 예외와 Error에만 롤백하고, 참여한 트랜잭션에서 롤백 대상 예외가 나가면 전체에 rollback-only 표시를 남깁니다. NESTED는 JDBC 세이브포인트로 구현되며 JdbcTemplate이나 MyBatis가 쓰는 DataSourceTransactionManager에서 동작합니다. JPA(JpaTransactionManager + Hibernate)에서는 NESTED를 쓰면 NestedTransactionNotSupportedException이 납니다. 세이브포인트가 JDBC 커넥션에만 적용되고 영속성 컨텍스트에는 적용되지 않기 때문입니다. 72가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9, DataSourceTransactionManager, H2 데이터베이스)에서 실행해, 주문과 로그가 DB에 남는지, 호출한 쪽이 받는 것, 동시에 쓴 커넥션 수가 화면과 일치하는 것을 확인했습니다.',
 });

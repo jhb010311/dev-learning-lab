@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Proxies and self-invocation: Why does the annotation have no effect? · Dev Learning Lab</title>
-<meta name="description" content="@Transactional and @Async do not change the method itself. Spring wraps the bean in a proxy (a stand-in object) and adds the extra behavior only to calls…">
+<meta name="description" content="@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior o…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/proxy/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Proxies and self-invocation: Why does the annotation have no effect? · Dev Learning Lab">
-<meta property="og:description" content="@Transactional and @Async do not change the method itself. Spring wraps the bean in a proxy (a stand-in object) and adds the extra behavior only to calls…">
+<meta property="og:description" content="@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior o…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<link rel="stylesheet" href="../../app.css?v=47e53bb696">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › AOP and proxies</p>
 <h1>Proxies and self-invocation</h1>
 <p><b>Why does the annotation have no effect?</b></p>
-<p>@Transactional and @Async do not change the method itself. Spring wraps the bean in a proxy (a stand-in object) and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.</p>
+<p>@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.</p>
 <p>Checked against real execution · All 10 combinations were run on Spring 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -59,7 +59,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>When the application starts, Spring finds a bean that has a method annotated with @Transactional and registers, as the bean, a proxy that wraps the original object instead of the object itself. This proxy is what other beans receive by injection.</li>
+<li>When the application starts, Spring finds a bean that has a method annotated with @Transactional and registers, as the bean, a proxy that receives the calls in place of the original object. This proxy is what other beans receive by injection. A bean with no such method is registered as the original object itself.</li>
 <li>The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.</li>
 <li>Inside the real object, the code calls saveAll(). This call is this.saveAll(). Here, this is the real object itself, not the proxy, so the call does not go through the proxy.</li>
 <li>No proxy is there to start a transaction. Order A is inserted with INSERT. There is no transaction, so this INSERT is committed as soon as it runs (auto-commit).</li>
@@ -173,6 +173,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ac3ff9cb33"></script>
+<script src="../../app.js?v=47e53bb696"></script>
 </body>
 </html>

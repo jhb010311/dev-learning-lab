@@ -13,7 +13,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '스레드 2개가 각각 count++를 3번씩 하는데 동기화 없이 한 단계씩 번갈아 실행되면 어떻게 되나', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
     { t: 'volatile만 붙여 보기', q: 'count에 volatile만 붙이면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 count++를 마칠 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
     { t: 'AtomicInteger 쓰기', q: 'count를 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
     { t: '운 좋게 안 겹친 경우', q: '동기화 없이 한 스레드가 다 끝난 뒤에 다음 스레드가 실행되면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
     { t: '스레드 4개가 무작위로', q: '스레드를 4개로 늘리고 실행 순서를 무작위로 섞으면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },

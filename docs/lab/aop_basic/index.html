@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AOP와 프록시: 프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가 · 개발 학습 실습실</title>
-<meta name="description" content="@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그것을 감싼 대리 객체(프록시)를 대신 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transa…">
+<meta name="description" content="@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/aop_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/aop_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/aop_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="AOP와 프록시: 프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가 · 개발 학습 실습실">
-<meta property="og:description" content="@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그것을 감싼 대리 객체(프록시)를 대신 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transa…">
+<meta property="og:description" content="@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/aop_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a50065aafa">
+<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>AOP와 프록시</h1>
 <p><b>프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가</b></p>
-<p>@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그것을 감싼 대리 객체(프록시)를 대신 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.</p>
+<p>@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.</p>
 <p>실행으로 대조 · Spring 7.0.9와 AspectJ weaver 1.9.25.1에서 네 가지 조합을 실제 @Aspect 프록시로 실행해 찍힌 줄과 부른 객체의 클래스를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -54,16 +54,16 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>프로그램이 시작되면 스프링이 @Component나 @Service가 붙은 클래스를 찾아(컴포넌트 스캔) 그 클래스의 객체를 만들어 보관합니다. 이렇게 스프링이 만들어 보관하는 객체를 빈이라고 합니다. OrderService 클래스의 객체도 하나 만들어 둡니다. 우리가 쓴 코드에는 new OrderService()라는 줄이 없습니다. @Component가 붙은 LogAspect 클래스의 객체도 만들어 둡니다.</li>
-<li>스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체를 감싼 대리 객체(프록시)를 만들어 대신 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 OrderService$SpringCGLIB$0의 객체이고, 진짜 OrderService 객체는 그 안에 들어 있습니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.</li>
+<li>스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 OrderService$SpringCGLIB$0의 객체이고, 진짜 OrderService 객체를 참조로 갖고 있습니다. 둘은 서로 다른 객체입니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.</li>
 <li>스프링이 Caller 클래스의 객체도 만듭니다. orderService 칸에는 @Autowired가 붙어 있어서, 스프링이 이 칸에 들어갈 OrderService 타입의 빈을 찾아 넣어 줍니다. 칸에 값을 넣는 줄은 우리가 쓰지 않았습니다. 지금 이 칸에 들어간 것은 스프링이 보관한 프록시입니다.</li>
 <li>Caller의 run()이 orderService.order()를 부릅니다. orderService 칸에 든 것이 프록시이므로, 호출은 진짜 OrderService가 아니라 프록시에 먼저 도착합니다. 프록시는 order()가 LogAspect의 @Before 식에 맞는 메서드라는 것을 알고, 진짜 order()를 부르기 전에 LogAspect의 log()를 먼저 실행합니다.</li>
 <li>프록시가 LogAspect의 log()를 실행해 &quot;[로그] order 호출됨&quot;을 찍습니다. 이 줄은 order()가 아니라 LogAspect에 적혀 있습니다.</li>
-<li>프록시가 안에 들어 있는 진짜 OrderService 객체의 order()를 부르고, order()가 &quot;주문 처리&quot;를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.</li>
+<li>프록시가 참조로 갖고 있던 진짜 OrderService 객체의 order()를 부르고, order()가 &quot;주문 처리&quot;를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.</li>
 <li>이어서 run()이 orderService 칸에 든 객체의 클래스 이름을 getSimpleName() 메서드로 찍습니다. 찍힌 이름은 &quot;OrderService$SpringCGLIB$0&quot;입니다. OrderService가 아니라 스프링이 프로그램이 도는 중에 만든 다른 클래스입니다. 우리가 쓴 코드에는 이 이름이 없습니다. 프록시를 부르고 있다는 표시입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그것을 감싼 프록시를 대신 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.</li>
+<li>LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그 객체 대신 호출을 받을 프록시를 만들어 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.</li>
 <li>order() 안에는 로그를 찍는 줄이 없습니다. 부른 객체의 클래스 이름이 OrderService가 아니라 OrderService$SpringCGLIB$0인 것이 프록시를 불렀다는 표시입니다. @Transactional을 붙인 빈의 클래스 이름이 같은 꼴로 바뀌는 것도 같은 일입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -184,6 +184,6 @@ class Caller {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a50065aafa"></script>
+<script src="../../app.js?v=facdcb7ce9"></script>
 </body>
 </html>

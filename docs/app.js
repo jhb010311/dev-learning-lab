@@ -941,7 +941,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, '대기 큐 ' + (c.unb ? '(무제한)' : c.cap + '칸') + ' · 숫자는 요청 번호');
     P.region('rej', 16, 140, 290, 238, '거절된 요청');
-    P.region('thr', 346, 16, 318, H, '스레드 풀 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
+    P.region('thr', 346, 16, 318, H, '풀의 스레드 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, '대기 칸이 없습니다', { cls: 'mut', anchor: 'middle' });
@@ -973,7 +973,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '스레드 2개가 각각 count++를 3번씩 하는데 동기화 없이 한 단계씩 번갈아 실행되면 어떻게 되나', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
     { t: 'volatile만 붙여 보기', q: 'count에 volatile만 붙이면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 count++를 마칠 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
     { t: 'AtomicInteger 쓰기', q: 'count를 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
     { t: '운 좋게 안 겹친 경우', q: '동기화 없이 한 스레드가 다 끝난 뒤에 다음 스레드가 실행되면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
     { t: '스레드 4개가 무작위로', q: '스레드를 4개로 늘리고 실행 순서를 무작위로 섞으면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
@@ -1078,7 +1078,7 @@ Lab.register({
 Lab.register({
   id: 'hashmap', nav: 'HashMap 내부', cat: '자료구조', mode: 'step',
   title: 'HashMap은 키를 어디에 넣고 어떻게 찾나',
-  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
+  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode로 정한 버킷 번호가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
   terms: ['해시 테이블과 HashMap', '해시 충돌', '로드 팩터와 리사이즈', '레드-블랙 트리', 'equals와 hashCode 규약'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: '넣는 키 개수', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + '개'; } },
@@ -1125,7 +1125,7 @@ Lab.register({
       var moved = 0; old.forEach(function (b, j) { moved += B[j + oc].nodes.length; });
       push(why + ' 버킷을 ' + oc + '개에서 ' + cap + '개로 늘리고 모든 항목의 자리를 다시 정했습니다. ' + size + '개 중 ' + moved + '개가 새 버킷으로 옮겨 갔습니다. 다음에 늘리는 기준은 ' + thr + '개 초과입니다.', '', -1);
     }
-    function where(k) { return 'hashCode는 ' + k.raw + (hcOn ? '' : '(재정의하지 않아 객체마다 다른 값)') + ', 버킷 번호는 ' + (k.hash & (cap - 1)) + '번(해시를 버킷 수 ' + cap + '개로 나눈 나머지)입니다.'; }
+    function where(k) { return 'hashCode는 ' + k.raw + (hcOn ? '' : '(재정의하지 않아 객체마다 다른 값)') + ', 버킷 번호는 ' + (k.hash & (cap - 1)) + '번(hashCode의 위아래 비트를 섞은 값을 버킷 수 ' + cap + '개로 나눈 나머지)입니다.'; }
     function put(id, again) {
       var k = mk(id), idx = k.hash & (cap - 1), b = B[idx], hit = b.nodes.filter(function (x) { return same(x, k); })[0];
       var head = (again ? '같은 id ' + id + '로 새 키 객체를 만들어 다시 put. ' : 'put(id ' + id + '). ') + where(k) + ' ';
@@ -1155,7 +1155,7 @@ Lab.register({
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('hashCode 값의 종류가 적으면 버킷을 아무리 늘려도 같은 버킷에 쌓입니다. 한 버킷이 길어질수록 put과 get이 그 안을 하나씩 비교하므로 느려집니다.');
     if (afterFill.trees) sum.push('버킷 ' + afterFill.trees + '개가 레드-블랙 트리로 바뀌었습니다. 트리는 해시 값이 서로 다르거나 키가 Comparable일 때 탐색을 빠르게 합니다. 이 예처럼 한 버킷의 hashCode가 전부 같고 Comparable도 아니면 트리로 바꿔도 탐색은 빨라지지 않습니다. 결국 hashCode를 고르게 만드는 것이 해법입니다.');
     if (c.eq === 'both') sum.push('equals와 hashCode를 둘 다 재정의해서, 같은 id로 만든 새 객체로도 값을 바꾸고 찾을 수 있었습니다.');
-    if (c.eq === 'eqonly') sum.push('equals만 재정의하면 "equals가 true인 두 객체는 hashCode가 같아야 한다"는 규약이 깨집니다. 같은 id인데 해시가 달라 다른 버킷으로 가므로, 중복으로 저장되고 조회도 실패했습니다.');
+    if (c.eq === 'eqonly') sum.push('equals만 재정의하면 "equals가 true인 두 객체는 hashCode가 같아야 한다"는 규약이 깨집니다. 같은 id인데 해시가 달라 대개 다른 버킷으로 가고 같은 버킷이어도 같은 키로 보지 않으므로, 중복으로 저장되고 조회도 실패했습니다.');
     if (c.eq === 'hconly') sum.push('hashCode만 재정의하면 같은 버킷까지는 가지만, equals가 객체 주소 비교라서 같은 키로 인정받지 못합니다. 중복으로 저장되고 조회도 실패했습니다.');
     if (c.eq === 'none') sum.push('둘 다 재정의하지 않으면 내용이 같아도 완전히 다른 키입니다. 넣을 때 쓴 바로 그 객체를 들고 있어야만 찾을 수 있습니다.');
     return { events: ev, summary: sum, row: [afterFill.cap + '개', afterFill.resizes + '번', afterFill.longest + '개', afterFill.trees + '개', replaced ? '값만 바뀜' : '중복 저장', found ? '찾음' : 'null'], trace: ev.map(function (e) { return e.snap; }) };
@@ -1262,7 +1262,7 @@ Lab.register({
     if (c.use && (joined || c.st === 'eager')) push('반복문에서 주문 ' + c.n + '건의 회원 이름을 꺼냈습니다. 회원이 이미 전부 로딩돼 있어서 추가 쿼리는 없습니다.', '');
     var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(' + c.m + '명)로 정해집니다.');
-    if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 지연 로딩을 기본으로 두는 이유입니다.');
+    if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 연관 관계를 지연 로딩(LAZY)으로 지정해 두는 이유입니다.');
     if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 ' + (c.use ? '당겨집니다' : '당겨지고, 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
     if (c.st === 'fetch') sum.push('fetch join은 연관된 회원까지 한 쿼리로 가져옵니다. 이 예의 join fetch는 내부 조인이라 회원이 없는 주문은 결과에서 빠집니다. 그런 주문도 필요하면 left join fetch를 씁니다.');
     if (c.st === 'graph') sum.push('@EntityGraph는 JPQL을 고치지 않고 "회원도 같이 가져오라"고 지정합니다. 이 예처럼 회원이 없을 수도 있는 기본 매핑에서는 left outer join으로 가져옵니다(optional = false로 매핑하면 inner join이 됩니다).');
@@ -1300,7 +1300,7 @@ Lab.register({
     { t: '로그 실패가 주문을 망치지 않게', q: '전파 속성을 REQUIRES_NEW로 바꾸고 안쪽 예외를 try-catch로 잡으면', d: 'REQUIRES_NEW로 분리하고 예외를 잡습니다.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
     { t: '주문이 실패해도 로그는 남기기', q: '전파 속성을 REQUIRES_NEW로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: 'REQUIRES_NEW에서 바깥 메서드가 실패합니다.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
     { t: 'NESTED는 무엇이 다른가', q: '전파 속성을 NESTED로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: '바깥이 실패하면 안쪽도 함께 롤백됩니다. 바로 위와 비교해 보세요.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: '체크 예외는 롤백되지 않는다', q: '예외 종류를 체크 예외인 IOException으로 바꾸면', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
+    { t: '체크 예외는 기본 설정에서 롤백되지 않는다', q: '예외 종류를 체크 예외인 IOException으로 바꾸면', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
     { t: 'rollbackFor를 지정하면', q: '예외 종류를 체크 예외인 IOException으로 바꾸고 rollbackFor = Exception.class를 지정하면', d: '체크 예외에도 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
   ],
   code: function (c) {
@@ -1371,7 +1371,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === '여기로 되돌림' ? 'bad' : s.SP ? 'wait' : 'ghost', title: '세이브포인트 뒤 (A 안의 한 구간)', sub: s.SP || '아직 없음' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: '로그 1건', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === '아직 호출 전' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'placeOrder()를 호출한 쪽이 받는 것', right: s.caller });
-    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다.');
+    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자는 그 트랜잭션에서 한 INSERT입니다. 트랜잭션이 롤백되면 그 INSERT가 함께 취소됩니다.');
   },
   assume: 'saveLog()는 다른 빈의 메서드라서 프록시를 거쳐 호출됩니다(같은 클래스 안에서 부르면 안쪽 @Transactional이 적용되지 않습니다. 이 내용은 "프록시와 자기 호출" 실습에서 다룹니다). 규칙은 스프링 프레임워크의 기본 동작을 따랐습니다. 언체크 예외와 Error에만 롤백하고, 참여한 트랜잭션에서 롤백 대상 예외가 나가면 전체에 rollback-only 표시를 남깁니다. NESTED는 JDBC 세이브포인트로 구현되며 JdbcTemplate이나 MyBatis가 쓰는 DataSourceTransactionManager에서 동작합니다. JPA(JpaTransactionManager + Hibernate)에서는 NESTED를 쓰면 NestedTransactionNotSupportedException이 납니다. 세이브포인트가 JDBC 커넥션에만 적용되고 영속성 컨텍스트에는 적용되지 않기 때문입니다. 72가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9, DataSourceTransactionManager, H2 데이터베이스)에서 실행해, 주문과 로그가 DB에 남는지, 호출한 쪽이 받는 것, 동시에 쓴 커넥션 수가 화면과 일치하는 것을 확인했습니다.',
 });
@@ -1451,7 +1451,7 @@ Lab.register({
     }
     if (c.op === 'read') {
       result = { name: '조회 결과', head: ['주문번호', '회원이름', '상품'], rows: orders.map(function (o) { return { cells: [String(o.id), o.name, o.item] }; }) };
-      if (flat) { push('orders 테이블 하나만 읽으면 회원 이름까지 나옵니다. 조인이 필요 없습니다.', 'good'); sum.push('조회만 놓고 보면 정규화 전 테이블이 더 단순하고 빠릅니다. 읽기 성능 때문에 일부러 중복을 허용하는 것을 반정규화라고 하며, 그 대가로 위의 이상 현상을 애플리케이션이 직접 막아야 합니다.'); }
+      if (flat) { push('orders 테이블 하나만 읽으면 회원 이름까지 나옵니다. 조인이 필요 없습니다.', 'good'); sum.push('조회만 놓고 보면 정규화 전 테이블은 조인이 없어 더 단순합니다. 읽기 성능 때문에 일부러 중복을 허용하는 것을 반정규화라고 하며, 그 대가로 위의 이상 현상을 애플리케이션이 직접 막아야 합니다.'); }
       else { push('주문에는 회원ID만 있으므로, 이름을 얻으려면 member 테이블과 조인해야 합니다. 테이블 두 개를 읽습니다.', ''); sum.push('정규화의 비용은 조회 시 조인입니다. 그래도 일반적인 서비스에서는 정규화를 기본으로 하고, 조회 성능이 실제로 문제가 될 때만 반정규화를 검토합니다.'); }
     }
     if (flat && anomaly === '없음' && c.op !== 'read') sum.push('이번에는 문제가 드러나지 않았지만, 구조가 문제를 막아 주는 것이 아니라 작업하는 쪽이 조심해서 피한 것입니다.');
@@ -1562,9 +1562,9 @@ Lab.register({
     var sum = [];
     if (M === 'local' && S > 1 && !c.kick) sum.push('세션이 로그인한 서버 한 대의 메모리에만 있어서, 다른 서버로 간 요청은 로그인이 풀렸습니다. 서버를 여러 대로 늘리려면 같은 사용자를 항상 같은 서버로 보내거나(스티키 세션), 세션을 공용 저장소로 옮겨야 합니다.');
     if (M === 'local' && S === 1) sum.push('서버가 한 대일 때는 문제가 없습니다.');
-    if (M === 'redis') sum.push('세션을 공용 저장소에 두면 서버가 몇 대든 로그인이 유지되고, 세션을 지우는 것만으로 즉시 로그아웃시킬 수 있습니다. 대신 요청마다 저장소를 조회하고, 저장소가 죽으면 전원이 로그아웃됩니다.');
+    if (M === 'redis') sum.push('세션을 공용 저장소에 두면 서버가 몇 대든 로그인이 유지되고, 세션을 지우는 것만으로 즉시 로그아웃시킬 수 있습니다. 대신 요청마다 저장소를 조회하고, 저장소에 닿지 못하면 세션을 확인할 수 없어 전원이 로그인하지 않은 것으로 처리됩니다.');
     if (M === 'jwt') sum.push('JWT는 서버가 아무것도 저장하지 않아 서버를 늘리기 쉽고 조회 비용도 없습니다.' + (c.kick ? ' 대신 한 번 발급한 토큰은 만료 전까지 무효화할 수 없습니다. ' + (leaked ? '강제 로그아웃 뒤에도 요청 ' + leaked + '번이 통과했습니다.' : '이번에는 강제 로그아웃 시점에 토큰이 이미 만료된 뒤라서, 그 뒤에 통과한 요청이 없었습니다.') + ' 차단 목록을 서버에 두면 막을 수 있지만, 그러면 다시 요청마다 저장소를 조회하게 됩니다.' : ' 만료 시간이 지나면 다시 로그인해야 합니다.'));
-    if (M === 'refresh') sum.push('액세스 토큰을 짧게 두고 리프레시 토큰으로 재발급하면, 평소 요청은 조회 없이 처리하면서도 탈취나 강제 로그아웃의 피해를 액세스 토큰 만료 시간 안으로 줄일 수 있습니다.');
+    if (M === 'refresh') sum.push('액세스 토큰을 짧게 두고 리프레시 토큰으로 재발급하면, 평소 요청은 조회 없이 처리하면서도 액세스 토큰 유출이나 강제 로그아웃의 피해를 액세스 토큰 만료 시간 안으로 줄일 수 있습니다.');
     if (!sum.length) sum.push('요청 5번 중 ' + ok + '번이 로그인 상태로 처리됐고, 401 응답은 ' + fail + '번이었습니다. 공용 저장소에는 ' + look + '번 접근했습니다.');
     return { events: ev, summary: sum, row: [ok + '번', fail + '번', look + '번', c.kick ? leaked + '번' : '해당 없음'] };
   },
@@ -1637,7 +1637,7 @@ Lab.register({
         go('F2', 'false를 반환한 인터셉터 자신의 afterCompletion도 호출되지 않습니다(그보다 앞서 true를 반환한 인터셉터가 있었다면 그것들만 호출됩니다). 응답은 필터 체인을 거꾸로 지나 나갑니다.', '');
       } else {
         go('IP', '인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.', '');
-        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 모델 객체를 넣어 줍니다. MVC의 모델(M)이 여기서 만들어집니다.', '');
+        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.', '');
         if (c.what === 'ex') {
           go('CT', '컨트롤러 메서드가 실행되다가 OutOfStockException을 던집니다. 반환값 처리와 postHandle은 건너뜁니다.', 'bad');
           if (c.advice) {
@@ -1698,7 +1698,7 @@ Lab.register({
     P.region('path', 16, 16, 396, 42 + stages.length * 29, '요청이 지나는 길 (위에서 아래로)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? '지금 여기' : id === s.end ? '여기서 문제 발생' : seen ? '지나감' : done ? '건너뜀' : (group[id] || '') }); });
     P.region('roles', 440, 114, 224, 246, 'MVC의 세 역할');
-    var mSub = rest ? ['쓰이지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '담기 전에 예외 발생'] : [num('CT') + 'orders가 담김']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
+    var mSub = rest ? ['Model 객체는 쓰지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '담기 전에 예외 발생'] : [num('CT') + 'orders가 담김']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
     var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? '호출되지 않음' : '아직 호출 전') : num('CT') + (ex ? '예외를 던짐' : s.cur === 'CT' ? '실행 중' : '실행 끝')];
     var vSub = rest ? ['없음', at('RV') ? num('RV') + '뷰 없이 JSON을 씀' : 'JSON 응답에는 쓰이지 않음'] : ['orders/list 템플릿', at('VR') ? num('VR') + '모델로 HTML을 그림' : done ? '그려지지 않음' : at('RV') ? '화면 이름이 정해짐' : '아직 쓰이지 않음'];
     var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };
@@ -1721,14 +1721,14 @@ Lab.register({
   intro: '네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.',
   terms: ['안전한 메서드와 멱등한 메서드', 'HTTP 메서드', '멱등성과 멱등키', 'HTTP 상태 코드'], ranks: ['rest', 'http'],
   controls: [
-    { id: 'm', label: '보내는 요청', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (조회)'], ['PUT', 'PUT /orders/1 (수량을 3으로 교체)'], ['DELETE', 'DELETE /orders/1 (삭제)'], ['POST', 'POST /orders (새 주문 생성)'], ['PATCH', 'PATCH /orders/1 (수량을 1 증가)']] },
+    { id: 'm', label: '보내는 요청', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (조회)'], ['PUT', 'PUT /orders/1 (주문을 수량 3인 내용으로 교체)'], ['DELETE', 'DELETE /orders/1 (삭제)'], ['POST', 'POST /orders (새 주문 생성)'], ['PATCH', 'PATCH /orders/1 (수량을 1 증가)']] },
     { id: 'lost', label: '네트워크에서 사라지는 것', type: 'select', value: 'res', options: [['none', '없음 (정상)'], ['req', '요청 (서버에 도착하지 못함)'], ['res', '응답 (서버는 처리했는데 응답이 사라짐)']] },
     { id: 'n', label: '사라지는 횟수', type: 'range', min: 1, max: 3, value: 1, fmt: function (v) { return v + '번'; }, show: function (c) { return c.lost !== 'none'; } },
     { id: 'key', label: '멱등키(Idempotency-Key) 헤더를 함께 보낸다', type: 'check', value: false, show: function (c) { return c.m === 'POST' || c.m === 'PATCH'; } },
   ],
   presets: [
     { t: '처음 설정으로', q: 'POST /orders로 새 주문을 만드는 요청의 응답이 1번 사라져 다시 보내면 어떻게 되나', d: 'POST의 응답이 한 번 사라집니다. 주문이 두 건 만들어집니다.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
-    { t: '같은 상황에서 PUT', q: '응답이 1번 사라지는 같은 상황에서 PUT /orders/1로 수량을 3으로 교체하면', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
+    { t: '같은 상황에서 PUT', q: '응답이 1번 사라지는 같은 상황에서 PUT /orders/1로 주문을 수량 3인 내용으로 교체하면', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
     { t: 'DELETE를 다시 보내면', q: '응답이 1번 사라지는 같은 상황에서 DELETE /orders/1로 삭제하면', d: '두 번째 응답 코드는 다르지만 서버 상태는 같습니다.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
     { t: '증가시키는 PATCH', q: 'PATCH /orders/1로 수량을 1 증가시키는데 응답이 2번 사라지면', d: '재시도한 만큼 수량이 더 올라갑니다.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
     { t: 'POST에 멱등키를 붙이면', q: 'POST /orders에 멱등키(Idempotency-Key) 헤더를 함께 보내고 응답이 2번 사라지면', d: '서버가 같은 요청임을 알아보고 한 번만 처리합니다.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
@@ -1770,7 +1770,7 @@ Lab.register({
     var sum = [];
     if (same && exec > 1) sum.push(M + ' 요청은 멱등해서 ' + exec + '번 실행돼도 서버 상태가 한 번 실행한 것과 같습니다.' + (M === 'DELETE' ? ' 두 번째부터 응답 코드는 404로 달라지지만, 멱등성은 응답이 아니라 서버 상태를 기준으로 합니다.' : '') + (M === 'GET' ? ' GET은 서버 상태를 바꾸지 않는 안전한 메서드이기도 합니다.' : ''));
     if (!same) sum.push(M === 'POST' ? 'POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 ' + (orders.length - 1) + '건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.' : '수량을 "1 증가"시키는 PATCH는 멱등하지 않습니다. 실행된 횟수만큼 더 올라갔습니다. 같은 변경을 "수량을 3으로" 같은 절댓값으로 표현하면 멱등해집니다.');
-    if (useKey && sent > exec) sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
+    if (useKey && sent > exec && c.lost !== 'req') sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
     if (c.lost === 'req') sum.push('요청이 사라진 경우는 서버가 실행한 적이 없으므로 어떤 메서드든 재시도해도 됩니다. 문제는 클라이언트 입장에서 요청이 사라진 것인지 응답이 사라진 것인지 구별할 수 없다는 점입니다.');
     if (c.lost === 'none') sum.push('유실이 없으면 어떤 메서드든 한 번만 실행됩니다.');
     return { events: ev, summary: sum, row: [sent + '번', exec + '번', st, same ? '같음' : '다름'], idem: idem };
@@ -1900,7 +1900,7 @@ Lab.register({
     });
     P.note(arr ? '칸 안의 숫자는 인덱스입니다. 노란 칸은 대상 위치, 파란 칸은 한 칸씩 옮겨진 원소, 점선은 빈 칸입니다.' :'노란 노드는 대상, 파란 노드는 그 자리까지 가느라 지나친 노드입니다. 실제 LinkedList는 앞뒤 양쪽으로 이어져 있고, 인덱스로 위치를 계산할 수 없어 화살표를 따라가야 합니다.');
   },
-  assume: '삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 "맨 뒤로 계속 추가"에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 이 PC의 JDK 21에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 메모리에 연속으로 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.',
+  assume: '삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 "맨 뒤로 계속 추가"에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 이 PC의 JDK 21에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 원소를 가리키는 참조가 메모리에 연속으로 놓여 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.',
 });
 
 Lab.register({
@@ -3317,7 +3317,7 @@ Lab.register({
       send('select * from member where id = 1', '1번째 줄'); cache.push({ id: 1, name: '김철수', snap: '김철수', st: '관리 중' });
       push(0, '1번째 줄: 영속성 컨텍스트의 1차 캐시에 회원 1이 없습니다. DB에 SELECT를 보내 읽어 오고, 읽은 엔티티를 1차 캐시에 보관합니다. 처음 읽었을 때의 값(스냅샷)도 함께 남겨 둡니다.', '');
       push(1, '2번째 줄: 1차 캐시에 회원 1이 이미 있습니다. DB에 가지 않고 보관 중인 객체를 그대로 돌려줍니다. SQL이 나가지 않았습니다.', 'good');
-      push(2, '3번째 줄: a와 b는 같은 객체입니다. a == b는 true입니다. 한 트랜잭션 안에서는 같은 식별자의 엔티티가 항상 같은 인스턴스임이 보장됩니다.', '');
+      push(2, '3번째 줄: a와 b는 같은 객체입니다. a == b는 true입니다. 같은 영속성 컨텍스트 안에서는 같은 식별자의 엔티티가 항상 같은 인스턴스임이 보장됩니다.', '');
       push(-1, '메서드 종료, 커밋: 엔티티의 현재 값과 스냅샷을 비교했지만 달라진 것이 없습니다. 보낼 SQL이 없습니다.', '');
       result = '변화 없음'; sum.push('em.find를 두 번 불렀지만 SELECT는 한 번만 나갔습니다. 같은 트랜잭션 안에서 이미 읽은 엔티티는 1차 캐시에서 꺼냅니다.', '1차 캐시는 트랜잭션(영속성 컨텍스트) 하나 안에서만 살아 있습니다. 요청이 끝나면 사라지므로, 여러 요청이 함께 쓰는 Redis 같은 캐시와는 목적이 다릅니다.');
     }
@@ -3372,11 +3372,11 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], prev = shown[shown.length - 2], s = last ? last.snap : { cache: [], pending: [], sent: [], db: [{ id: 1, name: '김철수' }] }, before = prev ? prev.snap.sent.length : 0, fresh = s.sent.slice(before);
     P.size(680, 330);
-    P.region('pc', 16, 16, 400, 298, '영속성 컨텍스트 (트랜잭션 동안만 있음)');
+    P.region('pc', 16, 16, 400, 298, '영속성 컨텍스트 (여기서는 트랜잭션 동안 유지)');
     P.region('db', 470, 16, 194, 298, 'DB의 member 테이블');
     P.text('c1', 28, 58, '1차 캐시: 관리 중인 엔티티', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: '비어 있음', center: true });
-    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('준영속') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: '회원 ' + e.id + (gone ? ' (관리 끝남)' : ''), sub: '현재 값: ' + e.name + '  ·  스냅샷: ' + e.snap }); });
+    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('준영속') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: '회원 ' + e.id + (gone ? ' (준영속: 컨텍스트에서 빠짐)' : ''), sub: '현재 값: ' + e.name + '  ·  스냅샷: ' + e.snap }); });
     P.box('pend', 28, 250, 376, 48, { cls: s.pending.length ? 'wait' : 'ghost', title: '쓰기 지연 저장소', sub: s.pending.length ? 'INSERT ' + s.pending.length + '건을 보내지 않고 쌓아 둠' : '쌓아 둔 SQL 없음' });
     s.db.forEach(function (r, i) { P.box('r' + r.id, 482, 52 + i * 40, 170, 32, { cls: r.cls === 'hot' ? 'hot' : 'plain', title: 'id ' + r.id, right: r.name }); });
     if (fresh.length) { var kinds = {}; fresh.forEach(function (q) { var k = q.sql.split(' ')[0].toUpperCase(); kinds[k] = (kinds[k] || 0) + 1; }); P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: Object.keys(kinds).map(function (k) { return k + (kinds[k] > 1 ? ' ×' + kinds[k] : ''); }).join(', ') }); }
@@ -8416,7 +8416,7 @@ Lab.register({
     P.box('obj', 428, 50, 222, 44, err ? { cls: 'bad', title: 'Animal 객체', sub: 'Dog 변수에 넣을 수 없음' } : { cls: 'good', title: s.obj + ' 객체', sub: '실제 타입: ' + s.obj });
     if (!err) P.arrow('pt', 'var:r', 'obj:l', { label: '가리킴' });
     var names = { override: ['Animal의 sound()', 'Dog의 sound() (재정의)'], overload: ['print(Animal a)', 'print(Dog d)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal의 name 필드', 'Dog의 name 필드'] }[c.w];
-    P.region('cand', 16, 132, 648, 100, { override: '실행될 수 있는 메서드', overload: 'Printer의 두 메서드', static: '두 클래스의 static 메서드', field: '객체 안의 두 필드' }[c.w]);
+    P.region('cand', 16, 132, 648, 100, { override: '실행될 수 있는 메서드', overload: 'Printer의 두 메서드', static: '두 클래스의 static 메서드', field: '이름이 name인 두 필드' }[c.w]);
     var pick = err || !s.pick ? '' : /Dog/.test(s.pick) ? 'D' : /Animal/.test(s.pick) ? 'A' : '', late = c.w === 'override' && s.stage === '실행', chosen = late || c.w !== 'override';
     [['A', 30], ['D', 344]].forEach(function (m, i) { var on = pick === m[0]; P.box('m' + m[0], m[1], 168, 306, 48, { cls: on ? (chosen ? 'hot now' : 'wait') : 'plain', title: names[i], sub: on ? (chosen ? '이것이 선택됨' : '있는지만 확인함') : ' ' }); });
     if (pick) P.arrow('sel', (late ? 'obj' : 'var') + ':b', 'm' + pick + ':t', { cls: late ? 'good' : chosen ? 'hot' : 'dash mut', label: late ? '실제 객체의 타입으로 (실행 시점)' : chosen ? '선언 타입으로 (컴파일 시점)' : '선언 타입에 있는지 확인' });
@@ -9706,7 +9706,7 @@ Lab.register({
       o.by.forEach(function (name, j) { P.arrow('ar_' + name, 'v_' + name + ':r', 'o' + o.id + ':l:' + (o.by.length > 1 ? (j + 1) / (o.by.length + 1) : 0.5), { cls: o.by.length > 1 ? 'good' : '' }); });
     });
     var res = function (x) { return x === 'true' ? 'good' : x === 'false' ? 'bad' : 'ghost'; };
-    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: 'a == b  (같은 객체인가)', right: s.cmp.eq || '?' });
+    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: c.kind === 'int' && c.ib === 'prim' ? 'a == b  (값이 같은가)' : 'a == b  (같은 객체인가)', right: s.cmp.eq || '?' });
     P.box('c2', 344, 236, 320, 34, { cls: res(s.cmp.equals), title: 'a.equals(b)  (내용이 같은가)', right: s.cmp.equals || '?' });
     P.note(str ? '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. String Pool은 실제로는 힙 안에 있지만 구분하려고 따로 그렸습니다.' : '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. 기본형 int 변수는 객체를 가리키지 않고 값을 직접 담습니다.');
   },
@@ -11048,8 +11048,8 @@ Lab.register({
     var neck = alive === 0 ? '서버 없음' : appOut < c.rps && appOut <= dbCap ? '애플리케이션 서버' : out < appOut ? 'DB' : appOut < c.rps ? '애플리케이션 서버' : '없음';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('초당 ' + c.rps + '건의 요청이 로드밸런서에 도착합니다. 사용자는 서버가 몇 대인지 모르고 로드밸런서의 주소 하나만 압니다.', '', 1);
-    if (c.down) push(alive ? '로드밸런서가 주기적으로 서버 상태를 확인(헬스 체크)하다가 서버 ' + c.n + '번이 응답하지 않는 것을 발견하고 대상에서 뺍니다. 남은 ' + alive + '대에만 요청을 보냅니다.' : '헬스 체크 결과 하나뿐인 서버가 응답하지 않습니다. 요청을 보낼 곳이 없습니다.', 'bad', 2);
-    if (!alive) { push('모든 요청이 실패합니다. 서버가 한 대뿐이면 그 한 대의 장애가 곧 서비스 전체의 장애입니다(단일 장애 지점).', 'bad', 4); sum.push('처리량 0건. 서버를 2대 이상 두어야 한 대가 죽어도 서비스가 유지됩니다.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0건', c.rps + '건', '-', neck] }; }
+    if (c.down) push(alive ? '로드밸런서가 서버 상태를 확인(헬스 체크)하다가 서버 ' + c.n + '번이 응답하지 않는 것을 발견하고 대상에서 뺍니다. 남은 ' + alive + '대에만 요청을 보냅니다.' : '헬스 체크 결과 하나뿐인 서버가 응답하지 않습니다. 요청을 보낼 곳이 없습니다.', 'bad', 2);
+    if (!alive) { push('모든 요청이 실패합니다. 서버가 한 대뿐이면 그 한 대의 장애가 곧 서비스 전체의 장애입니다(단일 장애 지점).', 'bad', 4); sum.push('처리량 0건. 서버가 2대 이상이어야 한 대가 죽어도 서비스가 이어질 수 있습니다. 다만 남은 서버가 몰린 요청을 감당해야 합니다.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0건', c.rps + '건', '-', neck] }; }
     push('로드밸런서가 요청을 살아 있는 서버 ' + alive + '대에 고르게 나눕니다. 서버 한 대가 초당 ' + Math.round(per) + '건을 받습니다. 한 대의 처리 능력은 초당 ' + cap + '건이므로 부하는 ' + load + '%입니다.' + (per > cap ? ' 처리 능력을 넘었습니다. 넘친 요청은 대기하다 시간 초과되거나 거절됩니다.' : ''), per > cap ? 'bad' : '', 3);
     push('서버들이 처리한 초당 ' + appOut + '건이 DB로 갑니다. DB의 처리 능력은 초당 ' + dbCap + '건이므로 부하는 ' + dbLoad + '%입니다.' + (appOut > dbCap ? ' DB가 감당하지 못합니다. 서버는 여유가 있어도 DB 응답을 기다리느라 요청이 밀립니다.' : ''), appOut > dbCap ? 'bad' : '', 4);
     push('결과: 초당 ' + out + '건을 처리하고 ' + lost + '건은 처리하지 못했습니다. ' + (neck === '없음' ? '모든 구간에 여유가 있습니다.' : '병목은 ' + neck + '입니다.'), lost ? 'bad' : 'good', 5);
@@ -11434,7 +11434,7 @@ Lab.register({
     if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + J(num(costIdx), '으로', '로') + ' ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : Math.round(costIdx / costFull * 100) + '% 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '으로 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) : (Math.round(costFull / costIdx * 10) / 10)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + J(num(costIdx), '으로', '로') + ', 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');
-    else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별이나 상태값처럼 값의 종류가 적은 컬럼 하나만으로는 인덱스 효과가 작은 이유입니다.');
+    else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별처럼 값의 종류가 적고 고르게 퍼진 컬럼은 어느 값을 찾아도 걸리는 행이 많아서 인덱스 효과가 작은 이유입니다.');
     return { events: ev, summary: sum, k: { N: N, matched: matched, costFull: costFull, costIdx: costIdx, useIdx: useIdx, h: h, read: read, cost: cost }, row: [useIdx ? '인덱스' : '풀 스캔', num(read) + '행', num(matched) + '행', num(read - matched) + '행', num(cost)] };
   },
   render: function (v, sim, t, H, shown) {
@@ -11475,7 +11475,7 @@ Lab.register({
 Lab.register({
   id: 'proxy', nav: '프록시와 자기 호출', cat: '스프링', mode: 'step',
   title: '애너테이션을 붙였는데 왜 동작하지 않나',
-  intro: '@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애너테이션이 적용되기도 하고 무시되기도 합니다.',
+  intro: '@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 그 빈 대신 프록시(대리 객체)를 등록해 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애너테이션이 적용되기도 하고 무시되기도 합니다.',
   terms: ['프록시(Proxy)', '자기 호출(Self-invocation)', 'AOP(관점 지향 프로그래밍)', 'JDK 동적 프록시와 CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [
     { id: 'feat', label: '메서드에 붙인 애너테이션', type: 'select', value: 'tx', options: [['tx', '@Transactional'], ['async', '@Async']] },
@@ -11504,10 +11504,10 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     var S = { caller: '', proxy: '대기', target: '대기', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
-    push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하고, 원래 객체 대신 그것을 감싼 프록시를 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다.', '', snap({ caller: '아직 호출 전' }));
+    push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하면, 원래 객체 대신 호출을 받을 프록시를 만들어 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다. 그런 메서드가 없는 빈은 원래 객체 그대로 등록됩니다.', '', snap({ caller: '아직 호출 전' }));
     if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '을 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
     else {
-      push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애너테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
+      if (c.path === 'split') push('컨트롤러가 orderService.placeOrder()를 호출합니다. 이 코드의 OrderService에는 애너테이션이 붙은 메서드가 없어서 스프링이 프록시를 만들지 않았습니다. 컨트롤러가 주입받은 것은 실제 객체이고, 호출도 실제 객체가 바로 받습니다.', '', snap({ caller: '컨트롤러 → OrderService.placeOrder()', target: 'OrderService.placeOrder() 실행 중' })); else push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애너테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
       if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
       if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '을 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
       if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '을 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
@@ -11549,32 +11549,32 @@ Lab.register({
     H.lane(ln, '프록시', s.proxy, s.proxy.indexOf('보지 못함') >= 0 ? 'bad' : s.proxy === '대기' ? 'none' : 'hot');
     H.lane(ln, '실제 객체', s.target, s.target === '대기' ? 'none' : s.target.indexOf('예외') >= 0 ? 'bad' : '');
   },
-  // 그림: 프록시는 실제 객체를 감싼 바깥 상자다. 밖에서 오는 호출은 바깥 상자를 지나고, 안에서 this로 부르는 호출은 지나지 않는다.
+  // 그림: 프록시(위)와 실제 객체(아래)는 서로 다른 객체이고 참조로 이어져 있다. 밖에서 오는 호출은 프록시를 거치고, 실제 객체가 this로 부르는 호출은 거치지 않는다.
   draw: function (P, sim, shown) {
     var c = sim.c, tx = sim.tx, m = tx ? 'saveAll()' : 'sendMail()', last = shown[shown.length - 1], s = last ? last.snap : { caller: '', proxy: '대기', target: '대기', rows: [], thread: '', wait: '' };
     var split = c.path === 'split', other = split ? (tx ? 'OrderWriter' : 'MailSender') : '', called = s.caller && s.caller !== '아직 호출 전', at2 = split && s.caller.indexOf(other) >= 0, step = shown.length;
     var pcls = function (x) { return x.indexOf('보지 못함') >= 0 ? 'bad' : x === '대기' ? 'plain' : 'hot'; }, tcls = function (x) { return x.indexOf('예외') >= 0 ? 'bad' : x === '대기' ? 'plain' : 'wait'; }, short = function (x) { return x.replace('OrderService.', '').replace(' (task-1)', ''); };
     P.size(680, 300);
-    P.box('ctrl', 16, 96, 124, 50, { cls: called ? 'wait' : 'plain', title: '컨트롤러', sub: '다른 빈' });
-    P.box('px1', 170, 36, 230, 164, { cls: at2 ? 'plain' : pcls(s.proxy), title: 'OrderService 프록시', sub: at2 ? '부가 기능 없이 통과시킴' : s.proxy });
-    P.box('tg1', 186, 112, 198, 74, { cls: at2 ? 'wait' : tcls(s.target), title: '실제 OrderService 객체', sub: at2 ? 'placeOrder() 실행 중' : short(s.target) });
-    if (called) P.arrow('in', 'ctrl:r', 'px1:l:0.4', { label: '호출' });
+    P.box('ctrl', 16, 42, 104, 50, { cls: called ? 'wait' : 'plain', title: '컨트롤러', sub: '다른 빈' });
+    P.box('px1', 170, 36, 230, 62, { cls: split ? 'ghost' : pcls(s.proxy), title: 'OrderService 프록시', sub: split ? '만들어지지 않음' : s.proxy });
+    P.box('tg1', 170, 138, 230, 62, { cls: at2 ? 'wait' : tcls(s.target), title: '실제 OrderService 객체', sub: at2 ? 'placeOrder() 실행 중' : short(s.target) });
+    if (called) P.arrow('in', 'ctrl:r', split ? 'tg1:l' : 'px1:l', { label: '호출' });
     var entered = c.path === 'ext' ? step >= 3 && s.target !== '대기' : called && step >= 2;
-    if (entered) P.arrow('pass', [285, 86], 'tg1:t');
+    if (!split) P.arrow('pass', 'px1:b', 'tg1:t', entered ? { label: '넘김' } : { cls: 'mut', label: '참조' });
     if ((c.path === 'self' || c.path === 'priv') && step >= 3) P.arrow('self', 'tg1:r:0.3', 'tg1:r:0.75', { cls: 'bad', label: 'this.' + m });
     if (c.path === 'inject' && step >= 3) P.arrow('self', 'tg1:l:0.6', 'px1:l:0.75', { cls: 'good', label: 'self.' + m });
     if (split) {
-      P.box('px2', 430, 36, 234, 164, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' 프록시', sub: at2 ? s.proxy : '대기' });
-      P.box('tg2', 446, 112, 202, 74, { cls: at2 ? tcls(s.target) : 'plain', title: '실제 ' + other + ' 객체', sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : '대기' });
+      P.box('px2', 430, 36, 234, 62, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' 프록시', sub: at2 ? s.proxy : '대기' });
+      P.box('tg2', 430, 138, 234, 62, { cls: at2 ? tcls(s.target) : 'plain', title: '실제 ' + other + ' 객체', sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : '대기' });
       if (at2) P.arrow('out', 'tg1:r', 'px2:l:0.6', { cls: 'good', label: m });
-      if (at2 && step >= 4) P.arrow('pass2', [547, 86], 'tg2:t');
+      P.arrow('pass2', 'px2:b', 'tg2:t', at2 && step >= 4 ? { label: '넘김' } : { cls: 'mut', label: '참조' });
     }
     if (tx) [0, 1].forEach(function (i) { var r = s.rows[i]; P.box('row' + i, 16 + i * 330, 236, 318, 36, r ? { cls: r[2], title: r[0], right: r[1] } : { cls: 'ghost', title: i ? '주문 B' : '주문 A', right: '아직 없음' }); });
     else {
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: '메일 발송이 실행되는 스레드', sub: s.thread || '아직 실행 전' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0초' ? 'good' : 'bad', title: '호출한 쪽이 기다린 시간', sub: s.wait || '-' });
     }
-    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 바깥 상자를 지나지 않습니다.');
+    P.note('위 상자가 프록시, 아래 상자가 실제 객체입니다. 둘은 서로 다른 객체이고, 프록시가 실제 객체를 참조로 갖고 있다가 호출을 넘깁니다. 실제 객체가 자기 메서드를 this로 부르는 빨간 화살표는 프록시를 거치지 않습니다.');
   },
   assume: '스프링의 기본 방식인 프록시 기반 AOP를 기준으로 했습니다(AspectJ 위빙을 쓰면 내부 호출에도 적용할 수 있지만 흔하지 않습니다). @Async는 @EnableAsync가 켜져 있다고 가정했습니다. 트랜잭션이 없을 때 INSERT가 각각 바로 커밋된다는 것은 JDBC 커넥션의 자동 커밋 기본값을 따른 것입니다. 열 가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9)의 @Transactional, @Async 빈으로 실행해 확인했습니다. 프록시를 거친 호출에서만 메서드 안에 트랜잭션이 열려 있었고 예외 뒤에 남은 행이 없었으며, 내부 호출과 private 메서드에서는 두 행이 그대로 남았습니다. @Async도 프록시를 거친 호출만 별도 스레드(task-1)에서 실행됐고, 내부 호출은 호출한 스레드에서 끝까지 실행됐습니다(메일 발송 3초는 0.3초로 줄여 시험).',
 });
@@ -11626,7 +11626,7 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var sum = [];
     if (ttl === 0) sum.push('같은 상품을 ' + reqs.length + '번 조회하는 데 DB를 ' + dbq + '번 읽었습니다. 자주 읽히고 잘 바뀌지 않는 데이터일수록 캐시의 효과가 큽니다.');
-    else if (peak > 1 && !lock) sum.push('캐시가 비어 있는 순간부터 다시 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
+    else if (peak > 1 && !lock) sum.push('캐시가 비어 있는 순간부터 다시 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락이나 만료 전에 미리 갱신하기로 줄입니다. 여러 키가 한꺼번에 만료되는 경우에는 키마다 TTL에 약간의 차이를 줍니다.');
     else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. ' + (waits ? 'DB로 몰리는 것은 막았지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다.' : '이 설정에서는 조회가 끝나기 전에 들어온 요청이 없어 기다린 요청도 없었습니다.') + ' 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
     if (ttl > 0) sum.push('TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.');
     return { total: DUR, events: ev, summary: sum, reqs: reqs, queries: queries, sets: null, ttl: ttl, row: [reqs.length + '건', rate + '%', dbq + '번', peak + '건', (Math.round(avg * 100) / 100) + '초'] };
@@ -11638,15 +11638,15 @@ Lab.register({
   // 그림: 요청이 캐시를 먼저 보고, 없을 때만 DB로 간다. 아래 줄은 초마다 DB까지 간 조회 수다.
   draw: function (P, sim, shown, t) {
     var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.t <= t + e; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, flying = sim.queries.filter(function (q) { return q[0] <= t + e && q[1] > t + e; }).length, lastReq = done[done.length - 1], off = sim.ttl === 0, hit = lastReq && lastReq.kind === 'hit';
-    P.size(680, 290);
-    P.box('app', 16, 40, 170, 60, { cls: 'wait', title: '애플리케이션', sub: '요청 ' + done.length + '건 받음' });
-    P.box('ca', 255, 40, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? '캐시 사용 안 함' : '캐시', sub: off ? ' ' : hit ? '값 있음: 바로 응답' : flying ? '값 없음: DB를 기다림' : done.length ? '값 없음' : '비어 있음' });
-    P.box('db', 494, 40, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? '조회 ' + flying + '건 처리 중' : '한가함' });
-    if (lastReq) { P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? '적중' : '' }); if (!hit && flying) P.arrow('a2', 'ca:r', 'db:l', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB 조회 ' + flying + '건' }); }
-    P.region('sec', 16, 128, 648, 96, '초마다 DB까지 간 조회 수 (1칸 = 1초)');
-    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 164, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
-    P.box('rate', 16, 240, 648, 34, { cls: 'plain', title: '캐시 적중률', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
-    P.note('요청은 캐시를 먼저 보고, 값이 있으면 거기서 끝납니다(초록 화살표). 없을 때만 DB로 가는 화살표가 생깁니다. 아래 줄에서 초록은 DB 조회가 없던 초, 빨강은 조회가 여러 건 몰린 초입니다.');
+    P.size(680, 320);
+    P.box('app', 16, 70, 170, 60, { cls: 'wait', title: '애플리케이션', sub: '요청 ' + done.length + '건 받음' });
+    P.box('ca', 255, 70, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? '캐시 사용 안 함' : '캐시', sub: off ? ' ' : hit ? '값 있음: 바로 응답' : flying ? '값 없음: DB를 기다림' : done.length ? '값 없음' : '비어 있음' });
+    P.box('db', 494, 70, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? '조회 ' + flying + '건 처리 중' : '한가함' });
+    if (lastReq) { if (!off) P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? '적중' : '' }); if (!hit && flying) P.arrow('a2', 'app:t:0.7', 'db:t:0.3', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB 조회 ' + flying + '건' }); }
+    P.region('sec', 16, 158, 648, 96, '초마다 DB까지 간 조회 수 (1칸 = 1초)');
+    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 194, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
+    P.box('rate', 16, 270, 648, 34, { cls: 'plain', title: '캐시 적중률', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
+    P.note('요청은 캐시를 먼저 보고, 값이 있으면 거기서 끝납니다(초록 화살표). 캐시에 없을 때만 애플리케이션이 DB를 조회하는 화살표가 생깁니다. 아래 줄에서 초록은 DB 조회가 없던 초, 빨강은 조회가 여러 건 몰린 초입니다.');
   },
   assume: '한 개의 키(인기 상품 하나)만 다루고, 요청은 일정한 간격으로 들어온다고 가정했습니다. 캐시 응답 시간은 0.01초로 두었습니다. 캐시 크기가 가득 차서 오래된 키를 밀어내는 제거(eviction) 정책은 여기서 다루지 않습니다. 락을 건 경우 기다리는 요청은 조회가 끝나는 순간 캐시의 값을 받는다고 단순화했습니다. 숫자는 동작 방식을 보이기 위한 모형이며 실제 Redis를 측정한 값이 아닙니다.',
 });
@@ -14939,7 +14939,7 @@ Lab.register({
       st[1] = '계좌 A 락 보유 · B를 기다리는 중'; waits++; push('스레드 1: 받는 계좌 B의 락을 잡으려 합니다. 스레드 2가 쥐고 있어 기다립니다. A의 락은 쥔 채입니다.', '');
       st[2] = '계좌 B 락 보유 · A를 기다리는 중'; waits++;
       if (!c.tryl) { dead = true; push('스레드 2: 받는 계좌 A의 락을 잡으려 합니다. 스레드 1이 쥐고 있어 기다립니다. 스레드 1은 스레드 2를, 스레드 2는 스레드 1을 기다립니다. 어느 쪽도 먼저 락을 내려놓지 않으므로 영원히 풀리지 않습니다. 교착 상태입니다.', 'bad');
-        sum.push('교착 상태가 됐습니다. 두 이체 모두 끝나지 않고, 두 스레드는 예외도 없이 멈춰 있습니다. 스레드 덤프를 뜨면 서로의 락을 기다리는 BLOCKED 상태의 스레드로 확인할 수 있습니다.'); sum.push('교착 상태는 네 조건이 모두 맞을 때 생깁니다: 한 번에 하나만 쓸 수 있는 자원, 가진 채로 다른 것을 기다림, 남의 것을 뺏을 수 없음, 기다림이 고리를 이룸. 이 중 하나만 깨면 됩니다. 락 순서 통일은 고리를, tryLock은 "가진 채로 기다림"을 깹니다.');
+        sum.push('교착 상태가 됐습니다. 두 이체 모두 끝나지 않고, 두 스레드는 예외도 없이 멈춰 있습니다. 스레드 덤프를 뜨면 서로의 락을 기다리는 BLOCKED 상태의 스레드로 확인할 수 있습니다.'); sum.push('교착 상태는 네 조건이 모두 맞을 때 생깁니다: 한 번에 하나만 쓸 수 있는 자원, 가진 채로 다른 것을 기다림, 남의 것을 뺏을 수 없음, 기다림이 고리를 이룸. 이 중 하나만 깨면 됩니다. 락 순서 통일은 고리를 깹니다. tryLock은 끝없이 기다리지 않게 해서, 제한 시간이 지나면 포기하고 쥐고 있던 락을 내려놓게 합니다.');
       } else {
         push('스레드 2: 받는 계좌 A의 락을 잡으려 합니다. 스레드 1이 쥐고 있어 기다립니다. 지금은 서로가 서로를 기다리는 상태입니다.', 'bad');
         own.A = null; st[1] = '포기하고 잠시 뒤 재시도'; retries++; push('스레드 1: 1초를 기다려도 B의 락을 얻지 못했습니다. tryLock이 false를 돌려주고, 쥐고 있던 A의 락을 내려놓습니다.', '');
@@ -16514,7 +16514,7 @@ Lab.register({
 Lab.register({
   id: 'exflow', nav: '예외와 finally', cat: '자바 언어', mode: 'step',
   title: '예외가 나면 어느 블록이 어떤 순서로 실행되나',
-  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 어떤 경우에도 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
+  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
   terms: ['finally와 try-with-resources', '예외(Exception)와 Error', 'Checked 예외와 Unchecked 예외'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: '예외', type: 'select', value: 'match', options: [['none', '예외 없음'], ['match', 'try에서 발생, catch가 잡는 타입'], ['nomatch', 'try에서 발생, catch가 잡지 못하는 타입'], ['incatch', 'try에서 발생해 잡았는데 catch 안에서 또 발생']] },
@@ -16531,8 +16531,8 @@ Lab.register({
     { t: 'catch 안에서 또 예외', q: 'try에서 난 예외를 잡았는데 catch 안에서 또 예외가 나면', d: '새 예외가 밖으로 나가고, finally는 그 전에 실행됩니다.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
   ],
   code: function (c) {
-    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        throw new IllegalStateException();      // catch가 잡지 못함\n' : '        throw new IllegalArgumentException();\n';
-    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try 시작");\n' + t + '        print("try 끝");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // catch 안에서 또 예외\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n    print("블록 다음");\n    return 2;\n}';
+    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        if (fail) throw new IllegalStateException();     // fail은 true. catch가 잡지 못함\n' : '        if (fail) throw new IllegalArgumentException();  // fail은 true\n', tail = !(c.fret || (c.ret && c.ex === 'incatch'));
+    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try 시작");\n' + t + '        print("try 끝");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // catch 안에서 또 예외\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n' + (tail ? '    print("블록 다음");\n    return 2;\n}' : '    // 이 뒤에는 문장을 둘 수 없다. ' + (c.fret ? 'finally가 return으로 끝나서' : 'try는 return, catch는 throw로 끝나서') + ' 도달할 수 없는 문장(컴파일 오류)이 된다\n}');
   },
   label: function (c) { return { none: '예외 없음', match: '잡는 예외', nomatch: '못 잡는 예외', incatch: 'catch에서 또 예외' }[c.ex] + (c.ret ? ' · try에 return' : '') + (c.fret ? ' · finally에 return' : '') + (c.res ? ' · 자원 사용' : ''); },
   columns: ['실행 순서', '최종 결과'],
@@ -16566,8 +16566,8 @@ Lab.register({
     if (c.fret) pend = '';
     push('finally', 'finally 블록이 실행됩니다.' + (before ? ' 처리되지 않은 것(' + before + ')이 있어도 finally는 반드시 먼저 실행됩니다.' : '') + (c.fret ? ' finally 안에서 return 3을 만났습니다.' + (before ? ' 이 return이 ' + (before.indexOf('반환값') === 0 ? '앞서 정해 둔 반환값 1을 덮어씁니다.' : '밖으로 나가려던 예외를 없애 버립니다.') : '') : ''), c.fret && before ? 'bad' : '');
     if (tr.out === 'return 2') push('after', 'try-catch-finally가 끝나고 그다음 줄이 실행됩니다. "블록 다음"을 출력하고 2를 반환합니다.', 'good');
-    else if (tr.out.indexOf('throw') === 0) push(null, 'finally가 끝난 뒤, 처리되지 않은 ' + tr.out.slice(6) + '이 메서드 밖으로 나갑니다. "블록 다음"은 실행되지 않습니다.', 'bad');
-    else push(null, '메서드가 여기서 끝납니다. 반환값은 ' + tr.out.slice(7) + '입니다. "블록 다음"은 실행되지 않습니다.', c.fret && before ? 'bad' : 'good');
+    else if (tr.out.indexOf('throw') === 0) push(null, 'finally가 끝난 뒤, 처리되지 않은 ' + tr.out.slice(6) + '이 메서드 밖으로 나갑니다.' + (c.ret && c.ex === 'incatch' ? '' : ' "블록 다음"은 실행되지 않습니다.'), 'bad');
+    else push(null, '메서드가 여기서 끝납니다. 반환값은 ' + tr.out.slice(7) + '입니다.' + (c.fret ? '' : ' "블록 다음"은 실행되지 않습니다.'), c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' 발생' : tr.out.slice(7) + ' 반환';
     sum.push('finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다. 락 해제나 자원 정리를 finally에 두는 이유입니다.');
     if (c.fret && before) sum.push('finally 안의 return은 진행 중이던 예외나 반환값을 조용히 지워 버립니다. 예외가 났다는 사실이 사라지므로 finally에는 return을 쓰지 않습니다.');
@@ -16582,7 +16582,7 @@ Lab.register({
     H.title(v, '콘솔 출력'); var out = s.seen.filter(function (x) { return x.indexOf('자원') < 0; });
     v.appendChild(H.el('pre', 'code', out.length ? out.join('\n') : '(아직 없음)'));
   },
-  assume: '32가지 조합 모두의 실행 순서와 최종 결과를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.',
+  assume: '32가지 조합 모두에서 화면의 코드 그대로(값이 true인 fail 필드와 print, Resource만 더함)를 이 PC의 JDK 21에서 컴파일하고 실행해, 출력 순서와 최종 결과를 대조했습니다(verify/plain/exflow_code_check.js). 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.',
 });
 
 Lab.register({
@@ -19795,11 +19795,11 @@ Lab.register({
         push('요청 ' + (win + 1) + ': "버전이 ' + readVer + '일 때만 수정"하는 UPDATE를 보냅니다. 버전이 그대로여서 성공합니다. 재고는 ' + stock + '개, 새 버전은 ' + ver + '입니다.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = '저장 실패 → 재시도'; }); push('나머지 ' + left.length + '건: 같은 UPDATE를 보냈지만 버전이 이미 바뀌어(현재 ' + ver + ') 조건에 맞는 행이 없습니다(0건 수정). 충돌로 판단해 예외가 발생하고, 처음부터 다시 시도합니다.', 'bad', -1); }
       }
-      sum.push('낙관적 락은 락을 기다리지 않아서 충돌이 드문 경우(예: 한 사람이 자기 정보를 수정)에 유리합니다. 이 실습처럼 같은 행에 요청이 몰리면 대부분이 실패하고 재시도하느라 오히려 일을 더 많이 합니다. 재시도 코드는 직접 만들어야 합니다.');
+      sum.push('낙관적 락은 조회할 때 락을 잡고 기다리지 않아서 충돌이 드문 경우(예: 한 사람이 자기 정보를 수정)에 유리합니다. 이 실습처럼 같은 행에 요청이 몰리면 대부분이 실패하고 재시도하느라 오히려 일을 더 많이 합니다. 재시도 코드는 직접 만들어야 합니다.');
     }
     if (c.how === 'atomic') {
       for (var u = 0; u < N; u++) {
-        if (stock > 0) { stock--; orders++; sold++; st[u] = '주문 성공'; push('요청 ' + (u + 1) + ': "재고가 0보다 크면 1 감소" UPDATE를 보냅니다. DB가 이 한 문장을 실행하는 동안에만 행을 잠급니다. 1건이 수정됐으므로 주문을 만듭니다. 재고 ' + stock + '개.', 'good', u); }
+        if (stock > 0) { stock--; orders++; sold++; st[u] = '주문 성공'; push('요청 ' + (u + 1) + ': "재고가 0보다 크면 1 감소" UPDATE를 보냅니다. 재고 확인과 감소가 이 한 문장 안에서 한꺼번에 일어나므로 그 사이에 다른 요청이 끼어들지 못합니다(이 행의 락은 트랜잭션이 끝날 때 풀립니다). 1건이 수정됐으므로 주문을 만듭니다. 재고 ' + stock + '개.', 'good', u); }
         else { st[u] = '품절로 거절'; push('요청 ' + (u + 1) + ': 같은 UPDATE를 보냈지만 재고가 0이라 조건에 맞지 않습니다. 수정된 행이 0건이므로 품절로 처리합니다.', '', u); }
       }
       sum.push('"읽고, 확인하고, 쓰기"를 애플리케이션에서 나눠 하지 않고 SQL 한 문장에 넣으면, 끼어들 틈 자체가 없어집니다. 단순한 증감에는 가장 가볍고 확실한 방법입니다. 확인할 조건이 여러 테이블에 걸쳐 복잡하면 쓰기 어렵습니다.');
@@ -20088,7 +20088,7 @@ Lab.register({
 Lab.register({
   id: 'aop_basic', nav: 'AOP와 프록시', cat: '기초개념', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: '프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가',
-  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그것을 감싼 대리 객체(프록시)를 대신 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
+  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
   terms: ['프록시(Proxy)', 'AOP(관점 지향 프로그래밍)', '@Aspect와 @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'LogAspect 클래스(@Aspect)를 둔다', type: 'check', value: true },
@@ -20128,7 +20128,7 @@ Lab.register({
     // 2. 스프링이 프록시가 필요한지 본다
     if (A) {
       st.bean = 'proxy'; st.beanName = PX; st.proxies = 1;
-      push('스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체를 감싼 대리 객체(프록시)를 만들어 대신 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 ' + PX + '의 객체이고, 진짜 OrderService 객체는 그 안에 들어 있습니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.', 'good');
+      push('스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 ' + PX + '의 객체이고, 진짜 OrderService 객체를 참조로 갖고 있습니다. 둘은 서로 다른 객체입니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.', 'good');
     } else {
       push('스프링에는 OrderService의 order()에 끼어들겠다는 @Aspect 클래스가 없습니다(코드에 LogAspect 클래스가 없습니다). 끼워 넣을 일이 없으므로 스프링은 프록시를 만들지 않고, 방금 만든 OrderService 객체를 그대로 빈으로 보관합니다.', '');
     }
@@ -20149,7 +20149,7 @@ Lab.register({
       st.at = 'asp'; st.out.push('[로그] order 호출됨');
       push('프록시가 LogAspect의 log()를 실행해 "[로그] order 호출됨"을 찍습니다. 이 줄은 order()가 아니라 LogAspect에 적혀 있습니다.', 'good');
       st.at = 'real'; st.out.push('주문 처리');
-      push('프록시가 안에 들어 있는 진짜 OrderService 객체의 order()를 부르고, order()가 "주문 처리"를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.', '');
+      push('프록시가 참조로 갖고 있던 진짜 OrderService 객체의 order()를 부르고, order()가 "주문 처리"를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.', '');
     } else {
       st.at = bean ? 'bean' : 'mine'; st.out.push('주문 처리');
       push('Caller의 run()이 orderService.order()를 부릅니다. ' + (bean
@@ -20166,7 +20166,7 @@ Lab.register({
 
     // 요약: 첫 줄은 물음의 답
     if (A && bean) {
-      sum.push('LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그것을 감싼 프록시를 대신 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.');
+      sum.push('LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그 객체 대신 호출을 받을 프록시를 만들어 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.');
       sum.push('order() 안에는 로그를 찍는 줄이 없습니다. 부른 객체의 클래스 이름이 OrderService가 아니라 ' + PX + '인 것이 프록시를 불렀다는 표시입니다. @Transactional을 붙인 빈의 클래스 이름이 같은 꼴로 바뀌는 것도 같은 일입니다.');
     } else if (!A && bean) {
       sum.push('LogAspect를 지우면 끼워 넣을 일이 없어서 스프링이 프록시를 만들지 않고 OrderService 객체를 그대로 빈으로 썼습니다. order()는 "주문 처리"만 찍었고, 부른 객체의 클래스 이름도 OrderService 그대로입니다.');
@@ -20192,21 +20192,21 @@ Lab.register({
     var logs = s.out.filter(function (x) { return x.indexOf('[로그]') === 0; }).length;
     H.counters(v, [[logs, '찍힌 [로그] 줄'], [s.proxies, '스프링이 만든 프록시']]);
   },
-  // 그림: 왼쪽에 호출하는 Caller, 가운데 위쪽에 스프링이 보관한 OrderService 빈(프록시면 오른쪽에 그 안의 진짜 객체)과 LogAspect, 아래쪽에 new로 만든 객체. 호출이 어느 객체에 닿는지 화살표로 보인다.
+  // 그림: 왼쪽에 호출하는 Caller, 가운데 위쪽에 스프링이 보관한 OrderService 빈(프록시면 오른쪽에 프록시가 참조하는 진짜 객체)과 LogAspect, 아래쪽에 new로 만든 객체. 호출이 어느 객체에 닿는지 화살표로 보인다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     var A = !!c.aspect, bean = c.how === 'bean';
     P.size(680, 304);
     P.box('caller', 14, 70, 174, 82, { cls: s && s.at === '' && s.slot && s.out.length ? 'good' : 'plain', title: 'Caller.run()', sub: ['orderService 칸:', s && s.slot ? (s.slot === 'bean' && s.bean === 'proxy' ? '프록시' : 'OrderService 객체') : '비어 있음'] });
-    P.region('sp', 240, 14, 426, 178, '스프링이 보관하는 객체(빈)');
+    P.region('sp', 240, 14, 426, 178, '스프링이 만든 객체');
     var made = s && s.bean, px = s && s.bean === 'proxy';
     P.box('bean', 252, 44, 186, 58, { cls: !made ? 'ghost' : s.at === 'bean' ? 'hot now' : px ? 'wait' : 'plain', title: made ? (px ? 'OrderService 프록시' : 'OrderService 객체') : 'OrderService 빈', sub: !made ? '아직 만들기 전' : px ? '대리 객체 (하위 클래스)' : '우리가 쓴 클래스 그대로' });
-    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: '진짜 OrderService', sub: px ? '프록시 안에 들어 있음' : '프록시가 없어 따로 없음' });
+    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: '진짜 OrderService', sub: px ? '프록시와 다른 객체' : '프록시가 없어 따로 없음' });
     P.box('asp', 252, 118, 186, 58, { cls: !A ? 'ghost' : s && s.at === 'asp' ? 'hot now' : 'plain', title: 'LogAspect', sub: A ? '@Before: [로그] 찍기' : '클래스를 지움' });
     P.box('mine', 240, 206, 330, 44, { cls: !bean && s && s.mine ? (s.at === 'mine' ? 'hot now' : 'hot') : 'ghost', title: 'new OrderService()로 만든 객체', sub: !bean ? '스프링이 만든 것이 아님' : '이 코드에는 없음' });
     if (s && (s.at === 'bean' || s.at === 'asp')) P.arrow('a1', 'caller:r:0.2', 'bean:l', { cls: 'hot' });
     if (s && s.at === 'asp') P.arrow('a2', 'bean:b', 'asp:t', { cls: 'hot' });
-    if (s && s.at === 'real') P.arrow('a3', 'bean:r', 'real:l', { cls: 'hot' });
+    if (px) P.arrow('a3', 'bean:r', 'real:l', { cls: s.at === 'real' ? 'hot' : 'mut', label: '참조' });
     if (s && s.at === 'mine') P.arrow('a4', 'caller:r:0.8', 'mine:l', { cls: 'hot' });
     var logs = s ? s.out.filter(function (x) { return x.indexOf('[로그]') === 0; }).length : 0;
     P.box('n1', 14, 262, 322, 34, { cls: logs ? 'good' : 'ghost', title: '찍힌 [로그] 줄', right: logs + '줄' });

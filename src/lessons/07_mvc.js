@@ -46,7 +46,7 @@ Lab.register({
         go('F2', 'false를 반환한 인터셉터 자신의 afterCompletion도 호출되지 않습니다(그보다 앞서 true를 반환한 인터셉터가 있었다면 그것들만 호출됩니다). 응답은 필터 체인을 거꾸로 지나 나갑니다.', '');
       } else {
         go('IP', '인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.', '');
-        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 모델 객체를 넣어 줍니다. MVC의 모델(M)이 여기서 만들어집니다.', '');
+        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.', '');
         if (c.what === 'ex') {
           go('CT', '컨트롤러 메서드가 실행되다가 OutOfStockException을 던집니다. 반환값 처리와 postHandle은 건너뜁니다.', 'bad');
           if (c.advice) {
@@ -107,7 +107,7 @@ Lab.register({
     P.region('path', 16, 16, 396, 42 + stages.length * 29, '요청이 지나는 길 (위에서 아래로)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? '지금 여기' : id === s.end ? '여기서 문제 발생' : seen ? '지나감' : done ? '건너뜀' : (group[id] || '') }); });
     P.region('roles', 440, 114, 224, 246, 'MVC의 세 역할');
-    var mSub = rest ? ['쓰이지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '담기 전에 예외 발생'] : [num('CT') + 'orders가 담김']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
+    var mSub = rest ? ['Model 객체는 쓰지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '담기 전에 예외 발생'] : [num('CT') + 'orders가 담김']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
     var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? '호출되지 않음' : '아직 호출 전') : num('CT') + (ex ? '예외를 던짐' : s.cur === 'CT' ? '실행 중' : '실행 끝')];
     var vSub = rest ? ['없음', at('RV') ? num('RV') + '뷰 없이 JSON을 씀' : 'JSON 응답에는 쓰이지 않음'] : ['orders/list 템플릿', at('VR') ? num('VR') + '모델로 HTML을 그림' : done ? '그려지지 않음' : at('RV') ? '화면 이름이 정해짐' : '아직 쓰이지 않음'];
     var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };

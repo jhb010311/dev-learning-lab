@@ -75,7 +75,7 @@ Lab.register({
       o.by.forEach(function (name, j) { P.arrow('ar_' + name, 'v_' + name + ':r', 'o' + o.id + ':l:' + (o.by.length > 1 ? (j + 1) / (o.by.length + 1) : 0.5), { cls: o.by.length > 1 ? 'good' : '' }); });
     });
     var res = function (x) { return x === 'true' ? 'good' : x === 'false' ? 'bad' : 'ghost'; };
-    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: 'a == b  (같은 객체인가)', right: s.cmp.eq || '?' });
+    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: c.kind === 'int' && c.ib === 'prim' ? 'a == b  (값이 같은가)' : 'a == b  (같은 객체인가)', right: s.cmp.eq || '?' });
     P.box('c2', 344, 236, 320, 34, { cls: res(s.cmp.equals), title: 'a.equals(b)  (내용이 같은가)', right: s.cmp.equals || '?' });
     P.note(str ? '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. String Pool은 실제로는 힙 안에 있지만 구분하려고 따로 그렸습니다.' : '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. 기본형 int 변수는 객체를 가리키지 않고 값을 직접 담습니다.');
   },

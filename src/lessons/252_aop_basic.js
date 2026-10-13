@@ -1,7 +1,7 @@
 Lab.register({
   id: 'aop_basic', nav: 'AOP와 프록시', cat: '기초개념', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: '프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가',
-  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그것을 감싼 대리 객체(프록시)를 대신 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
+  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
   terms: ['프록시(Proxy)', 'AOP(관점 지향 프로그래밍)', '@Aspect와 @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'LogAspect 클래스(@Aspect)를 둔다', type: 'check', value: true },
@@ -41,7 +41,7 @@ Lab.register({
     // 2. 스프링이 프록시가 필요한지 본다
     if (A) {
       st.bean = 'proxy'; st.beanName = PX; st.proxies = 1;
-      push('스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체를 감싼 대리 객체(프록시)를 만들어 대신 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 ' + PX + '의 객체이고, 진짜 OrderService 객체는 그 안에 들어 있습니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.', 'good');
+      push('스프링이 @Aspect가 붙은 LogAspect를 찾습니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드(매개변수는 몇 개든)를 고르는 식입니다. 방금 만든 OrderService 객체에는 이 식에 맞는 order()가 있습니다. 그래서 스프링은 이 객체를 그대로 빈으로 쓰지 않고, 이 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 빈으로 보관합니다. 프록시는 OrderService를 상속한 클래스 ' + PX + '의 객체이고, 진짜 OrderService 객체를 참조로 갖고 있습니다. 둘은 서로 다른 객체입니다. 프록시를 만드는 줄은 우리가 쓴 코드에 없습니다.', 'good');
     } else {
       push('스프링에는 OrderService의 order()에 끼어들겠다는 @Aspect 클래스가 없습니다(코드에 LogAspect 클래스가 없습니다). 끼워 넣을 일이 없으므로 스프링은 프록시를 만들지 않고, 방금 만든 OrderService 객체를 그대로 빈으로 보관합니다.', '');
     }
@@ -62,7 +62,7 @@ Lab.register({
       st.at = 'asp'; st.out.push('[로그] order 호출됨');
       push('프록시가 LogAspect의 log()를 실행해 "[로그] order 호출됨"을 찍습니다. 이 줄은 order()가 아니라 LogAspect에 적혀 있습니다.', 'good');
       st.at = 'real'; st.out.push('주문 처리');
-      push('프록시가 안에 들어 있는 진짜 OrderService 객체의 order()를 부르고, order()가 "주문 처리"를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.', '');
+      push('프록시가 참조로 갖고 있던 진짜 OrderService 객체의 order()를 부르고, order()가 "주문 처리"를 찍습니다. order() 안에는 로그를 찍는 줄이 없습니다.', '');
     } else {
       st.at = bean ? 'bean' : 'mine'; st.out.push('주문 처리');
       push('Caller의 run()이 orderService.order()를 부릅니다. ' + (bean
@@ -79,7 +79,7 @@ Lab.register({
 
     // 요약: 첫 줄은 물음의 답
     if (A && bean) {
-      sum.push('LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그것을 감싼 프록시를 대신 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.');
+      sum.push('LogAspect는 @Aspect가 붙은 클래스이고, order()에 공통으로 끼워 넣을 일(로그 찍기)을 따로 적어 둔 곳입니다. 스프링이 OrderService 객체를 그대로 빈으로 쓰지 않고 그 객체 대신 호출을 받을 프록시를 만들어 보관했고, order()를 부르자 프록시가 먼저 받아 [로그]를 찍은 뒤 진짜 order()를 불렀습니다.');
       sum.push('order() 안에는 로그를 찍는 줄이 없습니다. 부른 객체의 클래스 이름이 OrderService가 아니라 ' + PX + '인 것이 프록시를 불렀다는 표시입니다. @Transactional을 붙인 빈의 클래스 이름이 같은 꼴로 바뀌는 것도 같은 일입니다.');
     } else if (!A && bean) {
       sum.push('LogAspect를 지우면 끼워 넣을 일이 없어서 스프링이 프록시를 만들지 않고 OrderService 객체를 그대로 빈으로 썼습니다. order()는 "주문 처리"만 찍었고, 부른 객체의 클래스 이름도 OrderService 그대로입니다.');
@@ -105,21 +105,21 @@ Lab.register({
     var logs = s.out.filter(function (x) { return x.indexOf('[로그]') === 0; }).length;
     H.counters(v, [[logs, '찍힌 [로그] 줄'], [s.proxies, '스프링이 만든 프록시']]);
   },
-  // 그림: 왼쪽에 호출하는 Caller, 가운데 위쪽에 스프링이 보관한 OrderService 빈(프록시면 오른쪽에 그 안의 진짜 객체)과 LogAspect, 아래쪽에 new로 만든 객체. 호출이 어느 객체에 닿는지 화살표로 보인다.
+  // 그림: 왼쪽에 호출하는 Caller, 가운데 위쪽에 스프링이 보관한 OrderService 빈(프록시면 오른쪽에 프록시가 참조하는 진짜 객체)과 LogAspect, 아래쪽에 new로 만든 객체. 호출이 어느 객체에 닿는지 화살표로 보인다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     var A = !!c.aspect, bean = c.how === 'bean';
     P.size(680, 304);
     P.box('caller', 14, 70, 174, 82, { cls: s && s.at === '' && s.slot && s.out.length ? 'good' : 'plain', title: 'Caller.run()', sub: ['orderService 칸:', s && s.slot ? (s.slot === 'bean' && s.bean === 'proxy' ? '프록시' : 'OrderService 객체') : '비어 있음'] });
-    P.region('sp', 240, 14, 426, 178, '스프링이 보관하는 객체(빈)');
+    P.region('sp', 240, 14, 426, 178, '스프링이 만든 객체');
     var made = s && s.bean, px = s && s.bean === 'proxy';
     P.box('bean', 252, 44, 186, 58, { cls: !made ? 'ghost' : s.at === 'bean' ? 'hot now' : px ? 'wait' : 'plain', title: made ? (px ? 'OrderService 프록시' : 'OrderService 객체') : 'OrderService 빈', sub: !made ? '아직 만들기 전' : px ? '대리 객체 (하위 클래스)' : '우리가 쓴 클래스 그대로' });
-    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: '진짜 OrderService', sub: px ? '프록시 안에 들어 있음' : '프록시가 없어 따로 없음' });
+    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: '진짜 OrderService', sub: px ? '프록시와 다른 객체' : '프록시가 없어 따로 없음' });
     P.box('asp', 252, 118, 186, 58, { cls: !A ? 'ghost' : s && s.at === 'asp' ? 'hot now' : 'plain', title: 'LogAspect', sub: A ? '@Before: [로그] 찍기' : '클래스를 지움' });
     P.box('mine', 240, 206, 330, 44, { cls: !bean && s && s.mine ? (s.at === 'mine' ? 'hot now' : 'hot') : 'ghost', title: 'new OrderService()로 만든 객체', sub: !bean ? '스프링이 만든 것이 아님' : '이 코드에는 없음' });
     if (s && (s.at === 'bean' || s.at === 'asp')) P.arrow('a1', 'caller:r:0.2', 'bean:l', { cls: 'hot' });
     if (s && s.at === 'asp') P.arrow('a2', 'bean:b', 'asp:t', { cls: 'hot' });
-    if (s && s.at === 'real') P.arrow('a3', 'bean:r', 'real:l', { cls: 'hot' });
+    if (px) P.arrow('a3', 'bean:r', 'real:l', { cls: s.at === 'real' ? 'hot' : 'mut', label: '참조' });
     if (s && s.at === 'mine') P.arrow('a4', 'caller:r:0.8', 'mine:l', { cls: 'hot' });
     var logs = s ? s.out.filter(function (x) { return x.indexOf('[로그]') === 0; }).length : 0;
     P.box('n1', 14, 262, 322, 34, { cls: logs ? 'good' : 'ghost', title: '찍힌 [로그] 줄', right: logs + '줄' });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'hashmap', nav: 'HashMap 내부', cat: '자료구조', mode: 'step',
   title: 'HashMap은 키를 어디에 넣고 어떻게 찾나',
-  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
+  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode로 정한 버킷 번호가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
   terms: ['해시 테이블과 HashMap', '해시 충돌', '로드 팩터와 리사이즈', '레드-블랙 트리', 'equals와 hashCode 규약'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: '넣는 키 개수', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + '개'; } },
@@ -48,7 +48,7 @@ Lab.register({
       var moved = 0; old.forEach(function (b, j) { moved += B[j + oc].nodes.length; });
       push(why + ' 버킷을 ' + oc + '개에서 ' + cap + '개로 늘리고 모든 항목의 자리를 다시 정했습니다. ' + size + '개 중 ' + moved + '개가 새 버킷으로 옮겨 갔습니다. 다음에 늘리는 기준은 ' + thr + '개 초과입니다.', '', -1);
     }
-    function where(k) { return 'hashCode는 ' + k.raw + (hcOn ? '' : '(재정의하지 않아 객체마다 다른 값)') + ', 버킷 번호는 ' + (k.hash & (cap - 1)) + '번(해시를 버킷 수 ' + cap + '개로 나눈 나머지)입니다.'; }
+    function where(k) { return 'hashCode는 ' + k.raw + (hcOn ? '' : '(재정의하지 않아 객체마다 다른 값)') + ', 버킷 번호는 ' + (k.hash & (cap - 1)) + '번(hashCode의 위아래 비트를 섞은 값을 버킷 수 ' + cap + '개로 나눈 나머지)입니다.'; }
     function put(id, again) {
       var k = mk(id), idx = k.hash & (cap - 1), b = B[idx], hit = b.nodes.filter(function (x) { return same(x, k); })[0];
       var head = (again ? '같은 id ' + id + '로 새 키 객체를 만들어 다시 put. ' : 'put(id ' + id + '). ') + where(k) + ' ';
@@ -78,7 +78,7 @@ Lab.register({
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('hashCode 값의 종류가 적으면 버킷을 아무리 늘려도 같은 버킷에 쌓입니다. 한 버킷이 길어질수록 put과 get이 그 안을 하나씩 비교하므로 느려집니다.');
     if (afterFill.trees) sum.push('버킷 ' + afterFill.trees + '개가 레드-블랙 트리로 바뀌었습니다. 트리는 해시 값이 서로 다르거나 키가 Comparable일 때 탐색을 빠르게 합니다. 이 예처럼 한 버킷의 hashCode가 전부 같고 Comparable도 아니면 트리로 바꿔도 탐색은 빨라지지 않습니다. 결국 hashCode를 고르게 만드는 것이 해법입니다.');
     if (c.eq === 'both') sum.push('equals와 hashCode를 둘 다 재정의해서, 같은 id로 만든 새 객체로도 값을 바꾸고 찾을 수 있었습니다.');
-    if (c.eq === 'eqonly') sum.push('equals만 재정의하면 "equals가 true인 두 객체는 hashCode가 같아야 한다"는 규약이 깨집니다. 같은 id인데 해시가 달라 다른 버킷으로 가므로, 중복으로 저장되고 조회도 실패했습니다.');
+    if (c.eq === 'eqonly') sum.push('equals만 재정의하면 "equals가 true인 두 객체는 hashCode가 같아야 한다"는 규약이 깨집니다. 같은 id인데 해시가 달라 대개 다른 버킷으로 가고 같은 버킷이어도 같은 키로 보지 않으므로, 중복으로 저장되고 조회도 실패했습니다.');
     if (c.eq === 'hconly') sum.push('hashCode만 재정의하면 같은 버킷까지는 가지만, equals가 객체 주소 비교라서 같은 키로 인정받지 못합니다. 중복으로 저장되고 조회도 실패했습니다.');
     if (c.eq === 'none') sum.push('둘 다 재정의하지 않으면 내용이 같아도 완전히 다른 키입니다. 넣을 때 쓴 바로 그 객체를 들고 있어야만 찾을 수 있습니다.');
     return { events: ev, summary: sum, row: [afterFill.cap + '개', afterFill.resizes + '번', afterFill.longest + '개', afterFill.trees + '개', replaced ? '값만 바뀜' : '중복 저장', found ? '찾음' : 'null'], trace: ev.map(function (e) { return e.snap; }) };

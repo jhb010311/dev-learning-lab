@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exflow', nav: 'Exceptions and finally', cat: 'Java language', mode: 'step',
   title: 'When an exception is thrown, which blocks run, and in what order?',
-  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
+  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
   terms: ['finally and try-with-resources', 'Exception and Error', 'Checked and unchecked exceptions'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: 'Exception', type: 'select', value: 'match', options: [['none', 'No exception'], ['match', 'Thrown in try, a type that the catch block catches'], ['nomatch', 'Thrown in try, a type that the catch block does not catch'], ['incatch', 'Thrown in try and caught, then another one thrown inside catch']] },
@@ -18,8 +18,8 @@ Lab.register({
     { t: 'Another exception inside catch', q: 'What if the catch block catches the exception from try, and another exception is thrown inside catch?', d: 'The new exception leaves the method, and the finally block runs before that.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
   ],
   code: function (c) {
-    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        throw new IllegalStateException();      // not caught by the catch block\n' : '        throw new IllegalArgumentException();\n';
-    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try start");\n' + t + '        print("try end");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // another exception inside catch\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n    print("after the block");\n    return 2;\n}';
+    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        if (fail) throw new IllegalStateException();     // fail is true. not caught by the catch block\n' : '        if (fail) throw new IllegalArgumentException();  // fail is true\n', tail = !(c.fret || (c.ret && c.ex === 'incatch'));
+    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try start");\n' + t + '        print("try end");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // another exception inside catch\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n' + (tail ? '    print("after the block");\n    return 2;\n}' : '    // No statement can come after this. ' + (c.fret ? 'finally ends with return,' : 'try ends with return and catch ends with throw,') + ' so it would be an unreachable statement (a compile-time error)\n}');
   },
   label: function (c) { return { none: 'No exception', match: 'Caught by catch', nomatch: 'Not caught by catch', incatch: 'Another exception in catch' }[c.ex] + (c.ret ? ' · return in try' : '') + (c.fret ? ' · return in finally' : '') + (c.res ? ' · with a resource' : ''); },
   columns: ['Execution order', 'Final result'],
@@ -53,8 +53,8 @@ Lab.register({
     if (c.fret) pend = '';
     push('finally', 'The finally block runs.' + (before ? ' Even when something is still unhandled (' + before + '), the finally block always runs first.' : '') + (c.fret ? ' Control reaches return 3 inside the finally block.' + (before ? ' This return ' + (before.indexOf('return value') === 0 ? 'overwrites the return value 1 that was set earlier.' : 'discards the exception that was on its way out.') : '') : ''), c.fret && before ? 'bad' : '');
     if (tr.out === 'return 2') push('after', 'The try-catch-finally ends, and the line after it runs. "after the block" is printed, and 2 is returned.', 'good');
-    else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method. The "after the block" line does not run.', 'bad');
-    else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '. The "after the block" line does not run.', c.fret && before ? 'bad' : 'good');
+    else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method.' + (c.ret && c.ex === 'incatch' ? '' : ' The "after the block" line does not run.'), 'bad');
+    else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '.' + (c.fret ? '' : ' The "after the block" line does not run.'), c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' thrown' : tr.out.slice(7) + ' returned';
     sum.push('The finally block runs in every case: normal completion, a return, or an exception. That is why releasing locks and cleaning up resources are placed in the finally block.');
     if (c.fret && before) sum.push('A return inside the finally block silently discards the exception or the return value that was in progress. The fact that an exception was thrown disappears, so do not write a return in a finally block.');
@@ -69,5 +69,5 @@ Lab.register({
     H.title(v, 'Console output'); var out = s.seen.filter(function (x) { return x.indexOf('resource') < 0; });
     v.appendChild(H.el('pre', 'code', out.length ? out.join('\n') : '(none yet)'));
   },
-  assume: 'The execution order and the final result of all 32 combinations were checked against the results of running code with the same structure on JDK 21 on this PC. Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.',
+  assume: 'For all 32 combinations, the code exactly as shown (with only a fail field set to true, print, and Resource added) was compiled and run on JDK 21 on this PC, and the output order and the final result were checked (verify/plain/exflow_code_check.js). Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.',
 });

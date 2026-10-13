@@ -38,7 +38,7 @@ Lab.register({
       send('select * from member where id = 1', '1번째 줄'); cache.push({ id: 1, name: '김철수', snap: '김철수', st: '관리 중' });
       push(0, '1번째 줄: 영속성 컨텍스트의 1차 캐시에 회원 1이 없습니다. DB에 SELECT를 보내 읽어 오고, 읽은 엔티티를 1차 캐시에 보관합니다. 처음 읽었을 때의 값(스냅샷)도 함께 남겨 둡니다.', '');
       push(1, '2번째 줄: 1차 캐시에 회원 1이 이미 있습니다. DB에 가지 않고 보관 중인 객체를 그대로 돌려줍니다. SQL이 나가지 않았습니다.', 'good');
-      push(2, '3번째 줄: a와 b는 같은 객체입니다. a == b는 true입니다. 한 트랜잭션 안에서는 같은 식별자의 엔티티가 항상 같은 인스턴스임이 보장됩니다.', '');
+      push(2, '3번째 줄: a와 b는 같은 객체입니다. a == b는 true입니다. 같은 영속성 컨텍스트 안에서는 같은 식별자의 엔티티가 항상 같은 인스턴스임이 보장됩니다.', '');
       push(-1, '메서드 종료, 커밋: 엔티티의 현재 값과 스냅샷을 비교했지만 달라진 것이 없습니다. 보낼 SQL이 없습니다.', '');
       result = '변화 없음'; sum.push('em.find를 두 번 불렀지만 SELECT는 한 번만 나갔습니다. 같은 트랜잭션 안에서 이미 읽은 엔티티는 1차 캐시에서 꺼냅니다.', '1차 캐시는 트랜잭션(영속성 컨텍스트) 하나 안에서만 살아 있습니다. 요청이 끝나면 사라지므로, 여러 요청이 함께 쓰는 Redis 같은 캐시와는 목적이 다릅니다.');
     }
@@ -93,11 +93,11 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], prev = shown[shown.length - 2], s = last ? last.snap : { cache: [], pending: [], sent: [], db: [{ id: 1, name: '김철수' }] }, before = prev ? prev.snap.sent.length : 0, fresh = s.sent.slice(before);
     P.size(680, 330);
-    P.region('pc', 16, 16, 400, 298, '영속성 컨텍스트 (트랜잭션 동안만 있음)');
+    P.region('pc', 16, 16, 400, 298, '영속성 컨텍스트 (여기서는 트랜잭션 동안 유지)');
     P.region('db', 470, 16, 194, 298, 'DB의 member 테이블');
     P.text('c1', 28, 58, '1차 캐시: 관리 중인 엔티티', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: '비어 있음', center: true });
-    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('준영속') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: '회원 ' + e.id + (gone ? ' (관리 끝남)' : ''), sub: '현재 값: ' + e.name + '  ·  스냅샷: ' + e.snap }); });
+    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('준영속') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: '회원 ' + e.id + (gone ? ' (준영속: 컨텍스트에서 빠짐)' : ''), sub: '현재 값: ' + e.name + '  ·  스냅샷: ' + e.snap }); });
     P.box('pend', 28, 250, 376, 48, { cls: s.pending.length ? 'wait' : 'ghost', title: '쓰기 지연 저장소', sub: s.pending.length ? 'INSERT ' + s.pending.length + '건을 보내지 않고 쌓아 둠' : '쌓아 둔 SQL 없음' });
     s.db.forEach(function (r, i) { P.box('r' + r.id, 482, 52 + i * 40, 170, 32, { cls: r.cls === 'hot' ? 'hot' : 'plain', title: 'id ' + r.id, right: r.name }); });
     if (fresh.length) { var kinds = {}; fresh.forEach(function (q) { var k = q.sql.split(' ')[0].toUpperCase(); kinds[k] = (kinds[k] || 0) + 1; }); P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: Object.keys(kinds).map(function (k) { return k + (kinds[k] > 1 ? ' ×' + kinds[k] : ''); }).join(', ') }); }

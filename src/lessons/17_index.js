@@ -43,7 +43,7 @@ Lab.register({
     if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + J(num(costIdx), '으로', '로') + ' ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : Math.round(costIdx / costFull * 100) + '% 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '으로 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) : (Math.round(costFull / costIdx * 10) / 10)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + J(num(costIdx), '으로', '로') + ', 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');
-    else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별이나 상태값처럼 값의 종류가 적은 컬럼 하나만으로는 인덱스 효과가 작은 이유입니다.');
+    else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별처럼 값의 종류가 적고 고르게 퍼진 컬럼은 어느 값을 찾아도 걸리는 행이 많아서 인덱스 효과가 작은 이유입니다.');
     return { events: ev, summary: sum, k: { N: N, matched: matched, costFull: costFull, costIdx: costIdx, useIdx: useIdx, h: h, read: read, cost: cost }, row: [useIdx ? '인덱스' : '풀 스캔', num(read) + '행', num(matched) + '행', num(read - matched) + '행', num(cost)] };
   },
   render: function (v, sim, t, H, shown) {

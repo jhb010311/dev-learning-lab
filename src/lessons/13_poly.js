@@ -70,7 +70,7 @@ Lab.register({
     P.box('obj', 428, 50, 222, 44, err ? { cls: 'bad', title: 'Animal 객체', sub: 'Dog 변수에 넣을 수 없음' } : { cls: 'good', title: s.obj + ' 객체', sub: '실제 타입: ' + s.obj });
     if (!err) P.arrow('pt', 'var:r', 'obj:l', { label: '가리킴' });
     var names = { override: ['Animal의 sound()', 'Dog의 sound() (재정의)'], overload: ['print(Animal a)', 'print(Dog d)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal의 name 필드', 'Dog의 name 필드'] }[c.w];
-    P.region('cand', 16, 132, 648, 100, { override: '실행될 수 있는 메서드', overload: 'Printer의 두 메서드', static: '두 클래스의 static 메서드', field: '객체 안의 두 필드' }[c.w]);
+    P.region('cand', 16, 132, 648, 100, { override: '실행될 수 있는 메서드', overload: 'Printer의 두 메서드', static: '두 클래스의 static 메서드', field: '이름이 name인 두 필드' }[c.w]);
     var pick = err || !s.pick ? '' : /Dog/.test(s.pick) ? 'D' : /Animal/.test(s.pick) ? 'A' : '', late = c.w === 'override' && s.stage === '실행', chosen = late || c.w !== 'override';
     [['A', 30], ['D', 344]].forEach(function (m, i) { var on = pick === m[0]; P.box('m' + m[0], m[1], 168, 306, 48, { cls: on ? (chosen ? 'hot now' : 'wait') : 'plain', title: names[i], sub: on ? (chosen ? '이것이 선택됨' : '있는지만 확인함') : ' ' }); });
     if (pick) P.arrow('sel', (late ? 'obj' : 'var') + ':b', 'm' + pick + ':t', { cls: late ? 'good' : chosen ? 'hot' : 'dash mut', label: late ? '실제 객체의 타입으로 (실행 시점)' : chosen ? '선언 타입으로 (컴파일 시점)' : '선언 타입에 있는지 확인' });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a50065aafa">
+<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>캐시가 비어 있는 순간부터 다시 채워지기 전까지(1초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.</li>
+<li>캐시가 비어 있는 순간부터 다시 채워지기 전까지(1초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락이나 만료 전에 미리 갱신하기로 줄입니다. 여러 키가 한꺼번에 만료되는 경우에는 키마다 TTL에 약간의 차이를 줍니다.</li>
 <li>TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -172,6 +172,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a50065aafa"></script>
+<script src="../../app.js?v=facdcb7ce9"></script>
 </body>
 </html>

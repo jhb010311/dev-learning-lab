@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a50065aafa">
+<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 <li>HandlerMapping이 GET /orders를 처리할 핸들러를 찾습니다. @GetMapping(&quot;/orders&quot;)가 붙은 list 메서드와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.</li>
 <li>HandlerAdapter를 고릅니다. 애너테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.</li>
 <li>인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.</li>
-<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 모델 객체를 넣어 줍니다. MVC의 모델(M)이 여기서 만들어집니다.</li>
+<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.</li>
 <li>컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 &quot;orders/list&quot;를 돌려줍니다.</li>
 <li>반환값을 처리합니다. @Controller가 돌려준 문자열 &quot;orders/list&quot;는 화면 이름으로 해석되고, 모델과 함께 ModelAndView로 묶입니다.</li>
 <li>인터셉터의 postHandle이 호출됩니다. 아직 화면을 그리기 전이라 모델에 공통 데이터를 추가할 수 있습니다.</li>
@@ -180,6 +180,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a50065aafa"></script>
+<script src="../../app.js?v=facdcb7ce9"></script>
 </body>
 </html>

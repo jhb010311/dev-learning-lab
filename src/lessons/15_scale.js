@@ -32,8 +32,8 @@ Lab.register({
     var neck = alive === 0 ? '서버 없음' : appOut < c.rps && appOut <= dbCap ? '애플리케이션 서버' : out < appOut ? 'DB' : appOut < c.rps ? '애플리케이션 서버' : '없음';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('초당 ' + c.rps + '건의 요청이 로드밸런서에 도착합니다. 사용자는 서버가 몇 대인지 모르고 로드밸런서의 주소 하나만 압니다.', '', 1);
-    if (c.down) push(alive ? '로드밸런서가 주기적으로 서버 상태를 확인(헬스 체크)하다가 서버 ' + c.n + '번이 응답하지 않는 것을 발견하고 대상에서 뺍니다. 남은 ' + alive + '대에만 요청을 보냅니다.' : '헬스 체크 결과 하나뿐인 서버가 응답하지 않습니다. 요청을 보낼 곳이 없습니다.', 'bad', 2);
-    if (!alive) { push('모든 요청이 실패합니다. 서버가 한 대뿐이면 그 한 대의 장애가 곧 서비스 전체의 장애입니다(단일 장애 지점).', 'bad', 4); sum.push('처리량 0건. 서버를 2대 이상 두어야 한 대가 죽어도 서비스가 유지됩니다.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0건', c.rps + '건', '-', neck] }; }
+    if (c.down) push(alive ? '로드밸런서가 서버 상태를 확인(헬스 체크)하다가 서버 ' + c.n + '번이 응답하지 않는 것을 발견하고 대상에서 뺍니다. 남은 ' + alive + '대에만 요청을 보냅니다.' : '헬스 체크 결과 하나뿐인 서버가 응답하지 않습니다. 요청을 보낼 곳이 없습니다.', 'bad', 2);
+    if (!alive) { push('모든 요청이 실패합니다. 서버가 한 대뿐이면 그 한 대의 장애가 곧 서비스 전체의 장애입니다(단일 장애 지점).', 'bad', 4); sum.push('처리량 0건. 서버가 2대 이상이어야 한 대가 죽어도 서비스가 이어질 수 있습니다. 다만 남은 서버가 몰린 요청을 감당해야 합니다.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0건', c.rps + '건', '-', neck] }; }
     push('로드밸런서가 요청을 살아 있는 서버 ' + alive + '대에 고르게 나눕니다. 서버 한 대가 초당 ' + Math.round(per) + '건을 받습니다. 한 대의 처리 능력은 초당 ' + cap + '건이므로 부하는 ' + load + '%입니다.' + (per > cap ? ' 처리 능력을 넘었습니다. 넘친 요청은 대기하다 시간 초과되거나 거절됩니다.' : ''), per > cap ? 'bad' : '', 3);
     push('서버들이 처리한 초당 ' + appOut + '건이 DB로 갑니다. DB의 처리 능력은 초당 ' + dbCap + '건이므로 부하는 ' + dbLoad + '%입니다.' + (appOut > dbCap ? ' DB가 감당하지 못합니다. 서버는 여유가 있어도 DB 응답을 기다리느라 요청이 밀립니다.' : ''), appOut > dbCap ? 'bad' : '', 4);
     push('결과: 초당 ' + out + '건을 처리하고 ' + lost + '건은 처리하지 못했습니다. ' + (neck === '없음' ? '모든 구간에 여유가 있습니다.' : '병목은 ' + neck + '입니다.'), lost ? 'bad' : 'good', 5);

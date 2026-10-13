@@ -57,14 +57,14 @@ Lab.register({
   // Diagram: A request looks at the cache first and goes to the database only when the value is missing. The row below shows the number of queries that reached the database in each second.
   draw: function (P, sim, shown, t) {
     var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.t <= t + e; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, flying = sim.queries.filter(function (q) { return q[0] <= t + e && q[1] > t + e; }).length, lastReq = done[done.length - 1], off = sim.ttl === 0, hit = lastReq && lastReq.kind === 'hit';
-    P.size(680, 290);
-    P.box('app', 16, 40, 170, 60, { cls: 'wait', title: 'Application', sub: 'Received: ' + done.length });
-    P.box('ca', 255, 40, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? 'Cache not used' : 'Cache', sub: off ? ' ' : hit ? 'Has value: replies' : flying ? 'Waiting for DB' : done.length ? 'No value' : 'Empty' });
-    P.box('db', 494, 40, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? 'In progress: ' + flying : 'Idle' });
-    if (lastReq) { P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? 'Hit' : '' }); if (!hit && flying) P.arrow('a2', 'ca:r', 'db:l', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB queries: ' + flying }); }
-    P.region('sec', 16, 128, 648, 96, 'Queries that reached the database each second (1 box = 1 second)');
-    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 164, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
-    P.box('rate', 16, 240, 648, 34, { cls: 'plain', title: 'Cache hit rate', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
+    P.size(680, 320);
+    P.box('app', 16, 70, 170, 60, { cls: 'wait', title: 'Application', sub: 'Received: ' + done.length });
+    P.box('ca', 255, 70, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? 'Cache not used' : 'Cache', sub: off ? ' ' : hit ? 'Has value: replies' : flying ? 'Waiting for DB' : done.length ? 'No value' : 'Empty' });
+    P.box('db', 494, 70, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? 'In progress: ' + flying : 'Idle' });
+    if (lastReq) { if (!off) P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? 'Hit' : '' }); if (!hit && flying) P.arrow('a2', 'app:t:0.7', 'db:t:0.3', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB queries: ' + flying }); }
+    P.region('sec', 16, 158, 648, 96, 'Queries that reached the database each second (1 box = 1 second)');
+    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 194, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
+    P.box('rate', 16, 270, 648, 34, { cls: 'plain', title: 'Cache hit rate', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
     P.note('A request looks at the cache first, and if the value is there, it ends there (green arrow). An arrow to the database appears only when the value is missing. In the row below, green is a second with no database query, and red is a second when several queries piled up.');
   },
   assume: 'Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. The eviction policy, which removes old keys when the cache is full, is not covered here. With the lock, a waiting request is simplified to receive the value from the cache at the moment the query finishes. The numbers are a model that shows how the behavior works, and they are not values measured on a real Redis.',

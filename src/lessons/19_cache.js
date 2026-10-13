@@ -45,7 +45,7 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var sum = [];
     if (ttl === 0) sum.push('같은 상품을 ' + reqs.length + '번 조회하는 데 DB를 ' + dbq + '번 읽었습니다. 자주 읽히고 잘 바뀌지 않는 데이터일수록 캐시의 효과가 큽니다.');
-    else if (peak > 1 && !lock) sum.push('캐시가 비어 있는 순간부터 다시 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
+    else if (peak > 1 && !lock) sum.push('캐시가 비어 있는 순간부터 다시 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락이나 만료 전에 미리 갱신하기로 줄입니다. 여러 키가 한꺼번에 만료되는 경우에는 키마다 TTL에 약간의 차이를 줍니다.');
     else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. ' + (waits ? 'DB로 몰리는 것은 막았지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다.' : '이 설정에서는 조회가 끝나기 전에 들어온 요청이 없어 기다린 요청도 없었습니다.') + ' 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
     if (ttl > 0) sum.push('TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.');
     return { total: DUR, events: ev, summary: sum, reqs: reqs, queries: queries, sets: null, ttl: ttl, row: [reqs.length + '건', rate + '%', dbq + '번', peak + '건', (Math.round(avg * 100) / 100) + '초'] };
@@ -57,15 +57,15 @@ Lab.register({
   // 그림: 요청이 캐시를 먼저 보고, 없을 때만 DB로 간다. 아래 줄은 초마다 DB까지 간 조회 수다.
   draw: function (P, sim, shown, t) {
     var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.t <= t + e; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, flying = sim.queries.filter(function (q) { return q[0] <= t + e && q[1] > t + e; }).length, lastReq = done[done.length - 1], off = sim.ttl === 0, hit = lastReq && lastReq.kind === 'hit';
-    P.size(680, 290);
-    P.box('app', 16, 40, 170, 60, { cls: 'wait', title: '애플리케이션', sub: '요청 ' + done.length + '건 받음' });
-    P.box('ca', 255, 40, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? '캐시 사용 안 함' : '캐시', sub: off ? ' ' : hit ? '값 있음: 바로 응답' : flying ? '값 없음: DB를 기다림' : done.length ? '값 없음' : '비어 있음' });
-    P.box('db', 494, 40, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? '조회 ' + flying + '건 처리 중' : '한가함' });
-    if (lastReq) { P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? '적중' : '' }); if (!hit && flying) P.arrow('a2', 'ca:r', 'db:l', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB 조회 ' + flying + '건' }); }
-    P.region('sec', 16, 128, 648, 96, '초마다 DB까지 간 조회 수 (1칸 = 1초)');
-    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 164, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
-    P.box('rate', 16, 240, 648, 34, { cls: 'plain', title: '캐시 적중률', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
-    P.note('요청은 캐시를 먼저 보고, 값이 있으면 거기서 끝납니다(초록 화살표). 없을 때만 DB로 가는 화살표가 생깁니다. 아래 줄에서 초록은 DB 조회가 없던 초, 빨강은 조회가 여러 건 몰린 초입니다.');
+    P.size(680, 320);
+    P.box('app', 16, 70, 170, 60, { cls: 'wait', title: '애플리케이션', sub: '요청 ' + done.length + '건 받음' });
+    P.box('ca', 255, 70, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? '캐시 사용 안 함' : '캐시', sub: off ? ' ' : hit ? '값 있음: 바로 응답' : flying ? '값 없음: DB를 기다림' : done.length ? '값 없음' : '비어 있음' });
+    P.box('db', 494, 70, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? '조회 ' + flying + '건 처리 중' : '한가함' });
+    if (lastReq) { if (!off) P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? '적중' : '' }); if (!hit && flying) P.arrow('a2', 'app:t:0.7', 'db:t:0.3', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB 조회 ' + flying + '건' }); }
+    P.region('sec', 16, 158, 648, 96, '초마다 DB까지 간 조회 수 (1칸 = 1초)');
+    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 194, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
+    P.box('rate', 16, 270, 648, 34, { cls: 'plain', title: '캐시 적중률', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
+    P.note('요청은 캐시를 먼저 보고, 값이 있으면 거기서 끝납니다(초록 화살표). 캐시에 없을 때만 애플리케이션이 DB를 조회하는 화살표가 생깁니다. 아래 줄에서 초록은 DB 조회가 없던 초, 빨강은 조회가 여러 건 몰린 초입니다.');
   },
   assume: '한 개의 키(인기 상품 하나)만 다루고, 요청은 일정한 간격으로 들어온다고 가정했습니다. 캐시 응답 시간은 0.01초로 두었습니다. 캐시 크기가 가득 차서 오래된 키를 밀어내는 제거(eviction) 정책은 여기서 다루지 않습니다. 락을 건 경우 기다리는 요청은 조회가 끝나는 순간 캐시의 값을 받는다고 단순화했습니다. 숫자는 동작 방식을 보이기 위한 모형이며 실제 Redis를 측정한 값이 아닙니다.',
 });

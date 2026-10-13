@@ -1,7 +1,7 @@
 Lab.register({
   id: 'aop_basic', nav: 'AOP and proxies', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: 'What is a proxy, and how does Spring step in before and after my method?',
-  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It keeps a stand-in object (a proxy) that wraps it. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
+  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
   terms: ['Proxy', 'Aspect-oriented programming (AOP)', '@Aspect and @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'Have the LogAspect class (@Aspect)', type: 'check', value: true },
@@ -41,7 +41,7 @@ Lab.register({
     // 2. Spring checks whether a proxy is needed
     if (A) {
       st.bean = 'proxy'; st.beanName = PX; st.proxies = 1;
-      push('Spring finds LogAspect, which has @Aspect. The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class (with any number of parameters). The OrderService object that was just created has an order() that matches this expression. So Spring does not use this object as the bean as it is. It creates a stand-in object (a proxy) that wraps this object, and keeps that as the bean instead. The proxy is an object of the class ' + PX + ', which extends OrderService, and the real OrderService object is inside it. The code we wrote has no line that creates the proxy.', 'good');
+      push('Spring finds LogAspect, which has @Aspect. The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class (with any number of parameters). The OrderService object that was just created has an order() that matches this expression. So Spring does not use this object as the bean as it is. It creates a stand-in object (a proxy) that receives the calls in place of this object, and keeps that as the bean. The proxy is an object of the class ' + PX + ', which extends OrderService, and it holds a reference to the real OrderService object. They are two different objects. The code we wrote has no line that creates the proxy.', 'good');
     } else {
       push('Spring has no @Aspect class that wants to step into order() of OrderService (there is no LogAspect class in the code). There is nothing to insert, so Spring does not create a proxy and keeps the OrderService object it just created as the bean as it is.', '');
     }
@@ -62,7 +62,7 @@ Lab.register({
       st.at = 'asp'; st.out.push('[log] order called');
       push('The proxy runs log() of LogAspect and prints "[log] order called". This line is written in LogAspect, not in order().', 'good');
       st.at = 'real'; st.out.push('Order processed');
-      push('The proxy calls order() of the real OrderService object inside it, and order() prints "Order processed". There is no line that prints a log inside order().', '');
+      push('The proxy calls order() of the real OrderService object that it holds a reference to, and order() prints "Order processed". There is no line that prints a log inside order().', '');
     } else {
       st.at = bean ? 'bean' : 'mine'; st.out.push('Order processed');
       push('run() of Caller calls orderService.order(). ' + (bean
@@ -79,7 +79,7 @@ Lab.register({
 
     // Summary: the first line is the answer to the question
     if (A && bean) {
-      sum.push('LogAspect is a class with @Aspect, and it is the place where what to insert in common into order() (printing a log) is written separately. Spring did not use the OrderService object as the bean as it is, and kept a proxy that wraps it instead. When order() was called, the proxy received the call first, printed [log], and then called the real order().');
+      sum.push('LogAspect is a class with @Aspect, and it is the place where what to insert in common into order() (printing a log) is written separately. Spring did not use the OrderService object as the bean as it is, and instead created and kept a proxy that receives the calls in its place. When order() was called, the proxy received the call first, printed [log], and then called the real order().');
       sum.push('There is no line that prints a log inside order(). The class name of the called object is ' + PX + ', not OrderService, and this is the sign that we called a proxy. The class name of a bean with @Transactional changes to a name of the same form, and it is the same thing.');
     } else if (!A && bean) {
       sum.push('When LogAspect is removed, there is nothing to insert, so Spring did not create a proxy and used the OrderService object as the bean as it is. order() printed only "Order processed", and the class name of the called object is still OrderService.');
@@ -105,21 +105,21 @@ Lab.register({
     var logs = s.out.filter(function (x) { return x.indexOf('[log]') === 0; }).length;
     H.counters(v, [[logs, '[log] lines printed'], [s.proxies, 'Proxies made by Spring']]);
   },
-  // Diagram: the calling Caller at the left, the OrderService bean that Spring kept at the top center (and, if it is a proxy, the real object inside it at the right) with LogAspect, and the object made with new at the bottom. Arrows show which object the call reaches.
+  // Diagram: the calling Caller at the left, the OrderService bean that Spring kept at the top center (and, if it is a proxy, the real object that the proxy refers to at the right) with LogAspect, and the object made with new at the bottom. Arrows show which object the call reaches.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     var A = !!c.aspect, bean = c.how === 'bean';
     P.size(680, 304);
     P.box('caller', 14, 70, 174, 82, { cls: s && s.at === '' && s.slot && s.out.length ? 'good' : 'plain', title: 'Caller.run()', sub: ['orderService field:', s && s.slot ? (s.slot === 'bean' && s.bean === 'proxy' ? 'Proxy' : 'OrderService object') : 'Empty'] });
-    P.region('sp', 240, 14, 426, 178, 'Objects kept by Spring (beans)');
+    P.region('sp', 240, 14, 426, 178, 'Objects created by Spring');
     var made = s && s.bean, px = s && s.bean === 'proxy';
     P.box('bean', 252, 44, 186, 58, { cls: !made ? 'ghost' : s.at === 'bean' ? 'hot now' : px ? 'wait' : 'plain', title: made ? (px ? 'OrderService proxy' : 'OrderService object') : 'OrderService bean', sub: !made ? 'Not made yet' : px ? 'Stand-in (subclass)' : 'Our class as written' });
-    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: 'Real OrderService', sub: px ? 'Inside the proxy' : 'No proxy, so none' });
+    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: 'Real OrderService', sub: px ? 'A separate object' : 'No proxy, so none' });
     P.box('asp', 252, 118, 186, 58, { cls: !A ? 'ghost' : s && s.at === 'asp' ? 'hot now' : 'plain', title: 'LogAspect', sub: A ? '@Before: print [log]' : 'Class removed' });
     P.box('mine', 240, 206, 330, 44, { cls: !bean && s && s.mine ? (s.at === 'mine' ? 'hot now' : 'hot') : 'ghost', title: 'Object made with new OrderService()', sub: !bean ? 'Not made by Spring' : 'Not in this code' });
     if (s && (s.at === 'bean' || s.at === 'asp')) P.arrow('a1', 'caller:r:0.2', 'bean:l', { cls: 'hot' });
     if (s && s.at === 'asp') P.arrow('a2', 'bean:b', 'asp:t', { cls: 'hot' });
-    if (s && s.at === 'real') P.arrow('a3', 'bean:r', 'real:l', { cls: 'hot' });
+    if (px) P.arrow('a3', 'bean:r', 'real:l', { cls: s.at === 'real' ? 'hot' : 'mut', label: 'reference' });
     if (s && s.at === 'mine') P.arrow('a4', 'caller:r:0.8', 'mine:l', { cls: 'hot' });
     var logs = s ? s.out.filter(function (x) { return x.indexOf('[log]') === 0; }).length : 0;
     P.box('n1', 14, 262, 322, 34, { cls: logs ? 'good' : 'ghost', title: '[log] lines printed', right: logs + '' });

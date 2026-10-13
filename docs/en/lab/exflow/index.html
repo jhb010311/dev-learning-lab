@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Exceptions and finally: When an exception is thrown, which blocks run, and in what order? · Dev Learning Lab</title>
-<meta name="description" content="When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong w…">
+<meta name="description" content="When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a re…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/exflow/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/exflow/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/exflow/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Exceptions and finally: When an exception is thrown, which blocks run, and in what order? · Dev Learning Lab">
-<meta property="og:description" content="When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong w…">
+<meta property="og:description" content="When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a re…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/exflow/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<link rel="stylesheet" href="../../app.css?v=47e53bb696">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
 <h1>Exceptions and finally</h1>
 <p><b>When an exception is thrown, which blocks run, and in what order?</b></p>
-<p>When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.</p>
+<p>When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.</p>
 <p>Checked against real execution · All 32 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,7 @@
 <pre>int run() {
     try {
         print(&quot;try start&quot;);
-        throw new IllegalArgumentException();
+        if (fail) throw new IllegalArgumentException();  // fail is true
         print(&quot;try end&quot;);
     } catch (IllegalArgumentException e) {
         print(&quot;catch&quot;);
@@ -77,7 +77,7 @@
     return 2;
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The execution order and the final result of all 32 combinations were checked against the results of running code with the same structure on JDK 21 on this PC. Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.</p>
+<p>For all 32 combinations, the code exactly as shown (with only a fail field set to true, print, and Resource added) was compiled and run on JDK 21 on this PC, and the output order and the final result were checked (verify/plain/exflow_code_check.js). Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.</p>
 <p>Previous lab: <a href="../../lab/optional/">Optional</a> · Next lab: <a href="../../lab/chkex/">Checked and unchecked exceptions</a></p>
   </div>
 
@@ -165,6 +165,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ac3ff9cb33"></script>
+<script src="../../app.js?v=47e53bb696"></script>
 </body>
 </html>

@@ -1702,7 +1702,7 @@ Lab.register({
     var sum = [];
     if (same && exec > 1) sum.push(M + ' requests are idempotent, so after ' + exec + ' executions the state of the server is the same as after one execution.' + (M === 'DELETE' ? ' From the second request on, the response code changes to 404, but idempotency is judged by the state of the server, not by the response.' : '') + (M === 'GET' ? ' GET is also a safe method: it does not change the state of the server.' : ''));
     if (!same) sum.push(M === 'POST' ? 'POST is not idempotent. Every execution creates a new order, so the same order was created ' + (orders.length - 1) + ' times. This is the typical way duplicate processing happens in payments and orders.' : 'A PATCH that increases the quantity by 1 is not idempotent. The quantity went up once for every execution. If you express the same change as an absolute value, such as "set the quantity to 3", it becomes idempotent.');
-    if (useKey && sent > exec) sum.push('Thanks to the idempotency key, the server recognized the retry as the same request and executed it only once. To retry a request that is not idempotent safely, you need a mechanism like this.');
+    if (useKey && sent > exec && c.lost !== 'req') sum.push('Thanks to the idempotency key, the server recognized the retry as the same request and executed it only once. To retry a request that is not idempotent safely, you need a mechanism like this.');
     if (c.lost === 'req') sum.push('When the request itself is lost, the server never executed it, so any method can be retried. The problem is that the client cannot tell whether the request or the response was lost.');
     if (c.lost === 'none') sum.push('When nothing is lost, every method is executed only once.');
     return { events: ev, summary: sum, row: [sent + '', exec + '', st, same ? 'Same' : 'Different'], idem: idem };
@@ -11407,7 +11407,7 @@ Lab.register({
 Lab.register({
   id: 'proxy', nav: 'Proxies and self-invocation', cat: 'Spring', mode: 'step',
   title: 'Why does the annotation have no effect?',
-  intro: '@Transactional and @Async do not change the method itself. Spring wraps the bean in a proxy (a stand-in object) and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.',
+  intro: '@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.',
   terms: ['Proxy', 'Self-invocation', 'Aspect-oriented programming (AOP)', 'JDK dynamic proxy and CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [
     { id: 'feat', label: 'Annotation on the method', type: 'select', value: 'tx', options: [['tx', '@Transactional'], ['async', '@Async']] },
@@ -11436,10 +11436,10 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     var S = { caller: '', proxy: 'Waiting', target: 'Waiting', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
-    push('When the application starts, Spring finds a bean that has a method annotated with ' + (tx ? '@Transactional' : '@Async') + ' and registers, as the bean, a proxy that wraps the original object instead of the object itself. This proxy is what other beans receive by injection.', '', snap({ caller: 'Not called yet' }));
+    push('When the application starts, Spring finds a bean that has a method annotated with ' + (tx ? '@Transactional' : '@Async') + ' and registers, as the bean, a proxy that receives the calls in place of the original object. This proxy is what other beans receive by injection. A bean with no such method is registered as the original object itself.', '', snap({ caller: 'Not called yet' }));
     if (c.path === 'ext') push('The controller calls orderService.' + m + '. The reference that the controller holds is the proxy, so the call reaches the proxy first.', '', snap({ caller: 'Controller → proxy.' + m, proxy: 'Received the call' }));
     else {
-      push('The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.', '', snap({ caller: 'Controller → proxy.placeOrder()', proxy: 'Passed it on, nothing added', target: 'OrderService.placeOrder() running' }));
+      if (c.path === 'split') push('The controller calls orderService.placeOrder(). OrderService in this code has no annotated method, so Spring did not create a proxy for it. What the controller received by injection is the real object, and the real object receives the call directly.', '', snap({ caller: 'Controller → OrderService.placeOrder()', target: 'OrderService.placeOrder() running' })); else push('The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.', '', snap({ caller: 'Controller → proxy.placeOrder()', proxy: 'Passed it on, nothing added', target: 'OrderService.placeOrder() running' }));
       if (c.path === 'self' || c.path === 'priv') push('Inside the real object, the code calls ' + m + '. This call is this.' + m + '. Here, this is the real object itself, not the proxy, so the call does not go through the proxy.' + (c.path === 'priv' ? ' On top of that, a proxy cannot override a private method, so there is no way to call the method from outside and no way to intercept it.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: 'Does not see this call', target: m + ' runs' }));
       if (c.path === 'inject') push('The real object calls self.' + m + ' on the injected self reference. The self reference is the proxy of this same bean, so the call goes through the proxy again.', '', snap({ caller: 'OrderService → self (proxy).' + m, proxy: 'Received the call' }));
       if (c.path === 'split') push('The real object calls a method of another bean, ' + target + ': ' + m + '. The injected ' + target + ' reference is a proxy, so the call goes through the proxy.', '', snap({ caller: 'OrderService → ' + target + ' proxy.' + m, proxy: 'Received the call' }));
@@ -11481,32 +11481,32 @@ Lab.register({
     H.lane(ln, 'Proxy', s.proxy, s.proxy.indexOf('Does not see') >= 0 ? 'bad' : s.proxy === 'Waiting' ? 'none' : 'hot');
     H.lane(ln, 'Real object', s.target, s.target === 'Waiting' ? 'none' : s.target.indexOf('Exception') >= 0 ? 'bad' : '');
   },
-  // Diagram: The proxy is the outer box that wraps the real object. A call that comes from outside passes through the outer box, and a call made from inside with this does not.
+  // Diagram: The proxy (upper) and the real object (lower) are two different objects joined by a reference. A call that comes from outside goes through the proxy, and a call the real object makes with this does not.
   draw: function (P, sim, shown) {
     var c = sim.c, tx = sim.tx, m = tx ? 'saveAll()' : 'sendMail()', last = shown[shown.length - 1], s = last ? last.snap : { caller: '', proxy: 'Waiting', target: 'Waiting', rows: [], thread: '', wait: '' };
     var split = c.path === 'split', other = split ? (tx ? 'OrderWriter' : 'MailSender') : '', called = s.caller && s.caller !== 'Not called yet', at2 = split && s.caller.indexOf(other) >= 0, step = shown.length;
     var pcls = function (x) { return x.indexOf('Does not see') >= 0 ? 'bad' : x === 'Waiting' ? 'plain' : 'hot'; }, tcls = function (x) { return x.indexOf('Exception') >= 0 ? 'bad' : x === 'Waiting' ? 'plain' : 'wait'; }, short = function (x) { return x.replace('OrderService.', '').replace(' (task-1)', ''); };
     P.size(680, 300);
-    P.box('ctrl', 16, 96, 124, 50, { cls: called ? 'wait' : 'plain', title: 'Controller', sub: 'another bean' });
-    P.box('px1', 170, 36, 230, 164, { cls: at2 ? 'plain' : pcls(s.proxy), title: 'OrderService proxy', sub: at2 ? 'Passed it on, nothing added' : s.proxy });
-    P.box('tg1', 186, 112, 198, 74, { cls: at2 ? 'wait' : tcls(s.target), title: 'Real OrderService', sub: at2 ? 'placeOrder() running' : short(s.target) });
-    if (called) P.arrow('in', 'ctrl:r', 'px1:l:0.4', { label: 'call' });
+    P.box('ctrl', 16, 42, 104, 50, { cls: called ? 'wait' : 'plain', title: 'Controller', sub: 'another bean' });
+    P.box('px1', 170, 36, 230, 62, { cls: split ? 'ghost' : pcls(s.proxy), title: 'OrderService proxy', sub: split ? 'Not created' : s.proxy });
+    P.box('tg1', 170, 138, 230, 62, { cls: at2 ? 'wait' : tcls(s.target), title: 'Real OrderService', sub: at2 ? 'placeOrder() running' : short(s.target) });
+    if (called) P.arrow('in', 'ctrl:r', split ? 'tg1:l' : 'px1:l', { label: 'call' });
     var entered = c.path === 'ext' ? step >= 3 && s.target !== 'Waiting' : called && step >= 2;
-    if (entered) P.arrow('pass', [285, 86], 'tg1:t');
+    if (!split) P.arrow('pass', 'px1:b', 'tg1:t', entered ? { label: 'passes on' } : { cls: 'mut', label: 'reference' });
     if ((c.path === 'self' || c.path === 'priv') && step >= 3) P.arrow('self', 'tg1:r:0.3', 'tg1:r:0.75', { cls: 'bad', label: 'this.' + m });
     if (c.path === 'inject' && step >= 3) P.arrow('self', 'tg1:l:0.6', 'px1:l:0.75', { cls: 'good', label: 'self.' + m });
     if (split) {
-      P.box('px2', 430, 36, 234, 164, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' proxy', sub: at2 ? s.proxy : 'Waiting' });
-      P.box('tg2', 446, 112, 202, 74, { cls: at2 ? tcls(s.target) : 'plain', title: 'Real ' + other, sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : 'Waiting' });
+      P.box('px2', 430, 36, 234, 62, { cls: at2 ? pcls(s.proxy) : 'plain', title: other + ' proxy', sub: at2 ? s.proxy : 'Waiting' });
+      P.box('tg2', 430, 138, 234, 62, { cls: at2 ? tcls(s.target) : 'plain', title: 'Real ' + other, sub: at2 && s.target.indexOf('placeOrder') < 0 ? short(s.target) : 'Waiting' });
       if (at2) P.arrow('out', 'tg1:r', 'px2:l:0.6', { cls: 'good', label: m });
-      if (at2 && step >= 4) P.arrow('pass2', [547, 86], 'tg2:t');
+      P.arrow('pass2', 'px2:b', 'tg2:t', at2 && step >= 4 ? { label: 'passes on' } : { cls: 'mut', label: 'reference' });
     }
     if (tx) [0, 1].forEach(function (i) { var r = s.rows[i]; P.box('row' + i, 16 + i * 330, 236, 318, 36, r ? { cls: r[2], title: r[0], right: r[1] } : { cls: 'ghost', title: i ? 'Order B' : 'Order A', right: 'None yet' }); });
     else {
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: 'Thread that sends the mail', sub: s.thread || 'Not run yet' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0s' ? 'good' : 'bad', title: 'Time the caller waited', sub: s.wait || '-' });
     }
-    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
+    P.note('The upper box is the proxy, and the lower box is the real object. They are two different objects, and the proxy holds a reference to the real object and passes calls on to it. The red arrow, where the real object calls its own method with this, does not go through the proxy.');
   },
   assume: 'This lab is based on proxy-based AOP, which is the default in Spring (with AspectJ weaving, the annotations can also be applied to self-invocation, but that is uncommon). For @Async, @EnableAsync is assumed to be turned on. That each INSERT is committed right away when there is no transaction follows the auto-commit default of a JDBC connection. All 10 combinations were run and confirmed with @Transactional and @Async beans on a real Spring (Spring Framework 7.0.9). Only in calls that went through the proxy was a transaction open inside the method and no rows were left after the exception, and with self-invocation and with the private method the two rows stayed as they were. For @Async too, only the calls that went through the proxy ran on a separate thread (task-1), and with self-invocation the method ran to the end on the calling thread (the 3 seconds of sending the mail were shortened to 0.3 seconds for the test).',
 });
@@ -11570,14 +11570,14 @@ Lab.register({
   // Diagram: A request looks at the cache first and goes to the database only when the value is missing. The row below shows the number of queries that reached the database in each second.
   draw: function (P, sim, shown, t) {
     var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.t <= t + e; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, flying = sim.queries.filter(function (q) { return q[0] <= t + e && q[1] > t + e; }).length, lastReq = done[done.length - 1], off = sim.ttl === 0, hit = lastReq && lastReq.kind === 'hit';
-    P.size(680, 290);
-    P.box('app', 16, 40, 170, 60, { cls: 'wait', title: 'Application', sub: 'Received: ' + done.length });
-    P.box('ca', 255, 40, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? 'Cache not used' : 'Cache', sub: off ? ' ' : hit ? 'Has value: replies' : flying ? 'Waiting for DB' : done.length ? 'No value' : 'Empty' });
-    P.box('db', 494, 40, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? 'In progress: ' + flying : 'Idle' });
-    if (lastReq) { P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? 'Hit' : '' }); if (!hit && flying) P.arrow('a2', 'ca:r', 'db:l', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB queries: ' + flying }); }
-    P.region('sec', 16, 128, 648, 96, 'Queries that reached the database each second (1 box = 1 second)');
-    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 164, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
-    P.box('rate', 16, 240, 648, 34, { cls: 'plain', title: 'Cache hit rate', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
+    P.size(680, 320);
+    P.box('app', 16, 70, 170, 60, { cls: 'wait', title: 'Application', sub: 'Received: ' + done.length });
+    P.box('ca', 255, 70, 170, 60, { cls: off ? 'ghost' : hit ? 'good' : done.length ? 'bad' : 'plain', title: off ? 'Cache not used' : 'Cache', sub: off ? ' ' : hit ? 'Has value: replies' : flying ? 'Waiting for DB' : done.length ? 'No value' : 'Empty' });
+    P.box('db', 494, 70, 170, 60, { cls: flying > 3 ? 'bad' : flying ? 'hot' : 'plain', title: 'DB', sub: flying ? 'In progress: ' + flying : 'Idle' });
+    if (lastReq) { if (!off) P.arrow('a1', 'app:r', 'ca:l', { cls: hit ? 'good' : '', label: hit ? 'Hit' : '' }); if (!hit && flying) P.arrow('a2', 'app:t:0.7', 'db:t:0.3', { cls: flying > 3 ? 'bad' : 'hot', label: 'DB queries: ' + flying }); }
+    P.region('sec', 16, 158, 648, 96, 'Queries that reached the database each second (1 box = 1 second)');
+    for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 194, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
+    P.box('rate', 16, 270, 648, 34, { cls: 'plain', title: 'Cache hit rate', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
     P.note('A request looks at the cache first, and if the value is there, it ends there (green arrow). An arrow to the database appears only when the value is missing. In the row below, green is a second with no database query, and red is a second when several queries piled up.');
   },
   assume: 'Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. The eviction policy, which removes old keys when the cache is full, is not covered here. With the lock, a waiting request is simplified to receive the value from the cache at the moment the query finishes. The numbers are a model that shows how the behavior works, and they are not values measured on a real Redis.',
@@ -16446,7 +16446,7 @@ Lab.register({
 Lab.register({
   id: 'exflow', nav: 'Exceptions and finally', cat: 'Java language', mode: 'step',
   title: 'When an exception is thrown, which blocks run, and in what order?',
-  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
+  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
   terms: ['finally and try-with-resources', 'Exception and Error', 'Checked and unchecked exceptions'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: 'Exception', type: 'select', value: 'match', options: [['none', 'No exception'], ['match', 'Thrown in try, a type that the catch block catches'], ['nomatch', 'Thrown in try, a type that the catch block does not catch'], ['incatch', 'Thrown in try and caught, then another one thrown inside catch']] },
@@ -16463,8 +16463,8 @@ Lab.register({
     { t: 'Another exception inside catch', q: 'What if the catch block catches the exception from try, and another exception is thrown inside catch?', d: 'The new exception leaves the method, and the finally block runs before that.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
   ],
   code: function (c) {
-    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        throw new IllegalStateException();      // not caught by the catch block\n' : '        throw new IllegalArgumentException();\n';
-    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try start");\n' + t + '        print("try end");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // another exception inside catch\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n    print("after the block");\n    return 2;\n}';
+    var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        if (fail) throw new IllegalStateException();     // fail is true. not caught by the catch block\n' : '        if (fail) throw new IllegalArgumentException();  // fail is true\n', tail = !(c.fret || (c.ret && c.ex === 'incatch'));
+    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try start");\n' + t + '        print("try end");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // another exception inside catch\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n' + (tail ? '    print("after the block");\n    return 2;\n}' : '    // No statement can come after this. ' + (c.fret ? 'finally ends with return,' : 'try ends with return and catch ends with throw,') + ' so it would be an unreachable statement (a compile-time error)\n}');
   },
   label: function (c) { return { none: 'No exception', match: 'Caught by catch', nomatch: 'Not caught by catch', incatch: 'Another exception in catch' }[c.ex] + (c.ret ? ' · return in try' : '') + (c.fret ? ' · return in finally' : '') + (c.res ? ' · with a resource' : ''); },
   columns: ['Execution order', 'Final result'],
@@ -16498,8 +16498,8 @@ Lab.register({
     if (c.fret) pend = '';
     push('finally', 'The finally block runs.' + (before ? ' Even when something is still unhandled (' + before + '), the finally block always runs first.' : '') + (c.fret ? ' Control reaches return 3 inside the finally block.' + (before ? ' This return ' + (before.indexOf('return value') === 0 ? 'overwrites the return value 1 that was set earlier.' : 'discards the exception that was on its way out.') : '') : ''), c.fret && before ? 'bad' : '');
     if (tr.out === 'return 2') push('after', 'The try-catch-finally ends, and the line after it runs. "after the block" is printed, and 2 is returned.', 'good');
-    else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method. The "after the block" line does not run.', 'bad');
-    else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '. The "after the block" line does not run.', c.fret && before ? 'bad' : 'good');
+    else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method.' + (c.ret && c.ex === 'incatch' ? '' : ' The "after the block" line does not run.'), 'bad');
+    else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '.' + (c.fret ? '' : ' The "after the block" line does not run.'), c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' thrown' : tr.out.slice(7) + ' returned';
     sum.push('The finally block runs in every case: normal completion, a return, or an exception. That is why releasing locks and cleaning up resources are placed in the finally block.');
     if (c.fret && before) sum.push('A return inside the finally block silently discards the exception or the return value that was in progress. The fact that an exception was thrown disappears, so do not write a return in a finally block.');
@@ -16514,7 +16514,7 @@ Lab.register({
     H.title(v, 'Console output'); var out = s.seen.filter(function (x) { return x.indexOf('resource') < 0; });
     v.appendChild(H.el('pre', 'code', out.length ? out.join('\n') : '(none yet)'));
   },
-  assume: 'The execution order and the final result of all 32 combinations were checked against the results of running code with the same structure on JDK 21 on this PC. Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.',
+  assume: 'For all 32 combinations, the code exactly as shown (with only a fail field set to true, print, and Resource added) was compiled and run on JDK 21 on this PC, and the output order and the final result were checked (verify/plain/exflow_code_check.js). Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.',
 });
 
 Lab.register({
@@ -20020,7 +20020,7 @@ Lab.register({
 Lab.register({
   id: 'aop_basic', nav: 'AOP and proxies', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: 'What is a proxy, and how does Spring step in before and after my method?',
-  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It keeps a stand-in object (a proxy) that wraps it. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
+  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
   terms: ['Proxy', 'Aspect-oriented programming (AOP)', '@Aspect and @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'Have the LogAspect class (@Aspect)', type: 'check', value: true },
@@ -20060,7 +20060,7 @@ Lab.register({
     // 2. Spring checks whether a proxy is needed
     if (A) {
       st.bean = 'proxy'; st.beanName = PX; st.proxies = 1;
-      push('Spring finds LogAspect, which has @Aspect. The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class (with any number of parameters). The OrderService object that was just created has an order() that matches this expression. So Spring does not use this object as the bean as it is. It creates a stand-in object (a proxy) that wraps this object, and keeps that as the bean instead. The proxy is an object of the class ' + PX + ', which extends OrderService, and the real OrderService object is inside it. The code we wrote has no line that creates the proxy.', 'good');
+      push('Spring finds LogAspect, which has @Aspect. The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class (with any number of parameters). The OrderService object that was just created has an order() that matches this expression. So Spring does not use this object as the bean as it is. It creates a stand-in object (a proxy) that receives the calls in place of this object, and keeps that as the bean. The proxy is an object of the class ' + PX + ', which extends OrderService, and it holds a reference to the real OrderService object. They are two different objects. The code we wrote has no line that creates the proxy.', 'good');
     } else {
       push('Spring has no @Aspect class that wants to step into order() of OrderService (there is no LogAspect class in the code). There is nothing to insert, so Spring does not create a proxy and keeps the OrderService object it just created as the bean as it is.', '');
     }
@@ -20081,7 +20081,7 @@ Lab.register({
       st.at = 'asp'; st.out.push('[log] order called');
       push('The proxy runs log() of LogAspect and prints "[log] order called". This line is written in LogAspect, not in order().', 'good');
       st.at = 'real'; st.out.push('Order processed');
-      push('The proxy calls order() of the real OrderService object inside it, and order() prints "Order processed". There is no line that prints a log inside order().', '');
+      push('The proxy calls order() of the real OrderService object that it holds a reference to, and order() prints "Order processed". There is no line that prints a log inside order().', '');
     } else {
       st.at = bean ? 'bean' : 'mine'; st.out.push('Order processed');
       push('run() of Caller calls orderService.order(). ' + (bean
@@ -20098,7 +20098,7 @@ Lab.register({
 
     // Summary: the first line is the answer to the question
     if (A && bean) {
-      sum.push('LogAspect is a class with @Aspect, and it is the place where what to insert in common into order() (printing a log) is written separately. Spring did not use the OrderService object as the bean as it is, and kept a proxy that wraps it instead. When order() was called, the proxy received the call first, printed [log], and then called the real order().');
+      sum.push('LogAspect is a class with @Aspect, and it is the place where what to insert in common into order() (printing a log) is written separately. Spring did not use the OrderService object as the bean as it is, and instead created and kept a proxy that receives the calls in its place. When order() was called, the proxy received the call first, printed [log], and then called the real order().');
       sum.push('There is no line that prints a log inside order(). The class name of the called object is ' + PX + ', not OrderService, and this is the sign that we called a proxy. The class name of a bean with @Transactional changes to a name of the same form, and it is the same thing.');
     } else if (!A && bean) {
       sum.push('When LogAspect is removed, there is nothing to insert, so Spring did not create a proxy and used the OrderService object as the bean as it is. order() printed only "Order processed", and the class name of the called object is still OrderService.');
@@ -20124,21 +20124,21 @@ Lab.register({
     var logs = s.out.filter(function (x) { return x.indexOf('[log]') === 0; }).length;
     H.counters(v, [[logs, '[log] lines printed'], [s.proxies, 'Proxies made by Spring']]);
   },
-  // Diagram: the calling Caller at the left, the OrderService bean that Spring kept at the top center (and, if it is a proxy, the real object inside it at the right) with LogAspect, and the object made with new at the bottom. Arrows show which object the call reaches.
+  // Diagram: the calling Caller at the left, the OrderService bean that Spring kept at the top center (and, if it is a proxy, the real object that the proxy refers to at the right) with LogAspect, and the object made with new at the bottom. Arrows show which object the call reaches.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     var A = !!c.aspect, bean = c.how === 'bean';
     P.size(680, 304);
     P.box('caller', 14, 70, 174, 82, { cls: s && s.at === '' && s.slot && s.out.length ? 'good' : 'plain', title: 'Caller.run()', sub: ['orderService field:', s && s.slot ? (s.slot === 'bean' && s.bean === 'proxy' ? 'Proxy' : 'OrderService object') : 'Empty'] });
-    P.region('sp', 240, 14, 426, 178, 'Objects kept by Spring (beans)');
+    P.region('sp', 240, 14, 426, 178, 'Objects created by Spring');
     var made = s && s.bean, px = s && s.bean === 'proxy';
     P.box('bean', 252, 44, 186, 58, { cls: !made ? 'ghost' : s.at === 'bean' ? 'hot now' : px ? 'wait' : 'plain', title: made ? (px ? 'OrderService proxy' : 'OrderService object') : 'OrderService bean', sub: !made ? 'Not made yet' : px ? 'Stand-in (subclass)' : 'Our class as written' });
-    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: 'Real OrderService', sub: px ? 'Inside the proxy' : 'No proxy, so none' });
+    P.box('real', 490, 44, 164, 58, { cls: !px ? 'ghost' : s.at === 'real' ? 'hot now' : 'plain', title: 'Real OrderService', sub: px ? 'A separate object' : 'No proxy, so none' });
     P.box('asp', 252, 118, 186, 58, { cls: !A ? 'ghost' : s && s.at === 'asp' ? 'hot now' : 'plain', title: 'LogAspect', sub: A ? '@Before: print [log]' : 'Class removed' });
     P.box('mine', 240, 206, 330, 44, { cls: !bean && s && s.mine ? (s.at === 'mine' ? 'hot now' : 'hot') : 'ghost', title: 'Object made with new OrderService()', sub: !bean ? 'Not made by Spring' : 'Not in this code' });
     if (s && (s.at === 'bean' || s.at === 'asp')) P.arrow('a1', 'caller:r:0.2', 'bean:l', { cls: 'hot' });
     if (s && s.at === 'asp') P.arrow('a2', 'bean:b', 'asp:t', { cls: 'hot' });
-    if (s && s.at === 'real') P.arrow('a3', 'bean:r', 'real:l', { cls: 'hot' });
+    if (px) P.arrow('a3', 'bean:r', 'real:l', { cls: s.at === 'real' ? 'hot' : 'mut', label: 'reference' });
     if (s && s.at === 'mine') P.arrow('a4', 'caller:r:0.8', 'mine:l', { cls: 'hot' });
     var logs = s ? s.out.filter(function (x) { return x.indexOf('[log]') === 0; }).length : 0;
     P.box('n1', 14, 262, 322, 34, { cls: logs ? 'good' : 'ghost', title: '[log] lines printed', right: logs + '' });
