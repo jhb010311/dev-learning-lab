@@ -16,7 +16,7 @@ Lab.register({
     { t: '서버에 없는 언어를 원하면', q: 'Accept-Language를 ja, en;q=0.7로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: '일본어판이 없어 다음 후보인 영어판을 줍니다.', v: { fmt: 'html', lang: 'ja, en;q=0.7', enc: 'gzip', vary: true } },
     { t: '작은 본문을 압축하면', q: 'Accept를 application/json으로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: '37바이트짜리 JSON은 압축하면 오히려 커집니다.', v: { fmt: 'json', lang: 'ko', enc: 'gzip', vary: true } },
     { t: '이미 압축된 그림을 압축하면', q: 'Accept를 image/png로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: 'PNG는 한 번 더 압축해도 줄지 않습니다.', v: { fmt: 'png', lang: 'ko', enc: 'gzip', vary: true } },
-    { t: '압축을 요청하지 않으면', q: 'Accept-Language를 en으로 바꾸고 Accept-Encoding 헤더를 보내지 않으면', d: 'Accept-Encoding이 없으면 서버는 본문을 그대로 보냅니다.', v: { fmt: 'html', lang: 'en', enc: 'none', vary: false } },
+    { t: '압축을 요청하지 않으면', q: 'Accept-Language를 en으로 바꾸고 Accept-Encoding 헤더를 보내지 않으면', d: '이 서버 설정에서는 Accept-Encoding이 없으면 본문을 그대로 보냅니다.', v: { fmt: 'html', lang: 'en', enc: 'none', vary: false } },
   ],
   // 그림(PNG)에는 언어판이 없으므로 언어 설정을 하나로 고정한다
   fix: function (c) { return c.fmt === 'png' ? { lang: 'ko' } : null; },
@@ -95,7 +95,7 @@ Lab.register({
     if (!j.png && !j.langMatched) sum.push('맞는 언어가 하나도 없을 때 서버는 기본 언어로 응답할 수도 있고 406 Not Acceptable로 거절할 수도 있습니다. 표준은 둘 다 허용합니다. 사용자에게는 무언가라도 보이는 편이 나아 기본 언어로 응답하는 쪽이 흔합니다.');
     if (j.enc !== 'identity' && j.wire < j.orig) sum.push('HTML, CSS, 자바스크립트, JSON 같은 글자로 된 본문은 되풀이되는 부분이 많아 압축이 잘 됩니다. 이 예시의 HTML은 같은 모양의 표가 120줄 되풀이되어 특히 많이 줄었습니다. 줄어드는 정도는 내용에 따라 다릅니다. br은 gzip보다 더 작게 줄이는 편이지만 압축에 시간이 더 걸립니다.');
     if (j.enc !== 'identity' && j.wire >= j.orig) sum.push('작은 본문과 이미 압축된 데이터(PNG, JPEG, 동영상, zip)는 압축해도 줄지 않고 CPU 시간만 씁니다. 그래서 실제 서버는 일정 크기보다 작은 응답과 이런 형식은 압축하지 않도록 설정합니다. 이 시험 서버는 차이를 보이려고 가리지 않고 압축했습니다.');
-    if (j.enc === 'identity') sum.push('Accept-Encoding을 보내지 않으면 서버는 압축하지 않은 본문을 보냅니다. 브라우저는 이 헤더를 자동으로 붙여 보내고, curl은 --compressed 옵션을 줘야 보냅니다.');
+    if (j.enc === 'identity') sum.push('이 서버 설정에서는 Accept-Encoding을 보내지 않으면 압축하지 않은 본문을 보냅니다. 브라우저는 이 헤더를 자동으로 붙여 보내고, curl은 --compressed 옵션을 줘야 보냅니다.');
     if (!c.vary) sum.push(j.wrong.length ? '응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.' : '이번에는 문제가 없었지만 우연입니다. Vary가 없으면 공유 캐시는 A의 요청 헤더가 무엇이었든 같은 응답을 B에게 줍니다.');
     else sum.push(j.hit ? 'Vary에 적힌 헤더의 값이 A와 B의 요청에서 모두 같아 캐시가 저장된 응답을 다시 썼습니다.' : 'Vary가 있으면 공유 캐시는 같은 주소라도 요청 헤더가 다른 응답을 따로 다룹니다. 대신 헤더의 글자가 조금만 달라도 다른 것으로 보므로, 캐시에서 바로 답하는 일이 줄어듭니다. 그래서 Vary에는 응답을 고를 때 실제로 본 헤더만 적습니다.');
     return { events: ev, summary: sum, j: j, size: size, row: [T + (j.png ? '' : ' · ' + j.lang), j.enc === 'identity' ? '없음' : j.enc, size, j.vary || '없음', bres] };
@@ -125,7 +125,7 @@ Lab.register({
     P.box('sw', 348, 180, 316, 36, { cls: !s.wire ? 'ghost' : j.enc === 'identity' ? 'plain' : j.wire < j.orig ? 'good' : 'bad', title: '전송된 본문', right: s.wire ? num(s.wire) + '바이트' : '?' });
     P.box('ca', 16, 230, 316, 50, { cls: s.sent ? 'wait' : 'ghost', title: !s.sent ? '공유 캐시' : j.vary ? '공유 캐시: Vary에 적힌 헤더를 비교' : '공유 캐시: 주소만 보고 판단', sub: s.sent ? (j.vary || '/guide의 응답 보관 (Vary 없음)') : '비어 있음' });
     P.box('b', 348, 230, 316, 50, { cls: !s.b ? 'ghost' : s.b === 'ask' ? 'wait' : s.bcls, title: '클라이언트 B (영어, 압축 못 풂)', sub: !s.b ? '아직 요청 전' : s.b === 'ask' ? '같은 주소 /guide를 요청' : s.b === 'miss' ? '서버에서 맞는 응답을 새로 받음' : j.wrong.length ? 'A의 응답을 받음: ' + j.wrong.join(', ') : 'A의 응답을 받음: B에게도 맞음' });
-    if (s.b) P.arrow('bc', 'b:l', 'ca:r', { cls: s.b === 'ask' ? '' : s.bcls === 'hot' ? 'hot' : s.bcls, label: s.b === 'ask' ? '요청' : s.b === 'miss' ? '서버에 다시 물음' : '보관한 것을 줌' });
+    if (s.b) P.arrow('bc', s.b === 'ask' ? 'b:l' : 'ca:r', s.b === 'ask' ? 'ca:r' : 'b:l', { cls: s.b === 'ask' ? '' : s.bcls === 'hot' ? 'hot' : s.bcls, label: s.b === 'ask' ? '요청' : s.b === 'miss' ? '새 응답을 줌' : '보관한 것을 줌' });
     P.text('sz', 340, 310, s.wire ? '본문 크기: ' + sim.size : '실행을 진행하면 압축 결과가 표시됩니다', { anchor: 'middle', cls: !s.wire ? 'mut' : j.enc === 'identity' ? 'mut' : j.wire < j.orig ? 'good' : 'bad', bold: !!s.wire });
     P.note('요청 헤더 하나가 응답 헤더 하나를 정합니다. 공유 캐시는 여러 사용자의 요청이 함께 거쳐 가는 보관소입니다.');
   },

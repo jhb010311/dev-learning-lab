@@ -25,7 +25,7 @@ Lab.register({
     if (c.gen) o.push('        // <String>: a marker that this list holds only String');
     o.push(c.gen ? '        List<String> names = new ArrayList<>();' : '        List names = new ArrayList();');
     o.push(c.put === 'str' ? '        names.add("Bob");' : '        names.add(123);');
-    if (c.cast) o.push('        // (String): you write by hand that what you take out is converted to String');
+    if (c.cast) o.push('        // (String): you write by hand that you will treat what you take out as a String');
     o.push(c.cast ? '        String first = (String) names.get(0);' : '        String first = names.get(0);');
     o.push('        System.out.println(first.length());', '    }', '}');
     return o.join('\n');

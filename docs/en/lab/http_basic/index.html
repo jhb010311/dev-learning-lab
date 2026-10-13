@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>HTTP requests</h1>
 <p><b>What does an HTTP request look like as text?</b></p>
-<p>An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, and the version. Below it come lines called headers, in the form &quot;name: value&quot;, and an empty line, a line with no text at all, tells the server that the request is over. The server reads this text to find out what the request asks for. In this lab you change or remove the first line, the Host line, and the last empty line one at a time, and send the text exactly as it is to the same server (a server that has only the /hello address), to see whether the server reads the text as a request, what response it sends back, and whether the request reaches the server code we wrote. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
+<p>An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, and the version. Below it come lines called headers, in the form &quot;name: value&quot;, and an empty line, a line with no text at all, tells the server that the headers are over (a request with no body ends here). The server reads this text to find out what the request asks for. In this lab you change or remove the first line, the Host line, and the last empty line one at a time, and send the text exactly as it is to the same server (a server that has only the /hello address), to see whether the server reads the text as a request, what response it sends back, and whether the request reaches the server code we wrote. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
 <p>Checked against real execution · Sent the text of all 12 combinations exactly as it is to an http server on Node.js 24.18.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -160,6 +160,6 @@ Host: localhost:8080
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

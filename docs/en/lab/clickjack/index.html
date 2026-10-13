@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Clickjacking and open redirects</h1>
 <p><b>How do you stop your page from being hidden inside another site's page, or your URL from sending users to another site?</b></p>
-<p>Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the &quot;URL to return to after login&quot; from the request and redirects to it without checking, so a link that starts with your site's address ends up on another site. In both cases the server is not broken into. Instead, people's trust in your site is exploited, and the server defends with response headers and URL checks.</p>
+<p>Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the &quot;URL to return to after login&quot; from the request and redirects to it without checking, so a link that starts with your site's address ends up on another site. In both cases the server is not broken into. Instead, people's trust in your site is exploited, and clickjacking is blocked by the browser according to the response header the server sends, and an open redirect is blocked by the server checking the URL.</p>
 <p>Checked against real execution · Response headers were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 24 combinations, and browser behavior was checked with Chromium 151. Other browsers follow the documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -172,6 +172,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

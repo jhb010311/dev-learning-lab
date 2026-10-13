@@ -20,7 +20,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.proto === 'tcp') return '// Node.js (net 모듈): TCP\nconst socket = net.connect(9000, \'127.0.0.1\');   // 먼저 연결을 맺는다\nsocket.on(\'connect\', async () => {               // 연결된 뒤에야 보낼 수 있다\n  socket.write(\'AB\');  await sleep(50);           // 0.05초 간격으로 세 번\n  socket.write(\'CD\');  await sleep(50);\n  socket.write(\'EF\');\n});\nsocket.on(\'error\', e => console.log(e.code));    // 연결 실패는 여기로 온다\n\n' + (c.recv ? '// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다\nnet.createServer({ pauseOnConnect: true }, conn => {\n  conn.on(\'data\', d => console.log(d.toString()));\n  setTimeout(() => conn.resume(), 500);\n}).listen(9000, \'127.0.0.1\');' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
-    return '// Node.js (dgram 모듈): UDP\nconst socket = dgram.createSocket(\'udp4\');       // 연결하는 코드가 없다\nconst done = err => console.log(err);            // null이면 오류 없이 보냈다는 뜻\nsocket.send(\'AB\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'CD\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'EF\', 9000, \'127.0.0.1\', done);\n\n' + (c.recv ? '// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다\nconst receiver = dgram.createSocket(\'udp4\');\nreceiver.on(\'message\', m => console.log(m.toString()));\nreceiver.bind(9000, \'127.0.0.1\');' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
+    return '// Node.js (dgram 모듈): UDP\nconst socket = dgram.createSocket(\'udp4\');       // 연결하는 코드가 없다\nconst done = err => console.log(err);            // null이면 오류 없이 보냈다는 뜻\nsocket.send(\'AB\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'CD\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'EF\', 9000, \'127.0.0.1\', done);\n\n' + (c.recv ? '// 받는 프로그램(다른 스레드): 포트를 연 뒤 0.4초 멈춰 있다가 읽는다. 그동안 온 것은 운영체제가 맡아 둔다\nconst receiver = dgram.createSocket(\'udp4\');\nreceiver.on(\'message\', m => console.log(m.toString()));\nreceiver.bind(9000, \'127.0.0.1\', () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 400));' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
   },
   label: function (c) { return c.proto.toUpperCase() + ' · 받는 프로그램 ' + (c.recv ? '있음' : '없음') + (c.recv ? ' · ' + { ok: '아무 일 없음', loss: '두 번째 것 유실', reorder: '두 번째 것이 늦게 도착' }[c.net] : ''); },
   columns: ['보내기 전 연결', '보내는 쪽이 본 결과', '받는 프로그램이 읽은 것', '보낸 것과 비교'],
@@ -79,7 +79,7 @@ Lab.register({
         st.read = got.slice();
         if (tcp) push('받는 프로그램이 읽습니다: \'data\' 이벤트 한 번에 6바이트 "ABCDEF"가 모두 나옵니다. 세 번에 나눠 보냈다는 흔적은 없습니다. TCP가 전하는 것은 순서가 맞는 바이트의 흐름이지, 덩어리의 경계가 아닙니다.', 'good');
         else push('받는 프로그램이 읽습니다: \'message\' 이벤트가 ' + got.length + '번 오고, 한 번에 데이터그램 하나씩(' + got.map(function (x) { return '\'' + x + '\''; }).join(', ') + ') 나옵니다. 여러 개가 버퍼에 함께 쌓여 있었어도 서로 합쳐지지 않습니다.' + (net === 'loss' ? ' \'CD\'는 끝내 오지 않습니다. UDP는 다시 보내 주지 않습니다.' : net === 'reorder' ? ' 보낸 순서가 아니라 도착한 순서입니다.' : ''), net === 'ok' ? 'good' : 'bad');
-      } else push('받는 프로그램이 없으므로 세 데이터그램은 모두 사라졌습니다. 보내는 쪽 프로그램은 오류를 하나도 받지 못했으므로 이 사실을 알 방법이 없습니다.', 'bad');
+      } else push('받는 프로그램이 없으므로 세 데이터그램은 모두 사라졌습니다. 보내는 쪽 프로그램은 오류를 하나도 받지 못했으므로 보통은 이 사실을 알지 못합니다(운영체제가 ICMP 오류로 알려 주는 경우는 있습니다).', 'bad');
     }
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? '아무것도 보내지 않음' : '모두 사라짐') : tcp ? '내용과 순서는 같고 경계는 사라짐' : { ok: '보낸 그대로', loss: '하나가 빠짐', reorder: '순서가 바뀜' }[net];
@@ -90,7 +90,7 @@ Lab.register({
     if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다.');
     if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다.');
     if (!tcp && on && net !== 'ok') sum.push('UDP는 빠진 것을 다시 보내지 않고 순서도 맞춰 주지 않습니다. 필요하면 프로그램이 직접 번호를 붙이고 확인하고 다시 보내야 합니다. HTTP/3이 쓰는 QUIC이 UDP 위에 그런 기능을 직접 만든 예입니다.');
-    if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 알지 못합니다.');
+    if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 보통 알지 못합니다(운영체제가 ICMP 오류로 알려 주는 경우는 있습니다).');
     sum.push(tcp ? 'TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.' : 'UDP는 조금 빠져도 괜찮고 늦게 오는 것이 더 곤란한 곳, 또는 짧게 한 번 묻고 답하는 곳에 씁니다. 실시간 음성과 영상, 게임, DNS 조회가 대표적입니다.');
     return { events: ev, summary: sum, row: row };
   },

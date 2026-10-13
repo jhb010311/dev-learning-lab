@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>엔티티: 엔티티는 무엇이고, 일반 클래스와 무엇이 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가…">
+<meta name="description" content="엔티티는 데이터베이스 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="엔티티: 엔티티는 무엇이고, 일반 클래스와 무엇이 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가…">
+<meta property="og:description" content="엔티티는 데이터베이스 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
+<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>엔티티</h1>
 <p><b>엔티티는 무엇이고, 일반 클래스와 무엇이 다른가</b></p>
-<p>엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘기면 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.</p>
+<p>엔티티는 데이터베이스 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘겨 두면 커밋할 때 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 여덟 가지 조합을 소스째 컴파일해 JPA를 실제로 시작하고 저장해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>엔티티는 테이블의 한 행과 짝이 되는 자바 클래스입니다. 일반 클래스와 다른 곳은 클래스 위의 @Entity(저장되는 클래스라는 표시)와 필드 위의 @Id(기본 키라는 표시)이고, 이 둘이 있으면 JPA가 필드를 열과 짝지어 테이블을 만듭니다.</li>
+<li>엔티티는 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 일반 클래스와 다른 곳은 클래스 위의 @Entity(저장되는 클래스라는 표시)와 필드 위의 @Id(기본 키라는 표시)이고, 이 둘이 있으면 JPA가 필드를 열과 짝지어 테이블을 만듭니다.</li>
 <li>우리는 SQL을 한 줄도 쓰지 않았습니다. 테이블도 INSERT 문도 JPA가 클래스의 모양을 보고 만들었고, INSERT는 persist 줄이 아니라 commit 줄에서 나갔습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -177,6 +177,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7349ea4b1"></script>
+<script src="../../app.js?v=0c9df686f7"></script>
 </body>
 </html>

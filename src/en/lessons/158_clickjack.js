@@ -1,7 +1,7 @@
 Lab.register({
   id: 'clickjack', nav: 'Clickjacking and open redirects', cat: 'Authentication', mode: 'step',
   title: 'How do you stop your page from being hidden inside another site\'s page, or your URL from sending users to another site?',
-  intro: 'Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the "URL to return to after login" from the request and redirects to it without checking, so a link that starts with your site\'s address ends up on another site. In both cases the server is not broken into. Instead, people\'s trust in your site is exploited, and the server defends with response headers and URL checks.',
+  intro: 'Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the "URL to return to after login" from the request and redirects to it without checking, so a link that starts with your site\'s address ends up on another site. In both cases the server is not broken into. Instead, people\'s trust in your site is exploited, and clickjacking is blocked by the browser according to the response header the server sends, and an open redirect is blocked by the server checking the URL.',
   terms: ['Clickjacking', 'X-Frame-Options and frame-ancestors', 'Open redirect', 'Spring Security and SecurityFilterChain', 'CORS and the same-origin policy'],
   controls: [
     { id: 'topic', label: 'Problem to look at', type: 'select', value: 'frame', options: [['frame', 'Clickjacking (putting my page in a frame)'], ['redir', 'Open redirect (the URL to return to after login)']] },

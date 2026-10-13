@@ -92,16 +92,16 @@ Lab.register({
   // 그림: 왼쪽에 애플리케이션, 오른쪽 DB 안에 프로시저·트리거와 테이블 셋, 아래에 뷰와 복사본. 누가 어느 테이블을 고쳤는지 화살표로 잇는다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: 10, orders: 0, logs: [], view: '?', copy: '?', did: {}, err: false, cur: 'none' }, d = s.did, proc = c.how === 'proc', q = +c.qty;
-    P.size(680, 330);
+    P.size(680, 386);
     P.box('app', 16, 44, 124, 52, { cls: s.cur === 'none' || s.cur === 'init' ? 'plain' : s.err ? 'bad' : 'hot', title: '애플리케이션', sub: proc ? 'CALL 한 번' : 'INSERT 한 문장' });
-    P.region('db', 156, 16, 508, 298, 'MySQL 안');
+    P.region('db', 156, 16, 508, 354, 'MySQL 안');
     if (proc) P.box('proc', 170, 48, 174, 44, { cls: d.procFail ? 'bad' : d.call ? 'hot' : 'plain', title: '프로시저 place_order', sub: '저장해 둔 문장 3개' });
     P.box('trg', 170, 126, 174, 44, c.trig ? { cls: (d.trgFail ? 'bad' : d.trg ? 'hot' : 'plain') + (s.cur === 'trg' ? ' now' : ''), title: '트리거 (orders에 걸림)', sub: 'INSERT 때 자동 실행' } : { cls: 'ghost', title: '트리거 없음' });
     P.box('orders', 476, 48, 172, 44, { cls: s.orders ? 'good' : d.trgFail ? 'bad' : 'plain', title: 'orders', right: s.orders + '행', sub: d.trgFail ? '넣은 행이 취소됨' : s.orders ? '수량 ' + q + '개' : '' });
     P.box('product', 476, 126, 172, 44, { cls: s.stock !== 10 ? 'hot' : 'plain', title: 'product', right: '재고 ' + s.stock + '개', sub: '키보드' });
     P.box('slog', 476, 204, 172, 44, { cls: s.logs.length ? 'good' : 'plain', title: 'stock_log', right: s.logs.length + '행', sub: s.logs.join(', ') });
     P.box('view', 170, 260, 174, 44, { cls: s.view === '?' ? 'plain' : 'good', title: 'v_stock (뷰)', right: s.view === '?' ? '' : s.view + '개', sub: 'SELECT 문만 저장' });
-    P.box('copy', 16, 260, 130, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10개', sub: '복사해 둔 행' });
+    P.box('copy', 170, 316, 174, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10개', sub: '복사해 둔 행' });
     if (d.appIns || (!proc && d.trgFail)) P.arrow('aIns', 'app:r', 'orders:l', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
     if (d.call) P.arrow('aCall', 'app:r', 'proc:l', { cls: d.procFail ? 'bad' : 'hot' });
     if (d.procIns || (proc && d.trgFail)) P.arrow('pIns', 'proc:r:0.3', 'orders:l:0.4', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
@@ -111,7 +111,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
+    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 맨 아래의 복사본 테이블(stock_copy)도 같은 MySQL 안의 테이블이며, 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
   },
   assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
 });

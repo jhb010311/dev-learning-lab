@@ -59,7 +59,7 @@ Lab.register({
     st.stage = 'ins';
     if (to < 0) {
       st.insErr = true; st.res = '오류 1526: 2026년을 받을 파티션이 없음';
-      push('INSERT … VALUES ' + V + ': 오류 1526 (Table has no partition for value 2026)이 나고 행이 들어가지 않습니다. 주문 날짜의 연도가 2026인데, 만들어 둔 파티션은 2026 미만까지만 받습니다. RANGE 파티션에서는 어느 범위에도 속하지 않는 값을 넣을 수 없습니다.', 'bad');
+      push('INSERT … VALUES ' + V + ': 오류 1526 (Table has no partition for value 2026)이 나고 행이 들어가지 않습니다. 주문 날짜의 연도가 2026인데, 만들어 둔 파티션은 2026 미만까지만 받습니다. MAXVALUE 파티션이 없는 RANGE 파티션 테이블에서는 어느 범위에도 속하지 않는 값을 넣을 수 없습니다.', 'bad');
     } else {
       st.ins = to; st.rows[to]++; st.res = names[to] + ' 파티션에 저장됨';
       push('INSERT … VALUES ' + V + ': ' + (R ? '주문 날짜의 연도가 2025이므로 "2026 미만"을 받는 p2025 파티션에 들어갑니다.' : '회원 번호(' + (c.ins === 'in' ? 7 : 9) + ')를 4로 나눈 나머지가 ' + to + '이므로 p' + to + ' 파티션에 들어갑니다. HASH 파티션에는 범위 밖이라는 것이 없습니다. 어떤 값이든 나머지 계산으로 갈 곳이 정해집니다.'), 'good');

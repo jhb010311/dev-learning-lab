@@ -1,7 +1,7 @@
 Lab.register({
   id: 'static_basic', nav: 'static', cat: '기초개념', mode: 'step', basic: true, deep: ['static'],
   title: 'static은 무엇이고, 붙이면 무엇이 달라지는가',
-  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
+  intro: 'static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
   terms: ['static', '필드', '인스턴스 필드와 static 필드', '클래스와 객체'],
   controls: [
     { id: 'st', label: 'count 앞에 static을 적는다', type: 'check', value: true },
@@ -130,7 +130,7 @@ Lab.register({
     P.box('cl', 14, 20, 270, 140, { cls: bad.cl ? 'bad' : hot === 'cl' ? 'hot now' : 'plain', title: 'Counter (클래스)', sub: clSub });
     function obj(id, y, name, made, n) {
       var sub = made ? (c.st ? 'count 칸 없음' : 'count: ' + n) : failed ? '만들어지지 않음' : '아직 없음';
-      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: name + ' (Counter 객체)', sub: sub });
+      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: name + '가 가리키는 Counter 객체', sub: sub });
     }
     obj('oa', 20, 'a', s && s.objs >= 1, s ? s.a : null);
     obj('ob', 98, 'b', s && s.objs >= 2, s ? s.b : null);

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
+<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>리포지토리</h1>
 <p><b>리포지토리는 무엇이고, 구현은 누가 만드는가</b></p>
-<p>스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository에 선언돼 있어서 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.</p>
+<p>스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository가 부모 인터페이스에서 물려받은 메서드를 다시 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1, 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2에서 여섯 가지 조합을 컴파일하고 실제 스프링 시작으로 구현 객체와 나간 SQL을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -54,11 +54,11 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>컴파일러가 MemberRepository.java와 쓰는 쪽을 확인합니다. 인터페이스가 extends JpaRepository&lt;Member, Long&gt;을 선언해 JpaRepository의 메서드를 물려받으므로, 우리가 선언하지 않은 save 메서드를 부르는 줄도 오류가 아닙니다. findByName 메서드는 우리가 선언한 것입니다. 컴파일에 성공합니다.</li>
-<li>main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.</li>
+<li>main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository 같은 리포지토리 인터페이스를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.</li>
 <li>스프링 데이터가 MemberRepository를 구현한 객체를 만들어 빈으로 등록합니다. 이 객체는 우리가 쓴 클래스가 아니라 스프링이 실행 중에 만든 것이고, MemberRepository 타입으로 쓸 수 있습니다. save 같은 물려받은 메서드는 이 객체가 실행합니다.</li>
 <li>이때 스프링 데이터가 findByName 메서드의 이름을 읽습니다. findBy는 &quot;찾는다&quot;, 그 뒤의 Name은 Member의 name 필드라는 규칙에 따라 &quot;name으로 찾는 쿼리&quot;를 준비합니다. Member에 name 필드가 있어서 통과합니다. 이름이 규칙에 맞지 않으면 여기서 실패합니다.</li>
 <li>main이 스프링에서 MemberRepository 타입의 빈을 받아 memberRepository에 담습니다(화면에서는 줄여 둔 부분). 담긴 것은 방금 스프링이 만든 구현 객체입니다. new로 만든 객체가 아닙니다. 이 뒤에 나가는 SQL부터 셉니다.</li>
-<li>memberRepository.save(new Member(1L, &quot;김철수&quot;))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.</li>
+<li>memberRepository.save(new Member(1L, &quot;김철수&quot;))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, save 안에서 먼저 id가 1인 행이 이미 있는지 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.</li>
 <li>찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.</li>
 <li>memberRepository.findByName(&quot;김철수&quot;)가 실행됩니다. 구현 객체가 시작할 때 읽어 둔 이름 규칙대로 SELECT를 보냅니다: select m1_0.id,m1_0.name from member m1_0 where m1_0.name=? (name=? 자리에는 넘긴 &quot;김철수&quot;가 들어갑니다). 우리가 쓴 쿼리는 없습니다. 찾은 행 1개가 Member 객체가 되어 List에 담깁니다.</li>
 <li>println이 found.size()를 출력합니다. 찾은 Member가 1개이므로 1입니다. 우리가 쓴 것은 인터페이스의 선언 두 줄(인터페이스 선언과 findByName 한 줄)뿐이었습니다.</li>
@@ -168,6 +168,6 @@ System.out.println(found.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7349ea4b1"></script>
+<script src="../../app.js?v=0c9df686f7"></script>
 </body>
 </html>

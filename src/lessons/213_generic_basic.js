@@ -25,7 +25,7 @@ Lab.register({
     if (c.gen) o.push('        // <String>: 이 리스트에는 String만 담는다는 표시');
     o.push(c.gen ? '        List<String> names = new ArrayList<>();' : '        List names = new ArrayList();');
     o.push(c.put === 'str' ? '        names.add("김철수");' : '        names.add(123);');
-    if (c.cast) o.push('        // (String): 꺼낸 것을 String으로 바꾼다고 직접 적는다');
+    if (c.cast) o.push('        // (String): 꺼낸 것을 String으로 다루겠다고 직접 적는다');
     o.push(c.cast ? '        String first = (String) names.get(0);' : '        String first = names.get(0);');
     o.push('        System.out.println(first.length());', '    }', '}');
     return o.join('\n');

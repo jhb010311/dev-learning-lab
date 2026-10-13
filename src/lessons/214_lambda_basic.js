@@ -12,7 +12,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '람다는 어떻게 생겼고, 화살표 뒤의 코드는 언제 실행되나', d: '람다를 적은 줄에서는 실행되지 않고, t.run()을 부를 때 실행됩니다. 준비, 일한다 순서로 출력됩니다.', v: { form: 'lambda', call: 'once', two: false } },
     { t: 't.run()을 지우면', q: 't.run()을 지우면', d: '람다는 할 일을 변수에 담아 둘 뿐이어서 "일한다"가 출력되지 않습니다.', v: { form: 'lambda', call: 'none', two: false } },
-    { t: '익명 클래스로 풀어 적으면', q: '람다를 익명 클래스로 풀어 적으면', d: '길게 쓴 같은 코드입니다. 람다와 출력이 같습니다.', v: { form: 'anon', call: 'once', two: false } },
+    { t: '익명 클래스로 풀어 적으면', q: '람다를 익명 클래스로 풀어 적으면', d: '같은 일을 길게 쓴 코드입니다. 람다와 출력이 같습니다.', v: { form: 'anon', call: 'once', two: false } },
     { t: '이름 있는 클래스로 풀어 적으면', q: '이름 있는 클래스로 풀어 적으면', d: 'Work 클래스를 만들고 new로 객체를 만듭니다. 람다와 출력이 같습니다.', v: { form: 'named', call: 'once', two: false } },
     { t: 'Task에 메서드가 하나 더 있으면', q: 'Task에 메서드가 하나 더 있으면 (void stop();)', d: '람다는 어느 메서드의 할 일인지 알 수 없어 컴파일 오류가 납니다.', v: { form: 'lambda', call: 'once', two: true } },
   ],

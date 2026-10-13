@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>static: What is static, and what changes when you add it? · Dev Learning Lab</title>
-<meta name="description" content="static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object…">
+<meta name="description" content="static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without sta…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/static_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="static: What is static, and what changes when you add it? · Dev Learning Lab">
-<meta property="og:description" content="static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object…">
+<meta property="og:description" content="static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without sta…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>static</h1>
 <p><b>What is static, and what changes when you add it?</b></p>
-<p>static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.</p>
+<p>static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.</p>
 <p>Checked against real execution · Four combinations were compiled with javax.tools and run on JDK 21 and checked against the model. Where count lives was measured by running a source in which only the reading line was changed to a.count and b.count</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -174,6 +174,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

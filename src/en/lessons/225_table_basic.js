@@ -172,7 +172,7 @@ Lab.register({
       P.box('c' + i + '_1', 458, 98 + i * 44, 198, 38, { cls: r.hot ? 'hot' : 'wait', title: r.name });
       if (s.flow === 'pass' && s.to.indexOf(i) >= 0) P.arrow('ar' + i, 'chk:r', 'c' + i + '_0:l', { cls: 'good' });
     });
-    if (s && s.flow === 'read') P.arrow('rd', 'chk:r', 'h0:l', { cls: 'hot' });
+    if (s && s.flow === 'read') P.arrow('rd', 'chk:r', 'h1:l:0.9', { cls: 'hot' });
     if (s && s.flow === 'block') { P.arrow('stop', 'chk:r', [334, 108], { cls: 'bad' }); P.text('x', 344, 113, '×', { cls: 'bad', anchor: 'middle', bold: true }); }
     P.box('n1', 14, 242, 322, 36, { cls: s && s.made && s.rows.length ? 'wait' : 'ghost', title: 'Rows in the table', right: !s ? '0' : s.made ? s.rows.length + '' : 'No table' });
     P.box('n2', 344, 242, 322, 36, { cls: s && typeof s.rd === 'number' ? 'good' : s && s.rd === 'err' ? 'bad' : 'ghost', title: 'Rows read by SELECT', right: !s || s.rd === null ? '-' : s.rd === 'err' ? 'Error' : s.rd + '' });

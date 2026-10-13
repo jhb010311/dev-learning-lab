@@ -78,11 +78,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { stage: 0, at: '', eth: false, ip: false, tcp: false, data: sim.k.size, name: '', bytes: 0, split: false, sent: false, done: false }, k = sim.k, A = sim.addr, n = k.segs.length, i;
     var names = [['App', 'HTTP'], ['Transport', 'TCP'], ['Internet', 'IP'], ['Link', 'Ethernet']];
     P.size(680, 340);
-    P.region('snd', 8, 8, 150, 212, 'Sender (browser)');
-    P.region('rcv', 522, 8, 150, 212, 'Receiver (web server)');
+    P.region('snd', 8, 8, 150, 212, 'Sending computer');
+    P.region('rcv', 522, 8, 150, 212, 'Receiving computer');
     for (i = 0; i < 4; i++) {
-      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1] });
-      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1] });
+      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? 'Browser' : '' });
+      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? 'Web server' : '' });
     }
     P.text('un', 340, 30, s.stage ? 'Current data: ' + s.name + ' (' + s.bytes + ' bytes)' : 'Click Run to send the data down the layers', { anchor: 'middle', bold: true });
     if (s.eth) P.box('eth', 168, 42, 58, 46, { cls: 'wait', title: 'Eth', sub: String(this.ETH), center: true });

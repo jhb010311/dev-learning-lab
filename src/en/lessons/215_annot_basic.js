@@ -92,10 +92,10 @@ Lab.register({
       sum.push('The same is true of Spring\'s @RestController and @GetMapping: they have an effect because Spring reads those markers. You see how Spring reads them in the Fundamentals lab "Controllers".');
     } else if (c.reader && c.keep && c.mark === 'both') {
       sum.push('When you put @Run on rest too, rest was called too. We did not change a single line of the reader code, and the reader found and called every method that had the marker.');
-      sum.push('Which methods get called was decided not by the calling code but by the marker on the methods. Once you write the reader, you can add targets just by adding the marker.');
+      sum.push('Which methods get called was chosen by the code that reads the markers, by looking at the marker on each method. Once you write the reader, you can add targets just by adding the marker.');
     } else if (c.reader && c.keep) {
       sum.push('When we removed @Run from work, work was not called. The reader code is unchanged and the code of the work method is unchanged, but the answer came back that Run is not present, so it skipped the inside of the if.');
-      sum.push('Whether a method gets called was decided not by the code inside the method but by the marker. The reader is code that works by looking at the marker, so with no marker it does nothing.');
+      sum.push('Whether a method gets called was chosen not by the code inside the method but by the code that reads the marker, by looking at it. The reader is code that works by looking at the marker, so with no marker it does nothing.');
     } else if (!c.reader && anyVis) {
       sum.push('When you remove the code that finds and calls the methods that have Run, nothing happened even though @Run was present. The marker was kept so it could be read while the program ran, but there was no reader.');
       sum.push('A marker does not run anything by itself. All the compiler did was write the marker into the class file, and an effect comes only when there is a reader.');

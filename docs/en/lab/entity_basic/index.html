@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Entities: What is an entity, and how does it differ from an ordinary class? · Dev Learning Lab</title>
-<meta name="description" content="An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from…">
+<meta name="description" content="An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. In code, it is an ordinary Java…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Entities: What is an entity, and how does it differ from an ordinary class? · Dev Learning Lab">
-<meta property="og:description" content="An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from…">
+<meta property="og:description" content="An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. In code, it is an ordinary Java…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Entities</h1>
 <p><b>What is an entity, and how does it differ from an ordinary class?</b></p>
-<p>An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from an ordinary class in two places. @Entity above the class is a marker that objects of this class are stored in a table, and @Id above a field is a marker that this field is the primary key (the column that tells rows apart). With these two, JPA (Jakarta Persistence, here Hibernate) looks at the fields of the class and pairs them with the columns of the table, and when you pass an object to em.persist, it builds and runs the INSERT statement for you. We do not write SQL. Here, em is the EntityManager object that makes JPA do the saving. In this lab, you remove the two markers one at a time and run the same saving code, to see whether the table is created and whether an INSERT statement is sent.</p>
+<p>An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. In code, it is an ordinary Java class declared with class, and it differs from an ordinary class in two places. @Entity above the class is a marker that objects of this class are stored in a table, and @Id above a field is a marker that this field is the primary key (the column that tells rows apart). With these two, JPA (Jakarta Persistence, here Hibernate) looks at the fields of the class and pairs them with the columns of the table, and when you pass an object to em.persist, it builds the INSERT statement for you and runs it at commit. We do not write SQL. Here, em is the EntityManager object that makes JPA do the saving. In this lab, you remove the two markers one at a time and run the same saving code, to see whether the table is created and whether an INSERT statement is sent.</p>
 <p>Checked against real execution · Compiled the source as it is for all 8 combinations on Hibernate 7.4.5 and H2 2.4.240, really started JPA, saved, and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -177,6 +177,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

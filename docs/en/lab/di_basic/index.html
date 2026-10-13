@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <li>Spring scans the classes in the app package and looks for classes with @Component. It is on PayService and OrderService, so Spring notes down that it will create and keep objects of these two classes.</li>
 <li>Spring is about to create the OrderService object. It looks at the constructor OrderService(PayService payService) and sees that it receives PayService as a parameter. So Spring finds out that OrderService needs a PayService object to do its work. This is called &quot;OrderService depends on PayService&quot;.</li>
 <li>To create OrderService, a PayService object has to exist first, so Spring creates a PayService object first and keeps it. This object is the PayService bean. The number of PayService objects created is 1.</li>
-<li>Spring creates the OrderService object. It puts the PayService bean it was keeping into the payService parameter of the OrderService constructor, and the line this.payService = payService; in the constructor stores it in the field. The code we wrote has neither new OrderService(...) nor new PayService(). Spring putting in the object that is needed like this is dependency injection.</li>
+<li>Spring creates the OrderService object. It puts the PayService bean it was keeping into the payService parameter of the OrderService constructor, and the line this.payService = payService; in the constructor makes the field point to that object. The code we wrote has neither new OrderService(...) nor new PayService(). Spring putting in the object that is needed like this is dependency injection.</li>
 <li>The line that creates the context ends without an error, and the next line of main, context.getBean(OrderService.class), runs. Spring gives main the OrderService bean it was keeping. The object was already created in the earlier line, and no new object was created in this line.</li>
 <li>The orderService.order() method runs. order() calls payService.pay(), and this payService is the PayService bean that Spring injected. The pay() method returns &quot;Payment complete&quot;.</li>
 <li>System.out.println prints the text it received, &quot;Payment complete&quot;.</li>
@@ -186,6 +186,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

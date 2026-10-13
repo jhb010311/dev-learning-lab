@@ -47,7 +47,7 @@ Lab.register({
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('To create OrderService, a PayService object has to exist first, so Spring creates a PayService object first and keeps it. This object is the PayService bean. The number of PayService objects created is 1.', '');
         st.phase = 'makeOrder'; st.os = 'made'; st.field = 'bean'; order.push('OrderService<-spring');
-        push('Spring creates the OrderService object. It puts the PayService bean it was keeping into the payService parameter of the OrderService constructor, and the line this.payService = payService; in the constructor stores it in the field. The code we wrote has neither new OrderService(...) nor new PayService(). Spring putting in the object that is needed like this is dependency injection.', 'good');
+        push('Spring creates the OrderService object. It puts the PayService bean it was keeping into the payService parameter of the OrderService constructor, and the line this.payService = payService; in the constructor makes the field point to that object. The code we wrote has neither new OrderService(...) nor new PayService(). Spring putting in the object that is needed like this is dependency injection.', 'good');
       } else {
         st.phase = 'miss';
         push('Spring looks for the PayService bean it keeps, so that it can inject a PayService object. But PayService has no @Component, so it is a class Spring does not know, and there is no PayService bean kept. There is no object to inject.', 'bad');

@@ -92,21 +92,21 @@ Lab.register({
       { cells: ['식의 결과', { v: J.pass ? '참 (허용해야 하는 호출)' : '거짓 (거부해야 하는 호출)', cls: J.pass ? 'good' : 'bad' }] },
     ], '이번 호출');
   },
-  // 그림: 위의 컨트롤러가 아래의 orderService 빈을 부른다. 빈 안의 윗줄이 프록시(권한 검사), 아랫줄이 실제 객체의 메서드다. 같은 클래스 안의 호출은 프록시를 지나지 않고 옆으로 넘어간다.
+  // 그림: 위의 컨트롤러가 주입받은 orderService 빈(= 프록시)을 부른다. 윗줄이 프록시(권한 검사), 아랫줄이 프록시가 참조로 갖는 실제 객체의 메서드다. 같은 클래스 안의 호출은 프록시를 지나지 않고 옆으로 넘어간다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { boot: false, called: false, wrap: false, check: '', body: false, got: '' }, J = sim.j, c = sim.c, m = this.M[c.m], self = c.call === 'self', px = self ? 0.17 : 0.7;
     P.size(680, 340);
     P.box('caller', 16, 12, 648, 44, { cls: s.called ? 'wait' : 'ghost', title: '컨트롤러 · 로그인: ' + sim.me + ' (' + sim.role + ')', right: 'orderService.' + (self ? m.wcall : m.call) });
-    P.region('bean', 16, 70, 648, 204, 'orderService 빈');
+    P.region('bean', 16, 70, 648, 204, J.proxy || !s.boot ? 'orderService: 프록시(빈)와 실제 객체' : 'orderService 빈 (프록시 없이 실제 객체만)');
     P.box('proxy', 28, 98, 624, 62, { cls: !s.boot || !J.proxy ? 'ghost' : s.check === 'pass' ? 'good' : s.check === 'deny' ? 'bad' : s.check === 'skip' ? 'hot' : 'plain', title: J.proxy || !s.boot ? '프록시: 호출을 먼저 받아 권한을 검사한다' : '프록시 없음 (@EnableMethodSecurity가 없다)', sub: ['검사할 식  ' + m.expr, !J.proxy && s.boot ? '검사해 줄 것이 없음' : { '': '아직 검사 전', skip: '이 호출을 보지 못함: 검사하지 않음', wait: '본문이 끝난 뒤에 검사', pass: '식이 참: 통과', deny: '식이 거짓: 거부' }[s.check]] });
-    if (self) P.box('wrap', 28, 180, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애너테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
-    P.box('target', 250, 180, 402, 64, { cls: s.body ? (!J.checked && !J.pass ? 'bad' : 'good') : s.got ? 'ghost' : 'plain', title: m.call + ' 본문', sub: [c.m === 'post' ? '@PostAuthorize가 붙음' : '@PreAuthorize가 붙음', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전'] });
+    if (self) P.box('wrap', 28, 196, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애너테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
+    P.box('target', 250, 196, 402, 64, { cls: s.body ? (!J.checked && !J.pass ? 'bad' : 'good') : s.got ? 'ghost' : 'plain', title: m.call + ' 본문', sub: [c.m === 'post' ? '@PostAuthorize가 붙음' : '@PreAuthorize가 붙음', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전'] });
     if (s.called) P.arrow('a1', 'caller:b:' + px, 'proxy:t:' + px, { cls: J.proxy ? '' : 'dash' });
     if (self && s.wrap) P.arrow('a2', 'proxy:b:' + px, 'wrap:t', { cls: J.proxy ? '' : 'dash' });
     if (self && s.body) P.arrow('a3', 'wrap:r', 'target:l', { cls: J.pass ? 'mut' : 'bad', label: 'this' });
-    if (!self && s.body) P.arrow('a4', 'proxy:b:' + px, 'target:t', { cls: J.proxy ? (J.pass ? 'good' : 'hot') : 'dash' });
+    if (J.proxy && s.boot && (self || !s.body)) P.arrow('ref', 'proxy:b:0.7', 'target:t', { cls: 'mut', label: '참조' }); if (!self && s.body) P.arrow('a4', 'proxy:b:' + px, 'target:t', J.proxy ? { cls: J.pass ? 'good' : 'hot', label: '넘김' } : { cls: 'dash' });
     P.box('res', 16, 288, 648, 38, { cls: !s.got ? 'ghost' : J.denied ? 'plain' : !J.checked && !J.pass ? 'bad' : 'good', title: '부른 쪽이 받는 것', right: s.got || '아직 실행 중' });
-    P.note('호출은 위에서 아래로 내려갑니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
+    P.note('프록시와 실제 객체는 서로 다른 객체이고, 프록시가 실제 객체를 참조로 갖고 있습니다("참조" 화살표). 호출은 위에서 아래로 내려갑니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
   },
   assume: '서른여섯 가지 조합 모두를 이 PC의 스프링 시큐리티 7.1.1(스프링 프레임워크 7.0.9, JDK 21)에서 화면과 같은 구조의 코드로 실행해 대조했습니다. 조합의 대조는 웹 서버 없이 스프링 컨텍스트에서 서비스 빈의 메서드를 직접 불러서 했으며, 로그인한 사용자는 SecurityContext에 직접 넣었습니다. 권한 검사가 실행됐는지는 검사할 때마다 불리는 AuthorizationEventPublisher 빈으로 세었고, 메서드 본문이 실행됐는지, 부른 쪽이 받은 값이나 예외의 종류, 빈이 프록시인지를 함께 확인했습니다. 거부될 때 던져지는 AuthorizationDeniedException이 AccessDeniedException의 한 종류라는 것도 실행으로 확인했습니다. 웹 요청에서 이 예외가 403 응답이 된다는 것은 스프링 부트 4.1.1 서버를 127.0.0.1에 띄워 따로 확인했습니다. 컨트롤러가 deleteAll()을 부르는 주소에 USER인 kim으로 요청하니 403이 나오고 본문은 실행되지 않았으며, ADMIN인 park으로 요청하니 200이 나왔습니다. 식에서 #owner처럼 인자의 이름을 쓰려면 컴파일할 때 -parameters 옵션이 필요합니다. 이 옵션 없이 컴파일해 실행했더니 #owner가 비어 있어 주인인 kim의 호출도 거부됐습니다(스프링 부트의 빌드 도구는 이 옵션을 기본으로 켠다고 문서에 나와 있으나 그 부분은 확인하지 않았습니다). 로그인 정보가 전혀 없는 상태에서 검사가 걸린 메서드를 부르면 AuthorizationDeniedException이 아니라 AuthenticationCredentialsNotFoundException이 나왔습니다. 화면의 본문 코드(orders.clear() 등)는 뜻을 보이려고 줄여 적은 것이며, 실행할 때는 본문이 실행된 횟수를 세었습니다. 스프링 부트가 이 설정을 대신 켜 주지는 않았습니다. 같은 스프링 부트 서버에서 @EnableMethodSecurity만 빼고 실행하니 USER인 kim의 요청에도 200이 나오고 본문이 실행됐습니다. 같은 클래스 안의 호출에서 검사가 빠지는 것은 프록시 방식의 일반적인 한계이고, "프록시와 자기 호출" 실습에서 자세히 다룹니다. @PreFilter, @PostFilter, @Secured, 직접 만든 빈을 식에서 부르는 방법은 다루지 않았습니다.',
 });

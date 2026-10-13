@@ -85,7 +85,7 @@ Lab.register({
     if (c.ctl && c.map) {
       sum.push('A controller is a Java class declared with class. It differs from an ordinary class in @RestController above the class (the marker) and @GetMapping above a method (the registration). With both, Spring creates the object and puts the method in its path table.');
       if (c.many === 'one') sum.push('A controller is not a servlet. The request is received by DispatcherServlet, which Spring registered with Tomcat, and DispatcherServlet looks at the path table and calls the method of the controller. The code we wrote has no new and no line that calls the method.');
-      else sum.push('Paths are written on methods, not on the class, so one class holds three paths. A servlet has its path written on the class, so it needed three classes. Here, one object gave a different response for each path with its three methods.');
+      else sum.push('Paths are written on methods, not on the class, so one class holds three paths. As in the previous lab, making a separate servlet class for each path needed three classes. Here, one object gave a different response for each path with its three methods.');
     } else if (c.ctl) {
       sum.push('@RestController is there, so Spring created the object, but no path to handle is written, so no method was ever called. The request was stopped at the path table, and a 404 response was returned.');
       sum.push('The marker above the class says that Spring uses this class, and the @GetMapping above a method decides which path it handles. To receive requests, you need both.');

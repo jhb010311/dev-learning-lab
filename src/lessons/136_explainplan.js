@@ -135,7 +135,7 @@ Lab.register({
     if (w === 'pk') sum.push('기본 키에 값 하나를 주면 type const입니다. 한 행만 읽으므로 ORDER BY나 GROUP BY가 붙어도 Extra에 아무것도 나오지 않습니다.');
     if (w === 'noidx') sum.push('조건에 쓴 컬럼에 인덱스가 없으면 type ALL에 Using where가 붙습니다. 400행을 얻으려고 2만 행을 읽습니다. 자주 쓰는 조건이라면 그 컬럼에 인덱스를 만들 것을 검토합니다.');
     if (r.type === 'index') sum.push('type index는 "인덱스를 잘 탔다"가 아니라 "인덱스 전체를 읽었다"는 뜻입니다. rows가 테이블 전체에 가까운 것으로 알 수 있습니다. 조회 컬럼을 SELECT *로 바꾸면 인덱스만으로는 부족해져 type이 ALL이 됩니다.');
-    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort는 정렬 작업이 따로 필요하다는 표시입니다. 몇 행만 정렬하면 문제가 없지만, rows가 큰데 filesort가 붙으면 읽은 행 전부를 정렬합니다.');
+    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort는 정렬 작업이 따로 필요하다는 표시입니다. 몇 행만 정렬하면 문제가 없지만, rows가 큰데 filesort가 붙으면 WHERE 조건을 통과한 행 전부를 정렬합니다.');
     if (r.extra.indexOf('Using temporary') >= 0) sum.push('Using temporary는 임시 테이블을 만든다는 표시입니다. 인덱스가 없는 컬럼으로 GROUP BY를 할 때 흔히 나옵니다.');
     sum.push('읽는 순서: type으로 얼마나 넓게 읽는지 보고, key로 어떤 인덱스를 쓰는지 확인하고, rows로 읽는 양을 가늠한 뒤, Extra에서 걸러내기, 정렬, 임시 테이블 같은 덧붙은 작업을 봅니다.');
     return { events: ev, summary: sum, p: p, match: match, row: row };
@@ -177,7 +177,7 @@ Lab.register({
       var r = p[0], on = s.a >= 4, txt = on ? (r.extra.slice(0, s.ex).join('; ') || '(비어 있음)') : '?', warn = on && r.extra.slice(0, s.ex).some(function (x) { return x === 'Using filesort' || x === 'Using temporary'; });
       P.box('extra', 28, 104, 624, 48, { cls: (!on ? 'ghost' : s.cur === 'extra' ? 'hot' : warn ? 'hot' : 'wait') + (on && s.cur === 'extra' ? ' now' : ''), title: 'Extra', sub: txt });
     }
-    P.region('sc', 16, 180, 648, 124, '접근 방법(type): 왼쪽일수록 적게 읽는다');
+    P.region('sc', 16, 180, 648, 124, '접근 방법(type): 왼쪽일수록 대체로 적게 읽는다');
     var types = [['const', '한 행'], ['eq_ref', '행마다 한 행'], ['ref', '같은 값들'], ['range', '한 구간'], ['index', '인덱스 전체'], ['ALL', '테이블 전체']];
     types.forEach(function (tp, i) {
       var mine = p.some(function (r, ri) { return r.type === tp[0] && (ri === 0 ? s.a : s.b) >= 1; });

@@ -78,11 +78,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { stage: 0, at: '', eth: false, ip: false, tcp: false, data: sim.k.size, name: '', bytes: 0, split: false, sent: false, done: false }, k = sim.k, A = sim.addr, n = k.segs.length, i;
     var names = [['응용', 'HTTP'], ['전송', 'TCP'], ['인터넷', 'IP'], ['링크', '이더넷']];
     P.size(680, 340);
-    P.region('snd', 8, 8, 150, 212, '보내는 쪽 (브라우저)');
-    P.region('rcv', 522, 8, 150, 212, '받는 쪽 (웹 서버)');
+    P.region('snd', 8, 8, 150, 212, '보내는 쪽 컴퓨터');
+    P.region('rcv', 522, 8, 150, 212, '받는 쪽 컴퓨터');
     for (i = 0; i < 4; i++) {
-      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1] });
-      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1] });
+      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? '브라우저' : '' });
+      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? '웹 서버' : '' });
     }
     P.text('un', 340, 30, s.stage ? '지금의 데이터: ' + s.name + ' (' + s.bytes + '바이트)' : '실행을 누르면 데이터가 계층을 따라 내려갑니다', { anchor: 'middle', bold: true });
     if (s.eth) P.box('eth', 168, 42, 58, 46, { cls: 'wait', title: '이더넷', sub: String(this.ETH), center: true });

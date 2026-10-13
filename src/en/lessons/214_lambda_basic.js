@@ -12,7 +12,7 @@ Lab.register({
   presets: [
     { t: 'Default settings', q: 'What does a lambda look like, and when does the code after the arrow run?', d: 'It does not run on the line where the lambda is written. It runs when you call t.run(). The output is Ready, then Working.', v: { form: 'lambda', call: 'once', two: false } },
     { t: 'Remove t.run()', q: 'What if you remove t.run()?', d: 'A lambda only stores what to do in a variable, so "Working" is not printed.', v: { form: 'lambda', call: 'none', two: false } },
-    { t: 'Write it as an anonymous class', q: 'What if you write the lambda out as an anonymous class?', d: 'It is the same code written in full. The output is the same as the lambda.', v: { form: 'anon', call: 'once', two: false } },
+    { t: 'Write it as an anonymous class', q: 'What if you write the lambda out as an anonymous class?', d: 'It does the same job, written in full. The output is the same as the lambda.', v: { form: 'anon', call: 'once', two: false } },
     { t: 'Write it as a class with a name', q: 'What if you write it out as a class with a name?', d: 'You create a Work class and create an object with new. The output is the same as the lambda.', v: { form: 'named', call: 'once', two: false } },
     { t: 'Task has one more method', q: 'What if Task has one more method (void stop();)?', d: 'A lambda cannot tell which method it is the work of, so there is a compile-time error.', v: { form: 'lambda', call: 'once', two: true } },
   ],

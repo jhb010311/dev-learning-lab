@@ -1,7 +1,7 @@
 Lab.register({
   id: 'repo_basic', nav: 'Repositories', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['datajpa'],
   title: 'What is a repository, and who creates the implementation?',
-  intro: 'A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository<Member, Long>, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in JpaRepository, so it is inherited. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.',
+  intro: 'A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository<Member, Long>, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is a method that JpaRepository itself inherits from a parent interface, so it is inherited here too. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.',
   terms: ['Repository', 'JpaRepository', 'Query method', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ext', label: 'Write extends JpaRepository<Member, Long> in the MemberRepository declaration', type: 'check', value: true },
@@ -59,7 +59,7 @@ Lab.register({
       st.phase = 'plain';
       push('What happens if you give the same interface to Spring, without the calling side, was run and checked separately. Spring starts successfully, but it does not create an implementation object of MemberRepository (0 of them). What Spring Data looks for is an interface that extends a repository interface such as JpaRepository, and it does not look for an ordinary interface. We did not write a class to implement it, so this interface has no implementation anywhere.', '');
       sum.push('If you remove extends JpaRepository, MemberRepository is an ordinary interface. save was a method declared in JpaRepository, so this interface does not have it, and the compiler said it could not find save, so compiling failed.' + (none ? ' count is the same, so there were 2 errors.' : ' The line of ' + f.short + ', which we declared ourselves, has a declaration and was not an error.'));
-      sum.push('Spring creates an implementation only for an interface that extends JpaRepository. This interface does not extend it, so even if you avoid the compile error, Spring made 0 implementation objects.');
+      sum.push('Spring creates an implementation only for an interface that extends a Spring Data repository interface such as JpaRepository. This interface does not extend it, so even if you avoid the compile error, Spring made 0 implementation objects.');
       return { events: ev, summary: sum, f: f, row: ['Compile error: MemberRepository has no save method', 'None', 'None'] };
     }
 
@@ -69,7 +69,7 @@ Lab.register({
 
     // 2. When Spring starts, it finds the interface
     st.phase = 'scan'; st.hot = 'if';
-    push('main starts Spring with SpringApplication.run. Spring Data looks in the app package, where the start class is, for interfaces that extend JpaRepository. It finds MemberRepository, which has extends JpaRepository. The code we wrote has no class that implements MemberRepository and no line that creates an implementation.', '');
+    push('main starts Spring with SpringApplication.run. Spring Data looks in the app package, where the start class is, for interfaces that extend a repository interface such as JpaRepository. It finds MemberRepository, which has extends JpaRepository. The code we wrote has no class that implements MemberRepository and no line that creates an implementation.', '');
 
     if (nick) {
       st.phase = 'parse'; st.hot = 'if';
@@ -94,7 +94,7 @@ Lab.register({
     // 4. save
     st.phase = 'save'; st.hot = 'im';
     send(SEL_ID);
-    push('memberRepository.save(new Member(1L, "Alice")) runs. We have no code that wrote the save method. The implementation object that Spring made runs the one inherited from JpaRepository. The id of the Member is already set to 1, so Spring Data first looks with a SELECT for whether a row with id 1 already exists (SELECT 1). There is no such row.', '');
+    push('memberRepository.save(new Member(1L, "Alice")) runs. We have no code that wrote the save method. The implementation object that Spring made runs the one inherited from JpaRepository. The id of the Member is already set to 1, so inside save, a SELECT first goes out to check whether a row with id 1 already exists (SELECT 1). There is no such row.', '');
     send(INS); st.rows = 1;
     push('No row was found, so the implementation object sends an INSERT and saves the row with id 1, Alice, in the member table (INSERT 1). We wrote not one line of SQL.', 'good');
 
@@ -117,7 +117,7 @@ Lab.register({
       sum.push('save is a method inherited from JpaRepository, and findByName is a SELECT that Spring made by reading the naming rule (findBy + field name). All we wrote was the interface declaration, with no implementation class and no SQL.');
     } else {
       sum.push('Even if you remove the findByName declaration, the repository works as before. Even with no declared method at all, you could use the inherited save and count, and the implementation object that Spring made sent the SQL.');
-      sum.push('Declaring a finder method adds a lookup you need. The condition for getting an implementation object is not findByName but extending JpaRepository.');
+      sum.push('Declaring a finder method adds a lookup you need. The condition for getting an implementation object is not findByName but extending a repository interface such as JpaRepository.');
     }
     var n = kindText();
     return { events: ev, summary: sum, f: f, row: ['1', 'Yes', 'INSERT ' + n.INSERT + ', SELECT ' + n.SELECT + ''] };

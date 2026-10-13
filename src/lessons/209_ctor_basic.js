@@ -113,7 +113,7 @@ Lab.register({
       sum.push('우리가 쓴 코드에는 생성자를 부르는 줄이 없었습니다. 생성자를 실행시킨 것은 new입니다. 넘긴 값에 맞는 생성자가 있는지는 실행할 때가 아니라 컴파일러가 컴파일할 때 확인했습니다.');
     } else if (ok && c.ctor) {
       sum.push('new Card(...)를 두 번 실행했으므로 생성자도 두 번 실행되었습니다. 출력에서 "생성자 실행"이 두 줄입니다. 생성자는 객체를 만들 때마다 한 번씩 실행됩니다.');
-      sum.push('a와 b는 서로 다른 객체이고, 생성자가 각 객체의 owner를 따로 채웠습니다("김철수"와 "이영희"). 생성자를 한 번 적어 두면 객체를 몇 개 만들어도 같은 방식으로 필드가 채워집니다.');
+      sum.push('a와 b가 가리키는 것은 서로 다른 객체이고, 생성자가 각 객체의 owner를 따로 채웠습니다("김철수"와 "이영희"). 생성자를 한 번 적어 두면 객체를 몇 개 만들어도 같은 방식으로 필드가 채워집니다.');
     } else if (ok) {
       sum.push('생성자를 하나도 적지 않아도 new Card()는 컴파일됩니다. 컴파일러가 값을 받지 않고 아무 값도 넣지 않는 기본 생성자를 대신 넣기 때문입니다. 다만 owner를 채우는 코드가 없어서 owner는 비어 있는 그대로이고, 출력은 null이었습니다.');
       sum.push('우리가 적은 생성자가 없으므로 "생성자 실행"은 한 번도 출력되지 않았습니다(0번).' + (two ? ' new를 두 번 했으므로 객체는 두 개 만들어졌고 둘 다 owner가 null이었습니다.' : '') + ' 객체는 생성자를 적었든 아니든 new가 만들고, 생성자는 그 객체의 필드를 채우는 일을 맡습니다.');
@@ -150,7 +150,7 @@ Lab.register({
     var n = c.two ? 2 : 1;
     for (var i = 0; i < n; i++) {
       var o = s && s.objs[i], vn = i === 0 ? 'a' : 'b';
-      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: 'Card 객체 (' + vn + ')', sub: o ? 'owner: ' + (o.owner === null ? '비어 있음 (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? '만들어지지 않음' : '아직 없음' });
+      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: vn + '가 가리키는 Card 객체', sub: o ? 'owner: ' + (o.owner === null ? '비어 있음 (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? '만들어지지 않음' : '아직 없음' });
     }
     if (phase === 'chk') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: s.compile === 'err' || bad.nw ? 'bad' : 'hot' });
     if (phase === 'ctor') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: 'hot' });

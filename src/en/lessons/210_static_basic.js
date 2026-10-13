@@ -1,7 +1,7 @@
 Lab.register({
   id: 'static_basic', nav: 'static', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['static'],
   title: 'What is static, and what changes when you add it?',
-  intro: 'static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.',
+  intro: 'static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.',
   terms: ['static', 'Field', 'Instance variables and static fields', 'Classes and objects'],
   controls: [
     { id: 'st', label: 'Write static in front of count', type: 'check', value: true },
@@ -130,7 +130,7 @@ Lab.register({
     P.box('cl', 14, 20, 270, 140, { cls: bad.cl ? 'bad' : hot === 'cl' ? 'hot now' : 'plain', title: 'Counter (class)', sub: clSub });
     function obj(id, y, name, made, n) {
       var sub = made ? (c.st ? 'No count variable' : 'count: ' + n) : failed ? 'Not created' : 'Does not exist yet';
-      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: name + ' (Counter object)', sub: sub });
+      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: 'Counter object that ' + name + ' points to', sub: sub });
     }
     obj('oa', 20, 'a', s && s.objs >= 1, s ? s.a : null);
     obj('ob', 98, 'b', s && s.objs >= 2, s ? s.b : null);

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,7 +54,7 @@
 <li><b>When the language is not on the server</b> — There is no Japanese version, so the server gives the English version, the next candidate.</li>
 <li><b>Compressing a small body</b> — A 37-byte JSON document becomes bigger when it is compressed.</li>
 <li><b>Compressing an image that is already compressed</b> — A PNG does not get smaller when it is compressed once more.</li>
-<li><b>When no compression is requested</b> — Without Accept-Encoding, the server sends the body as it is.</li>
+<li><b>When no compression is requested</b> — With this server setup, without Accept-Encoding, the body is sent as it is.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
@@ -184,6 +184,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

@@ -113,7 +113,7 @@ Lab.register({
       sum.push('Nothing in the code we wrote had a line that calls the constructor. It is new that made it run. Whether a constructor fits the value you passed was not checked at run time. The compiler checked it while compiling.');
     } else if (ok && c.ctor) {
       sum.push('new Card(...) ran twice, so the constructor ran twice. The output has two lines of "constructor ran". The constructor runs once every time an object is created.');
-      sum.push('a and b are different objects, and the constructor filled in the owner of each one separately ("Alice" and "Bob"). Once you write a constructor, the fields are filled in the same way however many objects you create.');
+      sum.push('a and b point to different objects, and the constructor filled in the owner of each one separately ("Alice" and "Bob"). Once you write a constructor, the fields are filled in the same way however many objects you create.');
     } else if (ok) {
       sum.push('Even if you write no constructor at all, new Card() compiles. The compiler adds a default constructor that takes no value and puts no value into the fields. But no code fills in owner, so owner stays empty, and the output was null.');
       sum.push('We wrote no constructor, so "constructor ran" was never printed (0 times).' + (two ? ' new was used twice, so two objects were created, and the owner of both was null.' : '') + ' Whether or not you write a constructor, it is new that creates the object, and the constructor is in charge of filling in the fields of that object.');
@@ -150,7 +150,7 @@ Lab.register({
     var n = c.two ? 2 : 1;
     for (var i = 0; i < n; i++) {
       var o = s && s.objs[i], vn = i === 0 ? 'a' : 'b';
-      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: 'Card object (' + vn + ')', sub: o ? 'owner: ' + (o.owner === null ? 'empty (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? 'Not created' : 'Does not exist yet' });
+      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: vn + ' → Card object', sub: o ? 'owner: ' + (o.owner === null ? 'empty (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? 'Not created' : 'Does not exist yet' });
     }
     if (phase === 'chk') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: s.compile === 'err' || bad.nw ? 'bad' : 'hot' });
     if (phase === 'ctor') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: 'hot' });

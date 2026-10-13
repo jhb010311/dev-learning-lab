@@ -65,7 +65,7 @@ Lab.register({
     // Summary: the first line is the answer to this setting (the question)
     if (c.comp && via) {
       sum.push('A bean is an object that Spring creates and keeps. What differs from an ordinary class is the single @Component above the class, and with it, Spring creates one Greeter object when it starts and keeps it in the container.');
-      sum.push('getBean does not create a new object. It takes out the object that was being kept, so however many times we ask, the same object comes back and a == b is true. Our code has no line new Greeter().');
+      sum.push('getBean does not create a new object. It takes out the object that was being kept, so with the default setting, however many times we ask, the same object comes back and a == b is true. Our code has no line new Greeter().');
     } else if (via) {
       sum.push('Without @Component, Spring does not recognize the Greeter class, so it does not create and keep an object. The container was empty, so getBean(Greeter.class) threw ' + EXC + ', and the program stopped at that line.');
       sum.push('Spring does not create an object of a class without @Component just because it received a request for one. To become a bean, a class has to be marked so that Spring can find it.');
@@ -74,7 +74,7 @@ Lab.register({
       sum.push('Even with @Component, an object created with new is not one that Spring keeps. To use the object Spring created, you have to ask Spring for it, and otherwise the kept object is left unused.');
     } else {
       sum.push('A Greeter object created with new and without @Component is an ordinary object unrelated to Spring. Spring created no Greeter object at all (0), and the 2 we created are different objects, so a == b is false.');
-      sum.push('Even though Spring was started, this code ran as usual without any help from Spring. An object that Spring creates and keeps is a bean, and an object that we create directly with new is not a bean.');
+      sum.push('Even though Spring was started, this code ran as usual without any help from Spring. An object that Spring creates and keeps is a bean, and an object that our code creates and uses with new, without handing it to Spring, is not a bean.');
     }
     return { events: ev, summary: sum, row: [st.exc ? 'Stopped by ' + EXC : st.out[0], st.out.length > 1 ? st.out[1] : 'Not run', st.made + '', st.ours + ''] };
   },

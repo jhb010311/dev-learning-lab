@@ -59,7 +59,7 @@ Lab.register({
     st.stage = 'ins';
     if (to < 0) {
       st.insErr = true; st.res = 'Error 1526: no partition for the year 2026';
-      push('INSERT … VALUES ' + V + ': error 1526 (Table has no partition for value 2026) occurs and the row is not inserted. The year of the order date is 2026, but the partitions that were created accept values only below 2026. In a RANGE partitioned table, a value that does not belong to any range cannot be inserted.', 'bad');
+      push('INSERT … VALUES ' + V + ': error 1526 (Table has no partition for value 2026) occurs and the row is not inserted. The year of the order date is 2026, but the partitions that were created accept values only below 2026. In a RANGE partitioned table without a MAXVALUE partition, a value that does not belong to any range cannot be inserted.', 'bad');
     } else {
       st.ins = to; st.rows[to]++; st.res = 'Stored in partition ' + names[to];
       push('INSERT … VALUES ' + V + ': ' + (R ? 'The year of the order date is 2025, so the row goes into partition p2025, which accepts "less than 2026".' : 'The remainder of the member number (' + (c.ins === 'in' ? 7 : 9) + ') divided by 4 is ' + to + ', so the row goes into partition p' + to + '. A HASH partition has nothing like "out of range". Any value has a place to go, decided by the remainder calculation.'), 'good');

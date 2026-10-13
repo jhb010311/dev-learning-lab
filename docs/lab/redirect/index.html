@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
+<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <li><b>처음 설정으로</b> — POST 요청에 302로 응답. 다음 요청은 GET으로 바뀌고 본문이 사라집니다.</li>
 <li><b>307이면 POST 그대로</b> — 메서드와 본문을 바꾸지 않고 새 주소로 다시 보냅니다.</li>
 <li><b>303: 결과는 GET으로 조회</b> — 폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.</li>
-<li><b>301에 PUT을 보내면</b> — GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.</li>
+<li><b>301에 PUT을 보내면</b> — 여기서 확인한 클라이언트(fetch, curl)에서는 GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.</li>
 <li><b>영구 이동 308</b> — 301과 같은 영구 이동인데 메서드를 유지합니다.</li>
 <li><b>서로를 가리키는 리다이렉트</b> — 끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.</li>
 </ul>
@@ -175,6 +175,6 @@ await fetch('http://shop.example/order', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7349ea4b1"></script>
+<script src="../../app.js?v=0c9df686f7"></script>
 </body>
 </html>

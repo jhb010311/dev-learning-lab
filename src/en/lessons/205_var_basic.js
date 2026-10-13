@@ -154,7 +154,7 @@ Lab.register({
       sum.push('An int variable cannot hold text. int is a type that holds only integers, so the compiler stopped the line that tries to store "twenty," and the program could not run.');
       sum.push('Whether a value fits the type is not learned by running the program. The compiler checks it ahead of time on every line that stores a value. To store text, declare the variable with a type that holds text (String).');
     } else {
-      sum.push('A variable that has no stored value cannot be read. int age; created the variable, but age + 1 tried to read it before a value was stored, so the compiler stopped it and the program could not run.');
+      sum.push('A variable that has no stored value cannot be read. int age; declared the variable, but age + 1 tried to read it before a value was stored, so the compiler stopped it and the program could not run.');
       sum.push('You can declare a variable and store a value separately, but a value must be stored before the variable is read, and this is also checked by the compiler before the program runs. A local variable does not get a value such as 0 automatically.');
     }
     return { events: ev, summary: sum, nerr: nerr, errAt: errAt, row: [ok ? 'Success' : 'Error', ok ? 'None' : first, ok ? out : 'Cannot run'] };

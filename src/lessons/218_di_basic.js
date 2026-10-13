@@ -47,7 +47,7 @@ Lab.register({
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('OrderService를 만들려면 PayService 객체가 먼저 있어야 하므로, 스프링이 PayService 객체를 먼저 만들어 보관합니다. 이 객체가 PayService 빈입니다. 만들어진 PayService 객체는 1개입니다.', '');
         st.phase = 'makeOrder'; st.os = 'made'; st.field = 'bean'; order.push('OrderService<-spring');
-        push('스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 그것을 필드에 담습니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.', 'good');
+        push('스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 필드가 그 객체를 가리키게 합니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.', 'good');
       } else {
         st.phase = 'miss';
         push('스프링이 PayService 객체를 넣어 주려고 보관하는 빈을 찾아봅니다. 그런데 PayService에는 @Component가 없어 스프링이 모르는 클래스이고, 보관하는 PayService 빈이 없습니다. 넣어 줄 객체가 없습니다.', 'bad');

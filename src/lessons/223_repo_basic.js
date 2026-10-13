@@ -1,7 +1,7 @@
 Lab.register({
   id: 'repo_basic', nav: '리포지토리', cat: '기초개념', mode: 'step', basic: true, deep: ['datajpa'],
   title: '리포지토리는 무엇이고, 구현은 누가 만드는가',
-  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository에 선언돼 있어서 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
+  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository가 부모 인터페이스에서 물려받은 메서드를 다시 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
   terms: ['리포지토리', 'JpaRepository', '쿼리 메서드', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ext', label: 'MemberRepository 선언에 extends JpaRepository<Member, Long>을 쓴다', type: 'check', value: true },
@@ -59,7 +59,7 @@ Lab.register({
       st.phase = 'plain';
       push('같은 인터페이스를 쓰는 쪽 없이 스프링에 맡기면 어떻게 되는지는 따로 실행해 확인했습니다. 스프링은 시작에는 성공하지만 MemberRepository의 구현 객체를 만들지 않았습니다(0개). 스프링 데이터가 찾는 것은 JpaRepository 같은 리포지토리 인터페이스를 상속한 인터페이스이고, 평범한 인터페이스는 찾지 않기 때문입니다. 구현할 클래스를 우리가 쓰지 않았으니, 이 인터페이스의 구현은 어디에도 없습니다.', '');
       sum.push('extends JpaRepository를 지우면 MemberRepository는 평범한 인터페이스입니다. save는 JpaRepository에 선언돼 있던 메서드라 이 인터페이스에는 없고, 컴파일러가 save를 찾을 수 없다고 알려 주어 컴파일에 실패했습니다.' + (none ? ' count도 마찬가지여서 오류는 2개였습니다.' : ' 직접 선언한 ' + f.short + ' 줄은 선언이 있어 오류가 아니었습니다.'));
-      sum.push('스프링이 구현을 만들어 주는 것은 JpaRepository를 상속한 인터페이스뿐입니다. 이 인터페이스는 상속하지 않았으므로, 컴파일 오류를 피하더라도 스프링이 만든 구현 객체는 0개입니다.');
+      sum.push('스프링은 JpaRepository 같은 스프링 데이터의 리포지토리 인터페이스를 상속한 인터페이스에만 구현을 만들어 줍니다. 이 인터페이스는 상속하지 않았으므로, 컴파일 오류를 피하더라도 스프링이 만든 구현 객체는 0개입니다.');
       return { events: ev, summary: sum, f: f, row: ['컴파일 오류: MemberRepository에 save 메서드가 없음', '없음', '없음'] };
     }
 
@@ -69,7 +69,7 @@ Lab.register({
 
     // 2. 스프링이 시작하면서 인터페이스를 찾는다
     st.phase = 'scan'; st.hot = 'if';
-    push('main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.', '');
+    push('main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository 같은 리포지토리 인터페이스를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.', '');
 
     if (nick) {
       st.phase = 'parse'; st.hot = 'if';
@@ -94,7 +94,7 @@ Lab.register({
     // 4. save
     st.phase = 'save'; st.hot = 'im';
     send(SEL_ID);
-    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
+    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, save 안에서 먼저 id가 1인 행이 이미 있는지 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
     send(INS); st.rows = 1;
     push('찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.', 'good');
 
@@ -117,7 +117,7 @@ Lab.register({
       sum.push('save는 JpaRepository에서 물려받은 메서드이고, findByName은 이름의 규칙(findBy + 필드 이름)을 스프링이 읽어 SELECT를 만든 것입니다. 우리가 쓴 것은 인터페이스의 선언뿐이고, 구현 클래스도 SQL도 쓰지 않았습니다.');
     } else {
       sum.push('findByName 선언을 지워도 리포지토리는 그대로 동작합니다. 선언한 메서드가 하나도 없어도 JpaRepository에서 물려받은 save와 count를 쓸 수 있었고, 스프링이 만든 구현 객체가 SQL을 보냈습니다.');
-      sum.push('찾는 메서드를 선언하는 것은 필요한 조회를 더하는 일입니다. 구현 객체를 얻는 조건은 findByName이 아니라 JpaRepository를 상속하는 것입니다.');
+      sum.push('찾는 메서드를 선언하는 것은 필요한 조회를 더하는 일입니다. 구현 객체를 얻는 조건은 findByName이 아니라 JpaRepository 같은 리포지토리 인터페이스를 상속하는 것입니다.');
     }
     var n = kindText();
     return { events: ev, summary: sum, f: f, row: ['1', '있음', 'INSERT ' + n.INSERT + '번, SELECT ' + n.SELECT + '번'] };

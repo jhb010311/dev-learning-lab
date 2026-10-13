@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
+<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <li>스프링이 app 패키지의 클래스를 훑어 @Component가 붙은 클래스를 찾습니다. PayService와 OrderService에 붙어 있으므로, 이 두 클래스의 객체를 만들어 보관할 대상으로 적어 둡니다.</li>
 <li>스프링이 OrderService 객체를 만들려고 합니다. 생성자 OrderService(PayService payService)를 보니 매개변수로 PayService를 받습니다. 그래서 OrderService가 일을 하려면 PayService 객체가 필요하다는 것을 스프링이 알아냅니다. 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다.</li>
 <li>OrderService를 만들려면 PayService 객체가 먼저 있어야 하므로, 스프링이 PayService 객체를 먼저 만들어 보관합니다. 이 객체가 PayService 빈입니다. 만들어진 PayService 객체는 1개입니다.</li>
-<li>스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 그것을 필드에 담습니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.</li>
+<li>스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 필드가 그 객체를 가리키게 합니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.</li>
 <li>컨텍스트를 만드는 줄이 오류 없이 끝나고, main의 다음 줄 context.getBean(OrderService.class)가 실행됩니다. 스프링이 보관하던 OrderService 빈을 main에 줍니다. 객체는 앞 줄에서 이미 만들어졌고, 이 줄에서 새로 만들어진 객체는 없습니다.</li>
 <li>orderService.order() 메서드가 실행됩니다. order()는 payService.pay()를 부르는데, 이 payService는 스프링이 넣어 준 PayService 빈입니다. pay() 메서드가 &quot;결제 완료&quot;를 돌려줍니다.</li>
 <li>System.out.println이 돌려받은 글 &quot;결제 완료&quot;를 출력합니다.</li>
@@ -186,6 +186,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7349ea4b1"></script>
+<script src="../../app.js?v=0c9df686f7"></script>
 </body>
 </html>

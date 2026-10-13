@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <li><b>Default settings</b> — The server responds to a POST with 302. The next request becomes a GET and the body is lost.</li>
 <li><b>With 307, the POST stays a POST</b> — The request is sent again to the new address without changing the method or the body.</li>
 <li><b>303: get the result with GET</b> — This is the approach used to send the user to a result page after a form is submitted.</li>
-<li><b>Sending a PUT with 301</b> — Only a POST is changed to GET. A PUT goes on unchanged.</li>
+<li><b>Sending a PUT with 301</b> — In the clients checked here (fetch and curl), only a POST is changed to GET. A PUT goes on unchanged.</li>
 <li><b>Permanent redirect 308</b> — It is a permanent move like 301, but it keeps the method.</li>
 <li><b>Redirects that point to each other</b> — There is no end, so the client stops by itself at a limit it has set.</li>
 </ul>
@@ -175,6 +175,6 @@ await fetch('http://shop.example/order', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

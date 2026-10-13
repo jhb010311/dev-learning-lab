@@ -90,7 +90,7 @@ Lab.register({
     if (!R.kept) sum.push('새 세션을 만드는 방식은 로그인 전에 세션에 넣어 둔 값(장바구니)을 옮기지 않습니다. 기본값인 "ID만 바꾸기"는 내용을 그대로 둡니다.');
     return { events: ev, summary: sum, row: [R.changed ? '새 ID로 바뀜' : '로그인 전과 같음', R.kept ? '남아 있음' : '사라짐', row3, R.by] };
   },
-  sesText: function (x) { return !x.on ? ['아직 없음', ' '] : x.gone ? ['없어짐', x.gone] : ['로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
+  sesText: function (x, w) { return !x.on ? [w === 's2' ? '같은 세션 · 아직 바뀌지 않음' : '아직 없음', ' '] : x.gone ? [w === 's1' ? '같은 세션 · 더는 통하지 않음' : '없어짐', x.gone] : [(w === 's2' ? '같은 세션 · ' : '') + '로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 로그인 전부터 차례로 진행합니다.'); return; }
@@ -100,13 +100,13 @@ Lab.register({
   // 그림: 위쪽은 공격자, 서버, 피해자의 브라우저 사이를 오간 요청과 응답의 순서. 아래쪽은 서버가 가지고 있는 세션 두 개의 상태다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], s1: { on: false }, s2: { on: false }, vc: '', known: '', att: '' };
-    var end = P.seq([['a', '다른 사람 (공격자)', 'hot'], ['s', 'shop.example 서버'], ['v', '피해자의 브라우저', 'wait']], s.msgs, { keep: 6 }), y = end + 12, self = this;
+    var end = P.seq([['a', '다른 사람 (공격자)', 'hot'], ['s', 'shop.example 서버'], ['v', '피해자의 브라우저', 'wait']], s.msgs, { keep: 6 }), y = end + 12, self = this, def = sim.c.fix === 'default';
     [['s1', 'aaa111', 16], ['s2', 'bbb222', 344]].forEach(function (d) {
       var x = s[d[0]], known = s.known === d[1], bad = known && x.on && !x.gone && x.user;
-      P.box(d[0], d[2], y, 320, 64, { cls: !x.on || x.gone ? 'ghost' : bad ? 'bad' : x.user ? 'good' : 'plain', title: '서버의 세션 ' + d[1] + (known ? ' · 공격자가 아는 ID' : ''), sub: self.sesText(x) });
+      P.box(d[0], d[2], y, 320, 64, { cls: !x.on || x.gone ? 'ghost' : bad ? 'bad' : x.user ? 'good' : 'plain', title: (def ? (d[0] === 's2' ? '새 ID ' : x.gone ? '예전 ID ' : '서버의 세션 ') : '서버의 세션 ') + d[1] + (known ? ' · 공격자가 아는 ID' : ''), sub: self.sesText(x, def ? d[0] : '') });
     });
     P.size(680, y + 64 + 14);
-    P.note('위쪽은 요청과 응답이 오간 순서, 아래쪽은 서버가 가지고 있는 세션입니다. 초록 상자는 로그인된 세션, 빨간 상자는 공격자가 ID를 알고 있는 로그인된 세션, 점선은 없거나 없어진 세션입니다. 세션 ID는 알아보기 쉽게 줄여 적었습니다.');
+    P.note('위쪽은 요청과 응답이 오간 순서, 아래쪽은 서버가 가지고 있는 세션입니다. ID를 바꾸는 기본값에서는 두 상자가 따로 만든 세션이 아니라 같은 세션의 예전 ID와 새 ID입니다. 초록 상자는 로그인된 세션, 빨간 상자는 공격자가 ID를 알고 있는 로그인된 세션, 점선은 없거나 없어진 세션입니다. 세션 ID는 알아보기 쉽게 줄여 적었습니다.');
   },
   assume: '열두 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 설정으로 실행해 대조했습니다. 폼 로그인 전후에 서버가 내려 준 JSESSIONID가 바뀌는지, 로그인 전에 담은 장바구니가 남는지, 다른 사람이 알고 있는 ID를 쿠키에 넣어 보낸 요청의 응답(200과 본문 kim, 또는 302와 /login)이 화면과 같은지 확인했습니다. 여기서 "공격자"와 "피해자"는 쿠키에 넣는 세션 ID만 다른 같은 시험 프로그램의 요청이며, 실제 브라우저는 쓰지 않았습니다. 공격자가 피해자의 브라우저에 세션 ID를 심는 방법과 로그인된 세션의 ID를 알아내는 방법은 실행하지 않았고, 그렇게 됐다는 결과만 가정했습니다. HttpOnly 쿠키를 스크립트가 읽지 못한다는 것은 "쿠키" 실습에서 실제 브라우저로 확인한 내용입니다. 실제 세션 ID는 32글자였고(이 서버에서 확인) 추측할 수 없도록 무작위로 만들어집니다. 화면의 aaa111과 bbb222는 알아보기 쉽게 줄여 적은 것입니다. 서버가 세션 ID를 내려 줄 때의 Set-Cookie 속성이 "Path=/; HttpOnly"라는 것, server.servlet.session.cookie.secure=true로 설정하면 Secure가 붙는다는 것도 이 서버에서 확인했습니다. 로그인할 때의 동작을 changeSessionId나 migrateSession으로 명시해도 밖에서 보이는 결과는 기본값과 같았습니다. 로그인 화면을 처음 열 때 세션이 만들어지는 것은 그 화면에 넣는 CSRF 토큰을 세션에 보관하기 때문입니다. 세션 만료 시간이 지나 세션이 없어지는 것은 실행으로 확인하지 않았습니다. 근거 문서는 스프링 시큐리티 문서의 Servlet Applications, Authentication, Session Management 장에 있는 세션 고정 보호 설명입니다. 서버가 여러 대일 때의 세션 공유는 "세션과 JWT" 실습에서 다룹니다.',
 });

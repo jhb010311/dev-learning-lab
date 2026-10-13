@@ -92,16 +92,16 @@ Lab.register({
   // Diagram: On the left is the application. On the right, inside the database, are the procedure, the trigger, and three tables, with the view and the copy below. Arrows connect who changed which table.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: 10, orders: 0, logs: [], view: '?', copy: '?', did: {}, err: false, cur: 'none' }, d = s.did, proc = c.how === 'proc', q = +c.qty;
-    P.size(680, 330);
+    P.size(680, 386);
     P.box('app', 16, 44, 124, 52, { cls: s.cur === 'none' || s.cur === 'init' ? 'plain' : s.err ? 'bad' : 'hot', title: 'Application', sub: proc ? 'One CALL' : 'One INSERT' });
-    P.region('db', 156, 16, 508, 298, 'Inside MySQL');
+    P.region('db', 156, 16, 508, 354, 'Inside MySQL');
     if (proc) P.box('proc', 170, 48, 174, 44, { cls: d.procFail ? 'bad' : d.call ? 'hot' : 'plain', title: 'Procedure', sub: '3 statements' });
     P.box('trg', 170, 126, 174, 44, c.trig ? { cls: (d.trgFail ? 'bad' : d.trg ? 'hot' : 'plain') + (s.cur === 'trg' ? ' now' : ''), title: 'Trigger (on orders)', sub: 'Runs on INSERT' } : { cls: 'ghost', title: 'No trigger' });
     P.box('orders', 476, 48, 172, 44, { cls: s.orders ? 'good' : d.trgFail ? 'bad' : 'plain', title: 'orders', right: 'Rows: ' + s.orders, sub: d.trgFail ? 'Rolled back' : s.orders ? 'Quantity ' + q : '' });
     P.box('product', 476, 126, 172, 44, { cls: s.stock !== 10 ? 'hot' : 'plain', title: 'product', right: 'Stock: ' + s.stock, sub: 'keyboard' });
     P.box('slog', 476, 204, 172, 44, { cls: s.logs.length ? 'good' : 'plain', title: 'stock_log', right: 'Rows: ' + s.logs.length, sub: s.logs.join('/') });
     P.box('view', 170, 260, 174, 44, { cls: s.view === '?' ? 'plain' : 'good', title: 'v_stock (view)', right: s.view === '?' ? '' : s.view, sub: 'SELECT only' });
-    P.box('copy', 16, 260, 130, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10', sub: 'Copied rows' });
+    P.box('copy', 170, 316, 174, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10', sub: 'Copied rows' });
     if (d.appIns || (!proc && d.trgFail)) P.arrow('aIns', 'app:r', 'orders:l', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
     if (d.call) P.arrow('aCall', 'app:r', 'proc:l', { cls: d.procFail ? 'bad' : 'hot' });
     if (d.procIns || (proc && d.trgFail)) P.arrow('pIns', 'proc:r:0.3', 'orders:l:0.4', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
@@ -111,7 +111,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: 'failed' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('Yellow arrows are statements run by the application or the procedure, and red arrows are what the trigger did. The dotted line shows that an INSERT on orders activated the trigger automatically. As the green arrow shows, the view reads product every time you query it, while the copy table at the lower left keeps the values that were copied when it was created.');
+    P.note('Yellow arrows are statements run by the application or the procedure, and red arrows are what the trigger did. The dotted line shows that an INSERT on orders activated the trigger automatically. As the green arrow shows, the view reads product every time you query it, while the copy table at the bottom, which is also a table inside MySQL, keeps the values that were copied when it was created.');
   },
   assume: 'For all 12 combinations, the same tables, view, procedure, and trigger as the ones on the screen were created on MySQL 8.4 (InnoDB, autocommit on) on the PC used to write this lab, and the order statement was run. The error or success, the number of rows in each table, the stock, and the values from the view and the copy were checked against the screen. That the view stores no data was checked in information_schema, where v_stock shows up as a VIEW with no storage engine and stock_copy shows up as an InnoDB table. That the stock returns when the statements are grouped in a transaction and rolled back was also checked by running it once on the same database. That the original statement is rolled back together with a failed trigger is the behavior on an engine that supports transactions, such as InnoDB. How much remains after an error inside a procedure depends on the autocommit setting, START TRANSACTION inside the procedure, and handlers (DECLARE ... HANDLER), and here the simplest procedure without any of these was used. The error when the stock is short was produced by a CHECK constraint (which MySQL actually enforces from 8.0.16).',
 });

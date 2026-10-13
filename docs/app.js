@@ -7718,16 +7718,16 @@ Lab.register({
   // 그림: 왼쪽에 애플리케이션, 오른쪽 DB 안에 프로시저·트리거와 테이블 셋, 아래에 뷰와 복사본. 누가 어느 테이블을 고쳤는지 화살표로 잇는다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: 10, orders: 0, logs: [], view: '?', copy: '?', did: {}, err: false, cur: 'none' }, d = s.did, proc = c.how === 'proc', q = +c.qty;
-    P.size(680, 330);
+    P.size(680, 386);
     P.box('app', 16, 44, 124, 52, { cls: s.cur === 'none' || s.cur === 'init' ? 'plain' : s.err ? 'bad' : 'hot', title: '애플리케이션', sub: proc ? 'CALL 한 번' : 'INSERT 한 문장' });
-    P.region('db', 156, 16, 508, 298, 'MySQL 안');
+    P.region('db', 156, 16, 508, 354, 'MySQL 안');
     if (proc) P.box('proc', 170, 48, 174, 44, { cls: d.procFail ? 'bad' : d.call ? 'hot' : 'plain', title: '프로시저 place_order', sub: '저장해 둔 문장 3개' });
     P.box('trg', 170, 126, 174, 44, c.trig ? { cls: (d.trgFail ? 'bad' : d.trg ? 'hot' : 'plain') + (s.cur === 'trg' ? ' now' : ''), title: '트리거 (orders에 걸림)', sub: 'INSERT 때 자동 실행' } : { cls: 'ghost', title: '트리거 없음' });
     P.box('orders', 476, 48, 172, 44, { cls: s.orders ? 'good' : d.trgFail ? 'bad' : 'plain', title: 'orders', right: s.orders + '행', sub: d.trgFail ? '넣은 행이 취소됨' : s.orders ? '수량 ' + q + '개' : '' });
     P.box('product', 476, 126, 172, 44, { cls: s.stock !== 10 ? 'hot' : 'plain', title: 'product', right: '재고 ' + s.stock + '개', sub: '키보드' });
     P.box('slog', 476, 204, 172, 44, { cls: s.logs.length ? 'good' : 'plain', title: 'stock_log', right: s.logs.length + '행', sub: s.logs.join(', ') });
     P.box('view', 170, 260, 174, 44, { cls: s.view === '?' ? 'plain' : 'good', title: 'v_stock (뷰)', right: s.view === '?' ? '' : s.view + '개', sub: 'SELECT 문만 저장' });
-    P.box('copy', 16, 260, 130, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10개', sub: '복사해 둔 행' });
+    P.box('copy', 170, 316, 174, 44, { cls: s.copy === '?' ? 'plain' : s.stock !== 10 ? 'bad' : 'wait', title: 'stock_copy', right: s.copy === '?' ? '' : '10개', sub: '복사해 둔 행' });
     if (d.appIns || (!proc && d.trgFail)) P.arrow('aIns', 'app:r', 'orders:l', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
     if (d.call) P.arrow('aCall', 'app:r', 'proc:l', { cls: d.procFail ? 'bad' : 'hot' });
     if (d.procIns || (proc && d.trgFail)) P.arrow('pIns', 'proc:r:0.3', 'orders:l:0.4', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
@@ -7737,7 +7737,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
+    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 맨 아래의 복사본 테이블(stock_copy)도 같은 MySQL 안의 테이블이며, 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
   },
   assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
 });
@@ -7879,7 +7879,7 @@ Lab.register({
     if (w === 'pk') sum.push('기본 키에 값 하나를 주면 type const입니다. 한 행만 읽으므로 ORDER BY나 GROUP BY가 붙어도 Extra에 아무것도 나오지 않습니다.');
     if (w === 'noidx') sum.push('조건에 쓴 컬럼에 인덱스가 없으면 type ALL에 Using where가 붙습니다. 400행을 얻으려고 2만 행을 읽습니다. 자주 쓰는 조건이라면 그 컬럼에 인덱스를 만들 것을 검토합니다.');
     if (r.type === 'index') sum.push('type index는 "인덱스를 잘 탔다"가 아니라 "인덱스 전체를 읽었다"는 뜻입니다. rows가 테이블 전체에 가까운 것으로 알 수 있습니다. 조회 컬럼을 SELECT *로 바꾸면 인덱스만으로는 부족해져 type이 ALL이 됩니다.');
-    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort는 정렬 작업이 따로 필요하다는 표시입니다. 몇 행만 정렬하면 문제가 없지만, rows가 큰데 filesort가 붙으면 읽은 행 전부를 정렬합니다.');
+    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort는 정렬 작업이 따로 필요하다는 표시입니다. 몇 행만 정렬하면 문제가 없지만, rows가 큰데 filesort가 붙으면 WHERE 조건을 통과한 행 전부를 정렬합니다.');
     if (r.extra.indexOf('Using temporary') >= 0) sum.push('Using temporary는 임시 테이블을 만든다는 표시입니다. 인덱스가 없는 컬럼으로 GROUP BY를 할 때 흔히 나옵니다.');
     sum.push('읽는 순서: type으로 얼마나 넓게 읽는지 보고, key로 어떤 인덱스를 쓰는지 확인하고, rows로 읽는 양을 가늠한 뒤, Extra에서 걸러내기, 정렬, 임시 테이블 같은 덧붙은 작업을 봅니다.');
     return { events: ev, summary: sum, p: p, match: match, row: row };
@@ -7921,7 +7921,7 @@ Lab.register({
       var r = p[0], on = s.a >= 4, txt = on ? (r.extra.slice(0, s.ex).join('; ') || '(비어 있음)') : '?', warn = on && r.extra.slice(0, s.ex).some(function (x) { return x === 'Using filesort' || x === 'Using temporary'; });
       P.box('extra', 28, 104, 624, 48, { cls: (!on ? 'ghost' : s.cur === 'extra' ? 'hot' : warn ? 'hot' : 'wait') + (on && s.cur === 'extra' ? ' now' : ''), title: 'Extra', sub: txt });
     }
-    P.region('sc', 16, 180, 648, 124, '접근 방법(type): 왼쪽일수록 적게 읽는다');
+    P.region('sc', 16, 180, 648, 124, '접근 방법(type): 왼쪽일수록 대체로 적게 읽는다');
     var types = [['const', '한 행'], ['eq_ref', '행마다 한 행'], ['ref', '같은 값들'], ['range', '한 구간'], ['index', '인덱스 전체'], ['ALL', '테이블 전체']];
     types.forEach(function (tp, i) {
       var mine = p.some(function (r, ri) { return r.type === tp[0] && (ri === 0 ? s.a : s.b) >= 1; });
@@ -8487,7 +8487,7 @@ Lab.register({
     st.stage = 'ins';
     if (to < 0) {
       st.insErr = true; st.res = '오류 1526: 2026년을 받을 파티션이 없음';
-      push('INSERT … VALUES ' + V + ': 오류 1526 (Table has no partition for value 2026)이 나고 행이 들어가지 않습니다. 주문 날짜의 연도가 2026인데, 만들어 둔 파티션은 2026 미만까지만 받습니다. RANGE 파티션에서는 어느 범위에도 속하지 않는 값을 넣을 수 없습니다.', 'bad');
+      push('INSERT … VALUES ' + V + ': 오류 1526 (Table has no partition for value 2026)이 나고 행이 들어가지 않습니다. 주문 날짜의 연도가 2026인데, 만들어 둔 파티션은 2026 미만까지만 받습니다. MAXVALUE 파티션이 없는 RANGE 파티션 테이블에서는 어느 범위에도 속하지 않는 값을 넣을 수 없습니다.', 'bad');
     } else {
       st.ins = to; st.rows[to]++; st.res = names[to] + ' 파티션에 저장됨';
       push('INSERT … VALUES ' + V + ': ' + (R ? '주문 날짜의 연도가 2025이므로 "2026 미만"을 받는 p2025 파티션에 들어갑니다.' : '회원 번호(' + (c.ins === 'in' ? 7 : 9) + ')를 4로 나눈 나머지가 ' + to + '이므로 p' + to + ' 파티션에 들어갑니다. HASH 파티션에는 범위 밖이라는 것이 없습니다. 어떤 값이든 나머지 계산으로 갈 곳이 정해집니다.'), 'good');
@@ -8732,11 +8732,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { stage: 0, at: '', eth: false, ip: false, tcp: false, data: sim.k.size, name: '', bytes: 0, split: false, sent: false, done: false }, k = sim.k, A = sim.addr, n = k.segs.length, i;
     var names = [['응용', 'HTTP'], ['전송', 'TCP'], ['인터넷', 'IP'], ['링크', '이더넷']];
     P.size(680, 340);
-    P.region('snd', 8, 8, 150, 212, '보내는 쪽 (브라우저)');
-    P.region('rcv', 522, 8, 150, 212, '받는 쪽 (웹 서버)');
+    P.region('snd', 8, 8, 150, 212, '보내는 쪽 컴퓨터');
+    P.region('rcv', 522, 8, 150, 212, '받는 쪽 컴퓨터');
     for (i = 0; i < 4; i++) {
-      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1] });
-      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1] });
+      P.box('s' + i, 16, 36 + i * 45, 134, 38, { cls: s.at === 's' + i ? 'hot now' : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? '브라우저' : '' });
+      P.box('r' + i, 530, 36 + i * 45, 134, 38, { cls: s.at === 'r' + i ? (s.done ? 'good now' : 'hot now') : 'plain', title: names[i][0], right: names[i][1], sub: i === 0 ? '웹 서버' : '' });
     }
     P.text('un', 340, 30, s.stage ? '지금의 데이터: ' + s.name + ' (' + s.bytes + '바이트)' : '실행을 누르면 데이터가 계층을 따라 내려갑니다', { anchor: 'middle', bold: true });
     if (s.eth) P.box('eth', 168, 42, 58, 46, { cls: 'wait', title: '이더넷', sub: String(this.ETH), center: true });
@@ -8875,7 +8875,7 @@ Lab.register({
     push('쿼리: ? 다음부터 첫 번째 # 앞까지인 ' + rawQ + '입니다. 서버에 넘길 이름=값 쌍을 &로 이어 적는 자리입니다.' + (cutHash ? ' 검색어 안의 #이 프래그먼트가 시작하는 표시로 읽혀서, 쿼리가 거기서 끝나 버렸습니다.' : auto ? ' 주소에 그대로 쓸 수 없는 한글과 공백은 브라우저가 주소를 정리하면서 %XX 모양으로 바꿔 놓았습니다(공백은 %20).' : ''), cutHash ? 'bad' : '');
     push('프래그먼트: 첫 번째 # 뒤 전부인 ' + u.frag + '입니다. 받은 문서 안의 어느 위치인지를 가리키는 표시이고 브라우저만 씁니다. 서버로는 보내지 않습니다.' + (cutHash ? ' 쿼리에 있어야 할 &sort=price까지 여기에 들어가 버렸습니다.' : ''), cutHash ? 'bad' : '');
     push('서버로 가는 것: 브라우저는 ' + u.host + '의 ' + eff + '번 포트에 연결해, 요청 줄(GET ' + target + ' HTTP/1.1)과 Host 헤더(Host: ' + hostHeader + ')를 보냅니다. 요청 줄에는 경로와 쿼리만 들어가고, 프래그먼트는 어디에도 실리지 않습니다.');
-    var why = ok && sortOk ? (c.enc ? '검색어가 보낸 그대로 도착했습니다. 인코딩된 %XX와 +는 구분 기호로 읽히지 않고, 나눈 뒤에야 원래 글자로 돌아오기 때문입니다.' : auto ? '검색어가 온전히 도착했습니다. 한글과 공백은 브라우저가 대신 인코딩해 주기 때문입니다. 하지만 &, #, +처럼 주소에서 특별한 뜻이 있는 글자는 브라우저가 바꿔 주지 않습니다.' : '이 검색어에는 주소에서 특별한 뜻을 가진 글자가 없어서 그대로 붙여도 온전히 도착했습니다.') : q === 'A&B' ? '검색어 안의 &가 쌍을 나누는 기호로 읽혔습니다. q의 값은 "A"에서 잘렸고, B라는 엉뚱한 이름이 하나 더 생겼습니다.' : q === 'C#' ? '# 뒤는 서버에 오지 않았습니다. q의 값은 "C"에서 잘렸고, 뒤에 있던 sort도 함께 사라졌습니다.' : '쿼리에서 +는 공백을 뜻하는 기호입니다. q의 값이 "C" 뒤에 공백 두 칸이 붙은 글자가 됐습니다.';
+    var why = ok && sortOk ? (c.enc ? '검색어가 보낸 그대로 도착했습니다. 인코딩된 %XX와 +는 구분 기호로 읽히지 않고, 나눈 뒤에야 원래 글자로 돌아오기 때문입니다.' : auto ? '검색어가 온전히 도착했습니다. 한글과 공백은 브라우저가 대신 인코딩해 주기 때문입니다. 하지만 &, #, +처럼 주소에서 특별한 뜻이 있는 글자는 브라우저가 바꿔 주지 않습니다.' : '이 검색어에는 주소에서 특별한 뜻을 가진 글자가 없어서 그대로 붙여도 온전히 도착했습니다.') : q === 'A&B' ? '검색어 안의 &가 쌍을 나누는 기호로 읽혔습니다. q의 값은 "A"에서 잘렸고, B라는 엉뚱한 이름이 하나 더 생겼습니다.' : q === 'C#' ? '# 뒤는 서버에 오지 않았습니다. q의 값은 "C"에서 잘렸고, 뒤에 있던 sort도 함께 사라졌습니다.' : '폼 방식(application/x-www-form-urlencoded)에서는 쿼리의 +를 공백으로 읽습니다. q의 값이 "C" 뒤에 공백 두 칸이 붙은 글자가 됐습니다.';
     push('서버의 쿼리 풀이: 쿼리를 &에서 나누고, 조각마다 첫 번째 =에서 이름과 값으로 나눈 다음, +는 공백으로 %XX는 원래 글자로 되돌립니다. 결과는 ' + plist + '입니다. ' + why, ok && sortOk ? 'good' : 'bad');
     var relWhy = { 'detail': '/로 시작하지 않으므로, 지금 경로(' + u.path + ')의 마지막 조각을 detail로 바꿉니다. 쿼리와 프래그먼트는 물려받지 않습니다.', '../cart': '..은 한 단계 위를 뜻합니다. 지금 경로(' + u.path + ')에서 마지막 조각을 떼면 /shop/이고, 거기서 한 단계 올라가 cart를 붙이면 /cart입니다.', '/help': '/로 시작하므로 경로 전체를 /help로 바꿉니다. 스킴, 호스트, 포트는 지금 주소의 것을 그대로 씁니다.', '?page=2': '?로 시작하므로 경로는 그대로 두고 쿼리만 page=2로 바꿉니다. 지금 주소의 쿼리는 이어받지 않고 통째로 바뀝니다.', '#top': '#으로 시작하므로 경로와 쿼리는 그대로 두고 프래그먼트만 top으로 바꿉니다. 같은 문서 안에서 위치만 옮기는 것이라 서버에 새 요청을 보내지 않습니다.', '//cdn.example/app.js': '//로 시작하므로 스킴(' + u.scheme + ')만 물려받고 호스트부터 새로 정합니다. 포트도 물려받지 않습니다.' }[c.rel];
     push('상대 주소 풀이: 이 페이지 안의 링크(href="' + c.rel + '")는 주소의 일부만 적은 것이라서, 브라우저가 지금 주소를 기준으로 빠진 부분을 채웁니다. ' + relWhy + ' 결과는 ' + linkHref + ' 입니다.');
@@ -8914,7 +8914,7 @@ Lab.register({
     P.box('req', 16, 190, 648, 44, { cls: n >= 7 ? (n === 7 ? 'hot now' : 'plain') : 'ghost', title: n >= 7 ? '서버로 가는 요청 줄 (' + u.host + '의 ' + sim.eff + '번 포트에 연결)' : '서버로 가는 요청 줄', sub: n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '', mono: true });
     P.box('srv', 16, 240, 648, 44, { cls: n >= 8 ? (sim.ok ? 'good' : 'bad') + (n === 8 ? ' now' : '') : 'ghost', title: '서버가 쿼리에서 풀어낸 값 (보낸 검색어: "' + c.q + '")', sub: n >= 8 ? sim.row[3] : '' });
     P.box('lnk', 16, 290, 648, 44, { cls: n >= 9 ? 'hot now' : 'ghost', title: '링크(href="' + c.rel + '")가 가리키는 주소', sub: n >= 9 ? sim.link : '', mono: true });
-    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실려 서버로 가고, 빨간 줄(프래그먼트)은 브라우저에 남습니다.');
+    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실리고, 호스트는 Host 헤더로 서버에 가며, 빨간 줄(프래그먼트)은 브라우저에 남습니다.');
   },
   assume: '삼백 가지 조합을 모두 Node.js 24에서 실행해 대조했습니다. 주소를 나눈 결과와 정리된 주소, 상대 주소의 풀이는 Node.js의 URL(브라우저와 같은 WHATWG URL 표준의 구현)이 낸 값과 대조했습니다. 접속 포트, 요청 줄, Host 헤더는 Node.js의 HTTP 클라이언트로 그 주소에 요청을 보내고, 연결만 127.0.0.1의 시험 서버로 돌려 실제로 나간 글자를 받아 대조했습니다(shop.example에 대한 DNS 조회나 외부 접속은 하지 않았고, https 주소도 암호화하지 않은 채 받았습니다). 서버가 받은 값은 그 요청 줄의 쿼리를 URLSearchParams로 풀이한 것입니다. 톰캣 같은 다른 서버도 &와 =로 나누고 +와 %XX를 되돌리는 같은 규칙(application/x-www-form-urlencoded)을 쓰지만, 이 실습에서 따로 실행해 보지는 않았습니다. 잘못된 %XX가 왔을 때 오류로 처리하는지처럼 서버마다 다른 부분은 다루지 않았습니다. encodeURIComponent는 공백을 +가 아닌 %20으로 바꾸며, 쿼리에서는 둘 다 공백으로 풀립니다(이 차이도 실행으로 확인했습니다). 주소가 나뉘는 규칙은 RFC 3986 3절, 프래그먼트를 떼어 내고 요청한다는 것은 3.5절, 상대 주소의 풀이는 5.2절, 요청 줄과 Host 헤더는 RFC 9112 3.2절과 RFC 9110 7.2절에 있습니다. #으로 시작하는 링크를 눌렀을 때 서버에 새 요청이 가지 않는다는 것은 브라우저의 동작(HTML 표준의 프래그먼트 이동)을 따라 적은 것이고 실행해 보지는 않았습니다. 사용자 이름이 든 주소, IPv6 주소, 한글 도메인은 다루지 않았습니다.',
 });
@@ -9019,7 +9019,7 @@ Lab.register({
     var stale = c.changed && cached;
     push(c.q === 'mx' ? '메일을 ' + st.ans.slice(3) + ' 서버로 보냅니다. 이 이름의 IP 주소는 A 레코드로 한 번 더 찾습니다(네임 서버가 MX 답에 함께 실어 주기도 합니다).' + (stale ? ' 관리자가 바꾸기 전의 예전 서버입니다.' : '') : '브라우저는 받은 주소(' + (cn ? val : st.ans) + ')로 접속합니다.' + (stale ? ' 관리자가 바꾸기 전의 예전 주소입니다.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? '바꾸지 않음' : cached ? '아직 예전 값' : '반영됨 (새 값)';
-    if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답은 그 도메인의 권한 있는 네임 서버만 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
+    if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답의 원본은 그 도메인의 권한 있는 네임 서버가 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
     if (cached) sum.push('한 번 받은 답은 TTL 동안 캐시에 남아, 그동안은 다시 묻지 않습니다. 캐시는 PC에도 있고 리졸버에도 있습니다. 덕분에 대부분의 조회는 루트 서버까지 가지 않고 끝납니다.');
     if (c.cache === 'expired') sum.push('TTL이 지나면 다시 묻습니다. 그래도 루트 서버부터 다시 가는 것은 아닙니다. 어느 네임 서버가 그 도메인을 맡는지는 따로, 더 긴 TTL로 기억하고 있기 때문입니다.');
     if (stale) sum.push('레코드를 바꿔도 이미 캐시에 들어간 답은 TTL이 끝날 때까지 그대로 쓰입니다. 그래서 사용자마다 새 값을 받는 시점이 다르고, 늦으면 바꾸기 전의 TTL만큼 걸립니다. 서버를 옮길 계획이 있으면 미리 TTL을 짧게 줄여 두고, 옮긴 뒤에도 예전 서버를 한동안 켜 둡니다.');
@@ -9110,7 +9110,7 @@ Lab.register({
     if (k.same && a3 !== d3) sum.push('/24보다 짧은 길이(/23, /16)에서는 세 번째 숫자가 달라도 같은 네트워크일 수 있습니다. 판단은 언제나 "같은 마스크를 적용한 결과가 같은가"입니다.');
     if (k.same && a3 === d3) sum.push('같은 네트워크의 기기끼리는 게이트웨이를 거치지 않습니다.');
     if (k.hosts <= 2) sum.push('/30은 호스트 부분이 2비트뿐이라 주소 4개 가운데 2개만 쓸 수 있습니다. 라우터 두 대를 잇는 구간처럼 기기가 둘뿐인 곳에 씁니다.');
-    if (nat) sum.push('10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16은 누구나 내부에서 자유롭게 쓰는 사설 주소 대역입니다. 인터넷으로 나갈 때는 게이트웨이가 NAT로 공인 주소를 빌려주며, 포트 번호로 기기를 구분하기 때문에 집 안의 여러 기기가 공인 주소 하나로 인터넷을 씁니다. 반대로 인터넷 쪽에서 먼저 내 PC로 연결을 시작할 수는 없습니다. 변환표에 짝이 없기 때문입니다.');
+    if (nat) sum.push('10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16은 누구나 내부에서 자유롭게 쓰는 사설 주소 대역입니다. 인터넷으로 나갈 때는 게이트웨이가 NAT로 공인 주소를 빌려주며, 포트 번호로 기기를 구분하기 때문에 집 안의 여러 기기가 공인 주소 하나로 인터넷을 씁니다. 반대로 공유기에 따로 설정(포트 포워딩)하지 않으면 인터넷 쪽에서 먼저 내 PC로 연결을 시작할 수 없습니다. 변환표에 짝이 없기 때문입니다.');
     if (!k.same && !nat) sum.push('NAT는 사설 주소에서 공인 주소로 나갈 때 필요합니다. 사설 주소끼리 오가는 내부망에서는 라우터가 주소를 바꾸지 않고 전달만 합니다.');
     return { events: ev, summary: sum, k: k, nat: nat, other: other, pub: pub, route: route, row: [netS + '/' + k.p, bcS, k.hosts + '개', k.same ? '같은 네트워크' : '다른 네트워크', route] };
   },
@@ -9402,7 +9402,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.proto === 'tcp') return '// Node.js (net 모듈): TCP\nconst socket = net.connect(9000, \'127.0.0.1\');   // 먼저 연결을 맺는다\nsocket.on(\'connect\', async () => {               // 연결된 뒤에야 보낼 수 있다\n  socket.write(\'AB\');  await sleep(50);           // 0.05초 간격으로 세 번\n  socket.write(\'CD\');  await sleep(50);\n  socket.write(\'EF\');\n});\nsocket.on(\'error\', e => console.log(e.code));    // 연결 실패는 여기로 온다\n\n' + (c.recv ? '// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다\nnet.createServer({ pauseOnConnect: true }, conn => {\n  conn.on(\'data\', d => console.log(d.toString()));\n  setTimeout(() => conn.resume(), 500);\n}).listen(9000, \'127.0.0.1\');' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
-    return '// Node.js (dgram 모듈): UDP\nconst socket = dgram.createSocket(\'udp4\');       // 연결하는 코드가 없다\nconst done = err => console.log(err);            // null이면 오류 없이 보냈다는 뜻\nsocket.send(\'AB\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'CD\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'EF\', 9000, \'127.0.0.1\', done);\n\n' + (c.recv ? '// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다\nconst receiver = dgram.createSocket(\'udp4\');\nreceiver.on(\'message\', m => console.log(m.toString()));\nreceiver.bind(9000, \'127.0.0.1\');' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
+    return '// Node.js (dgram 모듈): UDP\nconst socket = dgram.createSocket(\'udp4\');       // 연결하는 코드가 없다\nconst done = err => console.log(err);            // null이면 오류 없이 보냈다는 뜻\nsocket.send(\'AB\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'CD\', 9000, \'127.0.0.1\', done);  await sleep(50);\nsocket.send(\'EF\', 9000, \'127.0.0.1\', done);\n\n' + (c.recv ? '// 받는 프로그램(다른 스레드): 포트를 연 뒤 0.4초 멈춰 있다가 읽는다. 그동안 온 것은 운영체제가 맡아 둔다\nconst receiver = dgram.createSocket(\'udp4\');\nreceiver.on(\'message\', m => console.log(m.toString()));\nreceiver.bind(9000, \'127.0.0.1\', () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 400));' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');
   },
   label: function (c) { return c.proto.toUpperCase() + ' · 받는 프로그램 ' + (c.recv ? '있음' : '없음') + (c.recv ? ' · ' + { ok: '아무 일 없음', loss: '두 번째 것 유실', reorder: '두 번째 것이 늦게 도착' }[c.net] : ''); },
   columns: ['보내기 전 연결', '보내는 쪽이 본 결과', '받는 프로그램이 읽은 것', '보낸 것과 비교'],
@@ -9461,7 +9461,7 @@ Lab.register({
         st.read = got.slice();
         if (tcp) push('받는 프로그램이 읽습니다: \'data\' 이벤트 한 번에 6바이트 "ABCDEF"가 모두 나옵니다. 세 번에 나눠 보냈다는 흔적은 없습니다. TCP가 전하는 것은 순서가 맞는 바이트의 흐름이지, 덩어리의 경계가 아닙니다.', 'good');
         else push('받는 프로그램이 읽습니다: \'message\' 이벤트가 ' + got.length + '번 오고, 한 번에 데이터그램 하나씩(' + got.map(function (x) { return '\'' + x + '\''; }).join(', ') + ') 나옵니다. 여러 개가 버퍼에 함께 쌓여 있었어도 서로 합쳐지지 않습니다.' + (net === 'loss' ? ' \'CD\'는 끝내 오지 않습니다. UDP는 다시 보내 주지 않습니다.' : net === 'reorder' ? ' 보낸 순서가 아니라 도착한 순서입니다.' : ''), net === 'ok' ? 'good' : 'bad');
-      } else push('받는 프로그램이 없으므로 세 데이터그램은 모두 사라졌습니다. 보내는 쪽 프로그램은 오류를 하나도 받지 못했으므로 이 사실을 알 방법이 없습니다.', 'bad');
+      } else push('받는 프로그램이 없으므로 세 데이터그램은 모두 사라졌습니다. 보내는 쪽 프로그램은 오류를 하나도 받지 못했으므로 보통은 이 사실을 알지 못합니다(운영체제가 ICMP 오류로 알려 주는 경우는 있습니다).', 'bad');
     }
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? '아무것도 보내지 않음' : '모두 사라짐') : tcp ? '내용과 순서는 같고 경계는 사라짐' : { ok: '보낸 그대로', loss: '하나가 빠짐', reorder: '순서가 바뀜' }[net];
@@ -9472,7 +9472,7 @@ Lab.register({
     if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다.');
     if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다.');
     if (!tcp && on && net !== 'ok') sum.push('UDP는 빠진 것을 다시 보내지 않고 순서도 맞춰 주지 않습니다. 필요하면 프로그램이 직접 번호를 붙이고 확인하고 다시 보내야 합니다. HTTP/3이 쓰는 QUIC이 UDP 위에 그런 기능을 직접 만든 예입니다.');
-    if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 알지 못합니다.');
+    if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 보통 알지 못합니다(운영체제가 ICMP 오류로 알려 주는 경우는 있습니다).');
     sum.push(tcp ? 'TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.' : 'UDP는 조금 빠져도 괜찮고 늦게 오는 것이 더 곤란한 곳, 또는 짧게 한 번 묻고 답하는 곳에 씁니다. 실시간 음성과 영상, 게임, DNS 조회가 대표적입니다.');
     return { events: ev, summary: sum, row: row };
   },
@@ -9727,7 +9727,7 @@ Lab.register({
     { t: '처음 설정으로', q: 'POST /order로 item=keyboard 본문을 보냈는데 서버가 302 Found로 /orders를 가리키면 다음 요청은 어떻게 나가나', d: 'POST 요청에 302로 응답. 다음 요청은 GET으로 바뀌고 본문이 사라집니다.', v: { code: '302', m: 'POST', dest: 'ok' } },
     { t: '307이면 POST 그대로', q: '서버가 응답하는 상태 코드를 307 Temporary Redirect로 바꾸면', d: '메서드와 본문을 바꾸지 않고 새 주소로 다시 보냅니다.', v: { code: '307', m: 'POST', dest: 'ok' } },
     { t: '303: 결과는 GET으로 조회', q: '서버가 응답하는 상태 코드를 303 See Other로 바꾸면', d: '폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.', v: { code: '303', m: 'POST', dest: 'ok' } },
-    { t: '301에 PUT을 보내면', q: '상태 코드를 301 Moved Permanently로, 처음 요청을 PUT /order로 바꾸면', d: 'GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
+    { t: '301에 PUT을 보내면', q: '상태 코드를 301 Moved Permanently로, 처음 요청을 PUT /order로 바꾸면', d: '여기서 확인한 클라이언트(fetch, curl)에서는 GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
     { t: '영구 이동 308', q: '서버가 응답하는 상태 코드를 308 Permanent Redirect로 바꾸면', d: '301과 같은 영구 이동인데 메서드를 유지합니다.', v: { code: '308', m: 'POST', dest: 'ok' } },
     { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /order와 /orders가 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
   ],
@@ -9794,7 +9794,7 @@ Lab.register({
     if (nx.toGet && c.code !== '303') sum.push('301과 302에서 POST가 GET으로 바뀌는 것은 표준이 "그래도 된다"고 허용한 동작인데, 브라우저를 비롯한 대부분의 클라이언트가 그렇게 합니다. 이때 본문이 사라집니다. POST를 그대로 새 주소로 넘기려면 307(임시)이나 308(영구)을 씁니다.');
     if (c.code === '303') sum.push(hasBody ? '303은 폼을 보낸 뒤 결과 화면으로 넘길 때 씁니다. 두 번째 요청이 GET이므로 사용자가 새로 고침을 눌러도 폼이 다시 전송되지 않습니다. 이 방식을 PRG(Post/Redirect/Get)라고 부릅니다.' : '303은 주로 POST 뒤에 "결과는 이 주소에서 GET으로 보라"고 안내할 때 씁니다. 처음부터 GET이었다면 302나 307과 결과가 같습니다.');
     if ((c.code === '307' || c.code === '308') && hasBody) sum.push('307과 308은 메서드와 본문을 바꾸지 않는다는 것을 보장하려고 뒤에 추가된 코드입니다. 307은 302의, 308은 301의 "메서드 유지" 판입니다.');
-    if ((c.code === '301' || c.code === '302') && c.m === 'PUT') sum.push('301과 302에서 GET으로 바뀌는 것은 POST뿐입니다. PUT이나 DELETE는 메서드가 유지됩니다. 헷갈리지 않으려면 메서드를 유지해야 하는 경우에는 처음부터 307이나 308을 쓰는 편이 분명합니다.');
+    if ((c.code === '301' || c.code === '302') && c.m === 'PUT') sum.push('여기서 확인한 클라이언트(fetch, curl)에서는 301과 302에서 GET으로 바뀌는 것은 POST뿐입니다. PUT이나 DELETE는 메서드가 유지됩니다. 헷갈리지 않으려면 메서드를 유지해야 하는 경우에는 처음부터 307이나 308을 쓰는 편이 분명합니다.');
     if (c.m === 'GET') sum.push('GET 요청은 어떤 코드로 리다이렉트해도 GET으로 나갑니다. 다섯 코드의 메서드 차이는 POST처럼 본문이 있는 요청에서만 드러납니다. GET에서는 영구 이동(301, 308)인지 아닌지만 다릅니다.');
     if (K.kind === '영구 이동' && !loop) sum.push('영구 이동은 한번 내보내면 되돌리기 어렵습니다. 브라우저가 새 주소를 기억해, 다음부터는 옛 주소로 요청을 보내지 않고 곧바로 새 주소로 갈 수 있기 때문입니다. 확실하지 않을 때는 임시 이동부터 씁니다.');
     if (loop) sum.push('표준은 클라이언트가 끝없는 리다이렉트를 알아채고 멈춰야 한다고만 적었고 횟수는 정하지 않았습니다. 그래서 한도는 클라이언트마다 다릅니다(fetch 20번, curl 50번). 브라우저에서는 "리디렉션한 횟수가 너무 많습니다" 같은 오류 화면이 됩니다. 원인은 대부분 서로를 가리키는 두 규칙입니다.');
@@ -9837,7 +9837,7 @@ Lab.register({
     { t: '서버에 없는 언어를 원하면', q: 'Accept-Language를 ja, en;q=0.7로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: '일본어판이 없어 다음 후보인 영어판을 줍니다.', v: { fmt: 'html', lang: 'ja, en;q=0.7', enc: 'gzip', vary: true } },
     { t: '작은 본문을 압축하면', q: 'Accept를 application/json으로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: '37바이트짜리 JSON은 압축하면 오히려 커집니다.', v: { fmt: 'json', lang: 'ko', enc: 'gzip', vary: true } },
     { t: '이미 압축된 그림을 압축하면', q: 'Accept를 image/png로, Accept-Encoding을 gzip으로 바꾸고 Vary를 붙이면', d: 'PNG는 한 번 더 압축해도 줄지 않습니다.', v: { fmt: 'png', lang: 'ko', enc: 'gzip', vary: true } },
-    { t: '압축을 요청하지 않으면', q: 'Accept-Language를 en으로 바꾸고 Accept-Encoding 헤더를 보내지 않으면', d: 'Accept-Encoding이 없으면 서버는 본문을 그대로 보냅니다.', v: { fmt: 'html', lang: 'en', enc: 'none', vary: false } },
+    { t: '압축을 요청하지 않으면', q: 'Accept-Language를 en으로 바꾸고 Accept-Encoding 헤더를 보내지 않으면', d: '이 서버 설정에서는 Accept-Encoding이 없으면 본문을 그대로 보냅니다.', v: { fmt: 'html', lang: 'en', enc: 'none', vary: false } },
   ],
   // 그림(PNG)에는 언어판이 없으므로 언어 설정을 하나로 고정한다
   fix: function (c) { return c.fmt === 'png' ? { lang: 'ko' } : null; },
@@ -9916,7 +9916,7 @@ Lab.register({
     if (!j.png && !j.langMatched) sum.push('맞는 언어가 하나도 없을 때 서버는 기본 언어로 응답할 수도 있고 406 Not Acceptable로 거절할 수도 있습니다. 표준은 둘 다 허용합니다. 사용자에게는 무언가라도 보이는 편이 나아 기본 언어로 응답하는 쪽이 흔합니다.');
     if (j.enc !== 'identity' && j.wire < j.orig) sum.push('HTML, CSS, 자바스크립트, JSON 같은 글자로 된 본문은 되풀이되는 부분이 많아 압축이 잘 됩니다. 이 예시의 HTML은 같은 모양의 표가 120줄 되풀이되어 특히 많이 줄었습니다. 줄어드는 정도는 내용에 따라 다릅니다. br은 gzip보다 더 작게 줄이는 편이지만 압축에 시간이 더 걸립니다.');
     if (j.enc !== 'identity' && j.wire >= j.orig) sum.push('작은 본문과 이미 압축된 데이터(PNG, JPEG, 동영상, zip)는 압축해도 줄지 않고 CPU 시간만 씁니다. 그래서 실제 서버는 일정 크기보다 작은 응답과 이런 형식은 압축하지 않도록 설정합니다. 이 시험 서버는 차이를 보이려고 가리지 않고 압축했습니다.');
-    if (j.enc === 'identity') sum.push('Accept-Encoding을 보내지 않으면 서버는 압축하지 않은 본문을 보냅니다. 브라우저는 이 헤더를 자동으로 붙여 보내고, curl은 --compressed 옵션을 줘야 보냅니다.');
+    if (j.enc === 'identity') sum.push('이 서버 설정에서는 Accept-Encoding을 보내지 않으면 압축하지 않은 본문을 보냅니다. 브라우저는 이 헤더를 자동으로 붙여 보내고, curl은 --compressed 옵션을 줘야 보냅니다.');
     if (!c.vary) sum.push(j.wrong.length ? '응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.' : '이번에는 문제가 없었지만 우연입니다. Vary가 없으면 공유 캐시는 A의 요청 헤더가 무엇이었든 같은 응답을 B에게 줍니다.');
     else sum.push(j.hit ? 'Vary에 적힌 헤더의 값이 A와 B의 요청에서 모두 같아 캐시가 저장된 응답을 다시 썼습니다.' : 'Vary가 있으면 공유 캐시는 같은 주소라도 요청 헤더가 다른 응답을 따로 다룹니다. 대신 헤더의 글자가 조금만 달라도 다른 것으로 보므로, 캐시에서 바로 답하는 일이 줄어듭니다. 그래서 Vary에는 응답을 고를 때 실제로 본 헤더만 적습니다.');
     return { events: ev, summary: sum, j: j, size: size, row: [T + (j.png ? '' : ' · ' + j.lang), j.enc === 'identity' ? '없음' : j.enc, size, j.vary || '없음', bres] };
@@ -9946,7 +9946,7 @@ Lab.register({
     P.box('sw', 348, 180, 316, 36, { cls: !s.wire ? 'ghost' : j.enc === 'identity' ? 'plain' : j.wire < j.orig ? 'good' : 'bad', title: '전송된 본문', right: s.wire ? num(s.wire) + '바이트' : '?' });
     P.box('ca', 16, 230, 316, 50, { cls: s.sent ? 'wait' : 'ghost', title: !s.sent ? '공유 캐시' : j.vary ? '공유 캐시: Vary에 적힌 헤더를 비교' : '공유 캐시: 주소만 보고 판단', sub: s.sent ? (j.vary || '/guide의 응답 보관 (Vary 없음)') : '비어 있음' });
     P.box('b', 348, 230, 316, 50, { cls: !s.b ? 'ghost' : s.b === 'ask' ? 'wait' : s.bcls, title: '클라이언트 B (영어, 압축 못 풂)', sub: !s.b ? '아직 요청 전' : s.b === 'ask' ? '같은 주소 /guide를 요청' : s.b === 'miss' ? '서버에서 맞는 응답을 새로 받음' : j.wrong.length ? 'A의 응답을 받음: ' + j.wrong.join(', ') : 'A의 응답을 받음: B에게도 맞음' });
-    if (s.b) P.arrow('bc', 'b:l', 'ca:r', { cls: s.b === 'ask' ? '' : s.bcls === 'hot' ? 'hot' : s.bcls, label: s.b === 'ask' ? '요청' : s.b === 'miss' ? '서버에 다시 물음' : '보관한 것을 줌' });
+    if (s.b) P.arrow('bc', s.b === 'ask' ? 'b:l' : 'ca:r', s.b === 'ask' ? 'ca:r' : 'b:l', { cls: s.b === 'ask' ? '' : s.bcls === 'hot' ? 'hot' : s.bcls, label: s.b === 'ask' ? '요청' : s.b === 'miss' ? '새 응답을 줌' : '보관한 것을 줌' });
     P.text('sz', 340, 310, s.wire ? '본문 크기: ' + sim.size : '실행을 진행하면 압축 결과가 표시됩니다', { anchor: 'middle', cls: !s.wire ? 'mut' : j.enc === 'identity' ? 'mut' : j.wire < j.orig ? 'good' : 'bad', bold: !!s.wire });
     P.note('요청 헤더 하나가 응답 헤더 하나를 정합니다. 공유 캐시는 여러 사용자의 요청이 함께 거쳐 가는 보관소입니다.');
   },
@@ -10139,7 +10139,7 @@ Lab.register({
     if (stales) sum.push('엣지는 유효 시간 동안 오리진에 다시 묻지 않습니다. 그래서 오리진의 파일을 바꿔도 유효 시간이 남은 사본이 계속 나갑니다. 유효 시간을 길게 잡을수록 빠르지만 바뀐 내용이 늦게 퍼집니다.' + (c.ttl === '60' ? ' 60초로 잡은 이 설정에서는 80초의 요청부터 새 내용이 나갔습니다.' : ''));
     if (c.chg && c.after === 'purge') sum.push('무효화(purge)는 유효 시간이 남은 사본을 강제로 지우는 기능입니다. 지운 뒤의 첫 요청은 MISS가 되어 오리진에서 새 내용을 받아 옵니다. 지우는 것은 지정한 주소의 사본뿐이고, 사용자의 브라우저가 따로 보관한 사본까지 지우지는 못합니다.');
     if (c.chg && c.after === 'ver') sum.push('쿼리 문자열이 다르면 엣지는 다른 사본으로 봅니다. 이것을 이용해 파일을 바꿀 때마다 주소의 버전을 올리면(?v=2, 또는 파일 이름에 해시를 붙임) 무효화 없이도 새 내용이 곧바로 나갑니다. 주소가 내용과 함께 바뀌므로 유효 시간을 아주 길게 잡아도 됩니다. 옛 주소 ' + U1 + '의 사본은 옛 내용 그대로 남습니다.');
-    if (c.q2 === 'ref') sum.push('엣지는 경로와 쿼리 문자열을 합친 주소 전체로 사본을 찾습니다. 광고나 메일의 링크에 붙는 추적용 값처럼 내용과 무관한 쿼리 문자열이 붙어도 다른 사본이 되어, 오리진에 가는 요청이 늘어납니다. 그래서 CDN에는 사본을 찾을 때 일부 쿼리 문자열을 무시하는 설정이 있습니다.');
+    if (c.q2 === 'ref') sum.push('이 실습의 엣지는 경로와 쿼리 문자열을 합친 주소 전체로 사본을 찾습니다(무엇으로 찾을지는 CDN 설정에 따라 다릅니다). 광고나 메일의 링크에 붙는 추적용 값처럼 내용과 무관한 쿼리 문자열이 붙어도 다른 사본이 되어, 오리진에 가는 요청이 늘어납니다. 그래서 CDN에는 사본을 찾을 때 일부 쿼리 문자열을 무시하는 설정이 있습니다.');
     if (!c.chg && c.q2 === 'same') sum.push(c.ttl === '300' ? '파일이 바뀌지 않는 동안에는 유효 시간이 길수록 좋습니다. 오리진에는 처음 한 번만 갔습니다.' : '유효 시간이 지나면 내용이 그대로여도 엣지가 오리진에 다시 갑니다. 유효 시간이 짧으면 바뀐 내용이 빨리 퍼지는 대신 오리진에 가는 일이 잦아집니다.');
     return { events: ev, summary: sum, row: [cell(r1), cell(r2), cell(r3), cell(r4), st.oc + '번'] };
   },
@@ -10393,7 +10393,7 @@ Lab.register({
     if (!R.kept) sum.push('새 세션을 만드는 방식은 로그인 전에 세션에 넣어 둔 값(장바구니)을 옮기지 않습니다. 기본값인 "ID만 바꾸기"는 내용을 그대로 둡니다.');
     return { events: ev, summary: sum, row: [R.changed ? '새 ID로 바뀜' : '로그인 전과 같음', R.kept ? '남아 있음' : '사라짐', row3, R.by] };
   },
-  sesText: function (x) { return !x.on ? ['아직 없음', ' '] : x.gone ? ['없어짐', x.gone] : ['로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
+  sesText: function (x, w) { return !x.on ? [w === 's2' ? '같은 세션 · 아직 바뀌지 않음' : '아직 없음', ' '] : x.gone ? [w === 's1' ? '같은 세션 · 더는 통하지 않음' : '없어짐', x.gone] : [(w === 's2' ? '같은 세션 · ' : '') + '로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 로그인 전부터 차례로 진행합니다.'); return; }
@@ -10403,13 +10403,13 @@ Lab.register({
   // 그림: 위쪽은 공격자, 서버, 피해자의 브라우저 사이를 오간 요청과 응답의 순서. 아래쪽은 서버가 가지고 있는 세션 두 개의 상태다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], s1: { on: false }, s2: { on: false }, vc: '', known: '', att: '' };
-    var end = P.seq([['a', '다른 사람 (공격자)', 'hot'], ['s', 'shop.example 서버'], ['v', '피해자의 브라우저', 'wait']], s.msgs, { keep: 6 }), y = end + 12, self = this;
+    var end = P.seq([['a', '다른 사람 (공격자)', 'hot'], ['s', 'shop.example 서버'], ['v', '피해자의 브라우저', 'wait']], s.msgs, { keep: 6 }), y = end + 12, self = this, def = sim.c.fix === 'default';
     [['s1', 'aaa111', 16], ['s2', 'bbb222', 344]].forEach(function (d) {
       var x = s[d[0]], known = s.known === d[1], bad = known && x.on && !x.gone && x.user;
-      P.box(d[0], d[2], y, 320, 64, { cls: !x.on || x.gone ? 'ghost' : bad ? 'bad' : x.user ? 'good' : 'plain', title: '서버의 세션 ' + d[1] + (known ? ' · 공격자가 아는 ID' : ''), sub: self.sesText(x) });
+      P.box(d[0], d[2], y, 320, 64, { cls: !x.on || x.gone ? 'ghost' : bad ? 'bad' : x.user ? 'good' : 'plain', title: (def ? (d[0] === 's2' ? '새 ID ' : x.gone ? '예전 ID ' : '서버의 세션 ') : '서버의 세션 ') + d[1] + (known ? ' · 공격자가 아는 ID' : ''), sub: self.sesText(x, def ? d[0] : '') });
     });
     P.size(680, y + 64 + 14);
-    P.note('위쪽은 요청과 응답이 오간 순서, 아래쪽은 서버가 가지고 있는 세션입니다. 초록 상자는 로그인된 세션, 빨간 상자는 공격자가 ID를 알고 있는 로그인된 세션, 점선은 없거나 없어진 세션입니다. 세션 ID는 알아보기 쉽게 줄여 적었습니다.');
+    P.note('위쪽은 요청과 응답이 오간 순서, 아래쪽은 서버가 가지고 있는 세션입니다. ID를 바꾸는 기본값에서는 두 상자가 따로 만든 세션이 아니라 같은 세션의 예전 ID와 새 ID입니다. 초록 상자는 로그인된 세션, 빨간 상자는 공격자가 ID를 알고 있는 로그인된 세션, 점선은 없거나 없어진 세션입니다. 세션 ID는 알아보기 쉽게 줄여 적었습니다.');
   },
   assume: '열두 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 설정으로 실행해 대조했습니다. 폼 로그인 전후에 서버가 내려 준 JSESSIONID가 바뀌는지, 로그인 전에 담은 장바구니가 남는지, 다른 사람이 알고 있는 ID를 쿠키에 넣어 보낸 요청의 응답(200과 본문 kim, 또는 302와 /login)이 화면과 같은지 확인했습니다. 여기서 "공격자"와 "피해자"는 쿠키에 넣는 세션 ID만 다른 같은 시험 프로그램의 요청이며, 실제 브라우저는 쓰지 않았습니다. 공격자가 피해자의 브라우저에 세션 ID를 심는 방법과 로그인된 세션의 ID를 알아내는 방법은 실행하지 않았고, 그렇게 됐다는 결과만 가정했습니다. HttpOnly 쿠키를 스크립트가 읽지 못한다는 것은 "쿠키" 실습에서 실제 브라우저로 확인한 내용입니다. 실제 세션 ID는 32글자였고(이 서버에서 확인) 추측할 수 없도록 무작위로 만들어집니다. 화면의 aaa111과 bbb222는 알아보기 쉽게 줄여 적은 것입니다. 서버가 세션 ID를 내려 줄 때의 Set-Cookie 속성이 "Path=/; HttpOnly"라는 것, server.servlet.session.cookie.secure=true로 설정하면 Secure가 붙는다는 것도 이 서버에서 확인했습니다. 로그인할 때의 동작을 changeSessionId나 migrateSession으로 명시해도 밖에서 보이는 결과는 기본값과 같았습니다. 로그인 화면을 처음 열 때 세션이 만들어지는 것은 그 화면에 넣는 CSRF 토큰을 세션에 보관하기 때문입니다. 세션 만료 시간이 지나 세션이 없어지는 것은 실행으로 확인하지 않았습니다. 근거 문서는 스프링 시큐리티 문서의 Servlet Applications, Authentication, Session Management 장에 있는 세션 고정 보호 설명입니다. 서버가 여러 대일 때의 세션 공유는 "세션과 JWT" 실습에서 다룹니다.',
 });
@@ -10639,21 +10639,21 @@ Lab.register({
       { cells: ['식의 결과', { v: J.pass ? '참 (허용해야 하는 호출)' : '거짓 (거부해야 하는 호출)', cls: J.pass ? 'good' : 'bad' }] },
     ], '이번 호출');
   },
-  // 그림: 위의 컨트롤러가 아래의 orderService 빈을 부른다. 빈 안의 윗줄이 프록시(권한 검사), 아랫줄이 실제 객체의 메서드다. 같은 클래스 안의 호출은 프록시를 지나지 않고 옆으로 넘어간다.
+  // 그림: 위의 컨트롤러가 주입받은 orderService 빈(= 프록시)을 부른다. 윗줄이 프록시(권한 검사), 아랫줄이 프록시가 참조로 갖는 실제 객체의 메서드다. 같은 클래스 안의 호출은 프록시를 지나지 않고 옆으로 넘어간다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { boot: false, called: false, wrap: false, check: '', body: false, got: '' }, J = sim.j, c = sim.c, m = this.M[c.m], self = c.call === 'self', px = self ? 0.17 : 0.7;
     P.size(680, 340);
     P.box('caller', 16, 12, 648, 44, { cls: s.called ? 'wait' : 'ghost', title: '컨트롤러 · 로그인: ' + sim.me + ' (' + sim.role + ')', right: 'orderService.' + (self ? m.wcall : m.call) });
-    P.region('bean', 16, 70, 648, 204, 'orderService 빈');
+    P.region('bean', 16, 70, 648, 204, J.proxy || !s.boot ? 'orderService: 프록시(빈)와 실제 객체' : 'orderService 빈 (프록시 없이 실제 객체만)');
     P.box('proxy', 28, 98, 624, 62, { cls: !s.boot || !J.proxy ? 'ghost' : s.check === 'pass' ? 'good' : s.check === 'deny' ? 'bad' : s.check === 'skip' ? 'hot' : 'plain', title: J.proxy || !s.boot ? '프록시: 호출을 먼저 받아 권한을 검사한다' : '프록시 없음 (@EnableMethodSecurity가 없다)', sub: ['검사할 식  ' + m.expr, !J.proxy && s.boot ? '검사해 줄 것이 없음' : { '': '아직 검사 전', skip: '이 호출을 보지 못함: 검사하지 않음', wait: '본문이 끝난 뒤에 검사', pass: '식이 참: 통과', deny: '식이 거짓: 거부' }[s.check]] });
-    if (self) P.box('wrap', 28, 180, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애너테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
-    P.box('target', 250, 180, 402, 64, { cls: s.body ? (!J.checked && !J.pass ? 'bad' : 'good') : s.got ? 'ghost' : 'plain', title: m.call + ' 본문', sub: [c.m === 'post' ? '@PostAuthorize가 붙음' : '@PreAuthorize가 붙음', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전'] });
+    if (self) P.box('wrap', 28, 196, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애너테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
+    P.box('target', 250, 196, 402, 64, { cls: s.body ? (!J.checked && !J.pass ? 'bad' : 'good') : s.got ? 'ghost' : 'plain', title: m.call + ' 본문', sub: [c.m === 'post' ? '@PostAuthorize가 붙음' : '@PreAuthorize가 붙음', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전'] });
     if (s.called) P.arrow('a1', 'caller:b:' + px, 'proxy:t:' + px, { cls: J.proxy ? '' : 'dash' });
     if (self && s.wrap) P.arrow('a2', 'proxy:b:' + px, 'wrap:t', { cls: J.proxy ? '' : 'dash' });
     if (self && s.body) P.arrow('a3', 'wrap:r', 'target:l', { cls: J.pass ? 'mut' : 'bad', label: 'this' });
-    if (!self && s.body) P.arrow('a4', 'proxy:b:' + px, 'target:t', { cls: J.proxy ? (J.pass ? 'good' : 'hot') : 'dash' });
+    if (J.proxy && s.boot && (self || !s.body)) P.arrow('ref', 'proxy:b:0.7', 'target:t', { cls: 'mut', label: '참조' }); if (!self && s.body) P.arrow('a4', 'proxy:b:' + px, 'target:t', J.proxy ? { cls: J.pass ? 'good' : 'hot', label: '넘김' } : { cls: 'dash' });
     P.box('res', 16, 288, 648, 38, { cls: !s.got ? 'ghost' : J.denied ? 'plain' : !J.checked && !J.pass ? 'bad' : 'good', title: '부른 쪽이 받는 것', right: s.got || '아직 실행 중' });
-    P.note('호출은 위에서 아래로 내려갑니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
+    P.note('프록시와 실제 객체는 서로 다른 객체이고, 프록시가 실제 객체를 참조로 갖고 있습니다("참조" 화살표). 호출은 위에서 아래로 내려갑니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
   },
   assume: '서른여섯 가지 조합 모두를 이 PC의 스프링 시큐리티 7.1.1(스프링 프레임워크 7.0.9, JDK 21)에서 화면과 같은 구조의 코드로 실행해 대조했습니다. 조합의 대조는 웹 서버 없이 스프링 컨텍스트에서 서비스 빈의 메서드를 직접 불러서 했으며, 로그인한 사용자는 SecurityContext에 직접 넣었습니다. 권한 검사가 실행됐는지는 검사할 때마다 불리는 AuthorizationEventPublisher 빈으로 세었고, 메서드 본문이 실행됐는지, 부른 쪽이 받은 값이나 예외의 종류, 빈이 프록시인지를 함께 확인했습니다. 거부될 때 던져지는 AuthorizationDeniedException이 AccessDeniedException의 한 종류라는 것도 실행으로 확인했습니다. 웹 요청에서 이 예외가 403 응답이 된다는 것은 스프링 부트 4.1.1 서버를 127.0.0.1에 띄워 따로 확인했습니다. 컨트롤러가 deleteAll()을 부르는 주소에 USER인 kim으로 요청하니 403이 나오고 본문은 실행되지 않았으며, ADMIN인 park으로 요청하니 200이 나왔습니다. 식에서 #owner처럼 인자의 이름을 쓰려면 컴파일할 때 -parameters 옵션이 필요합니다. 이 옵션 없이 컴파일해 실행했더니 #owner가 비어 있어 주인인 kim의 호출도 거부됐습니다(스프링 부트의 빌드 도구는 이 옵션을 기본으로 켠다고 문서에 나와 있으나 그 부분은 확인하지 않았습니다). 로그인 정보가 전혀 없는 상태에서 검사가 걸린 메서드를 부르면 AuthorizationDeniedException이 아니라 AuthenticationCredentialsNotFoundException이 나왔습니다. 화면의 본문 코드(orders.clear() 등)는 뜻을 보이려고 줄여 적은 것이며, 실행할 때는 본문이 실행된 횟수를 세었습니다. 스프링 부트가 이 설정을 대신 켜 주지는 않았습니다. 같은 스프링 부트 서버에서 @EnableMethodSecurity만 빼고 실행하니 USER인 kim의 요청에도 200이 나오고 본문이 실행됐습니다. 같은 클래스 안의 호출에서 검사가 빠지는 것은 프록시 방식의 일반적인 한계이고, "프록시와 자기 호출" 실습에서 자세히 다룹니다. @PreFilter, @PostFilter, @Secured, 직접 만든 빈을 식에서 부르는 방법은 다루지 않았습니다.',
 });
@@ -10661,7 +10661,7 @@ Lab.register({
 Lab.register({
   id: 'clickjack', nav: '클릭재킹과 오픈 리다이렉트', cat: '인증', mode: 'step',
   title: '내 화면이 남의 페이지에 숨겨지거나, 내 주소가 사용자를 남의 사이트로 넘겨주는 일을 어떻게 막나',
-  intro: '클릭재킹은 다른 사이트가 내 사이트의 화면을 보이지 않는 프레임에 넣어, 사용자가 모르는 사이에 내 화면의 단추를 누르게 만드는 것입니다. 오픈 리다이렉트는 "로그인 뒤 돌아갈 주소"를 요청에서 받아 확인 없이 그대로 보내 주어, 내 사이트의 주소로 시작하는 링크가 다른 사이트로 넘어가게 되는 것입니다. 둘 다 서버가 뚫리는 것이 아니라 내 사이트에 대한 믿음이 이용당하는 문제이며, 서버가 응답 헤더와 주소 검사로 막습니다.',
+  intro: '클릭재킹은 다른 사이트가 내 사이트의 화면을 보이지 않는 프레임에 넣어, 사용자가 모르는 사이에 내 화면의 단추를 누르게 만드는 것입니다. 오픈 리다이렉트는 "로그인 뒤 돌아갈 주소"를 요청에서 받아 확인 없이 그대로 보내 주어, 내 사이트의 주소로 시작하는 링크가 다른 사이트로 넘어가게 되는 것입니다. 둘 다 서버가 뚫리는 것이 아니라 내 사이트에 대한 믿음이 이용당하는 문제이며, 클릭재킹은 서버가 보낸 응답 헤더를 보고 브라우저가 막고, 오픈 리다이렉트는 서버가 주소를 검사해 막습니다.',
   terms: ['클릭재킹', 'X-Frame-Options와 frame-ancestors', '오픈 리다이렉트', 'Spring Security와 SecurityFilterChain', 'CORS와 동일 출처 정책'],
   controls: [
     { id: 'topic', label: '살펴볼 문제', type: 'select', value: 'frame', options: [['frame', '클릭재킹 (내 화면을 프레임에 넣기)'], ['redir', '오픈 리다이렉트 (로그인 뒤 돌아갈 주소)']] },
@@ -11270,7 +11270,7 @@ Lab.register({
       st.libs = libs(now, true);
       push(c.name === 'ok' ? 'web-kit 2.0.0의 설명 파일(POM)을 읽습니다: json-lite 1.2.0이 필요하다고 적혀 있으므로 함께 들어옵니다.' : '가짜 web-kti의 설명 파일(POM)에는 진짜 web-kit 2.0.0이 의존성으로 적혀 있습니다. 그래서 진짜 web-kit과 json-lite도 함께 들어오고, 내 코드는 평소처럼 컴파일되고 동작합니다. 눈에 띄는 이상이 없습니다.', c.name === 'ok' ? '' : 'bad');
       verdict = c.name === 'ok' ? '의도한 라이브러리가 들어옴' : '가짜 패키지가 함께 들어옴'; st.verdict = verdict; k = c.name === 'ok' ? 'good' : 'bad';
-      push(c.name === 'ok' ? '빌드에 들어온 것은 web-kit 2.0.0과 그것이 끌어온 json-lite 1.2.0입니다. 의도한 대로입니다.' : '빌드는 성공합니다. 가짜 web-kti 안에 든 코드도 내 프로그램의 일부가 되어 같은 권한으로 실행됩니다. 서버의 환경 변수나 파일을 읽어 밖으로 보내는 코드가 들어 있어도 막을 것이 없습니다.', k);
+      push(c.name === 'ok' ? '빌드에 들어온 것은 web-kit 2.0.0과 그것이 끌어온 json-lite 1.2.0입니다. 의도한 대로입니다.' : '빌드는 성공합니다. 가짜 web-kti 안에 든 코드도 내 프로그램의 일부가 되어 같은 권한으로 실행됩니다. 서버의 환경 변수나 파일을 읽어 밖으로 보내는 코드가 들어 있어도 이 단계에서는 막아 주는 장치가 없습니다(실행 권한이나 외부 통신을 제한해 두었다면 피해를 줄일 수는 있습니다).', k);
       if (c.name === 'typo') sum.push('이름이 비슷한 가짜 패키지를 올려 두고 오타를 기다리는 수법을 타이포스쿼팅이라고 합니다. 이것도 공급망 공격의 한 가지입니다. 진짜를 의존성으로 끌어와 정상 동작하게 만들면 알아채기 어렵습니다. 이름을 외워서 치지 말고 공식 문서나 저장소 페이지에서 복사하고, 새 의존성을 추가한 변경은 코드 리뷰에서 이름과 만든 곳을 확인합니다.');
       if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다.');
     }
@@ -11872,7 +11872,7 @@ Lab.register({
     if (c.ctl && c.map) {
       sum.push('컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 클래스 위의 @RestController(표시)와 메서드 위의 @GetMapping(등록)이고, 이 둘이 있으면 스프링이 객체를 만들어 두고 주소 표에 메서드를 올려 둡니다.');
       if (c.many === 'one') sum.push('컨트롤러는 서블릿이 아닙니다. 요청은 스프링이 톰캣에 등록해 둔 DispatcherServlet이 받아서, 주소 표를 보고 컨트롤러의 메서드를 불러 줍니다. 우리가 쓴 코드에는 new도, 메서드를 부르는 줄도 없습니다.');
-      else sum.push('주소를 클래스가 아니라 메서드에 적으므로, 클래스 하나에 주소 세 개가 들어갑니다. 서블릿은 주소를 클래스에 적어서 클래스가 세 개 필요했습니다. 여기서는 객체 하나가 메서드 세 개로 주소마다 다른 응답을 냈습니다.');
+      else sum.push('주소를 클래스가 아니라 메서드에 적으므로, 클래스 하나에 주소 세 개가 들어갑니다. 앞 실습처럼 주소마다 서블릿 클래스를 따로 만들면 세 개가 필요했습니다. 여기서는 객체 하나가 메서드 세 개로 주소마다 다른 응답을 냈습니다.');
     } else if (c.ctl) {
       sum.push('@RestController가 있으므로 스프링이 객체는 만들었지만, 맡을 주소를 적지 않아 ' + meth + '는 한 번도 불리지 않았습니다. 요청은 주소 표에서 막혀 404 응답이 나갔습니다.');
       sum.push('클래스 위의 표시는 이 클래스를 쓴다는 것이고, 어떤 주소를 맡을지는 메서드 위의 @GetMapping이 정합니다. 요청을 받으려면 둘이 다 있어야 합니다.');
@@ -12193,7 +12193,7 @@ Lab.register({
     st.log.push(['SELECT * ... ORDER BY id', finalText, anyBad ? 'bad' : 'good']);
     var after = pk
       ? (sec === 'diff' ? 'id 1과 2는 각각 한 행만 가리킵니다. UPDATE는 id가 1인 행만 고쳤고 이영희 행은 그대로입니다.' : '남은 것은 id가 1인 한 행입니다. 이영희 행은 거부되어 들어가지 않았고, 김철수 행의 이름이 박민수로 바뀌었습니다. "id가 1인 행"은 언제나 이 한 행입니다.')
-      : (sec === 'same' ? 'id가 1이고 이름이 박민수인 행이 둘입니다. 이영희라는 이름은 사라졌고, id로는 두 행을 구별할 수 없습니다.' : sec === 'diff' ? 'PRIMARY KEY가 있을 때와 같은 결과입니다. 다만 id가 다른 것은 DB가 지켜 준 것이 아니라 우리가 다르게 넣었기 때문입니다. 같은 id를 넣었다면 DB는 그대로 받아들였을 것입니다.' : 'id가 비어 있는 행(이영희)이 맨 앞에 나옵니다. ORDER BY id에서는 비어 있는 값이 가장 앞에 옵니다. 이 행은 id가 없어서 WHERE id = 1에 맞지 않았고, 그래서 UPDATE가 건드리지 않았습니다.');
+      : (sec === 'same' ? 'id가 1이고 이름이 박민수인 행이 둘입니다. 이영희라는 이름은 사라졌고, id로는 두 행을 구별할 수 없습니다.' : sec === 'diff' ? 'PRIMARY KEY가 있을 때와 같은 결과입니다. 다만 id가 다른 것은 DB가 지켜 준 것이 아니라 우리가 다르게 넣었기 때문입니다. 같은 id를 넣었다면 DB는 그대로 받아들였을 것입니다.' : 'id가 비어 있는 행(이영희)이 맨 앞에 나옵니다. 이 실습의 DB(H2)에서는 ORDER BY id에서 비어 있는 값이 가장 앞에 옵니다. 이 행은 id가 없어서 WHERE id = 1에 맞지 않았고, 그래서 UPDATE가 건드리지 않았습니다.');
     push('SELECT * FROM member ORDER BY id: 테이블에 남은 행을 id 순으로 읽습니다. 결과는 ' + finalText + '입니다. ' + after, anyBad ? 'bad' : 'good');
 
     // 6. (PRIMARY KEY 없음, id 비움) 비어 있는 id는 찾을 수도 없다. 이 코드에는 없는 문장을 따로 실행한 결과
@@ -12248,7 +12248,7 @@ Lab.register({
 Lab.register({
   id: 'http_basic', nav: 'HTTP 요청', cat: '기초개념', mode: 'step', basic: true, deep: ['httpmsg'],
   title: 'HTTP 요청은 어떻게 생긴 글인가',
-  intro: '브라우저가 서버에 보내는 HTTP 요청은 정해진 모양의 글자 몇 줄입니다. 첫 줄(요청 줄)에는 메서드, 경로, 버전을 적습니다. 그 아래에는 "이름: 값" 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄로 요청이 끝났음을 알립니다. 서버는 이 글을 읽어 무엇을 달라는 요청인지 압니다. 이 실습은 첫 줄, Host 줄, 마지막 빈 줄을 하나씩 바꾸거나 지워 가며 같은 서버(/hello 주소만 만들어 둔 서버)에 글자를 그대로 보내, 서버가 그 글을 요청으로 읽는지, 어떤 응답을 돌려주는지, 우리가 쓴 서버 코드까지 가는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.',
+  intro: '브라우저가 서버에 보내는 HTTP 요청은 정해진 모양의 글자 몇 줄입니다. 첫 줄(요청 줄)에는 메서드, 경로, 버전을 적습니다. 그 아래에는 "이름: 값" 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄로 헤더가 끝났음을 알립니다(본문이 없는 요청은 여기서 끝납니다). 서버는 이 글을 읽어 무엇을 달라는 요청인지 압니다. 이 실습은 첫 줄, Host 줄, 마지막 빈 줄을 하나씩 바꾸거나 지워 가며 같은 서버(/hello 주소만 만들어 둔 서버)에 글자를 그대로 보내, 서버가 그 글을 요청으로 읽는지, 어떤 응답을 돌려주는지, 우리가 쓴 서버 코드까지 가는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.',
   terms: ['요청 줄(request line)', 'Host 헤더', 'HTTP 요청의 끝(빈 줄)', 'HTTP 상태 코드'],
   controls: [
     { id: 'line', label: '첫 줄', type: 'select', value: 'ok', options: [['ok', '첫 줄: GET /hello HTTP/1.1'], ['nopath', '첫 줄: GET /nothing HTTP/1.1 (서버에 없는 경로)'], ['broken', '첫 줄: /hello (GET과 HTTP/1.1을 지움)']] },
@@ -12533,7 +12533,7 @@ Lab.register({
       sum.push('int 변수에는 글자를 담을 수 없습니다. int는 정수만 담는다는 타입이므로, "스무 살"을 담으려는 줄에서 컴파일러가 막았고 프로그램을 실행할 수 없었습니다.');
       sum.push('값이 타입에 맞는지는 실행해 보고 아는 것이 아니라, 컴파일러가 값을 담는 줄마다 미리 확인합니다. 글자를 담으려면 글자를 담는 타입(String)으로 선언해야 합니다.');
     } else {
-      sum.push('값을 담지 않은 변수는 읽을 수 없습니다. int age;로 변수는 만들어졌지만, 값이 담기기 전에 age + 1에서 읽으려 해서 컴파일러가 막았고 프로그램을 실행할 수 없었습니다.');
+      sum.push('값을 담지 않은 변수는 읽을 수 없습니다. int age;라고 선언은 했지만, 값이 담기기 전에 age + 1에서 읽으려 해서 컴파일러가 막았고 프로그램을 실행할 수 없었습니다.');
       sum.push('선언과 값 담기는 따로 할 수 있지만 읽기 전에는 반드시 값을 담아야 하고, 이것도 실행하기 전에 컴파일러가 확인합니다. 지역 변수에는 0 같은 값이 저절로 들어가지 않습니다.');
     }
     return { events: ev, summary: sum, nerr: nerr, errAt: errAt, row: [ok ? '성공' : '오류', ok ? '없음' : first, ok ? out : '실행할 수 없음'] };
@@ -13190,7 +13190,7 @@ Lab.register({
       sum.push('우리가 쓴 코드에는 생성자를 부르는 줄이 없었습니다. 생성자를 실행시킨 것은 new입니다. 넘긴 값에 맞는 생성자가 있는지는 실행할 때가 아니라 컴파일러가 컴파일할 때 확인했습니다.');
     } else if (ok && c.ctor) {
       sum.push('new Card(...)를 두 번 실행했으므로 생성자도 두 번 실행되었습니다. 출력에서 "생성자 실행"이 두 줄입니다. 생성자는 객체를 만들 때마다 한 번씩 실행됩니다.');
-      sum.push('a와 b는 서로 다른 객체이고, 생성자가 각 객체의 owner를 따로 채웠습니다("김철수"와 "이영희"). 생성자를 한 번 적어 두면 객체를 몇 개 만들어도 같은 방식으로 필드가 채워집니다.');
+      sum.push('a와 b가 가리키는 것은 서로 다른 객체이고, 생성자가 각 객체의 owner를 따로 채웠습니다("김철수"와 "이영희"). 생성자를 한 번 적어 두면 객체를 몇 개 만들어도 같은 방식으로 필드가 채워집니다.');
     } else if (ok) {
       sum.push('생성자를 하나도 적지 않아도 new Card()는 컴파일됩니다. 컴파일러가 값을 받지 않고 아무 값도 넣지 않는 기본 생성자를 대신 넣기 때문입니다. 다만 owner를 채우는 코드가 없어서 owner는 비어 있는 그대로이고, 출력은 null이었습니다.');
       sum.push('우리가 적은 생성자가 없으므로 "생성자 실행"은 한 번도 출력되지 않았습니다(0번).' + (two ? ' new를 두 번 했으므로 객체는 두 개 만들어졌고 둘 다 owner가 null이었습니다.' : '') + ' 객체는 생성자를 적었든 아니든 new가 만들고, 생성자는 그 객체의 필드를 채우는 일을 맡습니다.');
@@ -13227,7 +13227,7 @@ Lab.register({
     var n = c.two ? 2 : 1;
     for (var i = 0; i < n; i++) {
       var o = s && s.objs[i], vn = i === 0 ? 'a' : 'b';
-      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: 'Card 객체 (' + vn + ')', sub: o ? 'owner: ' + (o.owner === null ? '비어 있음 (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? '만들어지지 않음' : '아직 없음' });
+      P.box('o' + i, 464, 20 + i * 76, 202, 56, { cls: o ? (on('o' + i) ? 'good now' : 'good') : s && s.compile === 'err' ? 'bad' : 'ghost', title: vn + '가 가리키는 Card 객체', sub: o ? 'owner: ' + (o.owner === null ? '비어 있음 (null)' : '"' + o.owner + '"') : s && s.compile === 'err' ? '만들어지지 않음' : '아직 없음' });
     }
     if (phase === 'chk') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: s.compile === 'err' || bad.nw ? 'bad' : 'hot' });
     if (phase === 'ctor') P.arrow('chk', 'nw:b:0.5', 'ct:t:0.33', { cls: 'hot' });
@@ -13334,7 +13334,7 @@ Lab.register({
 Lab.register({
   id: 'static_basic', nav: 'static', cat: '기초개념', mode: 'step', basic: true, deep: ['static'],
   title: 'static은 무엇이고, 붙이면 무엇이 달라지는가',
-  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
+  intro: 'static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
   terms: ['static', '필드', '인스턴스 필드와 static 필드', '클래스와 객체'],
   controls: [
     { id: 'st', label: 'count 앞에 static을 적는다', type: 'check', value: true },
@@ -13463,7 +13463,7 @@ Lab.register({
     P.box('cl', 14, 20, 270, 140, { cls: bad.cl ? 'bad' : hot === 'cl' ? 'hot now' : 'plain', title: 'Counter (클래스)', sub: clSub });
     function obj(id, y, name, made, n) {
       var sub = made ? (c.st ? 'count 칸 없음' : 'count: ' + n) : failed ? '만들어지지 않음' : '아직 없음';
-      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: name + ' (Counter 객체)', sub: sub });
+      P.box(id, 394, y, 272, 62, { cls: made ? (hot === id ? 'hot now' : 'plain') : 'ghost', title: name + '가 가리키는 Counter 객체', sub: sub });
     }
     obj('oa', 20, 'a', s && s.objs >= 1, s ? s.a : null);
     obj('ob', 98, 'b', s && s.objs >= 2, s ? s.b : null);
@@ -13478,7 +13478,7 @@ Lab.register({
 Lab.register({
   id: 'inherit_basic', nav: '상속', cat: '기초개념', mode: 'step', basic: true, deep: ['inherit'],
   title: 'extends는 무엇을 물려주는가',
-  intro: '상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름으로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.',
+  intro: '상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름과 같은 매개변수로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.',
   terms: ['상속', 'extends', '부모 클래스와 자식 클래스', '오버라이딩'],
   controls: [
     { id: 'ext', label: 'Dog에 extends Animal을 쓴다', type: 'check', value: true },
@@ -13829,7 +13829,7 @@ Lab.register({
     if (c.gen) o.push('        // <String>: 이 리스트에는 String만 담는다는 표시');
     o.push(c.gen ? '        List<String> names = new ArrayList<>();' : '        List names = new ArrayList();');
     o.push(c.put === 'str' ? '        names.add("김철수");' : '        names.add(123);');
-    if (c.cast) o.push('        // (String): 꺼낸 것을 String으로 바꾼다고 직접 적는다');
+    if (c.cast) o.push('        // (String): 꺼낸 것을 String으로 다루겠다고 직접 적는다');
     o.push(c.cast ? '        String first = (String) names.get(0);' : '        String first = names.get(0);');
     o.push('        System.out.println(first.length());', '    }', '}');
     return o.join('\n');
@@ -13991,7 +13991,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '람다는 어떻게 생겼고, 화살표 뒤의 코드는 언제 실행되나', d: '람다를 적은 줄에서는 실행되지 않고, t.run()을 부를 때 실행됩니다. 준비, 일한다 순서로 출력됩니다.', v: { form: 'lambda', call: 'once', two: false } },
     { t: 't.run()을 지우면', q: 't.run()을 지우면', d: '람다는 할 일을 변수에 담아 둘 뿐이어서 "일한다"가 출력되지 않습니다.', v: { form: 'lambda', call: 'none', two: false } },
-    { t: '익명 클래스로 풀어 적으면', q: '람다를 익명 클래스로 풀어 적으면', d: '길게 쓴 같은 코드입니다. 람다와 출력이 같습니다.', v: { form: 'anon', call: 'once', two: false } },
+    { t: '익명 클래스로 풀어 적으면', q: '람다를 익명 클래스로 풀어 적으면', d: '같은 일을 길게 쓴 코드입니다. 람다와 출력이 같습니다.', v: { form: 'anon', call: 'once', two: false } },
     { t: '이름 있는 클래스로 풀어 적으면', q: '이름 있는 클래스로 풀어 적으면', d: 'Work 클래스를 만들고 new로 객체를 만듭니다. 람다와 출력이 같습니다.', v: { form: 'named', call: 'once', two: false } },
     { t: 'Task에 메서드가 하나 더 있으면', q: 'Task에 메서드가 하나 더 있으면 (void stop();)', d: '람다는 어느 메서드의 할 일인지 알 수 없어 컴파일 오류가 납니다.', v: { form: 'lambda', call: 'once', two: true } },
   ],
@@ -14262,10 +14262,10 @@ Lab.register({
       sum.push('스프링의 @RestController나 @GetMapping도 마찬가지로, 스프링이 그 표시를 읽어 주기 때문에 효과가 있는 것입니다. 스프링이 읽는 모습은 "컨트롤러" 기초 실습에서 봅니다.');
     } else if (c.reader && c.keep && c.mark === 'both') {
       sum.push('rest에도 @Run을 붙였더니 rest도 불렸습니다. 읽는 코드는 한 줄도 바꾸지 않았고, 읽는 쪽이 표시가 붙은 메서드를 모두 찾아 불렀습니다.');
-      sum.push('어느 메서드를 부를지는 부르는 코드가 아니라 메서드에 붙은 표시가 정했습니다. 표시를 읽는 쪽을 한 번 써 두면, 표시만 붙여서 대상을 늘릴 수 있습니다.');
+      sum.push('어느 메서드를 부를지는 메서드에 붙은 표시를 읽는 코드가 그 표시를 보고 골랐습니다. 표시를 읽는 쪽을 한 번 써 두면, 표시만 붙여서 대상을 늘릴 수 있습니다.');
     } else if (c.reader && c.keep) {
       sum.push('work의 @Run을 지웠더니 work가 불리지 않았습니다. 읽는 코드는 그대로이고 work 메서드의 코드도 그대로인데, Run이 붙어 있지 않다는 답을 받아 if 안을 건너뛰었습니다.');
-      sum.push('메서드가 불릴지는 메서드 안의 코드가 아니라 표시가 정했습니다. 읽는 쪽은 표시를 보고 일하는 코드이므로, 표시가 없으면 아무것도 하지 않습니다.');
+      sum.push('메서드가 불릴지는 메서드 안의 코드가 아니라 표시를 읽는 코드가 그 표시를 보고 골랐습니다. 읽는 쪽은 표시를 보고 일하는 코드이므로, 표시가 없으면 아무것도 하지 않습니다.');
     } else if (!c.reader && anyVis) {
       sum.push('Run이 붙은 메서드를 찾아 부르는 코드를 지우면, @Run이 붙어 있어도 아무 일도 일어나지 않았습니다. 표시는 실행 중에 읽을 수 있게 남아 있었지만, 읽는 쪽이 없었습니다.');
       sum.push('표시는 그 자체로는 아무것도 실행하지 않습니다. 컴파일러가 한 일도 표시를 class 파일에 적어 두는 것까지였고, 효과는 표시를 읽는 쪽이 있어야 생깁니다.');
@@ -14557,7 +14557,7 @@ Lab.register({
     // 요약: 첫 줄은 이 설정(물음)의 답
     if (c.comp && via) {
       sum.push('빈은 스프링이 만들어서 보관하는 객체입니다. 일반 클래스와 다른 곳은 클래스 위의 @Component 하나이고, 이것이 있으면 스프링이 시작할 때 Greeter 객체를 하나 만들어 컨테이너에 보관합니다.');
-      sum.push('getBean은 새로 만드는 것이 아니라 보관하던 객체를 꺼내 주는 것이어서, 몇 번을 달라고 해도 같은 객체가 오고 a == b가 true입니다. 우리 코드에는 new Greeter()라는 줄이 없습니다.');
+      sum.push('getBean은 새로 만드는 것이 아니라 보관하던 객체를 꺼내 주는 것이어서, 기본 설정에서는 몇 번을 달라고 해도 같은 객체가 오고 a == b가 true입니다. 우리 코드에는 new Greeter()라는 줄이 없습니다.');
     } else if (via) {
       sum.push('@Component가 없으면 스프링이 Greeter 클래스를 알아보지 못해 객체를 만들어 보관하지 않습니다. 컨테이너가 비어 있어서 getBean(Greeter.class)가 ' + EXC + ' 예외를 일으켰고, 프로그램이 그 줄에서 멈췄습니다.');
       sum.push('스프링은 달라는 요청을 받았다고 해서 @Component가 없는 클래스의 객체를 대신 만들어 주지 않습니다. 빈이 되려면 스프링이 찾을 수 있게 클래스에 표시해 두어야 합니다.');
@@ -14566,7 +14566,7 @@ Lab.register({
       sum.push('@Component가 있어도 new로 만든 객체는 스프링이 보관하는 것이 아닙니다. 스프링이 만든 객체를 쓰려면 스프링에게 달라고 해야 하고, 그렇지 않으면 보관된 객체는 쓰이지 않은 채 남습니다.');
     } else {
       sum.push('@Component 없이 new로 만든 Greeter 객체는 스프링과 상관없는 일반 객체입니다. 스프링은 Greeter 객체를 하나도 만들지 않았고(0개), 우리가 만든 2개는 서로 다른 객체여서 a == b는 false입니다.');
-      sum.push('스프링을 시작했어도 이 코드는 스프링의 도움 없이 평소처럼 동작했습니다. 스프링이 만들어 보관하는 객체가 빈이고, 우리가 직접 new로 만든 객체는 빈이 아닙니다.');
+      sum.push('스프링을 시작했어도 이 코드는 스프링의 도움 없이 평소처럼 동작했습니다. 스프링이 만들어 보관하는 객체가 빈이고, 스프링에 맡기지 않고 우리 코드가 new로 만들어 쓰는 객체는 빈이 아닙니다.');
     }
     return { events: ev, summary: sum, row: [st.exc ? EXC + '으로 멈춤' : st.out[0], st.out.length > 1 ? st.out[1] : '실행되지 않음', st.made + '개', st.ours + '개'] };
   },
@@ -14650,7 +14650,7 @@ Lab.register({
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('OrderService를 만들려면 PayService 객체가 먼저 있어야 하므로, 스프링이 PayService 객체를 먼저 만들어 보관합니다. 이 객체가 PayService 빈입니다. 만들어진 PayService 객체는 1개입니다.', '');
         st.phase = 'makeOrder'; st.os = 'made'; st.field = 'bean'; order.push('OrderService<-spring');
-        push('스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 그것을 필드에 담습니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.', 'good');
+        push('스프링이 OrderService 객체를 만듭니다. 보관하고 있던 PayService 빈을 OrderService 생성자의 payService 매개변수에 넣어 주고, 생성자의 this.payService = payService; 줄이 필드가 그 객체를 가리키게 합니다. 우리가 쓴 코드에는 new OrderService(...)도 new PayService()도 없습니다. 이렇게 필요한 객체를 스프링이 넣어 주는 것이 의존성 주입입니다.', 'good');
       } else {
         st.phase = 'miss';
         push('스프링이 PayService 객체를 넣어 주려고 보관하는 빈을 찾아봅니다. 그런데 PayService에는 @Component가 없어 스프링이 모르는 클래스이고, 보관하는 PayService 빈이 없습니다. 넣어 줄 객체가 없습니다.', 'bad');
@@ -14750,7 +14750,7 @@ Lab.register({
 Lab.register({
   id: 'tx_basic', nav: '@Transactional', cat: '기초개념', mode: 'step', basic: true, deep: ['tx', 'txprop'],
   title: '@Transactional은 무엇을 묶어 주는가',
-  intro: '@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.',
+  intro: '@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 런타임 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.',
   terms: ['@Transactional', '트랜잭션', '커밋과 롤백', '프록시(Proxy)'],
   controls: [
     { id: 'tx', label: 'order() 위에 @Transactional을 적는다', type: 'check', value: true },
@@ -15117,7 +15117,7 @@ Lab.register({
 Lab.register({
   id: 'entity_basic', nav: '엔티티', cat: '기초개념', mode: 'step', basic: true, deep: ['mapping'],
   title: '엔티티는 무엇이고, 일반 클래스와 무엇이 다른가',
-  intro: '엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘기면 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.',
+  intro: '엔티티는 데이터베이스 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘겨 두면 커밋할 때 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.',
   terms: ['엔티티', '@Entity', '@Id', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ent', label: 'Member 위에 @Entity를 적는다', type: 'check', value: true },
@@ -15200,7 +15200,7 @@ Lab.register({
         sum.push('필드를 하나 더 적으면 JPA가 그것도 열로 짝지어, 테이블에 email 열이 생기고 INSERT 문의 열 목록에도 들어갑니다. 열을 늘리는 일이 SQL이 아니라 필드를 적는 일입니다.');
         sum.push('생성자는 그대로여서 email에는 값을 넣지 않았고, 그래서 email 열은 NULL로 저장됐습니다. 엔티티의 필드는 값이 있든 없든 모두 열이 됩니다.');
       } else {
-        sum.push('엔티티는 테이블의 한 행과 짝이 되는 자바 클래스입니다. 일반 클래스와 다른 곳은 클래스 위의 @Entity(저장되는 클래스라는 표시)와 필드 위의 @Id(기본 키라는 표시)이고, 이 둘이 있으면 JPA가 필드를 열과 짝지어 테이블을 만듭니다.');
+        sum.push('엔티티는 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 일반 클래스와 다른 곳은 클래스 위의 @Entity(저장되는 클래스라는 표시)와 필드 위의 @Id(기본 키라는 표시)이고, 이 둘이 있으면 JPA가 필드를 열과 짝지어 테이블을 만듭니다.');
         sum.push('우리는 SQL을 한 줄도 쓰지 않았습니다. 테이블도 INSERT 문도 JPA가 클래스의 모양을 보고 만들었고, INSERT는 persist 줄이 아니라 commit 줄에서 나갔습니다.');
       }
     }
@@ -15412,7 +15412,7 @@ Lab.register({
 Lab.register({
   id: 'repo_basic', nav: '리포지토리', cat: '기초개념', mode: 'step', basic: true, deep: ['datajpa'],
   title: '리포지토리는 무엇이고, 구현은 누가 만드는가',
-  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository에 선언돼 있어서 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
+  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository가 부모 인터페이스에서 물려받은 메서드를 다시 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
   terms: ['리포지토리', 'JpaRepository', '쿼리 메서드', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ext', label: 'MemberRepository 선언에 extends JpaRepository<Member, Long>을 쓴다', type: 'check', value: true },
@@ -15470,7 +15470,7 @@ Lab.register({
       st.phase = 'plain';
       push('같은 인터페이스를 쓰는 쪽 없이 스프링에 맡기면 어떻게 되는지는 따로 실행해 확인했습니다. 스프링은 시작에는 성공하지만 MemberRepository의 구현 객체를 만들지 않았습니다(0개). 스프링 데이터가 찾는 것은 JpaRepository 같은 리포지토리 인터페이스를 상속한 인터페이스이고, 평범한 인터페이스는 찾지 않기 때문입니다. 구현할 클래스를 우리가 쓰지 않았으니, 이 인터페이스의 구현은 어디에도 없습니다.', '');
       sum.push('extends JpaRepository를 지우면 MemberRepository는 평범한 인터페이스입니다. save는 JpaRepository에 선언돼 있던 메서드라 이 인터페이스에는 없고, 컴파일러가 save를 찾을 수 없다고 알려 주어 컴파일에 실패했습니다.' + (none ? ' count도 마찬가지여서 오류는 2개였습니다.' : ' 직접 선언한 ' + f.short + ' 줄은 선언이 있어 오류가 아니었습니다.'));
-      sum.push('스프링이 구현을 만들어 주는 것은 JpaRepository를 상속한 인터페이스뿐입니다. 이 인터페이스는 상속하지 않았으므로, 컴파일 오류를 피하더라도 스프링이 만든 구현 객체는 0개입니다.');
+      sum.push('스프링은 JpaRepository 같은 스프링 데이터의 리포지토리 인터페이스를 상속한 인터페이스에만 구현을 만들어 줍니다. 이 인터페이스는 상속하지 않았으므로, 컴파일 오류를 피하더라도 스프링이 만든 구현 객체는 0개입니다.');
       return { events: ev, summary: sum, f: f, row: ['컴파일 오류: MemberRepository에 save 메서드가 없음', '없음', '없음'] };
     }
 
@@ -15480,7 +15480,7 @@ Lab.register({
 
     // 2. 스프링이 시작하면서 인터페이스를 찾는다
     st.phase = 'scan'; st.hot = 'if';
-    push('main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.', '');
+    push('main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository 같은 리포지토리 인터페이스를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.', '');
 
     if (nick) {
       st.phase = 'parse'; st.hot = 'if';
@@ -15505,7 +15505,7 @@ Lab.register({
     // 4. save
     st.phase = 'save'; st.hot = 'im';
     send(SEL_ID);
-    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
+    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, save 안에서 먼저 id가 1인 행이 이미 있는지 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
     send(INS); st.rows = 1;
     push('찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.', 'good');
 
@@ -15528,7 +15528,7 @@ Lab.register({
       sum.push('save는 JpaRepository에서 물려받은 메서드이고, findByName은 이름의 규칙(findBy + 필드 이름)을 스프링이 읽어 SELECT를 만든 것입니다. 우리가 쓴 것은 인터페이스의 선언뿐이고, 구현 클래스도 SQL도 쓰지 않았습니다.');
     } else {
       sum.push('findByName 선언을 지워도 리포지토리는 그대로 동작합니다. 선언한 메서드가 하나도 없어도 JpaRepository에서 물려받은 save와 count를 쓸 수 있었고, 스프링이 만든 구현 객체가 SQL을 보냈습니다.');
-      sum.push('찾는 메서드를 선언하는 것은 필요한 조회를 더하는 일입니다. 구현 객체를 얻는 조건은 findByName이 아니라 JpaRepository를 상속하는 것입니다.');
+      sum.push('찾는 메서드를 선언하는 것은 필요한 조회를 더하는 일입니다. 구현 객체를 얻는 조건은 findByName이 아니라 JpaRepository 같은 리포지토리 인터페이스를 상속하는 것입니다.');
     }
     var n = kindText();
     return { events: ev, summary: sum, f: f, row: ['1', '있음', 'INSERT ' + n.INSERT + '번, SELECT ' + n.SELECT + '번'] };
@@ -15888,7 +15888,7 @@ Lab.register({
       P.box('c' + i + '_1', 458, 98 + i * 44, 198, 38, { cls: r.hot ? 'hot' : 'wait', title: r.name });
       if (s.flow === 'pass' && s.to.indexOf(i) >= 0) P.arrow('ar' + i, 'chk:r', 'c' + i + '_0:l', { cls: 'good' });
     });
-    if (s && s.flow === 'read') P.arrow('rd', 'chk:r', 'h0:l', { cls: 'hot' });
+    if (s && s.flow === 'read') P.arrow('rd', 'chk:r', 'h1:l:0.9', { cls: 'hot' });
     if (s && s.flow === 'block') { P.arrow('stop', 'chk:r', [334, 108], { cls: 'bad' }); P.text('x', 344, 113, '×', { cls: 'bad', anchor: 'middle', bold: true }); }
     P.box('n1', 14, 242, 322, 36, { cls: s && s.made && s.rows.length ? 'wait' : 'ghost', title: '테이블의 행 수', right: !s ? '0행' : s.made ? s.rows.length + '행' : '표 없음' });
     P.box('n2', 344, 242, 322, 36, { cls: s && typeof s.rd === 'number' ? 'good' : s && s.rd === 'err' ? 'bad' : 'ghost', title: 'SELECT로 읽은 행', right: !s || s.rd === null ? '-' : s.rd === 'err' ? '오류' : s.rd + '행' });
@@ -16764,7 +16764,7 @@ Lab.register({
     P.box('n1', 14, 192, 322, 36, { cls: total === 1000 ? 'good' : 'bad', title: '다른 연결이 보는 두 계좌의 합', right: String(total) });
     P.box('n2', 344, 192, 322, 36, { cls: s && s.a[0] !== s.t[0] ? 'wait' : 'plain', title: '이 연결이 읽는 계좌 1', right: String(s ? s.a[0] : 1000) });
     if (s && total !== 1000) P.note('빨간 칸은 한쪽만 확정되어 두 계좌의 합이 맞지 않는 상태입니다.');
-    else if (s && (s.u[0] === 'pending' || s.u[1] === 'pending')) P.note('파란 상자는 이 연결의 묶음 안에만 있는 변경입니다. 오른쪽 테이블에는 아직 없습니다.');
+    else if (s && (s.u[0] === 'pending' || s.u[1] === 'pending')) P.note('파란 상자는 이 연결의 묶음 안에만 있는 변경입니다. 다른 연결이 보는 오른쪽 테이블에는 아직 보이지 않습니다.');
   },
   assume: 'H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 연결 하나(이 연결)에서 한 문장씩 실행했습니다. 두 연결이 같은 DB를 보도록 이름을 준 메모리 DB(DB_CLOSE_DELAY=-1)를 조합마다 새로 만들었고, 격리 수준은 H2 기본값인 READ COMMITTED 그대로 두었습니다. 대조한 것은 결과 표의 세 항목, 곧 첫 UPDATE 직후 따로 열어 둔 다른 연결이 SELECT balance FROM account WHERE id = 1로 읽은 값, 그리고 모든 것이 끝난 뒤(끝내지 않은 조합은 이 연결을 닫은 뒤) 새 연결로 읽은 두 계좌의 값입니다. 이 확인용 조회는 화면의 코드에 없는 것이고, 다른 연결의 조회가 기다리거나 실패한 경우는 없었습니다(시간 제한 3초를 두고 실행). 단계 문장이 기대는 사실로 문장마다 이 연결과 다른 연결이 읽은 두 계좌의 값, BEGIN 뒤 자동 커밋이 꺼지고 COMMIT이나 ROLLBACK 뒤 다시 켜지는 것(JDBC의 getAutoCommit), 마지막 SELECT가 이 연결에 보여 준 값도 실행으로 확인했습니다. 끝내지 않고 연결을 닫으면 확정되지 않은 변경이 취소된다는 것은 H2에서 JDBC 연결을 닫았을 때 관찰한 동작이고, 연결이 끊기는 다른 방식(네트워크 단절, 서버 종료)은 실행하지 않았습니다. 격리 수준에 따라 달라지는 세부(다른 연결이 어떤 값을 볼 수 있는지, 기다리는지)는 다루지 않았으며 H2 기본값에서 본 결과일 뿐입니다. 트랜잭션을 시작하는 문장은 H2 2.4.240이 START TRANSACTION을 받지 않아(구문 오류) BEGIN으로 적었습니다. BEGIN은 H2 2.4.240에서 실행되었으나 H2 문서의 Commands 페이지에서는 찾지 못했습니다. COMMIT, ROLLBACK, SET AUTOCOMMIT은 그 페이지에 있습니다. MySQL 8.4 문서의 15.3.1절 START TRANSACTION, COMMIT, and ROLLBACK Statements에는 BEGIN과 BEGIN WORK가 START TRANSACTION의 다른 이름이라는 것(START TRANSACTION이 표준 SQL이며 권장된다는 것), 저장 프로그램 안에서는 BEGIN이 BEGIN ... END 블록의 시작으로 해석되므로 START TRANSACTION을 써야 한다는 것, START TRANSACTION 동안 자동 커밋이 꺼지고 COMMIT이나 ROLLBACK 뒤 이전 상태로 돌아온다는 것, 기본으로 자동 커밋이 켜져 있어 문장마다 확정되고 ROLLBACK으로 되돌릴 수 없다는 것, COMMIT은 변경을 영구하게 하고 ROLLBACK은 변경을 취소한다는 것이 적혀 있습니다. 17.7.2.2절 autocommit, Commit, and Rollback(InnoDB)에는 새 연결이 자동 커밋을 켠 채 시작한다는 것, 자동 커밋을 끈 세션이 마지막 트랜잭션을 확정하지 않고 끝나면 MySQL이 그 트랜잭션을 롤백한다는 것이 적혀 있습니다. 위 두 절은 직접 열어 확인했지만 MySQL이 같은 SQL에서 같은 값을 내는지는 실행으로 확인하지 않았습니다. 화면의 코드는 CREATE TABLE과 INSERT를 포함한 전체이고, 다른 연결의 조회와 연결을 닫는 일은 보이지 않습니다. 이 실습은 한 묶음의 시작과 끝만 다루며, 격리 수준, 락, 중첩 트랜잭션, 스프링의 @Transactional은 다루지 않습니다.',
 });

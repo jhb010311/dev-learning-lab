@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,7 @@
 <h3>Result of this run</h3>
 <ul>
 <li>A bean is an object that Spring creates and keeps. What differs from an ordinary class is the single @Component above the class, and with it, Spring creates one Greeter object when it starts and keeps it in the container.</li>
-<li>getBean does not create a new object. It takes out the object that was being kept, so however many times we ask, the same object comes back and a == b is true. Our code has no line new Greeter().</li>
+<li>getBean does not create a new object. It takes out the object that was being kept, so with the default setting, however many times we ask, the same object comes back and a == b is true. Our code has no line new Greeter().</li>
 </ul>
 <h2>Code</h2>
 <pre>// Mark: Spring creates an object of this class and keeps it
@@ -176,6 +176,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>

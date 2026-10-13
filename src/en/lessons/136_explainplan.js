@@ -135,7 +135,7 @@ Lab.register({
     if (w === 'pk') sum.push('One value on the primary key gives type const. Only one row is read, so nothing appears in Extra even when ORDER BY or GROUP BY is added.');
     if (w === 'noidx') sum.push('If the column used in the condition has no index, type ALL comes with Using where. To get 400 rows, 20,000 rows are read. If it is a condition you use often, consider creating an index on that column.');
     if (r.type === 'index') sum.push('Type index does not mean "the index worked well" but "the whole index was read". You can tell from rows, which is close to the whole table. If you change the selected columns to SELECT *, the index alone is not enough and type becomes ALL.');
-    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort is a sign that a separate sort operation is needed. Sorting a few rows is no problem, but if rows is large and filesort appears, all the rows that were read are sorted.');
+    if (r.extra.indexOf('Using filesort') >= 0) sum.push('Using filesort is a sign that a separate sort operation is needed. Sorting a few rows is no problem, but if rows is large and filesort appears, all the rows that pass the WHERE condition are sorted.');
     if (r.extra.indexOf('Using temporary') >= 0) sum.push('Using temporary is a sign that a temporary table is created. It commonly appears when GROUP BY is done on a column without an index.');
     sum.push('Order of reading: look at type to see how widely it reads, check key to see which index is used, estimate the amount read with rows, and then look in Extra for added work such as filtering, sorting, and temporary tables.');
     return { events: ev, summary: sum, p: p, match: match, row: row };
@@ -177,7 +177,7 @@ Lab.register({
       var r = p[0], on = s.a >= 4, txt = on ? (r.extra.slice(0, s.ex).join('; ') || '(empty)') : '?', warn = on && r.extra.slice(0, s.ex).some(function (x) { return x === 'Using filesort' || x === 'Using temporary'; });
       P.box('extra', 28, 104, 624, 48, { cls: (!on ? 'ghost' : s.cur === 'extra' ? 'hot' : warn ? 'hot' : 'wait') + (on && s.cur === 'extra' ? ' now' : ''), title: 'Extra', sub: txt });
     }
-    P.region('sc', 16, 180, 648, 124, 'Access method (type): the further left, the less is read');
+    P.region('sc', 16, 180, 648, 124, 'Access method (type): the further left, the less is usually read');
     var types = [['const', 'one row'], ['eq_ref', 'one per row'], ['ref', 'same values'], ['range', 'one range'], ['index', 'whole index'], ['ALL', 'whole table']];
     types.forEach(function (tp, i) {
       var mine = p.some(function (r, ri) { return r.type === tp[0] && (ri === 0 ? s.a : s.b) >= 1; });

@@ -100,7 +100,7 @@ Lab.register({
     st.log.push(['SELECT * ... ORDER BY id', finalText, anyBad ? 'bad' : 'good']);
     var after = pk
       ? (sec === 'diff' ? 'id 1과 2는 각각 한 행만 가리킵니다. UPDATE는 id가 1인 행만 고쳤고 이영희 행은 그대로입니다.' : '남은 것은 id가 1인 한 행입니다. 이영희 행은 거부되어 들어가지 않았고, 김철수 행의 이름이 박민수로 바뀌었습니다. "id가 1인 행"은 언제나 이 한 행입니다.')
-      : (sec === 'same' ? 'id가 1이고 이름이 박민수인 행이 둘입니다. 이영희라는 이름은 사라졌고, id로는 두 행을 구별할 수 없습니다.' : sec === 'diff' ? 'PRIMARY KEY가 있을 때와 같은 결과입니다. 다만 id가 다른 것은 DB가 지켜 준 것이 아니라 우리가 다르게 넣었기 때문입니다. 같은 id를 넣었다면 DB는 그대로 받아들였을 것입니다.' : 'id가 비어 있는 행(이영희)이 맨 앞에 나옵니다. ORDER BY id에서는 비어 있는 값이 가장 앞에 옵니다. 이 행은 id가 없어서 WHERE id = 1에 맞지 않았고, 그래서 UPDATE가 건드리지 않았습니다.');
+      : (sec === 'same' ? 'id가 1이고 이름이 박민수인 행이 둘입니다. 이영희라는 이름은 사라졌고, id로는 두 행을 구별할 수 없습니다.' : sec === 'diff' ? 'PRIMARY KEY가 있을 때와 같은 결과입니다. 다만 id가 다른 것은 DB가 지켜 준 것이 아니라 우리가 다르게 넣었기 때문입니다. 같은 id를 넣었다면 DB는 그대로 받아들였을 것입니다.' : 'id가 비어 있는 행(이영희)이 맨 앞에 나옵니다. 이 실습의 DB(H2)에서는 ORDER BY id에서 비어 있는 값이 가장 앞에 옵니다. 이 행은 id가 없어서 WHERE id = 1에 맞지 않았고, 그래서 UPDATE가 건드리지 않았습니다.');
     push('SELECT * FROM member ORDER BY id: 테이블에 남은 행을 id 순으로 읽습니다. 결과는 ' + finalText + '입니다. ' + after, anyBad ? 'bad' : 'good');
 
     // 6. (PRIMARY KEY 없음, id 비움) 비어 있는 id는 찾을 수도 없다. 이 코드에는 없는 문장을 따로 실행한 결과

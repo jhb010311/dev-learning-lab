@@ -1,7 +1,7 @@
 Lab.register({
   id: 'inherit_basic', nav: '상속', cat: '기초개념', mode: 'step', basic: true, deep: ['inherit'],
   title: 'extends는 무엇을 물려주는가',
-  intro: '상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름으로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.',
+  intro: '상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름과 같은 매개변수로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.',
   terms: ['상속', 'extends', '부모 클래스와 자식 클래스', '오버라이딩'],
   controls: [
     { id: 'ext', label: 'Dog에 extends Animal을 쓴다', type: 'check', value: true },

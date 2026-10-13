@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
+<link rel="stylesheet" href="../../app.css?v=c490670a69">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Repositories</h1>
 <p><b>What is a repository, and who creates the implementation?</b></p>
-<p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in JpaRepository, so it is inherited. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
+<p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is a method that JpaRepository itself inherits from a parent interface, so it is inherited here too. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
 <p>Checked against real execution · Compiled all 6 combinations on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2, started Spring for real, and checked the implementation objects and the SQL that was sent against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -54,11 +54,11 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The compiler checks MemberRepository.java and the calling side. The interface declares extends JpaRepository&lt;Member, Long&gt; and inherits the methods of JpaRepository, so the line that calls the save method, which we did not declare, is not an error either. The findByName method is one we declared. Compiling succeeds.</li>
-<li>main starts Spring with SpringApplication.run. Spring Data looks in the app package, where the start class is, for interfaces that extend JpaRepository. It finds MemberRepository, which has extends JpaRepository. The code we wrote has no class that implements MemberRepository and no line that creates an implementation.</li>
+<li>main starts Spring with SpringApplication.run. Spring Data looks in the app package, where the start class is, for interfaces that extend a repository interface such as JpaRepository. It finds MemberRepository, which has extends JpaRepository. The code we wrote has no class that implements MemberRepository and no line that creates an implementation.</li>
 <li>Spring Data makes an object that implements MemberRepository and registers it as a bean. This object is not a class we wrote. Spring made it while running, and you can use it as the MemberRepository type. This object runs inherited methods such as save.</li>
 <li>At this time Spring Data reads the name of the findByName method. Following the rule that findBy means &quot;find&quot; and the Name after it is the name field of Member, it prepares &quot;a query that finds by name&quot;. Member has a name field, so it passes. If a name does not follow the rule, it fails here.</li>
 <li>main gets a bean of the MemberRepository type from Spring and puts it in memberRepository (the part shortened on the screen). What it holds is the implementation object that Spring has just made. It is not an object made with new. SQL is counted from here on.</li>
-<li>memberRepository.save(new Member(1L, &quot;Alice&quot;)) runs. We have no code that wrote the save method. The implementation object that Spring made runs the one inherited from JpaRepository. The id of the Member is already set to 1, so Spring Data first looks with a SELECT for whether a row with id 1 already exists (SELECT 1). There is no such row.</li>
+<li>memberRepository.save(new Member(1L, &quot;Alice&quot;)) runs. We have no code that wrote the save method. The implementation object that Spring made runs the one inherited from JpaRepository. The id of the Member is already set to 1, so inside save, a SELECT first goes out to check whether a row with id 1 already exists (SELECT 1). There is no such row.</li>
 <li>No row was found, so the implementation object sends an INSERT and saves the row with id 1, Alice, in the member table (INSERT 1). We wrote not one line of SQL.</li>
 <li>memberRepository.findByName(&quot;Alice&quot;) runs. The implementation object sends a SELECT following the naming rule that it read at startup: select m1_0.id,m1_0.name from member m1_0 where m1_0.name=? (the &quot;Alice&quot; we passed goes in the place of name=?). We wrote no query. The 1 row it found becomes a Member object and goes into the List.</li>
 <li>println prints found.size(). It found 1 Member, so it is 1. All we wrote were the two declaration lines of the interface (the interface declaration and the findByName line).</li>
@@ -168,6 +168,6 @@ System.out.println(found.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c2b67cda13"></script>
+<script src="../../app.js?v=c490670a69"></script>
 </body>
 </html>
