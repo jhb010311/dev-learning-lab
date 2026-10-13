@@ -16,7 +16,7 @@ Lab.register({
     { t: 'Changing the path to /nothing', q: 'What if you change the path to /nothing?', d: 'The connection is the same and only the path is one the server does not have. The server answers with 404.', v: { scheme: true, port: true, path: 'nothing', query: true } },
     { t: 'Removing the path', q: 'What if you remove the path?', d: 'Even if you do not write a path, the client sends /. The server does not have a / address.', v: { scheme: true, port: true, path: 'none', query: true } },
     { t: 'Removing :8080', q: 'What if you remove :8080?', d: 'If you do not write a port, the client tries to connect to port 80, the default port of http. It does not reach port 8080, where the server is.', v: { scheme: true, port: false, path: 'hello', query: true } },
-    { t: 'Removing http:// at the beginning', q: 'What if you remove http:// at the beginning?', d: 'Without a scheme, the parts cannot be split correctly. The request cannot be sent.', v: { scheme: false, port: true, path: 'hello', query: true } },
+    { t: 'Removing http:// at the beginning', q: 'What if you remove http:// at the beginning?', d: 'Without a scheme, the parts cannot be split correctly. The client in this lab cannot send the request (a browser address bar adds http:// for you).', v: { scheme: false, port: true, path: 'hello', query: true } },
   ],
   PATHS: { hello: '/hello', nothing: '/nothing', none: '' },
   code: function (c) {

@@ -100,7 +100,7 @@ Lab.register({
       push('The client received the 200 response in about 3s. This time the payment server answered after 3s, so it ended. But when we made the payment server receive the request and never answer, and waited 4s, this order server did not give up and the client did not receive a response. We did not wait any longer than that.', 'bad');
       row = ['200 Order complete', 'About 3s', 'Waited until the payment server answered after 3s'];
       sum.push('The order server, which had no waiting time set, waited until the payment server answered after 3s, and the client received 200 in about 3s.');
-      sum.push('If the payment server never answers, this order server would wait forever too (we confirmed that it does not give up even after 4s). Only if you set the waiting time does your own server not get stuck because of a slow or stopped partner.');
+      sum.push('If the payment server does not answer and there is no time limit, this order server keeps waiting until a response comes (here we watched it up to 4s). Only if you set the waiting time does your own server not get stuck because of a slow or stopped partner.');
     }
     return { events: ev, summary: sum, row: row };
   },

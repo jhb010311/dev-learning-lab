@@ -102,22 +102,22 @@ Lab.register({
       { cls: s.made || s.bad ? '' : 'gone', cells: ['name of ShopInfo', { v: nameTxt, cls: s.bad ? 'bad' : s.name !== null ? 'good' : '' }] },
       { cls: s.out !== null ? '' : 'gone', cells: ['Text printed to the screen', { v: s.out !== null ? s.out : 'None', cls: s.out !== null ? 'good' : '' }] },
       { cls: '', cells: ['java process', { v: pTxt, cls: s.exit === 1 ? 'bad' : s.exit === 0 ? 'good' : '' }] },
-    ], 'Inside the java process');
+    ], 'The java process and the settings file');
   },
   // Diagram: the main method of App at the top, and in the middle row, from the left, the configuration file, Spring (the settings list), and the ShopInfo object. Arrows show the value in the file being read into Spring's settings list, whether Spring puts the value into name while creating ShopInfo, and where it stops if it cannot find the value. Two result boxes at the bottom.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, ph = s ? s.phase : '';
     P.size(680, 288);
     var end = s && s.exit !== null;
-    P.region('jp', 6, 8, 668, 210, 'java process' + (end ? (s.exit === 0 ? ': ended' : ': ended with an error') : s ? ': running' : ''));
+    P.region('jp', 240, 8, 436, 210, 'java process' + (end ? (s.exit === 0 ? ': ended' : ': ended with an error') : s ? ': running' : ''));
     var mnSub = !s ? 'Not run yet' : ph === 'main' || ph === 'read' || ph === 'make' || ph === 'value' ? 'SpringApplication.run is running' : ph === 'get' ? 'ctx.getBean is running' : ph === 'print' ? 'println is running' : s.exit === 0 ? 'Ended' : 'Ended with an exception';
-    P.box('mn', 14, 36, 652, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'main method of App', sub: mnSub });
-    P.box('pf', 14, 112, 190, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? 'No name=value line' : ' '] });
+    P.box('mn', 250, 36, 416, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'main method of App', sub: mnSub });
+    P.box('pf', 2, 112, 188, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? 'No name=value line' : ' '] });
     var spSub = !s || !s.read ? [' '] : s.file ? ['Settings list', 'shop.name = ' + s.file] : ['Settings: empty'];
-    P.box('sp', 254, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'Spring', sub: spSub });
+    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'Spring', sub: spSub });
     var siSub = !s ? [' '] : s.name !== null ? ['name = ' + s.name] : s.bad ? ['Stopped while creating'] : ph === 'make' || ph === 'value' ? ['Being created'] : ['Not yet'];
-    P.box('si', 474, 112, 192, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo object', sub: siSub });
-    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot' });
+    P.box('si', 468, 112, 190, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo object', sub: siSub });
+    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot', label: 'Read' });
     if (s && ph === 'make') P.arrow('mk', 'sp:r:0.35', 'si:l:0.35', { cls: 'hot' });
     if (s && ph === 'value') P.arrow('vl', 'sp:r:0.65', 'si:l:0.65', { cls: s.bad ? 'bad' : 'good' });
     var prog = !s ? 'Not yet' : s.exit === 0 ? 'Ran to the end' : s.exit === 1 ? 'Stopped while starting' : 'Running';

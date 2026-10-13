@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,7 +55,7 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>In the terminal, the command javac Counter.java makes javac read Counter.java and create the file Counter.class. This file is only a file stored on disk, and nothing is running now. A running program is called a process, and a process comes into being only when this file is run.</li>
-<li>In terminal 1, the command java Counter makes the operating system create one process that runs Counter.class. The number (PID) of this process is 4120. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.</li>
+<li>In terminal 1, the command java Counter makes the operating system create one java (JVM) process, and that JVM reads and runs Counter.class. The number (PID) of this process is 4120. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.</li>
 <li>When main calls add(), the three count++ lines inside add run, and count becomes 3 in the memory of this process. println prints &quot;PID 4120 count 3&quot;. Then main waits 2 seconds in Thread.sleep(2000), so this process has not ended yet.</li>
 <li>While the earlier process is still running, you type the command java Counter once more in terminal 2. The file is the same single Counter.class, but the operating system creates one more process and gives it a new number. The PID of this process is 7352. The operating system gives this process its own memory too, so the count of this process also starts at 0.</li>
 <li>This process also runs add(). The three count++ lines raise the count in the memory of this process, so it goes from 0 to 3, and &quot;PID 7352 count 3&quot; is printed. The count of the earlier process is still 3. A value raised by one process cannot be seen from another process.</li>
@@ -184,6 +184,6 @@ java Counter</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

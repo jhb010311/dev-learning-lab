@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -53,7 +53,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to one row of a table, and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.</li>
+<li>The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to a table (one object of the class is one row), and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.</li>
 <li>Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field gets a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.</li>
 <li>order.getMember(): returns as it is the proxy that was in the member field of the Order object. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.</li>
 <li>.getName(): the proxy holds only the number of the member, so it does not know the name. At this moment, JPA (Hibernate) sends a SELECT statement that reads the member table, reads the row of member 1, fills in the proxy, and returns the name Alice. The SELECT was sent on this line, where a value of the member was taken for the first time, and this SELECT is not in the code we wrote either.</li>
@@ -180,6 +180,6 @@ String name = order.getMember().getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

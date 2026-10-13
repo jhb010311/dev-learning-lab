@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>String sql = &quot;SELECT name FROM member WHERE name = ?&quot;: the SQL text is stored in the sql variable. The place for the value is left as ?, and the text of input does not go into this text. Nothing has been sent to the database yet.</li>
 <li>conn.prepareStatement(sql): creates a PreparedStatement object that holds the sql text and stores it in ps. The SQL that ps holds has 1 ? place and no value yet. This SELECT is not in the execution record of the database yet either.</li>
 <li>ps.setString(1, input): passes the text of input as the value of the 1st ? place. ps holds the SQL text (as it is, with the ? place) and the value of place 1 separately. The text of input is not put into the SQL text.</li>
-<li>ps.executeQuery(): ps sends the SQL text and the value to the database. The SQL that the database ran is &quot;SELECT name FROM member WHERE name = ?&quot;, and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. There is 1 row where name is &quot;kim&quot;. Java receives the result as ResultSet rs.</li>
+<li>ps.executeQuery(): ps handles the value separately from the SQL text, so the value is not read as SQL syntax. The SQL that the database ran is &quot;SELECT name FROM member WHERE name = ?&quot;, and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. There is 1 row where name is &quot;kim&quot;. Java receives the result as ResultSet rs.</li>
 <li>while (rs.next()): reads the rows of rs one by one and prints name. The output is kim.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -172,6 +172,6 @@ while (rs.next()) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

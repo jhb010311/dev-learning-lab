@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compilation and the JVM: How does Java code run? · Dev Learning Lab</title>
-<meta name="description" content="The Hello.java file that we write is text for people to read. This text is not run as it is, but goes through two steps. When you use the command javac He…">
+<meta name="description" content="The Hello.java file that we write is text for people to read. When you run it with java Hello, this text is not run as it is, but goes through two steps.…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jvm_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jvm_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Compilation and the JVM: How does Java code run? · Dev Learning Lab">
-<meta property="og:description" content="The Hello.java file that we write is text for people to read. This text is not run as it is, but goes through two steps. When you use the command javac He…">
+<meta property="og:description" content="The Hello.java file that we write is text for people to read. When you run it with java Hello, this text is not run as it is, but goes through two steps.…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/jvm_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Compilation and the JVM</h1>
 <p><b>How does Java code run?</b></p>
-<p>The Hello.java file that we write is text for people to read. This text is not run as it is, but goes through two steps. When you use the command javac Hello.java in a terminal (a window where you type commands as text), a program called javac (the compiler) reads this text and turns it into a file named Hello.class. This job is called compiling. Hello.class contains bytecode, which the JVM reads. Next, when you use the command java Hello, the JVM (Java Virtual Machine) starts, reads Hello.class, and runs main. In this lab you remove the javac line, make the source text wrong, or edit it after compiling, and the real javac and java commands are run, to show whether Hello.class is created and what java Hello runs.</p>
+<p>The Hello.java file that we write is text for people to read. When you run it with java Hello, this text is not run as it is, but goes through two steps. When you use the command javac Hello.java in a terminal (a window where you type commands as text), a program called javac (the compiler) reads this text and turns it into a file named Hello.class. This job is called compiling. Hello.class contains bytecode, which the JVM reads. Next, when you use the command java Hello, the JVM (Java Virtual Machine) starts, reads Hello.class, and runs main. In this lab you remove the javac line, make the source text wrong, or edit it after compiling, and the real javac and java commands are run, to show whether Hello.class is created and what java Hello runs.</p>
 <p>Checked against real execution · Ran the javac and java commands of JDK 21 for real in 6 combinations and checked the results against them</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -168,6 +168,6 @@ java Hello</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

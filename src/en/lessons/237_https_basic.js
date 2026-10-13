@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var https = c.scheme === 'https', host = https && c.name === 'other' ? '127.0.0.1' : 'localhost';
     var out = ['# Address the client connects to', c.scheme + '://' + host + ':' + (https ? '8443' : '8080') + '/login', '', '# Content sent (body of the POST request)', 'password=1234'];
-    if (https) out.push('', '# Server certificate', 'Name: localhost', c.trust ? 'In the list the client trusts' : 'Not in the list the client trusts');
+    if (https) out.push('', '# Server certificate', 'Name: localhost', c.trust ? 'Signed by an authority the client trusts' : 'Not signed by an authority the client trusts');
     return out.join('\n');
   },
   label: function (c) { return c.scheme === 'http' ? 'Connect with http://' : 'Connect with https:// · certificate ' + (c.trust ? 'trusted' : 'not trusted') + ' · ' + (c.name === 'other' ? 'connect to 127.0.0.1' : 'connect to localhost'); },

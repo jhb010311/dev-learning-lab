@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>AOP and proxies</h1>
 <p><b>What is a proxy, and how does Spring step in before and after my method?</b></p>
-<p>When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.</p>
+<p>When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not use the object it made from the class we wrote as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.</p>
 <p>Checked against real execution · Ran all four combinations with real @Aspect proxies on Spring 7.0.9 and AspectJ weaver 1.9.25.1, and checked the printed lines and the class of the called object</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,7 @@
 <li>There is no line that prints a log inside order(). The class name of the called object is OrderService$SpringCGLIB$0, not OrderService, and this is the sign that we called a proxy. The class name of a bean with @Transactional changes to a name of the same form, and it is the same thing.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Inserted behavior: runs every time order() of OrderService is called
+<pre>// Inserted behavior: runs every time order() of the OrderService bean kept by Spring is called
 @Aspect
 @Component
 class LogAspect {
@@ -184,6 +184,6 @@ class Caller {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

@@ -61,7 +61,7 @@ Lab.register({
       var where = fail.line + '번째 줄 ' + fail.col + '번째 글자';
       st.dead = true; st.o = { name: '', age: '', tags: '' }; st.arr = []; st.read = '실패: ' + WHYS[fail.kind]; st.kind = '읽지 못함'; st.plus = '읽지 못함'; st.done = true;
       var more = (c.key !== 'dq' && c.comma !== 'ok') ? ' 뒤쪽(' + (c.comma === 'miss' ? '"age" 줄 끝에 쉼표가 없는 곳' : '마지막 값 뒤의 쉼표') + ')에도 규칙에 어긋난 곳이 있지만, 해석기는 처음 만난 곳에서 멈추므로 알려 주는 오류는 이 한 곳뿐입니다.' : '';
-      push('해석기가 여기서 읽기를 멈추고 오류를 냅니다. 오류가 난 곳은 ' + where + '이고, JSON.parse와 Jackson이 알려 준 위치가 같았습니다.' + (partial ? ' 앞에서 읽은 ' + partial + '도 객체로 돌려주지 않습니다.' : '') + ' 읽을 수 있는 데까지만 읽어 돌려주는 일은 없고, 글 전체가 읽히거나 전체가 실패하거나 둘 중 하나입니다.' + more, 'bad');
+      push('해석기가 여기서 읽기를 멈추고 오류를 냅니다. 오류가 난 곳은 ' + where + '이고, JSON.parse와 Jackson이 알려 준 위치가 같았습니다.' + (partial ? ' 앞에서 읽은 ' + partial + '도 객체로 돌려주지 않습니다.' : '') + ' 여기서 쓴 JSON.parse와 Jackson은 읽을 수 있는 데까지만 읽어 돌려주는 일은 없고, 글 전체가 읽히거나 전체가 실패하거나 둘 중 하나입니다.' + more, 'bad');
       push('받는 쪽은 객체를 얻지 못했습니다. 객체가 없으니 age를 꺼낼 수 없고, age의 종류도 1을 더한 결과도 없습니다.', 'bad');
     }
     var WHYS = this.WHY;

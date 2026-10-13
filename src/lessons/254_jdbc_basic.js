@@ -54,7 +54,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: '보내지 못함', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
+      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC 드라이버가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
         (typo ? '테이블 이름이 틀렸다는 것도 DB가 SQL을 읽어 봐야 알 수 있어서, 닫힌 연결 오류가 먼저 나오고 틀린 이름은 알려지지 않습니다. ' : none ? 'WHERE id = 99라는 조건도 DB가 읽어 본 적이 없습니다. ' : '') +
         '예외를 처리하는 코드가 없어서 프로그램은 이 줄에서 멈추고, 아래 줄들은 실행되지 않습니다.', 'bad');
     } else if (typo) {

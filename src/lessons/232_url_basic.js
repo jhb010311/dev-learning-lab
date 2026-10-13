@@ -16,7 +16,7 @@ Lab.register({
     { t: '경로를 /nothing으로 바꾸면', q: '경로를 /nothing으로 바꾸면', d: '연결은 같고 경로만 서버에 없는 것. 서버가 404로 답합니다.', v: { scheme: true, port: true, path: 'nothing', query: true } },
     { t: '경로를 지우면', q: '경로를 지우면', d: '경로를 적지 않아도 클라이언트가 /를 보냅니다. 서버에는 / 주소가 없습니다.', v: { scheme: true, port: true, path: 'none', query: true } },
     { t: ':8080을 지우면', q: ':8080을 지우면', d: '포트를 적지 않으면 http의 기본 포트 80번으로 연결을 시도합니다. 서버가 있는 8080번에는 닿지 않습니다.', v: { scheme: true, port: false, path: 'hello', query: true } },
-    { t: '맨 앞의 http://를 지우면', q: '맨 앞의 http://를 지우면', d: '스킴이 없으면 부분을 올바로 나눌 수 없습니다. 요청을 보내지 못합니다.', v: { scheme: false, port: true, path: 'hello', query: true } },
+    { t: '맨 앞의 http://를 지우면', q: '맨 앞의 http://를 지우면', d: '스킴이 없으면 부분을 올바로 나눌 수 없습니다. 이 실습의 클라이언트는 요청을 보내지 못합니다(브라우저 주소창은 http://를 알아서 붙여 줍니다).', v: { scheme: false, port: true, path: 'hello', query: true } },
   ],
   PATHS: { hello: '/hello', nothing: '/nothing', none: '' },
   code: function (c) {

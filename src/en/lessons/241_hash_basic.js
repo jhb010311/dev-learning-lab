@@ -56,7 +56,7 @@ Lab.register({
       st.hot = 'out'; st.outTxt = this.cut(saved); st.ar = [['a1', 'mut'], ['a2', 'hot']];
       push('The calculation gives a mixed-up value 64 characters long. It is 64 characters of 0-9 and a-f, and the first 12 are ' + pre(saved) + '. Whether the input is 1 character or 100 characters, the value that comes out is always 64 characters, and if you put in the same text, you get the same value whenever you calculate.', '');
       st.hot = 'sv'; st.svTxt = this.cut(saved); st.ar = [['a3', 'hot']];
-      push('The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by looking at the stored value alone.', '');
+      push('The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by calculating backwards from the stored value.', '');
       // Login
       st.phase = 'login'; st.hot = 'in'; st.inTxt = inShow; st.outTxt = ''; st.ar = [];
       push(inLine + typedTxt, '');
@@ -89,7 +89,7 @@ Lab.register({
     var tail = 'This lab used SHA-256 as it is to show the properties of a hash. Real password storage uses password-only functions such as BCrypt and Argon2, not SHA-256.';
     if (h && c.input === 'right') {
       sum.push('A hash is a calculation that gives a mixed-up value of a fixed length (64 characters for SHA-256), whatever text you put in. At sign-up, the server stored that value instead of the password, and at login, it hashed the input the same way and only compared it with the stored value. It was the same pass1234, so the same value came out and login succeeded.');
-      sum.push('The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value.');
+      sum.push('The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value (but a common password can be found by hashing candidates one by one and comparing).');
     } else if (h && c.input === 'typo') {
       sum.push('If you enter a password that differs by one character, the hashed value is completely different and login fails. The value for pass1235 differs from the stored value in ' + this.DIFF + ' of the 64 characters.');
       sum.push('Even if one character differs, you do not get a similar value but a completely different value, so the server only has to check whether the two values are the same or different. This check does not need the original password.');

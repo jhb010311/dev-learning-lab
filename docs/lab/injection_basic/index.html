@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>String sql = &quot;SELECT name FROM member WHERE name = ?&quot;: sql 변수에 SQL 글자를 담습니다. 값이 들어갈 자리는 ?로 비어 있고, input의 글은 이 글자에 들어가지 않습니다. 아직 DB에는 아무것도 보내지 않았습니다.</li>
 <li>conn.prepareStatement(sql): sql 글자를 가진 PreparedStatement 객체를 만들어 ps에 담습니다. ps가 가진 SQL에는 ? 자리가 1개 있고 값은 아직 없습니다. DB의 실행 기록에도 이 SELECT는 아직 없습니다.</li>
 <li>ps.setString(1, input): 1번 ? 자리에 input의 글을 값으로 넘깁니다. ps는 SQL 글자(? 자리가 있는 그대로)와 1번 자리의 값을 따로 가집니다. input의 글은 SQL 글자에 끼워 넣어지지 않습니다.</li>
-<li>ps.executeQuery(): ps가 SQL 글자와 값을 DB에 보냅니다. DB가 실행한 SQL은 &quot;SELECT name FROM member WHERE name = ?&quot;이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. name이 &quot;kim&quot;인 행은 1개입니다. 자바는 결과를 ResultSet rs로 받습니다.</li>
+<li>ps.executeQuery(): ps는 값을 SQL 글과 따로 다뤄서, 값이 SQL 문법으로 읽히지 않게 합니다. DB가 실행한 SQL은 &quot;SELECT name FROM member WHERE name = ?&quot;이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. name이 &quot;kim&quot;인 행은 1개입니다. 자바는 결과를 ResultSet rs로 받습니다.</li>
 <li>while (rs.next()): rs의 행을 하나씩 읽어 name을 출력합니다. 출력은 kim입니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -172,6 +172,6 @@ while (rs.next()) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

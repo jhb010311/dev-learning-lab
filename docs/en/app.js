@@ -16829,7 +16829,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 336);
-    P.region('pc', 190, 16, 476, 214, 'This computer (127.0.0.1)');
+    P.region('pc', 190, 16, 476, 214, 'Where the server program runs (127.0.0.1)');
     P.box('cl', 14, 84, 130, 66, { cls: s ? s.clc : 'plain', title: 'Client', sub: s ? s.cli : ['Waiting'] });
     var o8 = s ? s.o8 : '';
     var door = function (n) { var on = s && s.ask === n, st = s && s.phase === 'back' && on ? s.back : ''; return st === 'bad' ? 'bad' : st === 'good' ? 'good' : on ? 'hot now' : (n === '8080' && o8) ? 'plain' : 'ghost'; };
@@ -16867,7 +16867,7 @@ Lab.register({
     { t: 'Changing the path to /nothing', q: 'What if you change the path to /nothing?', d: 'The connection is the same and only the path is one the server does not have. The server answers with 404.', v: { scheme: true, port: true, path: 'nothing', query: true } },
     { t: 'Removing the path', q: 'What if you remove the path?', d: 'Even if you do not write a path, the client sends /. The server does not have a / address.', v: { scheme: true, port: true, path: 'none', query: true } },
     { t: 'Removing :8080', q: 'What if you remove :8080?', d: 'If you do not write a port, the client tries to connect to port 80, the default port of http. It does not reach port 8080, where the server is.', v: { scheme: true, port: false, path: 'hello', query: true } },
-    { t: 'Removing http:// at the beginning', q: 'What if you remove http:// at the beginning?', d: 'Without a scheme, the parts cannot be split correctly. The request cannot be sent.', v: { scheme: false, port: true, path: 'hello', query: true } },
+    { t: 'Removing http:// at the beginning', q: 'What if you remove http:// at the beginning?', d: 'Without a scheme, the parts cannot be split correctly. The client in this lab cannot send the request (a browser address bar adds http:// for you).', v: { scheme: false, port: true, path: 'hello', query: true } },
   ],
   PATHS: { hello: '/hello', nothing: '/nothing', none: '' },
   code: function (c) {
@@ -17062,7 +17062,7 @@ Lab.register({
   intro: 'Computers connect to each other by IP address (a number), but people use names like shop.example. DNS is the service that turns a name into an IP address, and a DNS server is a computer that holds a table listing each name with its IP address. The code box on the screen has two parts. The upper part is what is registered on the DNS server (name → IP address), and the lower part is the address the client tries to reach. A client that connects by name first asks the DNS server for the IP address of that name, before it connects to the server, and then connects to the IP address it got in the answer. In this lab you leave the name unregistered, register it with a different IP address, or write an IP address directly in the address instead of a name, and make the same connection each time, to see how many times the DNS server is asked and which computer is reached. The 8080 on the screen is a port number written as an example.',
   terms: ['DNS', 'Domain names', 'IP address (IPv4)', 'NXDOMAIN response'],
   controls: [
-    { id: 'reg', label: 'What is registered on the DNS server', type: 'select', value: 'one', options: [['one', 'shop.example is registered as 127.0.0.1'], ['two', 'shop.example is registered as 127.0.0.2 (a different computer)'], ['none', 'shop.example is not registered']] },
+    { id: 'reg', label: 'What is registered on the DNS server', type: 'select', value: 'one', options: [['one', 'shop.example is registered as 127.0.0.1'], ['two', 'shop.example is registered as 127.0.0.2 (acting as a different computer)'], ['none', 'shop.example is not registered']] },
     { id: 'target', label: 'The address the client tries to reach', type: 'select', value: 'name', options: [['name', 'It connects to http://shop.example:8080/'], ['ip', 'It connects to http://127.0.0.1:8080/ (the IP address is written directly)']] },
   ],
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
@@ -17096,7 +17096,7 @@ Lab.register({
       // Step 3: the DNS server answers
       if (dest) {
         st.rep = 'good'; st.dn = 'good'; st.cl = 'plain'; st.ans = dest; st.clt = ['Got IP address', dest];
-        push('The DNS server finds shop.example in its table and answers. The IP address of shop.example is ' + dest + '.' + (c.reg === 'two' ? ' In this table, shop.example is registered as 127.0.0.2. 127.0.0.2 is the address of a different computer from 127.0.0.1.' : '') + ' Now the client knows where to connect.', 'good');
+        push('The DNS server finds shop.example in its table and answers. The IP address of shop.example is ' + dest + '.' + (c.reg === 'two' ? ' In this table, shop.example is registered as 127.0.0.2. 127.0.0.2 is a different address from 127.0.0.1 (both point to this PC, but this lab treats them as two different computers).' : '') + ' Now the client knows where to connect.', 'good');
         // Step 4: connect
         st.go = who; st.ip = dest; st.dn = 'plain'; st.cl = 'hot'; st[who] = 'hot'; st.clt = ['Connecting to', dest + ':8080'];
         push('The client connects to port 8080 of the IP address it got in the answer, ' + dest + ', and sends a GET / request. ' + port + ' The name shop.example written in the address is not used for the connection. The place it connects to is the IP address that DNS gave.', '');
@@ -17156,8 +17156,8 @@ Lab.register({
     P.size(680, 332);
     P.box('cl', 14, 116, 130, 72, { cls: s ? s.cl : 'plain', title: 'Client', sub: s ? s.clt : ['Waiting'] });
     P.box('dn', 215, 14, 240, 72, { cls: s ? s.dn : 'plain', title: 'DNS server', sub: ['Name → IP address table', table] });
-    P.box('c1', 510, 100, 156, 62, { cls: s ? s.c1 : 'plain', title: 'Computer 127.0.0.1', sub: s ? s.c1t : ['Server running'] });
-    P.box('c2', 510, 190, 156, 62, { cls: s ? s.c2 : 'plain', title: 'Computer 127.0.0.2', sub: s ? s.c2t : ['Server running'] });
+    P.box('c1', 486, 100, 180, 62, { cls: s ? s.c1 : 'plain', title: 'Pretend PC 127.0.0.1', sub: s ? s.c1t : ['Server running'] });
+    P.box('c2', 486, 190, 180, 62, { cls: s ? s.c2 : 'plain', title: 'Pretend PC 127.0.0.2', sub: s ? s.c2t : ['Server running'] });
     if (s && s.ask) P.arrow('ask', 'cl:t:0.3', 'dn:l:0.35', { cls: 'hot' });
     if (s && s.rep) P.arrow('rep', 'dn:l:0.8', 'cl:t:0.75', { cls: s.rep });
     if (s && s.go) P.arrow('go', 'cl:r:0.4', s.go + ':l:0.5', { cls: 'hot' });
@@ -17246,7 +17246,7 @@ Lab.register({
     if (c.clen !== 'none') {
       st.c2 = c.ctype ? 'plain' : st.c2; st.c1 = 'plain'; st.c3 = 'hot'; st.rdt = ['Content-Length', 'being read'];
       st.rows.push([this.CLEN[c.clen], 'Header. The number of bytes in the body']);
-      push('The client reads the next line. The text it read is "' + this.CLEN[c.clen] + '". The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit a computer uses to count text. In UTF-8, each of the 12 characters of "' + B + '" is 1 byte, so the body is 12 bytes.' + (c.clen === 'short' ? ' The body the server actually sent is 12 bytes, but Content-Length says 5. The client follows the number written.' : ''), '');
+      push('The client reads the next line. The text it read is "' + this.CLEN[c.clen] + '". The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit used to count the size of data (it can differ from the number of characters). In UTF-8, each of the 12 characters of "' + B + '" is 1 byte, so the body is 12 bytes.' + (c.clen === 'short' ? ' The body the server actually sent is 12 bytes, but Content-Length says 5. The client follows the number written.' : ''), '');
     }
     // Step 5: the empty line
     st.c1 = 'plain'; st.c2 = c.ctype ? 'plain' : 'ghost'; st.c3 = c.clen !== 'none' ? 'plain' : 'ghost'; st.c4 = 'hot'; st.rdt = ['Empty line:', 'end of headers']; st.gty = tyTxt;
@@ -17502,7 +17502,7 @@ Lab.register({
       var where = 'line ' + fail.line + ', column ' + fail.col;
       st.dead = true; st.o = { name: '', age: '', tags: '' }; st.arr = []; st.read = 'Failed: ' + WHYS[fail.kind]; st.kind = 'Could not read'; st.plus = 'Could not read'; st.done = true;
       var more = (c.key !== 'dq' && c.comma !== 'ok') ? ' The text also breaks the rules further on (' + (c.comma === 'miss' ? 'the "age" line has no comma at its end' : 'the comma after the last value') + '), but the parser stops at the first problem it meets, so this is the only error it reports.' : '';
-      push('The parser stops reading here and reports an error. The error is at ' + where + ', and JSON.parse and Jackson reported the same position.' + (partial ? ' It does not return what it read before this (' + partial + ') as an object either.' : '') + ' It never returns just the part it could read: either the whole text is read or the whole read fails.' + more, 'bad');
+      push('The parser stops reading here and reports an error. The error is at ' + where + ', and JSON.parse and Jackson reported the same position.' + (partial ? ' It does not return what it read before this (' + partial + ') as an object either.' : '') + ' The JSON.parse and Jackson used here never return just the part they could read: either the whole text is read or the whole read fails.' + more, 'bad');
       push('The receiving side did not get an object. With no object, it cannot take out age, so there is no kind of age and no result for adding 1.', 'bad');
     }
     var WHYS = this.WHY;
@@ -17623,7 +17623,7 @@ Lab.register({
   code: function (c) {
     var https = c.scheme === 'https', host = https && c.name === 'other' ? '127.0.0.1' : 'localhost';
     var out = ['# Address the client connects to', c.scheme + '://' + host + ':' + (https ? '8443' : '8080') + '/login', '', '# Content sent (body of the POST request)', 'password=1234'];
-    if (https) out.push('', '# Server certificate', 'Name: localhost', c.trust ? 'In the list the client trusts' : 'Not in the list the client trusts');
+    if (https) out.push('', '# Server certificate', 'Name: localhost', c.trust ? 'Signed by an authority the client trusts' : 'Not signed by an authority the client trusts');
     return out.join('\n');
   },
   label: function (c) { return c.scheme === 'http' ? 'Connect with http://' : 'Connect with https:// · certificate ' + (c.trust ? 'trusted' : 'not trusted') + ' · ' + (c.name === 'other' ? 'connect to 127.0.0.1' : 'connect to localhost'); },
@@ -17752,7 +17752,7 @@ Lab.register({
     var out = ['@Configuration', 'public class SecurityConfig {', '    @Bean', '    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {', '        http.authorizeHttpRequests(auth -> auth'];
     if (c.rule === 'role') out.push('                // Authorization: /admin only for someone with the ADMIN role', '                .requestMatchers("/admin").hasRole("ADMIN")');
     if (c.rule === 'open') out.push('                // No check: /admin is open to everyone', '                .requestMatchers("/admin").permitAll()');
-    out.push('                // Authentication: any other address, if the identity is confirmed', '                .anyRequest().authenticated())', '            // Confirm who it is from the username and password in the request', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
+    out.push('                // Authorization rule: any other address is allowed only if the identity is confirmed (authenticated)', '                .anyRequest().authenticated())', '            // Confirm who it is from the username and password in the request', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
       '@RestController', 'public class AdminController {', '    @GetMapping("/admin")', '    public String admin() {', '        return "Admin page";', '    }', '}');
     return out.join('\n');
   },
@@ -18358,7 +18358,7 @@ Lab.register({
       st.hot = 'out'; st.outTxt = this.cut(saved); st.ar = [['a1', 'mut'], ['a2', 'hot']];
       push('The calculation gives a mixed-up value 64 characters long. It is 64 characters of 0-9 and a-f, and the first 12 are ' + pre(saved) + '. Whether the input is 1 character or 100 characters, the value that comes out is always 64 characters, and if you put in the same text, you get the same value whenever you calculate.', '');
       st.hot = 'sv'; st.svTxt = this.cut(saved); st.ar = [['a3', 'hot']];
-      push('The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by looking at the stored value alone.', '');
+      push('The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by calculating backwards from the stored value.', '');
       // Login
       st.phase = 'login'; st.hot = 'in'; st.inTxt = inShow; st.outTxt = ''; st.ar = [];
       push(inLine + typedTxt, '');
@@ -18391,7 +18391,7 @@ Lab.register({
     var tail = 'This lab used SHA-256 as it is to show the properties of a hash. Real password storage uses password-only functions such as BCrypt and Argon2, not SHA-256.';
     if (h && c.input === 'right') {
       sum.push('A hash is a calculation that gives a mixed-up value of a fixed length (64 characters for SHA-256), whatever text you put in. At sign-up, the server stored that value instead of the password, and at login, it hashed the input the same way and only compared it with the stored value. It was the same pass1234, so the same value came out and login succeeded.');
-      sum.push('The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value.');
+      sum.push('The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value (but a common password can be found by hashing candidates one by one and comparing).');
     } else if (h && c.input === 'typo') {
       sum.push('If you enter a password that differs by one character, the hashed value is completely different and login fails. The value for pass1235 differs from the stored value in ' + this.DIFF + ' of the 64 characters.');
       sum.push('Even if one character differs, you do not get a similar value but a completely different value, so the server only has to check whether the two values are the same or different. This check does not need the original password.');
@@ -19068,7 +19068,7 @@ Lab.register({
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
     { t: 'Default settings', q: 'What does a lock look like, and what does count become when 2 threads each call add() 100000 times?', d: 'add has synchronized and there are 2 threads. Only one thread runs add at a time, so count becomes 200000.', v: { sync: true, threads: '2' } },
-    { t: 'Removing synchronized', q: 'What if you remove the synchronized keyword before the add declaration?', d: 'The two threads step in on each other between reading and writing count, so you get a value smaller than 200000. The value is different on each run.', v: { sync: false, threads: '2' } },
+    { t: 'Removing synchronized', q: 'What if you remove the synchronized keyword before the add declaration?', d: 'The two threads step in on each other between reading and writing count, so you usually get a value smaller than 200000 (if the threads do not overlap, you can get 200000). The value is different on each run.', v: { sync: false, threads: '2' } },
     { t: 'Using only 1 thread', q: 'What if you use only one thread, t1, without the synchronized keyword?', d: 'There is no other thread to step in, so count is 100000 even without a lock.', v: { sync: false, threads: '1' } },
     { t: 'Adding synchronized with 1 thread', q: 'What if there is only one thread, t1, and you keep the synchronized keyword?', d: 'Even if the thread acquires the lock, no thread is waiting, so the result is the same as without the lock.', v: { sync: true, threads: '1' } },
   ],
@@ -19090,7 +19090,7 @@ Lab.register({
   simulate: function (c) {
     var S = c.sync, two = c.threads === '2', expect = two ? 200000 : 100000, ev = [], sum = [];
     var racy = !S && two;
-    var last = racy ? 'A value smaller than 200000 (different on each run)' : String(expect);
+    var last = racy ? 'Usually below 200000 (differs per run)' : String(expect);
     var st = { hot: '', t: [{ cls: 'ghost', sub: ['Not started yet'] }, { cls: 'ghost', sub: [two ? 'Not started yet' : 'Not created'] }], holder: '', inside: [], cnt: null, rd: [null, null], lost: 0, a1: '', a2: '', rw: '', fin: false, res: ['', '', ''], checks: [] };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var lockLine = 'Because this add has synchronized, a thread that calls it must acquire the lock before going in. The lock of a static method is the single lock that belongs to the Main class, and only one thread can hold a lock at a time. When the thread holding the lock leaves add, the lock is released.';
@@ -19176,7 +19176,7 @@ Lab.register({
     if (two) st.t[1] = { cls: 'good', sub: ['100000 calls finished'] };
     st.res = [last, String(expect), racy ? 'Yes (different on each run)' : 'None'];
     st.checks.push(['println(count) after join', { v: last, cls: racy ? 'bad' : 'good' }]);
-    if (racy) push('This kind of stepping in happens many times during the 100000 calls each. When it happens differs on every run, so ' + (two ? 'after both threads have finished (t1.join() and t2.join()), ' : '') + 'the value that println(count) prints is smaller than 200000 and different on each run. The number of lost increments differs on each run too.', 'bad');
+    if (racy) push('This kind of stepping in happens many times during the 100000 calls each. When it happens differs on every run, so ' + (two ? 'after both threads have finished (t1.join() and t2.join()), ' : '') + 'the value that println(count) prints is usually smaller than 200000 and different on each run. The number of lost increments differs on each run too.', 'bad');
     else if (S && two) push('Each time add() was called, only one thread was inside, so no increment was lost. After both threads finish (t1.join() and t2.join()), println(count) prints 200000. It is the same value however many times you run it. In exchange, the other thread has to wait until the thread holding the lock leaves.', 'good');
     else push('t1 finishes all 100000 calls like this and ends. t1.join() returns, and println(count) prints ' + expect + '. ' + (S ? 'Even with the lock, the result is the same as without the lock.' : 'It was not wrong even without synchronized.') + ' It is the same value however many times you run it.', 'good');
 
@@ -19185,7 +19185,7 @@ Lab.register({
       sum.push('A call to add() with the lock is run by only one thread at a time, so even when 2 threads each call it 100000 times, count becomes 200000. A lock is a mark that says "only one thread runs this section at a time," and in Java you set it by putting synchronized before the method declaration.');
       sum.push('The read, add, and write of count++ finished inside one thread without being broken up, so no increment was lost. The cost is that the other thread waits until the thread holding the lock leaves.');
     } else if (racy) {
-      sum.push('When you remove synchronized, the 2 threads step in on each other inside add(), the final count became a value smaller than 200000, and increments were lost. The value was different on each run.');
+      sum.push('When you remove synchronized, the 2 threads step in on each other inside add(), the final count usually became a value smaller than 200000, and increments were lost. The value was different on each run.');
       sum.push('No error or exception occurs, and only a wrong value comes out, quietly. If another thread changes count between the read, the add, and the write, the thread overwrites it with the stale value it had read, and that increment is as if it never happened.');
     } else if (!S) {
       sum.push('Even without synchronized, count is 100000 if there is only one thread. t1 is the only thread changing count, so there is no thread to step in between the read and the write.');
@@ -19395,7 +19395,7 @@ Lab.register({
 Lab.register({
   id: 'jvm_basic', nav: 'Compilation and the JVM', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['classload', 'jit'],
   title: 'How does Java code run?',
-  intro: 'The Hello.java file that we write is text for people to read. This text is not run as it is, but goes through two steps. When you use the command javac Hello.java in a terminal (a window where you type commands as text), a program called javac (the compiler) reads this text and turns it into a file named Hello.class. This job is called compiling. Hello.class contains bytecode, which the JVM reads. Next, when you use the command java Hello, the JVM (Java Virtual Machine) starts, reads Hello.class, and runs main. In this lab you remove the javac line, make the source text wrong, or edit it after compiling, and the real javac and java commands are run, to show whether Hello.class is created and what java Hello runs.',
+  intro: 'The Hello.java file that we write is text for people to read. When you run it with java Hello, this text is not run as it is, but goes through two steps. When you use the command javac Hello.java in a terminal (a window where you type commands as text), a program called javac (the compiler) reads this text and turns it into a file named Hello.class. This job is called compiling. Hello.class contains bytecode, which the JVM reads. Next, when you use the command java Hello, the JVM (Java Virtual Machine) starts, reads Hello.class, and runs main. In this lab you remove the javac line, make the source text wrong, or edit it after compiling, and the real javac and java commands are run, to show whether Hello.class is created and what java Hello runs.',
   terms: ['Compilation and javac', 'Class file', 'Java Virtual Machine (JVM)', 'Bytecode'],
   controls: [
     { id: 'compile', label: 'Write the line javac Hello.java in the terminal', type: 'check', value: true },
@@ -19875,7 +19875,7 @@ Lab.register({
     P.size(680, 292);
     var stage = s ? s.stage : '', hot = s ? s.hot : '', ph = s ? s.phase : '';
     var inCp = stage === 'compile' ? c.compileCp : stage === 'run' ? c.runCp : false;
-    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['My code', 'import lib.Greeter;', stage === 'compile' ? 'Compiling' : stage === 'run' ? 'Running' : 'Before the run'] });
+    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['My code', 'import lib.Greeter;', stage === 'compile' ? 'Compiling' : stage === 'run' ? (s.cls ? 'Compiled App.class running' : 'No App.class') : 'Before the run'] });
     var list = stage === 'compile' ? (c.compileCp ? ['greet.jar'] : ['Current folder (.) only']) : stage === 'run' ? (c.runCp ? ['greet.jar', 'Current folder (.)'] : ['Current folder (.) only']) : ['Set by the command'];
     P.box('cp', 244, 16, 190, 110, { cls: ph === 'miss' ? 'bad' : hot === 'cp' ? 'hot now' : stage ? 'plain' : 'ghost', title: 'Class path', sub: ['Where to look (-cp)'].concat(list) });
     P.box('jar', 484, 16, 182, 110, { cls: ph === 'found' ? 'good now' : stage && !inCp ? 'ghost' : 'plain', title: 'greet.jar', sub: ['lib/Greeter.class', !stage ? 'Made by someone else' : inCp ? 'In the class path' : 'Not in the class path'] });
@@ -19948,7 +19948,7 @@ Lab.register({
     if (how === 'procs') {
       for (var i = 0; i < n; i++) {
         born(i, main1);
-        push(i === 0 ? 'In terminal 1, the command java Counter makes the operating system create one process that runs Counter.class. The number (PID) of this process is ' + P[0] + '. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.'
+        push(i === 0 ? 'In terminal 1, the command java Counter makes the operating system create one java (JVM) process, and that JVM reads and runs Counter.class. The number (PID) of this process is ' + P[0] + '. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.'
           : 'While the earlier process is still running, you type the command java Counter once more in terminal ' + (i + 1) + '. The file is the same single Counter.class, but the operating system creates one more process and gives it a new number. The PID of this process is ' + P[i] + '. The operating system gives this process its own memory too, so the count of this process also starts at 0.', '');
         addTo(i);
         push(i === 0 ? 'When main calls add(), the three count++ lines inside add run, and count becomes 3 in the memory of this process. println prints "PID ' + P[0] + ' count 3". Then main waits 2 seconds in Thread.sleep(2000), so this process has not ended yet.'
@@ -20020,7 +20020,7 @@ Lab.register({
 Lab.register({
   id: 'aop_basic', nav: 'AOP and proxies', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: 'What is a proxy, and how does Spring step in before and after my method?',
-  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not keep the object we made as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
+  intro: 'When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not use the object it made from the class we wrote as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional. LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, the object that Spring keeps is put in that field. In this lab you remove LogAspect, or put an object made directly with new OrderService() in that field, and see what the same order() call prints and what the object that received the call is.',
   terms: ['Proxy', 'Aspect-oriented programming (AOP)', '@Aspect and @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'Have the LogAspect class (@Aspect)', type: 'check', value: true },
@@ -20036,7 +20036,7 @@ Lab.register({
   // The code on the screen and the source that the checking program (verify/spring/src/AopBasicProbe.java) ran are the same text (the checking script compares them down to the letter).
   code: function (c) {
     var o = [];
-    if (c.aspect) o.push('// Inserted behavior: runs every time order() of OrderService is called', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[log] order called");', '    }', '}', '');
+    if (c.aspect) o.push('// Inserted behavior: runs every time order() of the OrderService bean kept by Spring is called', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[log] order called");', '    }', '}', '');
     o.push('@Service', 'class OrderService {', '    public void order() {', '        System.out.println("Order processed");', '    }', '}', '', '@Component', 'class Caller {');
     if (c.how === 'bean') o.push('    // Spring finds the bean it made and puts it here', '    @Autowired', '    OrderService orderService;');
     else o.push('    // I make it myself', '    OrderService orderService = new OrderService();');
@@ -20251,22 +20251,22 @@ Lab.register({
       { cls: s.made || s.bad ? '' : 'gone', cells: ['name of ShopInfo', { v: nameTxt, cls: s.bad ? 'bad' : s.name !== null ? 'good' : '' }] },
       { cls: s.out !== null ? '' : 'gone', cells: ['Text printed to the screen', { v: s.out !== null ? s.out : 'None', cls: s.out !== null ? 'good' : '' }] },
       { cls: '', cells: ['java process', { v: pTxt, cls: s.exit === 1 ? 'bad' : s.exit === 0 ? 'good' : '' }] },
-    ], 'Inside the java process');
+    ], 'The java process and the settings file');
   },
   // Diagram: the main method of App at the top, and in the middle row, from the left, the configuration file, Spring (the settings list), and the ShopInfo object. Arrows show the value in the file being read into Spring's settings list, whether Spring puts the value into name while creating ShopInfo, and where it stops if it cannot find the value. Two result boxes at the bottom.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, ph = s ? s.phase : '';
     P.size(680, 288);
     var end = s && s.exit !== null;
-    P.region('jp', 6, 8, 668, 210, 'java process' + (end ? (s.exit === 0 ? ': ended' : ': ended with an error') : s ? ': running' : ''));
+    P.region('jp', 240, 8, 436, 210, 'java process' + (end ? (s.exit === 0 ? ': ended' : ': ended with an error') : s ? ': running' : ''));
     var mnSub = !s ? 'Not run yet' : ph === 'main' || ph === 'read' || ph === 'make' || ph === 'value' ? 'SpringApplication.run is running' : ph === 'get' ? 'ctx.getBean is running' : ph === 'print' ? 'println is running' : s.exit === 0 ? 'Ended' : 'Ended with an exception';
-    P.box('mn', 14, 36, 652, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'main method of App', sub: mnSub });
-    P.box('pf', 14, 112, 190, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? 'No name=value line' : ' '] });
+    P.box('mn', 250, 36, 416, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'main method of App', sub: mnSub });
+    P.box('pf', 2, 112, 188, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? 'No name=value line' : ' '] });
     var spSub = !s || !s.read ? [' '] : s.file ? ['Settings list', 'shop.name = ' + s.file] : ['Settings: empty'];
-    P.box('sp', 254, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'Spring', sub: spSub });
+    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'Spring', sub: spSub });
     var siSub = !s ? [' '] : s.name !== null ? ['name = ' + s.name] : s.bad ? ['Stopped while creating'] : ph === 'make' || ph === 'value' ? ['Being created'] : ['Not yet'];
-    P.box('si', 474, 112, 192, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo object', sub: siSub });
-    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot' });
+    P.box('si', 468, 112, 190, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo object', sub: siSub });
+    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot', label: 'Read' });
     if (s && ph === 'make') P.arrow('mk', 'sp:r:0.35', 'si:l:0.35', { cls: 'hot' });
     if (s && ph === 'value') P.arrow('vl', 'sp:r:0.65', 'si:l:0.65', { cls: s.bad ? 'bad' : 'good' });
     var prog = !s ? 'Not yet' : s.exit === 0 ? 'Ran to the end' : s.exit === 1 ? 'Stopped while starting' : 'Running';
@@ -20332,7 +20332,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: 'Could not send', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): tries to send the SQL, but conn is already closed. Before this line reaches the database, JDBC notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
+      push('st.executeQuery("' + S + '"): tries to send the SQL, but conn is already closed. Before this line reaches the database, the JDBC driver notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
         (typo ? 'Whether the table name is wrong can be known only when the database reads the SQL, so the closed-connection error comes first and the wrong name is never found out. ' : none ? 'The condition WHERE id = 99 has never been read by the database either. ' : '') +
         'There is no code that handles the exception, so the program stops at this line and the lines below it do not run.', 'bad');
     } else if (typo) {
@@ -20580,7 +20580,7 @@ Lab.register({
 
     // 0. Setup
     step();
-    push('The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to one row of a table, and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.', '');
+    push('The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to a table (one object of the class is one row), and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.', '');
 
     // 1. find
     step();
@@ -21123,7 +21123,7 @@ Lab.register({
     var key = c.row + '|' + c.end;
     var S = {
       'same|commit': ['A row lock is a mark that the database puts on a row when an UPDATE changes it. It is not released until the transaction ends, so the UPDATE of B on the same row waited until A ran COMMIT, and ran after that.', 'The lock is taken not by the SQL we wrote but by the database that received the UPDATE. B added 50 to the 900 that A made final and got 950, so the two changes did not overwrite each other.'],
-      'other|commit': ['When B changes a different row (id 2), it does not wait. A lock is put only on the row that was changed, so the UPDATE of B ran right away, before the COMMIT of A.', 'Even though the two connections changed the same table, they did not block each other because the rows were different. In this lab, waiting happened only when both changed the same row at the same time.'],
+      'other|commit': ['When B changes a different row (id 2), it does not wait. When a row is found by its primary key and changed, the lock is put only on that row, so the UPDATE of B ran right away, before the COMMIT of A.', 'Even though the two connections changed the same table, they did not block each other because the rows were different. In this lab, waiting happened only when both changed the same row at the same time.'],
       'same|hold': ['If A keeps holding the transaction without COMMIT or ROLLBACK, the lock is not released, and the UPDATE of B on the same row waits and then ends with a timeout error.', 'B changed nothing, and the balances are still the first ones. If you leave a transaction open without ending it, another connection that tries to change that row can wait and get the same error.'],
       'other|hold': ['Even if A does not end and keeps holding the lock, it makes no difference when B changes a different row (id 2). The UPDATE of B ran right away, and it finished with COMMIT, so 1050 in the id 2 row became final.', 'The only row that was held is the id 1 row that A changed. Only a connection that tries to change this row has to wait.']
     };
@@ -21258,7 +21258,7 @@ Lab.register({
 Lab.register({
   id: 'durable_basic', nav: 'Storage and durability', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['undoredo', 'bufferpool'],
   title: 'Does committed data stay after the server is turned off?',
-  intro: 'A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In code, two things make it happen. One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table. (The H2 in this lab is a database that runs inside the Java program, so "the database program stops" means that the Java program ends. A database such as MySQL is a separate program, and that is the only difference. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)',
+  intro: 'A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In code, two things make it happen (depending on the database, a setting that writes the committed data to disk right away is also needed). One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table. (The H2 in this lab is a database that runs inside the Java program, so "the database program stops" means that the Java program ends. A database such as MySQL is a separate program, and that is the only difference. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)',
   terms: ['Durability', 'Persistent and in-memory databases', 'Commit and rollback', 'H2 write delay (WRITE_DELAY)'],
   controls: [
     { id: 'commit', label: 'Write a COMMIT; line after the INSERT', type: 'check', value: true },
@@ -21506,7 +21506,7 @@ Lab.register({
         st.n1 = r1s; st.n1c = 'plain';
         push('What the sender saw is the same "no error" as when the receiver was there. So the sending program finishes sending without being able to tell whether the text arrived or disappeared.', 'bad');
         sum.push('Even when there is no receiver, sending with UDP finishes without an error. The text reached nowhere, but the sender did not get any error.');
-        sum.push('TCP fails at the connecting step, but UDP has no connection, so there is no place where it fails. Sending without an error and the other side receiving are different things.');
+        sum.push('TCP fails at the connecting step, but UDP has no step for making a connection, so even if nobody is receiving, no failure shows up on the sending side. Sending without an error and the other side receiving are different things.');
       }
     }
     return { events: ev, summary: sum, row: [r1, r2, r3] };
@@ -21631,7 +21631,7 @@ Lab.register({
       sum.push('The server reads the method and the path on the first line, finds the line it has set up that handles them, and does that job. The GET /memos line is the job of returning the list.');
     } else if (c.method === 'get') {
       sum.push('Even if you send the same GET request twice, the bodies of the two responses are the same ("first"), and the server still has 1 memo.');
-      sum.push('GET is not a request to change something on the server, so no matter how many times you send it, the server is in the same state as before you sent it.');
+      sum.push('By agreement, GET should not change the server, and this server was built that way, so no matter how many times you send it, the server is in the same state as before you sent it.');
     } else if (c.method === 'post' && N === 1) {
       sum.push('When you send the body hello to POST /memos, the server adds that text to the list, and the number of memos goes from 1 to ' + cnt + '. The response is 200 OK, and the body is the list after the addition.');
       sum.push('The address is the same /memos, but GET only got, and POST changed something on the server. When the method is different, what the server does is different.');
@@ -21895,7 +21895,7 @@ Lab.register({
       sum.push('The port changed to 8443, so it is a different origin. The server received and handled the request, but the browser did not hand the response to the script.');
       sum.push('Even if the host is the same, a different port makes a different origin. An address with no port written is compared as the default port of https, 443.');
     } else {
-      sum.push('The scheme changed to http, so it is a different origin. The server received and handled the request, but the browser did not hand the response to the script.');
+      sum.push('The scheme changed to http, so it is a different origin. In this lab (127.0.0.1), the server received and handled the request, but the browser did not hand the response to the script.');
       sum.push('https and http are different origins even if the host is the same. This address has no port written, so the default port of http, 80, is used, which means the port also differs from 443.');
     }
     return { events: ev, summary: sum, tg: t, parts: parts, same: same, row: [t.origin, same ? 'Same origin' : 'Different origin', 'Yes', same ? 'Yes' : 'No'] };
@@ -22015,7 +22015,7 @@ Lab.register({
     if (bind) {
       st.ans = 'rows'; st.n = o.names.length;
       st.log.push(['ps.executeQuery', { v: 'Database ran it and returned a result (rows: ' + st.n + ')', cls: 'good' }]);
-      push('ps.executeQuery(): ps sends the SQL text and the value to the database. The SQL that the database ran is "' + S + '", and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. ' +
+      push('ps.executeQuery(): ps handles the value separately from the SQL text, so the value is not read as SQL syntax. The SQL that the database ran is "' + S + '", and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. ' +
         (k === 'or' ? 'The value is the whole text "' + I + '", and there are no rows where ' + tbl + ', so the result has 0 rows. The quote and OR in the value are not read as SQL syntax; they are just part of the name.'
           : k === 'oneil' ? 'There is 1 row where ' + tbl + '. The quote in the value is just part of the name, so it does not end or break the SQL.'
           : 'There is 1 row where ' + tbl + '.') +
@@ -22197,7 +22197,7 @@ Lab.register({
       push('The client received the 200 response in about 3s. This time the payment server answered after 3s, so it ended. But when we made the payment server receive the request and never answer, and waited 4s, this order server did not give up and the client did not receive a response. We did not wait any longer than that.', 'bad');
       row = ['200 Order complete', 'About 3s', 'Waited until the payment server answered after 3s'];
       sum.push('The order server, which had no waiting time set, waited until the payment server answered after 3s, and the client received 200 in about 3s.');
-      sum.push('If the payment server never answers, this order server would wait forever too (we confirmed that it does not give up even after 4s). Only if you set the waiting time does your own server not get stuck because of a slow or stopped partner.');
+      sum.push('If the payment server does not answer and there is no time limit, this order server keeps waiting until a response comes (here we watched it up to 4s). Only if you set the waiting time does your own server not get stuck because of a slow or stopped partner.');
     }
     return { events: ev, summary: sum, row: row };
   },
@@ -22507,7 +22507,7 @@ Lab.register({
     P.box('src', 500, 40, 166, 100, { cls: hot === 'src' ? 'hot now' : 'plain', title: 'Source', sub: '1 → ' + (s && s.src ? s.src : '-') });
     if (u && (act === 'chk' || act === 'hit' || act === 'miss')) P.arrow('a1', 'fd:r:0.25', 'ca:l', { cls: act === 'hit' ? 'good' : act === 'miss' ? 'bad' : 'hot' });
     if (act === 'load') {
-      if (u) P.arrow('a2', 'ca:b', 'sl:t', { cls: 'hot' }); else P.arrow('a3', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
+      P.arrow('a2', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
       P.arrow('a4', 'sl:r', 'src:l:0.75', { cls: 'hot' });
     }
     P.box('n1', 14, 196, 208, 38, { cls: s && s.slow ? 'wait' : 'ghost', title: 'Slow lookups', right: String(s ? s.slow : 0) });
@@ -22753,7 +22753,7 @@ Lab.register({
 Lab.register({
   id: 'deploy_basic', nav: 'Deployment', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['deploy', 'cicd', 'k8s'],
   title: 'When does a running server change after you edit the code?',
-  intro: 'A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.',
+  intro: 'The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.',
   terms: ['Deployment', 'Server restart', 'Code loaded at startup', 'Connection refused error'],
   controls: [
     { id: 'edit', label: 'Include line 2, "Change "Version 1" to "Version 2" in the source file"', type: 'check', value: true },
@@ -22845,7 +22845,7 @@ Lab.register({
       sum.push('For new code to run, you need both editing the file and starting the server again.');
     } else if (!edit && !rs) {
       sum.push('You changed nothing, so ' + J(V1) + ' answers. The server keeps running on the code it read in at first.');
-      sum.push('The code inside the server changes only by starting the server again, and what it reads then is the source file at that moment. If either one is missing, the new version does not reach the requests.');
+      sum.push('In this lab, the code inside the server changes only when you start the server again, and what it reads then is the source file at that moment. If either one is missing, the new version does not reach the requests.');
     } else {
       sum.push('A request sent while the server is stopped fails with a connection refused error. Even after the server started again, you had not edited the source file, so ' + J(V1) + ' answers.');
       sum.push('If you stop and start the server without changing the code, you gain nothing and only create a time when the service is cut off.');

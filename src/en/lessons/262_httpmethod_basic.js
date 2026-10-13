@@ -90,7 +90,7 @@ Lab.register({
       sum.push('The server reads the method and the path on the first line, finds the line it has set up that handles them, and does that job. The GET /memos line is the job of returning the list.');
     } else if (c.method === 'get') {
       sum.push('Even if you send the same GET request twice, the bodies of the two responses are the same ("first"), and the server still has 1 memo.');
-      sum.push('GET is not a request to change something on the server, so no matter how many times you send it, the server is in the same state as before you sent it.');
+      sum.push('By agreement, GET should not change the server, and this server was built that way, so no matter how many times you send it, the server is in the same state as before you sent it.');
     } else if (c.method === 'post' && N === 1) {
       sum.push('When you send the body hello to POST /memos, the server adds that text to the list, and the number of memos goes from 1 to ' + cnt + '. The response is 200 OK, and the body is the list after the addition.');
       sum.push('The address is the same /memos, but GET only got, and POST changed something on the server. When the method is different, what the server does is different.');

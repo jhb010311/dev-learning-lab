@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -47,7 +47,7 @@
 <h2>Try these</h2>
 <ul>
 <li><b>Default settings</b> — add has synchronized and there are 2 threads. Only one thread runs add at a time, so count becomes 200000.</li>
-<li><b>Removing synchronized</b> — The two threads step in on each other between reading and writing count, so you get a value smaller than 200000. The value is different on each run.</li>
+<li><b>Removing synchronized</b> — The two threads step in on each other between reading and writing count, so you usually get a value smaller than 200000 (if the threads do not overlap, you can get 200000). The value is different on each run.</li>
 <li><b>Using only 1 thread</b> — There is no other thread to step in, so count is 100000 even without a lock.</li>
 <li><b>Adding synchronized with 1 thread</b> — Even if the thread acquires the lock, no thread is waiting, so the result is the same as without the lock.</li>
 </ul>
@@ -184,6 +184,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

@@ -102,22 +102,22 @@ Lab.register({
       { cls: s.made || s.bad ? '' : 'gone', cells: ['ShopInfo의 name', { v: nameTxt, cls: s.bad ? 'bad' : s.name !== null ? 'good' : '' }] },
       { cls: s.out !== null ? '' : 'gone', cells: ['화면에 찍힌 글', { v: s.out !== null ? s.out : '없음', cls: s.out !== null ? 'good' : '' }] },
       { cls: '', cells: ['java 프로세스', { v: pTxt, cls: s.exit === 1 ? 'bad' : s.exit === 0 ? 'good' : '' }] },
-    ], 'java 프로세스 안');
+    ], 'java 프로세스와 설정 파일');
   },
   // 그림: 위에 App의 main 메서드, 가운데 줄에 왼쪽부터 설정 파일, 스프링(설정 목록), ShopInfo 객체. 파일의 값이 스프링의 설정 목록으로 읽히고, 스프링이 ShopInfo를 만들며 name에 값을 넣는지, 값을 찾지 못해 어디서 멈추는지를 화살표로 보인다. 맨 아래에 결과 칸 둘.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, ph = s ? s.phase : '';
     P.size(680, 288);
     var end = s && s.exit !== null;
-    P.region('jp', 6, 8, 668, 210, 'java 프로세스' + (end ? (s.exit === 0 ? ': 끝남' : ': 오류로 끝남') : s ? ': 실행 중' : ''));
+    P.region('jp', 240, 8, 436, 210, 'java 프로세스' + (end ? (s.exit === 0 ? ': 끝남' : ': 오류로 끝남') : s ? ': 실행 중' : ''));
     var mnSub = !s ? '아직 실행 전' : ph === 'main' || ph === 'read' || ph === 'make' || ph === 'value' ? 'SpringApplication.run 실행 중' : ph === 'get' ? 'ctx.getBean 실행 중' : ph === 'print' ? 'println 실행 중' : s.exit === 0 ? '끝남' : '예외로 끝남';
-    P.box('mn', 14, 36, 652, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'App의 main 메서드', sub: mnSub });
-    P.box('pf', 14, 112, 190, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? '이름=값 줄 없음' : ' '] });
+    P.box('mn', 250, 36, 416, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'App의 main 메서드', sub: mnSub });
+    P.box('pf', 2, 112, 188, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? '이름=값 줄 없음' : ' '] });
     var spSub = !s || !s.read ? [' '] : s.file ? ['설정 목록', 'shop.name = ' + s.file] : ['설정 목록은 비어 있음'];
-    P.box('sp', 254, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: '스프링', sub: spSub });
+    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: '스프링', sub: spSub });
     var siSub = !s ? [' '] : s.name !== null ? ['name = ' + s.name] : s.bad ? ['만들다 멈춤'] : ph === 'make' || ph === 'value' ? ['만드는 중'] : ['아직 없음'];
-    P.box('si', 474, 112, 192, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo 객체', sub: siSub });
-    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot' });
+    P.box('si', 468, 112, 190, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo 객체', sub: siSub });
+    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot', label: '읽음' });
     if (s && ph === 'make') P.arrow('mk', 'sp:r:0.35', 'si:l:0.35', { cls: 'hot' });
     if (s && ph === 'value') P.arrow('vl', 'sp:r:0.65', 'si:l:0.65', { cls: s.bad ? 'bad' : 'good' });
     var prog = !s ? '아직 없음' : s.exit === 0 ? '끝까지 실행됨' : s.exit === 1 ? '시작하다 멈춤' : '실행 중';

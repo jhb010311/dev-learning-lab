@@ -126,7 +126,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 336);
-    P.region('pc', 190, 16, 476, 214, '이 컴퓨터 (127.0.0.1)');
+    P.region('pc', 190, 16, 476, 214, '서버 프로그램이 도는 쪽 (127.0.0.1)');
     P.box('cl', 14, 84, 130, 66, { cls: s ? s.clc : 'plain', title: '클라이언트', sub: s ? s.cli : ['대기'] });
     var o8 = s ? s.o8 : '';
     var door = function (n) { var on = s && s.ask === n, st = s && s.phase === 'back' && on ? s.back : ''; return st === 'bad' ? 'bad' : st === 'good' ? 'good' : on ? 'hot now' : (n === '8080' && o8) ? 'plain' : 'ghost'; };

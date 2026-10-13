@@ -96,7 +96,7 @@ Lab.register({
         st.n1 = r1s; st.n1c = 'plain';
         push('What the sender saw is the same "no error" as when the receiver was there. So the sending program finishes sending without being able to tell whether the text arrived or disappeared.', 'bad');
         sum.push('Even when there is no receiver, sending with UDP finishes without an error. The text reached nowhere, but the sender did not get any error.');
-        sum.push('TCP fails at the connecting step, but UDP has no connection, so there is no place where it fails. Sending without an error and the other side receiving are different things.');
+        sum.push('TCP fails at the connecting step, but UDP has no step for making a connection, so even if nobody is receiving, no failure shows up on the sending side. Sending without an error and the other side receiving are different things.');
       }
     }
     return { events: ev, summary: sum, row: [r1, r2, r3] };

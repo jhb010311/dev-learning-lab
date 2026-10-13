@@ -16897,7 +16897,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 336);
-    P.region('pc', 190, 16, 476, 214, '이 컴퓨터 (127.0.0.1)');
+    P.region('pc', 190, 16, 476, 214, '서버 프로그램이 도는 쪽 (127.0.0.1)');
     P.box('cl', 14, 84, 130, 66, { cls: s ? s.clc : 'plain', title: '클라이언트', sub: s ? s.cli : ['대기'] });
     var o8 = s ? s.o8 : '';
     var door = function (n) { var on = s && s.ask === n, st = s && s.phase === 'back' && on ? s.back : ''; return st === 'bad' ? 'bad' : st === 'good' ? 'good' : on ? 'hot now' : (n === '8080' && o8) ? 'plain' : 'ghost'; };
@@ -16935,7 +16935,7 @@ Lab.register({
     { t: '경로를 /nothing으로 바꾸면', q: '경로를 /nothing으로 바꾸면', d: '연결은 같고 경로만 서버에 없는 것. 서버가 404로 답합니다.', v: { scheme: true, port: true, path: 'nothing', query: true } },
     { t: '경로를 지우면', q: '경로를 지우면', d: '경로를 적지 않아도 클라이언트가 /를 보냅니다. 서버에는 / 주소가 없습니다.', v: { scheme: true, port: true, path: 'none', query: true } },
     { t: ':8080을 지우면', q: ':8080을 지우면', d: '포트를 적지 않으면 http의 기본 포트 80번으로 연결을 시도합니다. 서버가 있는 8080번에는 닿지 않습니다.', v: { scheme: true, port: false, path: 'hello', query: true } },
-    { t: '맨 앞의 http://를 지우면', q: '맨 앞의 http://를 지우면', d: '스킴이 없으면 부분을 올바로 나눌 수 없습니다. 요청을 보내지 못합니다.', v: { scheme: false, port: true, path: 'hello', query: true } },
+    { t: '맨 앞의 http://를 지우면', q: '맨 앞의 http://를 지우면', d: '스킴이 없으면 부분을 올바로 나눌 수 없습니다. 이 실습의 클라이언트는 요청을 보내지 못합니다(브라우저 주소창은 http://를 알아서 붙여 줍니다).', v: { scheme: false, port: true, path: 'hello', query: true } },
   ],
   PATHS: { hello: '/hello', nothing: '/nothing', none: '' },
   code: function (c) {
@@ -17130,7 +17130,7 @@ Lab.register({
   intro: '컴퓨터끼리는 IP 주소(숫자)로 연결하지만, 사람은 shop.example 같은 이름을 씁니다. DNS는 이름을 IP 주소로 바꿔 주는 서비스이고, 이름과 IP 주소를 짝지어 적어 둔 표를 가진 컴퓨터가 DNS 서버입니다. 화면의 코드 칸은 두 구역입니다. 위쪽은 DNS 서버에 등록된 것(이름 → IP 주소)이고, 아래쪽은 클라이언트가 접속하려는 주소입니다. 이름으로 접속하려는 클라이언트는 서버에 연결하기 전에 먼저 DNS 서버에 그 이름의 IP 주소를 묻고, 답으로 받은 IP 주소로 연결합니다. 이 실습은 이름을 등록하지 않거나, 다른 IP 주소로 등록하거나, 주소 칸에 이름 대신 IP 주소를 직접 적어 가며 같은 접속을 시켜, DNS 서버에 몇 번 묻는지, 어느 컴퓨터에 닿는지를 봅니다. 화면의 8080은 예시로 적은 포트 번호입니다.',
   terms: ['DNS', '도메인 이름', 'IP 주소(IPv4)', '이름 없음 응답(NXDOMAIN)'],
   controls: [
-    { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터)'], ['none', 'shop.example을 등록하지 않는다']] },
+    { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터 역할)'], ['none', 'shop.example을 등록하지 않는다']] },
     { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/로 접속한다'], ['ip', 'http://127.0.0.1:8080/로 접속한다 (IP 주소를 직접 적는다)']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
@@ -17164,7 +17164,7 @@ Lab.register({
       // 3단계: DNS 서버의 답
       if (dest) {
         st.rep = 'good'; st.dn = 'good'; st.cl = 'plain'; st.ans = dest; st.clt = ['받은 IP 주소', dest];
-        push('DNS 서버가 표에서 shop.example을 찾아 답합니다. shop.example의 IP 주소는 ' + dest + '입니다.' + (c.reg === 'two' ? ' 이 표에는 shop.example이 127.0.0.2로 등록돼 있습니다. 127.0.0.2는 127.0.0.1과 다른 컴퓨터의 주소입니다.' : '') + ' 클라이언트는 이제 어디로 연결할지 압니다.', 'good');
+        push('DNS 서버가 표에서 shop.example을 찾아 답합니다. shop.example의 IP 주소는 ' + dest + '입니다.' + (c.reg === 'two' ? ' 이 표에는 shop.example이 127.0.0.2로 등록돼 있습니다. 127.0.0.2는 127.0.0.1과 다른 주소입니다(둘 다 이 PC를 가리키는 주소인데, 이 실습에서는 서로 다른 컴퓨터인 셈 칩니다).' : '') + ' 클라이언트는 이제 어디로 연결할지 압니다.', 'good');
         // 4단계: 연결
         st.go = who; st.ip = dest; st.dn = 'plain'; st.cl = 'hot'; st[who] = 'hot'; st.clt = [dest + '의', '8080번에 연결'];
         push('클라이언트가 답으로 받은 IP 주소 ' + dest + '의 8080번 포트로 연결해 GET / 요청을 보냅니다. ' + port + ' 주소에 적은 이름 shop.example은 연결에 쓰이지 않고, 연결하는 곳은 DNS가 알려 준 IP 주소입니다.', '');
@@ -17224,8 +17224,8 @@ Lab.register({
     P.size(680, 332);
     P.box('cl', 14, 116, 130, 72, { cls: s ? s.cl : 'plain', title: '클라이언트', sub: s ? s.clt : ['대기'] });
     P.box('dn', 215, 14, 240, 72, { cls: s ? s.dn : 'plain', title: 'DNS 서버', sub: ['이름 → IP 주소 표', table] });
-    P.box('c1', 510, 100, 156, 62, { cls: s ? s.c1 : 'plain', title: '컴퓨터 127.0.0.1', sub: s ? s.c1t : ['서버가 떠 있음'] });
-    P.box('c2', 510, 190, 156, 62, { cls: s ? s.c2 : 'plain', title: '컴퓨터 127.0.0.2', sub: s ? s.c2t : ['서버가 떠 있음'] });
+    P.box('c1', 486, 100, 180, 62, { cls: s ? s.c1 : 'plain', title: '컴퓨터 역할 127.0.0.1', sub: s ? s.c1t : ['서버가 떠 있음'] });
+    P.box('c2', 486, 190, 180, 62, { cls: s ? s.c2 : 'plain', title: '컴퓨터 역할 127.0.0.2', sub: s ? s.c2t : ['서버가 떠 있음'] });
     if (s && s.ask) P.arrow('ask', 'cl:t:0.3', 'dn:l:0.35', { cls: 'hot' });
     if (s && s.rep) P.arrow('rep', 'dn:l:0.8', 'cl:t:0.75', { cls: s.rep });
     if (s && s.go) P.arrow('go', 'cl:r:0.4', s.go + ':l:0.5', { cls: 'hot' });
@@ -17314,7 +17314,7 @@ Lab.register({
     if (c.clen !== 'none') {
       st.c2 = c.ctype ? 'plain' : st.c2; st.c1 = 'plain'; st.c3 = 'hot'; st.rdt = ['Content-Length', '읽는 중'];
       st.rows.push([this.CLEN[c.clen], '헤더. 본문의 바이트 수']);
-      push('클라이언트가 다음 줄을 읽습니다. 읽은 글은 "' + this.CLEN[c.clen] + '"입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 컴퓨터가 글자를 세는 단위이고, UTF-8에서 한글 한 글자는 3바이트라서 "' + B + '" 다섯 글자는 15바이트입니다.' + (c.clen === 'short' ? ' 서버가 실제로 보낸 본문은 15바이트이지만 Content-Length에는 6이라고 적혀 있습니다. 클라이언트는 적힌 숫자를 따릅니다.' : ''), '');
+      push('클라이언트가 다음 줄을 읽습니다. 읽은 글은 "' + this.CLEN[c.clen] + '"입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 데이터의 크기를 세는 단위(글자 수와는 다를 수 있음)이고, UTF-8에서 한글 한 글자는 3바이트라서 "' + B + '" 다섯 글자는 15바이트입니다.' + (c.clen === 'short' ? ' 서버가 실제로 보낸 본문은 15바이트이지만 Content-Length에는 6이라고 적혀 있습니다. 클라이언트는 적힌 숫자를 따릅니다.' : ''), '');
     }
     // 5단계: 빈 줄
     st.c1 = 'plain'; st.c2 = c.ctype ? 'plain' : 'ghost'; st.c3 = c.clen !== 'none' ? 'plain' : 'ghost'; st.c4 = 'hot'; st.rdt = ['빈 줄:', '헤더 끝']; st.gty = tyTxt;
@@ -17570,7 +17570,7 @@ Lab.register({
       var where = fail.line + '번째 줄 ' + fail.col + '번째 글자';
       st.dead = true; st.o = { name: '', age: '', tags: '' }; st.arr = []; st.read = '실패: ' + WHYS[fail.kind]; st.kind = '읽지 못함'; st.plus = '읽지 못함'; st.done = true;
       var more = (c.key !== 'dq' && c.comma !== 'ok') ? ' 뒤쪽(' + (c.comma === 'miss' ? '"age" 줄 끝에 쉼표가 없는 곳' : '마지막 값 뒤의 쉼표') + ')에도 규칙에 어긋난 곳이 있지만, 해석기는 처음 만난 곳에서 멈추므로 알려 주는 오류는 이 한 곳뿐입니다.' : '';
-      push('해석기가 여기서 읽기를 멈추고 오류를 냅니다. 오류가 난 곳은 ' + where + '이고, JSON.parse와 Jackson이 알려 준 위치가 같았습니다.' + (partial ? ' 앞에서 읽은 ' + partial + '도 객체로 돌려주지 않습니다.' : '') + ' 읽을 수 있는 데까지만 읽어 돌려주는 일은 없고, 글 전체가 읽히거나 전체가 실패하거나 둘 중 하나입니다.' + more, 'bad');
+      push('해석기가 여기서 읽기를 멈추고 오류를 냅니다. 오류가 난 곳은 ' + where + '이고, JSON.parse와 Jackson이 알려 준 위치가 같았습니다.' + (partial ? ' 앞에서 읽은 ' + partial + '도 객체로 돌려주지 않습니다.' : '') + ' 여기서 쓴 JSON.parse와 Jackson은 읽을 수 있는 데까지만 읽어 돌려주는 일은 없고, 글 전체가 읽히거나 전체가 실패하거나 둘 중 하나입니다.' + more, 'bad');
       push('받는 쪽은 객체를 얻지 못했습니다. 객체가 없으니 age를 꺼낼 수 없고, age의 종류도 1을 더한 결과도 없습니다.', 'bad');
     }
     var WHYS = this.WHY;
@@ -17691,7 +17691,7 @@ Lab.register({
   code: function (c) {
     var https = c.scheme === 'https', host = https && c.name === 'other' ? '127.0.0.1' : 'localhost';
     var out = ['# 클라이언트가 접속하는 주소', c.scheme + '://' + host + ':' + (https ? '8443' : '8080') + '/login', '', '# 보내는 내용 (POST 요청의 본문)', 'password=1234'];
-    if (https) out.push('', '# 서버의 인증서', '이름: localhost', c.trust ? '클라이언트가 믿는 목록에 있음' : '클라이언트가 믿는 목록에 없음');
+    if (https) out.push('', '# 서버의 인증서', '이름: localhost', c.trust ? '클라이언트가 믿는 기관이 서명함' : '클라이언트가 믿는 기관이 서명하지 않음');
     return out.join('\n');
   },
   label: function (c) { return c.scheme === 'http' ? 'http://로 접속' : 'https://로 접속 · 인증서를 ' + (c.trust ? '믿음' : '믿지 않음') + ' · ' + (c.name === 'other' ? '127.0.0.1로 접속' : 'localhost로 접속'); },
@@ -17820,7 +17820,7 @@ Lab.register({
     var out = ['@Configuration', 'public class SecurityConfig {', '    @Bean', '    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {', '        http.authorizeHttpRequests(auth -> auth'];
     if (c.rule === 'role') out.push('                // 인가: /admin은 ADMIN 권한이 있는 사람만', '                .requestMatchers("/admin").hasRole("ADMIN")');
     if (c.rule === 'open') out.push('                // 확인 없음: /admin은 누구에게나 열어 둔다', '                .requestMatchers("/admin").permitAll()');
-    out.push('                // 인증: 그 밖의 주소는 누구인지 확인된 사람이면', '                .anyRequest().authenticated())', '            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
+    out.push('                // 인가 규칙: 그 밖의 주소는 누구인지 확인된(인증된) 사람만 허용', '                .anyRequest().authenticated())', '            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
       '@RestController', 'public class AdminController {', '    @GetMapping("/admin")', '    public String admin() {', '        return "관리자 화면";', '    }', '}');
     return out.join('\n');
   },
@@ -18426,7 +18426,7 @@ Lab.register({
       st.hot = 'out'; st.outTxt = this.cut(saved); st.ar = [['a1', 'mut'], ['a2', 'hot']];
       push('계산 결과로 뒤섞인 64자 값이 나옵니다. 0-9와 a-f 글자 64개이고, 앞 12자는 ' + pre(saved) + '입니다. 입력이 1글자든 100글자든 나오는 값은 언제나 64자이고, 같은 글자를 넣으면 언제 계산해도 같은 값이 나옵니다.', '');
       st.hot = 'sv'; st.svTxt = this.cut(saved); st.ar = [['a3', 'hot']];
-      push('서버는 이 64자 값만 saved에 저장합니다. 원래 비밀번호 pass1234는 저장하지 않습니다. 해시 함수는 나온 값에서 원래 글자를 찾아내는 것이 현실적으로 불가능하도록 만들어진 함수여서, 저장된 값만 봐서는 pass1234를 알 수 없습니다.', '');
+      push('서버는 이 64자 값만 saved에 저장합니다. 원래 비밀번호 pass1234는 저장하지 않습니다. 해시 함수는 나온 값에서 원래 글자를 찾아내는 것이 현실적으로 불가능하도록 만들어진 함수여서, 저장된 값을 거꾸로 계산해서는 pass1234를 알 수 없습니다.', '');
       // 로그인
       st.phase = 'login'; st.hot = 'in'; st.inTxt = inShow; st.outTxt = ''; st.ar = [];
       push(inLine + typedTxt, '');
@@ -18459,7 +18459,7 @@ Lab.register({
     var tail = '이 실습은 해시의 성질을 보이려고 SHA-256을 그대로 썼습니다. 실제 비밀번호 저장에는 SHA-256이 아니라 BCrypt, Argon2 같은 비밀번호 전용 함수를 씁니다.';
     if (h && c.input === 'right') {
       sum.push('해시는 어떤 글자를 넣든 정해진 길이(SHA-256은 64자)의 뒤섞인 값을 내놓는 계산입니다. 서버는 가입 때 비밀번호 대신 그 값을 저장했고, 로그인 때는 입력을 같은 방법으로 해시해서 저장된 값과 같은지만 견주었습니다. 같은 pass1234라 같은 값이 나와 로그인에 성공했습니다.');
-      sum.push('서버는 원래 비밀번호를 저장하지 않았고, 견주는 데 필요하지도 않았습니다. 저장된 값이 새어 나가도 그 값에서 pass1234를 거꾸로 계산해 낼 방법은 알려져 있지 않습니다.');
+      sum.push('서버는 원래 비밀번호를 저장하지 않았고, 견주는 데 필요하지도 않았습니다. 저장된 값이 새어 나가도 그 값에서 pass1234를 거꾸로 계산해 낼 방법은 알려져 있지 않습니다(다만 흔한 비밀번호는 후보를 하나씩 해시해 견주면 찾아낼 수 있습니다).');
     } else if (h && c.input === 'typo') {
       sum.push('한 글자만 다른 비밀번호를 입력하면 해시한 값이 전혀 달라져 로그인에 실패합니다. pass1235의 값은 저장된 값과 64자 가운데 ' + this.DIFF + '자가 다릅니다.');
       sum.push('한 글자가 달라도 비슷한 값이 나오는 것이 아니라 전혀 다른 값이 나오므로, 서버는 두 값이 같은지 다른지만 확인하면 됩니다. 이 확인에 원래 비밀번호는 필요하지 않습니다.');
@@ -19136,7 +19136,7 @@ Lab.register({
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
     { t: '처음 설정으로', q: '락은 어떻게 생겼고, 스레드 2개가 add()를 100000번씩 부르면 count는 얼마가 되나', d: 'add에 synchronized가 붙어 있고 스레드가 2개입니다. 한 번에 한 스레드만 add를 실행해 count가 200000이 됩니다.', v: { sync: true, threads: '2' } },
-    { t: 'synchronized를 지우면', q: 'add 선언 앞의 synchronized 키워드를 지우면', d: '두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 200000보다 작은 값이 나옵니다. 값은 실행마다 다릅니다.', v: { sync: false, threads: '2' } },
+    { t: 'synchronized를 지우면', q: 'add 선언 앞의 synchronized 키워드를 지우면', d: '두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 대개 200000보다 작은 값이 나옵니다(스레드가 겹치지 않으면 200000이 나올 수도 있습니다). 값은 실행마다 다릅니다.', v: { sync: false, threads: '2' } },
     { t: '스레드를 1개만 쓰면', q: 'synchronized 키워드 없이 스레드를 t1 하나만 쓰면', d: '끼어들 다른 스레드가 없어서 락이 없어도 count는 100000입니다.', v: { sync: false, threads: '1' } },
     { t: '스레드 1개에 synchronized를 붙이면', q: '스레드가 t1 하나인데 synchronized 키워드를 붙여 두면', d: '락을 잡아도 기다리는 스레드가 없어서 결과는 락이 없을 때와 같습니다.', v: { sync: true, threads: '1' } },
   ],
@@ -19158,7 +19158,7 @@ Lab.register({
   simulate: function (c) {
     var S = c.sync, two = c.threads === '2', expect = two ? 200000 : 100000, ev = [], sum = [];
     var racy = !S && two;
-    var last = racy ? '200000보다 작은 값 (실행마다 다름)' : String(expect);
+    var last = racy ? '대개 200000보다 작은 값 (실행마다 다름)' : String(expect);
     var st = { hot: '', t: [{ cls: 'ghost', sub: ['시작 전'] }, { cls: 'ghost', sub: [two ? '시작 전' : '만들지 않음'] }], holder: '', inside: [], cnt: null, rd: [null, null], lost: 0, a1: '', a2: '', rw: '', fin: false, res: ['', '', ''], checks: [] };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var lockLine = '이 add는 synchronized가 붙어 있으므로, 부른 스레드는 안에 들어가기 전에 락을 잡아야 합니다. static 메서드의 락은 Main 클래스에 딸린 락 하나이고, 락은 한 번에 한 스레드만 잡을 수 있습니다. 락을 잡은 스레드가 add를 나오면 락이 풀립니다.';
@@ -19244,7 +19244,7 @@ Lab.register({
     if (two) st.t[1] = { cls: 'good', sub: ['add()를 100000번 마침'] };
     st.res = [last, String(expect), racy ? '있음 (실행마다 다름)' : '없음'];
     st.checks.push([two ? 'join 뒤 println(count)' : 'join 뒤 println(count)', { v: last, cls: racy ? 'bad' : 'good' }]);
-    if (racy) push('이런 끼어들기가 100000번씩 부르는 동안 여러 번 생깁니다. 어느 순간에 끼어드는지는 실행할 때마다 달라서, ' + (two ? 't1.join()과 t2.join()으로 두 스레드가 끝난 뒤' : '') + ' println(count)가 출력하는 값은 200000보다 작고 실행할 때마다 다릅니다. 사라진 증가의 수도 실행마다 다릅니다.', 'bad');
+    if (racy) push('이런 끼어들기가 100000번씩 부르는 동안 여러 번 생깁니다. 어느 순간에 끼어드는지는 실행할 때마다 달라서, ' + (two ? 't1.join()과 t2.join()으로 두 스레드가 끝난 뒤' : '') + ' println(count)가 출력하는 값은 대개 200000보다 작고 실행할 때마다 다릅니다. 사라진 증가의 수도 실행마다 다릅니다.', 'bad');
     else if (S && two) push('이렇게 add()를 부를 때마다 안에는 한 스레드만 있었으므로 증가가 사라지지 않습니다. t1.join()과 t2.join()으로 두 스레드가 끝난 뒤 println(count)가 200000을 출력합니다. 몇 번을 실행해도 같은 값입니다. 대신 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다려야 합니다.', 'good');
     else push('t1이 100000번을 모두 이렇게 마치고 끝납니다. t1.join()이 돌아오고, println(count)가 ' + expect + '을 출력합니다. ' + (S ? '락이 있어도 결과는 락이 없을 때와 같습니다.' : 'synchronized가 없어도 틀리지 않았습니다.') + ' 몇 번을 실행해도 같은 값입니다.', 'good');
 
@@ -19253,7 +19253,7 @@ Lab.register({
       sum.push('락을 건 add()는 한 번에 한 스레드만 실행하므로, 스레드 2개가 100000번씩 불러도 count는 200000이 됩니다. 락은 "한 번에 한 스레드만 이 구역을 실행한다"는 표시이고, 자바에서는 메서드 선언 앞에 synchronized를 붙여 겁니다.');
       sum.push('count++의 읽기, 더하기, 쓰기가 한 스레드 안에서 끊기지 않고 끝나므로 증가가 사라지지 않았습니다. 그 대가로 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다립니다.');
     } else if (racy) {
-      sum.push('synchronized를 지우면 스레드 2개가 add() 안에서 서로 끼어들어, 마지막 count가 200000보다 작은 값이 되었고 증가가 사라졌습니다. 실행할 때마다 값이 달랐습니다.');
+      sum.push('synchronized를 지우면 스레드 2개가 add() 안에서 서로 끼어들어, 마지막 count가 대개 200000보다 작은 값이 되었고 증가가 사라졌습니다. 실행할 때마다 값이 달랐습니다.');
       sum.push('오류도 예외도 나지 않고 틀린 값만 조용히 나옵니다. 읽기, 더하기, 쓰기 사이에 다른 스레드가 count를 바꾸면, 읽어 둔 오래된 값으로 덮어써서 그 증가가 없던 일이 됩니다.');
     } else if (!S) {
       sum.push('synchronized가 없어도 스레드가 하나뿐이면 count는 100000입니다. count를 고치는 스레드가 t1뿐이라, 읽고 쓰는 사이에 끼어들 스레드가 없습니다.');
@@ -19463,7 +19463,7 @@ Lab.register({
 Lab.register({
   id: 'jvm_basic', nav: '컴파일과 JVM', cat: '기초개념', mode: 'step', basic: true, deep: ['classload', 'jit'],
   title: '자바 코드는 어떻게 실행되는가',
-  intro: '우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.',
+  intro: '우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.',
   terms: ['컴파일과 javac', '.class 파일', 'JVM(자바 가상 머신)', '바이트코드'],
   controls: [
     { id: 'compile', label: '터미널에 javac Hello.java 줄을 쓴다', type: 'check', value: true },
@@ -19943,7 +19943,7 @@ Lab.register({
     P.size(680, 292);
     var stage = s ? s.stage : '', hot = s ? s.hot : '', ph = s ? s.phase : '';
     var inCp = stage === 'compile' ? c.compileCp : stage === 'run' ? c.runCp : false;
-    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['내 코드', 'import lib.Greeter;', stage === 'compile' ? '컴파일 중' : stage === 'run' ? '실행 중' : '실행 전'] });
+    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['내 코드', 'import lib.Greeter;', stage === 'compile' ? '컴파일 중' : stage === 'run' ? (s.cls ? '컴파일된 App.class 실행 중' : 'App.class 없음') : '실행 전'] });
     var list = stage === 'compile' ? (c.compileCp ? ['greet.jar'] : ['현재 폴더(.)뿐']) : stage === 'run' ? (c.runCp ? ['greet.jar', '현재 폴더(.)'] : ['현재 폴더(.)뿐']) : ['명령을 입력하면 정해짐'];
     P.box('cp', 244, 16, 190, 110, { cls: ph === 'miss' ? 'bad' : hot === 'cp' ? 'hot now' : stage ? 'plain' : 'ghost', title: '클래스패스', sub: ['찾아볼 곳 (-cp)'].concat(list) });
     P.box('jar', 484, 16, 182, 110, { cls: ph === 'found' ? 'good now' : stage && !inCp ? 'ghost' : 'plain', title: 'greet.jar', sub: ['lib/Greeter.class', !stage ? '남이 만든 클래스' : inCp ? '클래스패스에 있음' : '클래스패스에 없음'] });
@@ -20016,7 +20016,7 @@ Lab.register({
     if (how === 'procs') {
       for (var i = 0; i < n; i++) {
         born(i, main1);
-        push(i === 0 ? '터미널 1에서 java Counter 명령을 쓰면, 운영체제가 Counter.class를 실행하는 프로세스를 하나 만듭니다. 이 프로세스의 번호(PID)는 ' + P[0] + '입니다. 운영체제는 이 프로세스에 메모리를 내주고, 우리가 쓴 count 변수는 그 메모리 안에서 0으로 시작합니다. 프로세스를 만든 것은 우리가 쓴 코드가 아니라 java 명령과 운영체제입니다.'
+        push(i === 0 ? '터미널 1에서 java Counter 명령을 쓰면, 운영체제가 java(JVM) 프로세스를 하나 만들고, 그 JVM이 Counter.class를 읽어 실행합니다. 이 프로세스의 번호(PID)는 ' + P[0] + '입니다. 운영체제는 이 프로세스에 메모리를 내주고, 우리가 쓴 count 변수는 그 메모리 안에서 0으로 시작합니다. 프로세스를 만든 것은 우리가 쓴 코드가 아니라 java 명령과 운영체제입니다.'
           : '앞의 프로세스가 아직 실행 중일 때 터미널 ' + (i + 1) + '에서 java Counter 명령을 한 번 더 씁니다. 파일은 같은 Counter.class 하나인데, 운영체제는 프로세스를 하나 더 만들고 새 번호를 붙입니다. 이 프로세스의 PID는 ' + P[i] + '입니다. 운영체제는 이 프로세스에도 메모리를 따로 내주어서, 이 프로세스의 count도 0에서 시작합니다.', '');
         addTo(i);
         push(i === 0 ? 'main이 add()를 부르면 add 안의 count++ 세 줄이 실행되어, 이 프로세스의 메모리에서 count가 3이 됩니다. println이 "PID ' + P[0] + ' count 3"을 출력합니다. 이어서 main은 Thread.sleep(2000)에서 2초 기다리므로, 이 프로세스는 아직 끝나지 않았습니다.'
@@ -20088,7 +20088,7 @@ Lab.register({
 Lab.register({
   id: 'aop_basic', nav: 'AOP와 프록시', cat: '기초개념', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: '프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가',
-  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
+  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 쓴 클래스로 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
   terms: ['프록시(Proxy)', 'AOP(관점 지향 프로그래밍)', '@Aspect와 @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'LogAspect 클래스(@Aspect)를 둔다', type: 'check', value: true },
@@ -20104,7 +20104,7 @@ Lab.register({
   // 화면의 코드와 대조 프로그램(verify/spring/src/AopBasicProbe.java)이 실행한 소스는 같은 글이다(대조 스크립트가 글자까지 비교한다).
   code: function (c) {
     var o = [];
-    if (c.aspect) o.push('// 끼워 넣는 일: OrderService의 order()를 부를 때마다 실행된다', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[로그] order 호출됨");', '    }', '}', '');
+    if (c.aspect) o.push('// 끼워 넣는 일: 스프링이 보관한 OrderService 빈의 order()를 부를 때마다 실행된다', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[로그] order 호출됨");', '    }', '}', '');
     o.push('@Service', 'class OrderService {', '    public void order() {', '        System.out.println("주문 처리");', '    }', '}', '', '@Component', 'class Caller {');
     if (c.how === 'bean') o.push('    // 스프링이 만들어 둔 빈을 찾아 넣어 준다', '    @Autowired', '    OrderService orderService;');
     else o.push('    // 내가 직접 만든다', '    OrderService orderService = new OrderService();');
@@ -20319,22 +20319,22 @@ Lab.register({
       { cls: s.made || s.bad ? '' : 'gone', cells: ['ShopInfo의 name', { v: nameTxt, cls: s.bad ? 'bad' : s.name !== null ? 'good' : '' }] },
       { cls: s.out !== null ? '' : 'gone', cells: ['화면에 찍힌 글', { v: s.out !== null ? s.out : '없음', cls: s.out !== null ? 'good' : '' }] },
       { cls: '', cells: ['java 프로세스', { v: pTxt, cls: s.exit === 1 ? 'bad' : s.exit === 0 ? 'good' : '' }] },
-    ], 'java 프로세스 안');
+    ], 'java 프로세스와 설정 파일');
   },
   // 그림: 위에 App의 main 메서드, 가운데 줄에 왼쪽부터 설정 파일, 스프링(설정 목록), ShopInfo 객체. 파일의 값이 스프링의 설정 목록으로 읽히고, 스프링이 ShopInfo를 만들며 name에 값을 넣는지, 값을 찾지 못해 어디서 멈추는지를 화살표로 보인다. 맨 아래에 결과 칸 둘.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, ph = s ? s.phase : '';
     P.size(680, 288);
     var end = s && s.exit !== null;
-    P.region('jp', 6, 8, 668, 210, 'java 프로세스' + (end ? (s.exit === 0 ? ': 끝남' : ': 오류로 끝남') : s ? ': 실행 중' : ''));
+    P.region('jp', 240, 8, 436, 210, 'java 프로세스' + (end ? (s.exit === 0 ? ': 끝남' : ': 오류로 끝남') : s ? ': 실행 중' : ''));
     var mnSub = !s ? '아직 실행 전' : ph === 'main' || ph === 'read' || ph === 'make' || ph === 'value' ? 'SpringApplication.run 실행 중' : ph === 'get' ? 'ctx.getBean 실행 중' : ph === 'print' ? 'println 실행 중' : s.exit === 0 ? '끝남' : '예외로 끝남';
-    P.box('mn', 14, 36, 652, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'App의 main 메서드', sub: mnSub });
-    P.box('pf', 14, 112, 190, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? '이름=값 줄 없음' : ' '] });
+    P.box('mn', 250, 36, 416, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'App의 main 메서드', sub: mnSub });
+    P.box('pf', 2, 112, 188, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? '이름=값 줄 없음' : ' '] });
     var spSub = !s || !s.read ? [' '] : s.file ? ['설정 목록', 'shop.name = ' + s.file] : ['설정 목록은 비어 있음'];
-    P.box('sp', 254, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: '스프링', sub: spSub });
+    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: '스프링', sub: spSub });
     var siSub = !s ? [' '] : s.name !== null ? ['name = ' + s.name] : s.bad ? ['만들다 멈춤'] : ph === 'make' || ph === 'value' ? ['만드는 중'] : ['아직 없음'];
-    P.box('si', 474, 112, 192, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo 객체', sub: siSub });
-    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot' });
+    P.box('si', 468, 112, 190, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo 객체', sub: siSub });
+    if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot', label: '읽음' });
     if (s && ph === 'make') P.arrow('mk', 'sp:r:0.35', 'si:l:0.35', { cls: 'hot' });
     if (s && ph === 'value') P.arrow('vl', 'sp:r:0.65', 'si:l:0.65', { cls: s.bad ? 'bad' : 'good' });
     var prog = !s ? '아직 없음' : s.exit === 0 ? '끝까지 실행됨' : s.exit === 1 ? '시작하다 멈춤' : '실행 중';
@@ -20400,7 +20400,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: '보내지 못함', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
+      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC 드라이버가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
         (typo ? '테이블 이름이 틀렸다는 것도 DB가 SQL을 읽어 봐야 알 수 있어서, 닫힌 연결 오류가 먼저 나오고 틀린 이름은 알려지지 않습니다. ' : none ? 'WHERE id = 99라는 조건도 DB가 읽어 본 적이 없습니다. ' : '') +
         '예외를 처리하는 코드가 없어서 프로그램은 이 줄에서 멈추고, 아래 줄들은 실행되지 않습니다.', 'bad');
     } else if (typo) {
@@ -20648,7 +20648,7 @@ Lab.register({
 
     // 0. 준비
     step();
-    push('DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블의 한 행에 대응하는 자바 클래스(엔티티)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.', '');
+    push('DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블에 대응하는 자바 클래스(엔티티, 그 객체 하나가 한 행)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.', '');
 
     // 1. find
     step();
@@ -21191,7 +21191,7 @@ Lab.register({
     var key = c.row + '|' + c.end;
     var S = {
       'same|commit': ['행 잠금은 UPDATE로 행을 고칠 때 DB가 그 행에 거는 표시입니다. 묶음이 끝날 때까지 풀리지 않아서, 같은 행을 고치려는 B의 UPDATE는 A가 COMMIT할 때까지 기다렸다가 그 뒤에 실행되었습니다.', '잠금은 우리가 쓴 SQL이 아니라 UPDATE를 받은 DB가 겁니다. B는 A가 확정한 900에 50을 더해 950이 되었으므로, 두 변경이 서로를 덮어쓰지 않았습니다.'],
-      'other|commit': ['B가 다른 행(id 2)을 고치면 기다리지 않습니다. 잠금은 고친 행에만 걸리므로, B의 UPDATE는 A의 COMMIT 전에 바로 실행되었습니다.', '두 연결이 같은 테이블을 고쳐도 행이 다르면 서로를 막지 않았습니다. 이 실습에서 기다림이 생긴 것은 같은 행을 동시에 고칠 때였습니다.'],
+      'other|commit': ['B가 다른 행(id 2)을 고치면 기다리지 않습니다. 기본 키로 한 행을 찾아 고칠 때는 잠금이 그 행에만 걸리므로, B의 UPDATE는 A의 COMMIT 전에 바로 실행되었습니다.', '두 연결이 같은 테이블을 고쳐도 행이 다르면 서로를 막지 않았습니다. 이 실습에서 기다림이 생긴 것은 같은 행을 동시에 고칠 때였습니다.'],
       'same|hold': ['A가 COMMIT도 ROLLBACK도 하지 않고 계속 붙잡고 있으면 잠금이 풀리지 않아, 같은 행을 고치려는 B의 UPDATE는 기다리다 시간 초과 오류로 끝납니다.', 'B는 아무것도 고치지 못했고 잔액은 처음 그대로입니다. 묶음을 끝내지 않고 열어 두면, 그 행을 고치려는 다른 연결은 기다리다 같은 오류를 받을 수 있습니다.'],
       'other|hold': ['A가 잠금을 쥔 채 끝내지 않아도, B가 다른 행(id 2)을 고치면 영향이 없습니다. B의 UPDATE는 바로 실행되고 COMMIT까지 마쳐 id 2인 행의 1050이 확정되었습니다.', '붙잡힌 것은 A가 고친 id 1인 행뿐입니다. 이 행을 고치려는 연결만 기다리게 됩니다.']
     };
@@ -21326,7 +21326,7 @@ Lab.register({
 Lab.register({
   id: 'durable_basic', nav: '저장과 지속성', cat: '기초개념', mode: 'step', basic: true, deep: ['undoredo', 'bufferpool'],
   title: '커밋한 데이터는 서버가 꺼져도 남는가',
-  intro: 'DB는 데이터를 디스크의 파일에 저장하는 프로그램입니다. 자바 프로그램의 변수는 프로그램이 끝나면 사라지지만, COMMIT까지 끝낸 데이터는 DB 프로그램이 갑자기 꺼졌다가 다시 켜져도 남아 있어야 합니다. 이 성질을 지속성(durability)이라고 합니다. 코드에서 이 성질을 이루는 것은 두 가지입니다. 하나는 COMMIT으로, 묶음 안의 변경을 남기겠다고 확정하는 문장입니다. 다른 하나는 데이터를 두는 곳으로, 연결 주소가 jdbc:h2:file: 글자로 시작하면 디스크의 파일에, jdbc:h2:mem: 글자로 시작하면 메모리에만 둡니다. 이 실습은 COMMIT 줄을 지우거나 데이터를 두는 곳을 바꿔 가며 같은 INSERT를 실행하고, DB 프로그램을 정리 없이 끝낸 다음 다시 켜서 memo 테이블을 읽어 봅니다. (이 실습의 H2는 자바 프로그램 안에서 도는 DB여서 "DB 프로그램이 꺼진다"는 것은 그 자바 프로그램이 끝나는 것입니다. MySQL 같은 DB는 따로 도는 프로그램이라는 점만 다릅니다. DB가 이 약속을 어떻게 지키는지(로그와 버퍼)는 세부 동작 실습에서 다룹니다.)',
+  intro: 'DB는 데이터를 디스크의 파일에 저장하는 프로그램입니다. 자바 프로그램의 변수는 프로그램이 끝나면 사라지지만, COMMIT까지 끝낸 데이터는 DB 프로그램이 갑자기 꺼졌다가 다시 켜져도 남아 있어야 합니다. 이 성질을 지속성(durability)이라고 합니다. 코드에서 이 성질을 이루는 것은 두 가지입니다(DB에 따라 COMMIT한 내용을 바로 디스크에 쓰게 하는 설정도 더 필요합니다). 하나는 COMMIT으로, 묶음 안의 변경을 남기겠다고 확정하는 문장입니다. 다른 하나는 데이터를 두는 곳으로, 연결 주소가 jdbc:h2:file: 글자로 시작하면 디스크의 파일에, jdbc:h2:mem: 글자로 시작하면 메모리에만 둡니다. 이 실습은 COMMIT 줄을 지우거나 데이터를 두는 곳을 바꿔 가며 같은 INSERT를 실행하고, DB 프로그램을 정리 없이 끝낸 다음 다시 켜서 memo 테이블을 읽어 봅니다. (이 실습의 H2는 자바 프로그램 안에서 도는 DB여서 "DB 프로그램이 꺼진다"는 것은 그 자바 프로그램이 끝나는 것입니다. MySQL 같은 DB는 따로 도는 프로그램이라는 점만 다릅니다. DB가 이 약속을 어떻게 지키는지(로그와 버퍼)는 세부 동작 실습에서 다룹니다.)',
   terms: ['지속성(Durability)', '파일 DB와 메모리 DB', '커밋과 롤백', 'H2의 쓰기 지연(WRITE_DELAY)'],
   controls: [
     { id: 'commit', label: 'INSERT 뒤에 COMMIT; 줄을 적는다', type: 'check', value: true },
@@ -21574,7 +21574,7 @@ Lab.register({
         st.n1 = r1s; st.n1c = 'plain';
         push('보내는 쪽이 본 것은 받는 쪽이 있을 때와 똑같은 "오류 없음"입니다. 그래서 보내는 쪽 프로그램은 글이 도착했는지 사라졌는지 구분하지 못한 채 보내기를 마칩니다.', 'bad');
         sum.push('받는 쪽이 없어도 UDP로 보내기는 오류 없이 끝납니다. 글은 어디에도 닿지 않았지만, 보내는 쪽은 아무 오류도 받지 못했습니다.');
-        sum.push('TCP는 연결 단계에서 실패하지만 UDP에는 연결이 없어서 실패하는 곳이 없습니다. 오류 없이 보냈다는 것과 상대가 받았다는 것은 다른 일입니다.');
+        sum.push('TCP는 연결 단계에서 실패하지만 UDP에는 연결을 맺는 단계가 없어서, 받는 쪽이 없어도 보내는 쪽에는 실패가 드러나지 않습니다. 오류 없이 보냈다는 것과 상대가 받았다는 것은 다른 일입니다.');
       }
     }
     return { events: ev, summary: sum, row: [r1, r2, r3] };
@@ -21699,7 +21699,7 @@ Lab.register({
       sum.push('서버는 첫 줄의 메서드와 경로를 읽고, 자기가 만들어 둔 것 가운데 맡는 줄을 찾아 그 일을 합니다. GET /memos 줄은 목록을 돌려주는 일입니다.');
     } else if (c.method === 'get') {
       sum.push('같은 GET 요청을 두 번 보내도 두 응답의 본문이 같고("first"), 서버의 메모는 1개 그대로입니다.');
-      sum.push('GET은 서버의 것을 바꿔 달라는 요청이 아니라서, 몇 번을 보내도 서버는 보내기 전과 같은 상태입니다.');
+      sum.push('GET은 서버 상태를 바꾸지 않게 만드는 것이 약속이고, 이 서버도 그렇게 만들어서 몇 번을 보내도 보내기 전과 같은 상태입니다.');
     } else if (c.method === 'post' && N === 1) {
       sum.push('POST /memos로 본문 hello를 보내면 서버가 그 글을 목록에 더해서, 메모가 1개에서 ' + cnt + '개가 됩니다. 응답은 200 OK이고 본문은 더한 뒤의 목록입니다.');
       sum.push('주소는 같은 /memos인데 GET은 가져오기만 했고 POST는 서버의 것을 바꿨습니다. 메서드가 다르면 서버가 하는 일이 다릅니다.');
@@ -21963,7 +21963,7 @@ Lab.register({
       sum.push('포트가 8443으로 달라서 다른 출처입니다. 서버는 요청을 받아 처리했지만, 브라우저가 응답을 스크립트에 넘겨주지 않았습니다.');
       sum.push('호스트가 같아도 포트가 다르면 다른 출처입니다. 포트를 적지 않은 주소는 https의 기본 포트 443으로 보고 견줍니다.');
     } else {
-      sum.push('스킴이 http로 달라서 다른 출처입니다. 서버는 요청을 받아 처리했지만, 브라우저가 응답을 스크립트에 넘겨주지 않았습니다.');
+      sum.push('스킴이 http로 달라서 다른 출처입니다. 이 실습(127.0.0.1)에서는 서버가 요청을 받아 처리했지만, 브라우저가 응답을 스크립트에 넘겨주지 않았습니다.');
       sum.push('https와 http는 호스트가 같아도 다른 출처입니다. 이 주소는 포트를 적지 않아 http의 기본 포트 80이 쓰이므로, 포트도 443과 다릅니다.');
     }
     return { events: ev, summary: sum, tg: t, parts: parts, same: same, row: [t.origin, same ? '같은 출처' : '다른 출처', '예', same ? '예' : '아니요'] };
@@ -22083,7 +22083,7 @@ Lab.register({
     if (bind) {
       st.ans = 'rows'; st.n = o.names.length;
       st.log.push(['ps.executeQuery', { v: 'DB가 실행해 결과를 돌려줌 (행 ' + st.n + '개)', cls: 'good' }]);
-      push('ps.executeQuery(): ps가 SQL 글자와 값을 DB에 보냅니다. DB가 실행한 SQL은 "' + S + '"이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. ' +
+      push('ps.executeQuery(): ps는 값을 SQL 글과 따로 다뤄서, 값이 SQL 문법으로 읽히지 않게 합니다. DB가 실행한 SQL은 "' + S + '"이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. ' +
         (k === 'or' ? '값은 "' + I + '"라는 글 전체이고, ' + tbl + '은 없어서 결과는 행이 0개입니다. 값 안의 따옴표와 OR는 SQL 문법으로 읽히지 않고 이름의 일부일 뿐입니다.'
           : k === 'oneil' ? tbl + '은 1개입니다. 값 안의 따옴표는 이름의 일부일 뿐이라 SQL을 끝내거나 깨뜨리지 않습니다.'
           : tbl + '은 1개입니다.') +
@@ -22265,7 +22265,7 @@ Lab.register({
       push('클라이언트가 약 3초 만에 200 응답을 받았습니다. 이번에는 결제 서버가 3초 뒤에 답해서 끝났습니다. 그러나 결제 서버가 요청을 받고도 끝내 답하지 않게 만들고 4초를 기다려 보았더니, 이 주문 서버는 포기하지 않았고 클라이언트도 응답을 받지 못했습니다. 그 이상은 기다려 보지 않았습니다.', 'bad');
       row = ['200 주문 완료', '약 3초', '결제 서버가 3초 만에 답할 때까지 기다림'];
       sum.push('기다리는 시간을 정하지 않은 주문 서버는 결제 서버가 3초 뒤에 답할 때까지 기다렸고, 클라이언트는 약 3초 만에 200을 받았습니다.');
-      sum.push('결제 서버가 끝내 답하지 않는다면 이 주문 서버도 끝없이 기다리게 됩니다(4초가 지나도록 포기하지 않는 것을 확인했습니다). 기다리는 시간을 정해야 느리거나 멈춘 상대 때문에 내 서버까지 멈춰 서지 않습니다.');
+      sum.push('결제 서버가 답하지 않을 때 시간 한도가 없으면, 이 주문 서버는 응답이 올 때까지 계속 기다립니다(여기서는 4초까지 지켜봤습니다). 기다리는 시간을 정해야 느리거나 멈춘 상대 때문에 내 서버까지 멈춰 서지 않습니다.');
     }
     return { events: ev, summary: sum, row: row };
   },
@@ -22575,7 +22575,7 @@ Lab.register({
     P.box('src', 500, 40, 166, 100, { cls: hot === 'src' ? 'hot now' : 'plain', title: '원본', sub: '1 → ' + (s && s.src ? s.src : '-') });
     if (u && (act === 'chk' || act === 'hit' || act === 'miss')) P.arrow('a1', 'fd:r:0.25', 'ca:l', { cls: act === 'hit' ? 'good' : act === 'miss' ? 'bad' : 'hot' });
     if (act === 'load') {
-      if (u) P.arrow('a2', 'ca:b', 'sl:t', { cls: 'hot' }); else P.arrow('a3', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
+      P.arrow('a2', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
       P.arrow('a4', 'sl:r', 'src:l:0.75', { cls: 'hot' });
     }
     P.box('n1', 14, 196, 208, 38, { cls: s && s.slow ? 'wait' : 'ghost', title: '느린 조회 횟수', right: (s ? s.slow : 0) + '번' });
@@ -22821,7 +22821,7 @@ Lab.register({
 Lab.register({
   id: 'deploy_basic', nav: '배포', cat: '기초개념', mode: 'step', basic: true, deep: ['deploy', 'cicd', 'k8s'],
   title: '코드를 고치면 실행 중인 서버는 언제 바뀌는가',
-  intro: '서버는 소스 파일(코드를 적어 둔 파일)을 읽어 들여, 그 코드대로 요청에 답하는 프로그램입니다. 서버를 켜면 컴퓨터가 서버 프로그램을 실행해 프로세스(실행 중인 프로그램)를 하나 만들고, 이 프로세스는 켜질 때 소스 파일 server.js를 읽어 들입니다. 그 뒤에는 읽어 들인 코드로 돌 뿐이고, 이 서버는 디스크에 있는 파일을 다시 읽지 않습니다. 그래서 파일을 고쳐 저장해도 이미 켜져 있는 서버는 옛 코드 그대로 답합니다. 새 코드를 쓰게 하려면 서버를 끄고 새 코드로 다시 켜야 하고, 이렇게 새 버전을 실제로 돌아가게 하는 일을 배포라고 합니다. 코드 칸은 자바 코드가 아니라 사람이 하는 일을 순서대로 적은 목록입니다(#으로 시작하는 줄은 번호가 붙은 할 일입니다). 이 실습은 소스 파일을 고치는 2번 줄과 서버를 껐다 켜는 3번 줄을 하나씩 지우거나 순서를 바꿔 가며, 4번 요청에 어느 버전이 답하는지를 봅니다.',
+  intro: '이 실습의 서버(Node.js)는 소스 파일(코드를 적어 둔 파일)을 읽어 들여, 그 코드대로 요청에 답하는 프로그램입니다. 서버를 켜면 컴퓨터가 서버 프로그램을 실행해 프로세스(실행 중인 프로그램)를 하나 만들고, 이 프로세스는 켜질 때 소스 파일 server.js를 읽어 들입니다. 그 뒤에는 읽어 들인 코드로 돌 뿐이고, 이 서버는 디스크에 있는 파일을 다시 읽지 않습니다. 그래서 파일을 고쳐 저장해도 이미 켜져 있는 서버는 옛 코드 그대로 답합니다. 새 코드를 쓰게 하려면 서버를 끄고 새 코드로 다시 켜야 하고, 이렇게 새 버전을 실제로 돌아가게 하는 일을 배포라고 합니다. 코드 칸은 자바 코드가 아니라 사람이 하는 일을 순서대로 적은 목록입니다(#으로 시작하는 줄은 번호가 붙은 할 일입니다). 이 실습은 소스 파일을 고치는 2번 줄과 서버를 껐다 켜는 3번 줄을 하나씩 지우거나 순서를 바꿔 가며, 4번 요청에 어느 버전이 답하는지를 봅니다.',
   terms: ['배포', '서버 재시작', '시작할 때 읽은 코드', '연결 거부 오류'],
   controls: [
     { id: 'edit', label: '2번 줄 "소스 파일의 "버전 1"을 "버전 2"로 고친다"를 적는다', type: 'check', value: true },
@@ -22913,7 +22913,7 @@ Lab.register({
       sum.push('새 코드가 돌려면 파일을 고치는 일과 서버를 다시 켜는 일이 둘 다 필요합니다.');
     } else if (!edit && !rs) {
       sum.push('아무것도 바꾸지 않았으므로 ' + J(V1, '이') + ' 답합니다. 서버는 처음 읽어 들인 코드 그대로 돌고 있습니다.');
-      sum.push('서버 안의 코드는 서버를 다시 켜는 것으로만 바뀌고, 그때 읽는 것은 그 순간의 소스 파일입니다. 둘 중 하나라도 빠지면 새 버전은 요청에 닿지 못합니다.');
+      sum.push('이 실습에서는 서버를 다시 켜야 서버 안의 코드가 바뀌고, 그때 읽는 것은 그 순간의 소스 파일입니다. 둘 중 하나라도 빠지면 새 버전은 요청에 닿지 못합니다.');
     } else {
       sum.push('서버가 꺼져 있는 사이에 보낸 요청은 연결 거부 오류로 실패합니다. 다시 켠 뒤에도 소스 파일을 고치지 않았으니 ' + J(V1, '이') + ' 답합니다.');
       sum.push('코드를 바꾸지도 않고 서버를 껐다 켜면 얻는 것 없이 끊기는 시간만 생깁니다.');

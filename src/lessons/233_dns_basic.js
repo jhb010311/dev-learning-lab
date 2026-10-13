@@ -4,7 +4,7 @@ Lab.register({
   intro: '컴퓨터끼리는 IP 주소(숫자)로 연결하지만, 사람은 shop.example 같은 이름을 씁니다. DNS는 이름을 IP 주소로 바꿔 주는 서비스이고, 이름과 IP 주소를 짝지어 적어 둔 표를 가진 컴퓨터가 DNS 서버입니다. 화면의 코드 칸은 두 구역입니다. 위쪽은 DNS 서버에 등록된 것(이름 → IP 주소)이고, 아래쪽은 클라이언트가 접속하려는 주소입니다. 이름으로 접속하려는 클라이언트는 서버에 연결하기 전에 먼저 DNS 서버에 그 이름의 IP 주소를 묻고, 답으로 받은 IP 주소로 연결합니다. 이 실습은 이름을 등록하지 않거나, 다른 IP 주소로 등록하거나, 주소 칸에 이름 대신 IP 주소를 직접 적어 가며 같은 접속을 시켜, DNS 서버에 몇 번 묻는지, 어느 컴퓨터에 닿는지를 봅니다. 화면의 8080은 예시로 적은 포트 번호입니다.',
   terms: ['DNS', '도메인 이름', 'IP 주소(IPv4)', '이름 없음 응답(NXDOMAIN)'],
   controls: [
-    { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터)'], ['none', 'shop.example을 등록하지 않는다']] },
+    { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터 역할)'], ['none', 'shop.example을 등록하지 않는다']] },
     { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/로 접속한다'], ['ip', 'http://127.0.0.1:8080/로 접속한다 (IP 주소를 직접 적는다)']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
@@ -38,7 +38,7 @@ Lab.register({
       // 3단계: DNS 서버의 답
       if (dest) {
         st.rep = 'good'; st.dn = 'good'; st.cl = 'plain'; st.ans = dest; st.clt = ['받은 IP 주소', dest];
-        push('DNS 서버가 표에서 shop.example을 찾아 답합니다. shop.example의 IP 주소는 ' + dest + '입니다.' + (c.reg === 'two' ? ' 이 표에는 shop.example이 127.0.0.2로 등록돼 있습니다. 127.0.0.2는 127.0.0.1과 다른 컴퓨터의 주소입니다.' : '') + ' 클라이언트는 이제 어디로 연결할지 압니다.', 'good');
+        push('DNS 서버가 표에서 shop.example을 찾아 답합니다. shop.example의 IP 주소는 ' + dest + '입니다.' + (c.reg === 'two' ? ' 이 표에는 shop.example이 127.0.0.2로 등록돼 있습니다. 127.0.0.2는 127.0.0.1과 다른 주소입니다(둘 다 이 PC를 가리키는 주소인데, 이 실습에서는 서로 다른 컴퓨터인 셈 칩니다).' : '') + ' 클라이언트는 이제 어디로 연결할지 압니다.', 'good');
         // 4단계: 연결
         st.go = who; st.ip = dest; st.dn = 'plain'; st.cl = 'hot'; st[who] = 'hot'; st.clt = [dest + '의', '8080번에 연결'];
         push('클라이언트가 답으로 받은 IP 주소 ' + dest + '의 8080번 포트로 연결해 GET / 요청을 보냅니다. ' + port + ' 주소에 적은 이름 shop.example은 연결에 쓰이지 않고, 연결하는 곳은 DNS가 알려 준 IP 주소입니다.', '');
@@ -98,8 +98,8 @@ Lab.register({
     P.size(680, 332);
     P.box('cl', 14, 116, 130, 72, { cls: s ? s.cl : 'plain', title: '클라이언트', sub: s ? s.clt : ['대기'] });
     P.box('dn', 215, 14, 240, 72, { cls: s ? s.dn : 'plain', title: 'DNS 서버', sub: ['이름 → IP 주소 표', table] });
-    P.box('c1', 510, 100, 156, 62, { cls: s ? s.c1 : 'plain', title: '컴퓨터 127.0.0.1', sub: s ? s.c1t : ['서버가 떠 있음'] });
-    P.box('c2', 510, 190, 156, 62, { cls: s ? s.c2 : 'plain', title: '컴퓨터 127.0.0.2', sub: s ? s.c2t : ['서버가 떠 있음'] });
+    P.box('c1', 486, 100, 180, 62, { cls: s ? s.c1 : 'plain', title: '컴퓨터 역할 127.0.0.1', sub: s ? s.c1t : ['서버가 떠 있음'] });
+    P.box('c2', 486, 190, 180, 62, { cls: s ? s.c2 : 'plain', title: '컴퓨터 역할 127.0.0.2', sub: s ? s.c2t : ['서버가 떠 있음'] });
     if (s && s.ask) P.arrow('ask', 'cl:t:0.3', 'dn:l:0.35', { cls: 'hot' });
     if (s && s.rep) P.arrow('rep', 'dn:l:0.8', 'cl:t:0.75', { cls: s.rep });
     if (s && s.go) P.arrow('go', 'cl:r:0.4', s.go + ':l:0.5', { cls: 'hot' });

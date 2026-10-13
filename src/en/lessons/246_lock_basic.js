@@ -10,7 +10,7 @@ Lab.register({
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
     { t: 'Default settings', q: 'What does a lock look like, and what does count become when 2 threads each call add() 100000 times?', d: 'add has synchronized and there are 2 threads. Only one thread runs add at a time, so count becomes 200000.', v: { sync: true, threads: '2' } },
-    { t: 'Removing synchronized', q: 'What if you remove the synchronized keyword before the add declaration?', d: 'The two threads step in on each other between reading and writing count, so you get a value smaller than 200000. The value is different on each run.', v: { sync: false, threads: '2' } },
+    { t: 'Removing synchronized', q: 'What if you remove the synchronized keyword before the add declaration?', d: 'The two threads step in on each other between reading and writing count, so you usually get a value smaller than 200000 (if the threads do not overlap, you can get 200000). The value is different on each run.', v: { sync: false, threads: '2' } },
     { t: 'Using only 1 thread', q: 'What if you use only one thread, t1, without the synchronized keyword?', d: 'There is no other thread to step in, so count is 100000 even without a lock.', v: { sync: false, threads: '1' } },
     { t: 'Adding synchronized with 1 thread', q: 'What if there is only one thread, t1, and you keep the synchronized keyword?', d: 'Even if the thread acquires the lock, no thread is waiting, so the result is the same as without the lock.', v: { sync: true, threads: '1' } },
   ],
@@ -32,7 +32,7 @@ Lab.register({
   simulate: function (c) {
     var S = c.sync, two = c.threads === '2', expect = two ? 200000 : 100000, ev = [], sum = [];
     var racy = !S && two;
-    var last = racy ? 'A value smaller than 200000 (different on each run)' : String(expect);
+    var last = racy ? 'Usually below 200000 (differs per run)' : String(expect);
     var st = { hot: '', t: [{ cls: 'ghost', sub: ['Not started yet'] }, { cls: 'ghost', sub: [two ? 'Not started yet' : 'Not created'] }], holder: '', inside: [], cnt: null, rd: [null, null], lost: 0, a1: '', a2: '', rw: '', fin: false, res: ['', '', ''], checks: [] };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var lockLine = 'Because this add has synchronized, a thread that calls it must acquire the lock before going in. The lock of a static method is the single lock that belongs to the Main class, and only one thread can hold a lock at a time. When the thread holding the lock leaves add, the lock is released.';
@@ -118,7 +118,7 @@ Lab.register({
     if (two) st.t[1] = { cls: 'good', sub: ['100000 calls finished'] };
     st.res = [last, String(expect), racy ? 'Yes (different on each run)' : 'None'];
     st.checks.push(['println(count) after join', { v: last, cls: racy ? 'bad' : 'good' }]);
-    if (racy) push('This kind of stepping in happens many times during the 100000 calls each. When it happens differs on every run, so ' + (two ? 'after both threads have finished (t1.join() and t2.join()), ' : '') + 'the value that println(count) prints is smaller than 200000 and different on each run. The number of lost increments differs on each run too.', 'bad');
+    if (racy) push('This kind of stepping in happens many times during the 100000 calls each. When it happens differs on every run, so ' + (two ? 'after both threads have finished (t1.join() and t2.join()), ' : '') + 'the value that println(count) prints is usually smaller than 200000 and different on each run. The number of lost increments differs on each run too.', 'bad');
     else if (S && two) push('Each time add() was called, only one thread was inside, so no increment was lost. After both threads finish (t1.join() and t2.join()), println(count) prints 200000. It is the same value however many times you run it. In exchange, the other thread has to wait until the thread holding the lock leaves.', 'good');
     else push('t1 finishes all 100000 calls like this and ends. t1.join() returns, and println(count) prints ' + expect + '. ' + (S ? 'Even with the lock, the result is the same as without the lock.' : 'It was not wrong even without synchronized.') + ' It is the same value however many times you run it.', 'good');
 
@@ -127,7 +127,7 @@ Lab.register({
       sum.push('A call to add() with the lock is run by only one thread at a time, so even when 2 threads each call it 100000 times, count becomes 200000. A lock is a mark that says "only one thread runs this section at a time," and in Java you set it by putting synchronized before the method declaration.');
       sum.push('The read, add, and write of count++ finished inside one thread without being broken up, so no increment was lost. The cost is that the other thread waits until the thread holding the lock leaves.');
     } else if (racy) {
-      sum.push('When you remove synchronized, the 2 threads step in on each other inside add(), the final count became a value smaller than 200000, and increments were lost. The value was different on each run.');
+      sum.push('When you remove synchronized, the 2 threads step in on each other inside add(), the final count usually became a value smaller than 200000, and increments were lost. The value was different on each run.');
       sum.push('No error or exception occurs, and only a wrong value comes out, quietly. If another thread changes count between the read, the add, and the write, the thread overwrites it with the stale value it had read, and that increment is as if it never happened.');
     } else if (!S) {
       sum.push('Even without synchronized, count is 100000 if there is only one thread. t1 is the only thread changing count, so there is no thread to step in between the read and the write.');

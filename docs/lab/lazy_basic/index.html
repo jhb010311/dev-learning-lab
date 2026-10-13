@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -53,7 +53,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블의 한 행에 대응하는 자바 클래스(엔티티)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.</li>
+<li>DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블에 대응하는 자바 클래스(엔티티, 그 객체 하나가 한 행)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.</li>
 <li>Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드에는 회원 1의 번호만 아는 대리 객체(프록시)를 넣어 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.</li>
 <li>order.getMember(): Order 객체의 member 필드에 들어 있던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.</li>
 <li>.getName(): 대리 객체가 가진 것은 회원의 번호뿐이라 이름을 알 수 없습니다. 이 순간 JPA(Hibernate)가 member 테이블을 읽는 SELECT 문을 보내 회원 1의 행을 읽어 오고, 대리 객체를 채워 이름 김철수를 돌려줍니다. 회원의 값을 처음 꺼낸 이 줄에서 SELECT가 나갔고, 이 SELECT도 우리가 쓴 코드에 없습니다.</li>
@@ -180,6 +180,6 @@ String name = order.getMember().getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

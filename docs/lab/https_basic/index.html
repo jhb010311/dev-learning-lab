@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,7 +77,7 @@ password=1234
 
 # 서버의 인증서
 이름: localhost
-클라이언트가 믿는 목록에 있음</pre>
+클라이언트가 믿는 기관이 서명함</pre>
 <h2>이 모형의 전제</h2>
 <p>여덟 가지 조합을 모두 이 PC의 127.0.0.1 안에서만 실제로 실행해 대조했습니다. 외부 네트워크에는 연결하지 않았습니다. 서버는 Node.js 24.18.0의 http 서버 또는 https 서버(요청 처리 함수가 받은 본문을 기록)이고, 클라이언트는 같은 Node.js의 http.request 또는 https.request입니다. 서버와 클라이언트 사이에는 Probe가 만든 TCP 중계기를 두었습니다. 중계기는 받은 바이트를 그대로 반대편에 넘기면서 양쪽 방향의 바이트를 모두 기록하고, 그림 가운데의 &quot;중간(공유기, 통신사 장비 등)에서 보이는 것&quot;은 이 기록으로 재현했습니다. 기록된 전체 바이트 안에서 password=1234와 POST /login이라는 글자를 찾았습니다. http://로 접속한 네 조합에서는 두 글자가 모두 있었고, https://로 접속한 조합에서는 연결된 것과 끊긴 것 모두 두 글자가 없었습니다. 이것은 이 실행에서 찾아본 결과이고, 암호가 안전하다는 증명은 아닙니다. 또 https://로 localhost에 접속한 조합에서는 연결을 시작하는 바이트에 localhost라는 글자가 보였고 127.0.0.1로 접속한 조합에서는 보이지 않았습니다(관찰만 했고 원인은 이 실습에서 확인하지 않았습니다). 인증서는 이 PC의 openssl 3.5.7로 시험용을 만들었습니다(자체 서명, 이름 localhost, subjectAltName은 DNS:localhost만, 유효 기간 2일, 파일은 verify/out/https_basic/). &quot;클라이언트가 믿는다&quot;는 https.request의 ca 옵션에 이 인증서를 주는 것으로, &quot;믿지 않는다&quot;는 ca 옵션을 주지 않는 것(Node.js에 들어 있는 인증 기관 목록만 믿는 상태)으로 재현했고, 검증을 끄는 rejectUnauthorized: false는 쓰지 않았습니다. 믿지 않는 두 조합은 DEPTH_ZERO_SELF_SIGNED_CERT 오류로, 믿지만 127.0.0.1로 접속한 조합은 ERR_TLS_CERT_ALTNAME_INVALID 오류(메시지는 Hostname/IP does not match certificate's altnames로 시작)로 연결이 끊겼습니다. 둘 다 해당하는 조합(믿지 않고 127.0.0.1로 접속)에서는 믿을 수 없는 인증서 오류가 나왔고, 이름 불일치 오류는 나오지 않았습니다. 끊긴 조합에서는 서버의 요청 처리 함수가 한 번도 불리지 않았고(서버는 연결이 끊겼다는 오류 ECONNRESET만 기록), 연결된 조합에서는 서버가 POST /login 요청의 본문 password=1234를 받았습니다. 연결된 조합이 사용한 TLS 버전은 TLSv1.3, 암호 묶음은 TLS_AES_256_GCM_SHA384였고, 끊긴 조합의 TLS 버전은 재지 못했습니다. 화면의 8080과 8443은 예시 번호이고 실제로는 빈 포트를 썼으며, password=1234는 시험용 글자입니다. 실제 브라우저와 운영체제에는 믿는 인증 기관의 목록이 미리 들어 있고 서버의 인증서는 그 기관이 서명해 준 것이어야 하는데, 이 실습은 그것을 다루지 않고 &quot;믿는 목록에 있음/없음&quot;만 다뤘습니다. 실제 브라우저로는 실행해 보지 않았습니다. 문서로 확인한 것은 RFC 9110의 4.2.2절(https URI 스킴: TLS로 보호된 연결, 서버가 해당 권한의 서버로 인증됨, 기본 포트 443)과 4.3.4절(https 인증서 확인: 접속한 주소의 서버와 인증서의 신원이 맞는지 확인해야 하고, 확인에는 믿는 인증서 목록이 필요하다. 인증서가 그 주소에 유효하지 않으면 브라우저 같은 사용자 에이전트는 사용자의 확인을 받거나 연결을 끊어야 하고 자동 클라이언트는 연결을 끊는 것이 권장된다), RFC 8446의 1절(TLS의 목적은 두 상대 사이의 안전한 통로이고, 통로의 데이터는 양 끝에서만 보이며 변조되면 알 수 있다)입니다. 이 실습의 클라이언트는 자동으로 동작하는 프로그램이라 사용자에게 묻지 않고 끊습니다. 브라우저가 경고 화면을 보여 주고 계속할지 묻는 경우는 다루지 않았습니다. 암호화 전에 열쇠를 정하는 방법과 TLS 핸드셰이크의 메시지 순서, 인증서의 유효 기간·폐기·체인은 다루지 않았고 &quot;세부 동작 실습: TLS 핸드셰이크&quot;에서 다룹니다. 화면의 코드는 클라이언트가 접속하는 주소와 보내는 내용, 서버의 인증서 사정을 보인 것이고 서버나 클라이언트의 프로그램 코드가 아닙니다.</p>
 <p>앞 실습: <a href="../../lab/json_basic/">JSON</a> · 다음 실습: <a href="../../lab/proxy_basic/">프록시 서버</a></p>
@@ -167,6 +167,6 @@ password=1234
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

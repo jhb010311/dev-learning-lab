@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Storage and durability</h1>
 <p><b>Does committed data stay after the server is turned off?</b></p>
-<p>A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In code, two things make it happen. One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table. (The H2 in this lab is a database that runs inside the Java program, so &quot;the database program stops&quot; means that the Java program ends. A database such as MySQL is a separate program, and that is the only difference. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)</p>
+<p>A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In code, two things make it happen (depending on the database, a setting that writes the committed data to disk right away is also needed). One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table. (The H2 in this lab is a database that runs inside the Java program, so &quot;the database program stops&quot; means that the Java program ends. A database such as MySQL is a separate program, and that is the only difference. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)</p>
 <p>Checked against real execution · Ran all 4 combinations on H2 2.4.240 by ending the process without cleanup and opening the database again, and checked against the results; the rules of durability were checked against the MySQL and H2 documentation (cutting the power was not run)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -168,6 +168,6 @@ SELECT * FROM memo;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

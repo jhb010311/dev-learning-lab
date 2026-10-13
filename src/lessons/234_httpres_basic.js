@@ -76,7 +76,7 @@ Lab.register({
     if (c.clen !== 'none') {
       st.c2 = c.ctype ? 'plain' : st.c2; st.c1 = 'plain'; st.c3 = 'hot'; st.rdt = ['Content-Length', '읽는 중'];
       st.rows.push([this.CLEN[c.clen], '헤더. 본문의 바이트 수']);
-      push('클라이언트가 다음 줄을 읽습니다. 읽은 글은 "' + this.CLEN[c.clen] + '"입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 컴퓨터가 글자를 세는 단위이고, UTF-8에서 한글 한 글자는 3바이트라서 "' + B + '" 다섯 글자는 15바이트입니다.' + (c.clen === 'short' ? ' 서버가 실제로 보낸 본문은 15바이트이지만 Content-Length에는 6이라고 적혀 있습니다. 클라이언트는 적힌 숫자를 따릅니다.' : ''), '');
+      push('클라이언트가 다음 줄을 읽습니다. 읽은 글은 "' + this.CLEN[c.clen] + '"입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 데이터의 크기를 세는 단위(글자 수와는 다를 수 있음)이고, UTF-8에서 한글 한 글자는 3바이트라서 "' + B + '" 다섯 글자는 15바이트입니다.' + (c.clen === 'short' ? ' 서버가 실제로 보낸 본문은 15바이트이지만 Content-Length에는 6이라고 적혀 있습니다. 클라이언트는 적힌 숫자를 따릅니다.' : ''), '');
     }
     // 5단계: 빈 줄
     st.c1 = 'plain'; st.c2 = c.ctype ? 'plain' : 'ghost'; st.c3 = c.clen !== 'none' ? 'plain' : 'ghost'; st.c4 = 'hot'; st.rdt = ['빈 줄:', '헤더 끝']; st.gty = tyTxt;

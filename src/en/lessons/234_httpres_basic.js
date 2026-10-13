@@ -76,7 +76,7 @@ Lab.register({
     if (c.clen !== 'none') {
       st.c2 = c.ctype ? 'plain' : st.c2; st.c1 = 'plain'; st.c3 = 'hot'; st.rdt = ['Content-Length', 'being read'];
       st.rows.push([this.CLEN[c.clen], 'Header. The number of bytes in the body']);
-      push('The client reads the next line. The text it read is "' + this.CLEN[c.clen] + '". The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit a computer uses to count text. In UTF-8, each of the 12 characters of "' + B + '" is 1 byte, so the body is 12 bytes.' + (c.clen === 'short' ? ' The body the server actually sent is 12 bytes, but Content-Length says 5. The client follows the number written.' : ''), '');
+      push('The client reads the next line. The text it read is "' + this.CLEN[c.clen] + '". The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit used to count the size of data (it can differ from the number of characters). In UTF-8, each of the 12 characters of "' + B + '" is 1 byte, so the body is 12 bytes.' + (c.clen === 'short' ? ' The body the server actually sent is 12 bytes, but Content-Length says 5. The client follows the number written.' : ''), '');
     }
     // Step 5: the empty line
     st.c1 = 'plain'; st.c2 = c.ctype ? 'plain' : 'ghost'; st.c3 = c.clen !== 'none' ? 'plain' : 'ghost'; st.c4 = 'hot'; st.rdt = ['Empty line:', 'end of headers']; st.gty = tyTxt;

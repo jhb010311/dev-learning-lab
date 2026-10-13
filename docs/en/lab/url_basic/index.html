@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <li><b>Changing the path to /nothing</b> — The connection is the same and only the path is one the server does not have. The server answers with 404.</li>
 <li><b>Removing the path</b> — Even if you do not write a path, the client sends /. The server does not have a / address.</li>
 <li><b>Removing :8080</b> — If you do not write a port, the client tries to connect to port 80, the default port of http. It does not reach port 8080, where the server is.</li>
-<li><b>Removing http:// at the beginning</b> — Without a scheme, the parts cannot be split correctly. The request cannot be sent.</li>
+<li><b>Removing http:// at the beginning</b> — Without a scheme, the parts cannot be split correctly. The client in this lab cannot send the request (a browser address bar adds http:// for you).</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
@@ -162,6 +162,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

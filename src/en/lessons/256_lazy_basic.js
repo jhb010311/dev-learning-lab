@@ -38,7 +38,7 @@ Lab.register({
 
     // 0. Setup
     step();
-    push('The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to one row of a table, and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.', '');
+    push('The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to a table (one object of the class is one row), and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.', '');
 
     // 1. find
     step();

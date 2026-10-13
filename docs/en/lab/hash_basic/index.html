@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,7 +56,7 @@
 <ol>
 <li>The String saved = sha256(&quot;pass1234&quot;); line runs. At the moment of sign-up, the server puts the password &quot;pass1234&quot; that the user chose into a hash function. A hash function is a calculation that gives a mixed-up value of a fixed length, whatever text you put in, and here it uses SHA-256. sha256 is a helper method that does this calculation (the code is shortened).</li>
 <li>The calculation gives a mixed-up value 64 characters long. It is 64 characters of 0-9 and a-f, and the first 12 are bd94dcda26fc. Whether the input is 1 character or 100 characters, the value that comes out is always 64 characters, and if you put in the same text, you get the same value whenever you calculate.</li>
-<li>The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by looking at the stored value alone.</li>
+<li>The server stores only this 64-character value in saved. It does not store the original password pass1234. A hash function is made so that finding the original text from the value that came out is not practically possible, so you cannot learn pass1234 by calculating backwards from the stored value.</li>
 <li>The String input = &quot;pass1234&quot;; line runs. Now it is login. The user enters pass1234 in the password field.</li>
 <li>sha256(input) runs. The server puts the entered text into the same hash function as at sign-up. The server does not have the password from sign-up, so the only way is to hash the input the same way and compare it with the stored value.</li>
 <li>The value that came out is bd94dcda26fc…, which is the same as the value that came out of pass1234 at sign-up. This is because the same text always gives the same value.</li>
@@ -66,7 +66,7 @@
 <h3>Result of this run</h3>
 <ul>
 <li>A hash is a calculation that gives a mixed-up value of a fixed length (64 characters for SHA-256), whatever text you put in. At sign-up, the server stored that value instead of the password, and at login, it hashed the input the same way and only compared it with the stored value. It was the same pass1234, so the same value came out and login succeeded.</li>
-<li>The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value.</li>
+<li>The server did not store the original password, and it did not need it to compare. Even if the stored value leaks, no method is known to calculate pass1234 backwards from that value (but a common password can be found by hashing candidates one by one and comparing).</li>
 <li>This lab used SHA-256 as it is to show the properties of a hash. Real password storage uses password-only functions such as BCrypt and Argon2, not SHA-256.</li>
 </ul>
 <h2>Code</h2>
@@ -168,6 +168,6 @@ System.out.println(ok);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

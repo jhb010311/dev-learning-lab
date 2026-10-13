@@ -10,7 +10,7 @@ Lab.register({
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
     { t: '처음 설정으로', q: '락은 어떻게 생겼고, 스레드 2개가 add()를 100000번씩 부르면 count는 얼마가 되나', d: 'add에 synchronized가 붙어 있고 스레드가 2개입니다. 한 번에 한 스레드만 add를 실행해 count가 200000이 됩니다.', v: { sync: true, threads: '2' } },
-    { t: 'synchronized를 지우면', q: 'add 선언 앞의 synchronized 키워드를 지우면', d: '두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 200000보다 작은 값이 나옵니다. 값은 실행마다 다릅니다.', v: { sync: false, threads: '2' } },
+    { t: 'synchronized를 지우면', q: 'add 선언 앞의 synchronized 키워드를 지우면', d: '두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 대개 200000보다 작은 값이 나옵니다(스레드가 겹치지 않으면 200000이 나올 수도 있습니다). 값은 실행마다 다릅니다.', v: { sync: false, threads: '2' } },
     { t: '스레드를 1개만 쓰면', q: 'synchronized 키워드 없이 스레드를 t1 하나만 쓰면', d: '끼어들 다른 스레드가 없어서 락이 없어도 count는 100000입니다.', v: { sync: false, threads: '1' } },
     { t: '스레드 1개에 synchronized를 붙이면', q: '스레드가 t1 하나인데 synchronized 키워드를 붙여 두면', d: '락을 잡아도 기다리는 스레드가 없어서 결과는 락이 없을 때와 같습니다.', v: { sync: true, threads: '1' } },
   ],
@@ -32,7 +32,7 @@ Lab.register({
   simulate: function (c) {
     var S = c.sync, two = c.threads === '2', expect = two ? 200000 : 100000, ev = [], sum = [];
     var racy = !S && two;
-    var last = racy ? '200000보다 작은 값 (실행마다 다름)' : String(expect);
+    var last = racy ? '대개 200000보다 작은 값 (실행마다 다름)' : String(expect);
     var st = { hot: '', t: [{ cls: 'ghost', sub: ['시작 전'] }, { cls: 'ghost', sub: [two ? '시작 전' : '만들지 않음'] }], holder: '', inside: [], cnt: null, rd: [null, null], lost: 0, a1: '', a2: '', rw: '', fin: false, res: ['', '', ''], checks: [] };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var lockLine = '이 add는 synchronized가 붙어 있으므로, 부른 스레드는 안에 들어가기 전에 락을 잡아야 합니다. static 메서드의 락은 Main 클래스에 딸린 락 하나이고, 락은 한 번에 한 스레드만 잡을 수 있습니다. 락을 잡은 스레드가 add를 나오면 락이 풀립니다.';
@@ -118,7 +118,7 @@ Lab.register({
     if (two) st.t[1] = { cls: 'good', sub: ['add()를 100000번 마침'] };
     st.res = [last, String(expect), racy ? '있음 (실행마다 다름)' : '없음'];
     st.checks.push([two ? 'join 뒤 println(count)' : 'join 뒤 println(count)', { v: last, cls: racy ? 'bad' : 'good' }]);
-    if (racy) push('이런 끼어들기가 100000번씩 부르는 동안 여러 번 생깁니다. 어느 순간에 끼어드는지는 실행할 때마다 달라서, ' + (two ? 't1.join()과 t2.join()으로 두 스레드가 끝난 뒤' : '') + ' println(count)가 출력하는 값은 200000보다 작고 실행할 때마다 다릅니다. 사라진 증가의 수도 실행마다 다릅니다.', 'bad');
+    if (racy) push('이런 끼어들기가 100000번씩 부르는 동안 여러 번 생깁니다. 어느 순간에 끼어드는지는 실행할 때마다 달라서, ' + (two ? 't1.join()과 t2.join()으로 두 스레드가 끝난 뒤' : '') + ' println(count)가 출력하는 값은 대개 200000보다 작고 실행할 때마다 다릅니다. 사라진 증가의 수도 실행마다 다릅니다.', 'bad');
     else if (S && two) push('이렇게 add()를 부를 때마다 안에는 한 스레드만 있었으므로 증가가 사라지지 않습니다. t1.join()과 t2.join()으로 두 스레드가 끝난 뒤 println(count)가 200000을 출력합니다. 몇 번을 실행해도 같은 값입니다. 대신 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다려야 합니다.', 'good');
     else push('t1이 100000번을 모두 이렇게 마치고 끝납니다. t1.join()이 돌아오고, println(count)가 ' + expect + '을 출력합니다. ' + (S ? '락이 있어도 결과는 락이 없을 때와 같습니다.' : 'synchronized가 없어도 틀리지 않았습니다.') + ' 몇 번을 실행해도 같은 값입니다.', 'good');
 
@@ -127,7 +127,7 @@ Lab.register({
       sum.push('락을 건 add()는 한 번에 한 스레드만 실행하므로, 스레드 2개가 100000번씩 불러도 count는 200000이 됩니다. 락은 "한 번에 한 스레드만 이 구역을 실행한다"는 표시이고, 자바에서는 메서드 선언 앞에 synchronized를 붙여 겁니다.');
       sum.push('count++의 읽기, 더하기, 쓰기가 한 스레드 안에서 끊기지 않고 끝나므로 증가가 사라지지 않았습니다. 그 대가로 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다립니다.');
     } else if (racy) {
-      sum.push('synchronized를 지우면 스레드 2개가 add() 안에서 서로 끼어들어, 마지막 count가 200000보다 작은 값이 되었고 증가가 사라졌습니다. 실행할 때마다 값이 달랐습니다.');
+      sum.push('synchronized를 지우면 스레드 2개가 add() 안에서 서로 끼어들어, 마지막 count가 대개 200000보다 작은 값이 되었고 증가가 사라졌습니다. 실행할 때마다 값이 달랐습니다.');
       sum.push('오류도 예외도 나지 않고 틀린 값만 조용히 나옵니다. 읽기, 더하기, 쓰기 사이에 다른 스레드가 count를 바꾸면, 읽어 둔 오래된 값으로 덮어써서 그 증가가 없던 일이 됩니다.');
     } else if (!S) {
       sum.push('synchronized가 없어도 스레드가 하나뿐이면 count는 100000입니다. count를 고치는 스레드가 t1뿐이라, 읽고 쓰는 사이에 끼어들 스레드가 없습니다.');

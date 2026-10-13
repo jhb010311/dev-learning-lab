@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deployment: When does a running server change after you edit the code? · Dev Learning Lab</title>
-<meta name="description" content="A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the co…">
+<meta name="description" content="The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deploy_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Deployment: When does a running server change after you edit the code? · Dev Learning Lab">
-<meta property="og:description" content="A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the co…">
+<meta property="og:description" content="The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Deployment</h1>
 <p><b>When does a running server change after you edit the code?</b></p>
-<p>A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.</p>
+<p>The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.</p>
 <p>Checked against real execution · Ran six combinations with a Node.js 24.18.0 server (a child process) that was really started, with the server.js file edited, and with the server stopped and started, sending requests from an http client, and checked against the model</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -160,6 +160,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

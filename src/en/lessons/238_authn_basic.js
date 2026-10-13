@@ -27,7 +27,7 @@ Lab.register({
     var out = ['@Configuration', 'public class SecurityConfig {', '    @Bean', '    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {', '        http.authorizeHttpRequests(auth -> auth'];
     if (c.rule === 'role') out.push('                // Authorization: /admin only for someone with the ADMIN role', '                .requestMatchers("/admin").hasRole("ADMIN")');
     if (c.rule === 'open') out.push('                // No check: /admin is open to everyone', '                .requestMatchers("/admin").permitAll()');
-    out.push('                // Authentication: any other address, if the identity is confirmed', '                .anyRequest().authenticated())', '            // Confirm who it is from the username and password in the request', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
+    out.push('                // Authorization rule: any other address is allowed only if the identity is confirmed (authenticated)', '                .anyRequest().authenticated())', '            // Confirm who it is from the username and password in the request', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
       '@RestController', 'public class AdminController {', '    @GetMapping("/admin")', '    public String admin() {', '        return "Admin page";', '    }', '}');
     return out.join('\n');
   },

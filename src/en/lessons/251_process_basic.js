@@ -57,7 +57,7 @@ Lab.register({
     if (how === 'procs') {
       for (var i = 0; i < n; i++) {
         born(i, main1);
-        push(i === 0 ? 'In terminal 1, the command java Counter makes the operating system create one process that runs Counter.class. The number (PID) of this process is ' + P[0] + '. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.'
+        push(i === 0 ? 'In terminal 1, the command java Counter makes the operating system create one java (JVM) process, and that JVM reads and runs Counter.class. The number (PID) of this process is ' + P[0] + '. The operating system gives this process memory, and the count variable that we wrote starts at 0 in that memory. The process is created not by the code we wrote but by the java command and the operating system.'
           : 'While the earlier process is still running, you type the command java Counter once more in terminal ' + (i + 1) + '. The file is the same single Counter.class, but the operating system creates one more process and gives it a new number. The PID of this process is ' + P[i] + '. The operating system gives this process its own memory too, so the count of this process also starts at 0.', '');
         addTo(i);
         push(i === 0 ? 'When main calls add(), the three count++ lines inside add run, and count becomes 3 in the memory of this process. println prints "PID ' + P[0] + ' count 3". Then main waits 2 seconds in Thread.sleep(2000), so this process has not ended yet.'

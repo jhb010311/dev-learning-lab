@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jvm_basic', nav: '컴파일과 JVM', cat: '기초개념', mode: 'step', basic: true, deep: ['classload', 'jit'],
   title: '자바 코드는 어떻게 실행되는가',
-  intro: '우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.',
+  intro: '우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.',
   terms: ['컴파일과 javac', '.class 파일', 'JVM(자바 가상 머신)', '바이트코드'],
   controls: [
     { id: 'compile', label: '터미널에 javac Hello.java 줄을 쓴다', type: 'check', value: true },

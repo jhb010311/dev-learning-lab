@@ -81,7 +81,7 @@ Lab.register({
       sum.push('The port changed to 8443, so it is a different origin. The server received and handled the request, but the browser did not hand the response to the script.');
       sum.push('Even if the host is the same, a different port makes a different origin. An address with no port written is compared as the default port of https, 443.');
     } else {
-      sum.push('The scheme changed to http, so it is a different origin. The server received and handled the request, but the browser did not hand the response to the script.');
+      sum.push('The scheme changed to http, so it is a different origin. In this lab (127.0.0.1), the server received and handled the request, but the browser did not hand the response to the script.');
       sum.push('https and http are different origins even if the host is the same. This address has no port written, so the default port of http, 80, is used, which means the port also differs from 443.');
     }
     return { events: ev, summary: sum, tg: t, parts: parts, same: same, row: [t.origin, same ? 'Same origin' : 'Different origin', 'Yes', same ? 'Yes' : 'No'] };

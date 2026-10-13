@@ -1,7 +1,7 @@
 Lab.register({
   id: 'aop_basic', nav: 'AOP와 프록시', cat: '기초개념', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: '프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가',
-  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
+  intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 쓴 클래스로 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다. LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에는 @Autowired가 붙어 있으면 스프링이 보관한 객체가 들어옵니다. 이 실습은 LogAspect를 지우거나 그 칸에 new OrderService()로 직접 만든 객체를 넣어 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
   terms: ['프록시(Proxy)', 'AOP(관점 지향 프로그래밍)', '@Aspect와 @Before', '@Autowired'],
   controls: [
     { id: 'aspect', label: 'LogAspect 클래스(@Aspect)를 둔다', type: 'check', value: true },
@@ -17,7 +17,7 @@ Lab.register({
   // 화면의 코드와 대조 프로그램(verify/spring/src/AopBasicProbe.java)이 실행한 소스는 같은 글이다(대조 스크립트가 글자까지 비교한다).
   code: function (c) {
     var o = [];
-    if (c.aspect) o.push('// 끼워 넣는 일: OrderService의 order()를 부를 때마다 실행된다', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[로그] order 호출됨");', '    }', '}', '');
+    if (c.aspect) o.push('// 끼워 넣는 일: 스프링이 보관한 OrderService 빈의 order()를 부를 때마다 실행된다', '@Aspect', '@Component', 'class LogAspect {', '    @Before("execution(* OrderService.order(..))")', '    void log() {', '        System.out.println("[로그] order 호출됨");', '    }', '}', '');
     o.push('@Service', 'class OrderService {', '    public void order() {', '        System.out.println("주문 처리");', '    }', '}', '', '@Component', 'class Caller {');
     if (c.how === 'bean') o.push('    // 스프링이 만들어 둔 빈을 찾아 넣어 준다', '    @Autowired', '    OrderService orderService;');
     else o.push('    // 내가 직접 만든다', '    OrderService orderService = new OrderService();');

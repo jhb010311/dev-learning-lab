@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <li>The browser sends a GET /hello request to the server, and the server answers by sending back the text below. This text is the HTTP response. The server in this lab sends the text in the code box exactly as it is, and closes the connection when it is done. The client that reads the response is the http module of Node.js.</li>
 <li>The client reads the first line. The text it read is &quot;HTTP/1.1 200 OK&quot;. The first line (the status line) has three things written in order. HTTP/1.1 is the rules the text was written by (the version), the 200 part is a three-digit number that tells what happened to the request (the status code), and OK is a short description that puts that code into words for people to read. 200 means the request was handled well. The status the client read is &quot;200 OK&quot;.</li>
 <li>The client reads the next line. The text it read is &quot;Content-Type: text/plain; charset=utf-8&quot;. A line in the form &quot;name: value&quot; is called a header. The Content-Type header tells what kind of content the body is. text/plain means plain text, and charset=utf-8 means that the text is written in UTF-8.</li>
-<li>The client reads the next line. The text it read is &quot;Content-Length: 12&quot;. The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit a computer uses to count text. In UTF-8, each of the 12 characters of &quot;Hello, world&quot; is 1 byte, so the body is 12 bytes.</li>
+<li>The client reads the next line. The text it read is &quot;Content-Length: 12&quot;. The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit used to count the size of data (it can differ from the number of characters). In UTF-8, each of the 12 characters of &quot;Hello, world&quot; is 1 byte, so the body is 12 bytes.</li>
 <li>The client reads the next line and finds an empty line with no text at all (the (empty line) on the screen). An empty line marks the end of the headers, and the text from the next character on is the body.</li>
 <li>The client reads as the body as many bytes as Content-Length says, 12 bytes. The text it read is &quot;Hello, world&quot;, and the body ends exactly here. This number is how the client knows where the body ends.</li>
 <li>The client has finished reading the response. What it read is the status &quot;200 OK&quot;, the kind of body &quot;text/plain; charset=utf-8&quot;, and the body &quot;Hello, world&quot;.</li>
@@ -163,6 +163,6 @@ Hello, world</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

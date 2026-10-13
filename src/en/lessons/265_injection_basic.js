@@ -80,7 +80,7 @@ Lab.register({
     if (bind) {
       st.ans = 'rows'; st.n = o.names.length;
       st.log.push(['ps.executeQuery', { v: 'Database ran it and returned a result (rows: ' + st.n + ')', cls: 'good' }]);
-      push('ps.executeQuery(): ps sends the SQL text and the value to the database. The SQL that the database ran is "' + S + '", and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. ' +
+      push('ps.executeQuery(): ps handles the value separately from the SQL text, so the value is not read as SQL syntax. The SQL that the database ran is "' + S + '", and the text of input is nowhere in it. The database looks in the member table for rows whose name equals the value. ' +
         (k === 'or' ? 'The value is the whole text "' + I + '", and there are no rows where ' + tbl + ', so the result has 0 rows. The quote and OR in the value are not read as SQL syntax; they are just part of the name.'
           : k === 'oneil' ? 'There is 1 row where ' + tbl + '. The quote in the value is just part of the name, so it does not end or break the SQL.'
           : 'There is 1 row where ' + tbl + '.') +

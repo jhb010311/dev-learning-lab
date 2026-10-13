@@ -133,7 +133,7 @@ Lab.register({
     P.box('src', 500, 40, 166, 100, { cls: hot === 'src' ? 'hot now' : 'plain', title: '원본', sub: '1 → ' + (s && s.src ? s.src : '-') });
     if (u && (act === 'chk' || act === 'hit' || act === 'miss')) P.arrow('a1', 'fd:r:0.25', 'ca:l', { cls: act === 'hit' ? 'good' : act === 'miss' ? 'bad' : 'hot' });
     if (act === 'load') {
-      if (u) P.arrow('a2', 'ca:b', 'sl:t', { cls: 'hot' }); else P.arrow('a3', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
+      P.arrow('a2', 'fd:r:0.75', 'sl:l', { cls: 'hot' });
       P.arrow('a4', 'sl:r', 'src:l:0.75', { cls: 'hot' });
     }
     P.box('n1', 14, 196, 208, 38, { cls: s && s.slow ? 'wait' : 'ghost', title: '느린 조회 횟수', right: (s ? s.slow : 0) + '번' });

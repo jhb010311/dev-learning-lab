@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var https = c.scheme === 'https', host = https && c.name === 'other' ? '127.0.0.1' : 'localhost';
     var out = ['# 클라이언트가 접속하는 주소', c.scheme + '://' + host + ':' + (https ? '8443' : '8080') + '/login', '', '# 보내는 내용 (POST 요청의 본문)', 'password=1234'];
-    if (https) out.push('', '# 서버의 인증서', '이름: localhost', c.trust ? '클라이언트가 믿는 목록에 있음' : '클라이언트가 믿는 목록에 없음');
+    if (https) out.push('', '# 서버의 인증서', '이름: localhost', c.trust ? '클라이언트가 믿는 기관이 서명함' : '클라이언트가 믿는 기관이 서명하지 않음');
     return out.join('\n');
   },
   label: function (c) { return c.scheme === 'http' ? 'http://로 접속' : 'https://로 접속 · 인증서를 ' + (c.trust ? '믿음' : '믿지 않음') + ' · ' + (c.name === 'other' ? '127.0.0.1로 접속' : 'localhost로 접속'); },

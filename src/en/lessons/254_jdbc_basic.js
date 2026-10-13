@@ -54,7 +54,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: 'Could not send', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): tries to send the SQL, but conn is already closed. Before this line reaches the database, JDBC notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
+      push('st.executeQuery("' + S + '"): tries to send the SQL, but conn is already closed. Before this line reaches the database, the JDBC driver notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
         (typo ? 'Whether the table name is wrong can be known only when the database reads the SQL, so the closed-connection error comes first and the wrong name is never found out. ' : none ? 'The condition WHERE id = 99 has never been read by the database either. ' : '') +
         'There is no code that handles the exception, so the program stops at this line and the lines below it do not run.', 'bad');
     } else if (typo) {

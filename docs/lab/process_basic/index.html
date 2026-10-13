@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,7 +55,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>터미널에서 javac Counter.java 명령을 쓰면 javac가 Counter.java를 읽어 Counter.class 파일을 만듭니다. 이 파일은 디스크에 저장된 파일일 뿐이고, 지금 실행 중인 것은 아무것도 없습니다. 실행 중인 프로그램을 프로세스라고 부르는데, 프로세스는 이 파일을 실행해야 생깁니다.</li>
-<li>터미널 1에서 java Counter 명령을 쓰면, 운영체제가 Counter.class를 실행하는 프로세스를 하나 만듭니다. 이 프로세스의 번호(PID)는 4120입니다. 운영체제는 이 프로세스에 메모리를 내주고, 우리가 쓴 count 변수는 그 메모리 안에서 0으로 시작합니다. 프로세스를 만든 것은 우리가 쓴 코드가 아니라 java 명령과 운영체제입니다.</li>
+<li>터미널 1에서 java Counter 명령을 쓰면, 운영체제가 java(JVM) 프로세스를 하나 만들고, 그 JVM이 Counter.class를 읽어 실행합니다. 이 프로세스의 번호(PID)는 4120입니다. 운영체제는 이 프로세스에 메모리를 내주고, 우리가 쓴 count 변수는 그 메모리 안에서 0으로 시작합니다. 프로세스를 만든 것은 우리가 쓴 코드가 아니라 java 명령과 운영체제입니다.</li>
 <li>main이 add()를 부르면 add 안의 count++ 세 줄이 실행되어, 이 프로세스의 메모리에서 count가 3이 됩니다. println이 &quot;PID 4120 count 3&quot;을 출력합니다. 이어서 main은 Thread.sleep(2000)에서 2초 기다리므로, 이 프로세스는 아직 끝나지 않았습니다.</li>
 <li>앞의 프로세스가 아직 실행 중일 때 터미널 2에서 java Counter 명령을 한 번 더 씁니다. 파일은 같은 Counter.class 하나인데, 운영체제는 프로세스를 하나 더 만들고 새 번호를 붙입니다. 이 프로세스의 PID는 7352입니다. 운영체제는 이 프로세스에도 메모리를 따로 내주어서, 이 프로세스의 count도 0에서 시작합니다.</li>
 <li>이 프로세스도 add()를 실행합니다. count++ 세 줄이 올리는 것은 이 프로세스의 메모리에 있는 count이므로 0에서 3이 되고, &quot;PID 7352 count 3&quot;이 출력됩니다. 앞 프로세스의 count는 그대로 3입니다. 한 프로세스가 올린 값은 다른 프로세스에서 보이지 않습니다.</li>
@@ -184,6 +184,6 @@ java Counter</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

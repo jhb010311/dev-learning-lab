@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c490670a69">
+<link rel="stylesheet" href="../../app.css?v=9368ef3635">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,7 +77,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -&gt; auth
                 // Authorization: /admin only for someone with the ADMIN role
                 .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;)
-                // Authentication: any other address, if the identity is confirmed
+                // Authorization rule: any other address is allowed only if the identity is confirmed (authenticated)
                 .anyRequest().authenticated())
             // Confirm who it is from the username and password in the request
             .httpBasic(Customizer.withDefaults());
@@ -181,6 +181,6 @@ public class AdminController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c490670a69"></script>
+<script src="../../app.js?v=9368ef3635"></script>
 </body>
 </html>

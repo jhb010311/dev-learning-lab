@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>컴파일과 JVM: 자바 코드는 어떻게 실행되는가 · 개발 학습 실습실</title>
-<meta name="description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class…">
+<meta name="description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jvm_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="컴파일과 JVM: 자바 코드는 어떻게 실행되는가 · 개발 학습 실습실">
-<meta property="og:description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class…">
+<meta property="og:description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>컴파일과 JVM</h1>
 <p><b>자바 코드는 어떻게 실행되는가</b></p>
-<p>우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.</p>
+<p>우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21의 javac와 java 명령으로 여섯 가지 조합을 실제로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -168,6 +168,6 @@ java Hello</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

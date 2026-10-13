@@ -4,7 +4,7 @@ Lab.register({
   intro: 'Computers connect to each other by IP address (a number), but people use names like shop.example. DNS is the service that turns a name into an IP address, and a DNS server is a computer that holds a table listing each name with its IP address. The code box on the screen has two parts. The upper part is what is registered on the DNS server (name → IP address), and the lower part is the address the client tries to reach. A client that connects by name first asks the DNS server for the IP address of that name, before it connects to the server, and then connects to the IP address it got in the answer. In this lab you leave the name unregistered, register it with a different IP address, or write an IP address directly in the address instead of a name, and make the same connection each time, to see how many times the DNS server is asked and which computer is reached. The 8080 on the screen is a port number written as an example.',
   terms: ['DNS', 'Domain names', 'IP address (IPv4)', 'NXDOMAIN response'],
   controls: [
-    { id: 'reg', label: 'What is registered on the DNS server', type: 'select', value: 'one', options: [['one', 'shop.example is registered as 127.0.0.1'], ['two', 'shop.example is registered as 127.0.0.2 (a different computer)'], ['none', 'shop.example is not registered']] },
+    { id: 'reg', label: 'What is registered on the DNS server', type: 'select', value: 'one', options: [['one', 'shop.example is registered as 127.0.0.1'], ['two', 'shop.example is registered as 127.0.0.2 (acting as a different computer)'], ['none', 'shop.example is not registered']] },
     { id: 'target', label: 'The address the client tries to reach', type: 'select', value: 'name', options: [['name', 'It connects to http://shop.example:8080/'], ['ip', 'It connects to http://127.0.0.1:8080/ (the IP address is written directly)']] },
   ],
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
@@ -38,7 +38,7 @@ Lab.register({
       // Step 3: the DNS server answers
       if (dest) {
         st.rep = 'good'; st.dn = 'good'; st.cl = 'plain'; st.ans = dest; st.clt = ['Got IP address', dest];
-        push('The DNS server finds shop.example in its table and answers. The IP address of shop.example is ' + dest + '.' + (c.reg === 'two' ? ' In this table, shop.example is registered as 127.0.0.2. 127.0.0.2 is the address of a different computer from 127.0.0.1.' : '') + ' Now the client knows where to connect.', 'good');
+        push('The DNS server finds shop.example in its table and answers. The IP address of shop.example is ' + dest + '.' + (c.reg === 'two' ? ' In this table, shop.example is registered as 127.0.0.2. 127.0.0.2 is a different address from 127.0.0.1 (both point to this PC, but this lab treats them as two different computers).' : '') + ' Now the client knows where to connect.', 'good');
         // Step 4: connect
         st.go = who; st.ip = dest; st.dn = 'plain'; st.cl = 'hot'; st[who] = 'hot'; st.clt = ['Connecting to', dest + ':8080'];
         push('The client connects to port 8080 of the IP address it got in the answer, ' + dest + ', and sends a GET / request. ' + port + ' The name shop.example written in the address is not used for the connection. The place it connects to is the IP address that DNS gave.', '');
@@ -98,8 +98,8 @@ Lab.register({
     P.size(680, 332);
     P.box('cl', 14, 116, 130, 72, { cls: s ? s.cl : 'plain', title: 'Client', sub: s ? s.clt : ['Waiting'] });
     P.box('dn', 215, 14, 240, 72, { cls: s ? s.dn : 'plain', title: 'DNS server', sub: ['Name → IP address table', table] });
-    P.box('c1', 510, 100, 156, 62, { cls: s ? s.c1 : 'plain', title: 'Computer 127.0.0.1', sub: s ? s.c1t : ['Server running'] });
-    P.box('c2', 510, 190, 156, 62, { cls: s ? s.c2 : 'plain', title: 'Computer 127.0.0.2', sub: s ? s.c2t : ['Server running'] });
+    P.box('c1', 486, 100, 180, 62, { cls: s ? s.c1 : 'plain', title: 'Pretend PC 127.0.0.1', sub: s ? s.c1t : ['Server running'] });
+    P.box('c2', 486, 190, 180, 62, { cls: s ? s.c2 : 'plain', title: 'Pretend PC 127.0.0.2', sub: s ? s.c2t : ['Server running'] });
     if (s && s.ask) P.arrow('ask', 'cl:t:0.3', 'dn:l:0.35', { cls: 'hot' });
     if (s && s.rep) P.arrow('rep', 'dn:l:0.8', 'cl:t:0.75', { cls: s.rep });
     if (s && s.go) P.arrow('go', 'cl:r:0.4', s.go + ':l:0.5', { cls: 'hot' });

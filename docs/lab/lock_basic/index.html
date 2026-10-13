@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c9df686f7">
+<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -47,7 +47,7 @@
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
 <li><b>처음 설정으로</b> — add에 synchronized가 붙어 있고 스레드가 2개입니다. 한 번에 한 스레드만 add를 실행해 count가 200000이 됩니다.</li>
-<li><b>synchronized를 지우면</b> — 두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 200000보다 작은 값이 나옵니다. 값은 실행마다 다릅니다.</li>
+<li><b>synchronized를 지우면</b> — 두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 대개 200000보다 작은 값이 나옵니다(스레드가 겹치지 않으면 200000이 나올 수도 있습니다). 값은 실행마다 다릅니다.</li>
 <li><b>스레드를 1개만 쓰면</b> — 끼어들 다른 스레드가 없어서 락이 없어도 count는 100000입니다.</li>
 <li><b>스레드 1개에 synchronized를 붙이면</b> — 락을 잡아도 기다리는 스레드가 없어서 결과는 락이 없을 때와 같습니다.</li>
 </ul>
@@ -184,6 +184,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c9df686f7"></script>
+<script src="../../app.js?v=7a98f14b94"></script>
 </body>
 </html>

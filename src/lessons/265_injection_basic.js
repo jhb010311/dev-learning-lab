@@ -80,7 +80,7 @@ Lab.register({
     if (bind) {
       st.ans = 'rows'; st.n = o.names.length;
       st.log.push(['ps.executeQuery', { v: 'DB가 실행해 결과를 돌려줌 (행 ' + st.n + '개)', cls: 'good' }]);
-      push('ps.executeQuery(): ps가 SQL 글자와 값을 DB에 보냅니다. DB가 실행한 SQL은 "' + S + '"이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. ' +
+      push('ps.executeQuery(): ps는 값을 SQL 글과 따로 다뤄서, 값이 SQL 문법으로 읽히지 않게 합니다. DB가 실행한 SQL은 "' + S + '"이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. ' +
         (k === 'or' ? '값은 "' + I + '"라는 글 전체이고, ' + tbl + '은 없어서 결과는 행이 0개입니다. 값 안의 따옴표와 OR는 SQL 문법으로 읽히지 않고 이름의 일부일 뿐입니다.'
           : k === 'oneil' ? tbl + '은 1개입니다. 값 안의 따옴표는 이름의 일부일 뿐이라 SQL을 끝내거나 깨뜨리지 않습니다.'
           : tbl + '은 1개입니다.') +

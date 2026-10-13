@@ -61,7 +61,7 @@ Lab.register({
       var where = 'line ' + fail.line + ', column ' + fail.col;
       st.dead = true; st.o = { name: '', age: '', tags: '' }; st.arr = []; st.read = 'Failed: ' + WHYS[fail.kind]; st.kind = 'Could not read'; st.plus = 'Could not read'; st.done = true;
       var more = (c.key !== 'dq' && c.comma !== 'ok') ? ' The text also breaks the rules further on (' + (c.comma === 'miss' ? 'the "age" line has no comma at its end' : 'the comma after the last value') + '), but the parser stops at the first problem it meets, so this is the only error it reports.' : '';
-      push('The parser stops reading here and reports an error. The error is at ' + where + ', and JSON.parse and Jackson reported the same position.' + (partial ? ' It does not return what it read before this (' + partial + ') as an object either.' : '') + ' It never returns just the part it could read: either the whole text is read or the whole read fails.' + more, 'bad');
+      push('The parser stops reading here and reports an error. The error is at ' + where + ', and JSON.parse and Jackson reported the same position.' + (partial ? ' It does not return what it read before this (' + partial + ') as an object either.' : '') + ' The JSON.parse and Jackson used here never return just the part they could read: either the whole text is read or the whole read fails.' + more, 'bad');
       push('The receiving side did not get an object. With no object, it cannot take out age, so there is no kind of age and no result for adding 1.', 'bad');
     }
     var WHYS = this.WHY;
