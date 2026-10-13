@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,9 +36,9 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>TCP와 UDP</dt>
-<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. 웹, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
+<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>TCP 연결</dt>
-<dd>TCP 연결은 TCP로 글을 주고받기 전에 보내는 쪽과 받는 쪽 사이에 먼저 맺는 길이다. 보내는 쪽이 상대의 IP 주소와 포트로 연결을 요청하고, 그 포트를 열고 기다리는 프로그램이 있으면 연결이 맺어진다. 연결을 맺는 절차는 3-way handshake이다(RFC 9293 3.5절). 연결이 맺어진 뒤에는 TCP가 바이트를 보낸 차례대로 빠짐없이 전해 주는 것을 맡는다(RFC 9293 2.2절은 TCP가 신뢰할 수 있고 순서가 지켜지는 바이트 스트림 서비스를 제공한다고 적는다). 연결이 없으면 글을 보낼 수 없고, HTTP/1.1도 이런 믿을 수 있는 연결 위에서 오가며 http 주소의 기본은 TCP이다(RFC 9112 9절).</dd>
+<dd>TCP 연결은 TCP로 글을 주고받기 전에 보내는 쪽과 받는 쪽 사이에 먼저 맺는 길이다(실제로 선이 놓이는 것이 아니라 양쪽이 서로의 상태를 기억해 두는 약속이다). 보내는 쪽이 상대의 IP 주소와 포트로 연결을 요청하고, 그 포트를 열고 기다리는 프로그램이 있으면 연결이 맺어진다. 연결을 맺는 절차는 3-way handshake이다(RFC 9293 3.5절). 연결이 맺어진 뒤에는 TCP가 바이트를 보낸 차례대로 빠짐없이 전해 주는 것을 맡는다(RFC 9293 2.2절은 TCP가 신뢰할 수 있고 순서가 지켜지는 바이트 스트림 서비스를 제공한다고 적는다). 연결이 없으면 글을 보낼 수 없고, HTTP/1.1도 이런 믿을 수 있는 연결 위에서 오가며 http 주소의 기본은 TCP이다(RFC 9112 9절).</dd>
 <dt>연결 거부 오류</dt>
 <dd>연결 거부 오류는 TCP로 연결을 요청했는데 그 포트를 열고 기다리는 프로그램이 없을 때 보내는 쪽이 받는 오류이다. Node.js에서는 이 경우 connect 이벤트 대신 error 이벤트가 오고 오류 코드가 ECONNREFUSED로 나타난다(net 문서는 연결에 문제가 있으면 connect 대신 error가 온다고 적고, ECONNREFUSED라는 이름은 문서에서 확인하지 못했으며 이 PC의 실행에서 관찰했다). 연결이 맺어지지 않았으므로 글은 하나도 보내지지 않는다. TCP 표준은 연결이 없는 상태로 온 요청에 거부 신호(RST)를 보내도록 정한다(RFC 9293 3.5.2절).</dd>
 <dt>UDP로 보내기와 도착 확인</dt>
@@ -163,6 +163,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

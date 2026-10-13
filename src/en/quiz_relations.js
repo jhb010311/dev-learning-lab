@@ -1,8 +1,8 @@
 // Quiz questions for the "Many-to-one, one-to-many, one-to-one, many-to-many" lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab's model.
 Lab.quiz([
-  { lv: 1, id: 'relations', q: 'Many members belong to one team. If you map this as a unidirectional one-to-many (Team holds a list of members), which table holds the foreign key?',
+  { lv: 1, id: 'relations', q: 'Many members belong to one team. If you map this as a unidirectional one-to-many (@OneToMany + @JoinColumn, Team holds a list of members), which table holds the foreign key?',
     a: ['The member table, as team_id', 'The team table, as member_id', 'Both tables, one in each', 'Only the team table, which holds the list'],
-    why: 'A cell can hold only one value, so the rows on the "many" side (member) have to point to the row on the "one" side (team). Whether you map it as a many-to-one or as a one-to-many, the foreign key is in the member table. What changes is which entity manages that foreign key.',
+    why: 'A cell can hold only one value, so the rows on the "many" side (member) have to point to the row on the "one" side (team). Whether you map it as a many-to-one or as a one-to-many unidirectional with @JoinColumn, the foreign key is in the member table. What changes is which entity manages that foreign key.',
     sim: { c: { rel: 'o2m', fk: 'main', n: 2 }, col: 1, has: 'member.team_id' } },
   { lv: 2, id: 'relations', q: 'When you save with a unidirectional one-to-many (@OneToMany + @JoinColumn), UPDATEs are sent after the INSERTs. Why?',
     a: ['Member has no field that points to the team, so team_id cannot be put into the INSERT', 'With the IDENTITY strategy, the foreign key is always filled in with an UPDATE', 'The member was saved before the team, so the id of the team was not known yet at that time', 'Dirty checking wrongly decides that the name of the member changed and saves it again'],

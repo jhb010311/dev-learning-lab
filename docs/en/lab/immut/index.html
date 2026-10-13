@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Immutable object</dt>
 <dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
 <dt>Defensive copy</dt>
-<dd>When an object has a field that refers to a mutable object, such as a list, an array, or a Date, this means storing a copy of what was passed in rather than the original, and returning a copy of what it holds rather than the original. If the originals are stored and returned, outside code and this object refer to the same list, and changing that list from outside changes the internal state of this object. If copies are exchanged, the internal state stays the same whatever the outside code does. When returning, instead of a copy you can also return an unmodifiable view such as Collections.unmodifiableList, but a view changes when the underlying list changes.</dd>
+<dd>When an object has a field that refers to a mutable object, such as a list, an array, or a Date, this means storing a copy of what was passed in rather than the original, and returning a copy of what it holds rather than the original. If the originals are stored and returned, outside code and this object refer to the same list, and changing that list from outside changes the internal state of this object. If copies are exchanged, adding or removing elements in the copy does not affect the internal state (if the element objects themselves are mutable, they must be protected separately). When returning, instead of a copy you can also return an unmodifiable view such as Collections.unmodifiableList, but a view changes when the underlying list changes.</dd>
 <dt>final</dt>
 <dd>This keyword means that something can no longer be changed. On a variable, it means the value cannot be assigned again; on a method, it means a subclass cannot override it; on a class, it means the class cannot be extended. On a reference variable, it only prevents the variable from pointing to another object; the internal state of that object can still change.</dd>
 <dt>Encapsulation</dt>
@@ -172,6 +172,6 @@ order.getItems().add(&quot;chair&quot;);     // (2) modifies the list returned b
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

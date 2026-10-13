@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>예외를 던진다(throw)</dt>
 <dd>예외를 던진다는 것은 예외 객체를 만들어 지금 하던 일을 멈추고, 그것을 잡는 곳으로 실행을 옮기는 것이다. 정수를 0으로 나누는 것처럼 자바의 규칙을 어기는 일이 생기면 자바가 스스로 예외를 던지고, throw new IllegalStateException()처럼 throw 문으로 코드에서 직접 던질 수도 있다. 던져지면 던진 곳으로 되돌아가 이어서 실행하지 않는다. 호출한 쪽으로 차례로 올라가며 이 예외를 잡을 수 있는 try-catch를 찾고, 끝까지 없으면 그 스레드가 끝난다.</dd>
 <dt>NullPointerException</dt>
-<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. 컴파일러가 미리 잡아 주지 않는 Unchecked 예외라서 실행해 봐야 드러난다. null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
+<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. null인지 아닌지는 실행 중의 값에 달려 있어서 컴파일러가 미리 잡아 주지 못하고, 실행해 봐야 드러난다(Unchecked 예외라 처리를 강제하지도 않는다). null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

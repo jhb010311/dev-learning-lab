@@ -2,7 +2,7 @@
 Lab.quiz([
   { lv: 1, id: 'restclient', q: 'The connect timeout and the read timeout are each a limit on the time spent waiting for what?',
     a: ['Connect timeout: until the connection is established. Read timeout: until the response arrives after the connection is established', 'Connect timeout: until the response arrives. Read timeout: until the response body is converted to an object', 'Connect timeout: the whole call. Read timeout: only the GET request within the call', 'Connect timeout: the first call. Read timeout: the second call onward'],
-    why: 'The connect timeout counts time only until the TCP connection to the remote server is established, and the read timeout counts time only while the caller waits for the response after the connection is established. They measure different intervals, so one cannot stand in for the other.' },
+    why: 'The connect timeout counts time only until the TCP connection to the remote server is established, and the read timeout is the limit on the time spent waiting, after the connection is established, while no data arrives. They measure different intervals, so one cannot stand in for the other.' },
   { lv: 1, id: 'restclient', q: 'You made a call with RestClient, and the remote server responded with 404. How does this show up in the calling code?',
     a: ['An HttpClientErrorException is thrown', 'body() returns null', 'A ResourceAccessException is thrown', 'The error message comes back as a string'],
     why: 'RestClient turns a 4xx response into an HttpClientErrorException and a 5xx response into an HttpServerErrorException and throws it. A ResourceAccessException is thrown when the response itself was not received, as with a connection failure or a timeout.',

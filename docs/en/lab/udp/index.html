@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>TCP and UDP</dt>
-<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 <dt>Byte stream and datagram</dt>
 <dd>These are the two shapes in which data is carried. A byte stream is a flow in which bytes continue in order without a break, and TCP works this way. How many writes the sender used is not passed on, so data sent in three writes may be read in one read, and data sent in one write may be read in several reads. A datagram is a way in which a piece sent at one time is delivered as it is, as a single unit, and UDP works this way; pieces are not merged or split when they are read. So a program that exchanges messages over TCP has to mark the end of a message itself, by writing the length first or by putting in a delimiter.</dd>
 <dt>Socket</dt>
@@ -174,6 +174,6 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

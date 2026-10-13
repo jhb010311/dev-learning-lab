@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Controller class</dt>
-<dd>A controller class is a Java class in Spring MVC that has methods that handle web requests. Unlike a servlet, it does not have to extend a particular class or implement an interface, and you mark it as a controller by putting @Controller or @RestController above the class. Spring scans the classpath (component scanning), finds the classes with the marker, and creates and keeps their objects, so the developer does not create them with new. A request is received by DispatcherServlet, which looks at the path written above a method (@GetMapping and so on) and calls the method of the matching controller. Paths are written on methods, not on the class, so one class can hold several paths.</dd>
+<dd>A controller class is a Java class in Spring MVC that has methods that handle web requests. Unlike a servlet, it does not have to extend a particular class or implement an interface, and you mark it as a controller by putting @Controller or @RestController above the class. Spring scans the classpath (component scanning), finds the classes with the marker, and creates and keeps their objects, so the developer does not create them with new. A request is received by DispatcherServlet, which looks at the path written above a method (@GetMapping and so on) and calls the method of the matching controller. Paths are written on each method (above the class you can write only a shared prefix), so one class can hold several paths.</dd>
 <dt>@RestController</dt>
 <dd>@RestController is an annotation that marks a class as a controller. It combines @Controller and @ResponseBody, so the value that a request-handling method of this class returns is written directly to the response body without going through a view. @Controller is a specialization of @Component, so Spring finds this class by component scanning and registers it as an object. Without this annotation, Spring does not find the class as a controller, so it does not receive requests even if its methods have @GetMapping.</dd>
 <dt>@GetMapping</dt>
@@ -167,6 +167,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

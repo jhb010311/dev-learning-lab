@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Externalized configuration and profiles</dt>
 <dd>Externalized configuration means supplying setting values such as a DB address through configuration files, environment variables, command-line arguments, and so on, without putting them in the code. It lets you run the same build artifact with different settings in different environments. A profile is a feature that keeps groups of settings separated by environment, such as development and production, and lets you select one at run time.</dd>
 <dt>Spring Boot auto-configuration</dt>
-<dd>This Spring Boot feature looks at the libraries on the classpath and at the configuration values, and automatically registers the beans that are needed. For example, if a JDBC driver and connection details are present, it configures a DataSource automatically. Each auto-configuration has conditions for when it applies, and if the developer registers a bean of the same kind directly, the auto-configuration does not apply.</dd>
+<dd>This Spring Boot feature looks at the libraries on the classpath and at the configuration values, and automatically registers the beans that are needed. For example, if a JDBC driver and connection details are present, it configures a DataSource automatically. Each auto-configuration has conditions for when it applies, and if the developer registers a bean of the same kind directly, the part of the auto-configuration that creates that bean does not apply.</dd>
 <dt>CI/CD</dt>
 <dd>CI (continuous integration) means merging code changes often and automatically running a build and tests on every merge to find problems early. CD (continuous delivery or continuous deployment) means using an automated process to get verified code into a deployable state or to deploy it all the way to production. Automating the build, test, and deployment work that people used to do by hand reduces mistakes and shortens the release cycle.</dd>
 </dl>
@@ -165,6 +165,6 @@ java -jar app.jar --spring.profiles.active=prod</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

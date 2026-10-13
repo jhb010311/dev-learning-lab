@@ -2,7 +2,7 @@
 Lab.quiz([
   { lv: 1, id: 'lifecycle', q: 'In which order does the Spring container handle a singleton bean?',
     a: ['Constructor call → dependency injection → initialization callback → use → destruction callback', 'Dependency injection → constructor call → initialization callback → use → destruction callback', 'Initialization callback → constructor call → dependency injection → use → destruction callback', 'Constructor call → initialization callback → dependency injection → use → destruction callback'],
-    why: 'A field can be set only after the object exists, so the constructor comes first, and the initialization callback is called after dependency injection finishes. The destruction callback is called when the container is closed.' },
+    why: 'With field or setter injection, a field can be set only after the object exists, so the constructor comes first, and the initialization callback is called after dependency injection finishes. The destruction callback is called when the container is closed.' },
   { lv: 1, id: 'lifecycle', q: 'When is a method annotated with @PostConstruct called?',
     a: ['Right after the object is created and dependency injection finishes', 'Just before the constructor runs', 'When a method of the bean is called for the first time', 'Just before the container is closed'],
     why: '@PostConstruct is an initialization callback. The container calls it after creating the object and injecting all the dependencies, so the injected objects can be used inside this method.',

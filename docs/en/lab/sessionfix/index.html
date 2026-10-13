@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Session</dt>
-<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot tamper with it. When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
+<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot change its contents (having the session ID stolen is a different problem). When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
 <dt>Session hijacking</dt>
 <dd>An attack in which someone learns the session ID of another user's logged-in session and puts that ID in the cookie of their own requests to act as that user. The server decides whose request it is only from the session ID that arrives in the cookie, so it cannot tell the person who knows the ID from the original user. A session ID leaks when a script reads the cookie, or when someone eavesdrops on communication that is not encrypted. That is why you add HttpOnly and Secure to the session cookie, delete the session on the server at logout, and keep the session timeout from being long.</dd>
 <dt>Session fixation</dt>
@@ -184,6 +184,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

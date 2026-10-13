@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>메서드 참조</dt>
 <dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
 <dt>익명 클래스와 람다의 차이</dt>
-<dd>익명 클래스는 인터페이스나 클래스를 그 자리에서 구현하면서 이름 없이 객체를 만드는 문법으로, new 인터페이스이름() { 메서드 구현 } 형태로 쓴다. 람다는 추상 메서드가 하나뿐인 함수형 인터페이스에 한해 같은 일을 (매개변수) -&gt; 실행문 형태로 짧게 쓰는 문법이다. 함수형 인터페이스를 구현할 때는 둘 중 어느 것으로 써도 호출한 결과가 같다. 다만 익명 클래스는 메서드가 여러 개인 인터페이스도 구현할 수 있고 필드를 가질 수 있으며, 그 안의 this는 익명 클래스의 객체 자신을 가리킨다. 람다 안의 this는 람다를 적은 바깥 객체를 가리킨다.</dd>
+<dd>익명 클래스는 인터페이스나 클래스를 그 자리에서 구현하면서 이름 없이 객체를 만드는 문법으로, new 인터페이스이름() { 메서드 구현 } 형태로 쓴다. 람다는 추상 메서드가 하나뿐인 함수형 인터페이스에 한해 같은 일을 (매개변수) -&gt; 실행문 형태로 짧게 쓰는 문법이다. 함수형 인터페이스를 구현할 때 this를 쓰지 않는 단순한 본문이면 둘 중 어느 것으로 써도 호출한 결과가 같다. 다만 익명 클래스는 메서드가 여러 개인 인터페이스도 구현할 수 있고 필드를 가질 수 있으며, 그 안의 this는 익명 클래스의 객체 자신을 가리킨다. 람다 안의 this는 람다를 적은 바깥 객체를 가리킨다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -179,6 +179,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

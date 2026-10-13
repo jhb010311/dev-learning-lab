@@ -84,7 +84,7 @@ Lab.register({
         sum.push('If you add one more field, JPA pairs it with a column too, so the table gets an email column and it goes into the column list of the INSERT statement too. Adding a column is a matter of writing a field, not SQL.');
         sum.push('The constructor stayed the same, so no value was put in email, and the email column was stored as NULL. Every field of an entity becomes a column, whether it has a value or not.');
       } else {
-        sum.push('An entity is a Java class that is paired with one row of a table. It differs from an ordinary class in @Entity above the class (the marker that it is a class to store) and @Id above a field (the marker that it is the primary key), and with these two, JPA pairs the fields with columns and creates the table.');
+        sum.push('An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. It differs from an ordinary class in @Entity above the class (the marker that it is a class to store) and @Id above a field (the marker that it is the primary key), and with these two, JPA pairs the fields with columns and creates the table.');
         sum.push('We did not write a single line of SQL. JPA built both the table and the INSERT statement by looking at the shape of the class, and the INSERT was sent not on the persist line but on the commit line.');
       }
     }

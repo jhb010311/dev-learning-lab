@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>MAC 주소와 ARP</dt>
 <dd>MAC 주소는 랜카드 같은 네트워크 장치마다 붙어 있는 48비트 주소로, 같은 네트워크 안에서 프레임을 누구에게 건넬지 가리키는 데 쓰인다. IP 주소가 최종 목적지를 가리킨다면 MAC 주소는 바로 다음에 건네받을 기기를 가리킨다. ARP는 IP 주소를 가지고 그 주인의 MAC 주소를 알아내는 규약이다. &quot;이 IP 주소의 주인은 MAC 주소를 알려 달라&quot;는 요청을 같은 네트워크의 모든 기기에게 보내면 주인만 응답하고, 알아낸 결과는 ARP 캐시에 한동안 보관된다. ARP 요청은 라우터를 넘어가지 못하므로 다른 네트워크에 있는 기기의 MAC 주소는 알아낼 수 없다.</dd>
 <dt>스위치와 라우터</dt>
-<dd>스위치는 같은 네트워크 안의 기기들을 이어 주는 장비로, 프레임의 받는 MAC 주소를 보고 그 기기가 연결된 포트로만 내보낸다. IP 주소는 보지 않으며 프레임의 내용을 고치지 않는다. 라우터는 서로 다른 네트워크를 이어 주는 장비로, 패킷의 받는 IP 주소와 라우팅 표를 보고 다음에 넘길 곳을 정한다. 라우터를 지날 때 프레임은 새로 만들어져 MAC 주소가 바뀌지만 IP 주소는 그대로이고 TTL이 1 줄어든다. 가정용 공유기는 라우터와 스위치, 무선 접속 장치를 한 기계에 합친 것이다.</dd>
+<dd>스위치는 같은 네트워크 안의 기기들을 이어 주는 장비로, 프레임의 받는 MAC 주소를 보고, 그 기기가 어느 포트에 연결됐는지 아는 경우 그 포트로만 내보낸다. IP 주소는 보지 않으며 프레임의 내용을 고치지 않는다. 라우터는 서로 다른 네트워크를 이어 주는 장비로, 패킷의 받는 IP 주소와 라우팅 표를 보고 다음에 넘길 곳을 정한다. 라우터를 지날 때 프레임은 새로 만들어져 MAC 주소가 바뀌지만 IP 주소는 보통 그대로이고(가정용 공유기처럼 주소를 바꿔 주는 NAT는 예외) TTL이 1 줄어든다. 가정용 공유기는 라우터와 스위치, 무선 접속 장치를 한 기계에 합친 것이다.</dd>
 <dt>기본 게이트웨이</dt>
 <dd>컴퓨터가 자기 네트워크 밖으로 패킷을 보낼 때 맡기는 라우터의 주소다. 컴퓨터는 받는 IP 주소와 자기 IP 주소를 서브넷 마스크로 견주어, 같은 네트워크면 상대에게 직접 보내고 아니면 기본 게이트웨이에게 보낸다. 이때 패킷의 받는 IP 주소는 원래 목적지 그대로 두고, 프레임의 받는 MAC 주소만 게이트웨이의 것으로 적는다. 기본 게이트웨이가 잘못 설정되면 같은 네트워크 안의 기기와는 통신이 되는데 인터넷으로는 나가지 못한다.</dd>
 <dt>IP 패킷의 TTL</dt>
@@ -180,6 +180,6 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

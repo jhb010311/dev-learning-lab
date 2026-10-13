@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>MVCC (multiversion concurrency control)</dt>
 <dd>A method that keeps earlier versions of data when the data changes, so that a reading transaction can see the version that matches the time of its snapshot. The snapshot time depends on the isolation level: in MySQL, REPEATABLE READ takes it at the first read of the transaction, and READ COMMITTED takes a new one each time a statement runs. Reads do not wait for writes and writes do not wait for reads, so concurrent performance is high. MySQL InnoDB, PostgreSQL, and Oracle all use this method.</dd>
 <dt>Undo log and redo log</dt>
-<dd>An undo log records data as it was before a change. It is used to roll back a transaction and to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
+<dd>An undo log records data as it was before a change. It is used to roll back a transaction, and in InnoDB it is also used to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
 <dt>Shared locks and exclusive locks</dt>
 <dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
 </dl>
@@ -176,6 +176,6 @@ COMMIT;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

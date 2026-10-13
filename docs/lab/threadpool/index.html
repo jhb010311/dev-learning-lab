@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>스레드 풀</dt>
 <dd>스레드를 필요할 때마다 만들고 없애는 대신 일정 수의 스레드를 유지하며 재사용하는 구조다. 스레드 생성 비용을 줄이고, 동시에 실행되는 스레드 수를 제한해 과도한 메모리 사용과 컨텍스트 스위칭을 막는다. 처리할 작업은 큐에 쌓이고 빈 스레드가 가져가 실행한다. 톰캣의 요청 처리, DB 커넥션 풀도 같은 발상이다.</dd>
 <dt>ThreadPoolExecutor의 동작 순서</dt>
-<dd>자바의 스레드 풀 구현은 작업이 들어오면 다음 순서로 처리한다. 실행 중인 스레드가 corePoolSize보다 적으면 새 스레드를 만든다. 그 이상이면 작업을 큐에 넣는다. 큐가 가득 차면 maximumPoolSize까지 스레드를 더 만든다. 그것도 넘으면 작업을 거부한다. 큐가 가득 찬 뒤에야 스레드가 늘어난다는 점이 직관과 다르다.</dd>
+<dd>자바의 스레드 풀 구현은 작업이 들어오면 다음 순서로 처리한다. 실행 중인 스레드가 corePoolSize보다 적으면 새 스레드를 만든다. 그 이상이면 작업을 큐에 넣는다. 큐가 가득 차면 maximumPoolSize까지 스레드를 더 만든다. 그것도 넘으면 작업을 거부한다. 크기가 정해진 큐일 때는 큐가 가득 찬 뒤에야 스레드가 늘어나며(무제한 큐면 늘지 않는다) 이 점이 직관과 다르다.</dd>
 <dt>톰캣의 스레드 모델</dt>
 <dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한되고, 모든 스레드가 사용 중이면 새 요청은 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
 <dt>블로킹과 논블로킹</dt>
@@ -176,6 +176,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>null</dt>
 <dd>null은 변수가 아무 객체도 가리키지 않는다는 것을 나타내는 값이다. 자바 명세에서 null 리터럴(코드에 쓰는 null)의 타입은 이름이 없는 null 타입이고, 그 타입의 값은 null 참조 하나뿐이다. null은 어떤 참조 타입의 변수에도 담을 수 있어서 String name = null;처럼 쓸 수 있고, 이때 name 변수는 만들어져 있지만 가리키는 객체가 없다. 그래서 null인 변수에 점(.)을 찍어 객체의 메서드를 부르면 시킬 대상이 없어 NullPointerException이 발생한다. null은 글자가 0개인 문자열 &quot;&quot;와 다르다. &quot;&quot;는 객체가 있되 글자만 없는 것이고, null은 객체가 없는 것이다.</dd>
 <dt>NullPointerException</dt>
-<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. 컴파일러가 미리 잡아 주지 않는 Unchecked 예외라서 실행해 봐야 드러난다. null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
+<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. null인지 아닌지는 실행 중의 값에 달려 있어서 컴파일러가 미리 잡아 주지 못하고, 실행해 봐야 드러난다(Unchecked 예외라 처리를 강제하지도 않는다). null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
 <dt>null 검사</dt>
 <dd>null 검사는 변수를 쓰기 전에 if (name != null)처럼 그 변수가 null이 아닌지 조건으로 확인하는 코드이다. 참조를 !=로 비교하면 둘 다 null이거나 같은 객체를 가리킬 때 false이고 그렇지 않으면 true이므로, name != null은 name이 어떤 객체를 가리키고 있을 때 true이다. if문은 조건이 true이면 첫 번째 블록을, false이면 else 블록을 실행하므로, name.length() 같은 호출을 true 쪽 블록에만 두면 null일 때는 그 호출이 실행되지 않는다. name != null은 객체가 있는지만 따지며 글자가 있는지는 따지지 않으므로, 빈 문자열 &quot;&quot;은 이 검사를 통과한다.</dd>
 <dt>빈 문자열</dt>
@@ -163,6 +163,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

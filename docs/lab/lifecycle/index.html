@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>빈 생명주기</dt>
 <dd>빈이 만들어져 사라지기까지의 과정이다. 객체 생성, 의존성 주입, 초기화 콜백 호출, 사용, 컨테이너 종료 시 소멸 콜백 호출의 순서로 진행된다. 의존성이 모두 주입된 뒤에 해야 하는 초기화 작업은 @PostConstruct에, 종료 전 정리 작업은 @PreDestroy에 둔다.</dd>
 <dt>@PostConstruct와 @PreDestroy</dt>
-<dd>빈의 초기화 시점과 소멸 시점에 불릴 메서드를 표시하는 애너테이션이다. 컨테이너는 객체를 만들고 의존성 주입을 끝낸 뒤에 @PostConstruct가 붙은 메서드를 부르고, 컨테이너가 닫힐 때 @PreDestroy가 붙은 메서드를 부른다. 그래서 주입받은 객체를 써야 하는 준비 작업은 생성자가 아니라 @PostConstruct 메서드에 둔다. 스프링의 것이 아니라 jakarta.annotation 패키지의 애너테이션이다. 프로토타입 스코프의 빈에서는 @PreDestroy가 불리지 않는다.</dd>
+<dd>빈의 초기화 시점과 소멸 시점에 불릴 메서드를 표시하는 애너테이션이다. 컨테이너는 객체를 만들고 의존성 주입을 끝낸 뒤에 @PostConstruct가 붙은 메서드를 부르고, 컨테이너가 닫힐 때 @PreDestroy가 붙은 메서드를 부른다. 그래서 필드나 세터로 주입받는 객체를 써야 하는 준비 작업은 생성자가 아니라 @PostConstruct 메서드에 둔다(생성자로 주입받은 것은 생성자 안에서도 쓸 수 있다). 스프링의 것이 아니라 jakarta.annotation 패키지의 애너테이션이다. 프로토타입 스코프의 빈에서는 @PreDestroy가 불리지 않는다.</dd>
 <dt>InitializingBean과 DisposableBean</dt>
 <dd>빈의 초기화와 소멸 시점에 불릴 메서드를 정하는 스프링의 두 인터페이스다. InitializingBean을 구현하면 의존성 주입이 끝난 뒤에 afterPropertiesSet()이 불리고, DisposableBean을 구현하면 컨테이너가 닫힐 때 destroy()가 불린다. 클래스가 스프링의 인터페이스를 구현해야 하므로 코드가 스프링에 묶인다. 같은 일을 @PostConstruct와 @PreDestroy로, 또는 @Bean의 initMethod와 destroyMethod로도 할 수 있다. 세 가지를 함께 쓰면 애너테이션, 인터페이스, @Bean에 지정한 메서드의 순서로 불린다.</dd>
 <dt>생성자 주입, 세터 주입, 필드 주입</dt>
@@ -184,6 +184,6 @@ context.close();                              // 컨테이너를 닫는다</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

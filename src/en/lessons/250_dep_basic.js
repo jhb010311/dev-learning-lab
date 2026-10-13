@@ -110,7 +110,7 @@ Lab.register({
     P.size(680, 292);
     var stage = s ? s.stage : '', hot = s ? s.hot : '', ph = s ? s.phase : '';
     var inCp = stage === 'compile' ? c.compileCp : stage === 'run' ? c.runCp : false;
-    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['My code', 'import lib.Greeter;', stage === 'compile' ? 'Compiling' : stage === 'run' ? (s.cls ? 'Compiled App.class running' : 'No App.class') : 'Before the run'] });
+    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['My code', 'import lib.Greeter;', stage === 'compile' ? 'Compiling' : stage === 'run' ? (s.cls ? 'App.class running' : 'No App.class') : 'Before the run'] });
     var list = stage === 'compile' ? (c.compileCp ? ['greet.jar'] : ['Current folder (.) only']) : stage === 'run' ? (c.runCp ? ['greet.jar', 'Current folder (.)'] : ['Current folder (.) only']) : ['Set by the command'];
     P.box('cp', 244, 16, 190, 110, { cls: ph === 'miss' ? 'bad' : hot === 'cp' ? 'hot now' : stage ? 'plain' : 'ghost', title: 'Class path', sub: ['Where to look (-cp)'].concat(list) });
     P.box('jar', 484, 16, 182, 110, { cls: ph === 'found' ? 'good now' : stage && !inCp ? 'ghost' : 'plain', title: 'greet.jar', sub: ['lib/Greeter.class', !stage ? 'Made by someone else' : inCp ? 'In the class path' : 'Not in the class path'] });

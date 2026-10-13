@@ -110,7 +110,7 @@ Lab.register({
     P.size(680, 292);
     var stage = s ? s.stage : '', hot = s ? s.hot : '', ph = s ? s.phase : '';
     var inCp = stage === 'compile' ? c.compileCp : stage === 'run' ? c.runCp : false;
-    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['내 코드', 'import lib.Greeter;', stage === 'compile' ? '컴파일 중' : stage === 'run' ? (s.cls ? '컴파일된 App.class 실행 중' : 'App.class 없음') : '실행 전'] });
+    P.box('app', 14, 16, 180, 110, { cls: hot === 'app' ? 'hot now' : 'plain', title: 'App.java', sub: ['내 코드', 'import lib.Greeter;', stage === 'compile' ? '컴파일 중' : stage === 'run' ? (s.cls ? 'App.class 실행 중' : 'App.class 없음') : '실행 전'] });
     var list = stage === 'compile' ? (c.compileCp ? ['greet.jar'] : ['현재 폴더(.)뿐']) : stage === 'run' ? (c.runCp ? ['greet.jar', '현재 폴더(.)'] : ['현재 폴더(.)뿐']) : ['명령을 입력하면 정해짐'];
     P.box('cp', 244, 16, 190, 110, { cls: ph === 'miss' ? 'bad' : hot === 'cp' ? 'hot now' : stage ? 'plain' : 'ghost', title: '클래스패스', sub: ['찾아볼 곳 (-cp)'].concat(list) });
     P.box('jar', 484, 16, 182, 110, { cls: ph === 'found' ? 'good now' : stage && !inCp ? 'ghost' : 'plain', title: 'greet.jar', sub: ['lib/Greeter.class', !stage ? '남이 만든 클래스' : inCp ? '클래스패스에 있음' : '클래스패스에 없음'] });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Observability (logs, metrics, traces)</dt>
 <dd>The ability to understand the internal state of a system from its external outputs alone. Logs are records of individual events, metrics are values aggregated as numbers, such as request counts and response times, and traces are records of the path one request takes through several services and the time spent in each segment. You need all three together to detect problems and find their causes.</dd>
 <dt>MDC</dt>
-<dd>A logging feature that automatically prints context information about the current request (such as the request ID and the user ID) with each log entry. It keeps values per thread: if you put the values in when a request starts, the same values appear in every log entry written while that request is processed. Even when the logs of many requests are mixed together, you can pick out the logs of a single request.</dd>
+<dd>A logging feature that automatically prints context information about the current request (such as the request ID and the user ID) with each log entry. It keeps values per thread: if you put the values in when a request starts, the same values appear in every log entry written by the thread that processes that request. Even when the logs of many requests are mixed together, you can pick out the logs of a single request.</dd>
 <dt>APM</dt>
 <dd>A tool that monitors the performance of an application. It collects and shows the response time of each request, which methods or queries took the time, the errors that occurred, and more. In Java, it is usually applied as an agent, with no code changes. Examples are Pinpoint, Scouter, and Datadog.</dd>
 <dt>Monolithic architecture and microservice architecture</dt>
@@ -166,6 +166,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

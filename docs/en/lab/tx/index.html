@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>ACID</dt>
 <dd>The four properties that a transaction must guarantee. Atomicity means everything succeeds or everything fails. Consistency means the data satisfies the defined rules before and after the transaction. Isolation means transactions that run at the same time do not interfere with each other. Durability means committed results are kept even if a failure occurs.</dd>
 <dt>Undo log and redo log</dt>
-<dd>An undo log records data as it was before a change. It is used to roll back a transaction and to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
+<dd>An undo log records data as it was before a change. It is used to roll back a transaction, and in InnoDB it is also used to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
 <dt>@Transactional</dt>
 <dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
 </dl>
@@ -158,6 +158,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

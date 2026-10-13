@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Covering index</dt>
 <dd>An index that contains every column a query needs, so the result can be produced from the index alone without reading the table rows. Skipping the table access makes the read faster. In a MySQL execution plan, it appears as Using index in the Extra column.</dd>
 <dt>Clustered index and secondary index</dt>
-<dd>A clustered index stores the row data itself at the bottom of the index (the leaf nodes), so the data of the table is stored in the order of its key. In MySQL InnoDB, the primary key is the clustered index. A secondary index holds the primary key value in its leaf nodes. After a lookup in the secondary index, that primary key is used for one more lookup in the clustered index to read the row.</dd>
+<dd>A clustered index stores the row data itself at the bottom of the index (the leaf nodes), so the data of the table is stored in the order of its key. In MySQL InnoDB, the primary key is the clustered index. An InnoDB secondary index holds the primary key value in its leaf nodes. After a lookup in the secondary index, that primary key is used for one more lookup in the clustered index to read the row.</dd>
 <dt>Cardinality and selectivity</dt>
 <dd>Cardinality is the number of distinct values in a column. The more distinct values there are (for example, a national ID number or an email address), the fewer rows one condition leaves and the more effective an index is. The fewer kinds of values there are (for example, gender), the more rows match a condition and the less effective an index is. Selectivity is the cardinality divided by the number of rows in the table; the closer it is to 1, the better a single condition narrows down the rows.</dd>
 <dt>Query execution plan (EXPLAIN)</dt>
@@ -165,6 +165,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

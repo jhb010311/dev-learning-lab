@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>인증과 인가</dt>
 <dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
 <dt>401과 403</dt>
-<dd>401과 403은 서버가 요청을 거절할 때 쓰는 HTTP 상태 코드이고, 거절하는 까닭이 다르다. 401(Unauthorized)은 요청에 대상 자원에 필요한 유효한 인증 정보가 없다는 뜻이며, 서버는 응답에 인증 방법을 알리는 WWW-Authenticate 헤더를 보내야 한다. 403(Forbidden)은 서버가 요청을 이해했지만 처리하기를 거부한다는 뜻이고, 인증 정보를 실어 보냈다면 같은 인증 정보로 자동으로 다시 보내서는 안 된다. 스프링 시큐리티는 누구인지 확인되지 않은 요청이 막힐 때 401을, 누구인지 확인된 사용자가 권한이 모자라 막힐 때 403을 보낸다.</dd>
+<dd>401과 403은 서버가 요청을 거절할 때 쓰는 HTTP 상태 코드이고, 거절하는 까닭이 다르다. 401(Unauthorized)은 요청에 대상 자원에 필요한 유효한 인증 정보가 없다는 뜻이며, 서버는 응답에 인증 방법을 알리는 WWW-Authenticate 헤더를 보내야 한다. 403(Forbidden)은 서버가 요청을 이해했지만 처리하기를 거부한다는 뜻이고, 인증 정보를 실어 보냈다면 같은 인증 정보로 자동으로 다시 보내서는 안 된다. 스프링 시큐리티는 누구인지 확인되지 않은 요청이 막힐 때 인증 방식 설정에 따라 응답하고(HTTP Basic 같은 설정에서는 401을 보내고 폼 로그인에서는 로그인 화면으로 보낸다), 누구인지 확인된 사용자가 권한이 모자라 막힐 때 403을 보낸다.</dd>
 <dt>권한(역할)</dt>
 <dd>권한(authority)은 인증된 사용자에게 허락된 일을 나타내는 이름표이고, 역할(role)은 ADMIN, USER처럼 사용자가 맡은 자리를 나타내는 권한의 한 가지 쓰임이다. 스프링 시큐리티에서는 사용자가 가진 권한이 GrantedAuthority 객체로 Authentication에 담긴다. hasRole(&quot;ADMIN&quot;)은 hasAuthority의 줄임 형태로, 이름 앞에 ROLE_ 접두어를 붙여 ROLE_ADMIN이라는 권한이 있는지 본다. 권한은 누구인지 확인된 뒤에야 의미가 있으므로, 인증을 거치지 않은 요청에는 권한을 따질 수 없다.</dd>
 <dt>HTTP Basic 인증</dt>
@@ -181,6 +181,6 @@ public class AdminController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

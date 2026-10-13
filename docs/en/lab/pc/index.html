@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>First-level cache</dt>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 <dt>Dirty checking</dt>
-<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 <dt>Transactional write-behind and flush</dt>
 <dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
 <dt>Entity</dt>
@@ -162,6 +162,6 @@ public void run() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

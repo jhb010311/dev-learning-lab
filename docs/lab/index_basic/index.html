@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>인덱스</dt>
 <dd>테이블에서 원하는 행을 빨리 찾기 위해 특정 컬럼의 값을 정렬된 형태로 따로 유지하는 자료구조다. 인덱스가 없으면 조건에 맞는 행을 찾기 위해 테이블 전체를 읽어야 한다. 조회는 빨라지지만 데이터를 추가, 수정, 삭제할 때마다 인덱스도 갱신해야 하므로 쓰기 성능과 저장 공간에 비용이 든다.</dd>
 <dt>CREATE INDEX</dt>
-<dd>CREATE INDEX 색인이름 ON 테이블(열) 형태로, 이미 만든 테이블의 열에 색인(인덱스)을 더하는 SQL 문이다. 예를 들어 CREATE INDEX idx_name ON member(name)은 member 테이블의 name 열 값을 정리한 색인을 만든다. 색인은 테이블과 따로 저장되며 테이블의 행 자체는 바꾸지 않는다. 색인은 주로 만든 열을 조건으로 찾을 때 쓰이므로 다른 열로 찾으려면 그 열의 색인이 따로 있어야 한다. 기본 키(PRIMARY KEY)를 적은 열에는 DB가 색인을 자동으로 만들어 두므로 CREATE INDEX를 쓰지 않아도 된다(MySQL에서 기본 키 자체는 CREATE INDEX가 아니라 CREATE TABLE이나 ALTER TABLE로 만든다).</dd>
+<dd>CREATE INDEX 색인이름 ON 테이블(열) 형태로, 이미 만든 테이블의 열에 색인(인덱스)을 더하는 SQL 문이다. 예를 들어 CREATE INDEX idx_name ON member(name)은 member 테이블의 name 열 값을 정리한 색인을 만든다. 색인은 테이블과 따로 저장되며 테이블의 행 자체는 바꾸지 않는다. 색인은 주로 만든 열을 조건으로 찾을 때 쓰이므로 다른 열로 빨리 찾으려면 그 열의 색인이 따로 있어야 한다(없어도 찾을 수는 있지만 전부 훑는다). 기본 키(PRIMARY KEY)를 적은 열에는 DB가 색인을 자동으로 만들어 두므로 CREATE INDEX를 쓰지 않아도 된다(MySQL에서 기본 키 자체는 CREATE INDEX가 아니라 CREATE TABLE이나 ALTER TABLE로 만든다).</dd>
 <dt>풀 테이블 스캔</dt>
 <dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는 데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
 <dt>실행 계획(EXPLAIN)</dt>
@@ -166,6 +166,6 @@ SELECT * FROM member WHERE name = '회원777';</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

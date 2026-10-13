@@ -157,7 +157,7 @@ Lab.register({
     });
     P.region('ctx', 396, 16, 268, 262, '스프링 컨테이너');
     P.box('repo', 408, 50, 244, 46, { cls: 'wait', title: 'priceRepository 빈', sub: '싱글톤' });
-    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === '읽어 둠' ? 'good' : 'hot', title: 'PriceCache 객체' + (proto ? ' (프로토타입)' : ''), sub: s.bad === 'ctor' ? ['만들어지지 못함'] : s.obj ? ['repository 필드: ' + s.repo, 'prices: ' + (s.prices || '없음')].concat(proto ? ['만들어 건네줌 (컨테이너는 보관 안 함)'] : []) : ['아직 없음'] });
+    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === '읽어 둠' ? 'good' : 'hot', title: 'PriceCache 객체' + (proto ? ' (프로토타입)' : ''), sub: s.bad === 'ctor' ? ['만들어지지 못함'] : s.obj ? ['repository 필드: ' + s.repo, 'prices: ' + (s.prices || '없음')].concat(proto ? ['건네준 뒤 보관하지 않음'] : []) : ['아직 없음'] });
     if (s.obj && s.repo === '주입됨') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: '주입' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: '아직 주입 전' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === '성공' ? 'good' : 'bad', title: '상태', right: s.result ? (s.result === '성공' ? '성공' : s.result + ': NullPointerException') : s.phase || '시작 전' });

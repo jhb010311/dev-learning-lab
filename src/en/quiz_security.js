@@ -2,7 +2,7 @@
 Lab.quiz([
   { lv: 1, id: 'security', q: 'A request is sent without a token to a path that requires login (GET /orders). What response does Spring Security send?',
     a: ['401 Unauthorized', '403 Forbidden', '404 Not Found', '200 OK'],
-    why: 'When a request from an unidentified user reaches a path that requires authentication, AuthenticationEntryPoint responds with 401. 403 is the response when the user is identified but lacks the required authority.',
+    why: 'With the setup of this lab, when a request from an unidentified user reaches a path that requires authentication, AuthenticationEntryPoint responds with 401. 403 is the response when the user is identified but lacks the required authority.',
     sim: { c: { who: 'none', path: 'orders' }, col: 0, has: '401' } },
   { lv: 2, id: 'security', q: 'A request with a valid token that has the USER authority is sent to a path that requires the ADMIN authority. What is the response, and where is it created?',
     a: ['403 Forbidden, created by AccessDeniedHandler', '401 Unauthorized, created by AuthenticationEntryPoint', '403 Forbidden, created by the controller itself', '401 Unauthorized, created by AccessDeniedHandler'],

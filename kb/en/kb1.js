@@ -59,7 +59,7 @@ module.exports = [
   ["Java language", "Stream API",
    "This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once."],
   ["Java language", "Lazy evaluation",
-   "This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They are processed together when the terminal operation is called, and the stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used."],
+   "This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They run only when the terminal operation is called, and each element passes through the pipeline one at a time. The stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used."],
   ["Java language", "Optional",
    "This container class expresses in the type that a value may or may not be present. When a method returns it in place of null, the caller is guided to handle the case where there is no value. It is used mainly as a method return type."],
   ["Java language", "record",

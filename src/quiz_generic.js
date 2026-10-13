@@ -13,7 +13,7 @@ Lab.quiz([
     why: 'List<Number> 변수에는 add(3.5)가 컴파일됩니다. 그 변수가 실제로는 List<Integer>를 가리킨다면 Integer만 담기로 한 리스트에 Double이 들어가게 됩니다. 그래서 대입 자체를 막습니다.',
     sim: { c: { decl: 'num', op: 'addDbl' }, col: 1, has: 'List<Number> list = ints;' } },
   { lv: 2, id: 'generic', q: 'List<? extends Number>로 선언한 변수 list에 list.add(3)을 쓰면 컴파일 오류가 납니다. 이유는 무엇입니까?',
-    a: ['list가 실제로는 List<Double>일 수도 있어서 컴파일러가 무엇도 넣게 두지 않기 때문이다', '와일드카드로 선언한 변수는 대입한 뒤에 어떤 메서드도 호출할 수 없기 때문이다', '3은 기본형 int이고 제네릭 리스트에는 기본형 값을 절대 넣을 수 없기 때문이다', 'extends를 쓴 리스트는 Number의 상위 타입인 Object만 넣을 수 있기 때문이다'],
+    a: ['list가 실제로는 List<Double>일 수도 있어서 컴파일러가 null 말고는 무엇도 넣게 두지 않기 때문이다', '와일드카드로 선언한 변수는 대입한 뒤에 어떤 메서드도 호출할 수 없기 때문이다', '3은 기본형 int이고 제네릭 리스트에는 기본형 값을 절대 넣을 수 없기 때문이다', 'extends를 쓴 리스트는 Number의 상위 타입인 Object만 넣을 수 있기 때문이다'],
     why: '? extends Number는 "Number의 하위 타입 가운데 어떤 것"이라는 뜻이라, 컴파일러는 실제 원소 타입을 모릅니다. 꺼낸 값을 Number로 쓰는 것은 안전하지만, 넣는 것은 어떤 타입이든 안전하다고 할 수 없어 막습니다.',
     sim: { c: { decl: 'ext', op: 'addInt' }, col: 0, has: '오류' } },
   { lv: 3, id: 'generic', q: 'List<Integer> ints를 제네릭 없는 변수 List list에 대입하고 list.add("삼")을 한 뒤, 맨 끝에서 Integer last = ints.get(2)를 실행합니다. 어떻게 됩니까?',

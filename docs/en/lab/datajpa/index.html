@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Query method</dt>
 <dd>A feature of Spring Data repositories that reads the name of a method declared in the repository interface and derives a query from it (a derived query). As in findByName, you write the property name of the entity after find…By, attach a keyword such as GreaterThan or Containing after the property name to set the kind of condition, and join several conditions with And or Or. The name is turned into a query when the application starts, so if you use a property name that the entity does not have, a PropertyReferenceException is thrown and the application does not start. When there are many conditions, the name becomes too long, so write the JPQL directly in @Query then.</dd>
 <dt>Pageable and Page</dt>
-<dd>Pageable is an object that holds a request for &quot;which page, how many rows per page, and in what order&quot;, and it is usually created with PageRequest.of(page number, size). Page numbers start from 0. If the return type is Page, Spring Data sends a query that reads the content and a count query that counts the total, and returns the content of the page together with the total number of elements and the total number of pages. If the return type is Slice, it reads one extra row without a count query and tells you only whether a next slice exists. On a table with a lot of data the count query can be slow, so first think about whether you really need the total.</dd>
+<dd>Pageable is an object that holds a request for &quot;which page, how many rows per page, and in what order&quot;, and it is usually created with PageRequest.of(page number, size). Page numbers start from 0. If the return type is Page, Spring Data sends a query that reads the content and usually one more count query that counts the total, and returns the content of the page together with the total number of elements and the total number of pages. If the return type is Slice, it reads one extra row without a count query and tells you only whether a next slice exists. On a table with a lot of data the count query can be slow, so first think about whether you really need the total.</dd>
 <dt>save() and merge</dt>
 <dd>The save() of Spring Data JPA calls em.persist if the entity it receives is new, and em.merge otherwise. By default, whether an entity is new is decided by whether the id is null. If there is a @Version field and its type is an object type such as Long, it is decided by whether that value is null (for a primitive type such as long, the id decides). merge first queries the row with the same id with a SELECT, overwrites the managed object with the values of the object it received, and returns that managed object. So an entity whose id is set directly in code also sends one more SELECT the first time it is saved. To avoid this, let the entity implement the Persistable interface and tell Spring Data directly whether it is new.</dd>
 <dt>Entity</dt>
@@ -178,6 +178,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;A
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

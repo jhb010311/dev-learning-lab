@@ -14,7 +14,7 @@ Lab.quiz([
     sim: { c: { cls: 'ok', fld: 'static', chg: 'same' }, col: 2, has: '70 (저장 뒤에 바꾼 값)' } },
   { lv: 2, id: 'serial', q: 'Serializable을 구현한 클래스의 객체를 readObject로 되살릴 때, 그 클래스의 생성자는 어떻게 됩니까?',
     a: ['실행되지 않는다. 저장된 값을 필드에 직접 채워 넣는다', '매개변수 없는 생성자가 반드시 한 번 실행된다', '저장할 때 썼던 생성자가 같은 인자로 다시 실행된다', '모든 생성자가 선언된 순서대로 한 번씩 실행된다'],
-    why: '되살릴 때는 생성자를 거치지 않고 객체를 만든 다음 저장된 값을 필드에 채웁니다. 그래서 생성자에 넣어 둔 값 검사나 준비 코드는 실행되지 않습니다.',
+    why: '되살릴 때는 그 클래스의 생성자를 거치지 않고(Serializable이 아닌 부모가 있으면 그 부모의 기본 생성자는 실행됩니다) 객체를 만든 다음 저장된 값을 필드에 채웁니다. 그래서 생성자에 넣어 둔 값 검사나 준비 코드는 실행되지 않습니다.',
     sim: { c: { cls: 'ok', fld: 'plain', chg: 'same' }, col: 3, has: '1번' } },
   { lv: 3, id: 'serial', q: 'User implements Serializable이고 필드로 Address address를 가집니다. Address는 Serializable을 구현하지 않았습니다. User 객체를 writeObject로 쓰면 어떻게 됩니까?',
     a: ['NotSerializableException: Address가 발생한다', 'address 필드만 빼고 나머지 필드가 저장된다', 'address가 null로 바뀐 채로 전체가 저장된다', 'User가 Serializable이므로 문제없이 모두 저장된다'],

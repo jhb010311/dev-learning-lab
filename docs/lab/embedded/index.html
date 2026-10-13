@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -44,7 +44,7 @@
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 <dt>변경 감지(Dirty Checking)</dt>
-<dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 트랜잭션을 커밋할 때 JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
+<dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 플러시할 때(보통 커밋 직전) JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -189,6 +189,6 @@ member1.getAddress().setCity(&quot;부산&quot;);
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

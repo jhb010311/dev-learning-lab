@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>세션</dt>
-<dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 조작할 수 없다. 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
+<dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 내용을 고칠 수 없다(세션 ID를 빼앗기는 것은 다른 문제다). 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
 <dt>세션 하이재킹</dt>
 <dd>다른 사용자의 로그인된 세션 ID를 알아내, 그 ID를 자기 요청의 쿠키에 넣어 그 사용자로 행세하는 것이다. 서버는 쿠키에 실려 온 세션 ID만 보고 누구의 요청인지 정하므로, ID를 아는 사람과 원래 사용자를 구별하지 못한다. 세션 ID는 스크립트가 쿠키를 읽거나, 암호화되지 않은 통신을 누군가 엿볼 때 새어 나간다. 그래서 세션 쿠키에는 HttpOnly와 Secure를 붙이고, 로그아웃할 때 서버의 세션을 지우며, 세션 만료 시간을 길지 않게 둔다.</dd>
 <dt>세션 고정(Session Fixation)</dt>
@@ -184,6 +184,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Index</dt>
 <dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
 <dt>CREATE INDEX</dt>
-<dd>CREATE INDEX is the SQL statement that adds an index to a column of a table that already exists, in the form CREATE INDEX index_name ON table(column). For example, CREATE INDEX idx_name ON member(name) builds an index on the values of the name column of the member table. The index is stored separately from the table and does not change the rows of the table. An index is used mainly when you search by the column it was built on, so to search by another column, that column needs an index of its own. The database builds an index automatically on a column with PRIMARY KEY, so you do not need CREATE INDEX for it (in MySQL, the primary key itself is created not with CREATE INDEX but with CREATE TABLE or ALTER TABLE).</dd>
+<dd>CREATE INDEX is the SQL statement that adds an index to a column of a table that already exists, in the form CREATE INDEX index_name ON table(column). For example, CREATE INDEX idx_name ON member(name) builds an index on the values of the name column of the member table. The index is stored separately from the table and does not change the rows of the table. An index is used mainly when you search by the column it was built on, so to search by another column quickly, that column needs an index of its own (without one the search still works, but it scans everything). The database builds an index automatically on a column with PRIMARY KEY, so you do not need CREATE INDEX for it (in MySQL, the primary key itself is created not with CREATE INDEX but with CREATE TABLE or ALTER TABLE).</dd>
 <dt>Full table scan</dt>
 <dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
 <dt>Query execution plan (EXPLAIN)</dt>
@@ -166,6 +166,6 @@ SELECT * FROM member WHERE name = 'user777';</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

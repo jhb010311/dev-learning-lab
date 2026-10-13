@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Slow start and congestion avoidance</dt>
 <dd>These are the two phases in which TCP grows the congestion window. Slow start begins with a very small congestion window and grows it each time an acknowledgment arrives, so the window doubles with every round trip. Despite the name, the window grows fast; it is called slow start because the sender does not send a lot from the beginning. When the congestion window reaches the slow start threshold (ssthresh), TCP moves to congestion avoidance and grows it by only one segment per round trip. When a loss is detected, TCP concludes that the network is congested, lowers the threshold, and reduces the window: by about half if the same acknowledgment arrived three times in a row, and down to one segment if it was a timeout (even if the window at the start of the connection was larger than that). This explanation is the basic method of the standard (RFC 5681), and the algorithm an operating system actually uses may differ in how much it grows and shrinks the window.</dd>
 <dt>TCP and UDP</dt>
-<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -181,6 +181,6 @@ function onThreeDuplicateAcks(flight) {   // the same ACK three times = one segm
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

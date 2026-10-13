@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Autocommit</dt>
 <dd>Autocommit is the mode in which, when you have not started a transaction yourself, the database commits each SQL statement as soon as it runs. MySQL starts a new connection with autocommit on, so one statement is one transaction, and its result is final right away and is visible from other connections too. A statement made final this way cannot be undone with ROLLBACK. When you start a transaction, autocommit is off until you end it with COMMIT or ROLLBACK, and when it ends, autocommit returns to its previous state. If a session with autocommit off ends without committing its last transaction, MySQL (InnoDB) rolls that transaction back.</dd>
 <dt>BEGIN, COMMIT, and ROLLBACK statements</dt>
-<dd>BEGIN, COMMIT, and ROLLBACK are the SQL statements that start and end a transaction. BEGIN is the statement that starts a transaction, and in MySQL it means the same as START TRANSACTION (START TRANSACTION is recommended because it is standard SQL syntax). COMMIT makes permanent all the changes made so far inside the transaction, and ROLLBACK cancels all of them. Without a statement that starts a transaction, autocommit is on, so COMMIT and ROLLBACK have no transaction to commit or cancel. Inside a MySQL stored program (a procedure, a trigger, and so on), BEGIN is read as the start of a BEGIN ... END block, so you must use START TRANSACTION, and the syntax of the statement that starts a transaction differs a little from database to database.</dd>
+<dd>BEGIN, COMMIT, and ROLLBACK are the SQL statements that start and end a transaction. BEGIN is the statement that starts a transaction, and in MySQL it means the same as START TRANSACTION (START TRANSACTION is recommended because it is standard SQL syntax). COMMIT makes permanent all the changes made so far inside the transaction, and ROLLBACK cancels all of them. By default autocommit is on, so without a statement that starts a transaction, COMMIT and ROLLBACK have no transaction to commit or cancel. Inside a MySQL stored program (a procedure, a trigger, and so on), BEGIN is read as the start of a BEGIN ... END block, so you must use START TRANSACTION, and the syntax of the statement that starts a transaction differs a little from database to database.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -168,6 +168,6 @@ SELECT * FROM account ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

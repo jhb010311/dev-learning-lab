@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Round robin</dt>
 <dd>Round robin is a method that hands out requests to the servers in turn, one server at a time. With two servers, A and B, requests go to A, B, A, B, in that order. The NGINX documentation says this method, which distributes requests evenly across the servers, is the default and that no directive is needed to turn it on, and that you can also give each server a weight. Which server gets which request follows a fixed order, so when the servers are always in the same state, requests are spread evenly across them.</dd>
 <dt>Skipping a failed server</dt>
-<dd>Skipping a failed server is what a load balancer does when an error occurs while it tries to connect to a server: it does not use that server and sends the same request to the next server. In the NGINX documentation the default of proxy_next_upstream is error and timeout, and error covers an error that occurs while establishing a connection with the server, so when a connection is refused, the request is passed to the next server. Also, after max_fails failures (default 1), the server is considered unavailable for fail_timeout (default 10 seconds). Because of this, even if one server stops, the client gets replies without any failure as long as other servers remain.</dd>
+<dd>Skipping a failed server is what a load balancer does when an error occurs while it tries to connect to a server: it does not use that server and sends the same request to the next server. In the NGINX documentation the default of proxy_next_upstream is error and timeout, and error covers an error that occurs while establishing a connection with the server, so when a connection is refused, the request is passed to the next server. Also, after max_fails failures (default 1), the server is considered unavailable for fail_timeout (default 10 seconds). Because of this, even if one server stops, a new request is handled by a live server as long as other servers remain (a request that was already being handled may fail).</dd>
 <dt>Connection refused error</dt>
 <dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
 </dl>
@@ -162,6 +162,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

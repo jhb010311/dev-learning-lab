@@ -9,7 +9,7 @@ Lab.quiz([
     why: 'While the freshness lifetime set by the origin has not run out, the edge does not check with the origin. The origin does not tell the edge about the change either, so the old copy keeps going out until the freshness lifetime ends or the copy is invalidated.' },
   { lv: 2, id: 'cdn', q: 'The edge has a copy of /app.css?v=1. What happens if /app.css?v=1&ref=mail is requested?',
     a: ['The address is different, so it is seen as a different copy, and the request is a MISS and goes to the origin', 'It is the same file, so the edge answers right away with the copy it stored', 'The edge decides the query string is wrong and rejects it with 400', 'The edge strips ref=mail and redirects to the original address'],
-    why: 'The edge looks up copies by the whole address, the path and the query string together. Even if the content is the same, a different query string means a different copy, so more requests go to the origin.',
+    why: 'In this lab, the edge looks up copies by the whole address, the path and the query string together (what it looks up by depends on the CDN settings). Even if the content is the same, a different query string means a different copy, so more requests go to the origin.',
     sim: { c: { ttl: '300', q2: 'ref', chg: false, after: 'none' }, col: 1, has: 'MISS' } },
   { lv: 3, id: 'cdn', q: 'The origin responds with s-maxage=300. A copy was stored at the edge at 0s, and the file at the origin was changed at 30s. With no other action, what does a user who requests the same address at 80s get?',
     a: ['The old content stored at the edge (HIT)', 'The new content freshly fetched from the origin (MISS)', 'The new content fetched again because the freshness lifetime passed (EXPIRED)', 'An error response saying the content has changed'],
@@ -17,6 +17,6 @@ Lab.quiz([
     sim: { c: { ttl: '300', q2: 'same', chg: true, after: 'none' }, col: 3, has: 'HIT · Old content' } },
   { lv: 3, id: 'cdn', q: 'After changing the file, you made the web page point to /app.css?v=2 instead of /app.css?v=1. The edge has a copy of /app.css?v=1 that still has freshness lifetime left. How is the first request for /app.css?v=2 handled?',
     a: ['The edge has no copy of that address, so it fetches the new content from the origin', 'The path is the same, so the edge gives out the old copy of ?v=1 as it is', 'The edge deletes the copy of ?v=1 and then responds with an error', 'The origin does not know ?v=2, so it responds with 404'],
-    why: 'If the query string is different, it is a different copy. ?v=2 is an address the edge is seeing for the first time, so it is a MISS and the current content is fetched from the origin. Changing the version in the address like this sends out the new content without invalidation.',
+    why: 'In this lab, a different query string means a different copy (this depends on the CDN settings). ?v=2 is an address the edge is seeing for the first time, so it is a MISS and the current content is fetched from the origin. Changing the version in the address like this sends out the new content without invalidation.',
     sim: { c: { ttl: '300', q2: 'same', chg: true, after: 'ver' }, col: 2, has: 'MISS · New content' } },
 ]);

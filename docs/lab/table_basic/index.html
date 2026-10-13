@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>열의 데이터 타입</dt>
 <dd>열의 데이터 타입은 그 열에 담을 수 있는 값의 종류이다. CREATE TABLE에서 열마다 이름과 함께 적는다. 예를 들어 id INT는 정수 칸이고, name VARCHAR(20)은 길이가 달라지는 글자를 20자까지 담는 칸이다. MySQL 8.4 문서는 타입을 숫자, 날짜와 시간, 문자열, 공간, JSON의 다섯 종류로 나눈다. 타입에 맞지 않는 값을 넣으려 하면 DB가 그 INSERT를 거부하는 것이 보통이지만, 얼마나 엄격한지는 DB와 설정에 따라 다르다.</dd>
 <dt>CREATE TABLE, INSERT, SELECT</dt>
-<dd>이 셋은 SQL 문이다. SQL은 관계형 데이터베이스에 일을 시키는 언어이고, 시키는 한 문장 한 문장을 SQL 문이라고 한다. CREATE TABLE은 테이블을 만들면서 열의 이름과 타입을 정하는 문이다(예: CREATE TABLE member (id INT, name VARCHAR(20))). INSERT는 행을 하나 넣는 문이고, VALUES 뒤의 값은 CREATE TABLE에서 열을 적은 순서대로 열에 들어간다. SELECT는 행을 읽어 오는 문으로, SELECT name FROM member처럼 열 이름을 적으면 그 열의 값만, *를 적으면 모든 열의 값을 읽는다. 문장은 보통 세미콜론(;)으로 끝낸다.</dd>
+<dd>이 셋은 SQL 문이다. SQL은 관계형 데이터베이스에 일을 시키는 언어이고, 시키는 한 문장 한 문장을 SQL 문이라고 한다. CREATE TABLE은 테이블을 만들면서 열의 이름과 타입을 정하는 문이다(예: CREATE TABLE member (id INT, name VARCHAR(20))). INSERT는 행을 하나 넣는 문이고, 열 이름을 따로 적지 않으면 VALUES 뒤의 값이 CREATE TABLE에서 열을 적은 순서대로 열에 들어간다. SELECT는 행을 읽어 오는 문으로, SELECT name FROM member처럼 열 이름을 적으면 그 열의 값만, *를 적으면 모든 열의 값을 읽는다. 문장은 보통 세미콜론(;)으로 끝낸다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -166,6 +166,6 @@ SELECT name FROM member;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

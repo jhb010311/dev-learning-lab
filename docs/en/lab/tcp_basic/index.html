@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,9 +36,9 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>TCP and UDP</dt>
-<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 <dt>TCP connection</dt>
-<dd>A TCP connection is the path that the sender and the receiver open between them before they exchange text with TCP. The sender asks for a connection to the IP address and the port of the other side, and if a program has that port open and is waiting, the connection is opened. The procedure for opening a connection is the 3-way handshake (RFC 9293 section 3.5). After the connection is opened, TCP takes care of delivering the bytes in the order they were sent, with nothing missing (RFC 9293 section 2.2 says that TCP provides a reliable, in-order, byte-stream service). Without a connection, text cannot be sent. HTTP/1.1 also goes over such a reliable connection, and the default for an http address is TCP (RFC 9112 section 9).</dd>
+<dd>A TCP connection is the path that the sender and the receiver open between them before they exchange text with TCP (it is not a line that is actually laid down, but an agreement in which the two sides remember the state of each other). The sender asks for a connection to the IP address and the port of the other side, and if a program has that port open and is waiting, the connection is opened. The procedure for opening a connection is the 3-way handshake (RFC 9293 section 3.5). After the connection is opened, TCP takes care of delivering the bytes in the order they were sent, with nothing missing (RFC 9293 section 2.2 says that TCP provides a reliable, in-order, byte-stream service). Without a connection, text cannot be sent. HTTP/1.1 also goes over such a reliable connection, and the default for an http address is TCP (RFC 9112 section 9).</dd>
 <dt>Connection refused error</dt>
 <dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
 <dt>Sending with UDP and delivery confirmation</dt>
@@ -163,6 +163,6 @@ Send text: &quot;C&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

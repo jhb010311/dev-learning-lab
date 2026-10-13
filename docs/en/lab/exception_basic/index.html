@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Throwing an exception (throw)</dt>
 <dd>Throwing an exception means creating an exception object, stopping what is being done now, and moving execution to the place that catches it. When something breaks the rules of Java, such as dividing an integer by 0, Java throws an exception by itself, and your code can also throw one directly with a throw statement, as in throw new IllegalStateException(). After an exception is thrown, execution does not go back to the place where it was thrown and continue. Java goes up through the callers one by one looking for a try-catch that can catch this exception, and if there is none all the way up, that thread ends.</dd>
 <dt>NullPointerException</dt>
-<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. It is an unchecked exception, which the compiler does not catch for you in advance, so it shows up only when the code runs. This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
+<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. Whether a value is null depends on the values at run time, so the compiler cannot catch it in advance and it shows up only when the code runs (it is an unchecked exception, so handling is not forced either). This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>Undo 로그와 Redo 로그</dt>
-<dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때와 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC) 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
+<dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때 쓰이며, InnoDB에서는 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC)도 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
 <dt>ACID</dt>
 <dd>트랜잭션이 보장해야 하는 네 가지 성질이다. 원자성(Atomicity)은 전부 성공하거나 전부 실패하는 것, 일관성(Consistency)은 트랜잭션 전후로 데이터가 정해진 규칙을 만족하는 것, 격리성(Isolation)은 동시에 실행되는 트랜잭션이 서로 간섭하지 않는 것, 지속성(Durability)은 커밋된 결과가 장애가 나도 유지되는 것이다.</dd>
 <dt>MVCC(다중 버전 동시성 제어)</dt>
@@ -161,6 +161,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>커버링 인덱스</dt>
 <dd>쿼리가 필요로 하는 모든 컬럼이 인덱스에 포함되어 있어, 테이블의 행을 읽지 않고 인덱스만으로 결과를 만들 수 있는 경우를 말한다. 테이블 접근이 생략되어 조회가 빨라진다. MySQL의 실행 계획에서는 Extra 항목에 Using index로 표시된다.</dd>
 <dt>클러스터드 인덱스와 세컨더리 인덱스</dt>
-<dd>클러스터드 인덱스는 인덱스의 끝(리프)에 행 데이터 자체가 저장된 인덱스로, 테이블의 데이터가 그 키 순서대로 저장된다. MySQL InnoDB에서는 기본 키가 클러스터드 인덱스다. 세컨더리(보조) 인덱스는 리프에 기본 키 값을 가지고 있어, 세컨더리 인덱스로 찾은 뒤 그 기본 키로 클러스터드 인덱스를 한 번 더 찾아 행을 읽는다.</dd>
+<dd>클러스터드 인덱스는 인덱스의 끝(리프)에 행 데이터 자체가 저장된 인덱스로, 테이블의 데이터가 그 키 순서대로 저장된다. MySQL InnoDB에서는 기본 키가 클러스터드 인덱스다. InnoDB의 세컨더리(보조) 인덱스는 리프에 기본 키 값을 가지고 있어, 세컨더리 인덱스로 찾은 뒤 그 기본 키로 클러스터드 인덱스를 한 번 더 찾아 행을 읽는다.</dd>
 <dt>카디널리티와 선택도</dt>
 <dd>카디널리티는 컬럼에 들어 있는 서로 다른 값의 개수다. 서로 다른 값이 많을수록(예: 주민번호, 이메일) 조건 하나로 걸러지는 행이 적어 인덱스의 효과가 크고, 값의 종류가 적을수록(예: 성별) 조건에 해당하는 행이 많아 인덱스의 효과가 작다. 선택도는 카디널리티를 테이블의 행 수로 나눈 값으로, 1에 가까울수록 조건 하나로 행이 잘 걸러진다.</dd>
 <dt>실행 계획(EXPLAIN)</dt>
@@ -165,6 +165,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

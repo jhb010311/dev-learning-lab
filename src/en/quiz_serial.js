@@ -14,7 +14,7 @@ Lab.quiz([
     sim: { c: { cls: 'ok', fld: 'static', chg: 'same' }, col: 2, has: '70 (the value set after saving)' } },
   { lv: 2, id: 'serial', q: 'When an object of a class that implements Serializable is restored with readObject, what happens to the constructor of that class?',
     a: ['It does not run. The saved values are put directly into the fields', 'The no-argument constructor always runs once', 'The constructor that was used when saving runs again with the same arguments', 'All the constructors run once each, in the order in which they are declared'],
-    why: 'Restoring creates the object without going through a constructor and then fills the fields with the saved values. So the value checks and setup code that you put in the constructor do not run.',
+    why: 'Restoring creates the object without going through the constructor of that class (if there is a parent that is not Serializable, the default constructor of that parent does run) and then fills the fields with the saved values. So the value checks and setup code that you put in the constructor do not run.',
     sim: { c: { cls: 'ok', fld: 'plain', chg: 'same' }, col: 3, has: '1' } },
   { lv: 3, id: 'serial', q: 'User implements Serializable and has a field Address address. Address does not implement Serializable. What happens when a User object is written with writeObject?',
     a: ['A NotSerializableException: Address is thrown', 'All the fields except address are saved', 'The whole object is saved with address changed to null', 'User is Serializable, so everything is saved without a problem'],

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Column data type</dt>
 <dd>The data type of a column is the kind of value that the column can hold. You write it with the name of each column in CREATE TABLE. For example, id INT is an integer column, and name VARCHAR(20) is a column that holds text of variable length up to 20 characters. The MySQL 8.4 documentation divides types into five kinds: numeric, date and time, string, spatial, and JSON. If you try to put in a value that does not match the type, the database usually rejects that INSERT, but how strict it is depends on the database and its settings.</dd>
 <dt>CREATE TABLE, INSERT, SELECT</dt>
-<dd>These three are SQL statements. SQL is the language that tells a relational database what to do, and each sentence of it is called an SQL statement. CREATE TABLE is the statement that makes a table and decides the names and types of its columns (for example, CREATE TABLE member (id INT, name VARCHAR(20))). INSERT is the statement that puts in one row, and the values after VALUES go into the columns in the order in which the columns were written in CREATE TABLE. SELECT is the statement that reads rows, and if you write a column name, as in SELECT name FROM member, it reads only the values of that column, and if you write *, it reads the values of all columns. A statement usually ends with a semicolon (;).</dd>
+<dd>These three are SQL statements. SQL is the language that tells a relational database what to do, and each sentence of it is called an SQL statement. CREATE TABLE is the statement that makes a table and decides the names and types of its columns (for example, CREATE TABLE member (id INT, name VARCHAR(20))). INSERT is the statement that puts in one row, and if you do not write the column names separately, the values after VALUES go into the columns in the order in which the columns were written in CREATE TABLE. SELECT is the statement that reads rows, and if you write a column name, as in SELECT name FROM member, it reads only the values of that column, and if you write *, it reads the values of all columns. A statement usually ends with a semicolon (;).</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -166,6 +166,6 @@ SELECT name FROM member;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

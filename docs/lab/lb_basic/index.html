@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>라운드 로빈</dt>
 <dd>라운드 로빈은 요청을 서버들에 차례대로 돌아가며 한 대씩 나눠 주는 방식이다. 서버가 A, B 두 대이면 요청이 A, B, A, B 순으로 간다. NGINX 문서는 서버들에 요청을 고르게 나누는 이 방식이 기본이며 따로 켜는 지시어가 없다고 적고, 서버마다 가중치를 줄 수 있다고 한다. 요청이 몇 번째로 어느 서버에 가는지가 정해진 순서를 따르므로, 서버가 늘 같은 상태일 때 요청은 서버들에 고르게 나뉜다.</dd>
 <dt>실패한 서버 건너뛰기</dt>
-<dd>로드 밸런서가 어느 서버에 연결하려는데 오류가 나면, 그 서버를 쓰지 않고 같은 요청을 다음 서버에 보내는 동작이다. NGINX 문서에서 proxy_next_upstream의 기본값은 error와 timeout이고, error에는 서버와 연결을 맺는 중 난 오류가 들어 있어서, 연결이 거부되면 요청이 다음 서버로 넘어간다. 또 max_fails(기본 1)번 실패하면 fail_timeout(기본 10초) 동안 그 서버를 쓸 수 없는 서버로 본다. 이 덕분에 서버 한 대가 꺼져도 남은 서버가 있으면 클라이언트는 실패 없이 답을 받는다.</dd>
+<dd>로드 밸런서가 어느 서버에 연결하려는데 오류가 나면, 그 서버를 쓰지 않고 같은 요청을 다음 서버에 보내는 동작이다. NGINX 문서에서 proxy_next_upstream의 기본값은 error와 timeout이고, error에는 서버와 연결을 맺는 중 난 오류가 들어 있어서, 연결이 거부되면 요청이 다음 서버로 넘어간다. 또 max_fails(기본 1)번 실패하면 fail_timeout(기본 10초) 동안 그 서버를 쓸 수 없는 서버로 본다. 이 덕분에 서버 한 대가 꺼져도 남은 서버가 있으면 새로 오는 요청은 살아 있는 서버가 받는다(처리 중이던 요청은 실패할 수 있다).</dd>
 <dt>연결 거부 오류</dt>
 <dd>연결 거부 오류는 TCP로 연결을 요청했는데 그 포트를 열고 기다리는 프로그램이 없을 때 보내는 쪽이 받는 오류이다. Node.js에서는 이 경우 connect 이벤트 대신 error 이벤트가 오고 오류 코드가 ECONNREFUSED로 나타난다(net 문서는 연결에 문제가 있으면 connect 대신 error가 온다고 적고, ECONNREFUSED라는 이름은 문서에서 확인하지 못했으며 이 PC의 실행에서 관찰했다). 연결이 맺어지지 않았으므로 글은 하나도 보내지지 않는다. TCP 표준은 연결이 없는 상태로 온 요청에 거부 신호(RST)를 보내도록 정한다(RFC 9293 3.5.2절).</dd>
 </dl>
@@ -162,6 +162,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>MAC address and ARP</dt>
 <dd>A MAC address is a 48-bit address attached to each network device, such as a network card, and it is used within a network to say to whom a frame should be handed. While an IP address points to the final destination, a MAC address points to the device that will take the frame over next. ARP is the protocol that finds the MAC address of the owner of an IP address from that IP address. A request that says &quot;whoever owns this IP address, tell me your MAC address&quot; is sent to every device on the network, only the owner answers, and the result is kept for a while in the ARP cache. An ARP request cannot cross a router, so the MAC address of a device on another network cannot be found.</dd>
 <dt>Switch and router</dt>
-<dd>A switch is a device that connects the devices in one network, and it sends a frame out only through the port to which the device with the destination MAC address of the frame is connected. It does not look at IP addresses and does not change the contents of the frame. A router is a device that connects different networks, and it decides where to hand a packet next by looking at the destination IP address of the packet and its routing table. When a packet passes a router, the frame is built anew and the MAC addresses change, but the IP addresses stay the same and the TTL goes down by 1. A home router combines a router, a switch, and a wireless access point in one machine.</dd>
+<dd>A switch is a device that connects the devices in one network, and it looks at the destination MAC address of the frame and, if it knows which port that device is connected to, sends the frame out only through that port. It does not look at IP addresses and does not change the contents of the frame. A router is a device that connects different networks, and it decides where to hand a packet next by looking at the destination IP address of the packet and its routing table. When a packet passes a router, the frame is built anew and the MAC addresses change, but the IP addresses usually stay the same (NAT, which changes addresses as a home router does, is an exception) and the TTL goes down by 1. A home router combines a router, a switch, and a wireless access point in one machine.</dd>
 <dt>Default gateway</dt>
 <dd>The default gateway is the address of the router to which a computer hands the packets it sends outside its own network. The computer compares the destination IP address with its own IP address using the subnet mask. If they are on the same network, it sends the packet directly to the other device, and if not, it sends it to the default gateway. In that case, the destination IP address of the packet is left as the original destination, and only the destination MAC address of the frame is set to that of the gateway. If the default gateway is set wrong, the computer can communicate with devices on the same network but cannot get out to the internet.</dd>
 <dt>TTL of an IP packet</dt>
@@ -180,6 +180,6 @@ else forwardInNewFrame(packet);    // write only new MAC addresses and send it o
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

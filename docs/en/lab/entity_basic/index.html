@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>An entity is a Java class that is paired with one row of a table. It differs from an ordinary class in @Entity above the class (the marker that it is a class to store) and @Id above a field (the marker that it is the primary key), and with these two, JPA pairs the fields with columns and creates the table.</li>
+<li>An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. It differs from an ordinary class in @Entity above the class (the marker that it is a class to store) and @Id above a field (the marker that it is the primary key), and with these two, JPA pairs the fields with columns and creates the table.</li>
 <li>We did not write a single line of SQL. JPA built both the table and the INSERT statement by looking at the shape of the class, and the INSERT was sent not on the persist line but on the commit line.</li>
 </ul>
 <h2>Code</h2>
@@ -177,6 +177,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

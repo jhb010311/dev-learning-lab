@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -44,7 +44,7 @@
 <dt>Immutable object</dt>
 <dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
 <dt>Dirty checking</dt>
-<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -189,6 +189,6 @@ member1.getAddress().setCity(&quot;Denver&quot;);
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

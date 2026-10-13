@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>HttpOnly, Secure, SameSite</dt>
 <dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄인다.</dd>
 <dt>세션</dt>
-<dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 조작할 수 없다. 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
+<dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 내용을 고칠 수 없다(세션 ID를 빼앗기는 것은 다른 문제다). 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -171,6 +171,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

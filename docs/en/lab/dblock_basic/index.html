@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Row locks</dt>
-<dd>A row lock is a lock that the database puts on a row when a transaction changes that row. In MySQL InnoDB, UPDATE ... WHERE puts an exclusive lock on the index records it meets in the search, and if it finds one row with a unique index such as a primary key, that one record lock is enough. When one transaction holds an exclusive lock on a row, a request by another transaction for a lock on the same row cannot be granted at once, and it must wait until the earlier transaction releases the lock. InnoDB locks are released when the transaction commits or aborts, so if you leave a transaction open without ending it, that row stays locked. A lock is put only on the row that was changed, and it is not written in the code; the database that received the UPDATE takes it by itself.</dd>
+<dd>A row lock is a lock that the database puts on a row when a transaction changes that row. In MySQL InnoDB, UPDATE ... WHERE puts an exclusive lock on the index records it meets in the search, and if it finds one row with a unique index such as a primary key, that one record lock is enough. When one transaction holds an exclusive lock on a row, a request by another transaction for a lock on the same row cannot be granted at once, and it must wait until the earlier transaction releases the lock. InnoDB locks are released when the transaction commits or aborts, so if you leave a transaction open without ending it, that row stays locked. If the condition finds one row directly, such as by a primary key, the lock is put only on that row (if there is no suitable index for the search, it covers more rows), and it is not written in the code; the database that received the UPDATE takes it by itself.</dd>
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
 <dt>Shared locks and exclusive locks</dt>
@@ -173,6 +173,6 @@ COMMIT;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

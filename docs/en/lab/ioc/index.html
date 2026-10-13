@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,9 +42,9 @@
 <dt>@Configuration and @Bean</dt>
 <dd>@Configuration marks a configuration class that contains bean definitions, and the object returned by each @Bean method inside it is registered as a bean. Use them when you need to make a bean from a class in an external library that you cannot modify, or when you need to control the creation process yourself. Classes that you write yourself are usually registered with @Component or a related annotation.</dd>
 <dt>@Primary and @Qualifier</dt>
-<dd>These are two annotations that determine which bean is injected when there are two or more beans of the same type. The Spring container looks up the bean to inject by type, and when several beans match, it cannot choose, so it throws a NoUniqueBeanDefinitionException and the application does not start. @Primary goes on the side that registers the bean (a class or a @Bean method) and marks it as &quot;the one to prefer when there are several&quot;. @Qualifier goes on the side that receives the injection (a constructor parameter or a field) and names the bean to use directly. When both are present, the bean specified with @Qualifier is injected.</dd>
+<dd>These are two annotations that determine which bean is injected when there are two or more beans of the same type. The Spring container looks up the bean to inject by type, and when several beans match and there is no clue to decide which one to use (@Primary, @Qualifier, or a name), it throws a NoUniqueBeanDefinitionException and the application does not start. @Primary goes on the side that registers the bean (a class or a @Bean method) and marks it as &quot;the one to prefer when there are several&quot;. @Qualifier goes on the side that receives the injection (a constructor parameter or a field) and names the bean to use directly. When both are present, the bean specified with @Qualifier is injected.</dd>
 <dt>NoSuchBeanDefinitionException and NoUniqueBeanDefinitionException</dt>
-<dd>These are two exceptions that the container throws when it cannot determine which bean to inject. NoSuchBeanDefinitionException is thrown when no bean of the required type is registered at all, and NoUniqueBeanDefinitionException is thrown when there are two or more beans of the same type and the container cannot choose one. Singleton beans are created when the application starts, so these exceptions appear at startup, not while a request is being handled, and the application does not start. For the former, check whether a bean registration (@Component or @Bean) is missing, and for the latter, check whether another bean of the same type has been added.</dd>
+<dd>These are two exceptions that the container throws when it cannot determine which bean to inject. NoSuchBeanDefinitionException is thrown when no bean of the required type is registered at all, and NoUniqueBeanDefinitionException is thrown when there are two or more beans of the same type and the container cannot choose one. Singleton beans are created when the application starts, so these exceptions usually appear at startup, not while a request is being handled, if the bean is a singleton, and the application does not start. For the former, check whether a bean registration (@Component or @Bean) is missing, and for the latter, check whether another bean of the same type has been added.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -187,6 +187,6 @@ int pay = orderService.order(20000);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

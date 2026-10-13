@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Ephemeral port</dt>
 <dd>An ephemeral port is the source port number that the operating system chooses automatically when a client connects to a server. The client code writes only the port of the other side (the server), and the operating system lends a free number for its own side. When the connection ends, the number is given back and can be used again for another connection. The range from which numbers are picked depends on the operating system and its settings, so you must not assume that a particular number will come up. If a very large number of new connections are made in a short time, there may be no numbers left to lend, and a new connection can fail.</dd>
 <dt>TCP and UDP</dt>
-<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -175,6 +175,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

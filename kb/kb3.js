@@ -63,7 +63,7 @@ module.exports = [
   ["Spring", "@ControllerAdvice와 @ExceptionHandler",
    "여러 컨트롤러에서 발생한 예외를 한곳에서 처리하게 하는 기능이다. @ControllerAdvice 클래스 안에 예외 종류별로 @ExceptionHandler 메서드를 두면, 컨트롤러 실행 중 발생한 예외가 그 메서드로 전달되어 일관된 형식의 오류 응답을 만들 수 있다."],
   ["Spring", "Spring Boot 자동 설정(Auto-configuration)",
-   "클래스패스에 있는 라이브러리와 설정 값을 보고 필요한 빈을 자동으로 등록해 주는 Spring Boot의 기능이다. 예를 들어 JDBC 드라이버와 접속 정보가 있으면 DataSource를 자동으로 구성한다. 각 자동 설정에는 적용 조건이 붙어 있으며, 개발자가 같은 종류의 빈을 직접 등록하면 자동 설정은 적용되지 않는다."],
+   "클래스패스에 있는 라이브러리와 설정 값을 보고 필요한 빈을 자동으로 등록해 주는 Spring Boot의 기능이다. 예를 들어 JDBC 드라이버와 접속 정보가 있으면 DataSource를 자동으로 구성한다. 각 자동 설정에는 적용 조건이 붙어 있으며, 개발자가 같은 종류의 빈을 직접 등록하면 자동 설정에서 그 빈을 만드는 부분은 적용되지 않는다."],
   ["Spring", "스타터(Starter)",
    "특정 기능에 필요한 라이브러리들을 서로 호환되는 버전으로 묶어 놓은 Spring Boot의 의존성 묶음이다. 웹 스타터(Spring Boot 3까지는 spring-boot-starter-web, Spring Boot 4부터는 spring-boot-starter-webmvc) 하나를 추가하면 Spring MVC, JSON 처리, 내장 톰캣 등이 함께 들어온다. 라이브러리 간 버전 충돌을 직접 맞추는 수고를 덜어 준다."],
   ["Spring", "내장 서버",

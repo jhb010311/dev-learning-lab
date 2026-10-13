@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>관측성(로그, 지표, 추적)</dt>
 <dd>시스템의 외부 출력만으로 내부 상태를 파악할 수 있는 능력이다. 로그는 개별 사건의 기록, 지표(메트릭)는 요청 수나 응답 시간처럼 수치로 집계한 값, 추적은 하나의 요청이 여러 서비스를 거쳐 가는 경로와 구간별 소요 시간의 기록이다. 세 가지를 함께 갖춰야 문제를 감지하고 원인을 찾을 수 있다.</dd>
 <dt>MDC</dt>
-<dd>로그를 남길 때 현재 요청과 관련된 문맥 정보(요청 ID, 사용자 ID 등)를 자동으로 함께 출력하게 해 주는 로깅 기능이다. 스레드별로 값을 보관하며, 요청이 시작될 때 값을 넣어 두면 그 요청을 처리하는 동안의 모든 로그에 같은 값이 찍힌다. 여러 요청의 로그가 섞여 있어도 한 요청의 로그만 골라 볼 수 있다.</dd>
+<dd>로그를 남길 때 현재 요청과 관련된 문맥 정보(요청 ID, 사용자 ID 등)를 자동으로 함께 출력하게 해 주는 로깅 기능이다. 스레드별로 값을 보관하며, 요청이 시작될 때 값을 넣어 두면 그 요청을 처리하는 스레드가 남기는 모든 로그에 같은 값이 찍힌다. 여러 요청의 로그가 섞여 있어도 한 요청의 로그만 골라 볼 수 있다.</dd>
 <dt>APM</dt>
 <dd>애플리케이션의 성능을 모니터링하는 도구다. 요청별 응답 시간, 어느 메서드나 쿼리에서 시간이 걸렸는지, 오류 발생 현황 등을 수집해 보여 준다. 자바에서는 주로 에이전트 방식으로 코드 수정 없이 적용한다. Pinpoint, Scouter, Datadog 등이 있다.</dd>
 <dt>모놀리식과 MSA(마이크로서비스)</dt>
@@ -166,6 +166,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

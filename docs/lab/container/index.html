@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>컨테이너와 이미지</dt>
-<dd>컨테이너는 애플리케이션과 그 실행에 필요한 것들을 묶어, 호스트 운영체제의 커널을 공유하면서 다른 프로세스와 격리된 환경에서 실행하는 기술이다. 이미지는 컨테이너를 만드는 데 쓰는 읽기 전용 템플릿으로 애플리케이션과 라이브러리, 설정이 들어 있다. 같은 이미지로 실행하면 어느 환경에서나 같은 결과를 얻는다.</dd>
+<dd>컨테이너는 애플리케이션과 그 실행에 필요한 것들을 묶어, 호스트 운영체제의 커널을 공유하면서 다른 프로세스와 격리된 환경에서 실행하는 기술이다. 이미지는 컨테이너를 만드는 데 쓰는 읽기 전용 템플릿으로 애플리케이션과 라이브러리, 설정이 들어 있다. 같은 이미지로 실행하면 실행 환경의 차이로 생기는 문제를 크게 줄인다.</dd>
 <dt>컨테이너와 가상 머신의 차이</dt>
 <dd>가상 머신은 하드웨어를 가상화해 그 위에 운영체제 전체를 따로 설치해 실행한다. 컨테이너는 호스트의 운영체제 커널을 공유하고 프로세스만 격리한다. 그래서 컨테이너는 가상 머신보다 가볍고 빨리 시작되지만 격리 수준은 가상 머신이 더 높다.</dd>
 <dt>네임스페이스와 cgroups</dt>
@@ -162,6 +162,6 @@ $ docker run -d --memory=1024m my-app:1.0</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

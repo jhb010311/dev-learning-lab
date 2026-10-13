@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>TCP and UDP</dt>
-<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 <dt>Three-way handshake</dt>
 <dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
 <dt>Flow control and congestion control</dt>
@@ -162,6 +162,6 @@ socket.close();                                // close the connection</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

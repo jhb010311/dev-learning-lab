@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>쿼리 메서드</dt>
 <dd>스프링 데이터 리포지토리 인터페이스에 선언한 메서드의 이름을 읽어 쿼리를 만들어 주는 기능이다. findByName처럼 find…By 뒤에 엔티티의 프로퍼티 이름을 쓰고, GreaterThan이나 Containing 같은 키워드를 프로퍼티 이름 뒤에 붙여 조건의 종류를 정하며, 여러 조건은 And나 Or로 잇는다. 이름을 쿼리로 바꾸는 일은 애플리케이션이 뜰 때 하므로, 엔티티에 없는 프로퍼티 이름을 쓰면 PropertyReferenceException이 나고 애플리케이션이 뜨지 않는다. 조건이 많아지면 이름이 지나치게 길어지므로 그때는 @Query에 JPQL을 직접 적는다.</dd>
 <dt>Pageable과 Page</dt>
-<dd>Pageable은 몇 번째 페이지를 몇 건씩 어떤 순서로 달라는 요청을 담는 객체이고, 보통 PageRequest.of(페이지 번호, 크기)로 만든다. 페이지 번호는 0부터 센다. 반환 타입을 Page로 하면 스프링 데이터가 내용을 읽는 쿼리와 전체 건수를 세는 count 쿼리를 보내고, 이 페이지의 내용과 전체 건수, 전체 페이지 수를 함께 돌려준다. 반환 타입을 Slice로 하면 count 쿼리 없이 한 건을 더 읽어 다음 페이지가 있는지만 알려 준다. 데이터가 많은 테이블에서는 count 쿼리가 느릴 수 있으므로 전체 건수가 꼭 필요한지 먼저 따져 본다.</dd>
+<dd>Pageable은 몇 번째 페이지를 몇 건씩 어떤 순서로 달라는 요청을 담는 객체이고, 보통 PageRequest.of(페이지 번호, 크기)로 만든다. 페이지 번호는 0부터 센다. 반환 타입을 Page로 하면 스프링 데이터가 내용을 읽는 쿼리를 보내고 보통 전체 건수를 세는 count 쿼리가 한 번 더 나가며, 이 페이지의 내용과 전체 건수, 전체 페이지 수를 함께 돌려준다. 반환 타입을 Slice로 하면 count 쿼리 없이 한 건을 더 읽어 다음 페이지가 있는지만 알려 준다. 데이터가 많은 테이블에서는 count 쿼리가 느릴 수 있으므로 전체 건수가 꼭 필요한지 먼저 따져 본다.</dd>
 <dt>save()와 merge</dt>
 <dd>스프링 데이터 JPA의 save()는 넘겨받은 엔티티가 새것이면 em.persist를, 아니면 em.merge를 부른다. 새것인지는 기본적으로 id가 null인지로 판단하며, @Version 필드가 있고 그 타입이 Long 같은 객체 타입이면 그 값이 null인지로 판단한다(long 같은 기본형이면 id로 판단한다). merge는 같은 id의 행을 SELECT로 먼저 조회한 뒤 넘겨받은 객체의 값을 관리되는 객체에 덮어쓰고, 그 관리되는 객체를 돌려준다. 그래서 id를 코드에서 직접 정하는 엔티티는 처음 저장할 때도 SELECT가 한 번 더 나간다. 이를 피하려면 엔티티가 Persistable 인터페이스를 구현해 새것인지를 직접 알려 준다.</dd>
 <dt>엔티티</dt>
@@ -178,6 +178,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

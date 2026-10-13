@@ -5,7 +5,7 @@ Lab.quiz([
     why: 'TCP establishes a connection before sending, and it uses numbers and acknowledgments to send again what is missing and to put the data in order. UDP has no such procedure, so it is lightweight, but it takes no responsibility for delivery or order.' },
   { lv: 1, id: 'udp', q: 'You send a UDP datagram three times to a port where no receiving program is running. What result does the sending program see?',
     a: ['All three sends are reported as sent without an error', 'The first send fails with a connection refused error', 'Sending blocks until the receiving program starts', 'The third send fails with a timeout error'],
-    why: 'UDP does not establish a connection and does not receive an acknowledgment. A send succeeding means only that the operating system sent the data out, so no error occurs even when there is no receiving program.',
+    why: 'UDP does not establish a connection and does not receive an acknowledgment. A send succeeding means only that the operating system sent the data out, so an error usually does not show up even when there is no receiving program.',
     sim: { c: { proto: 'udp', recv: false, net: 'ok' }, col: 1, has: 'no error' } },
   { lv: 2, id: 'udp', q: 'You wrote "AB", "CD", and "EF" to a TCP connection in three separate writes. When the receiving program read a little later, "ABCDEF" came out at once. Why?',
     a: ['TCP delivers a stream of bytes in the correct order, but it does not tell the receiver where the data was split when it was sent', 'There is a bug in the sending program, and the three writes were merged into one', 'TCP compressed the data and reduced the three pieces to one', 'Two of the three pieces were lost, and TCP sent them all again at once'],

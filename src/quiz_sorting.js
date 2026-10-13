@@ -6,7 +6,7 @@ Lab.quiz([
     sim: { c: { by: 'natural', data: 'normal', rev: false }, col: 0, has: 'choi, han, kim, lee, park' } },
   { lv: 2, id: 'sorting', q: '(a, b) -> a.balance() - b.balance()처럼 두 수를 빼서 비교하는 Comparator가 위험한 이유는 무엇입니까?',
     a: ['두 값의 차이가 int 범위를 넘으면 부호가 뒤집혀, 틀린 순서가 예외 없이 나온다', '빼기는 크기 비교보다 훨씬 느려서, 원소가 많아지면 정렬 시간이 크게 늘어난다', '두 값이 같을 때 0이 아닌 값이 나와서, 같은 원소끼리의 순서가 계속 뒤바뀐다', '람다로 만든 Comparator에는 reversed를 쓸 수 없어서, 거꾸로 정렬하지 못한다'],
-    why: '20억에서 -20억을 빼면 40억이어야 하지만 int에 담을 수 없어 음수가 됩니다. 정렬은 부호만 보므로 큰 값을 작다고 판단하고, 예외도 나지 않습니다. Integer.compare나 Comparator.comparingInt는 빼지 않고 크기를 비교합니다.',
+    why: '20억에서 -20억을 빼면 40억이어야 하지만 int에 담을 수 없어 음수가 됩니다. 정렬은 부호만 보므로 큰 값을 작다고 판단하고, 예외 없이 틀린 순서가 나올 수 있습니다. Integer.compare나 Comparator.comparingInt는 빼지 않고 크기를 비교합니다.',
     sim: { c: { by: 'sub', data: 'big', rev: false }, col: 3, has: '틀림' } },
   { lv: 2, id: 'sorting', q: '잔액순으로 정렬했더니 잔액이 같은 park와 kim이 정렬하기 전과 같은 순서로 나왔습니다. 그 이유는 무엇입니까?',
     a: ['List.sort는 비교 결과가 0인 원소들의 원래 순서를 지키는 안정 정렬이기 때문이다', '잔액이 같으면 List.sort가 알아서 이름의 사전 순서를 비교해 주기 때문이다', '잔액이 같으면 List.sort가 두 객체의 hashCode를 비교해 순서를 정하기 때문이다', '원래는 실행할 때마다 달라지는데 이번에는 우연히 같은 순서로 나온 것이다'],

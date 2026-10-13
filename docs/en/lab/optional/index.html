@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,9 +40,9 @@
 <dt>orElse and orElseGet</dt>
 <dd>These are the two methods that set the default value to use in its place when an Optional is empty. orElse(value) takes the default value itself as its argument, and orElseGet(function) takes a function (a lambda expression) that produces the default value. Java evaluates the arguments before it calls a method, so if you write orElse(makeDefault()), makeDefault() runs even when the Optional contains a value. orElseGet runs the function that it was given only when the Optional is empty. So use orElseGet when creating the default value takes time or when other work, such as saving or logging, happens along with it.</dd>
 <dt>NullPointerException</dt>
-<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. It is an unchecked exception, which the compiler does not catch for you in advance, so it shows up only when the code runs. This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
+<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. Whether a value is null depends on the values at run time, so the compiler cannot catch it in advance and it shows up only when the code runs (it is an unchecked exception, so handling is not forced either). This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
 <dt>Lazy evaluation</dt>
-<dd>This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They are processed together when the terminal operation is called, and the stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used.</dd>
+<dd>This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They run only when the terminal operation is called, and each element passes through the pipeline one at a time. The stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used.</dd>
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
 </dl>
@@ -177,6 +177,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

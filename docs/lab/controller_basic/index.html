@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>컨트롤러 클래스</dt>
-<dd>컨트롤러 클래스는 스프링 MVC에서 웹 요청을 처리하는 메서드를 가진 자바 클래스다. 서블릿과 달리 특정 클래스를 상속하거나 인터페이스를 구현하지 않아도 되고, 클래스 위에 @Controller나 @RestController를 붙여 컨트롤러라고 표시한다. 스프링이 클래스 경로를 훑어(컴포넌트 스캔) 표시가 붙은 클래스를 찾아 객체를 만들어 두며, 개발자가 new로 만들지 않는다. 요청은 DispatcherServlet이 받아, 메서드 위에 적힌 주소(@GetMapping 등)를 보고 알맞은 컨트롤러의 메서드를 불러 준다. 주소는 클래스가 아니라 메서드에 적으므로 클래스 하나에 주소 여러 개를 둘 수 있다.</dd>
+<dd>컨트롤러 클래스는 스프링 MVC에서 웹 요청을 처리하는 메서드를 가진 자바 클래스다. 서블릿과 달리 특정 클래스를 상속하거나 인터페이스를 구현하지 않아도 되고, 클래스 위에 @Controller나 @RestController를 붙여 컨트롤러라고 표시한다. 스프링이 클래스 경로를 훑어(컴포넌트 스캔) 표시가 붙은 클래스를 찾아 객체를 만들어 두며, 개발자가 new로 만들지 않는다. 요청은 DispatcherServlet이 받아, 메서드 위에 적힌 주소(@GetMapping 등)를 보고 알맞은 컨트롤러의 메서드를 불러 준다. 주소는 메서드마다 적으므로(클래스 위에는 공통 앞부분만 적을 수 있다) 클래스 하나에 주소 여러 개를 둘 수 있다.</dd>
 <dt>@RestController</dt>
 <dd>@RestController는 클래스를 컨트롤러로 표시하는 애너테이션이다. @Controller와 @ResponseBody를 합친 것으로, 이 클래스의 요청 처리 메서드가 돌려주는 값이 뷰를 거치지 않고 곧바로 응답 본문에 쓰인다. @Controller는 @Component를 특수화한 것이어서 스프링이 컴포넌트 스캔으로 이 클래스를 찾아 객체로 등록한다. 이 애너테이션이 없으면 스프링이 그 클래스를 컨트롤러로 찾지 못하므로, 메서드에 @GetMapping을 붙여도 요청을 받지 못한다.</dd>
 <dt>@GetMapping</dt>
@@ -167,6 +167,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

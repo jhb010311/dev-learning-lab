@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>TCP와 UDP</dt>
-<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. 웹, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
+<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>바이트 스트림과 데이터그램</dt>
 <dd>데이터를 실어 나르는 두 가지 모양이다. 바이트 스트림은 바이트가 순서대로 끊김 없이 이어지는 흐름으로, TCP가 이 방식이다. 보내는 쪽이 몇 번에 나눠 썼는지는 전달되지 않아서, 세 번에 나눠 보낸 것이 한 번에 읽히거나 한 번에 보낸 것이 여러 번에 나뉘어 읽힐 수 있다. 데이터그램은 한 번에 보낸 덩어리가 그대로 하나의 단위로 전달되는 방식으로, UDP가 이 방식이며 덩어리끼리 합쳐지거나 쪼개져 읽히지 않는다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 길이를 먼저 적거나 구분 글자를 넣어 메시지의 끝을 스스로 표시해야 한다.</dd>
 <dt>소켓</dt>
@@ -174,6 +174,6 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

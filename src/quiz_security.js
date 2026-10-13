@@ -2,7 +2,7 @@
 Lab.quiz([
   { lv: 1, id: 'security', q: '토큰 없이 로그인이 필요한 경로(GET /orders)를 요청했습니다. 스프링 시큐리티는 어떤 응답을 보냅니까?',
     a: ['401 Unauthorized', '403 Forbidden', '404 Not Found', '200 OK'],
-    why: '누구인지 확인되지 않은 요청이 인증이 필요한 경로에 오면 AuthenticationEntryPoint가 401로 응답합니다. 403은 누구인지는 확인됐지만 권한이 모자랄 때의 응답입니다.',
+    why: '이 실습의 설정에서는 누구인지 확인되지 않은 요청이 인증이 필요한 경로에 오면 AuthenticationEntryPoint가 401로 응답합니다. 403은 누구인지는 확인됐지만 권한이 모자랄 때의 응답입니다.',
     sim: { c: { who: 'none', path: 'orders' }, col: 0, has: '401' } },
   { lv: 2, id: 'security', q: 'USER 권한의 유효한 토큰으로 ADMIN 권한이 필요한 경로를 요청했습니다. 어떤 응답이 나오고, 그 응답은 어디에서 만들어집니까?',
     a: ['403 Forbidden이고 AccessDeniedHandler가 만든다', '401 Unauthorized이고 AuthenticationEntryPoint가 만든다', '403 Forbidden이고 컨트롤러가 직접 만든다', '401 Unauthorized이고 AccessDeniedHandler가 만든다'],

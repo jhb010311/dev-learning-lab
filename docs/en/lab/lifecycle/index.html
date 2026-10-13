@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Bean lifecycle</dt>
 <dd>This is the process from the creation of a bean to its end. It proceeds in this order: object creation, dependency injection, the initialization callback, use, and the destruction callback when the container shuts down. Put initialization work that must run after all dependencies are injected in @PostConstruct, and put cleanup work before shutdown in @PreDestroy.</dd>
 <dt>@PostConstruct and @PreDestroy</dt>
-<dd>These are annotations that mark the methods to be called when a bean is initialized and when it is destroyed. The container calls the method annotated with @PostConstruct after it creates the object and finishes dependency injection, and it calls the method annotated with @PreDestroy when the container is closed. So setup work that needs an injected object belongs in a @PostConstruct method, not in the constructor. They are not annotations of Spring but annotations from the jakarta.annotation package. For a prototype-scoped bean, @PreDestroy is not called.</dd>
+<dd>These are annotations that mark the methods to be called when a bean is initialized and when it is destroyed. The container calls the method annotated with @PostConstruct after it creates the object and finishes dependency injection, and it calls the method annotated with @PreDestroy when the container is closed. So setup work that needs an object injected through a field or a setter belongs in a @PostConstruct method, not in the constructor (an object injected through the constructor can also be used inside the constructor). They are not annotations of Spring but annotations from the jakarta.annotation package. For a prototype-scoped bean, @PreDestroy is not called.</dd>
 <dt>InitializingBean and DisposableBean</dt>
 <dd>These are two interfaces of Spring that define the methods to be called when a bean is initialized and when it is destroyed. If a class implements InitializingBean, afterPropertiesSet() is called after dependency injection finishes, and if it implements DisposableBean, destroy() is called when the container is closed. Because the class must implement interfaces of Spring, the code is coupled to Spring. The same work can also be done with @PostConstruct and @PreDestroy, or with initMethod and destroyMethod of @Bean. When all three are used together, they are called in this order: the annotations, the interfaces, and then the methods specified in @Bean.</dd>
 <dt>Constructor injection, setter injection, and field injection</dt>
@@ -184,6 +184,6 @@ context.close();                              // closes the container</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

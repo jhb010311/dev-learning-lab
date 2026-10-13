@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7a98f14b94">
+<link rel="stylesheet" href="../../app.css?v=bdeab88752">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Stream API</dt>
 <dd>컬렉션 등의 데이터에 대해 필터링, 변환, 집계를 선언적으로 표현하는 API다. filter, map 같은 중간 연산을 이어 붙이고 collect, forEach 같은 최종 연산으로 마무리한다. 중간 연산은 최종 연산이 호출될 때까지 실행되지 않으며(지연 평가), 스트림은 원본 데이터를 변경하지 않고 한 번만 사용할 수 있다.</dd>
 <dt>지연 평가(Lazy Evaluation)</dt>
-<dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 한꺼번에 처리되며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
+<dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 비로소 실행되고 원소가 하나씩 파이프라인을 지나가며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
 <dt>Optional</dt>
@@ -166,6 +166,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7a98f14b94"></script>
+<script src="../../app.js?v=bdeab88752"></script>
 </body>
 </html>

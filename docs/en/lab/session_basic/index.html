@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Session</dt>
-<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot tamper with it. When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
+<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot change its contents (having the session ID stolen is a different problem). When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
 <dt>Session ID (JSESSIONID)</dt>
 <dd>A session ID is a unique string that a servlet container gives to a session when it creates it, and it is a number that points to one slot in the server's session store. It can be read with getId() of HttpSession, and what kind of number to use is decided by the container (in the Tomcat 11 of this lab it was 32 uppercase letters and digits). When a session is carried over by a cookie, the specification fixes the name of the cookie as JSESSIONID, and when the server gives the number in a Set-Cookie header, the browser sends it in the Cookie header with every following request. The server finds the slot by this number alone, so if another person sends the same number, it is treated as the same session. That is why the number must not be exposed.</dd>
 <dt>HttpSession</dt>
@@ -172,6 +172,6 @@ public String me(HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>

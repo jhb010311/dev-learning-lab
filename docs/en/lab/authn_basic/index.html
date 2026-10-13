@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9368ef3635">
+<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>Authentication and authorization</dt>
 <dd>Authentication checks who a user is. Authorization decides whether that verified user has permission to use a specific resource or feature. Authentication happens first, and authorization is decided based on its result. In HTTP status codes, a failed authentication corresponds to 401 and a failed authorization corresponds to 403.</dd>
 <dt>401 Unauthorized and 403 Forbidden</dt>
-<dd>401 and 403 are HTTP status codes that a server uses when it rejects a request, and the reasons for rejecting are different. 401 (Unauthorized) means the request lacks valid authentication credentials for the target resource, and the server must send a WWW-Authenticate header in the response to tell how to authenticate. 403 (Forbidden) means the server understood the request but refuses to handle it, and if the request carried credentials, the client must not automatically repeat the request with the same credentials. Spring Security sends a 401 when a request whose identity is not confirmed is blocked, and a 403 when a user whose identity is confirmed is blocked for lack of permission.</dd>
+<dd>401 and 403 are HTTP status codes that a server uses when it rejects a request, and the reasons for rejecting are different. 401 (Unauthorized) means the request lacks valid authentication credentials for the target resource, and the server must send a WWW-Authenticate header in the response to tell how to authenticate. 403 (Forbidden) means the server understood the request but refuses to handle it, and if the request carried credentials, the client must not automatically repeat the request with the same credentials. When a request whose identity is not confirmed is blocked, Spring Security responds according to the authentication setup (with HTTP Basic it sends a 401, with form login it redirects to the login page), and it sends a 403 when a user whose identity is confirmed is blocked for lack of permission.</dd>
 <dt>Authority (role)</dt>
 <dd>An authority is a label for what an authenticated user is allowed to do, and a role is one use of an authority, such as ADMIN or USER, that stands for the position the user holds. In Spring Security, the authorities a user has are held in the Authentication as GrantedAuthority objects. hasRole(&quot;ADMIN&quot;) is a shorter form of hasAuthority: it puts the prefix ROLE_ in front of the name and checks whether the user has the authority ROLE_ADMIN. An authority has meaning only after it is confirmed who the user is, so you cannot weigh authorities for a request that has not gone through authentication.</dd>
 <dt>HTTP Basic authentication</dt>
@@ -181,6 +181,6 @@ public class AdminController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9368ef3635"></script>
+<script src="../../app.js?v=0d74d64e87"></script>
 </body>
 </html>
