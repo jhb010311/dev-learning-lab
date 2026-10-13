@@ -1,7 +1,7 @@
 Lab.register({
   id: 'collect', nav: 'Collecting a stream', cat: 'Java language', mode: 'step',
   title: 'Into what shape do you collect the result of a stream?',
-  intro: 'The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
+  intro: 'The elements that come out of a stream must be received at the end by a terminal operation such as collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
   terms: ['Stream API', 'Collector and collect', 'groupingBy and partitioningBy', 'Method reference', 'List, Set, Map'],
   controls: [
     { id: 'how', label: 'How to collect (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList(): put into a List in order'], ['group', 'groupingBy(customer): group by customer'], ['count', 'groupingBy(customer, counting()): count per customer'], ['sum', 'groupingBy(customer, summingInt(price)): sum per customer'], ['part', 'partitioningBy(price >= 300): split into two'], ['join', 'joining(", "): join into a single string'], ['toMap', 'toMap(customer, price): put in as keys and values'], ['toMapMerge', 'toMap(customer, price, merge function): merge duplicates']] },
@@ -76,7 +76,7 @@ Lab.register({
       var tail = h === 'toList' ? ' The names are in the order in which they came out, and a name that appears more than once is included as many times as it appears.' : h === 'join' ? (res ? ' The result is not a collection but a single string.' : ' There were no elements, so the result is an empty string, and an empty line is printed.') : h === 'part' ? ' The false entry comes first and the true entry comes second.' + (D.length ? '' : ' There was not a single element, but the two entries are still there.') : D.length ? ' The order of the entries in the Map has nothing to do with the order in which the elements came out (' + D[0][0] + ' first). Do not write code that relies on this order.' : ' There were no elements, so this is an empty Map with no keys.';
       push('System.out.println(result): The output is ' + shown + '.' + tail, 'good', -1);
     }
-    if (h === 'toList') sum.push('collect(Collectors.toList()) puts the elements into a List in the order in which they came out. Duplicates go in as they are. Since Java 16, you can also write it more briefly by adding .toList() directly to the stream.');
+    if (h === 'toList') sum.push('collect(Collectors.toList()) puts the elements into a List in the order in which they came out. Duplicates go in as they are. Since Java 16, you can also write it more briefly by adding .toList() directly to the stream (but it returns an unmodifiable list).');
     if (h === 'group') sum.push('groupingBy groups the elements that have the same key and builds a Map<key, List<element>>. It is used to divide things "by something", such as orders by customer or products by category.');
     if (h === 'count') sum.push('The second argument of groupingBy decides what to do with the grouped elements. counting() counts them, and the type of the values is Long, not Integer. Assigning the result to a Map<String, Integer> is a compile-time error.');
     if (h === 'sum') sum.push('summingInt takes an int value out of each of the grouped elements and adds the values up. This shape is used often, as in a sum per customer or a sum per category.');

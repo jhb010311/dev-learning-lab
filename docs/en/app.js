@@ -1832,7 +1832,7 @@ Lab.register({
     });
     P.note(arr ? 'The number in each position is its index. Yellow is the target position, blue marks the elements that are shifted by one position, and a dashed outline is an empty position.' :'The yellow node is the target, and the blue nodes are the ones passed on the way to it. A real LinkedList is linked in both directions, and because a location cannot be computed from an index, the arrows have to be followed.');
   },
-  assume: 'For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under "Keep appending to an empty list". The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array is contiguous in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.',
+  assume: 'For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under "Keep appending to an empty list". The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array keeps its references to the elements next to each other in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.',
 });
 
 Lab.register({
@@ -2169,7 +2169,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? 'computed automatically' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
     P.size(680, 322);
-    P.region('ra', 16, 16, 196, 196, 'Memory: original object');
+    P.region('ra', 16, 16, 196, 196, 'Memory: object, statics');
     P.region('rb', 244, 16, 192, 196, 'File user.ser');
     P.region('rc', 468, 16, 196, 196, 'Memory: restored object');
     var usub = s.u ? ['name = "kim"'].concat(s.u.point === null ? [] : ['point = ' + s.u.point], s.u.addr ? ['address → an Address'] : []) : ['not created yet'];
@@ -2323,19 +2323,19 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, isNew = c.how === 'new', last = shown[shown.length - 1];
     var s = last ? last.snap : { svc: 'none', pick: '', off: '', result: '', beans: { fixed: { cls: 'FixedDiscountPolicy', name: 'fixedDiscountPolicy', reg: false, mark: false, s: 'none' }, rate: { cls: 'RateDiscountPolicy', name: 'rateDiscountPolicy', reg: false, mark: false, s: 'none' } } };
-    P.size(680, 316);
+    P.size(680, isNew ? 316 : 392);
     P.region('ctx', 16, 16, 648, 224, isNew ? 'No container: your own code creates the objects' : 'Spring container');
     P.box('svc', 30, 96, 290, 64, { cls: s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'being created' ? 'hot now' : s.svc === 'none' ? 'ghost' : 'plain', title: isNew ? 'OrderService object' : 'orderService bean', sub: [s.svc === 'none' ? 'not created yet' : s.svc, 'In use: ' + (s.pick || 'none yet')] });
     [['fixed', 52], ['rate', 148]].forEach(function (p) {
-      var b = s.beans[p[0]], y = p[1];
-      var sub = isNew ? (b.s === 'in' ? 'created by OrderService (new)' : 'not used (no object)') : b.s === 'none' ? 'not registered as a bean' : { def: 'registered as a bean', cand: 'injection candidate', made: 'object exists', in: 'injected into OrderService' }[b.s];
-      P.box(p[0], 410, y, 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
+      var b = s.beans[p[0]], y = p[1], out = !isNew && b.s === 'none';
+      var sub = isNew ? (b.s === 'in' ? 'created by OrderService (new)' : 'not used (no object)') : b.s === 'none' ? 'outside the container (not a bean)' : { def: 'registered as a bean', cand: 'injection candidate', made: 'object exists', in: 'injected into OrderService' }[b.s];
+      P.box(p[0], out ? (p[0] === 'fixed' ? 16 : 348) : 410, out ? 258 : y, out ? 316 : 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
       if (isNew && b.s === 'in') P.arrow('a_' + p[0], 'svc:r', p[0] + ':l', { cls: 'hot', label: 'new' });
       if (!isNew && b.s === 'cand') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: s.svc === 'failed' ? 'bad dash' : 'dash mut', label: 'candidate' });
       if (!isNew && b.s === 'in') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: 'good', label: 'injected' });
     });
-    P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === 'Startup failed' ? 'bad' : 'good', title: 'Result', right: s.result ? (sim.fail ? sim.fail : s.result) : 'In progress' });
-    P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: 'Discount on a 20000-won order', right: s.off || '-' });
+    P.box('r1', 16, isNew ? 258 : 340, 320, 40, { cls: !s.result ? 'ghost' : s.result === 'Startup failed' ? 'bad' : 'good', title: 'Result', right: s.result ? (sim.fail ? sim.fail : s.result) : 'In progress' });
+    P.box('r2', 344, isNew ? 258 : 340, 320, 40, { cls: s.off ? 'good' : 'ghost', title: 'Discount on a 20000-won order', right: s.off || '-' });
     P.note(isNew ? 'The arrow means "OrderService created this object itself".' : 'A dashed line marks a candidate that the container found, and the solid green line marks the bean that the container chose and injected into OrderService. A faded box is a class that the container does not know about because it is not registered as a bean.');
   },
   assume: 'All 30 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled. The cases that create the object directly with new were run as they are, and the cases that use the container were started with component scanning. Then these were compared: whether startup succeeded, the name of the exception, the implementation injected into OrderService, the discount amount, who called the constructor of the implementation object (confirmed from the call stack), and the number of implementation objects created. The "File to edit to change the implementation" column is what the checking program found by directly comparing which files differ between two sources in which only the implementation to use was changed. For a startup failure, the name shown is that of the innermost cause, and an UnsatisfiedDependencyException wraps it on the outside. Simplifications on the screen: the order in which the container creates the bean objects depends on the registration order, so the lab does not state it (the "Bean creation and injection" lab covers the order). It was also confirmed by execution that, even when both implementations are registered and nothing marks which to choose, startup succeeds if the name of the constructor parameter is the same as a bean name (for example, rateDiscountPolicy), and that bean is injected. The parameter name in this lab is discountPolicy, which is not the same as either bean name. Field injection, setter injection, and receiving all beans of the same type as a List are not covered.',
@@ -2468,7 +2468,7 @@ Lab.register({
     P.region('ctx', 218, 16, 446, 262, 'Spring container');
     P.box('svc', 234, 100, 204, 64, { cls: s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'none' ? 'ghost' : 'hot', title: 'orderService (singleton)', sub: s.svc === 'created' ? 'Has: ' + s.holds : s.svc === 'none' ? 'not created yet' : s.svc });
     s.carts.forEach(function (x, i) {
-      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : x.when });
+      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : sim.c.scope === 'prototype' ? 'Container: not kept' : x.when });
     });
     if (!s.carts.length) P.text('none', 564, 150, s.svc === 'failed' ? 'No Cart object' : 'No Cart object yet', { cls: 'mut', anchor: 'middle' });
     if (g === 'inject' && s.svc === 'created') P.arrow('hold', 'svc:r', 'cart1:l', { cls: 'good', label: 'field' });
@@ -2640,7 +2640,7 @@ Lab.register({
     });
     P.region('ctx', 396, 16, 268, 262, 'Spring container');
     P.box('repo', 408, 50, 244, 46, { cls: 'wait', title: 'priceRepository bean', sub: 'singleton' });
-    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === 'loaded' ? 'good' : 'hot', title: 'PriceCache object' + (proto ? ' (prototype)' : ''), sub: s.bad === 'ctor' ? ['Could not be created'] : s.obj ? ['repository field: ' + s.repo, 'prices: ' + (s.prices || 'none')] : ['None yet'] });
+    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === 'loaded' ? 'good' : 'hot', title: 'PriceCache object' + (proto ? ' (prototype)' : ''), sub: s.bad === 'ctor' ? ['Could not be created'] : s.obj ? ['repository field: ' + s.repo, 'prices: ' + (s.prices || 'none')].concat(proto ? ['Not kept by the container'] : []) : ['None yet'] });
     if (s.obj && s.repo === 'injected') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: 'injected' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: 'not injected yet' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === 'Success' ? 'good' : 'bad', title: 'State', right: s.result ? (s.result === 'Success' ? 'Success' : s.result + ': NullPointerException') : s.phase || 'Not started' });
@@ -2712,7 +2712,7 @@ Lab.register({
       ann: { order: 'order has no @Audit, so it is not matched.', cancel: 'cancel is annotated with @Audit, so it is matched.', join: 'join is also annotated with @Audit, so it is matched. Which class the method belongs to does not matter.' } }[c.pc][m];
     push('When the application starts: Spring checks the pointcut against each method of the beans, one by one. ' + desc, '');
     st.pc = M.hit ? 'matched' : 'not matched'; st.bean = M.proxy ? 'proxy' : 'original object';
-    push(sig + ' checked against the pointcut: ' + why + ' ' + (M.hit ? 'The ' + M.bean + ' bean is wrapped in a proxy (a stand-in object).' : M.proxy ? 'However, the ' + M.picked.join(', ') + ' method of the same class is matched, so the ' + M.bean + ' bean itself is wrapped in a proxy.' : M.bean + ' has no matched method at all, so no proxy is created and the original object stays as the bean. There is no error or warning.'), M.hit ? 'good' : 'bad');
+    push(sig + ' checked against the pointcut: ' + why + ' ' + (M.hit ? 'A proxy (a stand-in object) is registered in place of the ' + M.bean + ' bean (the original object and the proxy are different objects).' : M.proxy ? 'However, the ' + M.picked.join(', ') + ' method of the same class is matched, so a proxy is registered in place of the ' + M.bean + ' bean (the original object and the proxy are different objects).' : M.bean + ' has no matched method at all, so no proxy is created and the original object stays as the bean. There is no error or warning.'), M.hit ? 'good' : 'bad');
     push(call + ': Another bean calls the method. ' + (M.hit ? 'The call reaches the proxy first. The proxy runs the advice that applies to this method in order, starting from the outside.' : M.proxy ? 'The call reaches the proxy, but the method is not matched, so the proxy adds nothing and passes the call on to the real object.' : 'There is no proxy, so the call goes straight to the method of the real object.'), '');
     if (M.hit) layers.forEach(function (a, i) {
       if (a === 'time') print('Time start', 'The @Around of TimeAspect: ' + (i === 0 ? 'TimeAspect has the lower @Order value, so it is the outer aspect and starts first. ' : 'TimeAspect has the higher @Order value, so it is the inner aspect and starts after the first part of LogAspect finishes. ') + 'It prints "Time start" and passes the call inward with pjp.proceed().');
@@ -2751,7 +2751,7 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through one step at a time.'); return; }
     var ln = H.lanes(v);
     H.lane(ln, 'Pointcut', s.pc ? 'Called method: ' + s.pc : 'Checking', s.pc === 'matched' ? 'good' : s.pc ? 'bad' : 'none');
-    H.lane(ln, sim.bean + ' bean', s.bean ? (s.bean === 'proxy' ? 'Wrapped in a proxy' : 'No proxy (the original object as it is)') : 'Not decided yet', s.bean === 'proxy' ? 'hot' : s.bean ? 'wait' : 'none');
+    H.lane(ln, sim.bean + ' bean', s.bean ? (s.bean === 'proxy' ? 'A proxy is registered instead' : 'No proxy (the original object as it is)') : 'Not decided yet', s.bean === 'proxy' ? 'hot' : s.bean ? 'wait' : 'none');
     H.table(v, ['Order', 'Line printed on the console', 'Printed by'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : 'Method body';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
@@ -2790,7 +2790,7 @@ Lab.register({
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate and exception translation', cat: 'Spring', mode: 'step',
   title: 'What does JdbcTemplate do for you, and what does it translate exceptions to?',
-  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy).',
+  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the JDBC driver into a Spring exception (one from the DataAccessException hierarchy).',
   terms: ['JdbcTemplate', 'Exception translation and DataAccessException', 'Connection pool', 'Checked and unchecked exceptions', 'Template Method pattern'],
   controls: [
     { id: 'how', label: 'How the database is accessed', type: 'select', value: 'plain', options: [['plain', 'JDBC directly: close() called on the last line'], ['twr', 'JDBC directly: closed with try-with-resources'], ['tmpl', 'JdbcTemplate']] },
@@ -2867,7 +2867,7 @@ Lab.register({
         }
         caller = 'SQLException (SQLState ' + err[0] + ')'; kind = 'checked exception';
         st.at = -1; st.caller = caller;
-        push('The caller gets SQLException. It is a checked exception, so every method that calls this method must either declare throws SQLException or catch it with try-catch. To find out whether the problem is ' + err[3] + ', you have to compare a code such as SQLState ' + err[0] + ' yourself.', 'bad');
+        push('The caller gets SQLException (or one of its subclasses). It is a checked exception, so every method that calls this method must either declare throws SQLException or catch it with try-catch. To find out whether the problem is ' + err[3] + ', you often have to check a code such as SQLState ' + err[0] + ' yourself.', 'bad');
       } else {
         step(2, 'done'); st.con = 'returned';
         push('JdbcTemplate catches the SQLException: First, it closes the PreparedStatement and returns the connection to the pool. JdbcTemplate also does the cleanup when an exception is thrown.', 'good');
@@ -2878,7 +2878,7 @@ Lab.register({
       }
     }
     if (plain && err) sum.push('When close() is at the end of the method, the connection cannot be closed if an exception is thrown partway through. When you use JDBC directly, you have to close with try-with-resources (or finally), and you have to write this in every method without missing one.');
-    if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, the only exception you get is SQLException, which is a checked exception, so you have to tell what the problem is by a code number. This number can differ from one database product to another.');
+    if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, what JDBC throws is SQLException (and its subclasses), which is a checked exception, and to tell the cause you often have to look at a code number that differs from one database to another.');
     if (raw && !err && n !== 1) sum.push('When you use JDBC directly, you also have to decide yourself what to do when there are 0 rows or 2 rows. If you read only the first row without deciding, the problem passes silently. The queryForObject method of JdbcTemplate throws an exception in the same situation.');
     if (raw && !err && n === 1) sum.push('The result is correct, but to run one line of SQL you wrote everything yourself: getting a connection, setting the values, running the SQL, reading the result, and closing. The same code is repeated in every method.');
     if (!raw && err) sum.push('JdbcTemplate translates an SQLException to an exception in the DataAccessException hierarchy. All of them are unchecked exceptions, and the class name tells you the kind of problem. Even when the database product changes, you can catch the same exception class.' + (op === 'dup' ? ' DuplicateKeyException is a subclass of DataIntegrityViolationException.' : ''));
@@ -3025,7 +3025,7 @@ Lab.register({
     else if (!R.where) sum.push({ param: '@RequestParam rejects the request with 400 when the value is missing. If the value is optional, set required = false or a defaultValue.', opt: 'With required = false, null comes in when the value is missing. The controller has to handle the null case itself.', def: 'With a defaultValue, that value comes in instead when the value is missing. You do not have to worry about null, so the type can stay int.', model: '@ModelAttribute leaves a field with no value as it is. So "not sent" and "sent as 0" cannot be told apart. If the value is required, you have to validate it separately.' }[how]);
     else if (R.where === 'form') sum.push('Form data in the body (application/x-www-form-urlencoded) is handled as "request parameters" together with the query string. That is why it can be received ' + annotRo + ' even though it came in the body. JSON is also sent in the body, but it is not handled this way.');
     else sum.push({ query: 'Receive the values in the query string one at a time with @RequestParam, or bind them to an object with @ModelAttribute.', path: 'To use a segment of the path as a value, put a {name} placeholder in the URL and receive it with @PathVariable. This is mostly used for a value that tells "which one is meant", such as an order number.', json: 'Receive a JSON body with @RequestBody. A message converter converts the whole body into one object.' }[R.where]);
-    sum.push('Each annotation looks at a fixed place. @RequestParam and @ModelAttribute look at the request parameters (query string and form data), @PathVariable looks at the path, and @RequestBody looks at the whole body.');
+    sum.push('Each annotation looks at a fixed place. @RequestParam looks at the request parameters (query string and form data), @ModelAttribute looks at those plus the path variables, @PathVariable looks at the path, and @RequestBody looks at the whole body.');
     return { events: ev, summary: sum, ex: ex, row: [status, ran ? 'ran' : 'skipped', got, why] };
   },
   render: function (v, sim, t, H, shown) {
@@ -3137,7 +3137,7 @@ Lab.register({
       st.stage = 3;
       if (how === 'plain') {
         st.gate = 'skipped';
-        push('Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid. This parameter has no @Valid, so validation is skipped. The ' + C.a + ' constraint in ItemForm is only a mark that says "this field must be like this", and it cannot block a value by itself.', violates ? 'bad' : '');
+        push('Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid (or @Validated). This parameter has no @Valid, so validation is skipped. The ' + C.a + ' constraint in ItemForm is only a mark that says "this field must be like this", and it cannot block a value by itself.', violates ? 'bad' : '');
       } else {
         st.gate = 'validated';
         if (isParam) push('Deciding whether to validate: A constraint (' + C.a + ') is declared directly on the parameter. In this case, even without @Valid, Spring checks the constraints on the parameters just before it calls the controller method.');
@@ -3249,7 +3249,7 @@ Lab.register({
       send('select * from member where id = 1', 'Line 1'); cache.push({ id: 1, name: 'Alice', snap: 'Alice', st: 'Managed' });
       push(0, 'Line 1: The first-level cache of the persistence context does not have member 1. JPA sends a SELECT to the database to read it, and keeps the loaded entity in the first-level cache. It also keeps the values as they were when first read (the snapshot).', '');
       push(1, 'Line 2: The first-level cache already has member 1. JPA does not go to the database and returns the stored object as it is. No SQL was sent.', 'good');
-      push(2, 'Line 3: a and b are the same object, so a == b is true. Within one transaction, entities with the same identifier are always the same instance.', '');
+      push(2, 'Line 3: a and b are the same object, so a == b is true. Within the same persistence context, entities with the same identifier are guaranteed to be the same instance.', '');
       push(-1, 'Method ends, commit: JPA compared the current values of the entity with the snapshot, and nothing changed. There is no SQL to send.', '');
       result = 'No change'; sum.push('Although em.find was called twice, the SELECT was sent only once. Within the same transaction, an entity that was already read is taken from the first-level cache.', 'The first-level cache lives only within one transaction (one persistence context). It disappears when the request ends, so its purpose is different from that of a cache that many requests share, such as Redis.');
     }
@@ -3304,7 +3304,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], prev = shown[shown.length - 2], s = last ? last.snap : { cache: [], pending: [], sent: [], db: [{ id: 1, name: 'Alice' }] }, before = prev ? prev.snap.sent.length : 0, fresh = s.sent.slice(before);
     P.size(680, 330);
-    P.region('pc', 16, 16, 400, 298, 'Persistence context (exists only during the transaction)');
+    P.region('pc', 16, 16, 400, 298, 'Persistence context (kept for the transaction here)');
     P.region('db', 470, 16, 194, 298, 'member table in the DB');
     P.text('c1', 28, 58, 'First-level cache: managed entities', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: 'Empty', center: true });
@@ -3380,7 +3380,7 @@ Lab.register({
         st.stage = 5;
         if (K === 'view') {
           st.wr = 'taken as a view name';
-          push('@Controller: The method has no @ResponseBody, so the returned string is not written as the response body. It is interpreted as meaning "find the view named orders/done". No message converter is used.');
+          push('@Controller: The method has no @ResponseBody, so the returned string is not written as the response body. It is interpreted as meaning "find the view named orders/done". No message converter is used to write the response.');
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = 'View (HTML page)'; view = 'orders/done'; st.wr = 'the view writes HTML'; st.body = '(HTML of the orders/done view)';
           push('Rendering the view: ViewResolver finds the view named "orders/done", and that view produces HTML and writes it to the response body. The Content-Type is text/html, and Spring responds with 200. The Accept of the request was ' + q.accept + ', but on the path that returns a view, the request was not rejected because of it.', 'good');
         } else {
@@ -3513,7 +3513,7 @@ Lab.register({
     var overall = mem.map(function (n) { return got[n]; }).sort(function (a, b) { return self.ORDER.indexOf(a) - self.ORDER.indexOf(b); })[0];
     st.overall = overall;
     if (mem.length === 1) push('Combining the statuses: The only status collected is ' + mem[0] + ' UP. The overall status is simply UP.');
-    else push('Combining the statuses: The statuses collected are ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '. The most severe one among them becomes the overall status. The severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. ' + { UP: 'All of them are UP, so the overall status is also UP.', DOWN: 'One of them is DOWN, so the overall status is DOWN.', OUT_OF_SERVICE: 'OUT_OF_SERVICE comes before UP, so the overall status is OUT_OF_SERVICE.', UNKNOWN: 'UNKNOWN comes after UP, so UP wins. The overall status is UP.' }[c.pay]);
+    else push('Combining the statuses: The statuses collected are ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '. The one with the highest priority among them becomes the overall status. The default priority order that Spring Boot uses (it can be changed with a setting) is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. ' + { UP: 'All of them are UP, so the overall status is also UP.', DOWN: 'One of them is DOWN, so the overall status is DOWN.', OUT_OF_SERVICE: 'OUT_OF_SERVICE comes before UP, so the overall status is OUT_OF_SERVICE.', UNKNOWN: 'UNKNOWN comes after UP, so UP wins. The overall status is UP.' }[c.pay]);
 
     st.stage = 5;
     var bad = overall === 'DOWN' || overall === 'OUT_OF_SERVICE', code = bad ? '503 Service Unavailable' : '200 OK';
@@ -3750,7 +3750,7 @@ Lab.register({
         return DOWN;
       }
       w.cx.state = 'up'; cache[k] = st.ctxs.length - 1; used[n - 1] = cache[k]; okCount++; set(n, 'Running the test', 'hot');
-      push((n === 1 ? 'OrderController is created: ' : 'The second context finishes loading: ') + 'As Spring creates the controller, it finds the OrderService that the constructor requires in the context and injects it. ' + (f.svc ? 'What is injected is the mock OrderService.' : 'What is injected is the real OrderService, and inside it is the ' + (f.repo ? 'mock' : 'real') + ' OrderRepository.') + ' The context has finished loading and is kept in the cache.', 'good');
+      push((n === 1 ? 'OrderController is created: ' : 'The second context finishes loading: ') + 'As Spring creates the controller, it finds the OrderService that the constructor requires in the context and injects it. ' + (f.svc ? 'What is injected is the mock OrderService.' : 'What is injected is the real OrderService, and it is given the ' + (f.repo ? 'mock' : 'real') + ' OrderRepository by injection and keeps a reference to it.') + ' The context has finished loading and is kept in the cache.', 'good');
       return test(n, f);
     }
     function test(n, f) {
@@ -3819,7 +3819,7 @@ Lab.register({
     function split(t) { var i = t.indexOf(' ('); return i < 0 ? [t] : [t.slice(0, i), t.slice(i + 2, -1)]; }
     P.box('t1', 10, 44, 156, 72, { cls: (s.k1 || 'plain') + (s.now === 1 ? ' now' : ''), title: 'First test class', sub: split(s.s1) });
     P.box('t2', 10, 148, 156, 72, { cls: (s.k2 || 'plain') + (s.now === 2 ? ' now' : ''), title: 'Second test class', sub: split(s.s2) });
-    P.region('cache', 236, 6, 434, 236, unit ? 'No Spring context: objects created by the test method' : 'Context cache (inside the JVM that runs the tests)');
+    P.region('cache', 236, 6, 434, 236, unit ? 'No Spring context: objects created by the test method' : 'Contexts the test started (only successful ones cached)');
     if (!s.ctxs.length) P.text('empty', 453, 128, unit ? 'No objects created yet' : 'Empty', { cls: 'mut', anchor: 'middle' });
     s.ctxs.forEach(function (x, i) {
       var y = 32 + i * 104, id = 'ctx' + (i + 1);
@@ -3848,7 +3848,7 @@ Lab.register({
 Lab.register({
   id: 'restclient', nav: 'Calling external APIs and timeouts', cat: 'Spring', mode: 'step',
   title: 'When a call to another server gets no answer, how long does it wait?',
-  intro: 'The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout measures the time until the response arrives after the connection is established. If you do not set them, the thread waits with no limit. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.',
+  intro: 'The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout is the limit on how long it waits, after the connection is established, while no data arrives. If you do not set them, the client never gives up on its own. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.',
   terms: ['Connect timeout and read timeout', 'RestClient', 'Tomcat\'s threading model', 'Three-way handshake', 'HTTP status codes'],
   controls: [
     { id: 'server', label: 'State of the remote server (the payment server)', type: 'select', value: 'slow', options: [['ok', 'Normal: responds with 200 right away'], ['slow', 'Slow: accepts the connection but responds after 10 seconds'], ['noanswer', 'No answer to the connection request (the machine is off or a firewall drops the request)'], ['refused', 'Connection refused (the server program is not running)'], ['e404', 'Responds with 404 right away'], ['e500', 'Responds with 500 right away']] },
@@ -3866,7 +3866,7 @@ Lab.register({
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
-      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout\n' : '// no connect timeout is set (waits with no limit)\n')
+      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout\n' : '// no connect timeout is set (waits until the operating system gives up)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // read timeout\n' : '// no read timeout is set (waits with no limit)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // this thread waits here until the result comes back\n} catch (HttpClientErrorException e) {      // 4xx response\n} catch (HttpServerErrorException e) {      // 5xx response\n} catch (ResourceAccessException e) {       // connection failure, timeout\n}';
   },
@@ -3874,7 +3874,7 @@ Lab.register({
   columns: ['Result', 'Exception the calling code received', 'Time the calling thread waited', 'Handling by the remote server'],
   simulate: function (c) {
     var S = c.server, ct = !!c.ct, rt = !!c.rt, ev = [], sum = [];
-    var st = { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: ct ? 'Counts from the connection attempt' : 'Not set: waits with no limit', ctK: ct ? 'plain' : 'ghost', rtS: rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? 'Server program not running' : S === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
+    var st = { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: ct ? 'Counts from the connection attempt' : 'Not set: until the OS gives up', ctK: ct ? 'plain' : 'ghost', rtS: rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? 'Server program not running' : S === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     var result = '', ex = 'None', wait = 'right away', served = 'Handled the request', cause = '-', ms = 0, status = '-';
     function finish(r, e) { result = r; ex = e; st.result = r; st.ex = e; st.thread = 'Released'; if (st.waited === '0s') st.waited = 'Almost none'; }
@@ -3952,7 +3952,7 @@ Lab.register({
   },
   // Diagram: the thread of the calling order server on the left and the payment server on the right. Between them are the connection, request, and response arrows. Below are when each of the two timeouts counts time, and the result.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: c.ct ? 'Counts from the connection attempt' : 'Not set: waits with no limit', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? 'Server program not running' : c.server === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: c.ct ? 'Counts from the connection attempt' : 'Not set: until the OS gives up', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? 'Server program not running' : c.server === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
     var waiting = s.thread === 'Waiting to connect' || s.thread === 'Waiting for a response', dead = c.server === 'refused' || c.server === 'noanswer';
     P.size(680, 268);
     P.box('me', 16, 16, 240, 92, { cls: s.thread === 'Released' ? 'good' : waiting ? 'hot now' : 'plain', title: 'Order server (caller)', sub: ['Thread: ' + s.thread, 'Waited: ' + s.waited] });
@@ -4085,25 +4085,25 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the calls one step at a time.'); return; }
     H.table(v, ['Key', 'Value'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), 'Cache "product"' + (s.cache.length ? '' : ' (empty)'));
   },
-  // Diagram: the outer box is the proxy and the inner box is the real object. The proxy looks at the cache at the upper right first, and if the value is there, the call does not go into the inner box. The call goes to the DB at the lower right only when the body runs.
+  // Diagram: the upper box is the proxy and the lower box is the real object, and they are two different objects (the proxy holds a reference to it). The proxy looks at the cache at the upper right first, and if the value is there, the call is not passed on to the real object. The call goes to the DB at the lower right only when the body runs.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { call: '', short: '', px: '', tg: '', look: '', toBody: false, self: false, dbop: '', cache: [], db: [], count: 0, second: '' };
     var lines = function (rows) { return rows.length ? rows.map(function (r) { return r[0] + ' → ' + r[1]; }) : ['empty']; };
     P.size(680, 318);
-    P.box('caller', 10, 70, 100, 56, { cls: s.call ? 'wait' : 'plain', title: 'Other bean', sub: 'Caller' });
-    P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
-    P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
-    P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
-    P.text('store', 577, 130, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
-    P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
-    if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
-    if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });
-    if (s.toBody && !s.self) P.arrow('pass', [347, 84], 'tg:t', {});
+    P.box('caller', 10, 17, 96, 56, { cls: s.call ? 'wait' : 'plain', title: 'Other bean', sub: 'Caller' });
+    P.box('px', 176, 14, 268, 62, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
+    P.box('tg', 176, 130, 268, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
+    P.box('cache', 486, 14, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
+    P.text('store', 577, 122, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
+    P.box('db', 486, 132, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
+    if (s.call) P.arrow('in', 'caller:r', 'px:l', { label: s.short });
+    if (s.look) P.arrow('look', 'px:r:0.75', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });
+    P.arrow('pass', 'px:b', 'tg:t', s.toBody && !s.self ? { label: 'pass on' } : { cls: 'mut', label: 'reference' });
     if (s.self) P.arrow('selfcall', 'tg:l:0.3', 'tg:l:0.75', { cls: 'bad', label: 'this.find' });
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'Times the find body ran', right: s.count + '' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: 'Second find returned', right: s.second || 'Not called yet' });
-    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
+    P.note('The upper box is the proxy, and the lower box is the real object. They are two different objects: the proxy holds a reference to the real object and passes the call on to it. The red arrow, where the real object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
   },
   assume: 'All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the "Caching and TTL" lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = "#id", the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the "Proxies and self-invocation" lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.',
 });
@@ -4249,7 +4249,7 @@ Lab.register({
     if (s.flow) P.arrow('sql', s.flow.write ? 'heap:r' : 'row_' + s.flow.to + ':l', s.flow.write ? 'row_' + s.flow.to + ':l' : 'heap:r', { cls: 'hot', label: s.flow.label });
     P.box('r1', 16, 236, 210, 40, { cls: sim.written ? 'hot' : 'good', title: 'SQL you wrote', right: String(sim.written) });
     P.box('r2', 234, 236, 430, 40, { cls: s.res === '?' ? 'ghost' : /^(false|null|NullPointerException)$/.test(s.res) ? 'bad' : 'good', title: sim.row[2], right: s.res });
-    P.note('The arrow in the middle means that SQL was sent to the DB in this step, and it also says who wrote that SQL.');
+    P.note('The arrow in the middle shows which way data moved through SQL in this step (an INSERT goes to the DB, a SELECT result comes back to memory), and it also says who wrote that SQL.');
   },
   assume: 'All 12 combinations were actually run and checked on the PC used to write this lab (the JDBC side ran DAO code with the same structure as on the screen against an H2 database, and the JPA side ran on Hibernate 7.4.5 and H2). What was checked: the number of SQL statements written in the code, the kind and the table of the SQL sent on each line, the value of a == b, the member name or the exception, and the grade read back and the grade left in the DB. The "filled in by hand" setting has meaning only for JDBC, and for JPA it does not affect the result. The SQL statements on the screen are shortened to be easy to read, and the statements that Hibernate actually builds differ in column order and aliases. The @ManyToOne of JPA was set to lazy fetching (LAZY). With the default, eager fetching (EAGER), a single em.find reads the order and the member together. The amount of JDBC code is based on the DAO in this example. If you use Spring\'s JdbcTemplate or MyBatis, the repeated code shrinks, but it stays the same that you write the SQL yourself and have to change the SQL together when a field changes. "Four places to change" is counted in the code on the screen.',
 });
@@ -4353,9 +4353,9 @@ Lab.register({
     if (c.st === 'new') sum.push('An object created with new has nothing to do with JPA until you pass it to em.persist. No matter how often you change its values or commit the transaction, no SQL is sent. When something is not saved, first check whether you called persist (or save, if you use Spring Data JPA).');
     if (c.st === 'persist') sum.push(cnt.UPDATE ? 'If you change the value after persist, dirty checking kicks in, and one more UPDATE is sent after the INSERT. The result is correct, but it costs one more SQL statement. If you persist after filling in all the values, one INSERT is enough.' : 'You persisted after filling in all the values, so one INSERT was enough. If you change the value after persist, one more UPDATE is sent.', 'The INSERT was not sent on the line that called persist because the id was set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line (see the "Persistence context" lab).');
     if (c.st === 'find') sum.push('In the managed state, you only need to change the value. At commit, the persistence context compares it with the remembered value and builds the UPDATE for you. Compare it with the other states, and you will see that this happens only in the managed state.');
-    if ((c.st === 'detach' || c.st === 'clear') && !lost) sum.push('A detached object is like an ordinary Java object. If you change its values, no exception is thrown, and the change is not applied to the DB. If you load the same id again with em.find after detaching, the SELECT is sent again and you get a new object that is different from m.', c.st === 'clear' ? 'em.clear() makes all the entities in the persistence context detached at once. em.detach(m) detaches only m.' : 'To apply the values of a detached object to the DB, you have to make it managed again. The way to do that is the merge operation, covered in the next lab.');
+    if ((c.st === 'detach' || c.st === 'clear') && !lost) sum.push('A detached object is like an ordinary Java object. If you change its values, no exception is thrown, and the change is not applied to the DB. If you load the same id again with em.find after detaching, the SELECT is sent again and you get a new object that is different from m.', c.st === 'clear' ? 'em.clear() makes all the entities in the persistence context detached at once. em.detach(m) detaches only m.' : 'To apply the changes of a detached object to the DB, you have to copy its values into a managed object with merge. Merge is covered in the next lab.');
     if ((c.st === 'detach' || c.st === 'clear') && lost) sum.push('Even a value changed while the object was managed disappears if you detach the object before the value is sent to the DB (flush).', 'If you call em.flush() before detaching, the UPDATE is sent at that time, so the change is applied. When you call em.clear() to free memory while processing a lot of data, put em.flush() before it.');
-    if (c.st === 'close' && !changed) sum.push('An entity after the transaction has ended and em is closed is detached. This is the case when the controller modifies an entity returned by a service method. The value changes, but it is not applied to the DB, and no exception is thrown.');
+    if (c.st === 'close' && !changed) sum.push('An entity after the transaction has ended and em is closed is detached. This is the case when the controller modifies an entity returned by a service method after the transaction has ended (when OSIV is turned off). The value changes, but it is not applied to the DB, and no exception is thrown.');
     if (c.st === 'close' && changed) sum.push('A commit causes a flush just before it. So a value changed before the commit is sent as an UPDATE, and then em is closed. Compare this with detach or clear, where the same "change just before" makes the value disappear. Those detach the object without a flush.');
     if (c.st === 'remove') sum.push('em.remove does not send a DELETE on that line. It only marks the entity as "to be deleted". The DELETE is sent at commit. Even if you change a value in the removed state, no UPDATE is sent.', 'Even after the row in the DB is deleted, the Java object m stays in memory, and you can read its values. If you call em.persist(m) again before the commit, the deletion is canceled and the object returns to the managed state.');
     return { events: ev, summary: sum, L: L, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join(' '), row: [st.contains, sqlText, whenText, dbText] };
@@ -4385,7 +4385,7 @@ Lab.register({
     else if (s.flow) P.arrow('sql', cur === 'removed' ? 'sRem:r' : 'sMan:r', 'db:l', { cls: 'hot', label: s.flow });
     P.box('c1', 16, 278, 300, 36, { cls: s.contains === '?' ? 'ghost' : s.contains === 'true' ? 'good' : 'plain', title: 'em.contains(m)', right: s.contains });
     P.box('c2', 324, 278, 340, 36, { cls: s.sent.length ? 'plain' : 'ghost', title: 'SQL sent to the DB', right: String(s.sent.length) });
-    P.note('The bold border is the current state of the object m. In a step without an arrow to the DB, no SQL was sent.');
+    P.note('The bold border is the current state of the object m. The removed state is also managed by the persistence context until the commit. In a step without an arrow to the DB, no SQL was sent.');
   },
   assume: 'All 14 combinations (7 paths, each with two choices for when the name is changed) were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, and the rows left in the DB were confirmed to match the screen. The setting "When the name is changed" is hidden for the paths where it does not affect the result: only new, load only, and remove. The following facts stated in the summaries were also run separately and confirmed: if you call em.flush() after changing a value and then detach, the change is applied; if you load the same id again after detaching, the SELECT is sent again and a different object comes back; if you call persist again on a removed object before the commit, no DELETE is sent; the values of the Java object can still be read after it was deleted; if you change a value after persist, the INSERT contains the value from the time of persist. The id of the member is set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line. The SQL statements on the screen are shortened to be easy to read. In Spring, the begin, commit, and close here happen on your behalf when a @Transactional method starts and ends (in a web request with Open Session in View (OSIV) turned on, em is closed when the request ends).',
 });
@@ -4573,7 +4573,7 @@ Lab.register({
     st.cols.push({ n: 'grade', d: ddl.grade, from: '@Enumerated(EnumType.' + (ord ? 'ORDINAL' : 'STRING') + ')', pic: ord ? 'grade tinyint (only 0 to 1)' : "grade enum ('BASIC','VIP')" });
     push('grade field: ' + (ord ? 'ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0), so the column becomes a small integer column (tinyint). BASIC is 0 and VIP is 1. A condition (check) that the number is between 0 and 1 is also added.' : 'STRING stores the name of the enum constant as text, letter for letter. In this run, it was created as a column of an enum type that accepts only "BASIC" and "VIP".'), '');
     st.cols.push({ n: 'memo', d: c.tr ? '' : ddl.memo, from: c.tr ? '@Transient' : '(no annotation)', pic: c.tr ? '' : 'memo varchar(255)', hot: c.tr });
-    push('memo field: ' + (c.tr ? 'It has @Transient, so it is left out of the mapping. No memo column is created in the table.' : 'There is no annotation, but a column is still created. Every field of an entity is paired with a column unless you leave it out with @Transient.'), '');
+    push('memo field: ' + (c.tr ? 'It has @Transient, so it is left out of the mapping. No memo column is created in the table.' : 'There is no annotation, but a column is still created. Every field of an entity is paired with a column unless it is a static or transient field or a field you leave out with @Transient.'), '');
     st.step = 'save';
     var saved = c.pk !== 'forgot', id = c.pk === 'auto' ? 1 : 100, raw = ord ? '1' : 'VIP', idText, readGrade = 'Not saved', readMemo = '';
     if (!saved) {
@@ -4903,20 +4903,20 @@ Lab.register({
       var tb = c.tb, plain = tb === 'plain', two = tb === 'two' || tb === 'twoov';
       P.size(680, 300);
       P.region('mem', 16, 16, 300, 200, 'Java objects (memory)');
-      P.box('o_member', 32, 46, 268, 158, s.obj ? { cls: 'plain', title: 'member (Member object)', sub: plain ? ['name = Alice', 'city = Boston', 'street = Main St'] : ['name = Alice'] } : { cls: 'ghost', title: 'member (Member object)', sub: 'Not yet' });
+      P.box('o_member', 32, 46, 268, plain ? 158 : 46, s.obj ? { cls: 'plain', title: 'member (Member object)', sub: plain ? ['name = Alice', 'city = Boston', 'street = Main St'] : ['name = Alice'] } : { cls: 'ghost', title: 'member (Member object)', sub: 'Not yet' });
       if (!plain && s.obj) {
         if (two) {
-          P.box('o_addr', 48, 98, 236, 44, { cls: 'wait', title: 'homeAddress (Address object)', sub: 'city Boston · street Main St' });
-          P.box('o_addr2', 48, 150, 236, 44, { cls: 'wait', title: 'workAddress (Address object)', sub: 'city Dallas · street Oak Ave' });
-        } else if (tb === 'nul') P.box('o_addr', 48, 106, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'No Address object' });
-        else P.box('o_addr', 48, 106, 236, 44, { cls: 'wait', title: 'address (Address object)', sub: 'city Boston · street Main St' });
+          P.box('o_addr', 32, 132, 132, 70, { cls: 'wait', title: 'homeAddress', sub: ['Address object', 'city Boston', 'street Main St'] }); P.arrow('ref1', 'o_member:b:0.246', 'o_addr:t', { label: 'reference' });
+          P.box('o_addr2', 168, 132, 132, 70, { cls: 'wait', title: 'workAddress', sub: ['Address object', 'city Dallas', 'street Oak Ave'] }); P.arrow('ref2', 'o_member:b:0.754', 'o_addr2:t', { label: 'reference' });
+        } else if (tb === 'nul') P.box('o_addr', 48, 132, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'No Address object' });
+        else { P.box('o_addr', 48, 132, 236, 44, { cls: 'wait', title: 'address (Address object)', sub: 'city Boston · street Main St' }); P.arrow('ref1', 'o_member:b', 'o_addr:t', { label: 'reference' }); }
       }
       P.region('db', 364, 16, 300, 200, 'DB');
       var row = s.db[0], six = tb === 'twoov';
       if (s.err) P.box('t_member', 380, 46, 268, 96, { cls: 'bad', title: 'Could not create member table', sub: ['The city column appears twice', '(homeAddress and workAddress)', 'MappingException'] });
       else P.box('t_member', 380, 46, 268, 96, { cls: !s.made ? 'ghost' : s.hot ? 'hot' : 'plain', title: 'member table', sub: !s.made ? ['Not created yet'] : (six ? ['id · name · city · street', '· work_city · work_street'] : ['id · name · city · street']).concat(row ? (six ? [row.slice(0, 4).join(' · '), '· ' + row.slice(4).join(' · ')] : [row.join(' · ')]) : ['(no rows)']) });
       if (!plain) P.box('t_addr', 380, 154, 268, 46, { cls: 'ghost', title: 'address table', sub: 'Not created (value type)' });
-      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', 'o_addr:r', 't_member:l', { cls: 'good', label: 'as columns' });
+      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', two ? 'o_addr2:r' : 'o_addr:r', 't_member:l', { cls: 'good', label: 'as columns' });
       P.box('r1', 16, 232, 320, 38, { cls: s.err ? 'bad' : s.made ? 'good' : 'ghost', title: 'Table created', right: s.err ? 'Startup failed' : s.made ? 'member' : '?' });
       P.box('r2', 344, 232, 320, 38, tb === 'emb' || tb === 'nul' ? { cls: !s.read ? 'ghost' : s.read === 'null' ? 'bad' : 'good', title: 'Address read back', right: s.read || '?' } : { cls: s.sent.length ? 'plain' : 'ghost', title: 'INSERTs sent', right: s.sent.length + '' });
       P.note('The left side is Java objects and the right side is the database. The embeddable type (blue box) is a separate object in Java, but in the database it has no table of its own and goes into the columns of the member table.');
@@ -5196,7 +5196,7 @@ Lab.register({
     var sizeBad = s.size !== '?' && mp && s.size !== (s.fk === '1' ? '1' : '0');
     P.box('r1', 16, 258, 320, 38, { cls: s.fk === '?' ? 'ghost' : s.fk === 'null' ? 'bad' : 'good', title: 'member.team_id in the database', right: s.fk });
     P.box('r2', 344, 258, 320, 38, { cls: s.size === '?' ? 'ghost' : sizeBad ? 'bad' : 'plain', title: 'team.getMembers().size()', right: s.size === '?' ? '?' : s.size });
-    P.note('The green arrow (the team field of member) is the owning side. JPA looks at only this reference when it writes the foreign key team_id. ' + (mp ? 'The dashed arrow (the members list of team) is the side that has mappedBy. It is used only when you read in memory and is not reflected in SQL.' : 'Without mappedBy, the members list of team is stored separately too, but the place where it is stored is not a foreign key but the join table team_member.'));
+    P.note('The green arrow (the team field of member) is the owning side. JPA looks at only this reference when it writes the foreign key team_id. ' + (mp ? 'The dashed arrow (the members list of team) is the side that has mappedBy. It is used when you read (query), but adding to or removing from it is not reflected in INSERT or UPDATE.' : 'Without mappedBy, the members list of team is stored separately too, but the place where it is stored is not a foreign key but the join table team_member.'));
   },
   assume: 'This lab covers only the case of saving one new team and one new member. The case of changing the team of a member that is already saved (the case in which an UPDATE is sent) is not covered. The primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. All 12 combinations were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were checked to match the screen: the tables and columns that were created, the kinds of SQL that were sent and the count per table, whether that SQL was sent at persist or just before commit, the value of member.team_id in the database, the number of rows in the join table, and team.getMembers().size(). The names of the join table and its columns (team_member, team_id, members_id) were chosen by Hibernate 7.4.5 by its default rules, and they can be changed with @JoinTable. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. In the SQL log, an alias follows each table name, and question marks stand in the place of values.',
 });
@@ -5681,7 +5681,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // ends the transaction and closes the persistence context' : l; }).join('\n');
+    return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // closes the persistence context' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: 'Lazily fetched association', find: 'em.find', findref: 'getReference after find', reffind: 'find after getReference' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() comparison', closed: 'getName() after closing' }[c.use]; },
   columns: ['What m is', 'Queries on the member table', 'Result of the last line'],
@@ -5741,7 +5741,7 @@ Lab.register({
     }
     if (use === 'closed') {
       st.open = false;
-      push('em.close(): Ends the transaction and closes the persistence context. The Java object m remains in memory, but it is no longer connected to a persistence context (detached).', '');
+      push('em.close(): Closes the persistence context. The Java object m remains in memory, but it is no longer connected to a persistence context (detached).', '');
       if (empty) {
         res = 'LazyInitializationException'; st.err = res;
         push('m.getName(): To fill an empty proxy, you must query the DB through the persistence context. But the persistence context is already closed. It cannot send SQL, and a LazyInitializationException is thrown.', 'bad');
@@ -5774,9 +5774,9 @@ Lab.register({
   // Diagram: on the left, inside the persistence context, are the proxy and the real Member (and the order if it is lazy fetching), and on the right is the DB. When the proxy is initialized, an arrow to the real object appears.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : this.blank(), lazy = c.how === 'lazy';
-    P.size(680, 300);
-    P.region('pc', 16, 16, 430, 214, s.open ? 'Persistence context (open)' : 'Persistence context (closed)');
-    P.region('db', 496, 16, 168, 214, 'DB');
+    P.size(680, 316);
+    P.region('pc', 16, 16, 430, 176, s.open ? 'Persistence context (open)' : 'Persistence context (closed)');
+    P.region('db', 496, 16, 168, 176, 'DB');
     if (lazy) {
       P.box('order', 30, 48, 190, 46, { cls: s.order ? 'plain' : 'ghost', title: 'Order 1', sub: s.order ? 'member field → proxy' : 'Not read yet' });
       P.box('do', 508, 48, 144, 46, { cls: 'plain', title: 'orders', sub: 'id 1, member_id 1' });
@@ -5787,9 +5787,9 @@ Lab.register({
     P.box('dm', 508, 118, 144, 56, { cls: 'plain', title: 'member', sub: 'id 1, Alice' });
     if (lazy && s.order) P.arrow('o2p', 'order:b', 'proxy:t', { cls: 'mut' });
     if (hasProxy && s.m === 'proxy' && s.init) P.arrow('p2r', 'proxy:r', 'real:l', { cls: 'good', label: 'calls' });
-    P.box('var', 30, 186, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: 'Variable m', right: s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Points to the proxy' : 'Points to the real Member' });
-    if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
-    P.box('res', 16, 244, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Exception' : 'Result', right: s.err || s.out || 'None yet' });
+    P.box('var', 30, 210, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: 'Variable m', right: s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Points to the proxy' : 'Points to the real Member' });
+    if (s.m !== 'none') P.arrow('m2o', 'var:t', s.m === 'proxy' ? 'proxy:b' : 'real:b', { cls: 'mut' }); if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
+    P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Exception' : 'Result', right: s.err || s.out || 'None yet' });
     P.note('A blue proxy is empty and knows only the identifier. A yellow proxy is connected to the real Member (initialized). The arrow in the middle means that a query SQL was sent to the DB in this step. Even after it is initialized, a proxy does not turn into the real object; it passes the calls it receives on to the real object.');
   },
   assume: 'All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity\'s field and getters are provided, and on a single persistence context. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.',
@@ -5838,12 +5838,12 @@ Lab.register({
       sum.push('JPQL is written with entity names (Post) and field names (p.title, p.comments). Hibernate fills in the table names (posts) and column names when it translates the query into SQL. So a table name written as is gets rejected, as in this query.' + (page ? ' The pagination setting applies after the query is created, so it does not affect the result.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
-    push('em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is a class name' + (q === 'plain' ? '' : ', and p.comments is a field name of Post') + '. Hibernate translates this into SQL that queries the posts' + (q === 'plain' ? ' table' : q === 'two' ? ', comments, and files tables' : ' and comments tables') + '.', '');
+    push('em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is the entity name (the class name unless you set another one)' + (q === 'plain' ? '' : ', and p.comments is a field name of Post') + '. Hibernate translates this into SQL that queries the posts' + (q === 'plain' ? ' table' : q === 'two' ? ', comments, and files tables' : ' and comments tables') + '.', '');
     if (page) push('setFirstResult(0).setMaxResults(1): Asks for only 1 element of the result list, starting from the first. No SQL has been sent yet.', '');
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
       push('getResultList(): Hibernate rejects the query at the moment it tries to run it. comments and files are both Lists, and if you fetch two Lists with one SQL statement, the rows multiply to the product of the two list sizes, so you cannot tell which rows are duplicates. An IllegalArgumentException (cause: MultipleBagFetchException) is thrown, and no SQL is sent.', 'bad');
-      sum.push('You cannot fetch join two collections declared as List together. If you change one of them to a Set, the exception goes away, but when this was run in the same environment, the database returned 8 rows (post 1 has 3 comments × 2 attachments = 6 rows), and the comments list of post 1 contained the same comments repeated, 6 in total.', 'Fetch join only one collection, and fetch the rest separately by using lazy fetching together with a batch size setting.' + (page ? ' It is the same exception whether or not you add pagination.' : ''));
+      sum.push('You cannot fetch join two collections declared as List together. If you change files to a Set, the exception goes away, but when this was run in the same environment, the database returned 8 rows (post 1 has 3 comments × 2 attachments = 6 rows), and the comments list of post 1 (the one that stayed a List) contained the same comments repeated, 6 in total.', 'Fetch join only one collection, and fetch the rest separately by using lazy fetching together with a batch size setting.' + (page ? ' It is the same exception whether or not you add pagination.' : ''));
       return fail('MultipleBagFetchException', 'getResultList');
     }
     // Where the results are cut: sql = the end of the outer query, sub = a subquery, mem = memory
@@ -6278,7 +6278,7 @@ Lab.register({
           st.steps[1] = { t: st.steps[1].t, r: 'not found (twice)', cls: 'hot' };
           st.steps[2] = { t: 'Write SQL', r: 'None (exception)', cls: 'bad' };
           st.out = { t: 'ObjectOptimisticLockingFailureException', s: 'No INSERT or UPDATE was done', cls: 'bad' };
-          push('Exception: Member is an entity whose id the DB decides. If such an entity has an id, it means the object was saved before, but there is no such row in the DB. Hibernate assumes that "someone deleted a row that existed in the meantime" and throws an exception. In Hibernate 7.4.5 on the PC used to write this lab, the same SELECT was sent once more and then an ObjectOptimisticLockingFailureException was thrown. It does not INSERT the object as a new row.', 'bad');
+          push('Exception: Member is an entity whose id the DB decides. If such an entity has an id, it means the object was saved before, but there is no such row in the DB. Hibernate assumes that "someone deleted a row that existed in the meantime" and throws an exception. In Hibernate 7.4.5 on the PC used to write this lab, the same SELECT was sent once more, and then Spring translated the optimistic lock exception thrown by Hibernate into an ObjectOptimisticLockingFailureException and threw that. It does not INSERT the object as a new row.', 'bad');
           row = ['Success', '2', 'SELECT → SELECT', 'Exception (ObjectOptimisticLockingFailureException) · No change in the DB'];
           sum.push('If you save an entity whose id the DB decides with an id that does not exist, it is not saved and an exception is thrown. Do not set an id on an object that you are saving as new.');
           sum.push('This behavior differs by Hibernate version. The migration guide for Hibernate 6.6 says that in the versions before it, an INSERT was sent in this case without an exception (older versions were not run).');
@@ -6608,7 +6608,7 @@ Lab.register({
     var row = [st.sel + (teamQ ? ' (1 for members + ' + teamQ + ' for teams)' : ''), st.cols + '', st.managed + '', !c.mod ? '0 (no value was changed)' : st.upd ? '1 (the name in the DB changed to Erin)' : '0 (only the DTO changed; the DB is unchanged)'];
     if (isDto) {
       sum.push('When you query with new in JPQL, only the columns you need are read, and the results are plain objects, not entities. The persistence context does not manage them, so there is no snapshot and no comparison at commit. This suits screens that only display data, such as lists and statistics.');
-      sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data, you have to query entities and change those.' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
+      sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data by dirty checking, you have to query entities (a DTO is not managed by the persistence context).' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
       sum.push('This query is tailored to the values this one screen needs. The downside is that you have to write a separate DTO and query each time the screen changes.');
     } else {
       if (teamQ) sum.push('The list was queried once, but as many extra SELECT statements as there are teams were sent to read the teams. This is the N+1 selects problem. It often occurs when you query entities and then put associated values into a DTO.');
@@ -6761,7 +6761,7 @@ Lab.register({
     { t: 'Foreign key SET NULL', q: 'What if you apply the constraints and set the ON DELETE action of the foreign key to SET NULL?', d: 'The orders remain, and only the column that pointed to the member becomes NULL.', v: { op: 'fkdel', con: 'on', act: 'setnull' } },
     { t: 'The same id twice', q: 'What if you INSERT a member with an id that already exists while the constraints are not applied?', d: 'Without a primary key, there are two members with id 1.', v: { op: 'pkdup', con: 'off', act: 'restrict' } },
     { t: 'An order for a missing member', q: 'What if you apply the constraints and INSERT an order for a member that does not exist (member 99)?', d: 'A foreign key blocks an order that points to a parent that does not exist (error 1452).', v: { op: 'fkins', con: 'on', act: 'restrict' } },
-    { t: 'Unique and NULL', q: 'What if you apply the constraints and add one more member whose email is NULL?', d: 'Even with a unique constraint, NULL can go into several rows.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
+    { t: 'Unique and NULL', q: 'What if you apply the constraints and add one more member whose email is NULL?', d: 'In MySQL, even with a unique constraint, NULL can go into several rows.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
   ],
   ACT: { restrict: 'RESTRICT', cascade: 'CASCADE', setnull: 'SET NULL' },
   STMT: {
@@ -7245,8 +7245,8 @@ Lab.register({
     sum.push({ grpcol: 'A condition on the grouping column gives the same result whether you write it in WHERE or in HAVING. But WHERE cuts down the rows before they are grouped, while HAVING throws groups away after everything has been grouped. As a rule, write a condition that can be checked without grouping in WHERE.',
       rowcol: W ? 'WHERE discards rows before the total is computed. That is why Alice\'s total came out as 300, not 450. This result means "pick only the orders of 300 or more, then add them up by member". If you wanted "the members whose total is 300 or more", you have to write HAVING SUM(amount) >= 300, and then Alice 450 and Bob 320 come out.' : 'After grouping, you can use only the grouping column and aggregate functions. A condition that filters on the value of each single row must be written in WHERE, which is processed before grouping.',
       agg: W ? 'A condition that filters on an aggregate function is written in HAVING, which is processed after grouping. When WHERE is processed, there are no groups yet.' : 'The same words "300 or more" mean different things: WHERE amount >= 300 filters single orders, and HAVING SUM(amount) >= 300 filters the totals by member.',
-      alias: W ? 'An alias is attached at the SELECT step, so it cannot be used in WHERE, which is processed earlier. This is true in standard SQL as well as in MySQL. To filter on an alias for an aggregate, move the condition to HAVING.' : 'MySQL accepts an alias from SELECT in HAVING. This is an extension that standard SQL does not have, so it can cause an error in other databases. To write it so that it works everywhere, write the expression itself, as in HAVING SUM(amount) >= 300.' }[c.cond]);
-    if (!err && ga) sum.push('Using an alias in GROUP BY is also a MySQL extension. In the processing order, GROUP BY comes before SELECT, so in standard SQL you write the original column or expression instead of the alias.');
+      alias: W ? 'An alias is attached at the SELECT step, so it cannot be used in WHERE, which is processed earlier. This is true in standard SQL as well as in MySQL. To filter on an aggregate, move the condition to HAVING, and in standard SQL write the aggregate expression again, as in HAVING SUM(amount) >= 300, instead of the alias (accepting an alias in HAVING is a MySQL extension).' : 'MySQL accepts an alias from SELECT in HAVING. This is an extension that standard SQL does not have, so it can cause an error in other databases. To write it so that it works everywhere, write the expression itself, as in HAVING SUM(amount) >= 300.' }[c.cond]);
+    if (!err && ga) sum.push('Using an alias in GROUP BY is also not in standard SQL, and it is an extension that differs from database to database. In the processing order, GROUP BY comes before SELECT, so in standard SQL you write the original column or expression instead of the alias.');
     if (!err && lim) sum.push('ORDER BY and LIMIT are processed last. So LIMIT 1 means "the one row with the largest total in the filtered and grouped result". If you use LIMIT without ORDER BY, which row is left is not defined.');
     return { events: ev, summary: sum, err: err, list: list, ordered: lim, whereN: whereN,
       row: [err ? 'Error ' + err.no : 'Success', err ? '-' : W ? 'Rows: ' + whereN + ' of 6' : 'No WHERE', err ? '-' : 'Rows: ' + list.length + ' (' + list.join(', ') + ')', extText] };
@@ -8348,7 +8348,7 @@ Lab.register({
     P.box('obj', 428, 50, 222, 44, err ? { cls: 'bad', title: 'Animal object', sub: 'Cannot be assigned to Dog' } : { cls: 'good', title: s.obj + ' object', sub: 'Actual type: ' + s.obj });
     if (!err) P.arrow('pt', 'var:r', 'obj:l', { label: 'refers to' });
     var names = { override: ['sound() in Animal', 'sound() in Dog (overrides)'], overload: ['print(Animal a)', 'print(Dog d)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal\'s name field', 'Dog\'s name field'] }[c.w];
-    P.region('cand', 16, 132, 648, 100, { override: 'Methods that can run', overload: 'The two methods of Printer', static: 'The static methods of the two classes', field: 'The two fields inside the object' }[c.w]);
+    P.region('cand', 16, 132, 648, 100, { override: 'Methods that can run', overload: 'The two methods of Printer', static: 'The static methods of the two classes', field: 'The two fields named name' }[c.w]);
     var pick = err || !s.pick ? '' : /Dog/.test(s.pick) ? 'D' : /Animal/.test(s.pick) ? 'A' : '', late = c.w === 'override' && s.stage === 'Run', chosen = late || c.w !== 'override';
     [['A', 30], ['D', 344]].forEach(function (m, i) { var on = pick === m[0]; P.box('m' + m[0], m[1], 168, 306, 48, { cls: on ? (chosen ? 'hot now' : 'wait') : 'plain', title: names[i], sub: on ? (chosen ? 'This one is selected' : 'Only checked that it exists') : ' ' }); });
     if (pick) P.arrow('sel', (late ? 'obj' : 'var') + ':b', 'm' + pick + ':t', { cls: late ? 'good' : chosen ? 'hot' : 'dash mut', label: late ? 'by actual object type (at run time)' : chosen ? 'by declared type (at compile time)' : 'checks that the declared type has it' });
@@ -28728,7 +28728,7 @@ Lab.register({
     if (c.make !== 'empty' && s.opt) P.arrow('mk', 'name:r', 'opt:l', { cls: s.opt === 'npe' ? 'bad' : '', label: c.make === 'of' ? 'of' : 'ofNullable' });
     P.box('res', 500, 30, 164, 50, s.res ? { cls: 'good', title: 'result', sub: '"' + s.res + '"' } : s.ex ? { cls: 'bad', title: 'result', sub: 'no value (exception)' } : { cls: 'ghost', title: 'result', sub: 'not declared yet' });
     var fromDefault = s.res && s.opt === 'empty' && c.take !== 'get';
-    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: 'value' });
+    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: c.take === 'map' ? 'result' : 'value' });
     if (useMd) {
       P.box('md', 250, 130, 200, 56, { cls: s.md === 'run' ? 'hot now' : s.md === 'skip' ? 'ghost' : 'plain', title: 'makeDefault()', sub: s.md === 'run' ? 'ran → "guest"' : s.md === 'skip' ? 'did not run' : s.md === 'wait' ? 'lambda passed, not run' : 'not run yet' });
       if (fromDefault) P.arrow('df', 'md:r', 'res:b', { cls: 'hot', label: 'default value' });
@@ -28994,7 +28994,7 @@ Lab.register({
       if (d === 'int' && o !== 'addInt') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error. list accepts only Integer, but the code tries to add a ' + j.prim + ' value. The compiler reports "' + j.msg + '". The mistake of adding a value of the wrong type was caught before the program ran.', 'good'); }
       if (d === 'num' && o !== 'addStr') push(opCode + ' is checked: If list were a List<Number>, there would be nothing wrong with this line (' + (o === 'addInt' ? 'Integer is' : 'Double is') + ' a subtype of Number). It is exactly because this line compiles that the assignment on the previous line is rejected. There is one error, on the previous line.');
       if (d === 'num' && o === 'addStr') push(opCode + ' is checked: This line is a compile-time error too. String is not a Number ("' + j.msg + '"). There are two errors, on the previous line and on this line.', 'bad');
-      if (d === 'ext') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '").' + CAP + ' list might actually refer to a List<Double>, so the compiler does not allow adding ' + (o === 'addInt' ? 'even an Integer' : j.box + ' values either') + '. You cannot add a value to a list declared with ? extends.', 'bad'); }
+      if (d === 'ext') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '").' + CAP + ' list might actually refer to a List<Double>, so the compiler does not allow adding ' + (o === 'addInt' ? 'even an Integer' : j.box + ' values either') + '. You cannot add any value other than null to a list declared with ? extends.', 'bad'); }
       if (d === 'sup' && o === 'addInt') push(opCode + ' is checked: The check passes. Whether the actual list is a List<Integer>, a List<Number>, or a List<Object>, an Integer can be added to any of them.', 'good');
       if (d === 'sup' && o !== 'addInt') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '").' + CAP + ' The actual list might be a List<Integer>, so adding a ' + j.box + ' cannot be allowed. What you can add to a ? super Integer list is an Integer.', 'good'); }
     } else {
@@ -29462,7 +29462,7 @@ Lab.register({
       if (kind !== 'tree' && c.data === 'null') sum.push('The Hash kind and the LinkedHash kind can hold one null. If you change the kind of collection to Tree, the same code throws an exception.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('The Hash kind and the LinkedHash kind can hold any object, as long as it has equals and hashCode. The Tree kind also needs a way to compare the objects for order.');
     } else {
-      sum.push(ex === 'NullPointerException' ? 'TreeSet and TreeMap decide positions by comparing values with each other, so they cannot hold null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
+      sum.push(ex === 'NullPointerException' ? 'TreeSet elements and TreeMap keys are compared with each other to decide positions, so (with the default ordering) they cannot be null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
     }
     sum.push('How to choose: the Hash kind if you do not need any order (the fastest), the LinkedHash kind if you need insertion order, and the Tree kind if you need sorted order.');
     var cells = kind === 'hash' ? ordered().map(function (it) { return it.cell; }).join(',') : '-';
@@ -29588,7 +29588,7 @@ Lab.register({
     if (by === 'cmp') sum.push('A Comparator is an order supplied from outside at the time of sorting. It lets you sort the same list by a different sort key each time, such as by balance or by name. comparingInt compares the two numbers without subtracting, so it is safe for large numbers too.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('Accounts with the same balance kept the order they had before the sort (stable sort). List.sort and Collections.sort are stable sorts.' + (rev ? ' Even when sorting in reverse, the order among equal elements is not reversed.' : ''));
     if (by === 'then') sum.push('thenComparing supplies the next sort key, which is used only when the previous one cannot decide the order (comparison result 0).' + (rev ? ' When reversed is added at the very end, everything written before it is reversed. The balances run from the largest, and the names run backward too.' : ''));
-    if (by === 'sub' && !okBal) sum.push('Comparing by subtraction flips the sign when the difference of the two numbers is outside the int range (about -2.1 billion to 2.1 billion). No exception is thrown, and a wrong order comes out silently. Integer.compare(a, b) and Comparator.comparingInt compare the two numbers without subtracting, so they are safe.');
+    if (by === 'sub' && !okBal) sum.push('Comparing by subtraction flips the sign when the difference of the two numbers is outside the int range (about -2.1 billion to 2.1 billion). A wrong order can come out silently without any exception, and in some cases an IllegalArgumentException is thrown. Integer.compare(a, b) and Comparator.comparingInt compare the two numbers without subtracting, so they are safe.');
     if (by === 'sub' && okBal) sum.push('With small numbers, comparing by subtraction gives the correct result. So the tests pass, and the wrong sort appears only after the values have grown large.');
     function cell(v, other) { return v + (v < 0 ? ' (negative: park first)' : v > 0 ? ' (positive: park after)' : ' (order not decided)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
@@ -29624,7 +29624,7 @@ Lab.register({
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [
     { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
-    { id: 'form', label: 'How the action is written', type: 'select', value: 'lambda', options: [['anon', 'Anonymous class'], ['lambda', 'Lambda expression'], ['ref', 'Method reference']], hint: 'The three differ only in how they are written. They do the same thing.' },
+    { id: 'form', label: 'How the action is written', type: 'select', value: 'lambda', options: [['anon', 'Anonymous class'], ['lambda', 'Lambda expression'], ['ref', 'Method reference']], hint: 'All three create an object that does the same job (details such as what this refers to are different).' },
     { id: 'calls', label: 'How many times the receiving method (run) calls the action', type: 'select', value: '2', options: [['0', '0 times (receives it but never calls it)'], ['1', '1 time'], ['2', '2 times']] },
   ],
   presets: [
@@ -29721,7 +29721,7 @@ Lab.register({
 Lab.register({
   id: 'collect', nav: 'Collecting a stream', cat: 'Java language', mode: 'step',
   title: 'Into what shape do you collect the result of a stream?',
-  intro: 'The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
+  intro: 'The elements that come out of a stream must be received at the end by a terminal operation such as collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
   terms: ['Stream API', 'Collector and collect', 'groupingBy and partitioningBy', 'Method reference', 'List, Set, Map'],
   controls: [
     { id: 'how', label: 'How to collect (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList(): put into a List in order'], ['group', 'groupingBy(customer): group by customer'], ['count', 'groupingBy(customer, counting()): count per customer'], ['sum', 'groupingBy(customer, summingInt(price)): sum per customer'], ['part', 'partitioningBy(price >= 300): split into two'], ['join', 'joining(", "): join into a single string'], ['toMap', 'toMap(customer, price): put in as keys and values'], ['toMapMerge', 'toMap(customer, price, merge function): merge duplicates']] },
@@ -29796,7 +29796,7 @@ Lab.register({
       var tail = h === 'toList' ? ' The names are in the order in which they came out, and a name that appears more than once is included as many times as it appears.' : h === 'join' ? (res ? ' The result is not a collection but a single string.' : ' There were no elements, so the result is an empty string, and an empty line is printed.') : h === 'part' ? ' The false entry comes first and the true entry comes second.' + (D.length ? '' : ' There was not a single element, but the two entries are still there.') : D.length ? ' The order of the entries in the Map has nothing to do with the order in which the elements came out (' + D[0][0] + ' first). Do not write code that relies on this order.' : ' There were no elements, so this is an empty Map with no keys.';
       push('System.out.println(result): The output is ' + shown + '.' + tail, 'good', -1);
     }
-    if (h === 'toList') sum.push('collect(Collectors.toList()) puts the elements into a List in the order in which they came out. Duplicates go in as they are. Since Java 16, you can also write it more briefly by adding .toList() directly to the stream.');
+    if (h === 'toList') sum.push('collect(Collectors.toList()) puts the elements into a List in the order in which they came out. Duplicates go in as they are. Since Java 16, you can also write it more briefly by adding .toList() directly to the stream (but it returns an unmodifiable list).');
     if (h === 'group') sum.push('groupingBy groups the elements that have the same key and builds a Map<key, List<element>>. It is used to divide things "by something", such as orders by customer or products by category.');
     if (h === 'count') sum.push('The second argument of groupingBy decides what to do with the grouped elements. counting() counts them, and the type of the values is Long, not Integer. Assigning the result to a Map<String, Integer> is a compile-time error.');
     if (h === 'sum') sum.push('summingInt takes an int value out of each of the grouped elements and adds the values up. This shape is used often, as in a sum per customer or a sum per category.');

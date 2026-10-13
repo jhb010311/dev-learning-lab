@@ -70,7 +70,7 @@ Lab.register({
     P.box('obj', 428, 50, 222, 44, err ? { cls: 'bad', title: 'Animal object', sub: 'Cannot be assigned to Dog' } : { cls: 'good', title: s.obj + ' object', sub: 'Actual type: ' + s.obj });
     if (!err) P.arrow('pt', 'var:r', 'obj:l', { label: 'refers to' });
     var names = { override: ['sound() in Animal', 'sound() in Dog (overrides)'], overload: ['print(Animal a)', 'print(Dog d)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal\'s name field', 'Dog\'s name field'] }[c.w];
-    P.region('cand', 16, 132, 648, 100, { override: 'Methods that can run', overload: 'The two methods of Printer', static: 'The static methods of the two classes', field: 'The two fields inside the object' }[c.w]);
+    P.region('cand', 16, 132, 648, 100, { override: 'Methods that can run', overload: 'The two methods of Printer', static: 'The static methods of the two classes', field: 'The two fields named name' }[c.w]);
     var pick = err || !s.pick ? '' : /Dog/.test(s.pick) ? 'D' : /Animal/.test(s.pick) ? 'A' : '', late = c.w === 'override' && s.stage === 'Run', chosen = late || c.w !== 'override';
     [['A', 30], ['D', 344]].forEach(function (m, i) { var on = pick === m[0]; P.box('m' + m[0], m[1], 168, 306, 48, { cls: on ? (chosen ? 'hot now' : 'wait') : 'plain', title: names[i], sub: on ? (chosen ? 'This one is selected' : 'Only checked that it exists') : ' ' }); });
     if (pick) P.arrow('sel', (late ? 'obj' : 'var') + ':b', 'm' + pick + ':t', { cls: late ? 'good' : chosen ? 'hot' : 'dash mut', label: late ? 'by actual object type (at run time)' : chosen ? 'by declared type (at compile time)' : 'checks that the declared type has it' });

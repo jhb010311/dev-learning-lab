@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>When the application starts: Spring checks the pointcut against each method of the beans, one by one. execution(* shop.OrderService.*(..)) matches every method of the shop.OrderService class. The * at the front means any return type, the * in the position of the method name means any name, and (..) means any number of parameters.</li>
-<li>order(String) checked against the pointcut: order is a method of OrderService, so it is matched. The OrderService bean is wrapped in a proxy (a stand-in object).</li>
+<li>order(String) checked against the pointcut: order is a method of OrderService, so it is matched. A proxy (a stand-in object) is registered in place of the OrderService bean (the original object and the proxy are different objects).</li>
 <li>orderService.order(&quot;keyboard&quot;): Another bean calls the method. The call reaches the proxy first. The proxy runs the advice that applies to this method in order, starting from the outside.</li>
 <li>The first part of the @Around of LogAspect: Within one aspect, @Around starts first. The lines written above pjp.proceed() run.</li>
 <li>Call to pjp.proceed() → the @Before of LogAspect: When @Around passes the call inward, the @Before of the same aspect runs. After that comes the method body.</li>
@@ -216,6 +216,6 @@ class MemberService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름이고, p.comments는 Post의 필드 이름입니다. Hibernate가 이것을 posts와 comments 테이블을 조회하는 SQL로 바꿉니다.</li>
+<li>em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 엔티티 이름(따로 정하지 않으면 클래스 이름)이고, p.comments는 Post의 필드 이름입니다. Hibernate가 이것을 posts와 comments 테이블을 조회하는 SQL로 바꿉니다.</li>
 <li>getResultList(): SQL이 나갑니다. comments 테이블을 조인하지만, select 절에는 게시글 컬럼만 있습니다. 댓글은 조인 조건에만 쓰였습니다. 게시글 1은 댓글이 3개라 3행, 게시글 2는 2행이 되어 DB가 모두 5행을 돌려줍니다.</li>
 <li>5행을 Post 객체로 바꿉니다. 같은 게시글이 여러 행에 나오지만 Hibernate가 한 번만 담아서 결과 목록은 2개입니다. comments 목록은 댓글 컬럼을 읽어 오지 않았으므로 아직 비어 있는(읽지 않은) 상태입니다.</li>
 <li>반복문, 게시글 1: p.getComments().size()를 부르는 순간 비어 있던 목록을 채우려고 댓글 조회 SQL이 따로 나갑니다.</li>
@@ -191,6 +191,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

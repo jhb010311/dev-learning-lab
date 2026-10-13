@@ -61,7 +61,7 @@ Lab.register({
       ann: { order: 'order에는 @Audit이 없으므로 고르지 않습니다.', cancel: 'cancel에는 @Audit이 붙어 있으므로 고른 메서드입니다.', join: 'join에도 @Audit이 붙어 있으므로 고른 메서드입니다. 어느 클래스의 메서드인지는 따지지 않습니다.' } }[c.pc][m];
     push('애플리케이션이 뜰 때: 스프링이 포인트컷을 빈의 메서드 하나하나와 맞춰 봅니다. ' + desc, '');
     st.pc = M.hit ? '고름' : '고르지 않음'; st.bean = M.proxy ? '프록시' : '원래 객체';
-    push(sig + ' 메서드와 맞춰 본 결과: ' + why + ' ' + (M.hit ? M.bean + ' 빈은 프록시(대리 객체)로 감싸 둡니다.' : M.proxy ? '다만 같은 클래스의 ' + M.picked.join(', ') + ' 메서드가 고른 메서드라서 ' + M.bean + ' 빈 자체는 프록시로 감싸 둡니다.' : M.bean + '에는 고른 메서드가 하나도 없으므로 프록시를 만들지 않고 원래 객체를 그대로 빈으로 둡니다. 오류나 경고는 없습니다.'), M.hit ? 'good' : 'bad');
+    push(sig + ' 메서드와 맞춰 본 결과: ' + why + ' ' + (M.hit ? M.bean + ' 빈 대신 프록시(대리 객체)가 등록됩니다(원래 객체와 프록시는 서로 다른 객체).' : M.proxy ? '다만 같은 클래스의 ' + M.picked.join(', ') + ' 메서드가 고른 메서드라서 ' + M.bean + ' 빈 대신 프록시가 등록됩니다(원래 객체와 프록시는 서로 다른 객체).' : M.bean + '에는 고른 메서드가 하나도 없으므로 프록시를 만들지 않고 원래 객체를 그대로 빈으로 둡니다. 오류나 경고는 없습니다.'), M.hit ? 'good' : 'bad');
     push(call + ': 다른 빈이 메서드를 부릅니다. ' + (M.hit ? '호출은 프록시에 먼저 도착합니다. 프록시는 이 메서드에 걸린 어드바이스를 바깥쪽부터 차례로 실행합니다.' : M.proxy ? '호출은 프록시에 도착하지만 고른 메서드가 아니므로, 프록시는 아무것도 끼워 넣지 않고 실제 객체에 넘깁니다.' : '프록시가 없으므로 호출이 실제 객체의 메서드로 바로 갑니다.'), '');
     if (M.hit) layers.forEach(function (a, i) {
       if (a === 'time') print('Time 시작', 'TimeAspect의 @Around: ' + (i === 0 ? '@Order의 숫자가 작은 TimeAspect가 바깥쪽이라 가장 먼저 시작합니다. ' : '@Order의 숫자가 큰 TimeAspect는 안쪽이라 LogAspect의 앞부분이 끝난 뒤에 시작합니다. ') + '"Time 시작"을 찍고 pjp.proceed()로 안쪽에 넘깁니다.');
@@ -100,7 +100,7 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     var ln = H.lanes(v);
     H.lane(ln, '포인트컷', s.pc ? '부른 메서드를 ' + s.pc : '맞춰 보는 중', s.pc === '고름' ? 'good' : s.pc ? 'bad' : 'none');
-    H.lane(ln, sim.bean + ' 빈', s.bean ? (s.bean === '프록시' ? '프록시로 감싸 둠' : '프록시 없음 (원래 객체 그대로)') : '아직 정해지지 않음', s.bean === '프록시' ? 'hot' : s.bean ? 'wait' : 'none');
+    H.lane(ln, sim.bean + ' 빈', s.bean ? (s.bean === '프록시' ? '프록시가 대신 등록됨' : '프록시 없음 (원래 객체 그대로)') : '아직 정해지지 않음', s.bean === '프록시' ? 'hot' : s.bean ? 'wait' : 'none');
     H.table(v, ['순서', '콘솔에 찍힌 줄', '찍은 곳'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : '메서드 본문';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };

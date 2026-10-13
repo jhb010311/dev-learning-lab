@@ -5,7 +5,7 @@ Lab.register({
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [
     { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
-    { id: 'form', label: 'How the action is written', type: 'select', value: 'lambda', options: [['anon', 'Anonymous class'], ['lambda', 'Lambda expression'], ['ref', 'Method reference']], hint: 'The three differ only in how they are written. They do the same thing.' },
+    { id: 'form', label: 'How the action is written', type: 'select', value: 'lambda', options: [['anon', 'Anonymous class'], ['lambda', 'Lambda expression'], ['ref', 'Method reference']], hint: 'All three create an object that does the same job (details such as what this refers to are different).' },
     { id: 'calls', label: 'How many times the receiving method (run) calls the action', type: 'select', value: '2', options: [['0', '0 times (receives it but never calls it)'], ['1', '1 time'], ['2', '2 times']] },
   ],
   presets: [

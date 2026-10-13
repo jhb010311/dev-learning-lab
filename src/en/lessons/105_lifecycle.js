@@ -157,7 +157,7 @@ Lab.register({
     });
     P.region('ctx', 396, 16, 268, 262, 'Spring container');
     P.box('repo', 408, 50, 244, 46, { cls: 'wait', title: 'priceRepository bean', sub: 'singleton' });
-    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === 'loaded' ? 'good' : 'hot', title: 'PriceCache object' + (proto ? ' (prototype)' : ''), sub: s.bad === 'ctor' ? ['Could not be created'] : s.obj ? ['repository field: ' + s.repo, 'prices: ' + (s.prices || 'none')] : ['None yet'] });
+    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === 'loaded' ? 'good' : 'hot', title: 'PriceCache object' + (proto ? ' (prototype)' : ''), sub: s.bad === 'ctor' ? ['Could not be created'] : s.obj ? ['repository field: ' + s.repo, 'prices: ' + (s.prices || 'none')].concat(proto ? ['Not kept by the container'] : []) : ['None yet'] });
     if (s.obj && s.repo === 'injected') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: 'injected' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: 'not injected yet' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === 'Success' ? 'good' : 'bad', title: 'State', right: s.result ? (s.result === 'Success' ? 'Success' : s.result + ': NullPointerException') : s.phase || 'Not started' });

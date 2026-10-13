@@ -123,7 +123,7 @@ Lab.register({
     if (c.make !== 'empty' && s.opt) P.arrow('mk', 'name:r', 'opt:l', { cls: s.opt === 'npe' ? 'bad' : '', label: c.make === 'of' ? 'of' : 'ofNullable' });
     P.box('res', 500, 30, 164, 50, s.res ? { cls: 'good', title: 'result', sub: '"' + s.res + '"' } : s.ex ? { cls: 'bad', title: 'result', sub: '예외로 받지 못함' } : { cls: 'ghost', title: 'result', sub: '아직 없음' });
     var fromDefault = s.res && s.opt === 'empty' && c.take !== 'get';
-    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: '들어 있던 값' });
+    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: c.take === 'map' ? '꺼낸 결과' : '들어 있던 값' });
     if (useMd) {
       P.box('md', 250, 130, 200, 56, { cls: s.md === 'run' ? 'hot now' : s.md === 'skip' ? 'ghost' : 'plain', title: 'makeDefault()', sub: s.md === 'run' ? '실행됨 → "손님"' : s.md === 'skip' ? '실행되지 않음' : s.md === 'wait' ? '람다로 넘겨짐, 아직 실행 전' : '아직 실행 전' });
       if (fromDefault) P.arrow('df', 'md:r', 'res:b', { cls: 'hot', label: '기본값' });

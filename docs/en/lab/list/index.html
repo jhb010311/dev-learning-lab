@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,7 @@
 
 list.add(0, 99);        // beginning</pre>
 <h2>Assumptions of this model</h2>
-<p>For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under &quot;Keep appending to an empty list&quot;. The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array is contiguous in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.</p>
+<p>For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under &quot;Keep appending to an empty list&quot;. The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array keeps its references to the elements next to each other in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.</p>
 <p>Previous lab: <a href="../../lab/annot/">Annotations</a> · Next lab: <a href="../../lab/hashmap/">Inside HashMap</a></p>
   </div>
 
@@ -156,6 +156,6 @@ list.add(0, 99);        // beginning</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

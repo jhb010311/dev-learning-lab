@@ -66,7 +66,7 @@ Lab.register({
     var overall = mem.map(function (n) { return got[n]; }).sort(function (a, b) { return self.ORDER.indexOf(a) - self.ORDER.indexOf(b); })[0];
     st.overall = overall;
     if (mem.length === 1) push('상태 합치기: 모은 상태가 ' + mem[0] + ' UP 하나뿐입니다. 전체 상태는 그대로 UP입니다.');
-    else push('상태 합치기: 모은 상태는 ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '입니다. 이 가운데 가장 심각한 것 하나가 전체 상태가 됩니다. 심각한 순서는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. ' + { UP: '모두 UP이므로 전체 상태도 UP입니다.', DOWN: 'DOWN이 하나 있으므로 전체 상태는 DOWN입니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE가 UP보다 앞이므로 전체 상태는 OUT_OF_SERVICE입니다.', UNKNOWN: 'UNKNOWN은 UP보다 뒤이므로 UP에 밀립니다. 전체 상태는 UP입니다.' }[c.pay]);
+    else push('상태 합치기: 모은 상태는 ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '입니다. 이 가운데 우선순위가 가장 높은 것 하나가 전체 상태가 됩니다. 스프링 부트가 기본으로 쓰는 상태 우선순위(설정으로 바꿀 수 있음)는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. ' + { UP: '모두 UP이므로 전체 상태도 UP입니다.', DOWN: 'DOWN이 하나 있으므로 전체 상태는 DOWN입니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE가 UP보다 앞이므로 전체 상태는 OUT_OF_SERVICE입니다.', UNKNOWN: 'UNKNOWN은 UP보다 뒤이므로 UP에 밀립니다. 전체 상태는 UP입니다.' }[c.pay]);
 
     st.stage = 5;
     var bad = overall === 'DOWN' || overall === 'OUT_OF_SERVICE', code = bad ? '503 Service Unavailable' : '200 OK';

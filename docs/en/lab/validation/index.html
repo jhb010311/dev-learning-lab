@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <ol>
 <li>The request arrives: POST /items, and the body is {&quot;name&quot;: &quot;&quot;}. name was sent as an empty string (a string with no characters).</li>
 <li>@RequestBody ItemForm form: Spring reads the JSON body, creates an ItemForm object, and fills in the name field. The name field is &quot;&quot;. This step only copies the value in. The @NotBlank constraint above the field has not done anything yet.</li>
-<li>Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid. This parameter has no @Valid, so validation is skipped. The @NotBlank constraint in ItemForm is only a mark that says &quot;this field must be like this&quot;, and it cannot block a value by itself.</li>
+<li>Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid (or @Validated). This parameter has no @Valid, so validation is skipped. The @NotBlank constraint in ItemForm is only a mark that says &quot;this field must be like this&quot;, and it cannot block a value by itself.</li>
 <li>add(form) is called: The controller method runs. The value of form.getName() is &quot;&quot;. The text returned is &quot;Registered: []&quot;, and Spring responds with 200. A value that violates the @NotBlank constraint has come all the way into the controller with nothing stopping it.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -178,6 +178,6 @@ class ItemController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

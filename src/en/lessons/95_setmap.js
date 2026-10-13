@@ -85,7 +85,7 @@ Lab.register({
       if (kind !== 'tree' && c.data === 'null') sum.push('The Hash kind and the LinkedHash kind can hold one null. If you change the kind of collection to Tree, the same code throws an exception.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('The Hash kind and the LinkedHash kind can hold any object, as long as it has equals and hashCode. The Tree kind also needs a way to compare the objects for order.');
     } else {
-      sum.push(ex === 'NullPointerException' ? 'TreeSet and TreeMap decide positions by comparing values with each other, so they cannot hold null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
+      sum.push(ex === 'NullPointerException' ? 'TreeSet elements and TreeMap keys are compared with each other to decide positions, so (with the default ordering) they cannot be null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
     }
     sum.push('How to choose: the Hash kind if you do not need any order (the fastest), the LinkedHash kind if you need insertion order, and the Tree kind if you need sorted order.');
     var cells = kind === 'hash' ? ordered().map(function (it) { return it.cell; }).join(',') : '-';

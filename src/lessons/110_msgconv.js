@@ -60,7 +60,7 @@ Lab.register({
         st.stage = 5;
         if (K === 'view') {
           st.wr = '화면 이름으로 해석';
-          push('@Controller: 메서드에 @ResponseBody가 없으므로, 돌려준 문자열을 응답 본문으로 쓰지 않습니다. "orders/done"이라는 이름의 화면(뷰)을 찾으라는 뜻으로 해석합니다. 메시지 컨버터는 쓰이지 않습니다.');
+          push('@Controller: 메서드에 @ResponseBody가 없으므로, 돌려준 문자열을 응답 본문으로 쓰지 않습니다. "orders/done"이라는 이름의 화면(뷰)을 찾으라는 뜻으로 해석합니다. 응답을 쓸 때는 메시지 컨버터가 쓰이지 않습니다.');
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = '뷰 (화면)'; view = 'orders/done'; st.wr = '뷰가 HTML을 씀'; st.body = '(orders/done 화면의 HTML)';
           push('화면 그리기: ViewResolver가 이름이 "orders/done"인 화면을 찾고, 그 화면이 HTML을 만들어 응답 본문에 씁니다. Content-Type은 text/html이고 200으로 응답합니다. 요청의 Accept는 ' + q.accept + '이었지만, 화면을 돌려주는 길에서는 그것 때문에 거절되지 않았습니다.', 'good');
         } else {

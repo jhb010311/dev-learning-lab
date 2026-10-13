@@ -2237,7 +2237,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? '자동으로 계산한 값' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
     P.size(680, 322);
-    P.region('ra', 16, 16, 196, 196, '메모리: 원래 객체');
+    P.region('ra', 16, 16, 196, 196, '메모리: 객체·static 필드');
     P.region('rb', 244, 16, 192, 196, '파일 user.ser');
     P.region('rc', 468, 16, 196, 196, '메모리: 되살린 객체');
     var usub = s.u ? ['name = "kim"'].concat(s.u.point === null ? [] : ['point = ' + s.u.point], s.u.addr ? ['address → Address 객체'] : []) : ['아직 없음'];
@@ -2391,19 +2391,19 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, isNew = c.how === 'new', last = shown[shown.length - 1];
     var s = last ? last.snap : { svc: '없음', pick: '', off: '', result: '', beans: { fixed: { cls: 'FixedDiscountPolicy', name: 'fixedDiscountPolicy', reg: false, mark: false, s: 'none' }, rate: { cls: 'RateDiscountPolicy', name: 'rateDiscountPolicy', reg: false, mark: false, s: 'none' } } };
-    P.size(680, 316);
+    P.size(680, isNew ? 316 : 392);
     P.region('ctx', 16, 16, 648, 224, isNew ? '컨테이너 없음: 내 코드가 직접 만든다' : '스프링 컨테이너');
     P.box('svc', 30, 96, 290, 64, { cls: s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '만드는 중' ? 'hot now' : s.svc === '없음' ? 'ghost' : 'plain', title: isNew ? 'OrderService 객체' : 'orderService 빈', sub: [s.svc === '없음' ? '아직 없음' : s.svc, '쓰는 구현: ' + (s.pick || '아직 없음')] });
     [['fixed', 52], ['rate', 148]].forEach(function (p) {
-      var b = s.beans[p[0]], y = p[1];
-      var sub = isNew ? (b.s === 'in' ? 'OrderService가 new로 만든 객체' : '쓰지 않음 (객체 없음)') : b.s === 'none' ? '빈으로 등록되지 않음' : { def: '빈으로 등록됨', cand: '주입 후보', made: '객체 있음', in: 'OrderService에 주입됨' }[b.s];
-      P.box(p[0], 410, y, 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
+      var b = s.beans[p[0]], y = p[1], out = !isNew && b.s === 'none';
+      var sub = isNew ? (b.s === 'in' ? 'OrderService가 new로 만든 객체' : '쓰지 않음 (객체 없음)') : b.s === 'none' ? '컨테이너 밖 (빈으로 등록되지 않음)' : { def: '빈으로 등록됨', cand: '주입 후보', made: '객체 있음', in: 'OrderService에 주입됨' }[b.s];
+      P.box(p[0], out ? (p[0] === 'fixed' ? 16 : 348) : 410, out ? 258 : y, out ? 316 : 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
       if (isNew && b.s === 'in') P.arrow('a_' + p[0], 'svc:r', p[0] + ':l', { cls: 'hot', label: 'new' });
       if (!isNew && b.s === 'cand') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: s.svc === '실패' ? 'bad dash' : 'dash mut', label: '후보' });
       if (!isNew && b.s === 'in') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: 'good', label: '주입' });
     });
-    P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
-    P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
+    P.box('r1', 16, isNew ? 258 : 340, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
+    P.box('r2', 344, isNew ? 258 : 340, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
     P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
   },
   assume: '서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',
@@ -2536,7 +2536,7 @@ Lab.register({
     P.region('ctx', 218, 16, 446, 262, '스프링 컨테이너');
     P.box('svc', 234, 100, 204, 64, { cls: s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '없음' ? 'ghost' : 'hot', title: 'orderService (싱글톤)', sub: s.svc === '완성' ? '필드: ' + s.holds : s.svc === '없음' ? '아직 없음' : s.svc });
     s.carts.forEach(function (x, i) {
-      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart ' + x.no + '번', sub: x.gone ? '요청과 함께 끝남' : x.when });
+      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart ' + x.no + '번', sub: x.gone ? '요청과 함께 끝남' : sim.c.scope === 'prototype' ? '컨테이너는 보관 안 함' : x.when });
     });
     if (!s.carts.length) P.text('none', 564, 150, s.svc === '실패' ? 'Cart 객체 없음' : '아직 Cart 객체 없음', { cls: 'mut', anchor: 'middle' });
     if (g === 'inject' && s.svc === '완성') P.arrow('hold', 'svc:r', 'cart1:l', { cls: 'good', label: '필드' });
@@ -2708,7 +2708,7 @@ Lab.register({
     });
     P.region('ctx', 396, 16, 268, 262, '스프링 컨테이너');
     P.box('repo', 408, 50, 244, 46, { cls: 'wait', title: 'priceRepository 빈', sub: '싱글톤' });
-    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === '읽어 둠' ? 'good' : 'hot', title: 'PriceCache 객체' + (proto ? ' (프로토타입)' : ''), sub: s.bad === 'ctor' ? ['만들어지지 못함'] : s.obj ? ['repository 필드: ' + s.repo, 'prices: ' + (s.prices || '없음')] : ['아직 없음'] });
+    P.box('cache', 408, 162, 244, 86, { cls: s.bad === 'ctor' ? 'bad' : !s.obj ? 'ghost' : s.prices === '읽어 둠' ? 'good' : 'hot', title: 'PriceCache 객체' + (proto ? ' (프로토타입)' : ''), sub: s.bad === 'ctor' ? ['만들어지지 못함'] : s.obj ? ['repository 필드: ' + s.repo, 'prices: ' + (s.prices || '없음')].concat(proto ? ['만들어 건네줌 (컨테이너는 보관 안 함)'] : []) : ['아직 없음'] });
     if (s.obj && s.repo === '주입됨') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: '주입' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: '아직 주입 전' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === '성공' ? 'good' : 'bad', title: '상태', right: s.result ? (s.result === '성공' ? '성공' : s.result + ': NullPointerException') : s.phase || '시작 전' });
@@ -2780,7 +2780,7 @@ Lab.register({
       ann: { order: 'order에는 @Audit이 없으므로 고르지 않습니다.', cancel: 'cancel에는 @Audit이 붙어 있으므로 고른 메서드입니다.', join: 'join에도 @Audit이 붙어 있으므로 고른 메서드입니다. 어느 클래스의 메서드인지는 따지지 않습니다.' } }[c.pc][m];
     push('애플리케이션이 뜰 때: 스프링이 포인트컷을 빈의 메서드 하나하나와 맞춰 봅니다. ' + desc, '');
     st.pc = M.hit ? '고름' : '고르지 않음'; st.bean = M.proxy ? '프록시' : '원래 객체';
-    push(sig + ' 메서드와 맞춰 본 결과: ' + why + ' ' + (M.hit ? M.bean + ' 빈은 프록시(대리 객체)로 감싸 둡니다.' : M.proxy ? '다만 같은 클래스의 ' + M.picked.join(', ') + ' 메서드가 고른 메서드라서 ' + M.bean + ' 빈 자체는 프록시로 감싸 둡니다.' : M.bean + '에는 고른 메서드가 하나도 없으므로 프록시를 만들지 않고 원래 객체를 그대로 빈으로 둡니다. 오류나 경고는 없습니다.'), M.hit ? 'good' : 'bad');
+    push(sig + ' 메서드와 맞춰 본 결과: ' + why + ' ' + (M.hit ? M.bean + ' 빈 대신 프록시(대리 객체)가 등록됩니다(원래 객체와 프록시는 서로 다른 객체).' : M.proxy ? '다만 같은 클래스의 ' + M.picked.join(', ') + ' 메서드가 고른 메서드라서 ' + M.bean + ' 빈 대신 프록시가 등록됩니다(원래 객체와 프록시는 서로 다른 객체).' : M.bean + '에는 고른 메서드가 하나도 없으므로 프록시를 만들지 않고 원래 객체를 그대로 빈으로 둡니다. 오류나 경고는 없습니다.'), M.hit ? 'good' : 'bad');
     push(call + ': 다른 빈이 메서드를 부릅니다. ' + (M.hit ? '호출은 프록시에 먼저 도착합니다. 프록시는 이 메서드에 걸린 어드바이스를 바깥쪽부터 차례로 실행합니다.' : M.proxy ? '호출은 프록시에 도착하지만 고른 메서드가 아니므로, 프록시는 아무것도 끼워 넣지 않고 실제 객체에 넘깁니다.' : '프록시가 없으므로 호출이 실제 객체의 메서드로 바로 갑니다.'), '');
     if (M.hit) layers.forEach(function (a, i) {
       if (a === 'time') print('Time 시작', 'TimeAspect의 @Around: ' + (i === 0 ? '@Order의 숫자가 작은 TimeAspect가 바깥쪽이라 가장 먼저 시작합니다. ' : '@Order의 숫자가 큰 TimeAspect는 안쪽이라 LogAspect의 앞부분이 끝난 뒤에 시작합니다. ') + '"Time 시작"을 찍고 pjp.proceed()로 안쪽에 넘깁니다.');
@@ -2819,7 +2819,7 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     var ln = H.lanes(v);
     H.lane(ln, '포인트컷', s.pc ? '부른 메서드를 ' + s.pc : '맞춰 보는 중', s.pc === '고름' ? 'good' : s.pc ? 'bad' : 'none');
-    H.lane(ln, sim.bean + ' 빈', s.bean ? (s.bean === '프록시' ? '프록시로 감싸 둠' : '프록시 없음 (원래 객체 그대로)') : '아직 정해지지 않음', s.bean === '프록시' ? 'hot' : s.bean ? 'wait' : 'none');
+    H.lane(ln, sim.bean + ' 빈', s.bean ? (s.bean === '프록시' ? '프록시가 대신 등록됨' : '프록시 없음 (원래 객체 그대로)') : '아직 정해지지 않음', s.bean === '프록시' ? 'hot' : s.bean ? 'wait' : 'none');
     H.table(v, ['순서', '콘솔에 찍힌 줄', '찍은 곳'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : '메서드 본문';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
@@ -2858,7 +2858,7 @@ Lab.register({
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate과 예외 변환', cat: '스프링', mode: 'step',
   title: 'JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나',
-  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
+  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, JDBC 드라이버가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
   terms: ['JdbcTemplate', '예외 변환과 DataAccessException', '커넥션 풀', 'Checked 예외와 Unchecked 예외', '템플릿 메서드 패턴'],
   controls: [
     { id: 'how', label: 'DB에 접근하는 방식', type: 'select', value: 'plain', options: [['plain', 'JDBC 직접: close()를 마지막 줄에서 호출'], ['twr', 'JDBC 직접: try-with-resources로 닫기'], ['tmpl', 'JdbcTemplate']] },
@@ -2935,7 +2935,7 @@ Lab.register({
         }
         caller = 'SQLException (SQLState ' + err[0] + ')'; kind = '체크 예외';
         st.at = -1; st.caller = caller;
-        push('호출한 쪽: SQLException을 받습니다. 체크 예외이므로 이 메서드를 부르는 모든 메서드가 throws SQLException을 적거나 try-catch로 잡아야 합니다. ' + err[3] + '인지 알아내려면 SQLState ' + err[0] + ' 같은 코드를 직접 비교해야 합니다.', 'bad');
+        push('호출한 쪽: SQLException(또는 그 하위 클래스)을 받습니다. 체크 예외이므로 이 메서드를 부르는 모든 메서드가 throws SQLException을 적거나 try-catch로 잡아야 합니다. ' + err[3] + '인지 알아내려면 SQLState ' + err[0] + ' 같은 코드를 봐야 하는 경우가 많습니다.', 'bad');
       } else {
         step(2, '끝남'); st.con = '반납됨';
         push('JdbcTemplate이 SQLException을 잡음: 먼저 PreparedStatement를 닫고 커넥션을 풀에 돌려줍니다. 예외가 났을 때의 정리도 JdbcTemplate이 합니다.', 'good');
@@ -2946,7 +2946,7 @@ Lab.register({
       }
     }
     if (plain && err) sum.push('close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.');
-    if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 받는 예외는 체크 예외인 SQLException 하나뿐이라, 무슨 문제인지는 코드 번호로 구분해야 합니다. 이 번호는 DB 제품마다 다를 수 있습니다.');
+    if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 JDBC가 던지는 것은 체크 예외인 SQLException(과 그 하위 클래스)이고, 원인을 가리려면 DB마다 다른 코드 번호를 봐야 하는 경우가 많습니다.');
     if (raw && !err && n !== 1) sum.push('JDBC를 직접 쓰면 0건이나 2건일 때 어떻게 할지도 직접 정해야 합니다. 정하지 않고 첫 행만 읽으면 문제가 조용히 지나갑니다. JdbcTemplate의 queryForObject는 같은 상황에서 예외를 던집니다.');
     if (raw && !err && n === 1) sum.push('결과는 맞지만 SQL 한 줄을 실행하려고 커넥션 얻기, 값 넣기, 실행, 결과 꺼내기, 닫기를 모두 직접 썼습니다. 메서드마다 같은 코드가 반복됩니다.');
     if (!raw && err) sum.push('JdbcTemplate은 SQLException을 DataAccessException 계열의 예외로 바꿉니다. 모두 언체크 예외이고, 클래스 이름이 문제의 종류를 말해 줍니다. DB 제품이 바뀌어도 같은 예외 클래스로 잡을 수 있습니다.' + (op === 'dup' ? ' DuplicateKeyException은 DataIntegrityViolationException의 하위 클래스입니다.' : ''));
@@ -3093,7 +3093,7 @@ Lab.register({
     else if (!R.where) sum.push({ param: '@RequestParam은 값이 없으면 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다.', opt: 'required = false를 주면 값이 없을 때 null이 들어옵니다. 컨트롤러 안에서 null인 경우를 직접 처리해야 합니다.', def: 'defaultValue를 주면 값이 없을 때 그 값이 대신 들어옵니다. null을 걱정하지 않아도 되므로 타입을 int로 둘 수 있습니다.', model: '@ModelAttribute는 값이 없는 필드를 그대로 둡니다. 그래서 "보내지 않았다"와 "0을 보냈다"를 구분할 수 없습니다. 반드시 있어야 하는 값이라면 따로 검증해야 합니다.' }[how]);
     else if (R.where === 'form') sum.push('폼 형식(application/x-www-form-urlencoded)의 본문은 쿼리 스트링과 함께 "요청 파라미터"로 다뤄집니다. 그래서 본문에 실려 왔는데도 ' + annotRo + ' 받을 수 있습니다. 같은 본문이라도 JSON은 그렇지 않습니다.');
     else sum.push({ query: '쿼리 스트링의 값은 @RequestParam으로 하나씩 받거나, @ModelAttribute로 객체에 묶어 받습니다.', path: '경로의 한 칸을 값으로 쓰려면 주소에 {이름} 자리를 만들고 @PathVariable로 받습니다. 주문 번호처럼 "무엇을 가리키는지"를 나타내는 값에 주로 씁니다.', json: 'JSON 본문은 @RequestBody로 받습니다. 메시지 컨버터가 본문 전체를 객체 하나로 바꿔 줍니다.' }[R.where]);
-    sum.push('애너테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.');
+    sum.push('애너테이션마다 보는 자리가 정해져 있습니다. @RequestParam은 요청 파라미터(쿼리 스트링과 폼 본문), @ModelAttribute는 거기에 경로 변수까지 더한 값, @PathVariable은 경로, @RequestBody는 본문 전체입니다.');
     return { events: ev, summary: sum, ex: ex, row: [status, ran ? '실행됨' : '건너뜀', got, why] };
   },
   render: function (v, sim, t, H, shown) {
@@ -3205,7 +3205,7 @@ Lab.register({
       st.stage = 3;
       if (how === 'plain') {
         st.gate = '건너뜀';
-        push('검증할지 정하기: 스프링은 파라미터에 @Valid가 붙어 있을 때만 그 객체를 검증기에 넘깁니다. 이 파라미터에는 @Valid가 없으므로 검증을 건너뜁니다. ItemForm의 ' + C.a + ' 제약은 "이 필드는 이래야 한다"고 적어 둔 표시일 뿐, 스스로 값을 막지 못합니다.', violates ? 'bad' : '');
+        push('검증할지 정하기: 스프링은 파라미터에 @Valid(또는 @Validated)가 붙어 있을 때만 그 객체를 검증기에 넘깁니다. 이 파라미터에는 @Valid가 없으므로 검증을 건너뜁니다. ItemForm의 ' + C.a + ' 제약은 "이 필드는 이래야 한다"고 적어 둔 표시일 뿐, 스스로 값을 막지 못합니다.', violates ? 'bad' : '');
       } else {
         st.gate = '검증함';
         if (isParam) push('검증할지 정하기: 파라미터에 제약(' + C.a + ')이 직접 붙어 있습니다. 이럴 때는 @Valid가 없어도 스프링이 컨트롤러 메서드를 부르기 직전에 파라미터의 제약을 검사합니다.');
@@ -3448,7 +3448,7 @@ Lab.register({
         st.stage = 5;
         if (K === 'view') {
           st.wr = '화면 이름으로 해석';
-          push('@Controller: 메서드에 @ResponseBody가 없으므로, 돌려준 문자열을 응답 본문으로 쓰지 않습니다. "orders/done"이라는 이름의 화면(뷰)을 찾으라는 뜻으로 해석합니다. 메시지 컨버터는 쓰이지 않습니다.');
+          push('@Controller: 메서드에 @ResponseBody가 없으므로, 돌려준 문자열을 응답 본문으로 쓰지 않습니다. "orders/done"이라는 이름의 화면(뷰)을 찾으라는 뜻으로 해석합니다. 응답을 쓸 때는 메시지 컨버터가 쓰이지 않습니다.');
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = '뷰 (화면)'; view = 'orders/done'; st.wr = '뷰가 HTML을 씀'; st.body = '(orders/done 화면의 HTML)';
           push('화면 그리기: ViewResolver가 이름이 "orders/done"인 화면을 찾고, 그 화면이 HTML을 만들어 응답 본문에 씁니다. Content-Type은 text/html이고 200으로 응답합니다. 요청의 Accept는 ' + q.accept + '이었지만, 화면을 돌려주는 길에서는 그것 때문에 거절되지 않았습니다.', 'good');
         } else {
@@ -3581,7 +3581,7 @@ Lab.register({
     var overall = mem.map(function (n) { return got[n]; }).sort(function (a, b) { return self.ORDER.indexOf(a) - self.ORDER.indexOf(b); })[0];
     st.overall = overall;
     if (mem.length === 1) push('상태 합치기: 모은 상태가 ' + mem[0] + ' UP 하나뿐입니다. 전체 상태는 그대로 UP입니다.');
-    else push('상태 합치기: 모은 상태는 ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '입니다. 이 가운데 가장 심각한 것 하나가 전체 상태가 됩니다. 심각한 순서는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. ' + { UP: '모두 UP이므로 전체 상태도 UP입니다.', DOWN: 'DOWN이 하나 있으므로 전체 상태는 DOWN입니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE가 UP보다 앞이므로 전체 상태는 OUT_OF_SERVICE입니다.', UNKNOWN: 'UNKNOWN은 UP보다 뒤이므로 UP에 밀립니다. 전체 상태는 UP입니다.' }[c.pay]);
+    else push('상태 합치기: 모은 상태는 ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '입니다. 이 가운데 우선순위가 가장 높은 것 하나가 전체 상태가 됩니다. 스프링 부트가 기본으로 쓰는 상태 우선순위(설정으로 바꿀 수 있음)는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. ' + { UP: '모두 UP이므로 전체 상태도 UP입니다.', DOWN: 'DOWN이 하나 있으므로 전체 상태는 DOWN입니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE가 UP보다 앞이므로 전체 상태는 OUT_OF_SERVICE입니다.', UNKNOWN: 'UNKNOWN은 UP보다 뒤이므로 UP에 밀립니다. 전체 상태는 UP입니다.' }[c.pay]);
 
     st.stage = 5;
     var bad = overall === 'DOWN' || overall === 'OUT_OF_SERVICE', code = bad ? '503 Service Unavailable' : '200 OK';
@@ -3818,7 +3818,7 @@ Lab.register({
         return DOWN;
       }
       w.cx.state = 'up'; cache[k] = st.ctxs.length - 1; used[n - 1] = cache[k]; okCount++; set(n, '테스트 메서드 실행 중', 'hot');
-      push((n === 1 ? 'OrderController 생성: ' : '두 번째 컨텍스트 기동 완료: ') + '스프링이 컨트롤러를 만들면서 생성자가 요구하는 OrderService를 컨텍스트에서 찾아 넣습니다. ' + (f.svc ? '들어가는 것은 가짜 OrderService입니다.' : '들어가는 것은 진짜 OrderService이고, 그 안에는 ' + (f.repo ? '가짜' : '진짜') + ' OrderRepository가 들어 있습니다.') + ' 컨텍스트가 다 떴고 캐시에 보관됩니다.', 'good');
+      push((n === 1 ? 'OrderController 생성: ' : '두 번째 컨텍스트 기동 완료: ') + '스프링이 컨트롤러를 만들면서 생성자가 요구하는 OrderService를 컨텍스트에서 찾아 넣습니다. ' + (f.svc ? '들어가는 것은 가짜 OrderService입니다.' : '들어가는 것은 진짜 OrderService이고, 이 서비스는 ' + (f.repo ? '가짜' : '진짜') + ' OrderRepository를 주입받아 참조로 갖고 있습니다.') + ' 컨텍스트가 다 떴고 캐시에 보관됩니다.', 'good');
       return test(n, f);
     }
     function test(n, f) {
@@ -3887,7 +3887,7 @@ Lab.register({
     function split(t) { var i = t.indexOf(' ('); return i < 0 ? [t] : [t.slice(0, i), t.slice(i + 2, -1)]; }
     P.box('t1', 10, 44, 156, 72, { cls: (s.k1 || 'plain') + (s.now === 1 ? ' now' : ''), title: '첫 번째 테스트 클래스', sub: split(s.s1) });
     P.box('t2', 10, 148, 156, 72, { cls: (s.k2 || 'plain') + (s.now === 2 ? ' now' : ''), title: '두 번째 테스트 클래스', sub: split(s.s2) });
-    P.region('cache', 236, 6, 434, 236, unit ? '스프링 컨텍스트 없음: 테스트 메서드가 직접 만든 객체' : '컨텍스트 캐시 (테스트를 실행하는 JVM 안에 있음)');
+    P.region('cache', 236, 6, 434, 236, unit ? '스프링 컨텍스트 없음: 테스트 메서드가 직접 만든 객체' : '테스트가 띄운 컨텍스트 (성공한 것만 캐시에 남음)');
     if (!s.ctxs.length) P.text('empty', 453, 128, unit ? '아직 만든 객체가 없음' : '비어 있음', { cls: 'mut', anchor: 'middle' });
     s.ctxs.forEach(function (x, i) {
       var y = 32 + i * 104, id = 'ctx' + (i + 1);
@@ -3916,7 +3916,7 @@ Lab.register({
 Lab.register({
   id: 'restclient', nav: '외부 API 호출과 타임아웃', cat: '스프링', mode: 'step',
   title: '다른 서버를 호출했는데 답이 오지 않으면 언제까지 기다리나',
-  intro: '주문 서버가 결제 서버의 API를 호출합니다. 호출한 스레드는 결과가 올 때까지 멈춰 서서 기다리는데, 얼마나 기다리다 포기할지를 정하는 것이 타임아웃입니다. 타임아웃은 두 가지입니다. 연결 타임아웃은 연결이 맺어지기까지, 읽기 타임아웃은 연결된 뒤 응답이 오기까지를 잽니다. 정하지 않으면 제한 없이 기다립니다. 상대 서버의 상태와 타임아웃을 바꿔 가며 어느 타임아웃이 언제 걸리는지 보세요. 화면에 나오는 2초, 3초, 10초는 예시 값입니다.',
+  intro: '주문 서버가 결제 서버의 API를 호출합니다. 호출한 스레드는 결과가 올 때까지 멈춰 서서 기다리는데, 얼마나 기다리다 포기할지를 정하는 것이 타임아웃입니다. 타임아웃은 두 가지입니다. 연결 타임아웃은 연결이 맺어지기까지, 읽기 타임아웃은 연결된 뒤 데이터가 오지 않은 채 기다리는 시간의 한도입니다. 정하지 않으면 클라이언트는 스스로 포기하지 않습니다. 상대 서버의 상태와 타임아웃을 바꿔 가며 어느 타임아웃이 언제 걸리는지 보세요. 화면에 나오는 2초, 3초, 10초는 예시 값입니다.',
   terms: ['연결 타임아웃과 읽기 타임아웃', 'RestClient', '톰캣의 스레드 모델', '3-way handshake', 'HTTP 상태 코드'],
   controls: [
     { id: 'server', label: '상대 서버(결제 서버)의 상태', type: 'select', value: 'slow', options: [['ok', '정상: 곧바로 200으로 응답'], ['slow', '느림: 연결은 받지만 10초 뒤에 응답'], ['noanswer', '연결 요청에 답이 없음 (장비가 꺼졌거나 방화벽이 버림)'], ['refused', '연결 거절 (서버 프로그램이 꺼져 있음)'], ['e404', '곧바로 404로 응답'], ['e500', '곧바로 500으로 응답']] },
@@ -3934,7 +3934,7 @@ Lab.register({
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
-      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // 연결 타임아웃\n' : '// 연결 타임아웃을 정하지 않음 (제한 없이 기다림)\n')
+      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // 연결 타임아웃\n' : '// 연결 타임아웃을 정하지 않음 (운영체제가 포기할 때까지 기다림)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // 읽기 타임아웃\n' : '// 읽기 타임아웃을 정하지 않음 (제한 없이 기다림)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // 결과가 올 때까지 이 스레드는 여기서 기다린다\n} catch (HttpClientErrorException e) {      // 4xx 응답\n} catch (HttpServerErrorException e) {      // 5xx 응답\n} catch (ResourceAccessException e) {       // 연결 실패, 타임아웃\n}';
   },
@@ -3942,7 +3942,7 @@ Lab.register({
   columns: ['결과', '호출한 코드가 받은 예외', '호출한 스레드가 기다린 시간', '상대 서버의 처리'],
   simulate: function (c) {
     var S = c.server, ct = !!c.ct, rt = !!c.rt, ev = [], sum = [];
-    var st = { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 제한 없이 기다림', ctK: ct ? 'plain' : 'ghost', rtS: rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? '프로그램이 꺼져 있음' : S === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
+    var st = { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 운영체제가 포기할 때까지', ctK: ct ? 'plain' : 'ghost', rtS: rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? '프로그램이 꺼져 있음' : S === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     var result = '', ex = '없음', wait = '곧바로', served = '처리함', cause = '-', ms = 0, status = '-';
     function finish(r, e) { result = r; ex = e; st.result = r; st.ex = e; st.thread = '풀려남'; if (st.waited === '0초') st.waited = '거의 없음'; }
@@ -4020,7 +4020,7 @@ Lab.register({
   },
   // 그림: 왼쪽에 호출하는 주문 서버의 스레드, 오른쪽에 결제 서버. 그 사이에 연결, 요청, 응답 화살표. 아래에 두 타임아웃이 각각 언제 시간을 재는지와 결과.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: c.ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 제한 없이 기다림', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? '프로그램이 꺼져 있음' : c.server === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: c.ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 운영체제가 포기할 때까지', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? '프로그램이 꺼져 있음' : c.server === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
     var waiting = s.thread === '연결을 기다리는 중' || s.thread === '응답을 기다리는 중', dead = c.server === 'refused' || c.server === 'noanswer';
     P.size(680, 268);
     P.box('me', 16, 16, 240, 92, { cls: s.thread === '풀려남' ? 'good' : waiting ? 'hot now' : 'plain', title: '주문 서버 (호출하는 쪽)', sub: ['스레드: ' + s.thread, '기다림: ' + s.waited] });
@@ -4153,25 +4153,25 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['키', '값'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), '캐시 "product"' + (s.cache.length ? '' : ' (비어 있음)'));
   },
-  // 그림: 바깥 상자가 프록시, 안쪽 상자가 실제 객체다. 프록시는 오른쪽 위의 캐시를 먼저 보고, 값이 있으면 안쪽으로 들어가지 않는다. 본문이 실행될 때만 오른쪽 아래의 DB에 간다.
+  // 그림: 위 상자가 프록시, 아래 상자가 실제 객체이고 둘은 서로 다른 객체다(프록시가 참조로 갖고 있다). 프록시는 오른쪽 위의 캐시를 먼저 보고, 값이 있으면 실제 객체로 넘기지 않는다. 본문이 실행될 때만 오른쪽 아래의 DB에 간다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { call: '', short: '', px: '', tg: '', look: '', toBody: false, self: false, dbop: '', cache: [], db: [], count: 0, second: '' };
     var lines = function (rows) { return rows.length ? rows.map(function (r) { return r[0] + ' → ' + r[1]; }) : ['비어 있음']; };
     P.size(680, 318);
-    P.box('caller', 10, 70, 100, 56, { cls: s.call ? 'wait' : 'plain', title: '다른 빈', sub: '호출하는 쪽' });
-    P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
-    P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
-    P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
-    P.text('store', 577, 130, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
-    P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
-    if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
-    if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });
-    if (s.toBody && !s.self) P.arrow('pass', [347, 84], 'tg:t', {});
+    P.box('caller', 10, 17, 96, 56, { cls: s.call ? 'wait' : 'plain', title: '다른 빈', sub: '호출하는 쪽' });
+    P.box('px', 176, 14, 268, 62, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
+    P.box('tg', 176, 130, 268, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
+    P.box('cache', 486, 14, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
+    P.text('store', 577, 122, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
+    P.box('db', 486, 132, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
+    if (s.call) P.arrow('in', 'caller:r', 'px:l', { label: s.short });
+    if (s.look) P.arrow('look', 'px:r:0.75', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });
+    P.arrow('pass', 'px:b', 'tg:t', s.toBody && !s.self ? { label: '넘김' } : { cls: 'mut', label: '참조' });
     if (s.self) P.arrow('selfcall', 'tg:l:0.3', 'tg:l:0.75', { cls: 'bad', label: 'this.find' });
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'find 본문이 실행된 횟수', right: s.count + '번' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: '두 번째 find가 돌려준 값', right: s.second || '아직 부르기 전' });
-    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 프록시를 지나지 않으므로 캐시와 관계없이 본문이 실행됩니다.');
+    P.note('위 상자가 프록시, 아래 상자가 실제 객체입니다. 둘은 서로 다른 객체이고, 프록시가 실제 객체를 참조로 갖고 있다가 호출을 넘깁니다. 실제 객체가 자기 메서드를 this로 부르는 빨간 화살표는 프록시를 지나지 않으므로 캐시와 관계없이 본문이 실행됩니다.');
   },
   assume: '마흔 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)에서 @EnableCaching과 ConcurrentMapCacheManager로 실행해, find 본문이 실행된 횟수, 두 번째 find가 돌려준 값, 끝난 뒤 캐시에 든 것을 대조했습니다. rename의 본문이 캐시에 값이 있어도 실행된다는 것, 캐시에 없는 키를 @CacheEvict로 지워도 오류가 나지 않는다는 것도 같은 실행에서 확인했습니다. ConcurrentMapCacheManager는 애플리케이션의 메모리에 맵으로 저장하는 가장 단순한 캐시 매니저로, 만료 시간(TTL)이나 크기 제한이 없습니다. 만료와 동시에 몰리는 요청은 "캐시와 TTL" 실습에서 다룹니다. null을 캐시에 넣을 수 있는지는 캐시 구현의 설정에 따라 다르며, ConcurrentMapCacheManager는 기본으로 null을 넣습니다(다른 캐시 구현에서의 동작은 실행으로 확인하지 않았습니다). DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. 화면의 코드는 @EnableCaching이 켜져 있다고 가정하며, key = "#id"처럼 매개변수 이름을 쓰려면 -parameters 옵션으로 컴파일해야 합니다. 이 PC에서 이 옵션 없이 컴파일해 실행했을 때는 rename을 부르는 순간 키가 null이라는 IllegalArgumentException이 났습니다(스프링 부트로 만든 프로젝트의 빌드 설정에는 이 옵션이 들어 있습니다). 같은 클래스 안에서 부르는 호출에 프록시 기반 기능이 적용되지 않는 이유는 "프록시와 자기 호출" 실습에서 자세히 다룹니다. 여기서는 한 스레드에서 차례로 부르는 경우만 다뤘습니다. 여러 스레드가 같은 키를 동시에 처음 조회하는 경우는 실행해 보지 않았습니다.',
 });
@@ -4317,7 +4317,7 @@ Lab.register({
     if (s.flow) P.arrow('sql', s.flow.write ? 'heap:r' : 'row_' + s.flow.to + ':l', s.flow.write ? 'row_' + s.flow.to + ':l' : 'heap:r', { cls: 'hot', label: s.flow.label });
     P.box('r1', 16, 236, 210, 40, { cls: sim.written ? 'hot' : 'good', title: '코드에 직접 쓴 SQL', right: sim.written + '개' });
     P.box('r2', 234, 236, 430, 40, { cls: s.res === '?' ? 'ghost' : /^(false|null|NullPointerException)$/.test(s.res) ? 'bad' : 'good', title: sim.row[2], right: s.res });
-    P.note('가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 뜻이고, 그 SQL을 누가 썼는지가 함께 적힙니다.');
+    P.note('가운데 화살표는 이번 단계에서 SQL로 주고받은 방향입니다(INSERT는 DB로, SELECT 결과는 메모리로). 그 SQL을 누가 썼는지가 함께 적힙니다.');
   },
   assume: '열두 가지 조합을 이 PC에서 실제로 실행해 대조했습니다(JDBC 쪽은 화면과 같은 구조의 DAO 코드를 H2 데이터베이스에, JPA 쪽은 Hibernate 7.4.5와 H2에 실행). 대조한 것은 코드에 적은 SQL 문장의 수, 줄마다 나간 SQL의 종류와 테이블, a == b의 값, 회원 이름 또는 예외, 다시 읽은 grade와 DB에 남은 grade입니다. "직접 채웠다"는 설정은 JDBC에서만 뜻이 있고, JPA에서는 결과에 영향이 없습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것이며, Hibernate가 실제로 만드는 문장은 컬럼 순서와 별칭이 다릅니다. JPA의 @ManyToOne은 지연 로딩(LAZY)으로 두었습니다. 기본값인 즉시 로딩(EAGER)이면 em.find 한 번에 주문과 회원을 함께 읽습니다. JDBC 쪽의 코드 양은 이 예제의 DAO를 기준으로 한 것입니다. 스프링의 JdbcTemplate이나 MyBatis를 쓰면 반복되는 코드는 줄지만, SQL을 직접 쓰고 필드가 바뀔 때 SQL을 함께 고쳐야 한다는 점은 같습니다. "고친 곳 네 곳"은 화면의 코드에서 센 것입니다.',
 });
@@ -4421,9 +4421,9 @@ Lab.register({
     if (c.st === 'new') sum.push('new로 만든 객체는 em.persist에 넘기기 전까지 JPA와 아무 관계가 없습니다. 값을 아무리 바꿔도, 트랜잭션을 커밋해도 SQL이 나가지 않습니다. 저장이 안 될 때는 persist(스프링 데이터 JPA라면 save)를 불렀는지부터 확인합니다.');
     if (c.st === 'persist') sum.push(cnt.UPDATE ? 'persist 한 뒤에 값을 바꾸면 변경 감지가 일해서 INSERT 뒤에 UPDATE가 한 번 더 나갑니다. 결과는 맞지만 SQL이 하나 더 듭니다. 값을 다 채운 다음에 persist하면 INSERT 한 번으로 끝납니다.' : '값을 다 채운 다음에 persist했으므로 INSERT 한 번으로 끝났습니다. persist 한 뒤에 바꾸면 UPDATE가 한 번 더 나갑니다.', 'persist를 부른 줄에서 INSERT가 나가지 않은 것은 id를 코드에서 직접 넣었기 때문입니다. DB가 id를 정하는 IDENTITY 방식이면 persist하는 줄에서 INSERT가 바로 나갑니다(영속성 컨텍스트 실습 참고).');
     if (c.st === 'find') sum.push('영속 상태에서는 값만 바꾸면 됩니다. 커밋할 때 영속성 컨텍스트가 기억해 둔 값과 비교해 UPDATE를 만들어 줍니다. 다른 상태들과 비교해 보면, 이 일이 일어나는 것은 영속 상태일 때뿐임을 알 수 있습니다.');
-    if ((c.st === 'detach' || c.st === 'clear') && !lost) sum.push('준영속 객체는 평범한 자바 객체와 같습니다. 값을 바꿔도 예외가 나지 않고, DB에도 반영되지 않습니다. 떼어 낸 뒤 같은 id를 em.find로 다시 조회하면 SELECT가 다시 나가고 m과는 다른 새 객체가 옵니다.', c.st === 'clear' ? 'em.clear()는 영속성 컨텍스트 안의 모든 엔티티를 한꺼번에 준영속으로 만듭니다. em.detach(m)은 m 하나만 떼어 냅니다.' : '준영속 객체의 값을 DB에 반영하려면 다시 영속 상태로 만들어야 합니다. 그 방법이 병합(merge)이며 다음 실습에서 다룹니다.');
+    if ((c.st === 'detach' || c.st === 'clear') && !lost) sum.push('준영속 객체는 평범한 자바 객체와 같습니다. 값을 바꿔도 예외가 나지 않고, DB에도 반영되지 않습니다. 떼어 낸 뒤 같은 id를 em.find로 다시 조회하면 SELECT가 다시 나가고 m과는 다른 새 객체가 옵니다.', c.st === 'clear' ? 'em.clear()는 영속성 컨텍스트 안의 모든 엔티티를 한꺼번에 준영속으로 만듭니다. em.detach(m)은 m 하나만 떼어 냅니다.' : '준영속 객체의 변경을 DB에 반영하려면 병합(merge)으로 영속 객체에 값을 옮겨야 합니다. 병합은 다음 실습에서 다룹니다.');
     if ((c.st === 'detach' || c.st === 'clear') && lost) sum.push('영속 상태일 때 바꾼 값이라도, DB로 보내기(flush) 전에 떼어 내면 사라집니다.', '떼어 내기 전에 em.flush()를 부르면 그때 UPDATE가 나가므로 반영됩니다. 많은 데이터를 처리하다가 메모리를 비우려고 em.clear()를 부를 때는 그 앞에 em.flush()를 둡니다.');
-    if (c.st === 'close' && !changed) sum.push('트랜잭션이 끝나고 em이 닫힌 뒤의 엔티티는 준영속입니다. 서비스 메서드가 돌려준 엔티티를 컨트롤러에서 고치는 경우가 여기에 해당합니다. 값은 바뀌지만 DB에는 반영되지 않고, 예외도 나지 않습니다.');
+    if (c.st === 'close' && !changed) sum.push('트랜잭션이 끝나고 em이 닫힌 뒤의 엔티티는 준영속입니다. 서비스 메서드가 돌려준 엔티티를, 트랜잭션이 끝난 뒤(OSIV를 끈 경우) 컨트롤러에서 고치는 경우가 여기에 해당합니다. 값은 바뀌지만 DB에는 반영되지 않고, 예외도 나지 않습니다.');
     if (c.st === 'close' && changed) sum.push('커밋은 그 직전에 flush를 일으킵니다. 그래서 커밋 전에 바꾼 값은 UPDATE로 나간 뒤에 em이 닫힙니다. 같은 "직전에 바꿈"인데 detach나 clear에서는 값이 사라지는 것과 비교해 보세요. 그쪽은 flush 없이 떼어 내기 때문입니다.');
     if (c.st === 'remove') sum.push('em.remove는 그 줄에서 DELETE를 보내지 않고 "지울 대상"으로 표시만 합니다. DELETE는 커밋할 때 나갑니다. 삭제 상태에서 값을 바꿔도 UPDATE는 나가지 않습니다.', 'DB의 행이 지워진 뒤에도 자바 객체 m은 메모리에 남아 있어 값을 읽을 수 있습니다. 커밋하기 전에 em.persist(m)을 다시 부르면 삭제가 취소되고 영속 상태로 돌아옵니다.');
     return { events: ev, summary: sum, L: L, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join(' '), row: [st.contains, sqlText, whenText, dbText] };
@@ -4453,7 +4453,7 @@ Lab.register({
     else if (s.flow) P.arrow('sql', cur === 'removed' ? 'sRem:r' : 'sMan:r', 'db:l', { cls: 'hot', label: s.flow });
     P.box('c1', 16, 278, 300, 36, { cls: s.contains === '?' ? 'ghost' : s.contains === 'true' ? 'good' : 'plain', title: 'em.contains(m)', right: s.contains });
     P.box('c2', 324, 278, 340, 36, { cls: s.sent.length ? 'plain' : 'ghost', title: 'DB로 나간 SQL', right: s.sent.length + '번' });
-    P.note('굵은 테두리가 객체 m의 지금 상태입니다. DB로 가는 화살표가 없는 단계에서는 SQL이 나가지 않았습니다.');
+    P.note('굵은 테두리가 객체 m의 지금 상태입니다. 삭제 상태도 커밋 전까지는 영속성 컨텍스트가 관리합니다. DB로 가는 화살표가 없는 단계에서는 SQL이 나가지 않았습니다.');
   },
   assume: '열네 가지 조합(일곱 가지 길 × 이름을 바꾸는 때)을 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 줄마다 나간 SQL의 종류, em.contains의 결과, DB에 남은 행이 화면과 일치하는 것을 확인했습니다. "이름을 바꾸는 때"는 new만 하는 길, 조회만 하는 길, remove에서는 결과에 영향이 없어 숨겨 두었습니다. 요약에 적은 다음 사실도 따로 실행해 확인했습니다: 값을 바꾼 뒤 em.flush()를 부르고 떼어 내면 반영된다, 떼어 낸 뒤 다시 조회하면 SELECT가 다시 나가고 다른 객체가 온다, remove 한 객체를 커밋 전에 다시 persist하면 DELETE가 나가지 않는다, 지워진 뒤에도 자바 객체의 값은 읽힌다, persist 뒤에 값을 바꾸면 INSERT에는 persist할 때의 값이 들어간다. 회원의 id는 코드에서 직접 넣는 방식으로 두었습니다. DB가 id를 정하는 IDENTITY 방식에서는 persist하는 줄에서 INSERT가 바로 나갑니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것입니다. 스프링에서는 @Transactional 메서드가 시작하고 끝날 때 여기의 begin, commit, close가 대신 일어납니다(OSIV를 켠 웹 요청에서는 em이 요청이 끝날 때 닫힙니다).',
 });
@@ -4641,7 +4641,7 @@ Lab.register({
     st.cols.push({ n: 'grade', d: ddl.grade, from: '@Enumerated(EnumType.' + (ord ? 'ORDINAL' : 'STRING') + ')', pic: ord ? 'grade tinyint (0~1만 허용)' : "grade enum ('BASIC','VIP')" });
     push('grade 필드: ' + (ord ? 'ORDINAL은 enum에 적힌 순서 번호를 저장하는 방식이므로 작은 정수 컬럼(tinyint)이 됩니다. BASIC은 0, VIP는 1입니다. 번호가 0에서 1 사이인지 확인하는 조건(check)도 함께 붙었습니다.' : 'STRING은 enum 상수의 이름을 글자 그대로 저장하는 방식입니다. 이 실행에서는 "BASIC"과 "VIP"만 받는 enum 타입의 컬럼으로 만들어졌습니다.'), '');
     st.cols.push({ n: 'memo', d: c.tr ? '' : ddl.memo, from: c.tr ? '@Transient' : '(애너테이션 없음)', pic: c.tr ? '' : 'memo varchar(255)', hot: c.tr });
-    push('memo 필드: ' + (c.tr ? '@Transient가 붙어 있으므로 매핑에서 빠집니다. 테이블에 memo 컬럼이 만들어지지 않습니다.' : '애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 @Transient로 빼지 않는 한 모두 컬럼과 짝지어집니다.'), '');
+    push('memo 필드: ' + (c.tr ? '@Transient가 붙어 있으므로 매핑에서 빠집니다. 테이블에 memo 컬럼이 만들어지지 않습니다.' : '애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 static이나 transient 필드, @Transient로 뺀 필드가 아니면 모두 컬럼과 짝지어집니다.'), '');
     st.step = 'save';
     var saved = c.pk !== 'forgot', id = c.pk === 'auto' ? 1 : 100, raw = ord ? '1' : 'VIP', idText, readGrade = '저장 안 됨', readMemo = '';
     if (!saved) {
@@ -4971,20 +4971,20 @@ Lab.register({
       var tb = c.tb, plain = tb === 'plain', two = tb === 'two' || tb === 'twoov';
       P.size(680, 300);
       P.region('mem', 16, 16, 300, 200, '자바 객체 (메모리)');
-      P.box('o_member', 32, 46, 268, 158, s.obj ? { cls: 'plain', title: 'member (Member 객체)', sub: plain ? ['name = 김철수', 'city = 서울', 'street = 강남대로'] : ['name = 김철수'] } : { cls: 'ghost', title: 'member (Member 객체)', sub: '아직 없음' });
+      P.box('o_member', 32, 46, 268, plain ? 158 : 46, s.obj ? { cls: 'plain', title: 'member (Member 객체)', sub: plain ? ['name = 김철수', 'city = 서울', 'street = 강남대로'] : ['name = 김철수'] } : { cls: 'ghost', title: 'member (Member 객체)', sub: '아직 없음' });
       if (!plain && s.obj) {
         if (two) {
-          P.box('o_addr', 48, 98, 236, 44, { cls: 'wait', title: 'homeAddress (Address 객체)', sub: 'city = 서울 · street = 강남대로' });
-          P.box('o_addr2', 48, 150, 236, 44, { cls: 'wait', title: 'workAddress (Address 객체)', sub: 'city = 성남 · street = 판교로' });
-        } else if (tb === 'nul') P.box('o_addr', 48, 106, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'Address 객체가 없음' });
-        else P.box('o_addr', 48, 106, 236, 44, { cls: 'wait', title: 'address (Address 객체)', sub: 'city = 서울 · street = 강남대로' });
+          P.box('o_addr', 32, 132, 132, 70, { cls: 'wait', title: 'homeAddress', sub: ['Address 객체', 'city = 서울', 'street = 강남대로'] }); P.arrow('ref1', 'o_member:b:0.246', 'o_addr:t', { label: '참조' });
+          P.box('o_addr2', 168, 132, 132, 70, { cls: 'wait', title: 'workAddress', sub: ['Address 객체', 'city = 성남', 'street = 판교로'] }); P.arrow('ref2', 'o_member:b:0.754', 'o_addr2:t', { label: '참조' });
+        } else if (tb === 'nul') P.box('o_addr', 48, 132, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'Address 객체가 없음' });
+        else { P.box('o_addr', 48, 132, 236, 44, { cls: 'wait', title: 'address (Address 객체)', sub: 'city = 서울 · street = 강남대로' }); P.arrow('ref1', 'o_member:b', 'o_addr:t', { label: '참조' }); }
       }
       P.region('db', 364, 16, 300, 200, 'DB');
       var row = s.db[0], six = tb === 'twoov';
       if (s.err) P.box('t_member', 380, 46, 268, 96, { cls: 'bad', title: 'member 테이블을 만들지 못함', sub: ['city 컬럼이 두 번 나옴', '(homeAddress와 workAddress)', 'MappingException'] });
       else P.box('t_member', 380, 46, 268, 96, { cls: !s.made ? 'ghost' : s.hot ? 'hot' : 'plain', title: 'member 테이블', sub: !s.made ? ['아직 만들어지기 전'] : (six ? ['id · name · city · street', '· work_city · work_street'] : ['id · name · city · street']).concat(row ? (six ? [row.slice(0, 4).join(' · '), '· ' + row.slice(4).join(' · ')] : [row.join(' · ')]) : ['(행 없음)']) });
       if (!plain) P.box('t_addr', 380, 154, 268, 46, { cls: 'ghost', title: 'address 테이블', sub: '만들어지지 않음 (값 타입)' });
-      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', 'o_addr:r', 't_member:l', { cls: 'good', label: '컬럼으로' });
+      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', two ? 'o_addr2:r' : 'o_addr:r', 't_member:l', { cls: 'good', label: '컬럼으로' });
       P.box('r1', 16, 232, 320, 38, { cls: s.err ? 'bad' : s.made ? 'good' : 'ghost', title: '만들어진 테이블', right: s.err ? '시작 실패' : s.made ? 'member 1개' : '?' });
       P.box('r2', 344, 232, 320, 38, tb === 'emb' || tb === 'nul' ? { cls: !s.read ? 'ghost' : s.read === 'null' ? 'bad' : 'good', title: '다시 읽은 address', right: s.read || '?' } : { cls: s.sent.length ? 'plain' : 'ghost', title: '나간 INSERT', right: s.sent.length + '번' });
       P.note('왼쪽은 자바 객체, 오른쪽은 DB입니다. 임베디드 타입(파란 상자)은 자바에서는 따로 있는 객체지만, DB에서는 자기 테이블 없이 member 테이블의 컬럼으로 들어갑니다.');
@@ -5264,7 +5264,7 @@ Lab.register({
     var sizeBad = s.size !== '?' && mp && s.size !== (s.fk === '1' ? '1' : '0');
     P.box('r1', 16, 258, 320, 38, { cls: s.fk === '?' ? 'ghost' : s.fk === 'null' ? 'bad' : 'good', title: 'DB의 member.team_id', right: s.fk });
     P.box('r2', 344, 258, 320, 38, { cls: s.size === '?' ? 'ghost' : sizeBad ? 'bad' : 'plain', title: 'team.getMembers().size()', right: s.size === '?' ? '?' : s.size + '명' });
-    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽이며, 메모리에서 읽을 때만 쓰이고 SQL에는 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
+    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽이며, 읽을 때(조회)는 쓰이지만, 여기에 넣거나 뺀 것은 INSERT·UPDATE에 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
   },
   assume: '팀 하나와 회원 하나를 새로 저장하는 경우만 다룹니다. 이미 저장된 회원의 팀을 바꾸는 경우(UPDATE가 나가는 경우)는 다루지 않았습니다. 기본 키는 IDENTITY 전략이어서 persist를 부를 때 INSERT가 바로 나갑니다. 열두 가지 조합 모두를 Hibernate 7.4.5와 H2 데이터베이스에서 같은 구조의 코드로 실행해, 만들어진 테이블과 컬럼, 나간 SQL의 종류와 테이블별 횟수, 그 SQL이 persist 때 나갔는지 커밋 직전에 나갔는지, DB의 member.team_id 값, 연결 테이블의 행 수, team.getMembers().size()가 화면과 일치하는 것을 확인했습니다. 연결 테이블과 그 컬럼의 이름(team_member, team_id, members_id)은 Hibernate 7.4.5가 기본 규칙으로 지은 것이고 @JoinTable로 바꿀 수 있습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 쓴 것이어서 실제 문장과 글자가 같지는 않습니다. SQL 로그에서는 테이블 이름 뒤에 별칭이 붙고 값 자리에 물음표가 들어갑니다.',
 });
@@ -5749,7 +5749,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 트랜잭션을 끝내고 영속성 컨텍스트를 닫는다' : l; }).join('\n');
+    return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 영속성 컨텍스트를 닫는다' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: '지연 로딩 연관 객체', find: 'em.find', findref: 'find 뒤 getReference', reffind: 'getReference 뒤 find' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() 비교', closed: '닫은 뒤 getName()' }[c.use]; },
   columns: ['m의 정체', '회원 테이블 조회', '마지막 줄의 결과'],
@@ -5809,7 +5809,7 @@ Lab.register({
     }
     if (use === 'closed') {
       st.open = false;
-      push('em.close(): 트랜잭션을 끝내고 영속성 컨텍스트를 닫습니다. 자바 객체 m은 메모리에 남아 있지만, 이제 영속성 컨텍스트와 이어져 있지 않습니다(준영속).', '');
+      push('em.close(): 영속성 컨텍스트를 닫습니다. 자바 객체 m은 메모리에 남아 있지만, 이제 영속성 컨텍스트와 이어져 있지 않습니다(준영속).', '');
       if (empty) {
         res = 'LazyInitializationException'; st.err = res;
         push('m.getName(): 비어 있는 프록시를 채우려면 영속성 컨텍스트를 통해 DB를 조회해야 합니다. 그런데 영속성 컨텍스트가 이미 닫혔습니다. SQL을 보내지 못하고 LazyInitializationException이 납니다.', 'bad');
@@ -5842,9 +5842,9 @@ Lab.register({
   // 그림: 왼쪽 영속성 컨텍스트 안에 프록시와 진짜 Member(지연 로딩이면 주문도), 오른쪽에 DB. 프록시가 초기화되면 진짜 객체로 가는 화살표가 생긴다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : this.blank(), lazy = c.how === 'lazy';
-    P.size(680, 300);
-    P.region('pc', 16, 16, 430, 214, s.open ? '영속성 컨텍스트 (열려 있음)' : '영속성 컨텍스트 (닫힘)');
-    P.region('db', 496, 16, 168, 214, 'DB');
+    P.size(680, 316);
+    P.region('pc', 16, 16, 430, 176, s.open ? '영속성 컨텍스트 (열려 있음)' : '영속성 컨텍스트 (닫힘)');
+    P.region('db', 496, 16, 168, 176, 'DB');
     if (lazy) {
       P.box('order', 30, 48, 190, 46, { cls: s.order ? 'plain' : 'ghost', title: '주문 1', sub: s.order ? 'member 필드 → 프록시' : '아직 읽지 않음' });
       P.box('do', 508, 48, 144, 46, { cls: 'plain', title: 'orders', sub: 'id 1, member_id 1' });
@@ -5855,9 +5855,9 @@ Lab.register({
     P.box('dm', 508, 118, 144, 56, { cls: 'plain', title: 'member', sub: 'id 1, 김철수' });
     if (lazy && s.order) P.arrow('o2p', 'order:b', 'proxy:t', { cls: 'mut' });
     if (hasProxy && s.m === 'proxy' && s.init) P.arrow('p2r', 'proxy:r', 'real:l', { cls: 'good', label: '넘김' });
-    P.box('var', 30, 186, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: '변수 m', right: s.m === 'none' ? '아직 없음' : s.m === 'proxy' ? '프록시를 가리킴' : '진짜 Member를 가리킴' });
-    if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
-    P.box('res', 16, 244, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '예외' : '결과', right: s.err || s.out || '아직 없음' });
+    P.box('var', 30, 210, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: '변수 m', right: s.m === 'none' ? '아직 없음' : s.m === 'proxy' ? '프록시를 가리킴' : '진짜 Member를 가리킴' });
+    if (s.m !== 'none') P.arrow('m2o', 'var:t', s.m === 'proxy' ? 'proxy:b' : 'real:b', { cls: 'mut' }); if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
+    P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '예외' : '결과', right: s.err || s.out || '아직 없음' });
     P.note('파란 프록시는 식별자만 알고 있는 빈 상태, 노란 프록시는 진짜 Member와 연결된(초기화된) 상태입니다. 가운데 화살표는 이번 단계에서 DB로 조회 SQL이 나갔다는 표시입니다. 프록시는 초기화된 뒤에도 진짜 객체로 바뀌지 않고, 받은 호출을 진짜 객체에게 넘겨 줍니다.');
   },
   assume: '스무 가지 조합(얻는 방법 다섯, 하는 일 넷)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, m이 프록시인지, 회원 테이블 조회가 언제 몇 번 나갔는지, 마지막 줄의 값이나 예외가 화면과 일치하는 것을 확인했습니다. 엔티티의 필드에 @Id를 붙이고 게터를 둔 보통의 매핑, 하나의 영속성 컨텍스트 기준입니다. 프록시의 클래스 이름은 이 환경에서 Member$HibernateProxy였고, 버전에 따라 뒤에 꼬리표가 더 붙기도 합니다. 같은 환경에서 다음도 확인했습니다. 게터를 거치지 않고 프록시의 필드를 직접 읽으면(m.name) 초기화되지 않고 null이 나옵니다. DB에 없는 식별자로 getReference를 하면 그때는 예외가 없고, 값을 처음 읽을 때 조회가 나간 뒤 예외(ObjectNotFoundException)가 납니다. 영속성 컨텍스트를 닫은 뒤에도 프록시의 getId()는 값을 돌려줍니다. 스프링 부트의 웹 요청에서는 OSIV 기본 설정 때문에 응답이 끝날 때까지 영속성 컨텍스트가 열려 있어 이 예외가 늦게 드러날 수 있는데, 그 부분은 실행으로 확인하지 않았습니다. 바이트코드 강화(enhancement)를 쓰는 환경에서는 프록시 대신 다른 방식으로 지연 로딩이 될 수 있다고 문서에 나와 있으나, 이것도 실행해 보지는 않았습니다.',
@@ -5906,12 +5906,12 @@ Lab.register({
       sum.push('JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
-    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
+    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 엔티티 이름(따로 정하지 않으면 클래스 이름)' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
     if (page) push('setFirstResult(0).setMaxResults(1): 결과 목록을 처음부터 1개만 달라고 요청합니다. 아직 SQL은 나가지 않았습니다.', '');
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
       push('getResultList(): 실행하려는 순간 Hibernate가 거절합니다. comments와 files가 둘 다 List이고, List 두 개를 한 SQL로 함께 가져오면 행이 두 목록 크기의 곱으로 늘어나 어느 행이 중복인지 가려낼 수 없기 때문입니다. IllegalArgumentException(원인은 MultipleBagFetchException)이 나고 SQL은 나가지 않습니다.', 'bad');
-      sum.push('List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. 한쪽을 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
+      sum.push('List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. files를 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록(List로 남은 쪽)에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
       return fail('MultipleBagFetchException', 'getResultList');
     }
     // 어디에서 자르는가: sql 바깥 쿼리 끝, sub 서브쿼리, mem 메모리
@@ -6346,7 +6346,7 @@ Lab.register({
           st.steps[1] = { t: st.steps[1].t, r: '없음 (두 번 조회)', cls: 'hot' };
           st.steps[2] = { t: '쓰기 SQL', r: '없음 (예외)', cls: 'bad' };
           st.out = { t: 'ObjectOptimisticLockingFailureException', s: 'INSERT도 UPDATE도 하지 않음', cls: 'bad' };
-          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 이 PC의 Hibernate 7.4.5에서는 같은 SELECT가 한 번 더 나간 뒤 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
+          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 이 PC의 Hibernate 7.4.5에서는 같은 SELECT가 한 번 더 나간 뒤, Hibernate가 던진 낙관적 락 예외를 스프링이 바꿔 던진 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
           row = ['성공', '2번', 'SELECT → SELECT', '예외 (ObjectOptimisticLockingFailureException) · DB 변화 없음'];
           sum.push('id를 DB가 정하는 엔티티에 없는 id를 넣어 save하면 저장되지 않고 예외가 납니다. 새로 저장할 객체에는 id를 넣지 않습니다.');
           sum.push('이 동작은 Hibernate 버전에 따라 다릅니다. Hibernate 6.6의 마이그레이션 안내에는, 그 전 버전에서는 이런 경우 예외 없이 INSERT가 나갔다고 적혀 있습니다(예전 버전은 실행해 보지 않았습니다).');
@@ -6676,7 +6676,7 @@ Lab.register({
     var row = [st.sel + '번' + (teamQ ? ' (회원 1 + 팀 ' + teamQ + ')' : ''), st.cols + '개', st.managed + '개', !c.mod ? '0번 (값을 바꾸지 않음)' : st.upd ? '1번 (DB의 이름이 김영수로 바뀜)' : '0번 (DTO만 바뀌고 DB는 그대로)'];
     if (isDto) {
       sum.push('JPQL의 new로 조회하면 필요한 컬럼만 읽고, 결과는 엔티티가 아니라 보통 객체입니다. 영속성 컨텍스트가 관리하지 않으므로 스냅샷도, 커밋할 때의 비교도 없습니다. 목록이나 통계처럼 보여 주기만 하는 화면에 맞습니다.');
-      sum.push(c.mod ? 'DTO의 값을 바꿔도 DB에는 반영되지 않습니다. 데이터를 수정하려면 엔티티로 조회해서 바꿔야 합니다.' : '반대로, 데이터를 수정하는 것이 목적이라면 엔티티로 조회해야 합니다. DTO는 바꿔도 DB에 반영되지 않습니다.');
+      sum.push(c.mod ? 'DTO의 값을 바꿔도 DB에는 반영되지 않습니다. 변경 감지로 수정하려면 엔티티로 조회해야 합니다(DTO는 영속성 컨텍스트가 관리하지 않습니다).' : '반대로, 데이터를 수정하는 것이 목적이라면 엔티티로 조회해야 합니다. DTO는 바꿔도 DB에 반영되지 않습니다.');
       sum.push('이 쿼리는 이 화면에 필요한 값에만 맞춘 것입니다. 화면이 달라질 때마다 DTO와 쿼리를 따로 만들어야 한다는 것이 단점입니다.');
     } else {
       if (teamQ) sum.push('목록은 한 번 조회했는데 팀을 읽는 SELECT가 팀 수만큼 더 나갔습니다. N+1 문제입니다. 엔티티로 조회한 뒤 연관된 값을 DTO에 담을 때 자주 생깁니다.');
@@ -6829,7 +6829,7 @@ Lab.register({
     { t: '외래 키 SET NULL', q: '제약 조건을 걸어 두고 외래 키의 ON DELETE 동작을 SET NULL로 바꾸면', d: '주문은 남고, 회원을 가리키던 칸만 NULL이 됩니다.', v: { op: 'fkdel', con: 'on', act: 'setnull' } },
     { t: '같은 id가 두 번', q: '제약 조건은 걸지 않은 채 이미 있는 id로 회원을 INSERT하면', d: '기본 키가 없으면 id 1인 회원이 두 명이 됩니다.', v: { op: 'pkdup', con: 'off', act: 'restrict' } },
     { t: '없는 회원의 주문', q: '제약 조건을 걸어 두고 없는 99번 회원의 주문을 INSERT하면', d: '외래 키가 없는 부모를 가리키는 주문을 막습니다(오류 1452).', v: { op: 'fkins', con: 'on', act: 'restrict' } },
-    { t: '유니크와 NULL', q: '제약 조건을 걸어 두고 email이 NULL인 회원을 한 명 더 추가하면', d: '유니크를 걸어도 NULL은 여러 행에 들어갑니다.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
+    { t: '유니크와 NULL', q: '제약 조건을 걸어 두고 email이 NULL인 회원을 한 명 더 추가하면', d: 'MySQL에서는 유니크를 걸어도 NULL은 여러 행에 들어갑니다.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
   ],
   ACT: { restrict: 'RESTRICT', cascade: 'CASCADE', setnull: 'SET NULL' },
   STMT: {
@@ -7313,8 +7313,8 @@ Lab.register({
     sum.push({ grpcol: '묶는 기준 컬럼에 대한 조건은 WHERE와 HAVING 어디에 적어도 결과가 같습니다. 다만 WHERE는 묶기 전에 행을 줄이고 HAVING은 다 묶은 뒤에 그룹을 버립니다. 그룹과 상관없이 거를 수 있는 조건은 WHERE에 적는 것이 원칙입니다.',
       rowcol: W ? 'WHERE는 합계를 내기 전에 행을 버립니다. 그래서 김철수의 합계가 450이 아니라 300으로 나왔습니다. 이 결과는 "300 이상인 주문만 골라 회원별로 더한 것"입니다. "합계가 300 이상인 회원"을 원했다면 HAVING SUM(amount) >= 300으로 적어야 하고, 그때는 김철수 450과 이영희 320이 나옵니다.' : '묶은 뒤에는 묶는 기준 컬럼과 집계 함수만 쓸 수 있습니다. 행 하나하나의 값으로 거르는 조건은 묶기 전에 처리되는 WHERE에 적어야 합니다.',
       agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다.',
-      alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계에 붙인 별칭으로 거르려면 조건을 HAVING으로 옮깁니다.' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
-    if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 MySQL의 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
+      alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계 결과로 거르려면 조건을 HAVING으로 옮기되, 표준 SQL에서는 별칭 대신 HAVING SUM(amount) >= 300처럼 집계 식을 다시 적습니다(HAVING에서 별칭을 받아 주는 것은 MySQL의 확장입니다).' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
+    if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 표준에는 없고 DB마다 다른 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
     if (!err && lim) sum.push('ORDER BY와 LIMIT은 맨 뒤에 처리됩니다. 그래서 LIMIT 1은 "거르고 묶은 결과 가운데 합계가 가장 큰 한 행"을 뜻합니다. ORDER BY 없이 LIMIT만 쓰면 어느 행이 남을지 정해져 있지 않습니다.');
     return { events: ev, summary: sum, err: err, list: list, ordered: lim, whereN: whereN,
       row: [err ? '오류 ' + err.no : '성공', err ? '-' : W ? '6행 중 ' + whereN + '행' : 'WHERE 없음', err ? '-' : list.length + '행: ' + list.join(', '), extText] };
@@ -28796,7 +28796,7 @@ Lab.register({
     if (c.make !== 'empty' && s.opt) P.arrow('mk', 'name:r', 'opt:l', { cls: s.opt === 'npe' ? 'bad' : '', label: c.make === 'of' ? 'of' : 'ofNullable' });
     P.box('res', 500, 30, 164, 50, s.res ? { cls: 'good', title: 'result', sub: '"' + s.res + '"' } : s.ex ? { cls: 'bad', title: 'result', sub: '예외로 받지 못함' } : { cls: 'ghost', title: 'result', sub: '아직 없음' });
     var fromDefault = s.res && s.opt === 'empty' && c.take !== 'get';
-    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: '들어 있던 값' });
+    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: c.take === 'map' ? '꺼낸 결과' : '들어 있던 값' });
     if (useMd) {
       P.box('md', 250, 130, 200, 56, { cls: s.md === 'run' ? 'hot now' : s.md === 'skip' ? 'ghost' : 'plain', title: 'makeDefault()', sub: s.md === 'run' ? '실행됨 → "손님"' : s.md === 'skip' ? '실행되지 않음' : s.md === 'wait' ? '람다로 넘겨짐, 아직 실행 전' : '아직 실행 전' });
       if (fromDefault) P.arrow('df', 'md:r', 'res:b', { cls: 'hot', label: '기본값' });
@@ -29062,7 +29062,7 @@ Lab.register({
       if (d === 'int' && o !== 'addInt') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다. list는 Integer만 받는데 ' + j.prim + ' 값을 넣으려 했습니다. 컴파일러는 "' + j.msg + '"라고 알립니다. 잘못된 타입을 넣는 실수가 실행 전에 잡혔습니다.', 'good'); }
       if (d === 'num' && o !== 'addStr') push(opCode + ' 검사: list가 List<Number>라면 이 줄에는 문제가 없습니다(' + (o === 'addInt' ? 'Integer는' : 'Double은') + ' Number의 하위 타입입니다). 바로 이 줄이 컴파일되기 때문에 앞 줄의 대입을 막는 것입니다. 오류는 앞 줄 한 곳입니다.');
       if (d === 'num' && o === 'addStr') push(opCode + ' 검사: 이 줄도 컴파일 오류입니다. String은 Number가 아닙니다("' + j.msg + '"). 오류는 앞 줄과 이 줄, 두 곳입니다.', 'bad');
-      if (d === 'ext') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' list가 실제로는 List<Double>을 가리키고 있을 수도 있으므로, 컴파일러는 ' + (o === 'addInt' ? 'Integer조차' : j.box + '도') + ' 넣게 두지 않습니다. ? extends로 선언한 리스트에는 값을 넣을 수 없습니다.', 'bad'); }
+      if (d === 'ext') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' list가 실제로는 List<Double>을 가리키고 있을 수도 있으므로, 컴파일러는 ' + (o === 'addInt' ? 'Integer조차' : j.box + '도') + ' 넣게 두지 않습니다. ? extends로 선언한 리스트에는 null 말고는 값을 넣을 수 없습니다.', 'bad'); }
       if (d === 'sup' && o === 'addInt') push(opCode + ' 검사: 통과합니다. 실제 리스트가 List<Integer>이든 List<Number>이든 List<Object>이든, Integer는 어느 것에나 넣을 수 있기 때문입니다.', 'good');
       if (d === 'sup' && o !== 'addInt') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' 실제 리스트가 List<Integer>일 수 있으므로 ' + j.box + '을 넣게 둘 수 없습니다. ? super Integer 리스트에 넣을 수 있는 것은 Integer입니다.', 'good'); }
     } else {
@@ -29530,7 +29530,7 @@ Lab.register({
       if (kind !== 'tree' && c.data === 'null') sum.push('Hash 종류와 LinkedHash 종류는 null을 하나 담을 수 있습니다. 컬렉션의 종류를 Tree로 바꾸면 같은 코드에서 예외가 납니다.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('Hash 종류와 LinkedHash 종류는 equals와 hashCode만 있으면 어떤 객체든 담습니다. Tree 종류는 크기를 비교할 방법이 더 필요합니다.');
     } else {
-      sum.push(ex === 'NullPointerException' ? 'TreeSet과 TreeMap은 값을 서로 비교해 자리를 정하므로 null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
+      sum.push(ex === 'NullPointerException' ? 'TreeSet의 원소와 TreeMap의 키는 서로 비교해 자리를 정하므로 (기본 정렬에서) null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
     }
     sum.push('고르는 기준: 순서가 필요 없으면 Hash 종류(가장 빠름), 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다.');
     var cells = kind === 'hash' ? ordered().map(function (it) { return it.cell; }).join(',') : '-';
@@ -29656,7 +29656,7 @@ Lab.register({
     if (by === 'cmp') sum.push('Comparator는 정렬할 때 바깥에서 주는 순서입니다. 같은 목록을 잔액순, 이름순처럼 그때그때 다른 기준으로 정렬할 수 있습니다. comparingInt는 빼지 않고 크기를 비교하므로 큰 수에서도 안전합니다.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('잔액이 같은 것끼리는 정렬 전의 순서를 지켰습니다(안정 정렬). List.sort와 Collections.sort는 안정 정렬입니다.' + (rev ? ' 거꾸로 정렬해도 같은 것끼리의 순서는 뒤집히지 않습니다.' : ''));
     if (by === 'then') sum.push('thenComparing은 앞의 기준으로 순서를 가릴 수 없을 때(비교 결과 0)만 쓰이는 다음 기준입니다.' + (rev ? ' reversed를 맨 뒤에 붙이면 앞에 적은 기준 전체가 뒤집힙니다. 잔액은 큰 것부터, 이름도 뒤에서부터입니다.' : ''));
-    if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외가 나지 않고 틀린 순서가 조용히 나옵니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
+    if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외 없이 틀린 순서가 조용히 나올 수 있고, 경우에 따라 IllegalArgumentException이 나기도 합니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
     if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다.');
     function cell(v, other) { return v + (v < 0 ? ' (음수: park가 앞)' : v > 0 ? ' (양수: park가 뒤)' : ' (순서를 가리지 않음)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
@@ -29692,7 +29692,7 @@ Lab.register({
   terms: ['람다 표현식', '함수형 인터페이스', '메서드 참조', '익명 클래스와 람다의 차이'],
   controls: [
     { id: 'fi', label: '함수형 인터페이스 (동작의 모양)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer> : 값을 받아 다른 값을 돌려준다'], ['predicate', 'Predicate<String> : 값을 받아 true 또는 false를 돌려준다'], ['supplier', 'Supplier<String> : 받는 것 없이 값을 돌려준다'], ['consumer', 'Consumer<String> : 값을 받고 아무것도 돌려주지 않는다']] },
-    { id: 'form', label: '동작을 쓰는 방식', type: 'select', value: 'lambda', options: [['anon', '익명 클래스'], ['lambda', '람다'], ['ref', '메서드 참조']], hint: '세 가지는 쓰는 모양만 다르고 하는 일은 같습니다.' },
+    { id: 'form', label: '동작을 쓰는 방식', type: 'select', value: 'lambda', options: [['anon', '익명 클래스'], ['lambda', '람다'], ['ref', '메서드 참조']], hint: '세 가지 모두 같은 일을 하는 객체를 만듭니다(this가 가리키는 것 같은 세부는 다릅니다).' },
     { id: 'calls', label: '넘겨받은 쪽(run)이 동작을 부르는 횟수', type: 'select', value: '2', options: [['0', '0번 (받기만 하고 부르지 않는다)'], ['1', '1번'], ['2', '2번']] },
   ],
   presets: [
@@ -29789,7 +29789,7 @@ Lab.register({
 Lab.register({
   id: 'collect', nav: '스트림으로 모으기', cat: '자바 언어', mode: 'step',
   title: '스트림의 결과를 어떤 모양으로 모으나',
-  intro: '스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.',
+  intro: '스트림에서 흘러나온 원소들은 마지막에 collect 같은 최종 연산으로 결과를 받아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.',
   terms: ['Stream API', 'Collector와 collect', 'groupingBy와 partitioningBy', '메서드 참조', 'List, Set, Map'],
   controls: [
     { id: 'how', label: '모으는 방법 (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList() : 순서대로 List에 담기'], ['group', 'groupingBy(고객) : 고객별로 묶기'], ['count', 'groupingBy(고객, counting()) : 고객별 개수'], ['sum', 'groupingBy(고객, summingInt(가격)) : 고객별 합계'], ['part', 'partitioningBy(가격 >= 300) : 둘로 나누기'], ['join', 'joining(", ") : 문자열 하나로 잇기'], ['toMap', 'toMap(고객, 가격) : 키와 값으로 담기'], ['toMapMerge', 'toMap(고객, 가격, 병합 함수) : 겹치면 합치기']] },
@@ -29864,7 +29864,7 @@ Lab.register({
       var tail = h === 'toList' ? ' 흘러나온 순서 그대로이고, 같은 이름도 나온 만큼 들어 있습니다.' : h === 'join' ? (res ? ' 결과는 컬렉션이 아니라 문자열 하나입니다.' : ' 원소가 없어서 빈 문자열이 되었고, 빈 줄이 출력됩니다.') : h === 'part' ? ' false 칸이 먼저, true 칸이 나중에 나옵니다.' + (D.length ? '' : ' 원소가 하나도 없었지만 두 칸은 그대로 있습니다.') : D.length ? ' Map에 담긴 순서는 원소가 흘러나온 순서(' + D[0][0] + '이 먼저)와 상관이 없습니다. 이 순서에 기대는 코드를 쓰면 안 됩니다.' : ' 원소가 없어서 키가 하나도 없는 빈 Map입니다.';
       push('System.out.println(result): 출력은 ' + shown + '입니다.' + tail, 'good', -1);
     }
-    if (h === 'toList') sum.push('collect(Collectors.toList())는 흘러나온 원소를 순서 그대로 List에 담습니다. 중복도 그대로 들어갑니다. 자바 16부터는 스트림에 .toList()를 바로 붙여 짧게 쓸 수도 있습니다.');
+    if (h === 'toList') sum.push('collect(Collectors.toList())는 흘러나온 원소를 순서 그대로 List에 담습니다. 중복도 그대로 들어갑니다. 자바 16부터는 스트림에 .toList()를 바로 붙여 짧게 쓸 수도 있습니다(다만 수정할 수 없는 리스트를 돌려줍니다).');
     if (h === 'group') sum.push('groupingBy는 키가 같은 원소끼리 묶어 Map<키, List<원소>>를 만듭니다. 고객별 주문, 분류별 상품처럼 "무엇별로" 나누는 일에 씁니다.');
     if (h === 'count') sum.push('groupingBy의 두 번째 인자는 묶인 원소들을 어떻게 정리할지 정합니다. counting()은 개수를 세며, 값의 타입은 Integer가 아니라 Long입니다. Map<String, Integer>로 받으면 컴파일 오류가 납니다.');
     if (h === 'sum') sum.push('summingInt는 묶인 원소들에서 int 값을 꺼내 더합니다. 고객별 합계, 분류별 합계처럼 자주 쓰는 모양입니다.');

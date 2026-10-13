@@ -125,7 +125,7 @@ Lab.register({
     P.region('ctx', 218, 16, 446, 262, '스프링 컨테이너');
     P.box('svc', 234, 100, 204, 64, { cls: s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '없음' ? 'ghost' : 'hot', title: 'orderService (싱글톤)', sub: s.svc === '완성' ? '필드: ' + s.holds : s.svc === '없음' ? '아직 없음' : s.svc });
     s.carts.forEach(function (x, i) {
-      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart ' + x.no + '번', sub: x.gone ? '요청과 함께 끝남' : x.when });
+      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart ' + x.no + '번', sub: x.gone ? '요청과 함께 끝남' : sim.c.scope === 'prototype' ? '컨테이너는 보관 안 함' : x.when });
     });
     if (!s.carts.length) P.text('none', 564, 150, s.svc === '실패' ? 'Cart 객체 없음' : '아직 Cart 객체 없음', { cls: 'mut', anchor: 'middle' });
     if (g === 'inject' && s.svc === '완성') P.arrow('hold', 'svc:r', 'cart1:l', { cls: 'good', label: '필드' });

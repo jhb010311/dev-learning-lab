@@ -88,7 +88,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? '자동으로 계산한 값' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
     P.size(680, 322);
-    P.region('ra', 16, 16, 196, 196, '메모리: 원래 객체');
+    P.region('ra', 16, 16, 196, 196, '메모리: 객체·static 필드');
     P.region('rb', 244, 16, 192, 196, '파일 user.ser');
     P.region('rc', 468, 16, 196, 196, '메모리: 되살린 객체');
     var usub = s.u ? ['name = "kim"'].concat(s.u.point === null ? [] : ['point = ' + s.u.point], s.u.addr ? ['address → Address 객체'] : []) : ['아직 없음'];

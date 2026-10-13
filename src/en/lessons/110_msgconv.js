@@ -60,7 +60,7 @@ Lab.register({
         st.stage = 5;
         if (K === 'view') {
           st.wr = 'taken as a view name';
-          push('@Controller: The method has no @ResponseBody, so the returned string is not written as the response body. It is interpreted as meaning "find the view named orders/done". No message converter is used.');
+          push('@Controller: The method has no @ResponseBody, so the returned string is not written as the response body. It is interpreted as meaning "find the view named orders/done". No message converter is used to write the response.');
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = 'View (HTML page)'; view = 'orders/done'; st.wr = 'the view writes HTML'; st.body = '(HTML of the orders/done view)';
           push('Rendering the view: ViewResolver finds the view named "orders/done", and that view produces HTML and writes it to the response body. The Content-Type is text/html, and Spring responds with 200. The Accept of the request was ' + q.accept + ', but on the path that returns a view, the request was not rejected because of it.', 'good');
         } else {

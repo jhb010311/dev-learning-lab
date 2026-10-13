@@ -255,20 +255,20 @@ Lab.register({
       var tb = c.tb, plain = tb === 'plain', two = tb === 'two' || tb === 'twoov';
       P.size(680, 300);
       P.region('mem', 16, 16, 300, 200, '자바 객체 (메모리)');
-      P.box('o_member', 32, 46, 268, 158, s.obj ? { cls: 'plain', title: 'member (Member 객체)', sub: plain ? ['name = 김철수', 'city = 서울', 'street = 강남대로'] : ['name = 김철수'] } : { cls: 'ghost', title: 'member (Member 객체)', sub: '아직 없음' });
+      P.box('o_member', 32, 46, 268, plain ? 158 : 46, s.obj ? { cls: 'plain', title: 'member (Member 객체)', sub: plain ? ['name = 김철수', 'city = 서울', 'street = 강남대로'] : ['name = 김철수'] } : { cls: 'ghost', title: 'member (Member 객체)', sub: '아직 없음' });
       if (!plain && s.obj) {
         if (two) {
-          P.box('o_addr', 48, 98, 236, 44, { cls: 'wait', title: 'homeAddress (Address 객체)', sub: 'city = 서울 · street = 강남대로' });
-          P.box('o_addr2', 48, 150, 236, 44, { cls: 'wait', title: 'workAddress (Address 객체)', sub: 'city = 성남 · street = 판교로' });
-        } else if (tb === 'nul') P.box('o_addr', 48, 106, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'Address 객체가 없음' });
-        else P.box('o_addr', 48, 106, 236, 44, { cls: 'wait', title: 'address (Address 객체)', sub: 'city = 서울 · street = 강남대로' });
+          P.box('o_addr', 32, 132, 132, 70, { cls: 'wait', title: 'homeAddress', sub: ['Address 객체', 'city = 서울', 'street = 강남대로'] }); P.arrow('ref1', 'o_member:b:0.246', 'o_addr:t', { label: '참조' });
+          P.box('o_addr2', 168, 132, 132, 70, { cls: 'wait', title: 'workAddress', sub: ['Address 객체', 'city = 성남', 'street = 판교로'] }); P.arrow('ref2', 'o_member:b:0.754', 'o_addr2:t', { label: '참조' });
+        } else if (tb === 'nul') P.box('o_addr', 48, 132, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'Address 객체가 없음' });
+        else { P.box('o_addr', 48, 132, 236, 44, { cls: 'wait', title: 'address (Address 객체)', sub: 'city = 서울 · street = 강남대로' }); P.arrow('ref1', 'o_member:b', 'o_addr:t', { label: '참조' }); }
       }
       P.region('db', 364, 16, 300, 200, 'DB');
       var row = s.db[0], six = tb === 'twoov';
       if (s.err) P.box('t_member', 380, 46, 268, 96, { cls: 'bad', title: 'member 테이블을 만들지 못함', sub: ['city 컬럼이 두 번 나옴', '(homeAddress와 workAddress)', 'MappingException'] });
       else P.box('t_member', 380, 46, 268, 96, { cls: !s.made ? 'ghost' : s.hot ? 'hot' : 'plain', title: 'member 테이블', sub: !s.made ? ['아직 만들어지기 전'] : (six ? ['id · name · city · street', '· work_city · work_street'] : ['id · name · city · street']).concat(row ? (six ? [row.slice(0, 4).join(' · '), '· ' + row.slice(4).join(' · ')] : [row.join(' · ')]) : ['(행 없음)']) });
       if (!plain) P.box('t_addr', 380, 154, 268, 46, { cls: 'ghost', title: 'address 테이블', sub: '만들어지지 않음 (값 타입)' });
-      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', 'o_addr:r', 't_member:l', { cls: 'good', label: '컬럼으로' });
+      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', two ? 'o_addr2:r' : 'o_addr:r', 't_member:l', { cls: 'good', label: '컬럼으로' });
       P.box('r1', 16, 232, 320, 38, { cls: s.err ? 'bad' : s.made ? 'good' : 'ghost', title: '만들어진 테이블', right: s.err ? '시작 실패' : s.made ? 'member 1개' : '?' });
       P.box('r2', 344, 232, 320, 38, tb === 'emb' || tb === 'nul' ? { cls: !s.read ? 'ghost' : s.read === 'null' ? 'bad' : 'good', title: '다시 읽은 address', right: s.read || '?' } : { cls: s.sent.length ? 'plain' : 'ghost', title: '나간 INSERT', right: s.sent.length + '번' });
       P.note('왼쪽은 자바 객체, 오른쪽은 DB입니다. 임베디드 타입(파란 상자)은 자바에서는 따로 있는 객체지만, DB에서는 자기 테이블 없이 member 테이블의 컬럼으로 들어갑니다.');

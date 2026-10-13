@@ -1,7 +1,7 @@
 Lab.register({
   id: 'restclient', nav: '외부 API 호출과 타임아웃', cat: '스프링', mode: 'step',
   title: '다른 서버를 호출했는데 답이 오지 않으면 언제까지 기다리나',
-  intro: '주문 서버가 결제 서버의 API를 호출합니다. 호출한 스레드는 결과가 올 때까지 멈춰 서서 기다리는데, 얼마나 기다리다 포기할지를 정하는 것이 타임아웃입니다. 타임아웃은 두 가지입니다. 연결 타임아웃은 연결이 맺어지기까지, 읽기 타임아웃은 연결된 뒤 응답이 오기까지를 잽니다. 정하지 않으면 제한 없이 기다립니다. 상대 서버의 상태와 타임아웃을 바꿔 가며 어느 타임아웃이 언제 걸리는지 보세요. 화면에 나오는 2초, 3초, 10초는 예시 값입니다.',
+  intro: '주문 서버가 결제 서버의 API를 호출합니다. 호출한 스레드는 결과가 올 때까지 멈춰 서서 기다리는데, 얼마나 기다리다 포기할지를 정하는 것이 타임아웃입니다. 타임아웃은 두 가지입니다. 연결 타임아웃은 연결이 맺어지기까지, 읽기 타임아웃은 연결된 뒤 데이터가 오지 않은 채 기다리는 시간의 한도입니다. 정하지 않으면 클라이언트는 스스로 포기하지 않습니다. 상대 서버의 상태와 타임아웃을 바꿔 가며 어느 타임아웃이 언제 걸리는지 보세요. 화면에 나오는 2초, 3초, 10초는 예시 값입니다.',
   terms: ['연결 타임아웃과 읽기 타임아웃', 'RestClient', '톰캣의 스레드 모델', '3-way handshake', 'HTTP 상태 코드'],
   controls: [
     { id: 'server', label: '상대 서버(결제 서버)의 상태', type: 'select', value: 'slow', options: [['ok', '정상: 곧바로 200으로 응답'], ['slow', '느림: 연결은 받지만 10초 뒤에 응답'], ['noanswer', '연결 요청에 답이 없음 (장비가 꺼졌거나 방화벽이 버림)'], ['refused', '연결 거절 (서버 프로그램이 꺼져 있음)'], ['e404', '곧바로 404로 응답'], ['e500', '곧바로 500으로 응답']] },
@@ -19,7 +19,7 @@ Lab.register({
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
-      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // 연결 타임아웃\n' : '// 연결 타임아웃을 정하지 않음 (제한 없이 기다림)\n')
+      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // 연결 타임아웃\n' : '// 연결 타임아웃을 정하지 않음 (운영체제가 포기할 때까지 기다림)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // 읽기 타임아웃\n' : '// 읽기 타임아웃을 정하지 않음 (제한 없이 기다림)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // 결과가 올 때까지 이 스레드는 여기서 기다린다\n} catch (HttpClientErrorException e) {      // 4xx 응답\n} catch (HttpServerErrorException e) {      // 5xx 응답\n} catch (ResourceAccessException e) {       // 연결 실패, 타임아웃\n}';
   },
@@ -27,7 +27,7 @@ Lab.register({
   columns: ['결과', '호출한 코드가 받은 예외', '호출한 스레드가 기다린 시간', '상대 서버의 처리'],
   simulate: function (c) {
     var S = c.server, ct = !!c.ct, rt = !!c.rt, ev = [], sum = [];
-    var st = { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 제한 없이 기다림', ctK: ct ? 'plain' : 'ghost', rtS: rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? '프로그램이 꺼져 있음' : S === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
+    var st = { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 운영체제가 포기할 때까지', ctK: ct ? 'plain' : 'ghost', rtS: rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? '프로그램이 꺼져 있음' : S === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     var result = '', ex = '없음', wait = '곧바로', served = '처리함', cause = '-', ms = 0, status = '-';
     function finish(r, e) { result = r; ex = e; st.result = r; st.ex = e; st.thread = '풀려남'; if (st.waited === '0초') st.waited = '거의 없음'; }
@@ -105,7 +105,7 @@ Lab.register({
   },
   // 그림: 왼쪽에 호출하는 주문 서버의 스레드, 오른쪽에 결제 서버. 그 사이에 연결, 요청, 응답 화살표. 아래에 두 타임아웃이 각각 언제 시간을 재는지와 결과.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: c.ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 제한 없이 기다림', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? '프로그램이 꺼져 있음' : c.server === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: '호출 전', waited: '0초', conn: '', req: false, resp: '', ctS: c.ct ? '연결을 시도할 때부터 잼' : '정하지 않음: 운영체제가 포기할 때까지', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? '연결이 맺어진 뒤부터 잼' : '정하지 않음: 제한 없이 기다림', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? '프로그램이 꺼져 있음' : c.server === 'noanswer' ? '답이 없음' : '요청을 기다리는 중', result: '', ex: '' };
     var waiting = s.thread === '연결을 기다리는 중' || s.thread === '응답을 기다리는 중', dead = c.server === 'refused' || c.server === 'noanswer';
     P.size(680, 268);
     P.box('me', 16, 16, 240, 92, { cls: s.thread === '풀려남' ? 'good' : waiting ? 'hot now' : 'plain', title: '주문 서버 (호출하는 쪽)', sub: ['스레드: ' + s.thread, '기다림: ' + s.waited] });

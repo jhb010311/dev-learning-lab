@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 <li>애플리케이션이 시작될 때: Hibernate가 Member 클래스를 읽어 create table 문을 만듭니다(테이블을 자동으로 만드는 설정일 때). @Id가 붙은 id 필드는 기본 키 컬럼이 됩니다. @Id만 있으므로 평범한 not null 컬럼입니다. 값은 코드가 넣어 주어야 합니다.</li>
 <li>name 필드: @Column을 붙이지 않았으므로 기본값대로 만들어집니다. 길이는 255자이고, null도 중복도 허용합니다.</li>
 <li>grade 필드: ORDINAL은 enum에 적힌 순서 번호를 저장하는 방식이므로 작은 정수 컬럼(tinyint)이 됩니다. BASIC은 0, VIP는 1입니다. 번호가 0에서 1 사이인지 확인하는 조건(check)도 함께 붙었습니다.</li>
-<li>memo 필드: 애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 @Transient로 빼지 않는 한 모두 컬럼과 짝지어집니다.</li>
+<li>memo 필드: 애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 static이나 transient 필드, @Transient로 뺀 필드가 아니면 모두 컬럼과 짝지어집니다.</li>
 <li>em.persist(m)과 commit: INSERT가 나가 행이 하나 저장됩니다. id는 코드에서 넣은 100 그대로입니다.</li>
 <li>DB에 저장된 값: grade 컬럼에는 숫자 1이 들어 있습니다. Grade.VIP가 enum에서 두 번째(순서 번호 1)이기 때문입니다. &quot;VIP&quot;라는 글자는 DB 어디에도 없습니다. memo 컬럼에는 &quot;오늘 가입&quot;이 저장됐습니다.</li>
 <li>em2.find(Member.class, 100L): DB에서 다시 읽습니다. grade 컬럼의 1을 지금 enum의 순서 번호 1인 상수로 바꾸면 VIP입니다. memo는 &quot;오늘 가입&quot;입니다.</li>
@@ -189,6 +189,6 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

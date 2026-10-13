@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>애플리케이션이 뜰 때: 스프링이 포인트컷을 빈의 메서드 하나하나와 맞춰 봅니다. execution(* shop.OrderService.*(..))은 shop.OrderService 클래스의 모든 메서드를 고릅니다. 맨 앞의 *는 반환 타입이 무엇이든, 메서드 이름 자리의 *는 이름이 무엇이든, (..)는 매개변수가 몇 개든 좋다는 뜻입니다.</li>
-<li>order(String) 메서드와 맞춰 본 결과: order는 OrderService의 메서드이므로 고른 메서드입니다. OrderService 빈은 프록시(대리 객체)로 감싸 둡니다.</li>
+<li>order(String) 메서드와 맞춰 본 결과: order는 OrderService의 메서드이므로 고른 메서드입니다. OrderService 빈 대신 프록시(대리 객체)가 등록됩니다(원래 객체와 프록시는 서로 다른 객체).</li>
 <li>orderService.order(&quot;키보드&quot;): 다른 빈이 메서드를 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 이 메서드에 걸린 어드바이스를 바깥쪽부터 차례로 실행합니다.</li>
 <li>LogAspect의 @Around 앞부분: 한 애스펙트 안에서는 @Around가 가장 먼저 시작합니다. pjp.proceed()보다 위에 적은 줄이 실행됩니다.</li>
 <li>pjp.proceed() 호출 → LogAspect의 @Before: @Around가 안쪽으로 넘기면 같은 애스펙트의 @Before가 실행됩니다. 그다음이 메서드 본문입니다.</li>
@@ -216,6 +216,6 @@ class MemberService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

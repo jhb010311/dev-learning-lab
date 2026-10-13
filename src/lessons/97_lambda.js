@@ -5,7 +5,7 @@ Lab.register({
   terms: ['람다 표현식', '함수형 인터페이스', '메서드 참조', '익명 클래스와 람다의 차이'],
   controls: [
     { id: 'fi', label: '함수형 인터페이스 (동작의 모양)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer> : 값을 받아 다른 값을 돌려준다'], ['predicate', 'Predicate<String> : 값을 받아 true 또는 false를 돌려준다'], ['supplier', 'Supplier<String> : 받는 것 없이 값을 돌려준다'], ['consumer', 'Consumer<String> : 값을 받고 아무것도 돌려주지 않는다']] },
-    { id: 'form', label: '동작을 쓰는 방식', type: 'select', value: 'lambda', options: [['anon', '익명 클래스'], ['lambda', '람다'], ['ref', '메서드 참조']], hint: '세 가지는 쓰는 모양만 다르고 하는 일은 같습니다.' },
+    { id: 'form', label: '동작을 쓰는 방식', type: 'select', value: 'lambda', options: [['anon', '익명 클래스'], ['lambda', '람다'], ['ref', '메서드 참조']], hint: '세 가지 모두 같은 일을 하는 객체를 만듭니다(this가 가리키는 것 같은 세부는 다릅니다).' },
     { id: 'calls', label: '넘겨받은 쪽(run)이 동작을 부르는 횟수', type: 'select', value: '2', options: [['0', '0번 (받기만 하고 부르지 않는다)'], ['1', '1번'], ['2', '2번']] },
   ],
   presets: [

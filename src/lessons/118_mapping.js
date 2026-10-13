@@ -53,7 +53,7 @@ Lab.register({
     st.cols.push({ n: 'grade', d: ddl.grade, from: '@Enumerated(EnumType.' + (ord ? 'ORDINAL' : 'STRING') + ')', pic: ord ? 'grade tinyint (0~1만 허용)' : "grade enum ('BASIC','VIP')" });
     push('grade 필드: ' + (ord ? 'ORDINAL은 enum에 적힌 순서 번호를 저장하는 방식이므로 작은 정수 컬럼(tinyint)이 됩니다. BASIC은 0, VIP는 1입니다. 번호가 0에서 1 사이인지 확인하는 조건(check)도 함께 붙었습니다.' : 'STRING은 enum 상수의 이름을 글자 그대로 저장하는 방식입니다. 이 실행에서는 "BASIC"과 "VIP"만 받는 enum 타입의 컬럼으로 만들어졌습니다.'), '');
     st.cols.push({ n: 'memo', d: c.tr ? '' : ddl.memo, from: c.tr ? '@Transient' : '(애너테이션 없음)', pic: c.tr ? '' : 'memo varchar(255)', hot: c.tr });
-    push('memo 필드: ' + (c.tr ? '@Transient가 붙어 있으므로 매핑에서 빠집니다. 테이블에 memo 컬럼이 만들어지지 않습니다.' : '애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 @Transient로 빼지 않는 한 모두 컬럼과 짝지어집니다.'), '');
+    push('memo 필드: ' + (c.tr ? '@Transient가 붙어 있으므로 매핑에서 빠집니다. 테이블에 memo 컬럼이 만들어지지 않습니다.' : '애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 static이나 transient 필드, @Transient로 뺀 필드가 아니면 모두 컬럼과 짝지어집니다.'), '');
     st.step = 'save';
     var saved = c.pk !== 'forgot', id = c.pk === 'auto' ? 1 : 100, raw = ord ? '1' : 'VIP', idText, readGrade = '저장 안 됨', readMemo = '';
     if (!saved) {

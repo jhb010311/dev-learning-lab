@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>JSON 본문으로 보낸 값은 @RequestParam으로 받을 수 없습니다. 값을 실은 자리(본문)와 꺼내는 자리(요청 파라미터)가 다르기 때문입니다. JSON 본문은 @RequestBody로 받습니다.</li>
-<li>애너테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.</li>
+<li>애너테이션마다 보는 자리가 정해져 있습니다. @RequestParam은 요청 파라미터(쿼리 스트링과 폼 본문), @ModelAttribute는 거기에 경로 변수까지 더한 값, @PathVariable은 경로, @RequestBody는 본문 전체입니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// 보내는 요청
@@ -172,6 +172,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

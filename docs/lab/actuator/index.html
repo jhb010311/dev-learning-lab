@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,7 @@
 <li>livenessState에 묻기: 답은 UP입니다. 애플리케이션이 고장 나지 않고 돌아가고 있다는 뜻입니다. 애플리케이션 자신만 보고 바깥 서버는 보지 않습니다.</li>
 <li>readinessState에 묻기: 답은 UP입니다. 애플리케이션이 시작을 마치고 요청을 받을 준비가 됐다는 뜻입니다.</li>
 <li>PayHealthIndicator.health() 실행: 답은 DOWN입니다. 결제사 서버에 연결할 수 없다는 뜻입니다.</li>
-<li>상태 합치기: 모은 상태는 livenessState UP, readinessState UP, pay DOWN입니다. 이 가운데 가장 심각한 것 하나가 전체 상태가 됩니다. 심각한 순서는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. DOWN이 하나 있으므로 전체 상태는 DOWN입니다.</li>
+<li>상태 합치기: 모은 상태는 livenessState UP, readinessState UP, pay DOWN입니다. 이 가운데 우선순위가 가장 높은 것 하나가 전체 상태가 됩니다. 스프링 부트가 기본으로 쓰는 상태 우선순위(설정으로 바꿀 수 있음)는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN입니다. DOWN이 하나 있으므로 전체 상태는 DOWN입니다.</li>
 <li>HTTP 상태 코드 정하기: 전체 상태 DOWN에 맞는 코드는 503 Service Unavailable입니다. DOWN과 OUT_OF_SERVICE는 503, UP과 UNKNOWN은 200으로 응답합니다. 상태를 확인하는 쪽은 본문을 읽지 않고 이 숫자만 봐도 정상인지 알 수 있습니다.</li>
 <li>응답 본문 만들기: show-details를 적지 않았으므로 기본값 never가 적용됩니다. 구성 요소별 내용은 숨기고 전체 상태만 보냅니다. 본문은 {&quot;groups&quot;:[&quot;liveness&quot;,&quot;readiness&quot;],&quot;status&quot;:&quot;DOWN&quot;}입니다. groups는 이 애플리케이션에 있는 그룹의 이름입니다.</li>
 </ol>
@@ -181,6 +181,6 @@ class PayHealthIndicator implements HealthIndicator {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

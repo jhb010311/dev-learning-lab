@@ -115,25 +115,25 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the calls one step at a time.'); return; }
     H.table(v, ['Key', 'Value'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), 'Cache "product"' + (s.cache.length ? '' : ' (empty)'));
   },
-  // Diagram: the outer box is the proxy and the inner box is the real object. The proxy looks at the cache at the upper right first, and if the value is there, the call does not go into the inner box. The call goes to the DB at the lower right only when the body runs.
+  // Diagram: the upper box is the proxy and the lower box is the real object, and they are two different objects (the proxy holds a reference to it). The proxy looks at the cache at the upper right first, and if the value is there, the call is not passed on to the real object. The call goes to the DB at the lower right only when the body runs.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { call: '', short: '', px: '', tg: '', look: '', toBody: false, self: false, dbop: '', cache: [], db: [], count: 0, second: '' };
     var lines = function (rows) { return rows.length ? rows.map(function (r) { return r[0] + ' → ' + r[1]; }) : ['empty']; };
     P.size(680, 318);
-    P.box('caller', 10, 70, 100, 56, { cls: s.call ? 'wait' : 'plain', title: 'Other bean', sub: 'Caller' });
-    P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
-    P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
-    P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
-    P.text('store', 577, 130, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
-    P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
-    if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
-    if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });
-    if (s.toBody && !s.self) P.arrow('pass', [347, 84], 'tg:t', {});
+    P.box('caller', 10, 17, 96, 56, { cls: s.call ? 'wait' : 'plain', title: 'Other bean', sub: 'Caller' });
+    P.box('px', 176, 14, 268, 62, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
+    P.box('tg', 176, 130, 268, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
+    P.box('cache', 486, 14, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
+    P.text('store', 577, 122, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
+    P.box('db', 486, 132, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
+    if (s.call) P.arrow('in', 'caller:r', 'px:l', { label: s.short });
+    if (s.look) P.arrow('look', 'px:r:0.75', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });
+    P.arrow('pass', 'px:b', 'tg:t', s.toBody && !s.self ? { label: 'pass on' } : { cls: 'mut', label: 'reference' });
     if (s.self) P.arrow('selfcall', 'tg:l:0.3', 'tg:l:0.75', { cls: 'bad', label: 'this.find' });
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'Times the find body ran', right: s.count + '' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: 'Second find returned', right: s.second || 'Not called yet' });
-    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
+    P.note('The upper box is the proxy, and the lower box is the real object. They are two different objects: the proxy holds a reference to the real object and passes the call on to it. The red arrow, where the real object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
   },
   assume: 'All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the "Caching and TTL" lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = "#id", the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the "Proxies and self-invocation" lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.',
 });

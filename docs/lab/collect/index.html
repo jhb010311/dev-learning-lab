@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스트림으로 모으기: 스트림의 결과를 어떤 모양으로 모으나 · 개발 학습 실습실</title>
-<meta name="description" content="스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.">
+<meta name="description" content="스트림에서 흘러나온 원소들은 마지막에 collect 같은 최종 연산으로 결과를 받아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collect/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스트림으로 모으기: 스트림의 결과를 어떤 모양으로 모으나 · 개발 학습 실습실">
-<meta property="og:description" content="스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.">
+<meta property="og:description" content="스트림에서 흘러나온 원소들은 마지막에 collect 같은 최종 연산으로 결과를 받아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>스트림으로 모으기</h1>
 <p><b>스트림의 결과를 어떤 모양으로 모으나</b></p>
-<p>스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.</p>
+<p>스트림에서 흘러나온 원소들은 마지막에 collect 같은 최종 연산으로 결과를 받아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -170,6 +170,6 @@ System.out.println(result);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

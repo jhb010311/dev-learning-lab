@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,7 @@
 <li>livenessState is asked: The answer is UP. This means that the application is running and has not failed. It looks only at the application itself, not at external servers.</li>
 <li>readinessState is asked: The answer is UP. This means that the application has finished starting and is ready to handle requests.</li>
 <li>PayHealthIndicator.health() runs: The answer is DOWN. This means that the payment provider server cannot be reached.</li>
-<li>Combining the statuses: The statuses collected are livenessState UP, readinessState UP, pay DOWN. The most severe one among them becomes the overall status. The severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. One of them is DOWN, so the overall status is DOWN.</li>
+<li>Combining the statuses: The statuses collected are livenessState UP, readinessState UP, pay DOWN. The one with the highest priority among them becomes the overall status. The default priority order that Spring Boot uses (it can be changed with a setting) is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. One of them is DOWN, so the overall status is DOWN.</li>
 <li>Choosing the HTTP status code: The code that matches the overall status DOWN is 503 Service Unavailable. DOWN and OUT_OF_SERVICE are answered with 503, and UP and UNKNOWN with 200. Whoever checks the health can tell whether the server is healthy from this number alone, without reading the body.</li>
 <li>Building the response body: show-details is not set, so the default, never, applies. The content of each component is hidden, and only the overall status is sent. The body is {&quot;groups&quot;:[&quot;liveness&quot;,&quot;readiness&quot;],&quot;status&quot;:&quot;DOWN&quot;}. groups holds the names of the groups that this application has.</li>
 </ol>
@@ -181,6 +181,6 @@ class PayHealthIndicator implements HealthIndicator {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

@@ -61,7 +61,7 @@ Lab.register({
       ann: { order: 'order has no @Audit, so it is not matched.', cancel: 'cancel is annotated with @Audit, so it is matched.', join: 'join is also annotated with @Audit, so it is matched. Which class the method belongs to does not matter.' } }[c.pc][m];
     push('When the application starts: Spring checks the pointcut against each method of the beans, one by one. ' + desc, '');
     st.pc = M.hit ? 'matched' : 'not matched'; st.bean = M.proxy ? 'proxy' : 'original object';
-    push(sig + ' checked against the pointcut: ' + why + ' ' + (M.hit ? 'The ' + M.bean + ' bean is wrapped in a proxy (a stand-in object).' : M.proxy ? 'However, the ' + M.picked.join(', ') + ' method of the same class is matched, so the ' + M.bean + ' bean itself is wrapped in a proxy.' : M.bean + ' has no matched method at all, so no proxy is created and the original object stays as the bean. There is no error or warning.'), M.hit ? 'good' : 'bad');
+    push(sig + ' checked against the pointcut: ' + why + ' ' + (M.hit ? 'A proxy (a stand-in object) is registered in place of the ' + M.bean + ' bean (the original object and the proxy are different objects).' : M.proxy ? 'However, the ' + M.picked.join(', ') + ' method of the same class is matched, so a proxy is registered in place of the ' + M.bean + ' bean (the original object and the proxy are different objects).' : M.bean + ' has no matched method at all, so no proxy is created and the original object stays as the bean. There is no error or warning.'), M.hit ? 'good' : 'bad');
     push(call + ': Another bean calls the method. ' + (M.hit ? 'The call reaches the proxy first. The proxy runs the advice that applies to this method in order, starting from the outside.' : M.proxy ? 'The call reaches the proxy, but the method is not matched, so the proxy adds nothing and passes the call on to the real object.' : 'There is no proxy, so the call goes straight to the method of the real object.'), '');
     if (M.hit) layers.forEach(function (a, i) {
       if (a === 'time') print('Time start', 'The @Around of TimeAspect: ' + (i === 0 ? 'TimeAspect has the lower @Order value, so it is the outer aspect and starts first. ' : 'TimeAspect has the higher @Order value, so it is the inner aspect and starts after the first part of LogAspect finishes. ') + 'It prints "Time start" and passes the call inward with pjp.proceed().');
@@ -100,7 +100,7 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through one step at a time.'); return; }
     var ln = H.lanes(v);
     H.lane(ln, 'Pointcut', s.pc ? 'Called method: ' + s.pc : 'Checking', s.pc === 'matched' ? 'good' : s.pc ? 'bad' : 'none');
-    H.lane(ln, sim.bean + ' bean', s.bean ? (s.bean === 'proxy' ? 'Wrapped in a proxy' : 'No proxy (the original object as it is)') : 'Not decided yet', s.bean === 'proxy' ? 'hot' : s.bean ? 'wait' : 'none');
+    H.lane(ln, sim.bean + ' bean', s.bean ? (s.bean === 'proxy' ? 'A proxy is registered instead' : 'No proxy (the original object as it is)') : 'Not decided yet', s.bean === 'proxy' ? 'hot' : s.bean ? 'wait' : 'none');
     H.table(v, ['Order', 'Line printed on the console', 'Printed by'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : 'Method body';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };

@@ -255,20 +255,20 @@ Lab.register({
       var tb = c.tb, plain = tb === 'plain', two = tb === 'two' || tb === 'twoov';
       P.size(680, 300);
       P.region('mem', 16, 16, 300, 200, 'Java objects (memory)');
-      P.box('o_member', 32, 46, 268, 158, s.obj ? { cls: 'plain', title: 'member (Member object)', sub: plain ? ['name = Alice', 'city = Boston', 'street = Main St'] : ['name = Alice'] } : { cls: 'ghost', title: 'member (Member object)', sub: 'Not yet' });
+      P.box('o_member', 32, 46, 268, plain ? 158 : 46, s.obj ? { cls: 'plain', title: 'member (Member object)', sub: plain ? ['name = Alice', 'city = Boston', 'street = Main St'] : ['name = Alice'] } : { cls: 'ghost', title: 'member (Member object)', sub: 'Not yet' });
       if (!plain && s.obj) {
         if (two) {
-          P.box('o_addr', 48, 98, 236, 44, { cls: 'wait', title: 'homeAddress (Address object)', sub: 'city Boston · street Main St' });
-          P.box('o_addr2', 48, 150, 236, 44, { cls: 'wait', title: 'workAddress (Address object)', sub: 'city Dallas · street Oak Ave' });
-        } else if (tb === 'nul') P.box('o_addr', 48, 106, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'No Address object' });
-        else P.box('o_addr', 48, 106, 236, 44, { cls: 'wait', title: 'address (Address object)', sub: 'city Boston · street Main St' });
+          P.box('o_addr', 32, 132, 132, 70, { cls: 'wait', title: 'homeAddress', sub: ['Address object', 'city Boston', 'street Main St'] }); P.arrow('ref1', 'o_member:b:0.246', 'o_addr:t', { label: 'reference' });
+          P.box('o_addr2', 168, 132, 132, 70, { cls: 'wait', title: 'workAddress', sub: ['Address object', 'city Dallas', 'street Oak Ave'] }); P.arrow('ref2', 'o_member:b:0.754', 'o_addr2:t', { label: 'reference' });
+        } else if (tb === 'nul') P.box('o_addr', 48, 132, 236, 44, { cls: 'ghost', title: 'address = null', sub: 'No Address object' });
+        else { P.box('o_addr', 48, 132, 236, 44, { cls: 'wait', title: 'address (Address object)', sub: 'city Boston · street Main St' }); P.arrow('ref1', 'o_member:b', 'o_addr:t', { label: 'reference' }); }
       }
       P.region('db', 364, 16, 300, 200, 'DB');
       var row = s.db[0], six = tb === 'twoov';
       if (s.err) P.box('t_member', 380, 46, 268, 96, { cls: 'bad', title: 'Could not create member table', sub: ['The city column appears twice', '(homeAddress and workAddress)', 'MappingException'] });
       else P.box('t_member', 380, 46, 268, 96, { cls: !s.made ? 'ghost' : s.hot ? 'hot' : 'plain', title: 'member table', sub: !s.made ? ['Not created yet'] : (six ? ['id · name · city · street', '· work_city · work_street'] : ['id · name · city · street']).concat(row ? (six ? [row.slice(0, 4).join(' · '), '· ' + row.slice(4).join(' · ')] : [row.join(' · ')]) : ['(no rows)']) });
       if (!plain) P.box('t_addr', 380, 154, 268, 46, { cls: 'ghost', title: 'address table', sub: 'Not created (value type)' });
-      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', 'o_addr:r', 't_member:l', { cls: 'good', label: 'as columns' });
+      if (!plain && s.obj && s.made && tb !== 'nul' && row) P.arrow('spread', two ? 'o_addr2:r' : 'o_addr:r', 't_member:l', { cls: 'good', label: 'as columns' });
       P.box('r1', 16, 232, 320, 38, { cls: s.err ? 'bad' : s.made ? 'good' : 'ghost', title: 'Table created', right: s.err ? 'Startup failed' : s.made ? 'member' : '?' });
       P.box('r2', 344, 232, 320, 38, tb === 'emb' || tb === 'nul' ? { cls: !s.read ? 'ghost' : s.read === 'null' ? 'bad' : 'good', title: 'Address read back', right: s.read || '?' } : { cls: s.sent.length ? 'plain' : 'ghost', title: 'INSERTs sent', right: s.sent.length + '' });
       P.note('The left side is Java objects and the right side is the database. The embeddable type (blue box) is a separate object in Java, but in the database it has no table of its own and goes into the columns of the member table.');

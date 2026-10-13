@@ -59,7 +59,7 @@ Lab.register({
       if (d === 'int' && o !== 'addInt') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다. list는 Integer만 받는데 ' + j.prim + ' 값을 넣으려 했습니다. 컴파일러는 "' + j.msg + '"라고 알립니다. 잘못된 타입을 넣는 실수가 실행 전에 잡혔습니다.', 'good'); }
       if (d === 'num' && o !== 'addStr') push(opCode + ' 검사: list가 List<Number>라면 이 줄에는 문제가 없습니다(' + (o === 'addInt' ? 'Integer는' : 'Double은') + ' Number의 하위 타입입니다). 바로 이 줄이 컴파일되기 때문에 앞 줄의 대입을 막는 것입니다. 오류는 앞 줄 한 곳입니다.');
       if (d === 'num' && o === 'addStr') push(opCode + ' 검사: 이 줄도 컴파일 오류입니다. String은 Number가 아닙니다("' + j.msg + '"). 오류는 앞 줄과 이 줄, 두 곳입니다.', 'bad');
-      if (d === 'ext') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' list가 실제로는 List<Double>을 가리키고 있을 수도 있으므로, 컴파일러는 ' + (o === 'addInt' ? 'Integer조차' : j.box + '도') + ' 넣게 두지 않습니다. ? extends로 선언한 리스트에는 값을 넣을 수 없습니다.', 'bad'); }
+      if (d === 'ext') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' list가 실제로는 List<Double>을 가리키고 있을 수도 있으므로, 컴파일러는 ' + (o === 'addInt' ? 'Integer조차' : j.box + '도') + ' 넣게 두지 않습니다. ? extends로 선언한 리스트에는 null 말고는 값을 넣을 수 없습니다.', 'bad'); }
       if (d === 'sup' && o === 'addInt') push(opCode + ' 검사: 통과합니다. 실제 리스트가 List<Integer>이든 List<Number>이든 List<Object>이든, Integer는 어느 것에나 넣을 수 있기 때문입니다.', 'good');
       if (d === 'sup' && o !== 'addInt') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' 실제 리스트가 List<Integer>일 수 있으므로 ' + j.box + '을 넣게 둘 수 없습니다. ? super Integer 리스트에 넣을 수 있는 것은 Integer입니다.', 'good'); }
     } else {

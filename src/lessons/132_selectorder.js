@@ -100,8 +100,8 @@ Lab.register({
     sum.push({ grpcol: '묶는 기준 컬럼에 대한 조건은 WHERE와 HAVING 어디에 적어도 결과가 같습니다. 다만 WHERE는 묶기 전에 행을 줄이고 HAVING은 다 묶은 뒤에 그룹을 버립니다. 그룹과 상관없이 거를 수 있는 조건은 WHERE에 적는 것이 원칙입니다.',
       rowcol: W ? 'WHERE는 합계를 내기 전에 행을 버립니다. 그래서 김철수의 합계가 450이 아니라 300으로 나왔습니다. 이 결과는 "300 이상인 주문만 골라 회원별로 더한 것"입니다. "합계가 300 이상인 회원"을 원했다면 HAVING SUM(amount) >= 300으로 적어야 하고, 그때는 김철수 450과 이영희 320이 나옵니다.' : '묶은 뒤에는 묶는 기준 컬럼과 집계 함수만 쓸 수 있습니다. 행 하나하나의 값으로 거르는 조건은 묶기 전에 처리되는 WHERE에 적어야 합니다.',
       agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다.',
-      alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계에 붙인 별칭으로 거르려면 조건을 HAVING으로 옮깁니다.' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
-    if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 MySQL의 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
+      alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계 결과로 거르려면 조건을 HAVING으로 옮기되, 표준 SQL에서는 별칭 대신 HAVING SUM(amount) >= 300처럼 집계 식을 다시 적습니다(HAVING에서 별칭을 받아 주는 것은 MySQL의 확장입니다).' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
+    if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 표준에는 없고 DB마다 다른 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
     if (!err && lim) sum.push('ORDER BY와 LIMIT은 맨 뒤에 처리됩니다. 그래서 LIMIT 1은 "거르고 묶은 결과 가운데 합계가 가장 큰 한 행"을 뜻합니다. ORDER BY 없이 LIMIT만 쓰면 어느 행이 남을지 정해져 있지 않습니다.');
     return { events: ev, summary: sum, err: err, list: list, ordered: lim, whereN: whereN,
       row: [err ? '오류 ' + err.no : '성공', err ? '-' : W ? '6행 중 ' + whereN + '행' : 'WHERE 없음', err ? '-' : list.length + '행: ' + list.join(', '), extText] };

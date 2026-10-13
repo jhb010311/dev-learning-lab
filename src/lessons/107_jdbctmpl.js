@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate과 예외 변환', cat: '스프링', mode: 'step',
   title: 'JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나',
-  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
+  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, JDBC 드라이버가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
   terms: ['JdbcTemplate', '예외 변환과 DataAccessException', '커넥션 풀', 'Checked 예외와 Unchecked 예외', '템플릿 메서드 패턴'],
   controls: [
     { id: 'how', label: 'DB에 접근하는 방식', type: 'select', value: 'plain', options: [['plain', 'JDBC 직접: close()를 마지막 줄에서 호출'], ['twr', 'JDBC 직접: try-with-resources로 닫기'], ['tmpl', 'JdbcTemplate']] },
@@ -78,7 +78,7 @@ Lab.register({
         }
         caller = 'SQLException (SQLState ' + err[0] + ')'; kind = '체크 예외';
         st.at = -1; st.caller = caller;
-        push('호출한 쪽: SQLException을 받습니다. 체크 예외이므로 이 메서드를 부르는 모든 메서드가 throws SQLException을 적거나 try-catch로 잡아야 합니다. ' + err[3] + '인지 알아내려면 SQLState ' + err[0] + ' 같은 코드를 직접 비교해야 합니다.', 'bad');
+        push('호출한 쪽: SQLException(또는 그 하위 클래스)을 받습니다. 체크 예외이므로 이 메서드를 부르는 모든 메서드가 throws SQLException을 적거나 try-catch로 잡아야 합니다. ' + err[3] + '인지 알아내려면 SQLState ' + err[0] + ' 같은 코드를 봐야 하는 경우가 많습니다.', 'bad');
       } else {
         step(2, '끝남'); st.con = '반납됨';
         push('JdbcTemplate이 SQLException을 잡음: 먼저 PreparedStatement를 닫고 커넥션을 풀에 돌려줍니다. 예외가 났을 때의 정리도 JdbcTemplate이 합니다.', 'good');
@@ -89,7 +89,7 @@ Lab.register({
       }
     }
     if (plain && err) sum.push('close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.');
-    if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 받는 예외는 체크 예외인 SQLException 하나뿐이라, 무슨 문제인지는 코드 번호로 구분해야 합니다. 이 번호는 DB 제품마다 다를 수 있습니다.');
+    if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 JDBC가 던지는 것은 체크 예외인 SQLException(과 그 하위 클래스)이고, 원인을 가리려면 DB마다 다른 코드 번호를 봐야 하는 경우가 많습니다.');
     if (raw && !err && n !== 1) sum.push('JDBC를 직접 쓰면 0건이나 2건일 때 어떻게 할지도 직접 정해야 합니다. 정하지 않고 첫 행만 읽으면 문제가 조용히 지나갑니다. JdbcTemplate의 queryForObject는 같은 상황에서 예외를 던집니다.');
     if (raw && !err && n === 1) sum.push('결과는 맞지만 SQL 한 줄을 실행하려고 커넥션 얻기, 값 넣기, 실행, 결과 꺼내기, 닫기를 모두 직접 썼습니다. 메서드마다 같은 코드가 반복됩니다.');
     if (!raw && err) sum.push('JdbcTemplate은 SQLException을 DataAccessException 계열의 예외로 바꿉니다. 모두 언체크 예외이고, 클래스 이름이 문제의 종류를 말해 줍니다. DB 제품이 바뀌어도 같은 예외 클래스로 잡을 수 있습니다.' + (op === 'dup' ? ' DuplicateKeyException은 DataIntegrityViolationException의 하위 클래스입니다.' : ''));

@@ -15,7 +15,7 @@ Lab.register({
     { t: '외래 키 SET NULL', q: '제약 조건을 걸어 두고 외래 키의 ON DELETE 동작을 SET NULL로 바꾸면', d: '주문은 남고, 회원을 가리키던 칸만 NULL이 됩니다.', v: { op: 'fkdel', con: 'on', act: 'setnull' } },
     { t: '같은 id가 두 번', q: '제약 조건은 걸지 않은 채 이미 있는 id로 회원을 INSERT하면', d: '기본 키가 없으면 id 1인 회원이 두 명이 됩니다.', v: { op: 'pkdup', con: 'off', act: 'restrict' } },
     { t: '없는 회원의 주문', q: '제약 조건을 걸어 두고 없는 99번 회원의 주문을 INSERT하면', d: '외래 키가 없는 부모를 가리키는 주문을 막습니다(오류 1452).', v: { op: 'fkins', con: 'on', act: 'restrict' } },
-    { t: '유니크와 NULL', q: '제약 조건을 걸어 두고 email이 NULL인 회원을 한 명 더 추가하면', d: '유니크를 걸어도 NULL은 여러 행에 들어갑니다.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
+    { t: '유니크와 NULL', q: '제약 조건을 걸어 두고 email이 NULL인 회원을 한 명 더 추가하면', d: 'MySQL에서는 유니크를 걸어도 NULL은 여러 행에 들어갑니다.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
   ],
   ACT: { restrict: 'RESTRICT', cascade: 'CASCADE', setnull: 'SET NULL' },
   STMT: {

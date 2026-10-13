@@ -82,7 +82,7 @@ Lab.register({
     var row = [st.sel + (teamQ ? ' (1 for members + ' + teamQ + ' for teams)' : ''), st.cols + '', st.managed + '', !c.mod ? '0 (no value was changed)' : st.upd ? '1 (the name in the DB changed to Erin)' : '0 (only the DTO changed; the DB is unchanged)'];
     if (isDto) {
       sum.push('When you query with new in JPQL, only the columns you need are read, and the results are plain objects, not entities. The persistence context does not manage them, so there is no snapshot and no comparison at commit. This suits screens that only display data, such as lists and statistics.');
-      sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data, you have to query entities and change those.' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
+      sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data by dirty checking, you have to query entities (a DTO is not managed by the persistence context).' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
       sum.push('This query is tailored to the values this one screen needs. The downside is that you have to write a separate DTO and query each time the screen changes.');
     } else {
       if (teamQ) sum.push('The list was queried once, but as many extra SELECT statements as there are teams were sent to read the teams. This is the N+1 selects problem. It often occurs when you query entities and then put associated values into a DTO.');

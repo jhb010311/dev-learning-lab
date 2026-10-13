@@ -88,7 +88,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? 'computed automatically' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
     P.size(680, 322);
-    P.region('ra', 16, 16, 196, 196, 'Memory: original object');
+    P.region('ra', 16, 16, 196, 196, 'Memory: object, statics');
     P.region('rb', 244, 16, 192, 196, 'File user.ser');
     P.region('rc', 468, 16, 196, 196, 'Memory: restored object');
     var usub = s.u ? ['name = "kim"'].concat(s.u.point === null ? [] : ['point = ' + s.u.point], s.u.addr ? ['address → an Address'] : []) : ['not created yet'];

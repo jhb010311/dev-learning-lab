@@ -38,7 +38,7 @@ Lab.register({
       send('select * from member where id = 1', 'Line 1'); cache.push({ id: 1, name: 'Alice', snap: 'Alice', st: 'Managed' });
       push(0, 'Line 1: The first-level cache of the persistence context does not have member 1. JPA sends a SELECT to the database to read it, and keeps the loaded entity in the first-level cache. It also keeps the values as they were when first read (the snapshot).', '');
       push(1, 'Line 2: The first-level cache already has member 1. JPA does not go to the database and returns the stored object as it is. No SQL was sent.', 'good');
-      push(2, 'Line 3: a and b are the same object, so a == b is true. Within one transaction, entities with the same identifier are always the same instance.', '');
+      push(2, 'Line 3: a and b are the same object, so a == b is true. Within the same persistence context, entities with the same identifier are guaranteed to be the same instance.', '');
       push(-1, 'Method ends, commit: JPA compared the current values of the entity with the snapshot, and nothing changed. There is no SQL to send.', '');
       result = 'No change'; sum.push('Although em.find was called twice, the SELECT was sent only once. Within the same transaction, an entity that was already read is taken from the first-level cache.', 'The first-level cache lives only within one transaction (one persistence context). It disappears when the request ends, so its purpose is different from that of a cache that many requests share, such as Redis.');
     }
@@ -93,7 +93,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], prev = shown[shown.length - 2], s = last ? last.snap : { cache: [], pending: [], sent: [], db: [{ id: 1, name: 'Alice' }] }, before = prev ? prev.snap.sent.length : 0, fresh = s.sent.slice(before);
     P.size(680, 330);
-    P.region('pc', 16, 16, 400, 298, 'Persistence context (exists only during the transaction)');
+    P.region('pc', 16, 16, 400, 298, 'Persistence context (kept for the transaction here)');
     P.region('db', 470, 16, 194, 298, 'member table in the DB');
     P.text('c1', 28, 58, 'First-level cache: managed entities', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: 'Empty', center: true });

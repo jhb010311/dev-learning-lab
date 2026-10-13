@@ -66,7 +66,7 @@ Lab.register({
     var overall = mem.map(function (n) { return got[n]; }).sort(function (a, b) { return self.ORDER.indexOf(a) - self.ORDER.indexOf(b); })[0];
     st.overall = overall;
     if (mem.length === 1) push('Combining the statuses: The only status collected is ' + mem[0] + ' UP. The overall status is simply UP.');
-    else push('Combining the statuses: The statuses collected are ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '. The most severe one among them becomes the overall status. The severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. ' + { UP: 'All of them are UP, so the overall status is also UP.', DOWN: 'One of them is DOWN, so the overall status is DOWN.', OUT_OF_SERVICE: 'OUT_OF_SERVICE comes before UP, so the overall status is OUT_OF_SERVICE.', UNKNOWN: 'UNKNOWN comes after UP, so UP wins. The overall status is UP.' }[c.pay]);
+    else push('Combining the statuses: The statuses collected are ' + mem.map(function (n) { return n + ' ' + got[n]; }).join(', ') + '. The one with the highest priority among them becomes the overall status. The default priority order that Spring Boot uses (it can be changed with a setting) is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. ' + { UP: 'All of them are UP, so the overall status is also UP.', DOWN: 'One of them is DOWN, so the overall status is DOWN.', OUT_OF_SERVICE: 'OUT_OF_SERVICE comes before UP, so the overall status is OUT_OF_SERVICE.', UNKNOWN: 'UNKNOWN comes after UP, so UP wins. The overall status is UP.' }[c.pay]);
 
     st.stage = 5;
     var bad = overall === 'DOWN' || overall === 'OUT_OF_SERVICE', code = bad ? '503 Service Unavailable' : '200 OK';

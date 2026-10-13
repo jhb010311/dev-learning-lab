@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 <li>When the application starts: Hibernate reads the Member class and generates the create table statement (when the application is set to create tables automatically). The id field marked with @Id becomes the primary key column. Because there is only @Id, it is an ordinary not null column. The code must supply the value.</li>
 <li>name field: There is no @Column, so the column is created with the default settings. The length is 255 characters, and both null and duplicates are allowed.</li>
 <li>grade field: ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0), so the column becomes a small integer column (tinyint). BASIC is 0 and VIP is 1. A condition (check) that the number is between 0 and 1 is also added.</li>
-<li>memo field: There is no annotation, but a column is still created. Every field of an entity is paired with a column unless you leave it out with @Transient.</li>
+<li>memo field: There is no annotation, but a column is still created. Every field of an entity is paired with a column unless it is a static or transient field or a field you leave out with @Transient.</li>
 <li>em.persist(m) and commit: An INSERT is sent and one row is saved. id is 100, exactly as the code set it.</li>
 <li>Values stored in the database: the grade column contains the number 1. This is because Grade.VIP is the second constant in the enum (ordinal 1). The text &quot;VIP&quot; does not appear anywhere in the database. The memo column contains &quot;joined today&quot;.</li>
 <li>em2.find(Member.class, 100L): It is read from the database again. When the 1 in the grade column is converted to the constant whose ordinal is 1 in the current enum, the result is VIP. memo is &quot;joined today&quot;.</li>
@@ -189,6 +189,6 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

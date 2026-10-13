@@ -225,7 +225,7 @@ Lab.register({
           st.steps[1] = { t: st.steps[1].t, r: '없음 (두 번 조회)', cls: 'hot' };
           st.steps[2] = { t: '쓰기 SQL', r: '없음 (예외)', cls: 'bad' };
           st.out = { t: 'ObjectOptimisticLockingFailureException', s: 'INSERT도 UPDATE도 하지 않음', cls: 'bad' };
-          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 이 PC의 Hibernate 7.4.5에서는 같은 SELECT가 한 번 더 나간 뒤 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
+          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 이 PC의 Hibernate 7.4.5에서는 같은 SELECT가 한 번 더 나간 뒤, Hibernate가 던진 낙관적 락 예외를 스프링이 바꿔 던진 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
           row = ['성공', '2번', 'SELECT → SELECT', '예외 (ObjectOptimisticLockingFailureException) · DB 변화 없음'];
           sum.push('id를 DB가 정하는 엔티티에 없는 id를 넣어 save하면 저장되지 않고 예외가 납니다. 새로 저장할 객체에는 id를 넣지 않습니다.');
           sum.push('이 동작은 Hibernate 버전에 따라 다릅니다. Hibernate 6.6의 마이그레이션 안내에는, 그 전 버전에서는 이런 경우 예외 없이 INSERT가 나갔다고 적혀 있습니다(예전 버전은 실행해 보지 않았습니다).');

@@ -69,7 +69,7 @@ Lab.register({
       st.stage = 3;
       if (how === 'plain') {
         st.gate = 'skipped';
-        push('Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid. This parameter has no @Valid, so validation is skipped. The ' + C.a + ' constraint in ItemForm is only a mark that says "this field must be like this", and it cannot block a value by itself.', violates ? 'bad' : '');
+        push('Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid (or @Validated). This parameter has no @Valid, so validation is skipped. The ' + C.a + ' constraint in ItemForm is only a mark that says "this field must be like this", and it cannot block a value by itself.', violates ? 'bad' : '');
       } else {
         st.gate = 'validated';
         if (isParam) push('Deciding whether to validate: A constraint (' + C.a + ') is declared directly on the parameter. In this case, even without @Valid, Spring checks the constraints on the parameters just before it calls the controller method.');

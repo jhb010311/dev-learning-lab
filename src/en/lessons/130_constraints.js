@@ -15,7 +15,7 @@ Lab.register({
     { t: 'Foreign key SET NULL', q: 'What if you apply the constraints and set the ON DELETE action of the foreign key to SET NULL?', d: 'The orders remain, and only the column that pointed to the member becomes NULL.', v: { op: 'fkdel', con: 'on', act: 'setnull' } },
     { t: 'The same id twice', q: 'What if you INSERT a member with an id that already exists while the constraints are not applied?', d: 'Without a primary key, there are two members with id 1.', v: { op: 'pkdup', con: 'off', act: 'restrict' } },
     { t: 'An order for a missing member', q: 'What if you apply the constraints and INSERT an order for a member that does not exist (member 99)?', d: 'A foreign key blocks an order that points to a parent that does not exist (error 1452).', v: { op: 'fkins', con: 'on', act: 'restrict' } },
-    { t: 'Unique and NULL', q: 'What if you apply the constraints and add one more member whose email is NULL?', d: 'Even with a unique constraint, NULL can go into several rows.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
+    { t: 'Unique and NULL', q: 'What if you apply the constraints and add one more member whose email is NULL?', d: 'In MySQL, even with a unique constraint, NULL can go into several rows.', v: { op: 'uqnull', con: 'on', act: 'restrict' } },
   ],
   ACT: { restrict: 'RESTRICT', cascade: 'CASCADE', setnull: 'SET NULL' },
   STMT: {

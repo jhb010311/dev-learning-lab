@@ -132,19 +132,19 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, isNew = c.how === 'new', last = shown[shown.length - 1];
     var s = last ? last.snap : { svc: '없음', pick: '', off: '', result: '', beans: { fixed: { cls: 'FixedDiscountPolicy', name: 'fixedDiscountPolicy', reg: false, mark: false, s: 'none' }, rate: { cls: 'RateDiscountPolicy', name: 'rateDiscountPolicy', reg: false, mark: false, s: 'none' } } };
-    P.size(680, 316);
+    P.size(680, isNew ? 316 : 392);
     P.region('ctx', 16, 16, 648, 224, isNew ? '컨테이너 없음: 내 코드가 직접 만든다' : '스프링 컨테이너');
     P.box('svc', 30, 96, 290, 64, { cls: s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '만드는 중' ? 'hot now' : s.svc === '없음' ? 'ghost' : 'plain', title: isNew ? 'OrderService 객체' : 'orderService 빈', sub: [s.svc === '없음' ? '아직 없음' : s.svc, '쓰는 구현: ' + (s.pick || '아직 없음')] });
     [['fixed', 52], ['rate', 148]].forEach(function (p) {
-      var b = s.beans[p[0]], y = p[1];
-      var sub = isNew ? (b.s === 'in' ? 'OrderService가 new로 만든 객체' : '쓰지 않음 (객체 없음)') : b.s === 'none' ? '빈으로 등록되지 않음' : { def: '빈으로 등록됨', cand: '주입 후보', made: '객체 있음', in: 'OrderService에 주입됨' }[b.s];
-      P.box(p[0], 410, y, 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
+      var b = s.beans[p[0]], y = p[1], out = !isNew && b.s === 'none';
+      var sub = isNew ? (b.s === 'in' ? 'OrderService가 new로 만든 객체' : '쓰지 않음 (객체 없음)') : b.s === 'none' ? '컨테이너 밖 (빈으로 등록되지 않음)' : { def: '빈으로 등록됨', cand: '주입 후보', made: '객체 있음', in: 'OrderService에 주입됨' }[b.s];
+      P.box(p[0], out ? (p[0] === 'fixed' ? 16 : 348) : 410, out ? 258 : y, out ? 316 : 240, 64, { cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : b.s === 'none' ? 'ghost' : b.s === 'made' ? 'wait' : 'plain', title: !isNew && b.reg ? b.name : b.cls, sub: !isNew && b.reg ? [b.cls + (b.mark ? ' (@Primary)' : ''), sub] : [sub] });
       if (isNew && b.s === 'in') P.arrow('a_' + p[0], 'svc:r', p[0] + ':l', { cls: 'hot', label: 'new' });
       if (!isNew && b.s === 'cand') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: s.svc === '실패' ? 'bad dash' : 'dash mut', label: '후보' });
       if (!isNew && b.s === 'in') P.arrow('a_' + p[0], p[0] + ':l', 'svc:r', { cls: 'good', label: '주입' });
     });
-    P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
-    P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
+    P.box('r1', 16, isNew ? 258 : 340, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
+    P.box('r2', 344, isNew ? 258 : 340, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
     P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
   },
   assume: '서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',

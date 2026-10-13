@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate and exception translation', cat: 'Spring', mode: 'step',
   title: 'What does JdbcTemplate do for you, and what does it translate exceptions to?',
-  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy).',
+  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the JDBC driver into a Spring exception (one from the DataAccessException hierarchy).',
   terms: ['JdbcTemplate', 'Exception translation and DataAccessException', 'Connection pool', 'Checked and unchecked exceptions', 'Template Method pattern'],
   controls: [
     { id: 'how', label: 'How the database is accessed', type: 'select', value: 'plain', options: [['plain', 'JDBC directly: close() called on the last line'], ['twr', 'JDBC directly: closed with try-with-resources'], ['tmpl', 'JdbcTemplate']] },
@@ -78,7 +78,7 @@ Lab.register({
         }
         caller = 'SQLException (SQLState ' + err[0] + ')'; kind = 'checked exception';
         st.at = -1; st.caller = caller;
-        push('The caller gets SQLException. It is a checked exception, so every method that calls this method must either declare throws SQLException or catch it with try-catch. To find out whether the problem is ' + err[3] + ', you have to compare a code such as SQLState ' + err[0] + ' yourself.', 'bad');
+        push('The caller gets SQLException (or one of its subclasses). It is a checked exception, so every method that calls this method must either declare throws SQLException or catch it with try-catch. To find out whether the problem is ' + err[3] + ', you often have to check a code such as SQLState ' + err[0] + ' yourself.', 'bad');
       } else {
         step(2, 'done'); st.con = 'returned';
         push('JdbcTemplate catches the SQLException: First, it closes the PreparedStatement and returns the connection to the pool. JdbcTemplate also does the cleanup when an exception is thrown.', 'good');
@@ -89,7 +89,7 @@ Lab.register({
       }
     }
     if (plain && err) sum.push('When close() is at the end of the method, the connection cannot be closed if an exception is thrown partway through. When you use JDBC directly, you have to close with try-with-resources (or finally), and you have to write this in every method without missing one.');
-    if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, the only exception you get is SQLException, which is a checked exception, so you have to tell what the problem is by a code number. This number can differ from one database product to another.');
+    if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, what JDBC throws is SQLException (and its subclasses), which is a checked exception, and to tell the cause you often have to look at a code number that differs from one database to another.');
     if (raw && !err && n !== 1) sum.push('When you use JDBC directly, you also have to decide yourself what to do when there are 0 rows or 2 rows. If you read only the first row without deciding, the problem passes silently. The queryForObject method of JdbcTemplate throws an exception in the same situation.');
     if (raw && !err && n === 1) sum.push('The result is correct, but to run one line of SQL you wrote everything yourself: getting a connection, setting the values, running the SQL, reading the result, and closing. The same code is repeated in every method.');
     if (!raw && err) sum.push('JdbcTemplate translates an SQLException to an exception in the DataAccessException hierarchy. All of them are unchecked exceptions, and the class name tells you the kind of problem. Even when the database product changes, you can catch the same exception class.' + (op === 'dup' ? ' DuplicateKeyException is a subclass of DataIntegrityViolationException.' : ''));

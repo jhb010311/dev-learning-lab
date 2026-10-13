@@ -177,7 +177,7 @@ Lab.register({
         return DOWN;
       }
       w.cx.state = 'up'; cache[k] = st.ctxs.length - 1; used[n - 1] = cache[k]; okCount++; set(n, '테스트 메서드 실행 중', 'hot');
-      push((n === 1 ? 'OrderController 생성: ' : '두 번째 컨텍스트 기동 완료: ') + '스프링이 컨트롤러를 만들면서 생성자가 요구하는 OrderService를 컨텍스트에서 찾아 넣습니다. ' + (f.svc ? '들어가는 것은 가짜 OrderService입니다.' : '들어가는 것은 진짜 OrderService이고, 그 안에는 ' + (f.repo ? '가짜' : '진짜') + ' OrderRepository가 들어 있습니다.') + ' 컨텍스트가 다 떴고 캐시에 보관됩니다.', 'good');
+      push((n === 1 ? 'OrderController 생성: ' : '두 번째 컨텍스트 기동 완료: ') + '스프링이 컨트롤러를 만들면서 생성자가 요구하는 OrderService를 컨텍스트에서 찾아 넣습니다. ' + (f.svc ? '들어가는 것은 가짜 OrderService입니다.' : '들어가는 것은 진짜 OrderService이고, 이 서비스는 ' + (f.repo ? '가짜' : '진짜') + ' OrderRepository를 주입받아 참조로 갖고 있습니다.') + ' 컨텍스트가 다 떴고 캐시에 보관됩니다.', 'good');
       return test(n, f);
     }
     function test(n, f) {
@@ -246,7 +246,7 @@ Lab.register({
     function split(t) { var i = t.indexOf(' ('); return i < 0 ? [t] : [t.slice(0, i), t.slice(i + 2, -1)]; }
     P.box('t1', 10, 44, 156, 72, { cls: (s.k1 || 'plain') + (s.now === 1 ? ' now' : ''), title: '첫 번째 테스트 클래스', sub: split(s.s1) });
     P.box('t2', 10, 148, 156, 72, { cls: (s.k2 || 'plain') + (s.now === 2 ? ' now' : ''), title: '두 번째 테스트 클래스', sub: split(s.s2) });
-    P.region('cache', 236, 6, 434, 236, unit ? '스프링 컨텍스트 없음: 테스트 메서드가 직접 만든 객체' : '컨텍스트 캐시 (테스트를 실행하는 JVM 안에 있음)');
+    P.region('cache', 236, 6, 434, 236, unit ? '스프링 컨텍스트 없음: 테스트 메서드가 직접 만든 객체' : '테스트가 띄운 컨텍스트 (성공한 것만 캐시에 남음)');
     if (!s.ctxs.length) P.text('empty', 453, 128, unit ? '아직 만든 객체가 없음' : '비어 있음', { cls: 'mut', anchor: 'middle' });
     s.ctxs.forEach(function (x, i) {
       var y = 32 + i * 104, id = 'ctx' + (i + 1);

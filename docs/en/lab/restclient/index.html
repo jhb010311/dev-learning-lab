@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
 <h1>Calling external APIs and timeouts</h1>
 <p><b>When a call to another server gets no answer, how long does it wait?</b></p>
-<p>The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout measures the time until the response arrives after the connection is established. If you do not set them, the thread waits with no limit. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.</p>
+<p>The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout is the limit on how long it waits, after the connection is established, while no data arrives. If you do not set them, the client never gives up on its own. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.</p>
 <p>Partly checked against real execution · All 24 combinations were actually called with the RestClient of Spring 7.0.9 and checked against the results. The 4 combinations with a connection that gets no answer can differ depending on the network environment</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -176,6 +176,6 @@ try {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

@@ -125,7 +125,7 @@ Lab.register({
     P.region('ctx', 218, 16, 446, 262, 'Spring container');
     P.box('svc', 234, 100, 204, 64, { cls: s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'none' ? 'ghost' : 'hot', title: 'orderService (singleton)', sub: s.svc === 'created' ? 'Has: ' + s.holds : s.svc === 'none' ? 'not created yet' : s.svc });
     s.carts.forEach(function (x, i) {
-      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : x.when });
+      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : sim.c.scope === 'prototype' ? 'Container: not kept' : x.when });
     });
     if (!s.carts.length) P.text('none', 564, 150, s.svc === 'failed' ? 'No Cart object' : 'No Cart object yet', { cls: 'mut', anchor: 'middle' });
     if (g === 'inject' && s.svc === 'created') P.arrow('hold', 'svc:r', 'cart1:l', { cls: 'good', label: 'field' });

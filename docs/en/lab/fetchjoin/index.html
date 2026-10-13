@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6548445028">
+<link rel="stylesheet" href="../../app.css?v=c2b67cda13">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is a class name, and p.comments is a field name of Post. Hibernate translates this into SQL that queries the posts and comments tables.</li>
+<li>em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is the entity name (the class name unless you set another one), and p.comments is a field name of Post. Hibernate translates this into SQL that queries the posts and comments tables.</li>
 <li>getResultList(): The SQL is sent. It joins the comments table, but the select clause has only the post columns. The comments are used only in the join condition. Post 1 has 3 comments, so it takes 3 rows, and post 2 takes 2 rows, so the database returns 5 rows in all.</li>
 <li>5 rows are converted to Post objects. The same post appears in several rows, but Hibernate holds it only once, so the result list has 2 posts. The comments list is still empty (not loaded) because the comment columns were not read.</li>
 <li>Loop, post 1: The moment p.getComments().size() is called, a separate comment query is sent to fill in the empty list.</li>
@@ -191,6 +191,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6548445028"></script>
+<script src="../../app.js?v=c2b67cda13"></script>
 </body>
 </html>

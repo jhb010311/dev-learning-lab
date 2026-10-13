@@ -53,7 +53,7 @@ Lab.register({
     st.cols.push({ n: 'grade', d: ddl.grade, from: '@Enumerated(EnumType.' + (ord ? 'ORDINAL' : 'STRING') + ')', pic: ord ? 'grade tinyint (only 0 to 1)' : "grade enum ('BASIC','VIP')" });
     push('grade field: ' + (ord ? 'ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0), so the column becomes a small integer column (tinyint). BASIC is 0 and VIP is 1. A condition (check) that the number is between 0 and 1 is also added.' : 'STRING stores the name of the enum constant as text, letter for letter. In this run, it was created as a column of an enum type that accepts only "BASIC" and "VIP".'), '');
     st.cols.push({ n: 'memo', d: c.tr ? '' : ddl.memo, from: c.tr ? '@Transient' : '(no annotation)', pic: c.tr ? '' : 'memo varchar(255)', hot: c.tr });
-    push('memo field: ' + (c.tr ? 'It has @Transient, so it is left out of the mapping. No memo column is created in the table.' : 'There is no annotation, but a column is still created. Every field of an entity is paired with a column unless you leave it out with @Transient.'), '');
+    push('memo field: ' + (c.tr ? 'It has @Transient, so it is left out of the mapping. No memo column is created in the table.' : 'There is no annotation, but a column is still created. Every field of an entity is paired with a column unless it is a static or transient field or a field you leave out with @Transient.'), '');
     st.step = 'save';
     var saved = c.pk !== 'forgot', id = c.pk === 'auto' ? 1 : 100, raw = ord ? '1' : 'VIP', idText, readGrade = 'Not saved', readMemo = '';
     if (!saved) {

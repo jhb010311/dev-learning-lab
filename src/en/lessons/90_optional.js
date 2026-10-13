@@ -123,7 +123,7 @@ Lab.register({
     if (c.make !== 'empty' && s.opt) P.arrow('mk', 'name:r', 'opt:l', { cls: s.opt === 'npe' ? 'bad' : '', label: c.make === 'of' ? 'of' : 'ofNullable' });
     P.box('res', 500, 30, 164, 50, s.res ? { cls: 'good', title: 'result', sub: '"' + s.res + '"' } : s.ex ? { cls: 'bad', title: 'result', sub: 'no value (exception)' } : { cls: 'ghost', title: 'result', sub: 'not declared yet' });
     var fromDefault = s.res && s.opt === 'empty' && c.take !== 'get';
-    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: 'value' });
+    if (s.res && !fromDefault) P.arrow('tk', 'opt:r', 'res:l', { cls: 'good', label: c.take === 'map' ? 'result' : 'value' });
     if (useMd) {
       P.box('md', 250, 130, 200, 56, { cls: s.md === 'run' ? 'hot now' : s.md === 'skip' ? 'ghost' : 'plain', title: 'makeDefault()', sub: s.md === 'run' ? 'ran → "guest"' : s.md === 'skip' ? 'did not run' : s.md === 'wait' ? 'lambda passed, not run' : 'not run yet' });
       if (fromDefault) P.arrow('df', 'md:r', 'res:b', { cls: 'hot', label: 'default value' });

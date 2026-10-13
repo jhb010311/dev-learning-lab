@@ -41,12 +41,12 @@ Lab.register({
       sum.push('JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
-    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
+    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 엔티티 이름(따로 정하지 않으면 클래스 이름)' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
     if (page) push('setFirstResult(0).setMaxResults(1): 결과 목록을 처음부터 1개만 달라고 요청합니다. 아직 SQL은 나가지 않았습니다.', '');
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
       push('getResultList(): 실행하려는 순간 Hibernate가 거절합니다. comments와 files가 둘 다 List이고, List 두 개를 한 SQL로 함께 가져오면 행이 두 목록 크기의 곱으로 늘어나 어느 행이 중복인지 가려낼 수 없기 때문입니다. IllegalArgumentException(원인은 MultipleBagFetchException)이 나고 SQL은 나가지 않습니다.', 'bad');
-      sum.push('List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. 한쪽을 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
+      sum.push('List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. files를 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록(List로 남은 쪽)에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
       return fail('MultipleBagFetchException', 'getResultList');
     }
     // 어디에서 자르는가: sql 바깥 쿼리 끝, sub 서브쿼리, mem 메모리

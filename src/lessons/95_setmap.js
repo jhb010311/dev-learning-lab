@@ -85,7 +85,7 @@ Lab.register({
       if (kind !== 'tree' && c.data === 'null') sum.push('Hash 종류와 LinkedHash 종류는 null을 하나 담을 수 있습니다. 컬렉션의 종류를 Tree로 바꾸면 같은 코드에서 예외가 납니다.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('Hash 종류와 LinkedHash 종류는 equals와 hashCode만 있으면 어떤 객체든 담습니다. Tree 종류는 크기를 비교할 방법이 더 필요합니다.');
     } else {
-      sum.push(ex === 'NullPointerException' ? 'TreeSet과 TreeMap은 값을 서로 비교해 자리를 정하므로 null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
+      sum.push(ex === 'NullPointerException' ? 'TreeSet의 원소와 TreeMap의 키는 서로 비교해 자리를 정하므로 (기본 정렬에서) null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
     }
     sum.push('고르는 기준: 순서가 필요 없으면 Hash 종류(가장 빠름), 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다.');
     var cells = kind === 'hash' ? ordered().map(function (it) { return it.cell; }).join(',') : '-';

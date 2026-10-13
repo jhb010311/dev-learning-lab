@@ -115,25 +115,25 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['키', '값'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), '캐시 "product"' + (s.cache.length ? '' : ' (비어 있음)'));
   },
-  // 그림: 바깥 상자가 프록시, 안쪽 상자가 실제 객체다. 프록시는 오른쪽 위의 캐시를 먼저 보고, 값이 있으면 안쪽으로 들어가지 않는다. 본문이 실행될 때만 오른쪽 아래의 DB에 간다.
+  // 그림: 위 상자가 프록시, 아래 상자가 실제 객체이고 둘은 서로 다른 객체다(프록시가 참조로 갖고 있다). 프록시는 오른쪽 위의 캐시를 먼저 보고, 값이 있으면 실제 객체로 넘기지 않는다. 본문이 실행될 때만 오른쪽 아래의 DB에 간다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { call: '', short: '', px: '', tg: '', look: '', toBody: false, self: false, dbop: '', cache: [], db: [], count: 0, second: '' };
     var lines = function (rows) { return rows.length ? rows.map(function (r) { return r[0] + ' → ' + r[1]; }) : ['비어 있음']; };
     P.size(680, 318);
-    P.box('caller', 10, 70, 100, 56, { cls: s.call ? 'wait' : 'plain', title: '다른 빈', sub: '호출하는 쪽' });
-    P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
-    P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
-    P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
-    P.text('store', 577, 130, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
-    P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
-    if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
-    if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });
-    if (s.toBody && !s.self) P.arrow('pass', [347, 84], 'tg:t', {});
+    P.box('caller', 10, 17, 96, 56, { cls: s.call ? 'wait' : 'plain', title: '다른 빈', sub: '호출하는 쪽' });
+    P.box('px', 176, 14, 268, 62, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
+    P.box('tg', 176, 130, 268, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
+    P.box('cache', 486, 14, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
+    P.text('store', 577, 122, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
+    P.box('db', 486, 132, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
+    if (s.call) P.arrow('in', 'caller:r', 'px:l', { label: s.short });
+    if (s.look) P.arrow('look', 'px:r:0.75', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });
+    P.arrow('pass', 'px:b', 'tg:t', s.toBody && !s.self ? { label: '넘김' } : { cls: 'mut', label: '참조' });
     if (s.self) P.arrow('selfcall', 'tg:l:0.3', 'tg:l:0.75', { cls: 'bad', label: 'this.find' });
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'find 본문이 실행된 횟수', right: s.count + '번' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: '두 번째 find가 돌려준 값', right: s.second || '아직 부르기 전' });
-    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 프록시를 지나지 않으므로 캐시와 관계없이 본문이 실행됩니다.');
+    P.note('위 상자가 프록시, 아래 상자가 실제 객체입니다. 둘은 서로 다른 객체이고, 프록시가 실제 객체를 참조로 갖고 있다가 호출을 넘깁니다. 실제 객체가 자기 메서드를 this로 부르는 빨간 화살표는 프록시를 지나지 않으므로 캐시와 관계없이 본문이 실행됩니다.');
   },
   assume: '마흔 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)에서 @EnableCaching과 ConcurrentMapCacheManager로 실행해, find 본문이 실행된 횟수, 두 번째 find가 돌려준 값, 끝난 뒤 캐시에 든 것을 대조했습니다. rename의 본문이 캐시에 값이 있어도 실행된다는 것, 캐시에 없는 키를 @CacheEvict로 지워도 오류가 나지 않는다는 것도 같은 실행에서 확인했습니다. ConcurrentMapCacheManager는 애플리케이션의 메모리에 맵으로 저장하는 가장 단순한 캐시 매니저로, 만료 시간(TTL)이나 크기 제한이 없습니다. 만료와 동시에 몰리는 요청은 "캐시와 TTL" 실습에서 다룹니다. null을 캐시에 넣을 수 있는지는 캐시 구현의 설정에 따라 다르며, ConcurrentMapCacheManager는 기본으로 null을 넣습니다(다른 캐시 구현에서의 동작은 실행으로 확인하지 않았습니다). DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. 화면의 코드는 @EnableCaching이 켜져 있다고 가정하며, key = "#id"처럼 매개변수 이름을 쓰려면 -parameters 옵션으로 컴파일해야 합니다. 이 PC에서 이 옵션 없이 컴파일해 실행했을 때는 rename을 부르는 순간 키가 null이라는 IllegalArgumentException이 났습니다(스프링 부트로 만든 프로젝트의 빌드 설정에는 이 옵션이 들어 있습니다). 같은 클래스 안에서 부르는 호출에 프록시 기반 기능이 적용되지 않는 이유는 "프록시와 자기 호출" 실습에서 자세히 다룹니다. 여기서는 한 스레드에서 차례로 부르는 경우만 다뤘습니다. 여러 스레드가 같은 키를 동시에 처음 조회하는 경우는 실행해 보지 않았습니다.',
 });

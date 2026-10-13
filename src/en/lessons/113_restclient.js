@@ -1,7 +1,7 @@
 Lab.register({
   id: 'restclient', nav: 'Calling external APIs and timeouts', cat: 'Spring', mode: 'step',
   title: 'When a call to another server gets no answer, how long does it wait?',
-  intro: 'The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout measures the time until the response arrives after the connection is established. If you do not set them, the thread waits with no limit. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.',
+  intro: 'The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout is the limit on how long it waits, after the connection is established, while no data arrives. If you do not set them, the client never gives up on its own. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.',
   terms: ['Connect timeout and read timeout', 'RestClient', 'Tomcat\'s threading model', 'Three-way handshake', 'HTTP status codes'],
   controls: [
     { id: 'server', label: 'State of the remote server (the payment server)', type: 'select', value: 'slow', options: [['ok', 'Normal: responds with 200 right away'], ['slow', 'Slow: accepts the connection but responds after 10 seconds'], ['noanswer', 'No answer to the connection request (the machine is off or a firewall drops the request)'], ['refused', 'Connection refused (the server program is not running)'], ['e404', 'Responds with 404 right away'], ['e500', 'Responds with 500 right away']] },
@@ -19,7 +19,7 @@ Lab.register({
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
-      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout\n' : '// no connect timeout is set (waits with no limit)\n')
+      + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout\n' : '// no connect timeout is set (waits until the operating system gives up)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // read timeout\n' : '// no read timeout is set (waits with no limit)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // this thread waits here until the result comes back\n} catch (HttpClientErrorException e) {      // 4xx response\n} catch (HttpServerErrorException e) {      // 5xx response\n} catch (ResourceAccessException e) {       // connection failure, timeout\n}';
   },
@@ -27,7 +27,7 @@ Lab.register({
   columns: ['Result', 'Exception the calling code received', 'Time the calling thread waited', 'Handling by the remote server'],
   simulate: function (c) {
     var S = c.server, ct = !!c.ct, rt = !!c.rt, ev = [], sum = [];
-    var st = { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: ct ? 'Counts from the connection attempt' : 'Not set: waits with no limit', ctK: ct ? 'plain' : 'ghost', rtS: rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? 'Server program not running' : S === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
+    var st = { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: ct ? 'Counts from the connection attempt' : 'Not set: until the OS gives up', ctK: ct ? 'plain' : 'ghost', rtS: rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: rt ? 'plain' : 'ghost', srv: S === 'refused' ? 'Server program not running' : S === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     var result = '', ex = 'None', wait = 'right away', served = 'Handled the request', cause = '-', ms = 0, status = '-';
     function finish(r, e) { result = r; ex = e; st.result = r; st.ex = e; st.thread = 'Released'; if (st.waited === '0s') st.waited = 'Almost none'; }
@@ -105,7 +105,7 @@ Lab.register({
   },
   // Diagram: the thread of the calling order server on the left and the payment server on the right. Between them are the connection, request, and response arrows. Below are when each of the two timeouts counts time, and the result.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: c.ct ? 'Counts from the connection attempt' : 'Not set: waits with no limit', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? 'Server program not running' : c.server === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { thread: 'Before the call', waited: '0s', conn: '', req: false, resp: '', ctS: c.ct ? 'Counts from the connection attempt' : 'Not set: until the OS gives up', ctK: c.ct ? 'plain' : 'ghost', rtS: c.rt ? 'Counts after the connection is made' : 'Not set: waits with no limit', rtK: c.rt ? 'plain' : 'ghost', srv: c.server === 'refused' ? 'Server program not running' : c.server === 'noanswer' ? 'No answer' : 'Waiting for a request', result: '', ex: '' };
     var waiting = s.thread === 'Waiting to connect' || s.thread === 'Waiting for a response', dead = c.server === 'refused' || c.server === 'noanswer';
     P.size(680, 268);
     P.box('me', 16, 16, 240, 92, { cls: s.thread === 'Released' ? 'good' : waiting ? 'hot now' : 'plain', title: 'Order server (caller)', sub: ['Thread: ' + s.thread, 'Waited: ' + s.waited] });

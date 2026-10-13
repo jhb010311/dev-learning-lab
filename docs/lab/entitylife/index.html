@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>준영속 객체는 평범한 자바 객체와 같습니다. 값을 바꿔도 예외가 나지 않고, DB에도 반영되지 않습니다. 떼어 낸 뒤 같은 id를 em.find로 다시 조회하면 SELECT가 다시 나가고 m과는 다른 새 객체가 옵니다.</li>
-<li>준영속 객체의 값을 DB에 반영하려면 다시 영속 상태로 만들어야 합니다. 그 방법이 병합(merge)이며 다음 실습에서 다룹니다.</li>
+<li>준영속 객체의 변경을 DB에 반영하려면 병합(merge)으로 영속 객체에 값을 옮겨야 합니다. 병합은 다음 실습에서 다룹니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>EntityManager em = emf.createEntityManager();
@@ -167,6 +167,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

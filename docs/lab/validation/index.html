@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
+<link rel="stylesheet" href="../../app.css?v=f7349ea4b1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <ol>
 <li>요청이 도착합니다: POST /items, 본문은 {&quot;name&quot;: &quot;&quot;}입니다. name에 빈 문자열(글자가 하나도 없는 문자열)을 실어 보냈습니다.</li>
 <li>@RequestBody ItemForm form: 스프링이 JSON 본문을 읽어 ItemForm 객체를 만들고 name 필드를 채웁니다. name 필드는 &quot;&quot;입니다. 이 단계는 값을 옮겨 담기만 합니다. 필드 위의 @NotBlank 제약은 아직 아무 일도 하지 않습니다.</li>
-<li>검증할지 정하기: 스프링은 파라미터에 @Valid가 붙어 있을 때만 그 객체를 검증기에 넘깁니다. 이 파라미터에는 @Valid가 없으므로 검증을 건너뜁니다. ItemForm의 @NotBlank 제약은 &quot;이 필드는 이래야 한다&quot;고 적어 둔 표시일 뿐, 스스로 값을 막지 못합니다.</li>
+<li>검증할지 정하기: 스프링은 파라미터에 @Valid(또는 @Validated)가 붙어 있을 때만 그 객체를 검증기에 넘깁니다. 이 파라미터에는 @Valid가 없으므로 검증을 건너뜁니다. ItemForm의 @NotBlank 제약은 &quot;이 필드는 이래야 한다&quot;고 적어 둔 표시일 뿐, 스스로 값을 막지 못합니다.</li>
 <li>add(form) 호출: 컨트롤러 메서드가 실행됩니다. form.getName()의 값은 &quot;&quot;입니다. 돌려주는 글은 &quot;등록: []&quot;이고, 200으로 응답합니다. @NotBlank 제약을 어긴 값이 아무 제지 없이 컨트롤러까지 들어왔습니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -178,6 +178,6 @@ class ItemController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=137acd1ae5"></script>
+<script src="../../app.js?v=f7349ea4b1"></script>
 </body>
 </html>

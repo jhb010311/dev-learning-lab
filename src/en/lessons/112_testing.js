@@ -177,7 +177,7 @@ Lab.register({
         return DOWN;
       }
       w.cx.state = 'up'; cache[k] = st.ctxs.length - 1; used[n - 1] = cache[k]; okCount++; set(n, 'Running the test', 'hot');
-      push((n === 1 ? 'OrderController is created: ' : 'The second context finishes loading: ') + 'As Spring creates the controller, it finds the OrderService that the constructor requires in the context and injects it. ' + (f.svc ? 'What is injected is the mock OrderService.' : 'What is injected is the real OrderService, and inside it is the ' + (f.repo ? 'mock' : 'real') + ' OrderRepository.') + ' The context has finished loading and is kept in the cache.', 'good');
+      push((n === 1 ? 'OrderController is created: ' : 'The second context finishes loading: ') + 'As Spring creates the controller, it finds the OrderService that the constructor requires in the context and injects it. ' + (f.svc ? 'What is injected is the mock OrderService.' : 'What is injected is the real OrderService, and it is given the ' + (f.repo ? 'mock' : 'real') + ' OrderRepository by injection and keeps a reference to it.') + ' The context has finished loading and is kept in the cache.', 'good');
       return test(n, f);
     }
     function test(n, f) {
@@ -246,7 +246,7 @@ Lab.register({
     function split(t) { var i = t.indexOf(' ('); return i < 0 ? [t] : [t.slice(0, i), t.slice(i + 2, -1)]; }
     P.box('t1', 10, 44, 156, 72, { cls: (s.k1 || 'plain') + (s.now === 1 ? ' now' : ''), title: 'First test class', sub: split(s.s1) });
     P.box('t2', 10, 148, 156, 72, { cls: (s.k2 || 'plain') + (s.now === 2 ? ' now' : ''), title: 'Second test class', sub: split(s.s2) });
-    P.region('cache', 236, 6, 434, 236, unit ? 'No Spring context: objects created by the test method' : 'Context cache (inside the JVM that runs the tests)');
+    P.region('cache', 236, 6, 434, 236, unit ? 'No Spring context: objects created by the test method' : 'Contexts the test started (only successful ones cached)');
     if (!s.ctxs.length) P.text('empty', 453, 128, unit ? 'No objects created yet' : 'Empty', { cls: 'mut', anchor: 'middle' });
     s.ctxs.forEach(function (x, i) {
       var y = 32 + i * 104, id = 'ctx' + (i + 1);

@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 트랜잭션을 끝내고 영속성 컨텍스트를 닫는다' : l; }).join('\n');
+    return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 영속성 컨텍스트를 닫는다' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: '지연 로딩 연관 객체', find: 'em.find', findref: 'find 뒤 getReference', reffind: 'getReference 뒤 find' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() 비교', closed: '닫은 뒤 getName()' }[c.use]; },
   columns: ['m의 정체', '회원 테이블 조회', '마지막 줄의 결과'],
@@ -83,7 +83,7 @@ Lab.register({
     }
     if (use === 'closed') {
       st.open = false;
-      push('em.close(): 트랜잭션을 끝내고 영속성 컨텍스트를 닫습니다. 자바 객체 m은 메모리에 남아 있지만, 이제 영속성 컨텍스트와 이어져 있지 않습니다(준영속).', '');
+      push('em.close(): 영속성 컨텍스트를 닫습니다. 자바 객체 m은 메모리에 남아 있지만, 이제 영속성 컨텍스트와 이어져 있지 않습니다(준영속).', '');
       if (empty) {
         res = 'LazyInitializationException'; st.err = res;
         push('m.getName(): 비어 있는 프록시를 채우려면 영속성 컨텍스트를 통해 DB를 조회해야 합니다. 그런데 영속성 컨텍스트가 이미 닫혔습니다. SQL을 보내지 못하고 LazyInitializationException이 납니다.', 'bad');
@@ -116,9 +116,9 @@ Lab.register({
   // 그림: 왼쪽 영속성 컨텍스트 안에 프록시와 진짜 Member(지연 로딩이면 주문도), 오른쪽에 DB. 프록시가 초기화되면 진짜 객체로 가는 화살표가 생긴다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : this.blank(), lazy = c.how === 'lazy';
-    P.size(680, 300);
-    P.region('pc', 16, 16, 430, 214, s.open ? '영속성 컨텍스트 (열려 있음)' : '영속성 컨텍스트 (닫힘)');
-    P.region('db', 496, 16, 168, 214, 'DB');
+    P.size(680, 316);
+    P.region('pc', 16, 16, 430, 176, s.open ? '영속성 컨텍스트 (열려 있음)' : '영속성 컨텍스트 (닫힘)');
+    P.region('db', 496, 16, 168, 176, 'DB');
     if (lazy) {
       P.box('order', 30, 48, 190, 46, { cls: s.order ? 'plain' : 'ghost', title: '주문 1', sub: s.order ? 'member 필드 → 프록시' : '아직 읽지 않음' });
       P.box('do', 508, 48, 144, 46, { cls: 'plain', title: 'orders', sub: 'id 1, member_id 1' });
@@ -129,9 +129,9 @@ Lab.register({
     P.box('dm', 508, 118, 144, 56, { cls: 'plain', title: 'member', sub: 'id 1, 김철수' });
     if (lazy && s.order) P.arrow('o2p', 'order:b', 'proxy:t', { cls: 'mut' });
     if (hasProxy && s.m === 'proxy' && s.init) P.arrow('p2r', 'proxy:r', 'real:l', { cls: 'good', label: '넘김' });
-    P.box('var', 30, 186, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: '변수 m', right: s.m === 'none' ? '아직 없음' : s.m === 'proxy' ? '프록시를 가리킴' : '진짜 Member를 가리킴' });
-    if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
-    P.box('res', 16, 244, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '예외' : '결과', right: s.err || s.out || '아직 없음' });
+    P.box('var', 30, 210, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: '변수 m', right: s.m === 'none' ? '아직 없음' : s.m === 'proxy' ? '프록시를 가리킴' : '진짜 Member를 가리킴' });
+    if (s.m !== 'none') P.arrow('m2o', 'var:t', s.m === 'proxy' ? 'proxy:b' : 'real:b', { cls: 'mut' }); if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
+    P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '예외' : '결과', right: s.err || s.out || '아직 없음' });
     P.note('파란 프록시는 식별자만 알고 있는 빈 상태, 노란 프록시는 진짜 Member와 연결된(초기화된) 상태입니다. 가운데 화살표는 이번 단계에서 DB로 조회 SQL이 나갔다는 표시입니다. 프록시는 초기화된 뒤에도 진짜 객체로 바뀌지 않고, 받은 호출을 진짜 객체에게 넘겨 줍니다.');
   },
   assume: '스무 가지 조합(얻는 방법 다섯, 하는 일 넷)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, m이 프록시인지, 회원 테이블 조회가 언제 몇 번 나갔는지, 마지막 줄의 값이나 예외가 화면과 일치하는 것을 확인했습니다. 엔티티의 필드에 @Id를 붙이고 게터를 둔 보통의 매핑, 하나의 영속성 컨텍스트 기준입니다. 프록시의 클래스 이름은 이 환경에서 Member$HibernateProxy였고, 버전에 따라 뒤에 꼬리표가 더 붙기도 합니다. 같은 환경에서 다음도 확인했습니다. 게터를 거치지 않고 프록시의 필드를 직접 읽으면(m.name) 초기화되지 않고 null이 나옵니다. DB에 없는 식별자로 getReference를 하면 그때는 예외가 없고, 값을 처음 읽을 때 조회가 나간 뒤 예외(ObjectNotFoundException)가 납니다. 영속성 컨텍스트를 닫은 뒤에도 프록시의 getId()는 값을 돌려줍니다. 스프링 부트의 웹 요청에서는 OSIV 기본 설정 때문에 응답이 끝날 때까지 영속성 컨텍스트가 열려 있어 이 예외가 늦게 드러날 수 있는데, 그 부분은 실행으로 확인하지 않았습니다. 바이트코드 강화(enhancement)를 쓰는 환경에서는 프록시 대신 다른 방식으로 지연 로딩이 될 수 있다고 문서에 나와 있으나, 이것도 실행해 보지는 않았습니다.',

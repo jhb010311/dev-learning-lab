@@ -87,7 +87,7 @@ Lab.register({
     if (by === 'cmp') sum.push('Comparator는 정렬할 때 바깥에서 주는 순서입니다. 같은 목록을 잔액순, 이름순처럼 그때그때 다른 기준으로 정렬할 수 있습니다. comparingInt는 빼지 않고 크기를 비교하므로 큰 수에서도 안전합니다.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('잔액이 같은 것끼리는 정렬 전의 순서를 지켰습니다(안정 정렬). List.sort와 Collections.sort는 안정 정렬입니다.' + (rev ? ' 거꾸로 정렬해도 같은 것끼리의 순서는 뒤집히지 않습니다.' : ''));
     if (by === 'then') sum.push('thenComparing은 앞의 기준으로 순서를 가릴 수 없을 때(비교 결과 0)만 쓰이는 다음 기준입니다.' + (rev ? ' reversed를 맨 뒤에 붙이면 앞에 적은 기준 전체가 뒤집힙니다. 잔액은 큰 것부터, 이름도 뒤에서부터입니다.' : ''));
-    if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외가 나지 않고 틀린 순서가 조용히 나옵니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
+    if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외 없이 틀린 순서가 조용히 나올 수 있고, 경우에 따라 IllegalArgumentException이 나기도 합니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
     if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다.');
     function cell(v, other) { return v + (v < 0 ? ' (음수: park가 앞)' : v > 0 ? ' (양수: park가 뒤)' : ' (순서를 가리지 않음)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };

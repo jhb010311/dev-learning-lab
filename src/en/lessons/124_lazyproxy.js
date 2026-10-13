@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // ends the transaction and closes the persistence context' : l; }).join('\n');
+    return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // closes the persistence context' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: 'Lazily fetched association', find: 'em.find', findref: 'getReference after find', reffind: 'find after getReference' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() comparison', closed: 'getName() after closing' }[c.use]; },
   columns: ['What m is', 'Queries on the member table', 'Result of the last line'],
@@ -83,7 +83,7 @@ Lab.register({
     }
     if (use === 'closed') {
       st.open = false;
-      push('em.close(): Ends the transaction and closes the persistence context. The Java object m remains in memory, but it is no longer connected to a persistence context (detached).', '');
+      push('em.close(): Closes the persistence context. The Java object m remains in memory, but it is no longer connected to a persistence context (detached).', '');
       if (empty) {
         res = 'LazyInitializationException'; st.err = res;
         push('m.getName(): To fill an empty proxy, you must query the DB through the persistence context. But the persistence context is already closed. It cannot send SQL, and a LazyInitializationException is thrown.', 'bad');
@@ -116,9 +116,9 @@ Lab.register({
   // Diagram: on the left, inside the persistence context, are the proxy and the real Member (and the order if it is lazy fetching), and on the right is the DB. When the proxy is initialized, an arrow to the real object appears.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : this.blank(), lazy = c.how === 'lazy';
-    P.size(680, 300);
-    P.region('pc', 16, 16, 430, 214, s.open ? 'Persistence context (open)' : 'Persistence context (closed)');
-    P.region('db', 496, 16, 168, 214, 'DB');
+    P.size(680, 316);
+    P.region('pc', 16, 16, 430, 176, s.open ? 'Persistence context (open)' : 'Persistence context (closed)');
+    P.region('db', 496, 16, 168, 176, 'DB');
     if (lazy) {
       P.box('order', 30, 48, 190, 46, { cls: s.order ? 'plain' : 'ghost', title: 'Order 1', sub: s.order ? 'member field → proxy' : 'Not read yet' });
       P.box('do', 508, 48, 144, 46, { cls: 'plain', title: 'orders', sub: 'id 1, member_id 1' });
@@ -129,9 +129,9 @@ Lab.register({
     P.box('dm', 508, 118, 144, 56, { cls: 'plain', title: 'member', sub: 'id 1, Alice' });
     if (lazy && s.order) P.arrow('o2p', 'order:b', 'proxy:t', { cls: 'mut' });
     if (hasProxy && s.m === 'proxy' && s.init) P.arrow('p2r', 'proxy:r', 'real:l', { cls: 'good', label: 'calls' });
-    P.box('var', 30, 186, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: 'Variable m', right: s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Points to the proxy' : 'Points to the real Member' });
-    if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
-    P.box('res', 16, 244, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Exception' : 'Result', right: s.err || s.out || 'None yet' });
+    P.box('var', 30, 210, 402, 34, { cls: s.m === 'none' ? 'ghost' : 'plain', title: 'Variable m', right: s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Points to the proxy' : 'Points to the real Member' });
+    if (s.m !== 'none') P.arrow('m2o', 'var:t', s.m === 'proxy' ? 'proxy:b' : 'real:b', { cls: 'mut' }); if (s.fresh) P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: 'SELECT' });
+    P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Exception' : 'Result', right: s.err || s.out || 'None yet' });
     P.note('A blue proxy is empty and knows only the identifier. A yellow proxy is connected to the real Member (initialized). The arrow in the middle means that a query SQL was sent to the DB in this step. Even after it is initialized, a proxy does not turn into the real object; it passes the calls it receives on to the real object.');
   },
   assume: 'All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity\'s field and getters are provided, and on a single persistence context. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.',
