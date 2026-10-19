@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>예외와 finally: 예외가 나면 어느 블록이 어떤 순서로 실행되나 · 개발 학습 실습실</title>
-<meta name="description" content="try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.">
+<meta name="description" content="try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다(System.exit()로 JVM 자체를 끝내면 실행되지 않습니다). return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/exflow/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/exflow/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/exflow/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="예외와 finally: 예외가 나면 어느 블록이 어떤 순서로 실행되나 · 개발 학습 실습실">
-<meta property="og:description" content="try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.">
+<meta property="og:description" content="try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다(System.exit()로 JVM 자체를 끝내면 실행되지 않습니다). return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/exflow/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 예외</p>
 <h1>예외와 finally</h1>
 <p><b>예외가 나면 어느 블록이 어떤 순서로 실행되나</b></p>
-<p>try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.</p>
+<p>try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다(System.exit()로 JVM 자체를 끝내면 실행되지 않습니다). return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.</p>
 <p>실행으로 대조 · JDK 21에서 32가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -60,7 +60,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다. 락 해제나 자원 정리를 finally에 두는 이유입니다.</li>
+<li>finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다(System.exit()로 JVM을 끝내는 경우는 제외). 락 해제나 자원 정리를 finally에 두는 이유입니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>int run() {
@@ -77,7 +77,7 @@
     return 2;
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>32가지 조합 모두에서 화면의 코드 그대로(값이 true인 fail 필드와 print, Resource만 더함)를 이 PC의 JDK 21에서 컴파일하고 실행해, 출력 순서와 최종 결과를 대조했습니다(verify/plain/exflow_code_check.js). 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.</p>
+<p>32가지 조합 모두에서 화면의 코드 그대로(값이 true인 fail 필드와 print, Resource만 더함)를 검증 실행(JDK 21)에서 컴파일하고 실행해, 출력 순서와 최종 결과를 대조했습니다(verify/plain/exflow_code_check.js). 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.</p>
 <p>앞 실습: <a href="../../lab/optional/">Optional</a> · 다음 실습: <a href="../../lab/chkex/">체크 예외와 언체크 예외</a></p>
   </div>
 
@@ -165,6 +165,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

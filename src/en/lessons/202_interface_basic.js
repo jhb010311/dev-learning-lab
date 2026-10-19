@@ -1,7 +1,7 @@
 Lab.register({
   id: 'interface_basic', nav: 'Interfaces', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['absint'],
   title: 'What does an interface look like in code, and what does it decide?',
-  intro: 'An interface is a contract that you declare with interface. It says, for example, "anything of type Payable must have a pay method", and it writes only the name of the method, with no body. A class declares with implements Payable that it will follow the contract, and it actually writes the pay method that the contract names. Then you can put an object of that class in a variable of type Payable. In this lab you remove the interface declaration, implements, and the pay method one at a time, and the same code is compiled and run each time. You see what the compiler reports and what is printed.',
+  intro: 'An interface is a contract that you declare with interface. This lab uses the example names Payable (an interface), Card (a class), and pay (a method). It says, for example, "anything of type Payable must have a pay method", and it writes only the name of the method, with no body. A class declares with implements Payable that it will follow the contract, and it actually writes the pay method that the contract names. Then a variable of type Payable can point to an object of that class. In this lab you remove the interface declaration, implements, and the pay method one at a time, and the same code is compiled and run each time. You see what the compiler reports and what is printed.',
   terms: ['Interface', 'implements', 'Abstract method', 'Type'],
   controls: [
     { id: 'decl', label: 'The interface Payable declaration is there', type: 'check', value: true },
@@ -18,7 +18,7 @@ Lab.register({
   ],
   // The kinds of error the compiler reports (from the real javac diagnostic codes)
   errType: 'The type Payable cannot be found',
-  errFit: 'Card is not of type Payable, so it cannot be put in',
+  errFit: 'Card is not of type Payable, so a Payable variable cannot point to it',
   errMiss: 'Card did not write the pay method',
   code: function (c) {
     var o = [];
@@ -27,7 +27,7 @@ Lab.register({
     o.push('class Card' + (c.impl ? ' implements Payable' : '') + ' {');
     if (c.method === 'body') o.push('    // Actually writes the method that the contract names', '    public void pay() {', '        System.out.println("paid by card");', '    }');
     else if (c.method === 'empty') o.push('    // Actually writes the method that the contract names', '    public void pay() { }');
-    o.push('}', '', 'public class Main {', '    public static void main(String[] args) {', '        // Put a Card object in a variable of type Payable', '        Payable p = new Card();', '        p.pay();', '    }', '}');
+    o.push('}', '', 'public class Main {', '    public static void main(String[] args) {', '        // Make the variable p of type Payable point to a Card object', '        Payable p = new Card();', '        p.pay();', '    }', '}');
     return o.join('\n');
   },
   label: function (c) { return (c.decl ? 'Payable declared' : 'No Payable declaration') + ' · ' + (c.impl ? 'With implements' : 'Without implements') + ' · ' + { body: 'pay has a body', empty: 'pay body is empty', none: 'No pay' }[c.method]; },
@@ -89,19 +89,19 @@ Lab.register({
     st.hot = 'pv';
     if (ok) {
       st.fit = 'ok';
-      st.checks.push(['Putting a Card object in a Payable variable', { v: 'Allowed', cls: 'good' }]);
-      push('The compiler checks the line Payable p = new Card();. Card agreed to the contract with implements Payable, so it is fine to put a Card object in the variable p of type Payable. This is not running. It is the compiler checking in advance whether it is allowed.', 'good');
+      st.checks.push(['Making a Payable variable point to a Card object', { v: 'Allowed', cls: 'good' }]);
+      push('The compiler checks the line Payable p = new Card();. Card agreed to the contract with implements Payable, so it is fine for the variable p of type Payable to point to a Card object. This is not running. It is the compiler checking in advance whether it is allowed.', 'good');
     } else if (c.decl && c.impl) {
       st.fit = 'ok';
-      st.checks.push(['Putting a Card object in a Payable variable', { v: 'Not an error', cls: '' }]);
+      st.checks.push(['Making a Payable variable point to a Card object', { v: 'Not an error', cls: '' }]);
       push('The compiler checks the line Payable p = new Card();. Card wrote implements Payable, so this line by itself is not an error (the only error javac reported is the 1 above). But compilation fails because of the earlier error.', '');
     } else if (c.decl) {
       st.fit = 'bad'; st.bad.pv = true; fail(errFit);
-      st.checks.push(['Putting a Card object in a Payable variable', { v: 'Not allowed: error', cls: 'bad' }]);
-      push('The compiler checks the line Payable p = new Card();. Card has no implements Payable, so it is not of type Payable, and you cannot put a Card object in the variable p of type Payable (javac: incompatible types: Card cannot be converted to Payable).' + (c.method !== 'none' ? ' It is the same even though Card has the same pay method. Having a method does not make it that type.' : ' There is no separate error saying that the pay method is missing. Without implements, there is no contract to follow.'), 'bad');
+      st.checks.push(['Making a Payable variable point to a Card object', { v: 'Not allowed: error', cls: 'bad' }]);
+      push('The compiler checks the line Payable p = new Card();. Card has no implements Payable, so it is not of type Payable, and the variable p of type Payable cannot point to a Card object (javac: incompatible types: Card cannot be converted to Payable).' + (c.method !== 'none' ? ' It is the same even though Card has the same pay method. Having a method does not make it that type.' : ' There is no separate error saying that the pay method is missing. Without implements, there is no contract to follow.'), 'bad');
     } else {
       st.bad.pv = true; fail(errType);
-      st.checks.push(['Putting a Card object in a Payable variable', { v: 'Error: the type Payable cannot be found', cls: 'bad' }]);
+      st.checks.push(['Making a Payable variable point to a Card object', { v: 'Error: the type Payable cannot be found', cls: 'bad' }]);
       push('The compiler checks the line Payable p = new Card();. It cannot find the Payable that is written as the type of the variable p, so ' + (c.impl ? 'the same error occurs once more. javac reported 2 errors in all.' : 'there is an error (javac: cannot find symbol). Even if the Card class has no problem, a name that is not declared cannot be used as a type.'), 'bad');
     }
 
@@ -121,17 +121,17 @@ Lab.register({
     var out = '';
     if (ok) {
       st.hot = 'ob'; st.obj = true;
-      push('You run it with java Main. main starts, and new Card() creates a Card object and puts it in the variable p of type Payable.', '');
+      push('You run it with java Main. main starts, and new Card() creates a Card object, and the variable p of type Payable points to it.', '');
       st.hot = 'ob'; st.ran = true; out = c.method === 'body' ? 'paid by card' : '';
       st.out = out;
       st.checks.push(['Output when run', { v: out || '(nothing printed)', cls: 'good' }]);
-      push('p.pay() runs. The object held in p is a Card object, so the pay method written in Card runs.' + (c.method === 'body' ? ' The println in the body prints "paid by card".' : ' The body is empty, so it ends without printing anything. There is no error.'), 'good');
+      push('p.pay() runs. The object p points to is a Card object, so the pay method written in Card runs.' + (c.method === 'body' ? ' The println in the body prints "paid by card".' : ' The body is empty, so it ends without printing anything. There is no error.'), 'good');
     }
 
     // Summary: the first line is the answer to this setting (question)
     if (ok && c.method === 'body') {
       sum.push('An interface is a contract that you declare with interface: "anything of this type must have this method". It writes only the name of the method and no body. The interface Payable declaration creates the type named Payable, and Card declares with implements Payable that it will follow the contract and then actually writes the pay method.');
-      sum.push('So you could put a Card object in the variable p of type Payable, and p.pay() ran the pay of Card. Whether the contract was followed was not checked at run time. The compiler checked it while compiling.');
+      sum.push('So the variable p of type Payable could point to a Card object, and p.pay() ran the pay of Card. Whether the contract was followed was not checked at run time. The compiler checked it while compiling.');
     } else if (ok) {
       sum.push('Even if the body is empty, the pay method is written, so the contract is followed. Compilation succeeded, and nothing was printed when it ran.');
       sum.push('The contract goes only as far as "a method with this name must exist", and what it does inside is not in the contract. The compiler checked whether the pay method exists, and it did not report an error because the body is empty.');
@@ -139,7 +139,7 @@ Lab.register({
       sum.push('Without the interface Payable declaration, there is no type named Payable. The compiler reported that the type named Payable cannot be found, so compilation failed and it could not run.');
       sum.push('The Payable type is created by the interface declaration. The errors were at ' + (c.impl ? 'two places, the implements Payable line and the Payable p line.' : 'one place, the Payable p line. The Card class had no problem.'));
     } else if (!c.impl) {
-      sum.push('If you remove implements Payable, Card is not of type Payable, so you cannot put a Card object in a variable of type Payable. Compilation failed, so it could not run.' + (c.method !== 'none' ? ' It was the same even though the pay method was still there.' : ''));
+      sum.push('If you remove implements Payable, Card is not of type Payable, so a variable of type Payable cannot point to a Card object. Compilation failed, so it could not run.' + (c.method !== 'none' ? ' It was the same even though the pay method was still there.' : ''));
       sum.push('Having the methods does not make it that type. The compiler accepts Card as type Payable only when there is an implements declaration that it will follow the contract.');
     } else {
       sum.push('Card did not write the pay method, so compilation failed. If you agree to a contract with implements Payable, you must actually write the method that the contract names.');
@@ -168,5 +168,5 @@ Lab.register({
     P.box('r1', 14, 232, 652, 52, { cls: s && s.compile === 'ok' ? 'good' : s && s.compile === 'err' ? 'bad' : 'ghost', title: 'Compile', right: s && s.compile ? (s.compile === 'ok' ? 'Success' : 'Error') : '', sub: s && s.errText ? s.errText : '' });
     P.box('r2', 14, 292, 652, 36, { cls: s && s.ran ? 'good' : s && s.compile === 'err' ? 'bad' : 'ghost', title: 'Output when run', right: s && s.ran ? (s.out || '(nothing printed)') : s && s.compile === 'err' ? 'Cannot run' : '' });
   },
-  assume: 'The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.resolve, cant.resolve.location, prob.found.req, and does.not.override.abstract, shown on the screen as the three error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that an interface method that ends with a semicolon and has no body is an abstract method and is public follows section 9.4. The rule that a class that is not abstract must implement all the abstract methods of the interfaces it implements follows sections 8.1.5 and 8.1.1.1. The rule that if the method body is a block and not a semicolon the method is an implementation, and that the block may be empty, follows section 8.4.7 and the example (alert() { }) in section 8.1.1.1. The rule that interfaces and classes are both reference types and that an interface a class implements is a supertype of the class follows sections 4.3 and 4.10.2. The rule that a value of a subtype can be put in a variable of its supertype follows sections 5.1.5 and 5.2. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When there are several errors, javac reports all of them, but the table shows only the first. Even when compilation failed, some class files such as Card were created, but the Main class file was never created, so the table says it cannot run. An interface can also have default methods, static methods, and constants, and one class can implement several interfaces, but this lab did not cover them. How interfaces are used and how they differ from abstract classes are covered in "In-depth lab: Interfaces and abstract classes".',
+  assume: 'The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.resolve, cant.resolve.location, prob.found.req, and does.not.override.abstract, shown on the screen as the three error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that an interface method that ends with a semicolon and has no body is an abstract method and is public follows section 9.4. The rule that a class that is not abstract must implement all the abstract methods of the interfaces it implements follows sections 8.1.5 and 8.1.1.1. The rule that if the method body is a block and not a semicolon the method is an implementation, and that the block may be empty, follows section 8.4.7 and the example (alert() { }) in section 8.1.1.1. The rule that interfaces and classes are both reference types and that an interface a class implements is a supertype of the class follows sections 4.3 and 4.10.2. The rule that a variable of a supertype can refer to an object of its subtype follows sections 5.1.5 and 5.2. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When there are several errors, javac reports all of them, but the table shows only the first. Even when compilation failed, some class files such as Card were created, but the Main class file was never created, so the table says it cannot run. An interface can also have default methods, static methods, and constants, and one class can implement several interfaces, but this lab did not cover them. How interfaces are used and how they differ from abstract classes are covered in "In-depth lab: Interfaces and abstract classes".',
 });

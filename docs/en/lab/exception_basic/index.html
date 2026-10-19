@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <li>Execution reaches the try { line. The lines inside try run from the top as usual. try tells Java in advance, &quot;if an exception occurs in here, pass it to the catch below.&quot; If no exception occurs, the code runs the same as if try were not there.</li>
 <li>The line System.out.println(a / b); runs. To print, println must first calculate a / b inside the parentheses. At the moment it tries to calculate 10 / 0, Java (the JVM) sees that an integer cannot be divided by 0, creates an exception object called ArithmeticException, and throws it. When an exception is thrown, Java stops what it was doing right there, so println, which has no value to print, does not run.</li>
 <li>Java looks for a place that catches this exception. The exception occurred inside try, so it looks at the catch attached to this try. catch (ArithmeticException e) says it catches the ArithmeticException kind, and the exception that was thrown is an ArithmeticException, so the kind matches.</li>
-<li>Execution jumps into catch. The thrown exception object is stored in variable e, and the line System.out.println(&quot;Cannot divide by zero&quot;); inside catch runs and prints that text.</li>
+<li>Execution jumps into catch. Variable e now refers to the thrown exception object, and the line System.out.println(&quot;Cannot divide by zero&quot;); inside catch runs and prints that text.</li>
 <li>When the lines inside catch finish, the exception counts as handled. The program does not stop. It continues with the lines below the try-catch, and the line System.out.println(&quot;Done&quot;); prints &quot;Done&quot;. The last line of main has run, so the program ends.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

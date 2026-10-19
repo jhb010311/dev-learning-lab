@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Repositories</h1>
 <p><b>What is a repository, and who creates the implementation?</b></p>
-<p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is a method that JpaRepository itself inherits from a parent interface, so it is inherited here too. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
+<p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt; (MemberRepository and Member are names made up for this example, and JpaRepository is an interface provided by Spring Data JPA), Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in CrudRepository, a parent interface of JpaRepository, and MemberRepository inherits it through JpaRepository. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
 <p>Checked against real execution · Compiled all 6 combinations on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2, started Spring for real, and checked the implementation objects and the SQL that was sent against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,13 +69,14 @@
 <li>save is a method inherited from JpaRepository, and findByName is a SELECT that Spring made by reading the naming rule (findBy + field name). All we wrote was the interface declaration, with no implementation class and no SQL.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Requirement: Spring creates the implementation for you (you do not write an implementation class)
+<pre>// Only declare it. You do not write an implementation class; Spring creates the implementation object
 public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
     // Spring reads the naming rule (findBy + field name) and creates the query
     List&lt;Member&gt; findByName(String name);
 }
 
 // Calling side
+// Only the lines inside the main method are kept (the lines that start Spring and get memberRepository are omitted).
 memberRepository.save(new Member(1L, &quot;Alice&quot;));
 List&lt;Member&gt; found = memberRepository.findByName(&quot;Alice&quot;);
 System.out.println(found.size());</pre>
@@ -168,6 +169,6 @@ System.out.println(found.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

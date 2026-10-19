@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>서킷 브레이커: 죽은 서비스를 계속 부르면 나까지 죽는다 · 개발 학습 실습실</title>
-<meta name="description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
+<meta name="description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패율이 정해 둔 값(임계치) 이상이 되면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="서킷 브레이커: 죽은 서비스를 계속 부르면 나까지 죽는다 · 개발 학습 실습실">
-<meta property="og:description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
+<meta property="og:description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패율이 정해 둔 값(임계치) 이상이 되면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
 <h1>서킷 브레이커</h1>
 <p><b>죽은 서비스를 계속 부르면 나까지 죽는다</b></p>
-<p>주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.</p>
+<p>주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패율이 정해 둔 값(임계치) 이상이 되면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.</p>
 <p>실행으로 대조 · Resilience4j 2.4.0에 27가지 조합의 호출 순서를 넣어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -71,14 +71,14 @@
 <li>17초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
 <li>18초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
 <li>19초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
-<li>20초: 차단한 지 5초가 지났습니다. 회복됐는지 확인하려고 호출을 몇 번만 시험 삼아 통과시킵니다(HALF_OPEN). 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 1/3.</li>
+<li>20초: 차단한 지 5초가 지난 뒤 처음 온 호출입니다. 이 호출이 오면서 HALF_OPEN으로 바뀝니다(Resilience4j의 기본 설정에서는 시간이 지났다고 저절로 바뀌지 않습니다). 회복됐는지 확인하려고 이 호출부터 몇 번만 시험 삼아 통과시킵니다. 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 1/3.</li>
 <li>21초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 2/3.</li>
 <li>22초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 3번의 실패율이 100%로 임계치 이상입니다. 아직 회복되지 않았다고 보고 다시 차단합니다(OPEN).</li>
 <li>23초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
 <li>24초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
 <li>25초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
 <li>26초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
-<li>27초: 차단한 지 5초가 지났습니다. 회복됐는지 확인하려고 호출을 몇 번만 시험 삼아 통과시킵니다(HALF_OPEN). 결제 서비스 호출 성공. 시험 호출 1/3.</li>
+<li>27초: 차단한 지 5초가 지난 뒤 처음 온 호출입니다. 이 호출이 오면서 HALF_OPEN으로 바뀝니다(Resilience4j의 기본 설정에서는 시간이 지났다고 저절로 바뀌지 않습니다). 회복됐는지 확인하려고 이 호출부터 몇 번만 시험 삼아 통과시킵니다. 결제 서비스 호출 성공. 시험 호출 1/3.</li>
 <li>28초: 결제 서비스 호출 성공. 시험 호출 2/3.</li>
 <li>29초: 결제 서비스 호출 성공. 시험 호출 3번의 실패율이 0%로 임계치보다 낮습니다. 회복됐다고 보고 정상 상태로 돌아갑니다(CLOSED).</li>
 <li>30초: 결제 서비스 호출 성공.</li>
@@ -116,7 +116,7 @@ PaymentResult payLater(Order order, Throwable t) {
     return PaymentResult.pending();      // 호출이 실패하거나 차단됐을 때 대신 실행
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>호출 횟수 기준 슬라이딩 윈도(최근 10번)를 쓰는 Resilience4j의 동작을 따랐습니다. 서킷 브레이커를 쓰는 27가지 조합 모두를 실제 Resilience4j 2.4.0 서킷 브레이커에 같은 호출 순서로 넣어(시계를 1초씩 돌리는 방식), 성공·실패·차단 횟수와 상태 전환 순서가 화면과 일치하는 것을 확인했습니다. 한 가지 차이가 있습니다. Resilience4j는 차단 시간이 완전히 지난 뒤의 호출부터 시험 호출로 통과시키므로, 호출이 차단 시간과 정확히 같은 시각에 맞물리면 그 호출까지는 차단됩니다. 화면은 호출이 그 시각보다 아주 조금 뒤에 온다고 본 결과입니다. 실패율이 임계치 이상이면 열리고, 정해진 시간 뒤 시험 호출 3번의 결과로 닫을지 다시 열지 정합니다. 호출은 1초에 한 번, 장애 중인 서비스는 항상 3초 타임아웃으로 실패한다고 단순화했습니다. 실제로는 느린 응답 비율도 기준으로 삼을 수 있고, 시간 기준 윈도도 있습니다.</p>
+<p>호출 횟수 기준 슬라이딩 윈도(최근 10번)를 쓰는 Resilience4j의 동작을 따랐습니다. 서킷 브레이커를 쓰는 27가지 조합 모두를 실제 Resilience4j 2.4.0 서킷 브레이커에 같은 호출 순서로 넣어(시계를 1초씩 돌리는 방식), 성공·실패·차단 횟수와 상태 전환 순서가 화면과 일치하는 것을 확인했습니다. 한 가지 차이가 있습니다. Resilience4j는 차단 시간이 완전히 지난 뒤의 호출부터 시험 호출로 통과시키므로, 호출이 차단 시간과 정확히 같은 시각에 맞물리면 그 호출까지는 차단됩니다. 화면은 호출이 그 시각보다 아주 조금 뒤에 온다고 본 결과입니다. 또 Resilience4j의 기본 설정(automaticTransitionFromOpenToHalfOpenEnabled가 false)에서는 차단 시간이 지나도 상태가 저절로 HALF_OPEN이 되지 않고, 그 뒤 처음 온 호출 때 바뀝니다. 이 실습은 호출이 1초마다 오므로 차단 시간이 지난 직후의 호출에서 바뀝니다. 이 값을 true로 바꾸면 호출이 없어도 시간이 되면 바뀝니다. 실패율이 임계치 이상이면 열리고, 정해진 시간 뒤 시험 호출 3번의 결과로 닫을지 다시 열지 정합니다. 호출은 1초에 한 번, 장애 중인 서비스는 항상 3초 타임아웃으로 실패한다고 단순화했습니다. 실제로는 느린 응답 비율도 기준으로 삼을 수 있고, 시간 기준 윈도도 있습니다.</p>
 <p>앞 실습: <a href="../../lab/kafka/">Kafka 파티션과 컨슈머</a> · 다음 실습: <a href="../../lab/saga/">Saga와 Outbox</a></p>
   </div>
 
@@ -204,6 +204,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -64,7 +64,7 @@ Lab.register({
     for (var i = 1; i <= c.c; i++) { var mine = st.parts.filter(function (p) { return p.own === i; }), alive = st.cons.indexOf(i) >= 0;
       if (!alive) H.lane(ln, '컨슈머 ' + i, '죽음', 'bad');
       else if (!mine.length) H.lane(ln, '컨슈머 ' + i, '맡은 파티션 없음 (대기)', 'none');
-      else { var inflow = mine.length * c.r / c.p; H.lane(ln, '컨슈머 ' + i, '파티션 ' + mine.map(function (p) { return p.id; }).join(', ') + ' 담당 · 유입 ' + Math.round(inflow) + '건 / 처리 능력 ' + c.k + '건', inflow > c.k ? 'bad' : '', show ? Math.min(1, inflow / c.k) : undefined); } }
+      else { var inflow = mine.length * c.r / c.p; H.lane(ln, '컨슈머 ' + i, '파티션 ' + mine.map(function (p) { return p.id; }).join(', ') + ' 담당' + (show ? ' · 유입 ' + Math.round(inflow) + '건 / 처리 능력 ' + c.k + '건' : ''), show && inflow > c.k ? 'bad' : '', show ? Math.min(1, inflow / c.k) : undefined); } }
     if (s.note) H.text(v, s.note);
   },
   // 그림: 왼쪽에 토픽의 파티션, 오른쪽에 컨슈머 그룹. 화살표는 "이 파티션을 이 컨슈머가 맡는다"는 뜻.
@@ -80,7 +80,7 @@ Lab.register({
     });
     for (var j = 1; j <= c.c; j++) {
       var alive = st.cons.indexOf(j) >= 0, mine = st.parts.filter(function (p) { return p.own === j; }), load = mine.length * c.r / c.p;
-      P.box('cs' + j, 442, 52 + (j - 1) * 42, 210, 34, { cls: s && !alive ? 'bad' : !mine.length ? 'ghost' : load > c.k ? 'hot' : 'good', title: '컨슈머 ' + j, right: s && !alive ? '죽음' : !mine.length ? '맡은 파티션 없음' : stage >= 2 ? '초당 ' + c.k + '건 처리' : mine.length + '개 담당' });
+      P.box('cs' + j, 442, 52 + (j - 1) * 42, 210, 34, { cls: s && !alive ? 'bad' : !mine.length ? 'ghost' : stage < 2 ? 'wait' : load > c.k ? 'hot' : 'good', title: '컨슈머 ' + j, right: s && !alive ? '죽음' : !mine.length ? '맡은 파티션 없음' : stage >= 2 ? '초당 ' + c.k + '건 처리' : mine.length + '개 담당' });
     }
     P.note('화살표는 파티션을 맡은 컨슈머를 가리킵니다. 파티션 하나는 한 컨슈머만 맡으므로, 파티션보다 컨슈머가 많으면 남는 컨슈머(점선)는 할 일이 없습니다. 노란 컨슈머는 들어오는 양이 처리 능력보다 많아 밀리고 있습니다.');
   },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Server restart</dt>
 <dd>A server restart is ending a running server process and running the same server program again to create a new process. The code the ended process held disappears with it, and the new process reads in the source file from the beginning when it starts. So a restart is a way of bringing the code that is on the disk at that moment into the server. Until it is stopped and started again, no process accepts connections, so a request that arrives in between fails with a connection refused error. If you restart without editing the source file, the server only reads the same code again.</dd>
 <dt>Code loaded at startup</dt>
-<dd>The server of this lab (Node.js) reads in the source file when the process starts, and after that it runs on the code it holds inside itself. The Node.js documentation explains that a module loaded with require is cached after it is first loaded, and that calling the same module several times does not run the module code several times. However, the server.js of this lab is not a module loaded with require but a start file run directly with the node command, so this documentation does not decide the behavior of server.js. On Node.js 24.18.0 on the PC used to write this lab, even when I waited 0.5s after starting the server and editing the file, the code held by the live process stayed the same, and a server that was not started again answered requests with the old code. The file on the disk and the code inside the process are in different places.</dd>
+<dd>The server of this lab (Node.js) reads in the source file when the process starts, and after that it runs on the code it holds inside itself. The Node.js documentation explains that a module loaded with require is cached after it is first loaded, and that calling the same module several times does not run the module code several times. However, the server.js of this lab is not a module loaded with require but a start file run directly with the node command, so this documentation does not decide the behavior of server.js. On Node.js 24.18.0 in our test environment, even when I waited 0.5s after starting the server and editing the file, the code held by the live process stayed the same, and a server that was not started again answered requests with the old code. The file on the disk and the code inside the process are in different places.</dd>
 <dt>Connection refused error</dt>
 <dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
 </dl>
@@ -160,6 +160,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

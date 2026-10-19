@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,6 +77,8 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             .requestMatchers(&quot;/cart&quot;).permitAll()      // the cart can be used before login
             .anyRequest().authenticated())
         .formLogin(Customizer.withDefaults())          // log in with POST /login
+        // CSRF protection is not turned off (default: on), so POST /cart, /login, and /logout
+        // must also send the _csrf value from the login page. Without it the request is not processed and is redirected to the login page (302).
         .sessionManagement(s -&gt; s
             .sessionFixation(f -&gt; f.none()))          // leave the session as it is on login (protection off)
         .build();
@@ -96,7 +98,7 @@ String add(@RequestParam String item, HttpSession session) {
 // Response header when the server sends down a session ID (Spring Boot default settings)
 // Set-Cookie: JSESSIONID=aaa111; Path=/; HttpOnly</pre>
 <h2>Assumptions of this model</h2>
-<p>All 12 combinations were checked against real execution on the PC used to write this lab. A Spring Boot 4.1.1 and Spring Security 7.1.1 server was started on 127.0.0.1 and run with the same settings as on the screen. The checks were: whether the JSESSIONID that the server sends down changes before and after form login, whether the cart filled before login survives, and whether the response to a request that carries an ID another person knows in its cookie (200 with the body kim, or 302 with /login) matches the screen. Here the &quot;attacker&quot; and the &quot;victim&quot; are requests from the same test program that differ only in the session ID put in the cookie, and no real browser was used. How an attacker plants a session ID in the victim's browser, and how the ID of a logged-in session is learned, were not run; only the result that this happened is assumed. That a script cannot read an HttpOnly cookie was checked with a real browser in the &quot;Cookies&quot; lab. The real session ID was 32 characters long (checked on this server) and is generated randomly so that it cannot be guessed. The aaa111 and bbb222 on the screen are shortened to make them easy to read. That the Set-Cookie attributes of the session ID the server sends down are &quot;Path=/; HttpOnly&quot;, and that Secure is added when you set server.servlet.session.cookie.secure=true, were also checked on this server. Even when the behavior at login was specified explicitly as changeSessionId or migrateSession, the result seen from outside was the same as the default. A session is created when the login page is first opened because the CSRF token placed on that page is kept in the session. That a session disappears when the session timeout passes was not checked by execution. The reference is the explanation of session fixation protection in the Session Management chapter of the Spring Security documentation (Servlet Applications, Authentication). Sharing sessions when there are several servers is covered in the &quot;Sessions and JWT&quot; lab.</p>
+<p>All 12 combinations were checked against a real test run. A Spring Boot 4.1.1 and Spring Security 7.1.1 server was started on 127.0.0.1 and run with the same settings as on the screen. CSRF protection was left on, and every POST request also sent the CSRF token (_csrf) from the login page. It was also confirmed that a POST /cart or POST /login sent without the token is not processed and is redirected with 302 to the login page. The checks were: whether the JSESSIONID that the server sends down changes before and after form login, whether the cart filled before login survives, and whether the response to a request that carries an ID another person knows in its cookie (200 with the body kim, or 302 with /login) matches the screen. Here the &quot;attacker&quot; and the &quot;victim&quot; are requests from the same test program that differ only in the session ID put in the cookie, and no real browser was used. How an attacker plants a session ID in the victim's browser, and how the ID of a logged-in session is learned, were not run; only the result that this happened is assumed. That a script cannot read an HttpOnly cookie was checked with a real browser in the &quot;Cookies&quot; lab. The real session ID was 32 characters long (checked on this server) and is generated randomly so that it cannot be guessed. The aaa111 and bbb222 on the screen are shortened to make them easy to read. That the Set-Cookie attributes of the session ID the server sends down are &quot;Path=/; HttpOnly&quot;, and that Secure is added when you set server.servlet.session.cookie.secure=true, were also checked on this server. Even when the behavior at login was specified explicitly as changeSessionId or migrateSession, the result seen from outside was the same as the default. A session is created when the login page is first opened because the CSRF token placed on that page is kept in the session. That a session disappears when the session timeout passes was not checked by execution. The reference is the explanation of session fixation protection in the Session Management chapter of the Spring Security documentation (Servlet Applications, Authentication). Sharing sessions when there are several servers is covered in the &quot;Sessions and JWT&quot; lab.</p>
 <p>Previous lab: <a href="../../lab/oauth/">OAuth login flow</a> · Next lab: <a href="../../lab/security/">Security filter chain</a></p>
   </div>
 
@@ -184,6 +186,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

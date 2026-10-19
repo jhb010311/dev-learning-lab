@@ -2,7 +2,7 @@
 // 대조: 결과 표 세 열, 객체가 만들어진 순서(모형의 order와 실제 생성자 호출 순서),
 //       단계 문장이 기대는 사실들(스캔이 찾은 클래스, 컨텍스트를 만드는 줄에서 모두 만들어짐, 의존 대상 기록, 예외의 종류와 자리 등),
 //       그리고 화면의 코드(code 함수)가 Probe가 컴파일한 소스(verify/out/di_basic/<조합>/src/app)와 같은 글인지
-//       (Probe 소스에만 있는 "// PROBE" 줄은 객체 생성과 측정을 위해 더한 것이므로 빼고, package와 import 줄도 뺀다)
+//       (Probe 소스에만 있는 "// PROBE" 줄은 객체 생성과 측정을 위해 더한 것이므로 뺀다. 화면은 파일마다 "// 파일: app/<이름>.java" 줄을 앞에 둔다)
 const fs = require('fs'), path = require('path');
 const { load } = require('../model_rows.js');
 const lesson = load('di_basic');
@@ -33,7 +33,7 @@ for (const ln of lines.slice(1)) {
   // 화면의 코드와 Probe가 컴파일한 소스
   const dir = path.join(__dirname, '..', 'out', 'di_basic', how + '-' + dep, 'src', 'app');
   const raw = ['PayService', 'OrderService', 'Main'].map(nm => fs.readFileSync(path.join(dir, nm + '.java'), 'utf8').replace(/\r\n/g, '\n'));
-  const parts = raw.map(t => { const a = t.trimEnd().split('\n'); const i = a.findIndex(l => /^(@|public class)/.test(l)); return a.slice(i).filter(l => !l.endsWith('// PROBE')).join('\n'); });
+  const parts = raw.map((t, n) => '// 파일: app/' + ['PayService', 'OrderService', 'Main'][n] + '.java\n' + t.trimEnd().split('\n').filter(l => !l.endsWith('// PROBE')).join('\n'));
   const probeLines = raw.map(t => t.split('\n').filter(l => l.endsWith('// PROBE')).length);
   if (JSON.stringify(probeLines) !== '[1,1,2]') probs.push('세는 줄 수 ' + probeLines.join(','));
   if (parts.join('\n\n') !== lesson.code({ how, dep })) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');

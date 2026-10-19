@@ -24,7 +24,7 @@ public class AopBasicProbe {
     static String source(boolean aspect, boolean bean) {
         List<String> l = new ArrayList<>();
         if (aspect) {
-            l.add("// 끼워 넣는 일: OrderService의 order()를 부를 때마다 실행된다");
+            l.add("// 끼워 넣는 일: 스프링이 보관한 OrderService 빈의 order()를 부를 때마다 실행된다");
             l.add("@Aspect");
             l.add("@Component");
             l.add("class LogAspect {");
@@ -45,7 +45,7 @@ public class AopBasicProbe {
         l.add("@Component");
         l.add("class Caller {");
         if (bean) {
-            l.add("    // 스프링이 만들어 둔 빈을 찾아 넣어 준다");
+            l.add("    // 스프링이 만들어 둔 빈을 찾아, 이 칸이 그 빈을 가리키게 한다");
             l.add("    @Autowired");
             l.add("    OrderService orderService;");
         } else {

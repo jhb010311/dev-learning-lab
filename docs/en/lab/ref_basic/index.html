@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>References: What does it mean to store an object in a variable? · Dev Learning Lab</title>
-<meta name="description" content="In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference.…">
+<meta name="description" content="Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="References: What does it mean to store an object in a variable? · Dev Learning Lab">
-<meta property="og:description" content="In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference.…">
+<meta property="og:description" content="Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>References</h1>
 <p><b>What does it mean to store an object in a variable?</b></p>
-<p>In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.</p>
+<p>Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.</p>
 <p>Checked against real execution · Four combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -46,7 +46,7 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — b holds the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.</li>
+<li><b>Default settings</b> — b refers to the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.</li>
 <li><b>Store new Card() in b</b> — One more new object is created, and a and b refer to different objects. Changing b leaves a unchanged.</li>
 <li><b>Create, then only copy the value</b> — Even if you copy the text of owner over, there are 2 objects. The contents were the same at first, but they are different objects.</li>
 <li><b>Use int</b> — A variable of a primitive type holds the value itself, so assigning copies the value. Changing b leaves a unchanged.</li>
@@ -75,7 +75,7 @@ public class Main {
     public static void main(String[] args) {
         Card a = new Card();
         a.owner = &quot;Alice&quot;;
-        // b holds the very object that a refers to. No new object is created
+        // the reference in a is copied to b, so b refers to that same object. No new object is created
         Card b = a;
         b.owner = &quot;Bob&quot;;
         System.out.println(a.owner);
@@ -171,6 +171,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

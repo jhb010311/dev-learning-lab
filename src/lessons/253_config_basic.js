@@ -1,7 +1,7 @@
 Lab.register({
   id: 'config_basic', nav: '설정 파일', cat: '기초개념', mode: 'step', basic: true, deep: ['config', 'autoconf'],
   title: '설정 파일은 무엇이고, 코드에 적는 것과 무엇이 다른가',
-  intro: '설정 파일은 코드와 따로 둔 글 파일입니다. 스프링 부트에서는 application.properties라는 이름이고, 안에는 "이름=값" 줄을 적습니다(shop.name=kim-shop). 포트 번호나 접속 주소처럼 환경마다 달라지는 값을 코드에 직접 적으면 값이 바뀔 때마다 코드를 고쳐 다시 컴파일해야 하므로, 값은 이 파일에 두고 코드는 이름만 적습니다. 코드에서 값이 필요한 필드 위에 @Value("${이름}") 줄을 적으면, 스프링이 객체를 만들 때 설정 파일에서 그 이름의 값을 찾아 필드에 넣어 줍니다. ${이름:기본값} 꼴로 : 뒤에 기본값을 적어 두면 설정에 그 이름이 없을 때 그 값을 씁니다. 이 실습은 설정 파일의 shop.name 줄을 바꾸거나 지우고, @Value에 기본값을 붙이거나 떼면서 java 명령으로 프로그램을 실행해, name 필드에 어떤 값이 들어오는지, 프로그램이 제대로 시작하는지를 봅니다.',
+  intro: '설정 파일은 코드와 따로 둔 글 파일입니다. 스프링 부트에서는 application.properties라는 이름이고, 안에는 "이름=값" 줄을 적습니다(shop.name=kim-shop). 포트 번호나 접속 주소처럼 환경마다 달라지는 값을 코드에 직접 적으면 값이 바뀔 때마다 코드를 고쳐 다시 컴파일해야 하므로, 값은 이 파일에 두고 코드는 이름만 적습니다. 코드에서 값이 필요한 필드 위에 @Value("${이름}") 줄을 적으면, 스프링이 객체를 만들 때 설정 파일에서 그 이름의 값을 찾아 필드에 넣어 줍니다. ${이름:기본값} 꼴로 : 뒤에 기본값을 적어 두면 설정에 그 이름이 없을 때 그 값을 씁니다. 이 실습은 설정 파일의 shop.name 줄을 바꾸거나 지우고, @Value에 기본값을 붙이거나 떼면서 java 명령으로 프로그램을 실행해, name 필드에 어떤 값이 들어오는지, 프로그램이 제대로 시작하는지를 봅니다. (ShopInfo, App, shop.name은 이 실습에서 예시로 지은 이름입니다.)',
   terms: ['application.properties', '@Value', '${...} 자리 표시자', '외부화 설정과 프로파일'],
   controls: [
     { id: 'prop', label: 'application.properties의 shop.name 줄', type: 'select', value: 'kim', options: [['kim', 'shop.name=kim-shop'], ['lee', 'shop.name=lee-shop'], ['none', '그 줄을 지운다']] },
@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '설정 파일의 shop.name=kim-shop 줄에 적힌 값은 어떻게 name 필드로 들어오고, 실행하면 무슨 일이 일어나나', d: '설정 파일에 이름과 값이 있고 코드는 이름만 적습니다. 스프링이 객체를 만들 때 name에 kim-shop 값을 넣어 줍니다.', v: { prop: 'kim', def: false } },
     { t: '설정 파일의 값을 바꾸면', q: '설정 파일의 shop.name=kim-shop 줄을 shop.name=lee-shop 줄로 바꾸면', d: '파일의 한 줄만 고쳤고 코드는 그대로입니다. name에 lee-shop 값이 들어옵니다.', v: { prop: 'lee', def: false } },
-    { t: '그 줄을 지우면', q: '설정 파일에서 shop.name 줄을 지우면', d: '찾을 값이 없어 스프링이 시작하다 멈춥니다. 화면에 찍히는 글이 없습니다.', v: { prop: 'none', def: false } },
+    { t: '그 줄을 지우면', q: '설정 파일에서 shop.name 줄을 지우면', d: '찾을 값이 없어 스프링이 시작하다 멈춥니다. println이 찍는 글이 없습니다.', v: { prop: 'none', def: false } },
     { t: '줄은 지웠지만 기본값을 적으면', q: '설정 파일에서 shop.name 줄은 지웠지만 @Value 줄에 기본값을 적어 두면(${shop.name:no-name})', d: '설정에 이름이 없으니 no-name 기본값을 씁니다. 오류 없이 시작합니다.', v: { prop: 'none', def: true } },
     { t: '기본값도 있고 설정 파일에도 값이 있으면', q: '@Value 줄에 기본값을 적고(${shop.name:no-name}), 설정 파일에도 shop.name=kim-shop 줄이 있으면', d: '설정 파일에 이름이 있으면 그 값을 쓰고 기본값은 쓰이지 않습니다.', v: { prop: 'kim', def: true } },
   ],
@@ -59,10 +59,10 @@ Lab.register({
     }
     if (fail) {
       st.phase = 'end'; st.exit = 1;
-      push('예외가 SpringApplication.run 줄 안에서 일어났고, 이 예외를 받는 코드가 없습니다. 그래서 main 메서드는 다음 줄인 ctx.getBean 줄과 System.out.println 줄에 가지 못하고 예외로 끝나며, java 프로세스가 오류로 끝납니다(종료 코드 1). 화면에 찍힌 글은 없습니다.', 'bad');
+      push('예외가 SpringApplication.run 줄 안에서 일어났고, 이 예외를 받는 코드가 없습니다. 그래서 main 메서드는 다음 줄인 ctx.getBean 줄과 System.out.println 줄에 가지 못하고 예외로 끝나며, java 프로세스가 오류로 끝납니다(종료 코드 1). println이 찍은 글은 없고, 예외의 내용(스택 트레이스)은 표준 오류로 출력됩니다.', 'bad');
     } else {
       st.phase = 'get';
-      push('SpringApplication.run 줄이 끝나고 main 메서드가 다음 줄로 갑니다. ctx.getBean 줄이 스프링이 만들어 보관해 둔 ShopInfo 객체를 꺼내 info에 담습니다. 이 객체의 name에는 이미 ' + st.name + ' 값이 들어 있습니다.', '');
+      push('SpringApplication.run 줄이 끝나고 main 메서드가 다음 줄로 갑니다. ctx.getBean 줄이 스프링이 만들어 보관해 둔 ShopInfo 객체를 꺼내고, 변수 info가 그 객체를 가리킵니다. 이 객체의 name 필드 값은 이미 ' + st.name + '입니다.', '');
       st.phase = 'print'; st.out = st.name;
       push('System.out.println(info.name) 줄이 name에 들어 있는 글을 화면에 찍습니다. 화면에 ' + st.name + ' 한 줄이 찍힙니다.', 'good');
       st.phase = 'end'; st.exit = 0;
@@ -82,7 +82,7 @@ Lab.register({
       sum.push('설정 파일에 shop.name 줄이 없어도 @Value에 no-name 기본값을 적어 두었으므로 오류 없이 시작했고, name에 no-name 값이 들어왔습니다.');
       sum.push('기본값을 적어 두면 설정이 빠져도 프로그램이 멈추지 않습니다. 기본값을 적지 않으면 설정이 빠졌을 때 시작 단계에서 바로 알 수 있습니다.');
     } else {
-      sum.push('설정 파일에서 shop.name 줄을 지우고 @Value에 기본값도 적지 않으면, 스프링이 name에 넣을 값을 정하지 못해 시작하다 멈춥니다. main 메서드는 println 줄에 가지 못해 화면에 찍힌 글이 없고, 프로세스가 오류로 끝납니다.');
+      sum.push('설정 파일에서 shop.name 줄을 지우고 @Value에 기본값도 적지 않으면, 스프링이 name에 넣을 값을 정하지 못해 시작하다 멈춥니다. main 메서드는 println 줄에 가지 못해 println이 찍은 글이 없고, 프로세스가 오류로 끝납니다.');
       sum.push('이 오류는 객체를 만드는 순간, 곧 프로그램이 시작할 때 납니다. 값이 필요한 줄을 실행하고 나서야 알게 되는 것이 아니라, 설정이 빠졌다는 것을 시작하자마자 알려 줍니다.');
     }
     var nameCol = fail ? '들어오지 못함' : st.name, errCol = fail ? "shop.name 값을 찾을 수 없음 (Could not resolve placeholder 'shop.name')" : '없음';
@@ -100,7 +100,7 @@ Lab.register({
       { cls: '', cells: ['application.properties', fileTxt] },
       { cls: s.read ? '' : 'gone', cells: ['스프링의 설정 목록', { v: listTxt, cls: s.read && s.file ? 'good' : '' }] },
       { cls: s.made || s.bad ? '' : 'gone', cells: ['ShopInfo의 name', { v: nameTxt, cls: s.bad ? 'bad' : s.name !== null ? 'good' : '' }] },
-      { cls: s.out !== null ? '' : 'gone', cells: ['화면에 찍힌 글', { v: s.out !== null ? s.out : '없음', cls: s.out !== null ? 'good' : '' }] },
+      { cls: s.out !== null ? '' : 'gone', cells: ['println이 찍은 글', { v: s.out !== null ? s.out : '없음', cls: s.out !== null ? 'good' : '' }] },
       { cls: '', cells: ['java 프로세스', { v: pTxt, cls: s.exit === 1 ? 'bad' : s.exit === 0 ? 'good' : '' }] },
     ], 'java 프로세스와 설정 파일');
   },
@@ -114,15 +114,15 @@ Lab.register({
     P.box('mn', 250, 36, 416, 44, { cls: end ? (s.exit === 0 ? 'plain' : 'bad') : s ? 'hot now' : 'ghost', title: 'App의 main 메서드', sub: mnSub });
     P.box('pf', 2, 112, 188, 92, { cls: ph === 'read' ? 'hot now' : s ? 'plain' : 'ghost', title: 'application.properties', sub: [s && s.file ? 'shop.name=' + s.file : s ? '이름=값 줄 없음' : ' '] });
     var spSub = !s || !s.read ? [' '] : s.file ? ['설정 목록', 'shop.name = ' + s.file] : ['설정 목록은 비어 있음'];
-    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? 'good now' : 'good') : 'ghost', title: '스프링', sub: spSub });
+    P.box('sp', 250, 112, 170, 92, { cls: s && s.bad ? 'bad' : s && s.read ? (ph === 'read' || ph === 'make' || ph === 'value' ? (s.file ? 'good now' : 'hot now') : (s.file ? 'good' : 'plain')) : 'ghost', title: '스프링', sub: spSub });
     var siSub = !s ? [' '] : s.name !== null ? ['name = ' + s.name] : s.bad ? ['만들다 멈춤'] : ph === 'make' || ph === 'value' ? ['만드는 중'] : ['아직 없음'];
     P.box('si', 468, 112, 190, 92, { cls: s && s.bad ? 'bad' : s && s.name !== null ? (ph === 'value' ? 'good now' : 'good') : 'ghost', title: 'ShopInfo 객체', sub: siSub });
     if (s && ph === 'read') P.arrow('rd', 'pf:r:0.5', 'sp:l:0.5', { cls: 'hot', label: '읽음' });
     if (s && ph === 'make') P.arrow('mk', 'sp:r:0.35', 'si:l:0.35', { cls: 'hot' });
     if (s && ph === 'value') P.arrow('vl', 'sp:r:0.65', 'si:l:0.65', { cls: s.bad ? 'bad' : 'good' });
     var prog = !s ? '아직 없음' : s.exit === 0 ? '끝까지 실행됨' : s.exit === 1 ? '시작하다 멈춤' : '실행 중';
-    P.box('n1', 14, 236, 322, 36, { cls: s && s.out !== null ? 'good' : s && s.exit === 1 ? 'bad' : 'ghost', title: '화면에 찍힌 글', right: s && s.out !== null ? s.out : s && s.exit === 1 ? '없음' : '아직 없음' });
+    P.box('n1', 14, 236, 322, 36, { cls: s && s.out !== null ? 'good' : s && s.exit === 1 ? 'bad' : 'ghost', title: 'println이 찍은 글', right: s && s.out !== null ? s.out : s && s.exit === 1 ? '없음' : '아직 없음' });
     P.box('n2', 344, 236, 322, 36, { cls: s && s.exit === 0 ? 'good' : s && s.exit === 1 ? 'bad' : 'ghost', title: '프로그램', right: prog });
   },
-  assume: '스프링 부트 4.1.1(스프링 프레임워크 7.0.9)을 JDK 21.0.12.1에서 실행한 결과입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 구조의 소스(패키지 app의 ShopInfo와 App, 그리고 클래스 파일과 같은 폴더에 둔 application.properties)를 컴파일하고 java 명령으로 app.App의 main 메서드부터 새 프로세스로 실행해 대조했습니다. 대조한 것은 결과 표의 세 항목입니다. name에 들어온 값은 프로세스가 표준 출력에 찍은 글로, 시작 성공 여부는 종료 코드(0과 1)와 표준 출력으로, 오류는 표준 오류에 나온 예외의 이름과 메시지로 정했습니다. 설정 파일을 지운 조합에서는 파일에서 shop.name 줄과 바로 위 설명 줄만 지우고 맨 위의 # application.properties 줄은 남겼습니다. 단계 문장이 기대는 사실도 실행으로 확인했습니다. 설정 파일을 둔 조합에서 스프링이 클래스패스의 application.properties를 설정 출처로 읽고(Config resource class path resource [application.properties]) 그 안의 shop.name 값이 스프링의 Environment에 들어 있는 것, SpringApplication.run이 끝났을 때 ShopInfo 객체가 이미 만들어져 name 필드에 값이 들어 있는 것, 우리 소스에 new ShopInfo()나 name에 값을 넣는 줄이 없는 것, shop.name 줄이 없고 기본값도 없을 때 예외(BeanCreationException, 원인은 PlaceholderResolutionException의 Could not resolve placeholder \'shop.name\' in value "${shop.name}")가 SpringApplication.run 줄에서 나와 main이 다음 줄에 가지 못하고 종료 코드 1로 끝나며 표준 출력에 아무것도 찍히지 않는 것, 같은 컴파일 결과(ShopInfo.class 파일과 App.class 파일의 해시가 같음)에서 application.properties만 kim-shop에서 lee-shop으로 고쳐 다시 실행하면 컴파일 없이 lee-shop이 나오는 것입니다. shop.name 줄을 지우고 기본값을 적은 조합에서는 파일에 이름=값 줄이 하나도 없어 스프링의 설정 출처 목록에 application.properties가 오르지 않는 것을 관찰했습니다. 단계 문장은 그 사실을 "설정 목록에 shop.name 이름이 없다"까지만 말합니다. 클래스패스는 라이브러리 폴더 전체가 아니라 spring-boot-starter가 들여오는 21개 jar만 줬고(스프링 부트 기초개념 실습과 같은 목록, 웹 라이브러리 없음), 자식 프로세스의 작업 폴더는 빈 임시 폴더로 했습니다(스프링 부트는 작업 폴더의 application.properties와 config 폴더도 읽기 때문입니다). 환경 변수 중 SPRING_과 SHOP_으로 시작하는 것은 자식 프로세스에서 뺐습니다. 문서가 정한 것은 스프링 부트 문서 Externalized Configuration 절(application.properties를 시작할 때 클래스패스 맨 위, 클래스패스의 /config 패키지, 현재 폴더, 현재 폴더의 config 폴더에서 찾아 읽는다는 것, 같은 코드를 환경마다 다르게 쓰려고 설정을 코드 밖에 둔다는 것, ${이름:기본값}에서 : 뒤가 기본값이라는 것)과 스프링 프레임워크 문서 Using @Value 절(@Value("${...}")로 외부 설정값을 넣는다는 것, 기본값 문법, 스프링 부트가 application.properties의 값을 읽는 PropertySourcesPlaceholderConfigurer를 기본으로 등록한다는 것, 이 설정자가 있으면 ${} 자리를 풀지 못할 때 초기화가 실패한다는 것)입니다. 스프링 프레임워크만 쓰고 이 설정자를 두지 않으면 풀지 못한 ${shop.name} 글자가 값으로 그대로 들어간다고 문서에 적혀 있지만, 이 실습은 스프링 부트에서만 실행했습니다. 값이 없을 때 BeanCreationException과 PlaceholderResolutionException이 나온다는 것은 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, ShopInfo와 App이 같은 패키지에 있다고 가정했습니다. 두 클래스는 실제로는 파일이 따로이고, application.properties도 보통은 src/main/resources에 두며 빌드가 클래스 파일 옆으로 복사합니다(여기서는 직접 그 폴더에 두었습니다). 이 실습이 다루지 않는 것은 application.yml, 여러 곳에 같은 이름이 있을 때의 우선순위, 환경 변수와 실행 인자로 값을 바꾸는 것, 프로파일별 파일, @ConfigurationProperties입니다. 우선순위는 "세부 동작 실습: 설정 우선순위"에서, 설정을 보고 스프링 부트가 알아서 빈을 만드는 일은 "세부 동작 실습: 스프링 부트 자동 설정"에서 다룹니다.',
+  assume: '스프링 부트 4.1.1(스프링 프레임워크 7.0.9)을 JDK 21.0.12.1에서 실행한 결과입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 구조의 소스(패키지 app의 ShopInfo와 App, 그리고 클래스 파일과 같은 폴더에 둔 application.properties)를 컴파일하고 java 명령으로 app.App의 main 메서드부터 새 프로세스로 실행해 대조했습니다. 대조한 것은 결과 표의 세 항목입니다. name에 들어온 값은 프로세스가 표준 출력에 찍은 글로, 시작 성공 여부는 종료 코드(0과 1)와 표준 출력으로, 오류는 표준 오류에 나온 예외의 이름과 메시지로 정했습니다. 대조 실행에는 스프링 부트의 로그와 배너를 끄는 실행 인자(--logging.level.root=OFF, --spring.main.banner-mode=off)를 주었습니다. 그래서 결과 표와 그림의 "println이 찍은 글"은 System.out.println이 표준 출력에 찍은 글만 뜻합니다. 이 인자 없이 실행하면 화면에 스프링 부트의 배너와 로그 줄도 함께 나오며, 그 경우는 대조하지 않았습니다. 값을 찾지 못한 조합에서는 표준 출력이 비어 있었고, 표준 오류에 예외의 스택 트레이스(36줄)가 나왔습니다. 설정 파일을 지운 조합에서는 파일에서 shop.name 줄과 바로 위 설명 줄만 지우고 맨 위의 # application.properties 줄은 남겼습니다. 단계 문장이 기대는 사실도 실행으로 확인했습니다. 설정 파일을 둔 조합에서 스프링이 클래스패스의 application.properties를 설정 출처로 읽고(Config resource class path resource [application.properties]) 그 안의 shop.name 값이 스프링의 Environment에 들어 있는 것, SpringApplication.run이 끝났을 때 ShopInfo 객체가 이미 만들어져 name 필드에 값이 들어 있는 것, 우리 소스에 new ShopInfo()나 name에 값을 넣는 줄이 없는 것, shop.name 줄이 없고 기본값도 없을 때 예외(BeanCreationException, 원인은 PlaceholderResolutionException의 Could not resolve placeholder \'shop.name\' in value "${shop.name}")가 SpringApplication.run 줄에서 나와 main이 다음 줄에 가지 못하고 종료 코드 1로 끝나며 표준 출력에 아무것도 찍히지 않는 것, 같은 컴파일 결과(ShopInfo.class 파일과 App.class 파일의 해시가 같음)에서 application.properties만 kim-shop에서 lee-shop으로 고쳐 다시 실행하면 컴파일 없이 lee-shop이 나오는 것입니다. shop.name 줄을 지우고 기본값을 적은 조합에서는 파일에 이름=값 줄이 하나도 없어 스프링의 설정 출처 목록에 application.properties가 오르지 않는 것을 관찰했습니다. 단계 문장은 그 사실을 "설정 목록에 shop.name 이름이 없다"까지만 말합니다. 클래스패스는 라이브러리 폴더 전체가 아니라 spring-boot-starter가 들여오는 21개 jar만 줬고(스프링 부트 기초개념 실습과 같은 목록, 웹 라이브러리 없음), 자식 프로세스의 작업 폴더는 빈 임시 폴더로 했습니다(스프링 부트는 작업 폴더의 application.properties와 config 폴더도 읽기 때문입니다). 환경 변수 중 SPRING_과 SHOP_으로 시작하는 것은 자식 프로세스에서 뺐습니다. 문서가 정한 것은 스프링 부트 문서 Externalized Configuration 절(application.properties를 시작할 때 클래스패스 맨 위, 클래스패스의 /config 패키지, 현재 폴더, 현재 폴더의 config 폴더에서 찾아 읽는다는 것, 같은 코드를 환경마다 다르게 쓰려고 설정을 코드 밖에 둔다는 것, ${이름:기본값}에서 : 뒤가 기본값이라는 것)과 스프링 프레임워크 문서 Using @Value 절(@Value("${...}")로 외부 설정값을 넣는다는 것, 기본값 문법, 스프링 부트가 application.properties의 값을 읽는 PropertySourcesPlaceholderConfigurer를 기본으로 등록한다는 것, 이 설정자가 있으면 ${} 자리를 풀지 못할 때 초기화가 실패한다는 것)입니다. 스프링 프레임워크만 쓰고 이 설정자를 두지 않으면 풀지 못한 ${shop.name} 글자가 값으로 그대로 들어간다고 문서에 적혀 있지만, 이 실습은 스프링 부트에서만 실행했습니다. 값이 없을 때 BeanCreationException과 PlaceholderResolutionException이 나온다는 것은 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, ShopInfo와 App이 같은 패키지에 있다고 가정했습니다. 두 클래스는 실제로는 파일이 따로이고, application.properties도 보통은 src/main/resources에 두며 빌드가 클래스 파일 옆으로 복사합니다(여기서는 직접 그 폴더에 두었습니다). 이 실습이 다루지 않는 것은 application.yml, 여러 곳에 같은 이름이 있을 때의 우선순위, 환경 변수와 실행 인자로 값을 바꾸는 것, 프로파일별 파일, @ConfigurationProperties입니다. 우선순위는 "세부 동작 실습: 설정 우선순위"에서, 설정을 보고 스프링 부트가 알아서 빈을 만드는 일은 "세부 동작 실습: 스프링 부트 자동 설정"에서 다룹니다.',
 });

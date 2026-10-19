@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ System.out.println(ints.getClass() == strs.getClass());
 Integer last = ints.get(ints.size() - 1);
 System.out.println(&quot;마지막 값: &quot; + last);</pre>
 <h2>이 모형의 전제</h2>
-<p>스무 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드를 main 메서드 안에 넣은 소스로 실제로 컴파일하고(javac -Xlint:unchecked), 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄과 메시지, 경고 메시지, 출력, 예외의 종류와 예외가 난 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만, 정체 모를 타입은 CAP#1)으로 적었습니다. 화면의 코드에는 import java.util.ArrayList, import java.util.List와 main 메서드의 선언이 생략되어 있습니다. -Xlint:unchecked 없이 컴파일하면 경고의 자세한 내용 대신 &quot;uses unchecked or unsafe operations&quot;라는 안내만 나옵니다. ? extends로 선언한 리스트에도 null은 넣을 수 있지만 모형에서는 다루지 않았습니다. 타입 소거가 일어나도 필드나 메서드의 선언에 적힌 제네릭 정보는 class 파일에 남아 리플렉션으로 읽을 수 있습니다. 지워지는 것은 실행 중인 객체가 가진 정보입니다.</p>
+<p>스무 가지 조합 모두를 검증 환경의 JDK 21에서 화면의 코드를 main 메서드 안에 넣은 소스로 실제로 컴파일하고(javac -Xlint:unchecked), 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄과 메시지, 경고 메시지, 출력, 예외의 종류와 예외가 난 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만, 정체 모를 타입은 CAP#1)으로 적었습니다. 화면의 코드에는 import java.util.ArrayList, import java.util.List와 main 메서드의 선언이 생략되어 있습니다. -Xlint:unchecked 없이 컴파일하면 경고의 자세한 내용 대신 &quot;uses unchecked or unsafe operations&quot;라는 안내만 나옵니다. ? extends로 선언한 리스트에도 null은 넣을 수 있지만 모형에서는 다루지 않았습니다. 타입 소거가 일어나도 필드나 메서드의 선언에 적힌 제네릭 정보는 class 파일에 남아 리플렉션으로 읽을 수 있습니다. 지워지는 것은 실행 중인 객체가 가진 정보입니다.</p>
 <p>앞 실습: <a href="../../lab/chkex/">체크 예외와 언체크 예외</a> · 다음 실습: <a href="../../lab/enumtype/">열거형(enum)</a></p>
   </div>
 
@@ -172,6 +172,6 @@ System.out.println(&quot;마지막 값: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

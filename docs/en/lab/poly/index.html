@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Polymorphism and method selection: Who decides which method runs, and when? · Dev Learning Lab</title>
-<meta name="description" content="The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking…">
+<meta name="description" content="The declared type of a variable and the type of the object that it actually refers to can be different. An overridden method is chosen at run time by look…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/poly/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/poly/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/poly/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Polymorphism and method selection: Who decides which method runs, and when? · Dev Learning Lab">
-<meta property="og:description" content="The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking…">
+<meta property="og:description" content="The declared type of a variable and the type of the object that it actually refers to can be different. An overridden method is chosen at run time by look…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/poly/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Polymorphism and method selection</h1>
 <p><b>Who decides which method runs, and when?</b></p>
-<p>The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.</p>
+<p>The declared type of a variable and the type of the object that it actually refers to can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.</p>
 <p>Checked against real execution · Every combination was compiled and run on JDK 21 and checked against the result</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -82,10 +82,14 @@ class Printer {
     void print(Dog x)    { System.out.println(&quot;print(Dog)&quot;); }
 }
 
-Animal a = new Dog();
-a.sound();</pre>
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound();
+    }
+}</pre>
 <h2>Assumptions of this model</h2>
-<p>The output of every combination was checked against the result of actually compiling and running the same code on JDK 21 on this PC. Calling a static method through a variable, as in a.info(), is allowed by the syntax but is not a recommended practice, and it is included here to show that the call is decided by the declared type.</p>
+<p>The output of every combination was checked against the result of actually compiling and running the same code on JDK 21. Calling a static method through a variable, as in a.info(), is allowed by the syntax but is not a recommended practice, and it is included here to show that the call is decided by the declared type.</p>
 <p>Previous lab: <a href="../../lab/inherit/">Inheritance and overriding</a> · Next lab: <a href="../../lab/absint/">Interfaces and abstract classes</a></p>
   </div>
 
@@ -173,6 +177,6 @@ a.sound();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

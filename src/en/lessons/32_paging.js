@@ -38,13 +38,13 @@ Lab.register({
     } else {
       read = s; skip = 0;
       push('The post table has 1,000,000 posts, and a larger id means a newer post. The id of the last post seen on the previous page is remembered and used as the condition of the request.', '', { read: 0, skip: 0, out: 0 });
-      push(p > 1 ? 'The database goes straight to the first position where id < ' + num(firstId + 1) + ' in the id index (a B-tree), in a few steps. It does not read a single one of the earlier rows.' : 'The first page has no condition and reads from the newest post.', 'good', { read: 0, skip: 0, out: 0 });
+      push(p > 1 ? 'The database goes straight to the first position where id < ' + num(firstId + 1) + ' in the id index (a B-tree), in a few steps. It does not read a single one of the earlier rows.' : 'The first page has no condition and reads from the newest post.', 'good', { read: 0, skip: 0, out: 0, jump: p > 1 });
       push('From that position it reads ' + s + ' rows and returns them. The ids run from ' + num(firstId) + ' down to ' + num(firstId - s + 1) + '.', 'good', { read: s, skip: 0, out: s });
       sum.push('Whatever the page number, it reads only ' + s + ' rows. But you cannot jump straight to an arbitrary page such as "page 1,000". You can only move to the next or previous page. It is the method that suits infinite scroll or a "Load more" button.');
     }
     if (c.ins) {
-      if (c.how === 'offset') { effect = '1 post shown twice'; push('A new post was added before the user clicked the next page. The new post goes to the front of the newest-first list, and all the existing posts shift back by one place.', '', { read: read, skip: skip, out: s, shift: 1 }); push('The next page is requested with OFFSET ' + num(off + s) + '. Because everything shifted by one place, the last post of the page you just saw (id ' + num(firstId - s + 1) + ') appears again as the first line of the next page. Conversely, if a post is deleted, one post is skipped.', 'bad', { read: read, skip: skip, out: s, dup: firstId - s + 1 }); sum.push('OFFSET is based on a position ("the Nth from the front"), so if data is added or deleted in between, the same post is seen twice or a post is missed.'); }
-      else { effect = 'No effect'; push('A new post was added before the user clicked the next page.', '', { read: read, skip: 0, out: s, shift: 1 }); push('The next page is requested with the condition "id < ' + num(firstId - s + 1) + '". The reference is the id of a post, not a position, so even if a new post is inserted at the front, the posts to read next stay the same. There is no duplicate and nothing is missed.', 'good', { read: read, skip: 0, out: s }); sum.push('Keyset is based on a value ("after this post"), so the list does not shift even if the data changes in between.'); }
+      if (c.how === 'offset') { effect = '1 post shown twice'; push('A new post was added before the user clicked the next page. The new post goes to the front of the newest-first list, and all the existing posts shift back by one place.', '', { read: read, skip: skip, out: s, shift: 1 }); push('The next page (page ' + num(p + 1) + ') is requested with OFFSET ' + num(off + s) + ', one page further than OFFSET ' + num(off) + ' in the code box. Because everything shifted by one place, the last post of the page you just saw (id ' + num(firstId - s + 1) + ') appears again as the first line of the next page. Conversely, if a post is deleted, one post is skipped.', 'bad', { read: read, skip: skip, out: s, dup: firstId - s + 1 }); sum.push('OFFSET is based on a position ("the Nth from the front"), so if data is added or deleted in between, the same post is seen twice or a post is missed.'); }
+      else { effect = 'No effect'; push('A new post was added before the user clicked the next page.', '', { read: read, skip: 0, out: s, shift: 1 }); push('The next page (page ' + num(p + 1) + ') is requested with the condition "id < ' + num(firstId - s + 1) + '", based on the id of the last post seen on this page (' + num(firstId - s + 1) + '). The query in the code box fetched this page, and for the next page only the reference id changes to this value. The reference is the id of a post, not a position, so even if a new post is inserted at the front, the posts to read next stay the same. There is no duplicate and nothing is missed.', 'good', { read: read, skip: 0, out: s }); sum.push('Keyset is based on a value ("after this post"), so the list does not shift even if the data changes in between.'); }
     }
     return { events: ev, summary: sum, firstId: firstId, row: [num(read), num(skip), String(s), effect] };
   },
@@ -56,6 +56,26 @@ Lab.register({
     H.lane(ln, 'Used rows', 'Rows: ' + num(s.out), s.out ? 'good' : 'none', s.out ? Math.max(0.01, s.out / mx) : undefined);
     if (s.out) H.text(v, 'Posts on this page: id ' + num(sim.firstId) + ' to ' + num(sim.firstId - size + 1) + (s.dup ? ' · the post with id ' + num(s.dup) + ' appears again as the first line of the next page' : ''));
     if (s.shift) H.text(v, 'A new post (id 1,000,001) was added at the front of the list');
+  },
+  // Diagram: the front part of the id index (from the newest post to the end of this page) as a horizontal band. Red is rows read and discarded, green is rows returned, and dashed is the range not read. Widths are proportional to row counts.
+  draw: function (P, sim, shown) {
+    var c = sim.c, num = this.num, last = shown[shown.length - 1], s = last ? last.snap : { read: 0, skip: 0, out: 0 }, p = +c.page, size = +c.size, off = (p - 1) * size, mx = off + size, key = c.how === 'keyset';
+    var X = 28, W = 624, outW = Math.max(8, W * size / mx), outX = X + W - outW, jumped = key && p > 1 && (s.jump || s.out > 0);
+    P.size(680, 276);
+    P.region('ix', 16, 16, 648, 168, 'id index (newest post on the left, up to the end of this page)');
+    P.box('all', X, 68, W, 30, { cls: 'ghost' });
+    if (s.skip) P.box('skip', X, 68, outX - X, 30, { cls: 'bad' });
+    if (s.out) P.box('out', outX, 68, outW, 30, { cls: 'good' });
+    if (jumped) P.arrow('jump', [X, 62], [outX, 62], { cls: 'good', label: 'Found directly through the index' });
+    P.text('l0', X, 118, 'id ' + num(1000000) + ' (newest)', { cls: 'mut' });
+    P.text('l1', X + W, 118, 'id ' + num(sim.firstId - size + 1) + ' (end of this page)', { cls: 'mut', anchor: 'end' });
+    var say = !s.read && !jumped ? (key ? (p > 1 ? 'Requested with the id of the last post seen on the previous page' : 'First page, so requested with no condition') : 'Requested with OFFSET ' + num(off)) : key ? (p > 1 ? 'The first ' + num(off) + ' rows are not read' : 'First page, so it reads from the front') + (s.out ? ' · ' + num(s.out) + ' rows read and returned' : '') : (s.skip ? num(s.skip) + ' rows read and discarded' : 'No rows discarded') + (s.out ? ' · the next ' + num(s.out) + ' rows returned' : '');
+    P.text('say', X, 144, say, { cls: s.skip ? 'bad' : s.out ? 'good' : 'mut' });
+    if (s.shift || s.dup) P.text('sh', X, 168, s.dup ? 'New post id 1,000,001 went in at the front · id ' + num(s.dup) + ' shows again on the next page' : 'New post id 1,000,001 went in at the front', { cls: s.dup ? 'bad' : 'mut' });
+    P.box('n1', 16, 200, 210, 36, { cls: s.read ? 'wait' : 'ghost', title: 'Rows read', right: num(s.read) });
+    P.box('n2', 235, 200, 210, 36, { cls: s.skip ? 'bad' : 'ghost', title: 'Discarded', right: num(s.skip) });
+    P.box('n3', 454, 200, 210, 36, { cls: s.out ? 'good' : 'ghost', title: 'Rows returned', right: num(s.out) });
+    P.note('The band is the front part of the id index. Red is rows read and discarded, green is rows returned as the result, and dashed is the range not read. Widths are proportional to row counts (the returned rows are drawn wider when they would be too narrow to see).');
   },
   assume: 'It assumes that 1,000,000 posts are sorted by id and that id has an index (the primary key). That the rows skipped by OFFSET still have to be computed inside the server, so a large OFFSET might be inefficient, is the explanation in the PostgreSQL documentation (LIMIT and OFFSET). The same statement was not found in the MySQL documentation. If the sort key is not id but a column whose values can repeat, such as the creation time, the keyset condition must also include a column whose values do not repeat, as in (creation time, id). The numbers of rows are calculated values and were not measured on a real database. The content of the results was checked on a real SQL engine (SQLite). Both methods returned the same posts for the same page; after one new post was inserted, the first line of the next page with OFFSET was the last post of the previous page again, and with keyset the next post came.',
 });

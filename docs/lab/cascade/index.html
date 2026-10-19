@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,8 +60,8 @@
 <ol>
 <li>new Post, addComment 두 번: 게시글 객체 하나와 댓글 객체 둘을 만들고 서로 연결했습니다. 아직 JPA가 모르는 보통의 자바 객체입니다(비영속). DB에는 아무것도 없습니다.</li>
 <li>em.persist(post): 게시글이 영속성 컨텍스트의 관리를 받게 됩니다. 기본 키가 IDENTITY 전략이라 id를 받아 오려고 INSERT가 바로 나갑니다.</li>
-<li>cascade에 PERSIST가 없으므로 persist는 게시글에서 멈춥니다. 목록에 담겨 있는 댓글 둘은 여전히 JPA가 모르는 비영속 객체입니다.</li>
-<li>메서드 종료, 커밋: 예외 없이 커밋됩니다. comments는 mappedBy가 붙은 쪽이라 외래 키를 관리하지 않으므로, Hibernate는 이 목록에 저장되지 않은 객체가 들어 있어도 문제 삼지 않습니다. 댓글 INSERT는 끝내 나가지 않았습니다.</li>
+<li>cascade에 PERSIST가 없으므로 persist는 게시글에서 멈춥니다. 목록이 가리키는 댓글 둘은 여전히 JPA가 모르는 비영속 객체입니다.</li>
+<li>메서드 종료, 커밋: 예외 없이 커밋됩니다. comments는 mappedBy가 붙은 쪽이라 외래 키를 관리하지 않으므로, Hibernate는 이 목록이 저장되지 않은 객체를 가리켜도 문제 삼지 않습니다. 댓글 INSERT는 끝내 나가지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -76,6 +76,11 @@ class Post {
 
     @OneToMany(mappedBy = &quot;post&quot;)
     List&lt;Comment&gt; comments = new ArrayList&lt;&gt;();
+
+    protected Post() { }               // JPA가 엔티티를 만들 때 쓰는 기본 생성자
+    Post(String title) { this.title = title; }
+
+    public List&lt;Comment&gt; getComments() { return comments; }
 
     void addComment(String text) {     // 양쪽을 함께 맞춘다
         Comment c = new Comment(text);
@@ -92,6 +97,9 @@ class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     Post post;                         // 외래 키 post_id
+
+    protected Comment() { }
+    Comment(String text) { this.text = text; }
 }
 
 // 트랜잭션 안에서 실행
@@ -189,6 +197,6 @@ em.persist(post);                      // 게시글만 persist한다
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

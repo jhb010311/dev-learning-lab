@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Entity mapping</p>
 <h1>Value types and embeddable types</h1>
 <p><b>How is a class that groups an address stored in a table, and why make it immutable?</b></p>
-<p>Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id, and the values it holds are all there is to it, so it is called a value type. Unlike an entity, a value type is not stored on its own. It is stored along with the entity that holds it: a single value goes into columns of the table of that entity, and a collection of values goes into a separate table whose foreign key is the id of that entity. Here you see three scenes: what shape the table takes, what happens when two entities share the same Address object, and what SQL is sent when you change a collection that holds several value types.</p>
+<p>Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id, and the values it holds are all there is to it, so it is called a value type. Unlike an entity, a value type is not stored on its own. It is stored along with the entity that holds it: a single value goes into columns of the table of that entity, and a collection of values goes into a separate table whose foreign key is the id of that entity. Here you see three scenes: what shape the table takes, what happens when two entities share the same Address object, and what SQL is sent when you change a collection that holds several value types. Address and Member in this lab are classes made for this example.</p>
 <p>Checked against real execution · All 56 combinations were run on Hibernate 7.4.5 and H2, and the tables, the SQL that was sent, the values left, and the exception at startup were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -50,7 +50,7 @@
 <ul>
 <li><b>Default settings</b> — The city was changed only for Alice, but Bob's row is UPDATEd as well.</li>
 <li><b>Putting in a copy</b> — The objects are separate, so only Alice's row is UPDATEd.</li>
-<li><b>Making the value type immutable</b> — There is no setter, so there is no way to change the shared object.</li>
+<li><b>Making the value type immutable</b> — The fields are private and there is no setter, so code outside Address has no way to change the shared object.</li>
 <li><b>Table of an embeddable type</b> — No Address table is created. The fields become columns of the member table.</li>
 <li><b>Using the same value type twice</b> — The column names collide, so an exception is thrown at startup.</li>
 <li><b>Changing only one value in an element collection</b> — All the addresses of that member are deleted and inserted again.</li>
@@ -189,6 +189,6 @@ member1.getAddress().setCity(&quot;Denver&quot;);
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

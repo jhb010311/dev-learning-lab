@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,7 +69,9 @@
 <li>세션이 로그인한 서버 한 대의 메모리에만 있어서, 다른 서버로 간 요청은 로그인이 풀렸습니다. 서버를 여러 대로 늘리려면 같은 사용자를 항상 같은 서버로 보내거나(스티키 세션), 세션을 공용 저장소로 옮겨야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 로그인 성공 시
+<pre>// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)
+
+// 로그인 성공 시
 HttpSession session = request.getSession();
 session.setAttribute(&quot;memberId&quot;, member.getId());
 // 응답 헤더: Set-Cookie: JSESSIONID=abc123; HttpOnly
@@ -77,7 +79,7 @@ session.setAttribute(&quot;memberId&quot;, member.getId());
 // 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다
 HttpSession session = request.getSession(false);
 if (session == null) {
-    throw new UnauthorizedException();   // 401
+    throw new UnauthorizedException();   // 예시로 만든 예외 -&gt; 401
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다.</p>
@@ -168,6 +170,6 @@ if (session == null) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

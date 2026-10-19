@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 
 System.out.println(r);</pre>
 <h2>Assumptions of this model</h2>
-<p>The results of the 18 pieces of code (the type of the right-hand expression, the type of the variable, and the output or exception) were checked against the result of running the same code on JDK 21 on this PC. That int r = 3.99 is a compile-time error, and the message it gives, were also confirmed by actually giving the code to the compiler of the same JDK (the message is the one from the English version). The behavior of 7 / 0.0, (double) sum / count, &quot;Sum: &quot; + 1 + 2, n % 2 == 1, Math.round, and Math.addExact, which are mentioned in the summary, was also confirmed by running them. Some things are not covered. Calculations with float, char, and short, the rule that lets an integer constant within the range be stored directly in a narrower type, as in byte b = 100, the error that arises with large numbers when a long is converted to a double, and the error in floating-point calculations such as 0.1 + 0.2 are not included. An expression made only of numbers, such as 7 / 2, is actually evaluated in advance by the compiler, but the result is the same.</p>
+<p>The results of the 18 pieces of code (the type of the right-hand expression, the type of the variable, and the output or exception) were checked against the result of running the same code on JDK 21 in our test environment. That int r = 3.99 is a compile-time error, and the message it gives, were also confirmed by actually giving the code to the compiler of the same JDK (the message is the one from the English version). The behavior of 7 / 0.0, (double) sum / count, &quot;Sum: &quot; + 1 + 2, n % 2 == 1, Math.round, and Math.addExact, which are mentioned in the summary, was also confirmed by running them. Some things are not covered. Calculations with float, char, and short, the rule that lets an integer constant within the range be stored directly in a narrower type, as in byte b = 100, the error that arises with large numbers when a long is converted to a double, and the error in floating-point calculations such as 0.1 + 0.2 are not included. An expression made only of numbers, such as 7 / 2, is actually evaluated in advance by the compiler, but the result is the same.</p>
 <p>Previous lab: <a href="../../lab/vars/">Variables and types</a> · Next lab: <a href="../../lab/loops/">Conditionals and loops</a></p>
   </div>
 
@@ -158,6 +158,6 @@ System.out.println(r);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

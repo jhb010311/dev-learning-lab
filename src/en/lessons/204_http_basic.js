@@ -38,9 +38,9 @@ Lab.register({
     // Step 2: read the first line
     st.arr1 = true; st.lc = broken ? 'bad' : 'hot'; st.rdc = broken ? 'bad' : 'hot'; st.rdt = ['Reading first line'];
     if (broken) {
-      st.rdt = ['Not read as a request']; st.cdt = ['Not called']; st.resp = '400'; st.ran = 'No';
+      st.rdt = ['Not read as a request'];
       push('Node.js, which makes up the server, reads the first line. The text it read is "/hello". A request line must have three parts, a method, a path, and a version, but /hello comes where the method should be, so it cannot be read as a method. Node.js cannot read this text as a request.', 'bad');
-      st.rcv = true; st.done = true;
+      st.cdt = ['Not called']; st.resp = '400'; st.ran = 'No'; st.rcv = true; st.done = true;
       push('Node.js does not call the server code we wrote, and sends back a 400 response by itself.' + (!c.blank ? ' It does not wait even though the empty line has not arrived. This is because it can tell the first line is wrong from the first line alone.' : '') + (!c.host ? ' The missing Host line is also a problem, but 400 was already decided at the first line, before that is considered.' : ''), 'bad');
       push('The browser receives the 400 response. The text was not read as a request, so it did not reach the server code we wrote.', 'bad');
       sum.push('A first line with GET and HTTP/1.1 removed is not a request line, so the server (Node.js) cannot read this text as a request and answers 400.');

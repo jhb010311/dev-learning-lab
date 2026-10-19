@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -47,7 +47,7 @@
 <h2>Try these</h2>
 <ul>
 <li><b>Default settings</b> — A name asked for the first time. The resolver asks from the root server down, one server at a time, to find the answer.</li>
-<li><b>A name that was just asked for</b> — The answer is in this PC's cache, so no one is asked.</li>
+<li><b>A name that was just asked for</b> — The answer is in the PC's cache, so no one is asked.</li>
 <li><b>Record changed, but traffic still goes to the old address</b> — The TTL has not run out in the resolver's cache, so it gets the old value.</li>
 <li><b>After the TTL has passed</b> — It asks again and gets the new value. It does not start from the root server.</li>
 <li><b>A name that goes through a CNAME</b> — It finds the canonical name of the alias, and then looks up that name once more.</li>
@@ -55,17 +55,17 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The browser needs an IP address to connect to shop.example. What to look up is the A record (IPv4 address) of shop.example. First it looks at the cache of this PC (the place where the operating system and the browser remember answers they received earlier). It is a name asked for the first time, so there is nothing.</li>
-<li>This PC asks the recursive resolver. A recursive resolver is a DNS server that looks for the answer on your behalf. It is usually run by an internet provider or a company, and its address is in the network settings. The resolver also looks at its own cache first. There is nothing. The only thing the resolver knows from the start is the addresses of the root servers.</li>
+<li>The browser needs an IP address to connect to shop.example. What to look up is the A record (IPv4 address) of shop.example. First it looks at the cache of the PC (the place where the operating system and the browser remember answers they received earlier). It is a name asked for the first time, so there is nothing.</li>
+<li>The PC asks the recursive resolver. A recursive resolver is a DNS server that looks for the answer on your behalf. It is usually run by an internet provider or a company, and its address is in the network settings. The resolver also looks at its own cache first. There is nothing. The only thing the resolver knows from the start is the addresses of the root servers.</li>
 <li>Resolver → root server: The resolver sends the same question to the root server. The root server does not have the answer. Instead, it looks at the end of the name (.example) and gives the addresses of the servers responsible for names ending in .example (the TLD servers). A response like this, which tells the resolver which server to ask next, is a referral. Handing a part of the name space down to the servers below is called delegation.</li>
 <li>Resolver → .example server: It sends the same question again. This server does not have the answer either, and it gives the addresses of the name servers responsible for shop.example.</li>
 <li>Resolver → authoritative name server of shop.example: This is the server that holds the original records of this domain. It gives the answer: shop.example A 203.0.113.10, TTL 300s.</li>
-<li>The resolver puts the records it received in its own cache and returns the answer to this PC. For the next 300s, it answers anyone who asks the same thing from its cache. It also remembers the delegation information it learned on the way. This PC also puts the answer it received in its cache for the TTL.</li>
+<li>The resolver puts the records it received in its own cache and returns the answer to the PC. For the next 300s, it answers anyone who asks the same thing from its cache. It also remembers the delegation information it learned on the way. The PC also puts the answer it received in its cache for the TTL.</li>
 <li>The browser connects to the address it received (203.0.113.10).</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and the original answer is held by the authoritative name server of that domain. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.</li>
+<li>No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and the original answer is held by the authoritative name server of that domain. The PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.</li>
 <li>An A record connects a name to an IPv4 address. It is the most basic record.</li>
 </ul>
 <h2>Code</h2>
@@ -170,6 +170,6 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

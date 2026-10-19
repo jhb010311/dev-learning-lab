@@ -88,5 +88,5 @@ Lab.register({
     P.box('r2', 344, 232, 320, 36, { cls: s.set === '?' ? 'ghost' : s.set === '1' ? 'good' : c.same === 'same' ? 'bad' : 'plain', title: 'set의 크기', right: s.set === '?' ? '?' : s.set + '개' });
     P.note('자리(버킷)는 실제로는 번호가 붙은 배열의 칸입니다.');
   },
-  assume: '열두 가지 조합의 결과(equals, hashCode가 같은지, map.get, set의 크기)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. hashCode를 재정의하지 않은 두 객체의 값이 "다르다"는 것은 거의 항상 그렇다는 뜻입니다. Object의 hashCode는 서로 다른 객체에 같은 값을 줄 수도 있으며(그래도 규약에 어긋나지 않습니다), 그 경우에는 equals의 결과에 따라 찾을 수도 있습니다. HashMap은 같은 자리에 있더라도 hashCode 값이 다른 키와는 equals를 부르지 않고 넘어갑니다. record의 hashCode가 내는 구체적인 값은 명세가 정하지 않지만, equals가 같은 두 record의 hashCode가 같다는 것은 보장됩니다.',
+  assume: '열두 가지 조합의 결과(equals, hashCode가 같은지, map.get, set의 크기)를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. hashCode를 재정의하지 않은 두 객체의 값이 "다르다"는 것은 거의 항상 그렇다는 뜻입니다. Object의 hashCode는 서로 다른 객체에 같은 값을 줄 수도 있으며(그래도 규약에 어긋나지 않습니다), 그 경우에는 equals의 결과에 따라 찾을 수도 있습니다. HashMap은 같은 자리에 있더라도 hashCode 값이 다른 키와는 equals를 부르지 않고 넘어갑니다. record의 hashCode가 내는 구체적인 값은 명세가 정하지 않지만, equals가 같은 두 record의 hashCode가 같다는 것은 보장됩니다.',
 });

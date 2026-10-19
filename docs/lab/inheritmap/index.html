@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>new Book(1L, &quot;자바책&quot;, 20000, &quot;김저자&quot;): Book 객체 하나를 만듭니다. 부모 Item에게서 물려받은 id, name, price와 Book이 선언한 author가 한 객체 안에 함께 들어 있습니다.</li>
+<li>new Book(1L, &quot;자바책&quot;, 20000, &quot;김저자&quot;): Book 객체 하나를 만듭니다. 이 객체는 부모 Item에게서 물려받은 필드 id, name, price와 Book이 선언한 필드 author를 모두 가집니다. Item 객체가 따로 하나 더 만들어지지는 않습니다.</li>
 <li>em.persist(book): 영속성 컨텍스트에 보관합니다. id를 코드에서 직접 넣었으므로 DB에 물어볼 것이 없어서, INSERT는 바로 나가지 않고 커밋 때까지 미뤄집니다.</li>
 <li>트랜잭션 커밋, 첫 번째 INSERT: 조인 전략에서는 부모의 필드(id, name, price)가 부모 테이블 item에 들어갑니다. 먼저 item에 한 행을 넣습니다.</li>
 <li>두 번째 INSERT: Book만의 필드(author)는 자식 테이블 book에 들어갑니다. book의 id는 기본 키이면서 item의 id를 가리키는 외래 키입니다. 객체 하나를 저장하는 데 INSERT가 2번 나갔습니다.</li>
@@ -186,6 +186,6 @@ em.persist(book);
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

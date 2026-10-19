@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -91,7 +91,7 @@ public class SavingAccount extends Account {
 }
 </pre>
 <h2>이 모형의 전제</h2>
-<p>스물네 가지 조합을 이 PC의 JDK 21에서 패키지를 bank와 app으로 나눈 소스 파일로 실제로 컴파일해, 성공 여부와 오류 메시지를 대조했습니다(실행 결과가 아니라 컴파일 결과를 보는 실습입니다). &quot;판단한 이유&quot; 칸과 확인 순서는 자바 언어 명세의 접근 규칙을 풀어 쓴 설명이며, 컴파일러가 실제로 이 순서로 검사한다는 뜻은 아닙니다. 필드 대신 메서드에 같은 접근 제어자를 붙여 컴파일했을 때도 스물네 조합의 성공과 오류가 똑같았습니다(오류 메시지의 글귀는 일부 다릅니다). 다루지 않은 것: 클래스 자체의 접근 제어자, 생성자, static 멤버, 중첩 클래스, 모듈(module-info). protected의 &quot;자기 타입을 통해서만&quot; 조건은 static이 아닌 멤버에 대한 것입니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
+<p>스물네 가지 조합을 검증 환경의 JDK 21에서 패키지를 bank와 app으로 나눈 소스 파일로 실제로 컴파일해, 성공 여부와 오류 메시지를 대조했습니다(실행 결과가 아니라 컴파일 결과를 보는 실습입니다). &quot;판단한 이유&quot; 칸과 확인 순서는 자바 언어 명세의 접근 규칙을 풀어 쓴 설명이며, 컴파일러가 실제로 이 순서로 검사한다는 뜻은 아닙니다. 필드 대신 메서드에 같은 접근 제어자를 붙여 컴파일했을 때도 스물네 조합의 성공과 오류가 똑같았습니다(오류 메시지의 글귀는 일부 다릅니다). 다루지 않은 것: 클래스 자체의 접근 제어자, 생성자, static 멤버, 중첩 클래스, 모듈(module-info). protected의 &quot;자기 타입을 통해서만&quot; 조건은 static이 아닌 멤버에 대한 것입니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
 <p>앞 실습: <a href="../../lab/absint/">인터페이스와 추상 클래스</a> · 다음 실습: <a href="../../lab/inner/">내부 클래스와 익명 클래스</a></p>
   </div>
 
@@ -179,6 +179,6 @@ public class SavingAccount extends Account {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

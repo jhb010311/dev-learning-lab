@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,7 @@ System.out.println(order.compare(list.get(0), list.get(2)));   // park and kim
 list.sort(order);
 System.out.println(list);</pre>
 <h2>Assumptions of this model</h2>
-<p>The sorted result, the values returned by the two calls to compare, and whether the balance order is correct were checked for all 16 combinations against the result of running the same code on JDK 21 on this PC. Of the value that compare returns, the specification defines only the sign (negative, zero, or positive). Specific numbers such as the 1 and -1 of comparingInt and the 13 and 5 of the string comparison are the values that came out on JDK 21. When you supply a comparison that breaks the rules, such as a Comparator that compares by subtraction, the sorted result depends on the internal behavior of the sorting algorithm. The wrong order in this lab is the result that List.sort on JDK 21 produces with five elements. The documentation of List.sort says that an IllegalArgumentException may be thrown if the comparator is found to violate the Comparator contract (this case was not run). The sort makes many comparisons, but the screen shows only two of them, run separately.</p>
+<p>The sorted result, the values returned by the two calls to compare, and whether the balance order is correct were checked for all 16 combinations against the result of running the same code on JDK 21 in our test environment. Of the value that compare returns, the specification defines only the sign (negative, zero, or positive). Specific numbers such as the 1 and -1 of comparingInt and the 13 and 5 of the string comparison are the values that came out on JDK 21. When you supply a comparison that breaks the rules, such as a Comparator that compares by subtraction, the sorted result depends on the internal behavior of the sorting algorithm. The wrong order in this lab is the result that List.sort on JDK 21 produces with five elements. The documentation of List.sort says that an IllegalArgumentException may be thrown if the comparator is found to violate the Comparator contract (this case was not run). The sort makes many comparisons, but the screen shows only two of them, run separately.</p>
 <p>Previous lab: <a href="../../lab/cme/">Removing during iteration</a> · Next lab: <a href="../../lab/lambda/">Lambda expressions and functional interfaces</a></p>
   </div>
 
@@ -177,6 +177,6 @@ System.out.println(list);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

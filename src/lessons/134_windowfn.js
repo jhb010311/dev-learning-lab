@@ -72,7 +72,7 @@ Lab.register({
       else if (fn === 'sum') s = (r.i === 0 ? (restart ? '팀이 바뀌었으므로 누계를 처음부터 다시 셉니다. ' : 'ORDER BY가 있는 SUM은 줄의 첫 행부터 지금 행까지를 더합니다. ') : '') + (r.add.length === 1 ? '첫 행이므로 자기 점수 그대로 ' + r.v + '입니다.' : r.add.join(' + ') + ' = ' + r.v + '입니다.') + (r.tieNext ? ' 정렬 기준인 점수가 같은 다음 행까지 같은 자리로 보고 함께 더했습니다.' : r.tiePrev ? ' 앞 행과 동점이라 더하는 범위가 같고, 누계도 같습니다.' : '');
       else s = r.i === 0 ? (restart ? '팀이 바뀌어 이 팀의 첫 행입니다. 앞 행이 없으므로 NULL입니다.' : 'LAG(pts)는 줄에서 바로 앞에 있는 행의 pts를 가져옵니다. 첫 행은 앞 행이 없으므로 NULL입니다.') : '바로 앞 행 ' + r.prev.name + '의 점수인 ' + r.prev.pts + '점을 가져옵니다.';
       st.stage = 'row'; st.done = n + 1;
-      push(who + s, fn === 'rownum' && r.tiePrev ? 'bad' : fn === 'sum' && (r.tiePrev || r.tieNext) ? 'bad' : '');
+      push(who + s, '');   // 동점인 행도 SQL 정의대로 값이 붙은 정상 결과다(오류가 아니다)
     });
     st.stage = 'end';
     push('ORDER BY ' + (part ? 'team, ' : '') + 'pts DESC: 결과를 내보냅니다. 6행이 그대로 6행이고, 행마다 ' + f[1] + ' 컬럼의 값이 하나씩 붙었습니다.', 'good');
@@ -128,5 +128,5 @@ Lab.register({
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
     P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않아 모든 행이 한 줄로 이어집니다.'));
   },
-  assume: '스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 이 PC의 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.',
+  assume: '스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.',
 });

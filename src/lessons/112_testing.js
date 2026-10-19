@@ -1,7 +1,7 @@
 Lab.register({
   id: 'testing', nav: '테스트', cat: '스프링', mode: 'step',
   title: '테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나',
-  intro: '컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에 들어가는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.',
+  intro: '컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 관리하는 컨테이너)에 등록되는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. 예시로 만든 OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.',
   terms: ['단위 테스트와 통합 테스트', '테스트 대역(Mock, Stub)', '@SpringBootTest와 @WebMvcTest', '@MockitoBean', '테스트 컨텍스트 캐시'],
   controls: [
     { id: 'kind', label: '테스트 방식', type: 'select', value: 'webmvc', options: [['unit', '스프링 없이: new와 Mockito로 직접 만든다'], ['boot', '@SpringBootTest: 빈을 전부 띄운다'], ['webmvc', '@WebMvcTest(OrderController.class): 웹 계층만 띄운다']] },
@@ -220,12 +220,12 @@ Lab.register({
       else if (res[1] === DOWN) sum.push('두 번째 클래스는 설정이 달라서 컨텍스트 만들기를 한 번 더 시도했습니다. 하지만 OrderService 빈이 없기는 마찬가지라 똑같이 실패했습니다.');
       else sum.push('두 번째 클래스에는 @MockitoBean OrderService가 있어서 컨텍스트가 뜨고 테스트가 통과했습니다. 컨텍스트는 설정마다 따로 만들어지므로, 한 클래스의 기동 실패가 설정이 다른 클래스로 번지지 않습니다.');
     } else {
-      if (boot) sum.push('@SpringBootTest의 컨텍스트에는 컨트롤러, 서비스, 리포지토리가 모두 들어 있습니다. ' + (nMock(A) ? '@MockitoBean을 붙인 것만 가짜로 바뀌고 나머지는 진짜입니다.' : '가짜 없이도 여러 계층이 실제로 이어져 동작하는 것을 확인할 수 있습니다. 대신 등록되는 빈이 많아 컨텍스트가 큽니다.'));
+      if (boot) sum.push('@SpringBootTest의 컨텍스트에는 컨트롤러, 서비스, 리포지토리가 모두 빈으로 등록됩니다. ' + (nMock(A) ? '@MockitoBean을 붙인 것만 가짜로 바뀌고 나머지는 진짜입니다.' : '가짜 없이도 여러 계층이 실제로 이어져 동작하는 것을 확인할 수 있습니다. 대신 등록되는 빈이 많아 컨텍스트가 큽니다.'));
       else sum.push('@WebMvcTest로 만든 첫 번째 컨텍스트에는 진짜 컨트롤러와 가짜 서비스만 있고 리포지토리는 없습니다. 주소 매핑과 응답을 확인하는 테스트이고, 서비스와 리포지토리의 실제 동작은 확인하지 않습니다.');
       if (c.mock === 'bare') sum.push('@MockitoBean으로 넣은 가짜 객체는 돌려줄 값을 정하지 않으면 null을 돌려줍니다. 컨텍스트는 문제없이 떴으므로 "컨텍스트 기동 실패"가 아니라, 기대한 값인지 확인하는 줄(단언)에서 실패합니다.');
       sum.push(next === 'same' ? '설정이 같은 테스트 클래스들은 컨텍스트를 한 번만 만들어 함께 씁니다. 테스트 클래스가 늘어도 컨텍스트를 띄우는 횟수는 늘지 않습니다.'
         : next === 'mock' ? '@MockitoBean의 구성이 다르면 다른 컨텍스트가 필요합니다. 클래스마다 가짜로 바꾸는 빈이 제각각이면 그 가짓수만큼 컨텍스트를 새로 띄우게 되어 전체 테스트가 느려집니다.'
-        : next === 'profile' ? '@ActiveProfiles가 다르면 다른 컨텍스트가 필요합니다. 여기서는 들어 있는 빈이 똑같은데도, 설정이 다르므로 스프링은 새로 만듭니다.'
+        : next === 'profile' ? '@ActiveProfiles가 다르면 다른 컨텍스트가 필요합니다. 여기서는 등록된 빈이 똑같은데도, 설정이 다르므로 스프링은 새로 만듭니다.'
         : '@DirtiesContext는 컨텍스트를 닫고 캐시에서 빼므로, 설정이 같은 다음 클래스도 처음부터 다시 만듭니다. 테스트가 컨텍스트의 상태를 실제로 바꿔 놓았을 때만 씁니다.');
     }
     return { events: ev, summary: sum, unit: unit, check: [b2, '성공 ' + okCount + '번', shared], row: [res[0], b1, res[1], st.made + '번'] };
@@ -238,7 +238,7 @@ Lab.register({
     if (sim.unit) H.table(v, ['만든 곳', '컨트롤러', '서비스', '리포지토리'], s.ctxs.map(function (x) { return { cells: [x.n === 1 ? '첫 번째 테스트' : '두 번째 테스트', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2])] }; }), '테스트 메서드가 직접 만든 객체 (스프링 컨텍스트 없음)');
     else H.table(v, ['컨텍스트', '컨트롤러', '서비스', '리포지토리', '상태'], s.ctxs.map(function (x) { return { cls: x.state === 'closed' ? 'gone' : '', cells: [x.n + '번째', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2]), { v: stateText[x.state], cls: x.state === 'fail' ? 'bad' : x.state === 'up' ? 'good' : '' }] }; }), '스프링이 만든 컨텍스트' + (s.ctxs.length ? '' : ' (아직 없음)'));
   },
-  // 그림: 왼쪽이 차례로 실행되는 두 테스트 클래스, 오른쪽 점선 영역이 컨텍스트 캐시다. 캐시 안의 긴 상자 하나가 컨텍스트 하나이고, 그 안의 세 칸이 컨트롤러·서비스·리포지토리 빈(초록 진짜, 노랑 가짜, 점선 없음)이다. 테스트 클래스에서 나온 화살표가 어느 컨텍스트를 쓰는지 가리킨다.
+  // 그림: 왼쪽이 차례로 실행되는 두 테스트 클래스, 오른쪽 점선 영역이 컨텍스트 캐시다. 긴 상자 하나가 컨텍스트 하나이고, 그 상자 아래쪽의 세 칸이 그 컨텍스트에 등록된 컨트롤러·서비스·리포지토리 빈(초록 진짜, 노랑 가짜, 점선 없음)이다. 테스트 클래스에서 나온 화살표가 어느 컨텍스트를 쓰는지 가리킨다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { now: 0, s1: '아직 실행 전', s2: '아직 실행 전', k1: '', k2: '', ctxs: [], made: 0, got: '', use1: -1, use2: -1, how1: '', how2: '' };
     var unit = sim.unit, names = ['컨트롤러', '서비스', '리포지토리'];
@@ -262,12 +262,12 @@ Lab.register({
     P.box('cnt', 10, 254, 326, 38, { cls: s.made ? 'hot' : 'ghost', title: '스프링 컨텍스트를 만든 횟수', right: s.made + '번' });
     P.box('got', 344, 254, 326, 38, { cls: s.got === '"키보드"' ? 'good' : s.got ? 'bad' : 'ghost', title: '지금 테스트가 받은 값', right: s.got || '아직 없음' });
     P.note(unit ? '오른쪽은 테스트 메서드가 new와 mock(...)으로 직접 만든 객체입니다. 초록은 진짜 객체, 노랑은 Mockito가 만든 가짜, 점선은 만들지 않은 것입니다.'
-      : '오른쪽의 긴 상자 하나가 스프링 컨텍스트 하나이고, 그 안의 세 칸이 빈입니다. 초록은 진짜 빈, 노랑은 @MockitoBean으로 넣은 가짜, 점선은 등록되지 않은 것입니다. 두 번째 클래스의 화살표가 첫 번째 컨텍스트로 가면 다시 쓴 것이고, 새 상자로 가면 한 번 더 만든 것입니다.');
+      : '오른쪽의 긴 상자 하나가 스프링 컨텍스트 하나이고, 그 상자 아래쪽의 세 칸은 그 컨텍스트에 등록된 빈입니다. 초록은 진짜 빈, 노랑은 @MockitoBean으로 넣은 가짜, 점선은 등록되지 않은 것입니다. 두 번째 클래스의 화살표가 첫 번째 컨텍스트로 가면 다시 쓴 것이고, 새 상자로 가면 한 번 더 만든 것입니다.');
   },
-  assume: '서른여섯 가지 조합 모두를 이 PC에서 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. ' +
+  assume: '서른여섯 가지 조합 모두를 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. ' +
     '스프링 부트 4에서는 @MockBean이 없고(4.1.1의 spring-boot-test jar에 그 클래스가 없음을 확인) 스프링 프레임워크의 @MockitoBean(org.springframework.test.context.bean.override.mockito)을 씁니다. @WebMvcTest와 @AutoConfigureMockMvc는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있습니다. 3.x의 패키지 이름과 다르므로 import 문을 옮겨 적을 때 주의합니다. ' +
-    '자동 설정의 통제: 이 PC의 클래스패스에는 스프링 시큐리티, H2와 HikariCP, Hibernate, 스프링 데이터 JPA, 액추에이터가 함께 있습니다. 대조 실행에서는 @SpringBootApplication의 exclude로 시큐리티 자동 설정 다섯 개와 DataSource, Hibernate JPA, 스프링 데이터 JPA 리포지토리 자동 설정을 뺐습니다. 빼지 않고 실행했을 때는 @SpringBootTest의 요청이 시큐리티에 막혀 401이 되었고 @WebMvcTest는 그대로 통과했습니다(실습을 만들면서 따로 실행해 본 결과이며, 저장해 둔 대조 출력에는 들어 있지 않습니다. 이 클래스패스에서 @WebMvcTest가 불러오는 자동 설정 목록에는 시큐리티가 없었습니다. spring-boot-security-test 모듈이 있을 때의 동작은 확인하지 않았습니다). 화면의 @SpringBootApplication 클래스는 생략했습니다. ' +
+    '자동 설정의 통제: 검증 실행의 클래스패스에는 스프링 시큐리티, H2와 HikariCP, Hibernate, 스프링 데이터 JPA, 액추에이터가 함께 있습니다. 대조 실행에서는 @SpringBootApplication의 exclude로 시큐리티 자동 설정 다섯 개와 DataSource, Hibernate JPA, 스프링 데이터 JPA 리포지토리 자동 설정을 뺐습니다. 빼지 않고 실행했을 때는 @SpringBootTest의 요청이 시큐리티에 막혀 401이 되었고 @WebMvcTest는 그대로 통과했습니다(실습을 만들면서 따로 실행해 본 결과이며, 저장해 둔 대조 출력에는 들어 있지 않습니다. 이 클래스패스에서 @WebMvcTest가 불러오는 자동 설정 목록에는 시큐리티가 없었습니다. spring-boot-security-test 모듈이 있을 때의 동작은 확인하지 않았습니다). 화면의 @SpringBootApplication 클래스는 생략했습니다. ' +
     '화면의 코드와 대조용 코드의 차이: 대조용 코드는 테스트 클래스의 이름이 다르고, 같은 본문을 abstract 클래스에서 물려받으며, 객체가 진짜인지 가짜인지 적어 두는 줄과 컨텍스트 횟수를 세는 코드가 더 있습니다. "@MockitoBean이 하나 더 있다"는 첫 번째 클래스가 바꾸지 않은 것 하나(OrderRepository, 이미 바꿨으면 OrderService)를 더 바꾼 경우입니다. DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. ' +
-    '같은 설정의 컨텍스트가 한 번 실패하면 다시 만들지 않는 한도는 spring.test.context.failure.threshold이고 기본값이 1입니다(spring-test 7.0.9의 상수로 확인). @DirtiesContext는 클래스에 붙였을 때의 기본 동작(클래스의 테스트가 끝난 뒤 닫음)만 다뤘습니다. 이 PC에서 컨텍스트의 빈 정의 수는 @SpringBootTest가 303개, @WebMvcTest가 130개였고(가짜 빈이 추가되면 131개), 이 수는 클래스패스와 위의 exclude에 따라 달라집니다. 걸린 시간은 실행할 때마다 달라서 결과 표에 넣지 않았습니다. 이 PC의 한 번 실행에서 첫 번째 클래스는 스프링 없는 테스트가 약 0.7~0.9초(Mockito 준비 포함), @WebMvcTest가 약 2.7초, @SpringBootTest가 약 3.4~4.4초였고, 컨텍스트를 다시 쓴 두 번째 클래스는 0.05초 이하였습니다. ' +
+    '같은 설정의 컨텍스트가 한 번 실패하면 다시 만들지 않는 한도는 spring.test.context.failure.threshold이고 기본값이 1입니다(spring-test 7.0.9의 상수로 확인). @DirtiesContext는 클래스에 붙였을 때의 기본 동작(클래스의 테스트가 끝난 뒤 닫음)만 다뤘습니다. 검증 실행에서 컨텍스트의 빈 정의 수는 @SpringBootTest가 303개, @WebMvcTest가 130개였고(가짜 빈이 추가되면 131개), 이 수는 클래스패스와 위의 exclude에 따라 달라집니다. 걸린 시간은 실행할 때마다 달라서 결과 표에 넣지 않았습니다. 검증 실행 가운데 한 번에서 첫 번째 클래스는 스프링 없는 테스트가 약 0.7~0.9초(Mockito 준비 포함), @WebMvcTest가 약 2.7초, @SpringBootTest가 약 3.4~4.4초였고, 컨텍스트를 다시 쓴 두 번째 클래스는 0.05초 이하였습니다. ' +
     'Mockito는 JDK 21에서 가짜 객체를 만들기 위해 실행 중에 스스로 에이전트를 붙이며 경고를 내는데, 동작에는 지장이 없어 그대로 두었습니다. 테스트 메서드의 @Transactional 롤백, @DataJpaTest 같은 다른 슬라이스, @MockitoSpyBean, 캐시의 최대 크기, 빌드 도구가 테스트를 여러 프로세스로 나눠 실행하는 경우(캐시는 프로세스마다 따로입니다)는 다루지 않았고 실행으로 확인하지도 않았습니다.',
 });

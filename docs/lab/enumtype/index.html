@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -92,7 +92,7 @@ Status s = Status.values()[saved];
 System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;);
 System.out.println(s == Status.PAID);</pre>
 <h2>이 모형의 전제</h2>
-<p>마흔다섯 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드(고친 뒤의 enum 선언과 그 아래 코드)를 실제로 컴파일하고 실행해서, 저장해 둔 값, 출력 두 줄, 종료 코드, 예외 메시지를 대조했습니다. 저장해 둔 값은 예전 선언의 enum에서 ordinal(), name(), code를 실제로 불러 얻은 것입니다. 화면의 코드에서 enum 선언 아래의 다섯 줄은 main 메서드 안에 들어 있는 것으로, main의 선언은 생략했습니다. 같은 상수는 어떤 방법으로 얻어도 같은 객체라는 것, valueOf가 대소문자가 다른 이름에도 예외를 던진다는 것, ==는 한쪽이 null이어도 예외가 나지 않는다는 것, 서로 다른 enum 타입의 == 비교가 컴파일 오류라는 것도 같은 방법으로 확인했습니다. 실제 DB를 쓰지는 않았고, 저장해 둔 값을 코드에 직접 적어 흉내 냈습니다. 상수를 지우는 변경은 설정에 넣지 않았습니다. 지우면 번호로 읽을 때는 뒤의 상수가 당겨져 나오거나 배열 범위를 벗어난 예외(ArrayIndexOutOfBoundsException)가 나고, 이름으로 읽을 때는 valueOf가 예외를 던집니다(이것도 따로 실행해 확인했습니다).</p>
+<p>마흔다섯 가지 조합 모두를 검증 환경의 JDK 21에서 화면의 코드(고친 뒤의 enum 선언과 그 아래 코드)를 실제로 컴파일하고 실행해서, 저장해 둔 값, 출력 두 줄, 종료 코드, 예외 메시지를 대조했습니다. 저장해 둔 값은 예전 선언의 enum에서 ordinal(), name(), code를 실제로 불러 얻은 것입니다. 화면의 코드에서 enum 선언 아래의 다섯 줄은 main 메서드 안에 들어 있는 것으로, main의 선언은 생략했습니다. 같은 상수는 어떤 방법으로 얻어도 같은 객체라는 것, valueOf가 대소문자가 다른 이름에도 예외를 던진다는 것, ==는 한쪽이 null이어도 예외가 나지 않는다는 것, 서로 다른 enum 타입의 == 비교가 컴파일 오류라는 것도 같은 방법으로 확인했습니다. 실제 DB를 쓰지는 않았고, 저장해 둔 값을 코드에 직접 적어 흉내 냈습니다. 상수를 지우는 변경은 설정에 넣지 않았습니다. 지우면 번호로 읽을 때는 뒤의 상수가 당겨져 나오거나 배열 범위를 벗어난 예외(ArrayIndexOutOfBoundsException)가 나고, 이름으로 읽을 때는 valueOf가 예외를 던집니다(이것도 따로 실행해 확인했습니다).</p>
 <p>앞 실습: <a href="../../lab/generic/">제네릭</a> · 다음 실습: <a href="../../lab/annot/">애너테이션</a></p>
   </div>
 
@@ -180,6 +180,6 @@ System.out.println(s == Status.PAID);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

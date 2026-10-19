@@ -17,10 +17,14 @@ Lab.register({
     { t: '둘 다 있고 6개 주문', q: '트리거를 켠 채 CALL place_order 프로시저 호출로 6개를 주문하면', d: '주문은 실패했는데 재고만 줄어듭니다.', v: { how: 'proc', trig: true, qty: '6' } },
   ],
   code: function (c) {
-    var s = "-- product 테이블: (1, '키보드', stock 10)\n-- stock 컬럼에는 CHECK (stock >= 0) 제약이 있다\n\nCREATE VIEW v_stock AS            -- 뷰: SELECT 문만 저장\n  SELECT name, stock FROM product;\nCREATE TABLE stock_copy AS        -- 복사본: 지금의 결과를 행으로 저장\n  SELECT name, stock FROM product;\n";
-    if (c.how === 'proc') s += "\nCREATE PROCEDURE place_order(IN p_product INT, IN p_qty INT)\nBEGIN\n  UPDATE product SET stock = stock - p_qty WHERE id = p_product;\n  INSERT INTO orders (product_id, qty) VALUES (p_product, p_qty);\n  INSERT INTO stock_log (product_id, change_qty, memo)\n    VALUES (p_product, -p_qty, '프로시저');\nEND;\n";
-    if (c.trig) s += "\nCREATE TRIGGER trg_order_stock AFTER INSERT ON orders FOR EACH ROW\nBEGIN\n  UPDATE product SET stock = stock - NEW.qty WHERE id = NEW.product_id;\n  INSERT INTO stock_log (product_id, change_qty, memo)\n    VALUES (NEW.product_id, -NEW.qty, '트리거');\nEND;\n";
-    else s += '\n-- orders 테이블에 트리거 없음\n';
+    var s = "-- product 테이블: (1, '키보드', stock 10)\n-- stock 컬럼에는 CHECK 제약 chk_stock (stock >= 0)이 있다\n\nCREATE VIEW v_stock AS            -- 뷰: SELECT 문만 저장\n  SELECT name, stock FROM product;\nCREATE TABLE stock_copy AS        -- 복사본: 지금의 결과를 행으로 저장\n  SELECT name, stock FROM product;\n";
+    // BEGIN ... END 안에 ;가 있으므로, mysql 클라이언트에서는 DELIMITER로 문장의 끝 표시를 잠시 //로 바꾼다
+    if (c.how === 'proc' || c.trig) s += "\n-- mysql 클라이언트에서 실행할 때: 본문 안의 ;에서 문장이 끝나지 않도록\n-- 문장의 끝 표시를 //로 바꿨다가 다시 ;로 되돌린다\nDELIMITER //\n";
+    if (c.how === 'proc') s += "CREATE PROCEDURE place_order(IN p_product INT, IN p_qty INT)\nBEGIN\n  UPDATE product SET stock = stock - p_qty WHERE id = p_product;\n  INSERT INTO orders (product_id, qty) VALUES (p_product, p_qty);\n  INSERT INTO stock_log (product_id, change_qty, memo)\n    VALUES (p_product, -p_qty, '프로시저');\nEND //\n";
+    if (c.how === 'proc' && c.trig) s += '\n';
+    if (c.trig) s += "CREATE TRIGGER trg_order_stock AFTER INSERT ON orders FOR EACH ROW\nBEGIN\n  UPDATE product SET stock = stock - NEW.qty WHERE id = NEW.product_id;\n  INSERT INTO stock_log (product_id, change_qty, memo)\n    VALUES (NEW.product_id, -NEW.qty, '트리거');\nEND //\n";
+    if (c.how === 'proc' || c.trig) s += 'DELIMITER ;\n';
+    if (!c.trig) s += '\n-- orders 테이블에 트리거 없음\n';
     s += '\n-- 애플리케이션이 실행하는 문장은 이것 하나\n' + (c.how === 'proc' ? 'CALL place_order(1, ' + c.qty + ');' : 'INSERT INTO orders (product_id, qty) VALUES (1, ' + c.qty + ');');
     return s + '\n\nSELECT stock FROM v_stock;        -- 뷰로 조회\nSELECT stock FROM stock_copy;     -- 복사본으로 조회';
   },
@@ -107,11 +111,12 @@ Lab.register({
     if (d.procIns || (proc && d.trgFail)) P.arrow('pIns', 'proc:r:0.3', 'orders:l:0.4', { cls: d.trgFail ? 'bad' : 'hot', label: 'INSERT' });
     if (d.procUpd || d.procFail) P.arrow('pUpd', 'proc:r:0.75', 'product:l:0.2', d.procFail ? { cls: 'bad', label: '실패' } : { cls: 'hot' });
     if (d.procLog) P.arrow('pLog', 'proc:r:0.95', 'slog:l:0.25', { cls: 'hot' });
-    if (d.trg) P.arrow('tRun', 'orders:l:0.85', 'trg:r:0.15', { cls: 'dash' });
-    if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : { cls: 'bad' });
-    if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
+    if (d.trg) P.arrow('tRun', 'orders:l:0.85', 'trg:r:0.15', { label: '자동 실행' });
+    // 트리거의 문장도 성공하면 노랑이다. 빨강은 실패했거나, 프로시저가 이미 줄인 재고를 한 번 더 줄인 경우뿐이다
+    if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : proc ? { cls: 'bad', label: '한 번 더' } : { cls: 'hot', label: '트리거' });
+    if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'hot', label: '트리거' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 맨 아래의 복사본 테이블(stock_copy)도 같은 MySQL 안의 테이블이며, 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
+    P.note('노란 화살표는 애플리케이션, 프로시저, 트리거가 실행한 문장이고, "트리거"라고 적힌 것이 트리거가 한 일입니다. 빨간 화살표는 실패한 문장("실패")이나, 프로시저가 이미 줄인 재고를 트리거가 한 번 더 줄인 문장("한 번 더")입니다. orders에서 트리거로 가는 "자동 실행" 화살표는 orders에 INSERT가 일어나 DB가 트리거를 자동으로 실행했다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 맨 아래의 복사본 테이블(stock_copy)도 같은 MySQL 안의 테이블이며, 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
   },
-  assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
+  assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
 });

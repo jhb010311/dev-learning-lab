@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>빈 스코프: 프로토타입 빈인데 왜 객체가 하나뿐인가 · 개발 학습 실습실</title>
-<meta name="description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다.">
+<meta name="description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scope/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="빈 스코프: 프로토타입 빈인데 왜 객체가 하나뿐인가 · 개발 학습 실습실">
-<meta property="og:description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다.">
+<meta property="og:description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
 <h1>빈 스코프</h1>
 <p><b>프로토타입 빈인데 왜 객체가 하나뿐인가</b></p>
-<p>스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다.</p>
+<p>스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다. 이 실습의 Cart, OrderService, OrderController는 예시로 만든 클래스입니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버를 띄워 아홉 가지 조합에 HTTP 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -59,15 +59,15 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>컨테이너 시작: orderController, orderService, cart 세 빈을 등록합니다. orderController와 orderService는 싱글톤이고, cart의 스코프는 프로토타입입니다.</li>
-<li>orderService 빈 만들기: 생성자가 Cart를 요구해 컨테이너에 Cart를 달라고 합니다. 프로토타입 빈은 달라고 할 때마다 새로 만들므로, 컨테이너가 Cart 1번을 새로 만들어 넘깁니다. OrderService는 이 객체를 필드에 넣어 둡니다.</li>
+<li>orderService 빈 만들기: 생성자가 Cart를 요구해 컨테이너에 Cart를 달라고 합니다. 프로토타입 빈은 달라고 할 때마다 새로 만들므로, 컨테이너가 Cart 1번을 새로 만들어 넘깁니다. OrderService는 필드가 이 객체를 가리키게 해 둡니다.</li>
 <li>기동이 끝났습니다. 지금까지 만들어진 Cart 객체는 1개입니다.</li>
 <li>요청 1: GET /order가 들어옵니다. OrderController의 order()가 orderService.cartNo()를 두 번 부릅니다.</li>
-<li>cartNo() 1번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
-<li>cartNo() 2번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 1번째 호출: 필드가 가리키는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 2번째 호출: 필드가 가리키는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
 <li>요청 1의 응답은 &quot;1,1&quot;입니다.</li>
 <li>요청 2: GET /order가 들어옵니다. OrderController의 order()가 orderService.cartNo()를 두 번 부릅니다.</li>
-<li>cartNo() 1번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
-<li>cartNo() 2번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 1번째 호출: 필드가 가리키는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 2번째 호출: 필드가 가리키는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
 <li>요청 2의 응답은 &quot;1,1&quot;입니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -121,7 +121,7 @@ class OrderController {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>아홉 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드에 들어 있는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 &quot;싱글톤 빈과 상태&quot; 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.</p>
+<p>아홉 가지 조합을 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실제로 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드가 가리키는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 &quot;싱글톤 빈과 상태&quot; 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.</p>
 <p>앞 실습: <a href="../../lab/singleton/">싱글톤 빈과 상태</a> · 다음 실습: <a href="../../lab/lifecycle/">빈 생명주기 콜백</a></p>
   </div>
 
@@ -209,6 +209,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

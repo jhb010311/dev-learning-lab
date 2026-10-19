@@ -4,23 +4,23 @@ Lab.register({
   intro: '파일에 쓸 때 out.write를 불렀다고 해서 그 데이터가 곧바로 파일에 들어가는 것은 아닙니다. 버퍼를 쓰는 스트림은 데이터를 메모리에 모아 두었다가 한꺼번에 내려보냅니다. "가나다" 9바이트를 한 바이트씩 쓰면서 아래 스트림으로 실제로 몇 번 내려가는지 세어 보고, 그 파일을 바이트 단위와 글자 단위로 다시 읽어 봅니다.',
   terms: ['바이트 스트림과 문자 스트림', '버퍼와 flush', '문자 인코딩과 UTF-8', 'finally와 try-with-resources'],
   controls: [
-    { id: 'buf', label: '쓰는 스트림', type: 'select', value: 'buf', options: [['raw', '버퍼 없이 바로 쓰기'], ['buf', 'BufferedOutputStream으로 감싸기 (기본 크기)'], ['buf4', 'BufferedOutputStream으로 감싸기 (버퍼 4바이트)']] },
+    { id: 'buf', label: '쓰는 스트림', type: 'select', value: 'buf', options: [['raw', '버퍼 없이 바로 쓰기'], ['buf', 'BufferedOutputStream을 거쳐 쓰기 (기본 크기)'], ['buf4', 'BufferedOutputStream을 거쳐 쓰기 (버퍼 4바이트)']] },
     { id: 'end', label: '다 쓴 뒤에 하는 일', type: 'select', value: 'none', options: [['none', '아무것도 하지 않음'], ['flush', 'out.flush()'], ['close', 'out.close()'], ['twr', 'try-with-resources (자동으로 닫힘)']] },
     { id: 'fail', label: '쓰기를 마친 직후, 닫기 전에 예외 발생', type: 'check', value: false, hint: '닫는 코드에 닿기 전에 문제가 생긴 경우입니다.' },
     { id: 'read', label: '파일을 다시 읽는 방법', type: 'select', value: 'char', options: [['byte', '바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸기'], ['char', '문자 스트림(InputStreamReader, UTF-8)으로 읽기']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'BufferedOutputStream으로 감싼 스트림에 write를 9번 하고 닫지 않으면 파일은 어떻게 되나', d: '버퍼로 감싸고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
+    { t: '처음 설정으로', q: 'BufferedOutputStream을 거쳐 write를 9번 하고 닫지 않으면 파일은 어떻게 되나', d: '버퍼를 거쳐 쓰고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
     { t: 'close로 닫으면', q: '다 쓴 뒤에 out.close 호출을 추가하면', d: '버퍼에 모인 9바이트가 한 번에 내려가 파일에 쓰입니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'char' } },
     { t: '버퍼 없이 쓰면', q: '버퍼 없이 바로 쓰면', d: 'write 9번이 그대로 아래로 9번 내려갑니다.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
-    { t: '버퍼가 4바이트라면', q: '버퍼가 4바이트인 BufferedOutputStream으로 감싸 쓰면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
+    { t: '버퍼가 4바이트라면', q: '버퍼가 4바이트인 BufferedOutputStream을 거쳐 쓰면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
     { t: 'close 전에 예외가 나면', q: '다 쓴 뒤 out.close 호출을 하는데 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: 'close가 실행되지 못해 파일이 비어 있습니다.', v: { buf: 'buf', end: 'close', fail: true, read: 'char' } },
     { t: 'try-with-resources라면', q: 'try-with-resources로 쓰는데, 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: '예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
     { t: '바이트 하나를 글자 하나로 읽으면', q: 'out.close로 닫은 뒤, 파일을 바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸면', d: '한글 세 글자가 깨진 글자 아홉 개가 됩니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
   ],
   code: function (c) {
-    var wrap = { raw: 'OutputStream out = counting;                                // 버퍼 없이 바로', buf: 'OutputStream out = new BufferedOutputStream(counting);     // 버퍼로 감싼다', buf4: 'OutputStream out = new BufferedOutputStream(counting, 4);  // 4바이트짜리 버퍼' }[c.buf];
-    var s = 'class CountingOutputStream extends OutputStream {       // 아래로 내려온 write 호출을 세는 스트림\n    private final OutputStream out;\n    int calls = 0;\n    boolean closed = false;\n    CountingOutputStream(OutputStream out) { this.out = out; }\n    @Override public void write(int b) throws IOException { calls++; out.write(b); }\n    @Override public void write(byte[] b, int off, int len) throws IOException { calls++; out.write(b, off, len); }\n    @Override public void close() throws IOException { closed = true; out.close(); }\n}\n\n';
+    var wrap = { raw: 'OutputStream out = counting;                                // 버퍼 없이 바로', buf: 'OutputStream out = new BufferedOutputStream(counting);     // 버퍼를 가진 스트림', buf4: 'OutputStream out = new BufferedOutputStream(counting, 4);  // 4바이트짜리 버퍼' }[c.buf];
+    var s = 'class CountingOutputStream extends OutputStream {       // 예시로 만든 클래스. 아래로 내려온 write 호출을 센다\n    private final OutputStream out;\n    int calls = 0;\n    boolean closed = false;\n    CountingOutputStream(OutputStream out) { this.out = out; }\n    @Override public void write(int b) throws IOException { calls++; out.write(b); }\n    @Override public void write(byte[] b, int off, int len) throws IOException { calls++; out.write(b, off, len); }\n    @Override public void close() throws IOException { closed = true; out.close(); }\n}\n\n';
     if (c.fail) s += 'static void process() { throw new IllegalStateException("처리 중 오류"); }\n\n';
     s += 'byte[] data = "가나다".getBytes(StandardCharsets.UTF_8);    // 9바이트\nCountingOutputStream counting = new CountingOutputStream(new FileOutputStream("out.txt"));\n';
     var body = ['for (byte b : data) out.write(b);                           // 한 바이트씩 9번'];
@@ -45,7 +45,7 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function down() { if (!st.pend) return; st.calls++; st.lens.push(st.pend); st.file += st.pend; st.pend = 0; st.where = st.where.map(function (w) { return w === 1 ? 2 : w; }); }
     st.open = true;
-    push('new FileOutputStream("out.txt"): 파일을 쓰기용으로 엽니다. 그 위에 write 호출을 세는 CountingOutputStream을 씌웠습니다. ' + (cap ? '그 위에 다시 ' + cap + '바이트짜리 버퍼를 가진 BufferedOutputStream을 씌웠으므로, out.write는 버퍼를 거쳐서 내려갑니다.' : '버퍼가 없으므로 out.write는 곧바로 아래 스트림으로 내려갑니다.'));
+    push('new FileOutputStream("out.txt"): 파일을 쓰기용으로 엽니다. write 호출을 세는 CountingOutputStream(예시로 만든 클래스)이 이 파일 스트림을 참조로 갖고, 받은 write를 그쪽으로 넘깁니다. ' + (cap ? '그리고 ' + cap + '바이트짜리 버퍼를 가진 BufferedOutputStream이 CountingOutputStream을 참조로 가지므로, out.write는 버퍼를 거쳐서 내려갑니다.' : '버퍼가 없으므로 out.write는 곧바로 아래 스트림으로 내려갑니다.'));
     for (var i = 0; i < 3; i++) {
       var flushed = 0;
       for (var j = i * 3; j < i * 3 + 3; j++) {
@@ -84,7 +84,7 @@ Lab.register({
     }
     if (!cap) sum.push('버퍼가 없으면 write 한 번이 곧 아래 스트림 호출 한 번입니다. 데이터는 바로 파일에 들어가지만, 바이트 수만큼 파일 쓰기를 요청하게 되어 데이터가 많을수록 느려집니다.');
     else if (st.file < 9) sum.push('BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.');
-    else sum.push(c.buf === 'buf' ? '9번의 write가 아래로는 1번으로 줄었습니다. 크기를 따로 주지 않은 BufferedOutputStream의 버퍼는 이 PC의 JDK 21에서 8192바이트였고, 그만큼 모이기 전에는 flush나 close를 불러야 내려갑니다.' : '버퍼가 4바이트라서 가득 찰 때마다 4바이트씩 내려가고, 마지막 1바이트는 flush나 close를 불렀을 때 내려갔습니다.');
+    else sum.push(c.buf === 'buf' ? '9번의 write가 아래로는 1번으로 줄었습니다. 크기를 따로 주지 않은 BufferedOutputStream의 버퍼는 검증 실행(JDK 21)에서 8192바이트였고, 그만큼 모이기 전에는 flush나 close를 불러야 내려갑니다.' : '버퍼가 4바이트라서 가득 찰 때마다 4바이트씩 내려가고, 마지막 1바이트는 flush나 close를 불렀을 때 내려갔습니다.');
     if (fail && E === 'twr') sum.push('try-with-resources는 예외가 발생해도 close를 불러 줍니다. 닫는 코드를 직접 쓰면 그 앞에서 예외가 났을 때 건너뛰게 되므로, 스트림처럼 닫아야 하는 자원은 try-with-resources로 여는 것이 안전합니다.');
     if (fail && (E === 'close' || E === 'flush')) sum.push('닫는 코드를 맨 아래에 직접 써 두면, 그 앞에서 예외가 났을 때 실행되지 않습니다.');
     if (!fail && E === 'flush') sum.push('flush는 버퍼를 비울 뿐 스트림을 닫지 않습니다. 열린 스트림은 파일을 계속 붙잡고 있으므로, 다 쓴 스트림은 close로 닫습니다. close는 닫기 전에 버퍼도 비워 줍니다.');
@@ -119,5 +119,5 @@ Lab.register({
     P.box('r4', 16, 294, 648, 30, { cls: s.ex ? 'bad' : 'ghost', title: '예외', right: s.ex ? 'IllegalStateException (처리 중 오류)' : '없음' });
     P.note('가운데 줄의 상자 하나가 1바이트입니다. 노란 상자는 메모리의 버퍼에만 있는 바이트, 초록 상자는 파일까지 내려간 바이트입니다.');
   },
-  assume: '마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 PC에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 "파일"은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.',
+  assume: '마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 JDK 21에서 실제로 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 JDK에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 "파일"은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.',
 });

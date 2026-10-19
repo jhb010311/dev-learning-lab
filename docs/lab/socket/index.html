@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,7 +55,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>serverA.listen(9000): 서버 A가 소켓을 만들어 9000번 포트에 붙이고, 운영체제에 &quot;9000번 포트로 들어오는 연결은 이 소켓으로 달라&quot;고 등록합니다. 9000번이 비어 있었으므로 성공합니다. 이제 서버 A는 연결을 기다립니다.</li>
-<li>serverB.listen(9000): 서버 B도 9000번을 등록하려 합니다. 이미 서버 A가 쓰고 있으므로 운영체제가 거절하고, 서버 B는 EADDRINUSE(주소가 이미 사용 중) 오류를 받습니다. 한 포트로 들어오는 연결을 받을 프로그램은 하나여야 누구에게 줄지 정할 수 있기 때문입니다.</li>
+<li>serverB.listen(9000): 서버 B도 9000번을 등록하려 합니다. 이미 서버 A가 쓰고 있으므로 운영체제가 거절하고, 서버 B는 EADDRINUSE(주소가 이미 사용 중) 오류를 받습니다. 특별한 소켓 옵션을 쓰지 않는 기본 설정에서는, 한 포트로 들어오는 연결을 받을 프로그램이 하나여야 누구에게 줄지 정할 수 있기 때문입니다.</li>
 <li>클라이언트 1의 net.connect(9000): 코드에는 받는 포트만 적었습니다. 보내는 포트는 운영체제가 비어 있는 번호 가운데 하나(여기서는 50001번)를 골라 줍니다. 9000번에서 서버 A가 듣고 있으므로 연결이 맺어집니다.</li>
 <li>클라이언트 2의 net.connect(9000): 운영체제가 이번에는 보내는 포트로 50002번을 골라 줍니다. 서버 A가 듣고 있으므로 연결이 맺어집니다. 앞의 연결과 받는 포트는 똑같이 9000번이고, 보내는 포트만 다릅니다. 운영체제는 네 값(보내는 IP, 보내는 포트, 받는 IP, 받는 포트)이 하나라도 다르면 다른 연결로 봅니다.</li>
 <li>클라이언트 3의 net.connect(9000): 운영체제가 이번에는 보내는 포트로 50003번을 골라 줍니다. 서버 A가 듣고 있으므로 연결이 맺어집니다. 앞의 연결과 받는 포트는 똑같이 9000번이고, 보내는 포트만 다릅니다. 앞의 두 연결은 끊기지 않고 그대로 열려 있습니다.</li>
@@ -87,7 +87,7 @@ for (let i = 1; i &lt;= 3; i++) {
   socket.on('error', e =&gt; console.log(e.code));
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>스물일곱 가지 조합을 이 PC(윈도, Node.js 24)의 127.0.0.1에서 net 모듈로 실제로 실행해 대조했습니다. 대조한 것은 서버 B의 listen 결과(성공 또는 EADDRINUSE), 클라이언트 연결의 성공 수와 거절 수(ECONNREFUSED), 데이터를 받은 서버, 서버가 본 연결 수, 서버 쪽 소켓의 포트가 모두 듣는 포트 하나와 같은지, 클라이언트 쪽 포트가 서로 다른지입니다. 실행에서는 9000, 9001, 9002 대신 그때 비어 있던 포트 세 개를 썼고, 클라이언트 쪽 포트 번호(화면의 50001 등)는 실행할 때마다 달라지므로 &quot;서로 다르다&quot;는 것만 결과로 삼았습니다. 운영체제가 임시 포트를 고르는 범위는 운영체제와 설정에 따라 다릅니다(IANA가 권하는 범위는 49152~65535, RFC 6335 6절). 연결을 양쪽의 IP 주소와 포트로 구분한다는 것은 TCP 표준(RFC 9293 4절 용어 풀이의 connection과 socket)의 정의입니다. 클라이언트를 다른 컴퓨터에 두는 경우와, 같은 포트를 여러 프로그램이 함께 쓰게 하는 특수한 소켓 옵션(SO_REUSEPORT 등)은 다루지 않았습니다.</p>
+<p>스물일곱 가지 조합을 검증 실행 환경(윈도, Node.js 24)의 127.0.0.1에서 net 모듈로 실제로 실행해 대조했습니다. 대조한 것은 서버 B의 listen 결과(성공 또는 EADDRINUSE), 클라이언트 연결의 성공 수와 거절 수(ECONNREFUSED), 데이터를 받은 서버, 서버가 본 연결 수, 서버 쪽 소켓의 포트가 모두 듣는 포트 하나와 같은지, 클라이언트 쪽 포트가 서로 다른지입니다. 실행에서는 9000, 9001, 9002 대신 그때 비어 있던 포트 세 개를 썼고, 클라이언트 쪽 포트 번호(화면의 50001 등)는 실행할 때마다 달라지므로 &quot;서로 다르다&quot;는 것만 결과로 삼았습니다. 운영체제가 임시 포트를 고르는 범위는 운영체제와 설정에 따라 다릅니다(IANA가 권하는 범위는 49152~65535, RFC 6335 6절). 연결을 양쪽의 IP 주소와 포트로 구분한다는 것은 TCP 표준(RFC 9293 4절 용어 풀이의 connection과 socket)의 정의입니다. 클라이언트를 다른 컴퓨터에 두는 경우와, 같은 포트를 여러 프로그램이 함께 쓰게 하는 특수한 소켓 옵션(SO_REUSEPORT 등)은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/routing/">스위치와 라우터</a> · 다음 실습: <a href="../../lab/tcp/">TCP 연결과 재전송</a></p>
   </div>
 
@@ -175,6 +175,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

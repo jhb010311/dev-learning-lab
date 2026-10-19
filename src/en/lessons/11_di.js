@@ -1,7 +1,7 @@
 Lab.register({
   id: 'di', nav: 'Bean creation and injection', cat: 'Spring', mode: 'step',
   title: 'In what order does Spring create objects and wire them together?',
-  intro: 'When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends on the injection style, and when two beans need each other (a circular dependency), startup can fail.',
+  intro: 'When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends on the injection style, and when two beans need each other (a circular dependency), startup can fail. OrderController, OrderService, PaymentService and OrderRepository in this lab are classes made for this example.',
   terms: ['Inversion of Control (IoC)', 'Dependency injection (DI)', 'Constructor injection, setter injection, and field injection', 'Spring bean', 'Bean lifecycle', 'Circular dependency'], ranks: ['di', 'bean'],
   controls: [
     { id: 'inj', label: 'Injection style', type: 'select', value: 'ctor', options: [['ctor', 'Constructor injection'], ['field', 'Field injection (@Autowired)'], ['setter', 'Setter injection']] },
@@ -78,7 +78,7 @@ Lab.register({
     H.table(v, ['Bean', 'State', 'Dependencies it needs', 'Dependencies filled in'], sim.order.map(function (n) {
       var x = s.st[n], need = sim.deps[n];
       return { cells: [n, { v: x, cls: x === 'fully initialized' ? 'good' : x === 'failed' ? 'bad' : x === 'bean definition only' ? '' : 'hot' }, need.length ? need.join(', ') : 'none', need.length ? (s.got[n].length ? s.got[n].join(', ') : '(none yet)') + (s.got[n].length < need.length && x.indexOf('created') === 0 ? ' · the rest are null' : '') : '-'] };
-    }), 'Beans in the Spring container (injected through ' + how + ')');
+    }), 'Beans managed by the Spring container (injected through ' + how + ')');
     H.title(v, 'Beans in creation right now (outer → inner)');
     H.slots(v, s.stack.map(function (n, i) { return [n, i === s.stack.length - 1 ? 'b' : 'q']; }), 'None');
   },

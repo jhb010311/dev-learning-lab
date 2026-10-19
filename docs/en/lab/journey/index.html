@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,13 +61,13 @@
 <li>The browser does not know the IP address of shop.example. It asks a DNS server and gets the IP address back. The result is kept in the cache for a set time (the TTL).</li>
 <li>The browser opens a TCP connection to port 443 of that IP address (the three-way handshake). This takes one round trip to the server.</li>
 <li>In the TLS handshake, the browser verifies the certificate of the server and the two sides agree on the encryption keys. This takes one more round trip.</li>
-<li>The browser sends the HTTP request over the encrypted connection. The request line and the headers (Host, Cookie, User-Agent, and so on) go to the server.</li>
+<li>The browser sends the HTTP request over the encrypted connection. The request line and the headers (Host, Cookie, User-Agent, and so on) go to the server. This takes the time of one way to the server (half a round trip).</li>
 <li>nginx is the first to receive the request. It decrypts the TLS traffic, looks at the path, and decides where the request will be handled.</li>
 <li>nginx passes the request to Tomcat behind it (port 8080). Tomcat assigns a thread from its thread pool, runs the request through the filters, and hands it to the Spring DispatcherServlet.</li>
 <li>DispatcherServlet finds the controller that handles /orders and runs it. The controller calls a service, and the service calls a repository.</li>
 <li>The application borrows a connection from the connection pool, runs the SQL, and receives the result. Of the time spent inside the server, this is the largest part.</li>
 <li>The application turns the query result into JSON or HTML and builds the response. The response travels back through Tomcat and nginx.</li>
-<li>The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.</li>
+<li>The response travels one way, from the server to the browser, and arrives. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -79,6 +79,8 @@
 server {
     listen 443 ssl;
     server_name shop.example;
+    ssl_certificate     /etc/nginx/certs/shop.example.crt;   # certificate
+    ssl_certificate_key /etc/nginx/certs/shop.example.key;   # private key
 
     location /static/ {                  # serve static files directly
         root /var/www;
@@ -89,7 +91,7 @@ server {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The times are examples chosen to show relative sizes (30ms to reach the server once, 5ms with a CDN, 40ms for a DNS lookup, 20ms for a database query). Real values vary widely with the distance, the network, and the query. The setup assumes a common arrangement in which nginx handles TLS in front and passes requests to Spring Boot (embedded Tomcat) behind it. That the steps really happen in this order, and that the first three steps disappear when a connection is reused, was checked by sending two requests in a row to a public site with curl. In the first request, the DNS lookup was done at 27ms, the TCP connection at 60ms, and TLS at 156ms, and the first byte arrived at 194ms. The second request, sent over the same connection, showed 0 for DNS, TCP, and TLS and took 40ms in total. The part behind the reverse proxy was not verified directly.</p>
+<p>The times are examples chosen to show relative sizes (a round trip to the server takes 30ms, so one way takes half of that, 15ms; a round trip to a CDN server takes 10ms; a DNS lookup takes 40ms; and a database query takes 20ms). Real values vary widely with the distance, the network, and the query. The setup assumes a common arrangement in which nginx handles TLS in front and passes requests to Spring Boot (embedded Tomcat) behind it. That the steps really happen in this order, and that the first three steps disappear when a connection is reused, was checked by sending two requests in a row to a public site with curl. In the first request, the DNS lookup was done at 27ms, the TCP connection at 60ms, and TLS at 156ms, and the first byte arrived at 194ms. The second request, sent over the same connection, showed 0 for DNS, TCP, and TLS and took 40ms in total. The part behind the reverse proxy was not verified directly.</p>
 <p>Next lab: <a href="../../lab/layers/">Layers and encapsulation</a></p>
   </div>
 
@@ -177,6 +179,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

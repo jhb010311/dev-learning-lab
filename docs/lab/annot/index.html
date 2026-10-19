@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -91,7 +91,7 @@ if (found) System.out.println(&quot;[시간 측정 시작]&quot;);
 m.invoke(service);
 if (found) System.out.println(&quot;[시간 측정 끝]&quot;);</pre>
 <h2>이 모형의 전제</h2>
-<p>스물여덟 가지 조합(@Timed 쪽 24가지, @Override 쪽 4가지)을 이 PC의 JDK 21에서 화면의 코드로 실제로 컴파일하고 실행해 대조했습니다. 컴파일 여부와 오류가 난 줄, 컴파일러 메시지, 출력뿐 아니라, 만들어진 class 파일의 바이트에 애너테이션이 적혀 있는지(적혀 있다면 RuntimeVisibleAnnotations와 RuntimeInvisibleAnnotations 가운데 어느 칸인지)와 리플렉션의 isAnnotationPresent 결과도 조합마다 직접 확인했습니다. 화면에서 숨겨진 설정은 결과에 영향을 주지 않습니다. 화면의 코드에는 import 문(java.lang.annotation의 것들과 java.lang.reflect.Method)과 main 메서드의 선언이 생략되어 있습니다. @Target(ElementType.TYPE)인 애너테이션을 클래스에 붙이면 컴파일된다는 것도 확인했습니다. 스프링 같은 프레임워크가 애너테이션을 읽는 방식은 이 모형의 &quot;읽는 쪽&quot; 코드와 원리가 같다는 설명이며, 프레임워크를 실제로 실행해 확인한 것은 아닙니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.</p>
+<p>스물여덟 가지 조합(@Timed 쪽 24가지, @Override 쪽 4가지)을 검증 환경의 JDK 21에서 화면의 코드로 실제로 컴파일하고 실행해 대조했습니다. 컴파일 여부와 오류가 난 줄, 컴파일러 메시지, 출력뿐 아니라, 만들어진 class 파일의 바이트에 애너테이션이 적혀 있는지(적혀 있다면 RuntimeVisibleAnnotations와 RuntimeInvisibleAnnotations 가운데 어느 칸인지)와 리플렉션의 isAnnotationPresent 결과도 조합마다 직접 확인했습니다. 화면에서 숨겨진 설정은 결과에 영향을 주지 않습니다. 화면의 코드에는 import 문(java.lang.annotation의 것들과 java.lang.reflect.Method)과 main 메서드의 선언이 생략되어 있습니다. @Target(ElementType.TYPE)인 애너테이션을 클래스에 붙이면 컴파일된다는 것도 확인했습니다. 스프링 같은 프레임워크가 애너테이션을 읽는 방식은 이 모형의 &quot;읽는 쪽&quot; 코드와 원리가 같다는 설명이며, 프레임워크를 실제로 실행해 확인한 것은 아닙니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/enumtype/">열거형(enum)</a> · 다음 실습: <a href="../../lab/list/">ArrayList와 LinkedList</a></p>
   </div>
 
@@ -179,6 +179,6 @@ if (found) System.out.println(&quot;[시간 측정 끝]&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

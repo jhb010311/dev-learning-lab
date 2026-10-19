@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -87,7 +87,7 @@ console.log(2 ** (32 - prefix) - 2);                              // number of u
 // apply the same mask to the destination and see whether the network addresses are the same
 console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network);</pre>
 <h2>Assumptions of this model</h2>
-<p>The network address, the broadcast address, the number of usable hosts, and the judgment of whether two addresses are on the same network were recalculated and checked for all 72 combinations. Three methods different from the model were used for the check: the values from running the bit-operation code shown on the screen on Node.js 24, the values obtained by cutting and joining a 32-character binary string, and the two ends and the count of the range found by putting my address and the length into net.BlockList in Node.js and asking about the addresses one by one. The rule &quot;if the results of applying the same mask are the same, send directly; if not, send to the gateway&quot; follows RFC 1122 section 3.3.1.1, and the private address ranges follow RFC 1918 section 3. NAT was not verified by execution on the PC used to write this lab; it was written following the address and port translation (NAPT) described in RFC 3022 (sections 2.2 and 4.1). The public address 198.51.100.7, the ports 40001 and 40002, and placing the gateway at the first address of the network are examples for explanation. A destination that is a private address is assumed to be in the internal network of the same organization. 203.0.113.7 is an address reserved for documentation, and it is used here as an example of a public address. Prefix lengths such as /31 and /32, for which the rule &quot;subtract 2 addresses&quot; does not hold (RFC 3021), and IPv6 are not covered.</p>
+<p>The network address, the broadcast address, the number of usable hosts, and the judgment of whether two addresses are on the same network were recalculated and checked for all 72 combinations. Three methods different from the model were used for the check: the values from running the bit-operation code shown on the screen on Node.js 24, the values obtained by cutting and joining a 32-character binary string, and the two ends and the count of the range found by putting my address and the length into net.BlockList in Node.js and asking about the addresses one by one. The rule &quot;if the results of applying the same mask are the same, send directly; if not, send to the gateway&quot; follows RFC 1122 section 3.3.1.1, and the private address ranges follow RFC 1918 section 3. NAT was not verified by execution in our test run; it was written following the address and port translation (NAPT) described in RFC 3022 (sections 2.2 and 4.1). The public address 198.51.100.7, the ports 40001 and 40002, and placing the gateway at the first address of the network are examples for explanation. A destination that is a private address is assumed to be in the internal network of the same organization. 203.0.113.7 is an address reserved for documentation, and it is used here as an example of a public address. Prefix lengths such as /31 and /32, for which the rule &quot;subtract 2 addresses&quot; does not hold (RFC 3021), and IPv6 are not covered.</p>
 <p>Previous lab: <a href="../../lab/dns/">DNS</a> · Next lab: <a href="../../lab/routing/">Switches and routers</a></p>
   </div>
 
@@ -175,6 +175,6 @@ console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

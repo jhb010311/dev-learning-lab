@@ -13,7 +13,7 @@ Lab.register({
     { t: '자체 서명 인증서', q: '신뢰할 수 없는 곳에서 발급한 자체 서명 인증서를 쓰면', d: '누구도 보증해 주지 않는 인증서입니다.', v: { cert: 'self' } },
   ],
   code: function () {
-    return '# application.yml (서버 쪽 설정)\nserver:\n  port: 443\n  ssl:\n    enabled: true\n    key-store: classpath:shop.p12       # 인증서 + 개인키\n    key-store-password: ********\n    protocol: TLS\n    enabled-protocols: TLSv1.3\n\n# 실무에서는 보통 앞단의 로드밸런서나 nginx가 TLS를 처리하고\n# 애플리케이션 서버는 그 뒤에서 HTTP로 받는다';
+    return '# application.yml (서버 쪽 설정)\nserver:\n  port: 443\n  ssl:\n    enabled: true\n    key-store: classpath:shop.p12       # 인증서 + 개인키\n    key-store-password: "********"     # 여기서는 가림\n    protocol: TLS\n    enabled-protocols: TLSv1.3\n\n# 실무에서는 보통 앞단의 로드밸런서나 nginx가 TLS를 처리하고\n# 애플리케이션 서버는 그 뒤에서 HTTP로 받는다';
   },
   label: function (c) { return '인증서: ' + { ok: '정상', expired: '만료', name: '도메인 불일치', self: '신뢰할 수 없는 발급자' }[c.cert]; },
   columns: ['결과', '멈춘 단계', '데이터 암호화에 쓰인 키'],
@@ -23,11 +23,11 @@ Lab.register({
     step('브라우저 → 서버', 'ClientHello: 지원하는 TLS 버전과 암호 방식, 키 합의용 공개값', '브라우저가 https://shop.example에 접속합니다. TCP 연결이 맺어진 뒤, 자신이 쓸 수 있는 암호 방식 목록과 키 합의에 쓸 공개값을 보냅니다. 이 메시지는 암호화되지 않았습니다.', '');
     step('서버 → 브라우저', 'ServerHello: 선택한 암호 방식, 서버의 키 합의용 공개값', '서버가 암호 방식을 하나 고르고 자신의 키 합의용 공개값을 보냅니다. 양쪽은 서로의 공개값과 자신의 비밀값을 조합해 같은 값을 계산해 냅니다. 중간에서 공개값만 엿본 사람은 이 값을 계산할 수 없습니다.', '');
     S.key = '양쪽이 같은 대칭키를 계산해 냄'; S.lock = '핸드셰이크 메시지 암호화됨'; step('(양쪽 내부)', '키 합의 완료: 같은 대칭키를 각자 계산', '양쪽이 계산한 같은 값에서 대칭키를 만들어 냅니다. 키 자체는 네트워크로 한 번도 전송되지 않았습니다. 이후의 핸드셰이크 메시지부터 암호화됩니다.', 'good');
-    step('서버 → 브라우저', '인증서 (shop.example의 공개키 + 인증 기관의 서명)', '서버가 인증서를 보냅니다. 인증서에는 도메인 이름, 서버의 공개키, 유효 기간, 그리고 이 내용을 인증 기관(CA)이 자신의 개인키로 서명한 값이 들어 있습니다.', '');
+    step('서버 → 브라우저', c.cert === 'name' ? '인증서 (other.example의 공개키 + 인증 기관의 서명)' : c.cert === 'self' ? '인증서 (shop.example의 공개키 + 서버 자신의 서명)' : '인증서 (shop.example의 공개키 + 인증 기관의 서명)', '서버가 인증서를 보냅니다. 인증서에는 도메인 이름, 서버의 공개키, 유효 기간, 그리고 이 내용에 대한 서명이 들어 있습니다. 웹사이트의 인증서는 보통 인증 기관(CA)이 자신의 개인키로 서명합니다.' + (c.cert === 'name' ? ' 이 서버가 보낸 인증서에 적힌 도메인은 other.example입니다.' : c.cert === 'self' ? ' 이 서버가 보낸 인증서는 인증 기관이 아니라 서버가 스스로 서명했습니다.' : ''), '');
     var fail = c.cert !== 'ok';
     if (c.cert === 'self') step('(브라우저 내부)', '검증 실패: 서명한 기관을 신뢰할 수 없음', '브라우저는 인증서의 서명을 따라 올라가며 신뢰하는 인증 기관 목록(운영체제와 브라우저에 내장)에 닿는지 확인합니다. 이 인증서는 서버가 스스로 서명한 것이라 보증해 주는 기관이 없습니다. 누구나 "나는 shop.example이다"라는 인증서를 스스로 만들 수 있으므로 믿을 수 없습니다.', 'bad');
     else if (c.cert === 'expired') step('(브라우저 내부)', '검증 실패: 유효 기간이 지남', '인증 기관의 서명은 올바르지만 인증서의 유효 기간이 지났습니다. 기간이 지난 인증서는 개인키가 유출됐을 가능성 등을 더 이상 보증받지 못하므로 거부합니다.', 'bad');
-    else if (c.cert === 'name') step('(브라우저 내부)', '검증 실패: 인증서의 도메인이 shop.example이 아님', '서명도 유효 기간도 정상이지만, 인증서에 적힌 도메인이 접속하려는 shop.example과 다릅니다. 다른 사이트의 진짜 인증서를 가져다 쓴 것일 수 있습니다.', 'bad');
+    else if (c.cert === 'name') step('(브라우저 내부)', '검증 실패: 인증서의 도메인이 shop.example이 아님', '서명도 유효 기간도 정상이지만, 인증서에 적힌 도메인(other.example)이 접속하려는 shop.example과 다릅니다. 다른 사이트의 진짜 인증서를 가져다 쓴 것일 수 있습니다.', 'bad');
     else step('(브라우저 내부)', '인증서 검증 통과: 서명, 유효 기간, 도메인 일치', '브라우저가 인증서를 검증합니다. 신뢰하는 인증 기관의 서명이 맞고, 유효 기간 안이며, 도메인이 shop.example과 일치합니다. 이 공개키는 진짜 shop.example의 것이라고 믿을 수 있습니다.', 'good');
     if (fail) { S.lock = '연결 중단'; step('브라우저 → 사용자', '경고 화면: "연결이 비공개로 설정되어 있지 않습니다"', '브라우저가 핸드셰이크를 중단하고 경고 화면을 보여 줍니다. HTTP 요청은 전송되지 않았습니다.', 'bad'); sum.push('인증서 검증에서 멈췄습니다. 암호화만으로는 부족하고, 암호화된 통로의 반대편이 누구인지 확인돼야 합니다. 그렇지 않으면 중간에 끼어든 공격자와 안전하게 암호화 통신을 하는 꼴이 됩니다.'); return { events: ev, summary: sum, row: ['연결 실패', '인증서 검증', '사용 안 함'] }; }
     step('서버 → 브라우저', 'CertificateVerify: 지금까지의 대화를 서버 개인키로 서명', '서버가 지금까지 주고받은 내용을 자신의 개인키로 서명해 보냅니다. 브라우저는 인증서의 공개키로 이 서명을 확인합니다. 인증서는 누구나 복사할 수 있지만, 서명은 짝이 되는 개인키를 가진 진짜 서버만 만들 수 있습니다.', 'good');
@@ -51,5 +51,5 @@ Lab.register({
     P.size(680, end + 78);
     P.note('화살표는 주고받는 메시지이고, 한쪽 선 위의 상자는 그쪽 안에서 하는 일(계산, 검증)입니다.');
   },
-  assume: 'TLS 1.3의 기본 핸드셰이크를 단순화했습니다(실제로는 서버의 응답 메시지 여러 개가 한 번에 묶여 전송됩니다). 키 합의는 양쪽이 공개값을 교환해 같은 비밀을 계산하는 방식(ECDHE)이며, 예전 방식처럼 대칭키를 서버 공개키로 암호화해 보내지 않습니다. 인증서 검증 항목은 TLS와 웹 PKI의 표준 절차를 따랐습니다. 이 PC에서 openssl로 시험용 인증 기관과 인증서 네 가지를 만들어 실제 TLS 1.3 연결을 맺어 확인했습니다. 정상 인증서는 검증을 통과했고, 나머지는 각각 certificate has expired, hostname mismatch, self-signed certificate 오류로 거부됐습니다. 핸드셰이크 메시지도 ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished 순서로 오가는 것을 확인했습니다.',
+  assume: 'TLS 1.3의 기본 핸드셰이크를 단순화했습니다(실제로는 서버의 응답 메시지 여러 개가 한 번에 묶여 전송됩니다). 키 합의는 양쪽이 공개값을 교환해 같은 비밀을 계산하는 방식(ECDHE)이며, 예전 방식처럼 대칭키를 서버 공개키로 암호화해 보내지 않습니다. 인증서 검증 항목은 TLS와 웹 PKI의 표준 절차를 따랐습니다. 검증 환경에서 openssl로 시험용 인증 기관과 인증서 네 가지를 만들어 실제 TLS 1.3 연결을 맺어 확인했습니다. 정상 인증서는 검증을 통과했고, 나머지는 각각 certificate has expired, hostname mismatch, self-signed certificate 오류로 거부됐습니다. 핸드셰이크 메시지도 ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished 순서로 오가는 것을 확인했습니다.',
 });

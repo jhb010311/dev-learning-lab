@@ -51,7 +51,8 @@ Lab.register({
       return '// shop.example 서버의 스프링 시큐리티 설정\n@Bean\nSecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n    // (누가 들어올 수 있는지에 관한 설정은 생략)\n' + line + '\n    return http.build();\n}\n\n// 이 설정에서 /pay 응답에 붙는 프레임 관련 헤더\n' + (hs.length ? hs.map(function (h) { return '//   ' + h; }).join('\n') : '//   (없음)') + '\n\n<!-- 프레임에 넣는 쪽: ' + this.PAGE[c.who] + ' 의 페이지 -->\n<iframe src="https://shop.example/pay"></iframe>';
     }
     var body = c.check === 'none' ? '    return "redirect:" + next;                 // 받은 값을 확인 없이 그대로 쓴다' : c.check === 'slash' ? '    if (!next.startsWith("/")) next = "/";     // "/"로 시작하는지만 본다\n    return "redirect:" + next;' : '    // 같은 사이트의 경로만 받는다\n    boolean ok = next.startsWith("/")\n              && !next.startsWith("//")\n              && !next.startsWith("/\\\\");\n    if (!ok) next = "/";\n    return "redirect:" + next;';
-    return '// 링크: https://shop.example/login?next=' + this.NEXT[c.next] + '\n\n// 로그인에 성공한 뒤 실행된다.\n// next는 처음 링크에 있던 값이 그대로 넘어온 것이다.\n@GetMapping("/login/done")\npublic String done(@RequestParam String next) {\n' + body + '\n}';
+    body = body.split('\n').map(function (l) { return '    ' + l; }).join('\n');
+    return '// 링크: https://shop.example/login?next=' + this.NEXT[c.next] + '\n\n@Controller   // @RestController가 아니다: 반환한 "redirect:..."를 본문이 아니라 이동 지시로 해석한다\nclass LoginDoneController {   // 예시로 만든 클래스\n    // 로그인에 성공한 뒤 실행된다.\n    // next는 처음 링크에 있던 값이 그대로 넘어온 것이다.\n    @GetMapping("/login/done")\n    public String done(@RequestParam String next) {\n' + body + '\n    }\n}';
   },
   label: function (c) {
     if (c.topic === 'frame') return '클릭재킹 · ' + { off: '헤더 없음', default: '기본값(DENY)', same: 'SAMEORIGIN', csp: 'frame-ancestors', both: 'DENY + frame-ancestors' }[c.hdr] + ' · ' + { attacker: '공격자 사이트', self: '같은 사이트', partner: '협력 사이트' }[c.who];

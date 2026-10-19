@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ OrderDto get(@PathVariable long id) {
     return OrderDto.of(order, d);
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>This model ignores the CPU time spent in handling a request and assumes that a request consists only of waiting for an external response. The number of OS threads that run the event loop and that carry the virtual threads is fixed at 2 (the real default follows the number of CPU cores). Virtual threads were finalized in JDK 21. In JDK 21 to 23 there was a limitation that a virtual thread waiting inside a synchronized block could not release its OS thread, and this was resolved in JDK 24. The times were actually measured on JDK 21 on this PC, with the wait shortened to 0.2s. With 12 requests, a pool of 4 threads took 619ms (handled in three rounds), blocking on 2 threads took 1,227ms, virtual threads took 216ms on 2 OS threads, and the approach that only registers the wait took 201ms on 2 threads. These are the same ratios as in the model (6s, 12s, 2s, 2s). The measurement did not run Spring WebFlux itself. It reproduced the same principle with the JDK alone.</p>
+<p>This model ignores the CPU time spent in handling a request and assumes that a request consists only of waiting for an external response. The number of OS threads that run the event loop and that carry the virtual threads is fixed at 2 (the real default follows the number of CPU cores). Virtual threads were finalized in JDK 21. In JDK 21 to 23 there was a limitation that a virtual thread waiting inside a synchronized block could not release its OS thread, and this was resolved in JDK 24. The times were actually measured on JDK 21 in our test environment, with the wait shortened to 0.2s. With 12 requests, a pool of 4 threads took 619ms (handled in three rounds), blocking on 2 threads took 1,227ms, virtual threads took 216ms on 2 OS threads, and the approach that only registers the wait took 201ms on 2 threads. These are the same ratios as in the model (6s, 12s, 2s, 2s). The measurement did not run Spring WebFlux itself. It reproduced the same principle with the JDK alone.</p>
 <p>Previous lab: <a href="../../lab/parallel/">Sequential and parallel calls</a> · Next lab: <a href="../../lab/stack/">Stack and heap</a></p>
   </div>
 
@@ -166,6 +166,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>String a = &quot;hello&quot;: 문자열 리터럴은 String Pool에 하나만 만들어 둡니다. a는 풀에 있는 &quot;hello&quot; 객체를 가리킵니다.</li>
 <li>String b = new String(&quot;hello&quot;): new는 무조건 새 객체를 만듭니다. 풀의 &quot;hello&quot;와 내용은 같지만 힙의 다른 자리에 있는 별개의 객체입니다.</li>
 <li>a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 객체 1, b는 객체 2를 가리키므로 false입니다.</li>
-<li>a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.</li>
+<li>a.equals(b): String의 equals는 두 문자열의 글자가 차례대로 모두 같은지 비교합니다. 둘 다 hello이므로 true입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -73,7 +73,7 @@ String b = new String(&quot;hello&quot;);
 System.out.println(a == b);
 System.out.println(a.equals(b));</pre>
 <h2>이 모형의 전제</h2>
-<p>모든 조합의 == 결과는 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. Integer 캐시 범위 -128 ~ 127은 자바 언어 명세가 보장하는 최소 범위이며, JVM 옵션으로 상한을 늘릴 수 있습니다. String Pool의 위치는 JDK 7부터 힙 안이지만, 그림에서는 구분을 위해 따로 표시했습니다.</p>
+<p>모든 조합의 == 결과는 검증 실행(JDK 21)에서 같은 코드를 실행한 결과와 대조했습니다. Integer 캐시 범위 -128 ~ 127은 자바 언어 명세가 보장하는 최소 범위이며, JVM 옵션으로 상한을 늘릴 수 있습니다. String Pool의 위치는 JDK 7부터 힙 안이지만, 그림에서는 구분을 위해 따로 표시했습니다.</p>
 <p>앞 실습: <a href="../../lab/strategy/">전략 패턴</a> · 다음 실습: <a href="../../lab/eqhash/">equals와 hashCode</a></p>
   </div>
 
@@ -161,6 +161,6 @@ System.out.println(a.equals(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

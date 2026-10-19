@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,11 +64,11 @@
 </ul>
 <h2>코드</h2>
 <pre>List&lt;Integer&gt; list = new ArrayList&lt;&gt;();
-// ... 원소 10개가 들어 있는 상태 (인덱스 0 ~ 9)
+// ... 원소 10개(값 1 ~ 10)가 들어 있는 상태 (인덱스 0 ~ 9)
 
 list.add(0, 99);        // 맨 앞</pre>
 <h2>이 모형의 전제</h2>
-<p>삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 &quot;맨 뒤로 계속 추가&quot;에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 이 PC의 JDK 21에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 원소를 가리키는 참조가 메모리에 연속으로 놓여 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.</p>
+<p>삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 &quot;맨 뒤로 계속 추가&quot;에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 검증 실행(JDK 21)에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 원소를 가리키는 참조가 메모리에 연속으로 놓여 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.</p>
 <p>앞 실습: <a href="../../lab/annot/">애너테이션</a> · 다음 실습: <a href="../../lab/hashmap/">HashMap 내부</a></p>
   </div>
 
@@ -156,6 +156,6 @@ list.add(0, 99);        // 맨 앞</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

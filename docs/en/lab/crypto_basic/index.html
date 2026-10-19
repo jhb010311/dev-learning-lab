@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Encryption: What is encryption, and what happens without the key? · Dev Learning Lab</title>
-<meta name="description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card n…">
+<meta name="description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In this lab's code, you pass the text and a key to encr…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Encryption: What is encryption, and what happens without the key? · Dev Learning Lab">
-<meta property="og:description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card n…">
+<meta property="og:description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In this lab's code, you pass the text and a key to encr…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Encryption</h1>
 <p><b>What is encryption, and what happens without the key?</b></p>
-<p>Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card number 1234&quot;, key), and you get back a value that cannot be read. A party that has the same key passes that value and the key to decrypt(sent, key) and gets the original text back. This is called decryption. A party that has no key, or a different key, cannot get the text back, so what you must protect is the key, not the value. In this lab, you change the key that the receiver has to the same key, a different key, or no key, and sometimes you remove the encryption itself. You see the value that is visible in the middle and what the receiver read, both checked by actually running the code. (The bodies of newKey, which makes a key, and of encrypt and decrypt, which do the calculation, are shortened on the screen.)</p>
+<p>Encryption means calculating text together with a key to turn it into a value that cannot be read. In this lab's code, you pass the text and a key to encrypt(&quot;Card number 1234&quot;, key), and you get back a value that cannot be read. A party that has the same key passes that value and the key to decrypt(sent, key) and gets the original text back. This is called decryption. A party that has no key, or a different key, cannot get the text back, so what you must protect is the key, not the value. In this lab, you change the key that the receiver has to the same key, a different key, or no key, and sometimes you remove the encryption itself. You see the value that is visible in the middle and what the receiver read, both checked by actually running the code. (newKey, which makes a key, and encrypt and decrypt, which do the calculation, are helper methods written for this lab as examples using the standard Java library (javax.crypto); their bodies are shortened on the screen.)</p>
 <p>Checked against real execution · Compiled and ran all 6 combinations on JDK 21 with javax.tools and checked against the results, and checked the calculation with Node.js and the NIST test vectors</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -53,7 +53,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The SecretKey key = newKey(); line runs. The helper method newKey() makes one key and puts it in key. A key is a value that you put into the calculation together with the text, both when you encrypt and when you decrypt.</li>
+<li>The SecretKey key = newKey(); line runs. The helper method newKey(), written for this lab as an example, makes one key, and the variable key refers to that key. A key is a value that you put into the calculation together with the text, both when you encrypt and when you decrypt.</li>
 <li>On the String sent = encrypt(&quot;Card number 1234&quot;, key); line, the sender puts the text &quot;Card number 1234&quot; and the key into encrypt. encrypt calculates the text together with the key and turns it into a different value.</li>
 <li>The calculation ends, and a value that cannot be read comes out and is put in sent. In this lab, a value that starts with ih/DXie50GTx… and is 60 characters long came out. You cannot read &quot;Card number 1234&quot; from this value. If you encrypt the same text again with the same key, a different value comes out, so this value is one example.</li>
 <li>The value of sent goes through the middle (a network or storage) to the receiver. This value is all that is visible in the middle. The text and the key were not sent to the middle, so they are not visible.</li>
@@ -166,6 +166,6 @@ System.out.println(read);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

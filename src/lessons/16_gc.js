@@ -20,7 +20,37 @@ Lab.register({
   SIZES: { small: [12, 3, 24], mid: [20, 5, 40], large: [32, 8, 64] },
   code: function (c) {
     var z = this.SIZES[c.heap];
-    return '// 힙: Eden ' + z[0] + '칸, Survivor ' + z[1] + '칸, Old ' + z[2] + '칸\n' + (c.leak ? 'static List<Event> history = new ArrayList<>();   // 지우는 코드가 없다\n\n' : '\n') + 'while (running) {                       // 한 바퀴 = 한 틱\n    for (int i = 0; i < ' + c.rate + '; i++) {\n        Event e = new Event();           // Eden에 생성\n        if (keepForAWhile(e)) {          // ' + c.live + '%\n            recent.put(e.id(), e);       // 10틱 뒤 제거됨\n        }\n' + (c.leak ? '        if (e.isImportant()) {           // 40%\n            history.add(e);              // 계속 참조됨 -> GC 불가\n        }\n' : '') + '    }                                    // 나머지는 여기서 버려짐\n}';
+    function pad(x) { while (x.length < 54) x += ' '; return x; }
+    return [
+      '// 힙: Eden ' + z[0] + '칸, Survivor ' + z[1] + '칸, Old ' + z[2] + '칸',
+      '// EventLoop와 Event는 예시로 만든 이름입니다(import 생략, 필요한 부분만 남김).',
+      'class EventLoop {',
+    ].concat(c.leak ? ['    static List<Event> history = new ArrayList<>();  // 지우는 코드가 없다'] : [], [
+      '    Map<Long, Event> recent = new HashMap<>();        // 한동안 쓰는 객체를 붙잡는 곳',
+      '    Random random = new Random();',
+      '    volatile boolean running = true;',
+      '',
+      '    void run() {',
+      '        long tick = 0, nextId = 0;',
+      '        while (running) {                             // 한 바퀴 = 한 틱',
+      '            long now = ++tick;',
+      '            recent.values().removeIf(x -> x.tick() <= now - 10);  // 10틱 지난 것은 참조를 끊음',
+      '            for (int i = 0; i < ' + c.rate + '; i++) {',
+      '                Event e = new Event(nextId++, now);   // Eden에 생성',
+      '                int r = random.nextInt(100);',
+      pad('                if (r < ' + c.live + ') {') + '// ' + c.live + '%',
+      '                    recent.put(e.id(), e);            // 10틱 동안 참조됨',
+      c.leak ? pad('                } else if (r < ' + (c.live + 40) + ') {') + '// 40%' : '                }',
+    ], c.leak ? [
+      '                    history.add(e);                   // 계속 참조됨 -> GC 불가',
+      '                }',
+    ] : [], [
+      '            }                                         // 나머지는 여기서 버려짐',
+      '        }',
+      '    }',
+      '}',
+      'record Event(long id, long tick) {}',
+    ]).join('\n');
   },
   label: function (c) { return '틱당 ' + c.rate + '개 · 오래 사는 비율 ' + c.live + '% · 힙 ' + { small: '작게', mid: '보통', large: '크게' }[c.heap] + (c.leak ? ' · 누수' : ''); },
   columns: ['Minor GC', 'Full GC', '멈춘 시간 합계', '끝날 때 Old 사용', '결과'],
@@ -28,14 +58,14 @@ Lab.register({
     var z = this.SIZES[c.heap], EC = z[0], SC = z[1], OC = z[2], TH = 2, TICKS = 40, objs = [], ev = [], minor = 0, full = 0, pause = 0, oom = false, made = 0, t = 0, la = 0, lk = 0;
     function cnt(w) { var n = 0; objs.forEach(function (o) { if (o.w === w) n++; }); return n; }
     function snap() { return { t: t, minor: minor, full: full, pause: pause, E: reg('E'), S: reg('S'), O: reg('O') }; }
-    function reg(w) { return objs.filter(function (o) { return o.w === w; }).map(function (o) { return o.die === Infinity ? 'b' : o.die > t ? 'd' : 'r'; }); }
+    function reg(w) { return objs.filter(function (o) { return (o.w === 'X' ? o.pw : o.w) === w; }).map(function (o) { return o.die === Infinity ? 'b' : o.die > t ? 'd' : 'r'; }); }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
     function fullGC() { full++; pause += 10; var before = cnt('O'); objs = objs.filter(function (o) { return o.die > t; }); var after = cnt('O'); push(t + '틱: 살아남은 객체를 Old로 올리려는데 Old 영역이 가득 찼습니다. Full GC가 힙 전체를 검사합니다. Old의 ' + before + '개 중 더 이상 참조되지 않는 ' + (before - after) + '개를 치웠고 ' + after + '개가 남았습니다. 그동안 애플리케이션의 모든 스레드가 멈춥니다(10만큼 멈춤).', 'bad'); }
     function promote(o) { if (cnt('O') >= OC) { fullGC(); if (cnt('O') >= OC) { oom = true; return false; } } o.w = 'O'; return true; }
     function minorGC() {
       minor++; pause += 1; var young = objs.filter(function (o) { return o.w !== 'O'; }), dead = young.filter(function (o) { return o.die <= t; }).length, toS = 0, toO = 0;
       objs = objs.filter(function (o) { return o.w === 'O' || o.die > t; });
-      var alive = objs.filter(function (o) { return o.w !== 'O'; }); alive.forEach(function (o) { o.w = 'X'; });
+      var alive = objs.filter(function (o) { return o.w !== 'O'; }); alive.forEach(function (o) { o.pw = o.w; o.w = 'X'; });
       for (var i = 0; i < alive.length; i++) { var o = alive[i]; o.age++; if (o.age >= TH || cnt('S') >= SC) { if (!promote(o)) break; toO++; } else { o.w = 'S'; toS++; } }
       if (oom) return;
       push(t + '틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(' + young.length + '개)만 검사해서, 참조되지 않는 ' + dead + '개를 버리고 살아 있는 ' + alive.length + '개를 옮겼습니다(Survivor로 ' + toS + '개, Old로 승격 ' + toO + '개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).', '');
@@ -46,7 +76,7 @@ Lab.register({
         if (oom) break;
         made++; var die = t;                                    // 기본: 만든 틱이 끝나면 버려짐
         var a2 = Math.floor(made * c.live / 100); if (a2 > la) { la = a2; die = t + 10; }
-        if (c.leak) { var k2 = Math.floor(made * 0.4); if (k2 > lk) { lk = k2; die = Infinity; } }
+        if (c.leak && die === t) { var k2 = Math.floor(made * 0.4); if (k2 > lk) { lk = k2; die = Infinity; } }
         objs.push({ w: 'E', die: die, age: 0 });
       }
       if (!oom) push(t + '틱: 객체 ' + c.rate + '개를 만들었습니다. Eden ' + cnt('E') + '/' + EC + '칸 사용 중.', '');
@@ -78,5 +108,5 @@ Lab.register({
     P.box('msg', 16, rh + 30, 648, 30, { cls: kind === 'oom' || kind === 'full' ? 'bad' : kind === 'minor' ? 'hot' : 'ghost', center: true, title: { oom: 'OutOfMemoryError: 참조되는 객체만으로 힙이 가득 참', full: 'Full GC: 힙 전체를 검사 (모든 스레드가 오래 멈춤)', minor: 'Minor GC: Eden과 Survivor만 검사 (잠깐 멈춤)', '': last ? 'GC 없이 Eden에 새 객체를 만드는 중' : '실행을 누르면 시작합니다' }[kind] });
     P.note('초록은 아직 참조되는 객체, 빨강은 참조가 끊겼지만 아직 치워지지 않은 객체, 노랑은 누수된 객체(계속 참조됨), 점선은 빈 칸입니다.');
   },
-  assume: '객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 "Minor GC에서 두 번 살아남으면"으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 이 PC의 JDK 21에서 64MB 힙으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.',
+  assume: '객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 "Minor GC에서 두 번 살아남으면"으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 검증 실행(JDK 21, 64MB 힙)으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.',
 });

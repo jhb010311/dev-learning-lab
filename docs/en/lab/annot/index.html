@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -91,7 +91,7 @@ if (found) System.out.println(&quot;[timing started]&quot;);
 m.invoke(service);
 if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
 <h2>Assumptions of this model</h2>
-<p>The 28 combinations (24 on the @Timed side and 4 on the @Override side) were checked by actually compiling and running the code shown on the screen on JDK 21 on this PC. For each combination, the following were checked directly: whether the code compiles, the line with the error, the compiler message, and the output, and also whether the annotation is recorded in the bytes of the generated class file (and if so, in which of the two attributes, RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) and the result of isAnnotationPresent in reflection. Settings that are hidden on the screen do not affect the result. The code on the screen omits the import statements (those from java.lang.annotation, and java.lang.reflect.Method) and the declaration of the main method. It was also checked that an annotation with @Target(ElementType.TYPE) compiles when it is applied to a class. The statement that a framework such as Spring reads annotations on the same principle as the &quot;reading&quot; code in this model is an explanation, and it was not verified by actually running a framework. Tools that read annotations at compile time and generate code (annotation processors) are not covered.</p>
+<p>The 28 combinations (24 on the @Timed side and 4 on the @Override side) were checked by actually compiling and running the code shown on the screen on JDK 21 in our test environment. For each combination, the following were checked directly: whether the code compiles, the line with the error, the compiler message, and the output, and also whether the annotation is recorded in the bytes of the generated class file (and if so, in which of the two attributes, RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) and the result of isAnnotationPresent in reflection. Settings that are hidden on the screen do not affect the result. The code on the screen omits the import statements (those from java.lang.annotation, and java.lang.reflect.Method) and the declaration of the main method. It was also checked that an annotation with @Target(ElementType.TYPE) compiles when it is applied to a class. The statement that a framework such as Spring reads annotations on the same principle as the &quot;reading&quot; code in this model is an explanation, and it was not verified by actually running a framework. Tools that read annotations at compile time and generate code (annotation processors) are not covered.</p>
 <p>Previous lab: <a href="../../lab/enumtype/">Enum classes</a> · Next lab: <a href="../../lab/list/">ArrayList and LinkedList</a></p>
   </div>
 
@@ -179,6 +179,6 @@ if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

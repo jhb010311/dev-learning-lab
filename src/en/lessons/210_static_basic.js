@@ -1,7 +1,7 @@
 Lab.register({
   id: 'static_basic', nav: 'static', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['static'],
   title: 'What is static, and what changes when you add it?',
-  intro: 'static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.',
+  intro: 'static is a keyword that you put in front of a field (a variable declared inside a class) or a method (this lab looks only at fields). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count (Counter is a class made as an example for this lab). A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.',
   terms: ['static', 'Field', 'Instance variables and static fields', 'Classes and objects'],
   controls: [
     { id: 'st', label: 'Write static in front of count', type: 'check', value: true },
@@ -71,10 +71,10 @@ Lab.register({
       // 4. new Counter() twice
       st.hot = 'oa'; st.objs = 1;
       if (c.st) { st.cls = 0; st.cells = 1; } else { st.a = 0; st.cells = 1; }
-      push('You run it with java Main. main starts, and the first new Counter() creates a Counter object and puts it in the variable a.' + (c.st ? ' count is static, so no count variable is created inside this object. The Counter class has one count variable, and its value is 0.' : ' count is not static, so a count variable is created inside this object, and its value is 0.'), '');
+      push('You run it with java Main. main starts, and the first new Counter() creates a Counter object, and the variable a now refers to that object.' + (c.st ? ' count is static, so no count variable is created inside this object. The Counter class has one count variable, and its value is 0.' : ' count is not static, so a count variable is created inside this object, and its value is 0.'), '');
       st.hot = 'ob'; st.objs = 2;
       if (!c.st) { st.b = 0; st.cells = 2; }
-      push('The second new Counter() creates one more Counter object and puts it in the variable b.' + (c.st ? ' There are two objects now, but no new count variable was created. There is still only one in the Counter class.' : ' This object also gets its own count variable, with the value 0. Now there are two count variables, the one of a and the one of b.'), '');
+      push('The second new Counter() creates one more Counter object, and the variable b now refers to that object.' + (c.st ? ' There are two objects now, but no new count variable was created. There is still only one in the Counter class.' : ' This object also gets its own count variable, with the value 0. Now there are two count variables, the one of a and the one of b.'), '');
 
       // 5. a.up()
       if (c.st) { st.cls = 1; st.hot = 'cl'; st.by = 'a'; } else { st.a = 1; st.hot = 'oa'; }

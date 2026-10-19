@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,9 +40,9 @@
 <dt>Git 브랜치(branch)</dt>
 <dd>Git의 브랜치는 커밋 하나를 가리키는 가볍고 움직이는 포인터(이름표)다. 커밋을 복사해 둔 것이 아니다. 브랜치는 가리키는 커밋의 SHA-1 체크섬 40글자를 담은 단순한 파일이라서 만들고 지우는 비용이 작다(Pro Git 3.1절). 브랜치에서 커밋하면 그 브랜치의 이름표만 새 커밋으로 옮겨 가고, 같은 커밋을 가리키던 다른 브랜치는 그대로다. 브랜치를 만들기만 하고 커밋하지 않으면 커밋은 늘지 않는다.</dd>
 <dt>git switch</dt>
-<dd>git switch는 지금 있는 브랜치를 다른 브랜치로 바꾸는 명령이다(Git 2.23부터). git switch main처럼 쓰면 main으로 옮겨 가고, 폴더의 파일이 그 브랜치가 가리키는 커밋의 모습으로 바뀐다(Pro Git 3.1절). git switch -c feature는 feature 브랜치를 새로 만든 뒤 그쪽으로 옮긴다(git-switch 문서의 -c). 폴더가 깨끗하지 않아도(커밋하지 않은 변경이 있어도) 옮길 수 있지만, 옮기면서 그 변경을 잃게 되는 경우에는 중단한다(git-switch 문서 DESCRIPTION). 이 PC의 git 2.55.0에서는 옮기는 두 브랜치의 그 파일이 같을 때 고친 내용이 그대로 따라왔고, 두 브랜치의 그 파일이 서로 다를 때는 옮기기를 막았다.</dd>
+<dd>git switch는 지금 있는 브랜치를 다른 브랜치로 바꾸는 명령이다(Git 2.23부터). git switch main처럼 쓰면 main으로 옮겨 가고, 폴더의 파일이 그 브랜치가 가리키는 커밋의 모습으로 바뀐다(Pro Git 3.1절). git switch -c feature는 feature 브랜치를 새로 만든 뒤 그쪽으로 옮긴다(git-switch 문서의 -c). 폴더가 깨끗하지 않아도(커밋하지 않은 변경이 있어도) 옮길 수 있지만, 옮기면서 그 변경을 잃게 되는 경우에는 중단한다(git-switch 문서 DESCRIPTION). 검증 실행(git 2.55.0)에서는 옮기는 두 브랜치의 그 파일이 같을 때 고친 내용이 그대로 따라왔고, 두 브랜치의 그 파일이 서로 다를 때는 옮기기를 막았다.</dd>
 <dt>HEAD(Git)</dt>
-<dd>HEAD는 Git이 지금 어느 브랜치에 있는지를 기억하는 특별한 포인터로, 보통 지금 있는 브랜치를 가리키며 커밋을 직접 가리키게 할 수도 있다(Pro Git 3.1절). 그래서 git commit은 HEAD가 가리키는 브랜치의 이름표를 새 커밋으로 옮기고, git switch는 HEAD를 다른 브랜치로 바꾼다. 이 PC의 git 2.55.0에서 새 저장소의 .git/HEAD 파일에는 지금 있는 브랜치 이름이 ref: refs/heads/main 꼴로 적혀 있었다.</dd>
+<dd>HEAD는 Git이 지금 어느 브랜치에 있는지를 기억하는 특별한 포인터로, 보통 지금 있는 브랜치를 가리키며 커밋을 직접 가리키게 할 수도 있다(Pro Git 3.1절). 그래서 git commit은 HEAD가 가리키는 브랜치의 이름표를 새 커밋으로 옮기고, git switch는 HEAD를 다른 브랜치로 바꾼다. 검증 실행(git 2.55.0)에서 새 저장소의 .git/HEAD 파일에는 지금 있는 브랜치 이름이 ref: refs/heads/main 꼴로 적혀 있었다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -66,7 +66,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>커밋은 그 시점의 파일 전체 모습을 저장한 것이고 바로 앞 커밋을 가리킵니다. 브랜치(main, feature)는 커밋을 복사해 둔 것이 아니라 커밋 하나를 가리키는 이름표입니다. feature에서 커밋하면 feature 이름표만 커밋 2로 옮겨 가고 main은 커밋 1에 그대로 있어서, main으로 돌아오면 memo.txt는 v1입니다.</li>
-<li>git switch main은 이름표를 옮기고 폴더의 파일을 main이 가리키는 커밋의 모습으로 바꿨을 뿐입니다. 커밋 2는 지워지지 않고 feature 이름표가 가리키고 있습니다.</li>
+<li>git switch main은 지금 있는 브랜치(HEAD)를 main으로 옮기고 폴더의 파일을 main이 가리키는 커밋의 모습으로 바꿨을 뿐, main과 feature 이름표는 옮기지 않았습니다. 커밋 2는 지워지지 않고 feature 이름표가 가리키고 있습니다.</li>
 </ul>
 <h2>코드</h2>
 <pre># 이 폴더를 Git 저장소로 만든다 (첫 브랜치 이름은 main)
@@ -176,6 +176,6 @@ cat memo.txt</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

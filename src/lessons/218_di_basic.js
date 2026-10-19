@@ -1,7 +1,7 @@
 Lab.register({
   id: 'di_basic', nav: '의존성 주입', cat: '기초개념', mode: 'step', basic: true, deep: ['di'],
   title: '의존성 주입은 무엇을 대신해 주는가',
-  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
+  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 예시로 만든 클래스 OrderService는 결제를 하려고, 역시 예시로 만든 PayService의 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
   terms: ['DI(의존성 주입)', '생성자 주입, 세터 주입, 필드 주입', '의존성', '@Component'],
   controls: [
     { id: 'how', label: 'OrderService가 PayService를 얻는 방법', type: 'select', value: 'inject', options: [['inject', '생성자의 매개변수로 받는다 (주입)'], ['new', 'new PayService()로 직접 만든다'], ['none', '받지도 만들지도 않는다']] },
@@ -16,12 +16,14 @@ Lab.register({
   ],
   fieldText: { bean: '스프링이 넣어 준 빈', new: '직접 new로 만든 객체', empty: '없음 (비어 있음)' },
   code: function (c) {
-    var o = [];
+    // 파일 세 개를 "// 파일:" 줄로 나눠 이어 보인다. 각 파일은 그대로 컴파일된다
+    // @Component를 지운 조합에서도 import 줄은 남겨 둔다(쓰지 않는 import도 컴파일된다). 대조 프로그램이 실행한 소스와 같다
+    var o = ['// 파일: app/PayService.java', 'package app;', '', 'import org.springframework.stereotype.Component;', ''];
     if (c.dep) o.push('@Component');
-    o.push('public class PayService {', '    public String pay() {', '        return "결제 완료";', '    }', '}', '', '@Component', 'public class OrderService {');
+    o.push('public class PayService {', '    public String pay() {', '        return "결제 완료";', '    }', '}', '', '// 파일: app/OrderService.java', 'package app;', '', 'import org.springframework.stereotype.Component;', '', '@Component', 'public class OrderService {');
     o.push({ inject: '    private final PayService payService;', new: '    private final PayService payService = new PayService();', none: '    private PayService payService;' }[c.how], '');
     if (c.how === 'inject') o.push('    // 주입: 필요한 객체를 생성자의 매개변수로 적어 두면 스프링이 넣어 준다', '    public OrderService(PayService payService) {', '        this.payService = payService;', '    }', '');
-    o.push('    public String order() {', '        return payService.pay();', '    }', '}', '', 'public class Main {', '    public static void main(String[] args) {', '        ApplicationContext context =', '                new AnnotationConfigApplicationContext("app");', '        OrderService orderService = context.getBean(OrderService.class);', '        System.out.println(orderService.order());', '    }', '}');
+    o.push('    public String order() {', '        return payService.pay();', '    }', '}', '', '// 파일: app/Main.java', 'package app;', '', 'import org.springframework.context.ApplicationContext;', 'import org.springframework.context.annotation.AnnotationConfigApplicationContext;', '', 'public class Main {', '    public static void main(String[] args) {', '        ApplicationContext context =', '                new AnnotationConfigApplicationContext("app");', '        OrderService orderService = context.getBean(OrderService.class);', '        System.out.println(orderService.order());', '    }', '}');
     return o.join('\n');
   },
   label: function (c) { return { inject: '생성자로 받음', new: 'new로 직접 만듦', none: '받지도 만들지도 않음' }[c.how] + ' · ' + (c.dep ? 'PayService에 @Component 있음' : 'PayService에 @Component 없음'); },
@@ -58,14 +60,14 @@ Lab.register({
       st.phase = 'makeOrder'; st.os = 'making'; order.push('OrderService<-spring');
       push('스프링이 OrderService 객체를 만들기 시작합니다. 이 클래스에는 생성자가 없어서 PayService를 받을 매개변수가 없습니다. OrderService는 일을 하려면 PayService 객체가 필요하지만, 스프링이 읽을 수 있는 표시가 없어 그 사실을 알지 못하고 넣어 줄 것도 없습니다.', '');
       st.phase = 'newPay'; st.os = 'made'; st.field = 'new'; st.ext = true; newPay('OrderService.<init>');
-      push('OrderService 객체가 만들어지는 중에 private final PayService payService = new PayService(); 필드 줄이 실행됩니다. OrderService가 PayService 객체를 직접 만들어 필드에 담습니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
+      push('OrderService 객체가 만들어지는 중에 private final PayService payService = new PayService(); 필드 줄이 실행됩니다. OrderService가 PayService 객체를 직접 만들고, 필드 payService가 그 객체를 가리키게 합니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
       if (dep) {
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('이어서 스프링이 @Component가 붙은 PayService도 객체로 만들어 PayService 빈으로 보관합니다. 이 빈은 OrderService가 직접 만든 객체와 다른 객체입니다. 만들어진 PayService 객체는 2개가 되었습니다.', '');
       }
     } else {
       st.phase = 'makeOrder'; st.os = 'made'; st.field = 'empty'; order.push('OrderService<-spring');
-      push('스프링이 OrderService 객체를 만듭니다. 이 클래스에는 생성자가 없어서 PayService를 받을 매개변수가 없고, new PayService()도 없습니다. OrderService는 일을 하려면 PayService 객체가 필요하지만, 받지도 만들지도 않았으므로 필드 payService에는 값이 담기지 않아 비어 있습니다(null).', '');
+      push('스프링이 OrderService 객체를 만듭니다. 이 클래스에는 생성자가 없어서 PayService를 받을 매개변수가 없고, new PayService()도 없습니다. OrderService는 일을 하려면 PayService 객체가 필요하지만, 받지도 만들지도 않았으므로 필드 payService는 아무 객체도 가리키지 않고 비어 있습니다(null).', '');
       if (dep) {
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('스프링이 PayService 객체를 만들어 PayService 빈으로 보관합니다. 하지만 OrderService는 이 빈을 받지 않았으므로 두 객체는 이어지지 않습니다. 만들어진 PayService 객체는 1개입니다.', '');
@@ -115,7 +117,7 @@ Lab.register({
     var pay = !s.scanned ? '-' : !dep ? '찾지 못함 (@Component 없음)' : s.ps ? '만들어져 보관됨' : '아직 만들지 않음';
     var ord = { '': s.need ? '만드는 중' : s.scanned ? '아직 만들지 않음' : '-', making: '만드는 중', made: '만들어져 보관됨', fail: '만들지 못함' }[s.os];
     H.table(v, ['스프링이 보관하는 빈', '상태'], [{ cls: !s.scanned || dep ? '' : 'gone', cells: ['PayService', pay] }, { cls: '', cells: ['OrderService', { v: ord, cls: s.os === 'fail' ? 'bad' : '' }] }], '스프링이 보관하는 곳');
-    if (s.os === 'made' || s.os === 'making') H.table(v, ['OrderService의 칸', '들어 있는 것'], [{ cls: '', cells: ['payService', s.field ? { v: ft[s.field], cls: s.field === 'bean' ? 'good' : s.field === 'empty' ? 'bad' : 'hot' } : '-'] }], 'OrderService 안');
+    if (s.os === 'made' || s.os === 'making') H.table(v, ['OrderService의 필드', '가리키는 것'], [{ cls: '', cells: ['payService', s.field ? { v: ft[s.field], cls: s.field === 'bean' ? 'good' : s.field === 'empty' ? 'bad' : 'hot' } : '-'] }], 'OrderService의 필드');
     if (s.out.length || s.exc) H.table(v, ['실행 결과'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }).concat(s.exc ? [{ cls: '', cells: [{ v: s.exc === 'fail' ? '스프링이 시작하다 실패함: PayService 빈이 없음' : 'NullPointerException으로 멈춤', cls: 'bad' }] }] : []), '출력');
     H.counters(v, [[s.made, '만들어진 PayService 객체']]);
   },
@@ -135,11 +137,12 @@ Lab.register({
     P.box('mn', 510, 16, 156, 68, { cls: !s ? 'plain' : (s.exc === 'fail' || ph === 'npe') ? 'bad' : (ph === 'getBean' || ph === 'pay') ? 'hot now' : 'wait', title: 'main', sub: [s && s.line ? s.line : '대기'] });
     P.box('px', 510, 104, 156, 68, { cls: s && s.ext ? (ph === 'pay' ? 'hot now' : 'hot') : 'ghost', title: '직접 만든 객체', sub: [s && s.ext ? 'PayService 1개' : '없음'] });
     // 화살표
-    if (s && (ph === 'getBean' || ph === 'pay' || ph === 'npe')) P.arrow('call', 'mn:l:0.3', 'os:r:0.25', { cls: ph === 'npe' ? 'bad' : 'hot' });
-    if (s && s.field === 'bean') P.arrow('rf', 'os:l:0.75', 'ps:r:0.75', { cls: 'good' });
-    else if (s && s.need && s.field !== 'bean') P.arrow('rf', 'os:l:0.75', 'ps:r:0.75', { cls: s.os === 'fail' ? 'bad' : 'dash' });
-    if (s && s.field === 'new') P.arrow('rn', 'os:r:0.8', 'px:l:0.4', { cls: 'hot' });
+    if (s && (ph === 'getBean' || ph === 'pay' || ph === 'npe')) P.arrow('call', 'mn:l:0.3', 'os:r:0.25', { cls: ph === 'npe' ? 'bad' : 'hot', label: '호출' });
+    if (s && s.field === 'bean') P.arrow('rf', 'os:l:0.75', 'ps:r:0.75', { cls: 'good', label: '참조' });
+    else if (s && s.need && s.field !== 'bean') P.arrow('rf', 'os:l:0.75', 'ps:r:0.75', s.os === 'fail' ? { cls: 'bad', label: '빈 없음' } : { cls: 'dash', label: '필요함' });
+    if (s && s.field === 'new') P.arrow('rn', 'os:r:0.8', 'px:l:0.4', { cls: 'hot', label: '참조' });
     P.box('n1', 14, 184, 652, 36, { cls: s && s.made ? 'good' : 'ghost', title: '만들어진 PayService 객체', right: (s ? s.made : 0) + '개' });
+    P.note('"호출" 화살표는 main이 OrderService의 메서드를 부르는 것이고, "참조" 화살표는 OrderService의 payService 필드가 그 PayService 객체를 가리키는 것입니다. 초록 "참조"는 스프링이 넣어 준 빈, 노란 "참조"는 OrderService가 직접 만든 객체입니다. 점선 "필요함"은 생성자가 PayService를 받는다고 적혀 있지만 아직 넣어 주지 않은 상태이고, 빨간 "빈 없음"은 넣어 줄 빈이 없어 실패한 것입니다. 받지도 만들지도 않으면 필드가 아무것도 가리키지 않으므로 "참조" 화살표가 없습니다.');
   },
-  assume: '스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않고, 화면의 main이 그대로 쓰는 AnnotationConfigApplicationContext("app")의 컴포넌트 스캔만 썼습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 PayService, OrderService, Main)를 javac(-parameters)로 컴파일하고 자식 자바 프로세스로 실행해 확인했습니다. 컴포넌트를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했습니다. 대조용 소스에만 Probe 클래스를 더하고 네 줄을 끼웠습니다. 두 클래스에는 객체가 만들어질 때 그 생성자를 부른 쪽(스프링인지 OrderService의 어느 생성자인지)을 스택에서 읽어 적는 인스턴스 초기화 블록 한 줄씩을, main에는 컨텍스트가 만들어진 뒤와 getBean 뒤에 측정하는 줄을 한 줄씩 더했고, 대조 스크립트는 화면의 코드와 견줄 때 이 줄들을 뺍니다. 대조한 것은 실행 결과(출력, 시작 실패한 예외의 종류와 원인, 멈춘 예외와 그 자리), OrderService가 쓰는 PayService, 만들어진 PayService 객체의 수입니다. "OrderService가 쓰는 PayService"는 짐작이 아니라 실측했습니다. 실행 중에 리플렉션으로 OrderService 객체의 payService 필드를 읽어, 컨텍스트에 있는 PayService 빈과 같은 객체인지(==)와 비어 있는지를 견주었습니다. 객체의 수도 생성자가 불린 횟수를 센 것입니다. 단계 문장이 기대는 사실도 따로 재서 확인했습니다. 컴포넌트 스캔이 찾은 클래스, 객체가 만들어진 순서(생성자 주입에서는 PayService가 먼저, 직접 만들 때는 OrderService가 만들어지는 중에 PayService가 만들어짐), 모든 객체가 컨텍스트를 만드는 줄에서 만들어지고 getBean 줄에서는 새로 만들어지지 않는다는 것, 스프링이 기록한 OrderService의 의존 대상(생성자로 받을 때만 payService), PayService 빈이 없을 때 OrderService가 만들어지지 않고 main이 첫 줄에서 멈춘다는 것, 비어 있는 필드를 쓰다 멈추는 자리가 OrderService의 order() 메서드라는 것, 우리 코드에 new OrderService(...)라는 줄이 없다는 것입니다. 시작에 실패한 조합의 실제 예외는 UnsatisfiedDependencyException이고 원인은 NoSuchBeanDefinitionException(PayService 타입의 빈이 없음)이며, 원문은 Probe 출력에 남겼습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 Dependency Injection 절(의존성 주입이 객체가 의존하는 다른 객체를 생성자 인자 등으로만 정하고 컨테이너가 빈을 만들 때 그것을 넣어 주는 과정이라는 것, 생성자 기반 주입이 컨테이너가 각각 의존성을 뜻하는 인자를 가진 생성자를 부르는 것이라는 것), Using @Autowired 절(대상 빈의 생성자가 하나뿐이면 그 생성자에 @Autowired를 붙이지 않아도 된다는 것), Classpath Scanning and Managed Components 절과 @Component, AnnotationConfigApplicationContext의 API 문서(@Component가 붙은 클래스가 자동 탐지의 후보이고, 지정한 패키지를 스캔해 빈 정의를 등록한다는 것)입니다. 같은 실행에서 본 다음 동작은 문서가 정한 것이 아니라 이 버전에서 관찰한 것입니다. 클래스 파일을 훑는 순서에서 OrderService가 PayService보다 먼저 나왔고, 생성자 주입에서는 그 때문에 OrderService를 만들다가 PayService를 먼저 만들었다는 것, new로 직접 만들 때 스프링이 OrderService를 먼저 만들고 PayService 빈을 그다음에 만든다는 것(스캔 순서에 달린 것이어서 클래스 이름이 바뀌면 달라질 수 있음), 비어 있는 필드를 스프링이 오류로 알리지 않는다는 것입니다. 화면의 코드는 package와 import 줄을 줄였습니다. 이 실습은 생성자 주입만 다룹니다. 세터 주입, 필드 주입(@Autowired), 같은 타입의 빈이 여러 개일 때, 순환 의존, 빈의 범위와 생명주기, 인터페이스로 받는 설계는 다루지 않았고, "세부 동작 실습: 빈 생성과 주입"에서 다룹니다.',
+  assume: '스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않고, 화면의 main이 그대로 쓰는 AnnotationConfigApplicationContext("app")의 컴포넌트 스캔만 썼습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 PayService, OrderService, Main)를 javac(-parameters)로 컴파일하고 자식 자바 프로세스로 실행해 확인했습니다. 컴포넌트를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했습니다. 대조용 소스에만 Probe 클래스를 더하고 네 줄을 끼웠습니다. 두 클래스에는 객체가 만들어질 때 그 생성자를 부른 쪽(스프링인지 OrderService의 어느 생성자인지)을 스택에서 읽어 적는 인스턴스 초기화 블록 한 줄씩을, main에는 컨텍스트가 만들어진 뒤와 getBean 뒤에 측정하는 줄을 한 줄씩 더했고, 대조 스크립트는 화면의 코드와 견줄 때 이 줄들을 뺍니다. 대조한 것은 실행 결과(출력, 시작 실패한 예외의 종류와 원인, 멈춘 예외와 그 자리), OrderService가 쓰는 PayService, 만들어진 PayService 객체의 수입니다. "OrderService가 쓰는 PayService"는 짐작이 아니라 실측했습니다. 실행 중에 리플렉션으로 OrderService 객체의 payService 필드를 읽어, 컨텍스트에 있는 PayService 빈과 같은 객체인지(==)와 비어 있는지를 견주었습니다. 객체의 수도 생성자가 불린 횟수를 센 것입니다. 단계 문장이 기대는 사실도 따로 재서 확인했습니다. 컴포넌트 스캔이 찾은 클래스, 객체가 만들어진 순서(생성자 주입에서는 PayService가 먼저, 직접 만들 때는 OrderService가 만들어지는 중에 PayService가 만들어짐), 모든 객체가 컨텍스트를 만드는 줄에서 만들어지고 getBean 줄에서는 새로 만들어지지 않는다는 것, 스프링이 기록한 OrderService의 의존 대상(생성자로 받을 때만 payService), PayService 빈이 없을 때 OrderService가 만들어지지 않고 main이 첫 줄에서 멈춘다는 것, 비어 있는 필드를 쓰다 멈추는 자리가 OrderService의 order() 메서드라는 것, 우리 코드에 new OrderService(...)라는 줄이 없다는 것입니다. 시작에 실패한 조합의 실제 예외는 UnsatisfiedDependencyException이고 원인은 NoSuchBeanDefinitionException(PayService 타입의 빈이 없음)이며, 원문은 Probe 출력에 남겼습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 Dependency Injection 절(의존성 주입이 객체가 의존하는 다른 객체를 생성자 인자 등으로만 정하고 컨테이너가 빈을 만들 때 그것을 넣어 주는 과정이라는 것, 생성자 기반 주입이 컨테이너가 각각 의존성을 뜻하는 인자를 가진 생성자를 부르는 것이라는 것), Using @Autowired 절(대상 빈의 생성자가 하나뿐이면 그 생성자에 @Autowired를 붙이지 않아도 된다는 것), Classpath Scanning and Managed Components 절과 @Component, AnnotationConfigApplicationContext의 API 문서(@Component가 붙은 클래스가 자동 탐지의 후보이고, 지정한 패키지를 스캔해 빈 정의를 등록한다는 것)입니다. 같은 실행에서 본 다음 동작은 문서가 정한 것이 아니라 이 버전에서 관찰한 것입니다. 클래스 파일을 훑는 순서에서 OrderService가 PayService보다 먼저 나왔고, 생성자 주입에서는 그 때문에 OrderService를 만들다가 PayService를 먼저 만들었다는 것, new로 직접 만들 때 스프링이 OrderService를 먼저 만들고 PayService 빈을 그다음에 만든다는 것(스캔 순서에 달린 것이어서 클래스 이름이 바뀌면 달라질 수 있음), 비어 있는 필드를 스프링이 오류로 알리지 않는다는 것입니다. 화면의 코드는 파일 세 개를 "// 파일:" 줄로 나눠 이어 보인 것이며, 파일마다 package와 import 줄까지 그대로 컴파일됩니다. 이 실습은 생성자 주입만 다룹니다. 세터 주입, 필드 주입(@Autowired), 같은 타입의 빈이 여러 개일 때, 순환 의존, 빈의 범위와 생명주기, 인터페이스로 받는 설계는 다루지 않았고, "세부 동작 실습: 빈 생성과 주입"에서 다룹니다.',
 });

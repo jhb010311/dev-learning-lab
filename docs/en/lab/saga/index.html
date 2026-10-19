@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,10 +70,11 @@
 <li>A saga splits a long transaction into a sequence of local transactions, one per service, and when a step fails, it undoes the work with compensating transactions. Unlike a database rollback, this does not make the work &quot;never happen&quot;. It is a new action that leaves a record of the cancellation. So intermediate states can be visible from outside (there is no isolation), and a compensation can fail too, so retries and idempotency are needed.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Each step is committed as a local transaction of its own service
+<pre>// Not Java code: a list of the steps and their compensations
+// Each step is committed as a local transaction of its own service
 1. Order service       Create order (PENDING)      Compensation: cancel the order
 2. Payment service     Approve payment             Compensation: cancel the payment (refund)
-3. Inventory service   Deduct inventory           Compensation: restore the inventory
+3. Inventory service   Deduct inventory            Compensation: restore the inventory
 4. Shipping service    Request shipping            (last step)
 
 // When a step fails, it publishes a &quot;failed&quot; event,
@@ -167,6 +168,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

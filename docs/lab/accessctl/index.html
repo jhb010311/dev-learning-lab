@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -72,6 +72,10 @@
 <h2>코드</h2>
 <pre>// 주문 1번의 주인은 kim, 2번의 주인은 lee다. 99번 주문은 없다.
 // kim과 lee의 역할은 USER, park의 역할은 ADMIN이다.
+// 필요한 부분만 남김. Order와 OrderRepository는 이 예제에서 만든 타입이다.
+// orders는 스프링 데이터가 만든 저장소가 아니라, 메모리의 표에서 주문을 찾는 예시 객체다.
+// findById와 findByIdAndOwner도 예시로 만든 메서드다.
+private final OrderRepository orders = new OrderRepository();
 
 @Bean
 SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -89,7 +93,7 @@ Order one(@PathVariable long id, Authentication auth) {     // auth: 지금 로�
     return o;                                 // 누구의 주문인지 확인하지 않는다
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>서른 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 구조의 코드로 실행해, 응답 코드와 본문에 담긴 주문의 주인, 컨트롤러가 실행됐는지, 코드의 어느 갈래에서 판단이 났는지를 대조했습니다. 주문 저장소는 데이터베이스 대신 메모리의 표로 만들었고, 로그인 방법은 HTTP Basic을 썼습니다(세션이나 토큰으로 로그인해도 인가의 결과는 같습니다). 로그인하지 않은 요청은 어느 방식에서나 401이 나오는 것을 같은 서버에서 확인했으며, 그 내용은 &quot;시큐리티 필터 체인&quot; 실습에서 다룹니다. 남의 자원에 403 대신 404로 답해 자원이 있다는 사실을 숨길 수 있다는 것은 RFC 9110 15.5.4절(403)과 15.5.5절(404)에 적힌 내용입니다. 403과 404 가운데 무엇이 옳은지는 정해져 있지 않고 서비스가 고르는 것입니다. 실제 서비스에서는 응답 코드 외에 응답 시간의 차이로도 자원이 있는지 드러날 수 있는데, 이 실습에서는 다루지 않았습니다. 소유자 확인을 컨트롤러에 적었지만 서비스 계층에 두거나 메서드 보안(@PreAuthorize, @PostAuthorize)으로 적기도 하며, 그 내용은 &quot;메서드 보안&quot; 실습에서 이어집니다. 주문 번호를 추측하기 어려운 값(UUID 등)으로 바꾸는 것은 번호를 짐작하기 어렵게 할 뿐 소유자 확인을 대신하지 못합니다. 이 문장은 일반적인 보안 권고(OWASP의 Broken Access Control 설명)를 따른 것이며 실행으로 확인한 내용이 아닙니다.</p>
+<p>서른 가지 조합 모두를 검증 환경에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 구조의 코드로 실행해, 응답 코드와 본문에 담긴 주문의 주인, 컨트롤러가 실행됐는지, 코드의 어느 갈래에서 판단이 났는지를 대조했습니다. 주문 저장소는 데이터베이스 대신 메모리의 표로 만들었고, 로그인 방법은 HTTP Basic을 썼습니다(세션이나 토큰으로 로그인해도 인가의 결과는 같습니다). 로그인하지 않은 요청은 어느 방식에서나 401이 나오는 것을 같은 서버에서 확인했으며, 그 내용은 &quot;시큐리티 필터 체인&quot; 실습에서 다룹니다. 남의 자원에 403 대신 404로 답해 자원이 있다는 사실을 숨길 수 있다는 것은 RFC 9110 15.5.4절(403)과 15.5.5절(404)에 적힌 내용입니다. 403과 404 가운데 무엇이 옳은지는 정해져 있지 않고 서비스가 고르는 것입니다. 실제 서비스에서는 응답 코드 외에 응답 시간의 차이로도 자원이 있는지 드러날 수 있는데, 이 실습에서는 다루지 않았습니다. 소유자 확인을 컨트롤러에 적었지만 서비스 계층에 두거나 메서드 보안(@PreAuthorize, @PostAuthorize)으로 적기도 하며, 그 내용은 &quot;메서드 보안&quot; 실습에서 이어집니다. 주문 번호를 추측하기 어려운 값(UUID 등)으로 바꾸는 것은 번호를 짐작하기 어렵게 할 뿐 소유자 확인을 대신하지 못합니다. 이 문장은 일반적인 보안 권고(OWASP의 Broken Access Control 설명)를 따른 것이며 실행으로 확인한 내용이 아닙니다.</p>
 <p>앞 실습: <a href="../../lab/security/">시큐리티 필터 체인</a> · 다음 실습: <a href="../../lab/methodsec/">메서드 보안</a></p>
   </div>
 
@@ -177,6 +181,6 @@ Order one(@PathVariable long id, Authentication auth) {     // auth: 지금 로�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

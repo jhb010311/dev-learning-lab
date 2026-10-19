@@ -1,7 +1,7 @@
 Lab.register({
   id: 'merge', nav: 'Detached entities and merge', cat: 'JPA', mode: 'step',
   title: 'Why were other values erased when I only fixed the name with merge?',
-  intro: 'A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change.',
+  intro: 'A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply it, and this lab compares two of them. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Member in this lab is an entity class made for this example.',
   terms: ['Detached entity', 'Merge operation', 'Dirty checking', 'Persistence context', 'The four entity states'],
   controls: [
     { id: 'src', label: 'How the detached object m was obtained', type: 'select', value: 'form', options: [['form', 'new from the values received from the screen (only id and name filled in)'], ['loaded', 'An object loaded in an earlier request (all fields filled in)']] },

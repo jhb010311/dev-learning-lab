@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -90,7 +90,7 @@ class ItemController {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>받는 방법 네 가지, 제약 세 가지, 보내는 값 네 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21)에 HTTP 요청으로 보내, 상태 코드와 검증기가 실제로 돌았는지, 어긴 제약, 컨트롤러 실행 여부와 돌려준 글, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 검증기가 돌았는지는 항상 통과하는 제약을 하나 더 붙여 그것이 불렸는지로 확인했습니다(화면의 코드에는 없습니다). 화면의 주소는 모두 /items이지만 대조할 때는 조합마다 주소를 따로 두었습니다. 스프링 부트는 검증 라이브러리(spring-boot-starter-validation)가 있을 때 검증기를 자동으로 준비하며, 이 실습은 그 상태를 전제로 합니다. 라이브러리가 없을 때의 동작은 확인하지 않았습니다. 예외의 이름과 파라미터에 직접 붙인 제약의 동작은 스프링 버전에 따라 다릅니다. 여기 적은 것은 스프링 프레임워크 7.0.9에서 본 것이고, 6.1보다 앞선 버전은 다르다고 알려져 있으나 실행해 보지 못했습니다. 오류 응답의 본문과 오류 메시지의 글은 설정과 서버의 언어에 따라 달라 결과로 삼지 않았습니다. 이 PC에서 본 기본 오류 응답 본문에는 timestamp, status, error, path만 있었고 어느 필드가 틀렸는지는 들어 있지 않았습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. @Valid 대신 스프링의 @Validated를 파라미터에 붙여도 결과가 같습니다. @Valid @ModelAttribute로 폼 본문을 받아도 열두 가지(제약 셋, 값 넷) 결과가 @Valid @RequestBody와 같고 예외도 MethodArgumentNotValidException입니다. JSON에 &quot;name&quot;: null이라고 적어 보내도 보내지 않은 것과 같습니다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에 @Valid가 있어야 안쪽 객체의 제약까지 검사하고(없으면 200), 안쪽 객체가 null이면 @Valid가 있어도 내려가지 않고 통과합니다. 제약에 groups를 지정하면 @Valid로는 검사되지 않고 @Validated(그 그룹)으로 받아야 검사되며, 반대로 groups가 없는 제약은 @Validated(그 그룹)으로 받으면 검사되지 않습니다. 필드 둘이 모두 어기면 오류는 2개로, 검증은 첫 오류에서 멈추지 않습니다. @Valid 객체와 제약이 직접 붙은 파라미터를 한 메서드에서 함께 받으면 객체 쪽 실패도 HandlerMethodValidationException으로 나옵니다. @RequestParam(required = false)로 받고 값을 보내지 않으면 null이 들어와 @NotNull과 @NotBlank에 걸립니다. 컨트롤러 클래스에 @Validated를 붙이면 파라미터 제약의 실패가 ConstraintViolationException과 500으로 바뀝니다. Integer 필드에 @NotBlank를 붙이면 검증할 때 UnexpectedTypeException으로 500이 됩니다. BindingResult를 @Valid 파라미터 앞에 두면 IllegalStateException으로 500이 됩니다. @ExceptionHandler로 MethodArgumentNotValidException을 받으면 어느 필드가 어느 제약을 어겼는지 꺼내 400 응답 본문에 직접 적을 수 있습니다. 화면은 필드 하나, 제약 하나인 경우로 단순화했고, 빈칸은 스페이스 한 글자만 확인했습니다.</p>
+<p>받는 방법 네 가지, 제약 세 가지, 보내는 값 네 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21)에 HTTP 요청으로 보내, 상태 코드와 검증기가 실제로 돌았는지, 어긴 제약, 컨트롤러 실행 여부와 돌려준 글, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 검증기가 돌았는지는 항상 통과하는 제약을 하나 더 붙여 그것이 불렸는지로 확인했습니다(화면의 코드에는 없습니다). 화면의 주소는 모두 /items이지만 대조할 때는 조합마다 주소를 따로 두었습니다. 스프링 부트는 검증 라이브러리(spring-boot-starter-validation)가 있을 때 검증기를 자동으로 준비하며, 이 실습은 그 상태를 전제로 합니다. 라이브러리가 없을 때의 동작은 확인하지 않았습니다. 예외의 이름과 파라미터에 직접 붙인 제약의 동작은 스프링 버전에 따라 다릅니다. 여기 적은 것은 스프링 프레임워크 7.0.9에서 본 것이고, 6.1보다 앞선 버전은 다르다고 알려져 있으나 실행해 보지 못했습니다. 오류 응답의 본문과 오류 메시지의 글은 설정과 서버의 언어에 따라 달라 결과로 삼지 않았습니다. 검증 환경에서 본 기본 오류 응답 본문에는 timestamp, status, error, path만 있었고 어느 필드가 틀렸는지는 들어 있지 않았습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. @Valid 대신 스프링의 @Validated를 파라미터에 붙여도 결과가 같습니다. @Valid @ModelAttribute로 폼 본문을 받아도 열두 가지(제약 셋, 값 넷) 결과가 @Valid @RequestBody와 같고 예외도 MethodArgumentNotValidException입니다. JSON에 &quot;name&quot;: null이라고 적어 보내도 보내지 않은 것과 같습니다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에 @Valid가 있어야 안쪽 객체의 제약까지 검사하고(없으면 200), 안쪽 객체가 null이면 @Valid가 있어도 내려가지 않고 통과합니다. 제약에 groups를 지정하면 @Valid로는 검사되지 않고 @Validated(그 그룹)으로 받아야 검사되며, 반대로 groups가 없는 제약은 @Validated(그 그룹)으로 받으면 검사되지 않습니다. 필드 둘이 모두 어기면 오류는 2개로, 검증은 첫 오류에서 멈추지 않습니다. @Valid 객체와 제약이 직접 붙은 파라미터를 한 메서드에서 함께 받으면 객체 쪽 실패도 HandlerMethodValidationException으로 나옵니다. @RequestParam(required = false)로 받고 값을 보내지 않으면 null이 들어와 @NotNull과 @NotBlank에 걸립니다. 컨트롤러 클래스에 @Validated를 붙이면 파라미터 제약의 실패가 ConstraintViolationException과 500으로 바뀝니다. Integer 필드에 @NotBlank를 붙이면 검증할 때 UnexpectedTypeException으로 500이 됩니다. BindingResult를 @Valid 파라미터 앞에 두면 IllegalStateException으로 500이 됩니다. @ExceptionHandler로 MethodArgumentNotValidException을 받으면 어느 필드가 어느 제약을 어겼는지 꺼내 400 응답 본문에 직접 적을 수 있습니다. 화면은 필드 하나, 제약 하나인 경우로 단순화했고, 빈칸은 스페이스 한 글자만 확인했습니다.</p>
 <p>앞 실습: <a href="../../lab/binding/">요청 매핑과 파라미터 바인딩</a> · 다음 실습: <a href="../../lab/msgconv/">REST API와 메시지 컨버터</a></p>
   </div>
 
@@ -178,6 +178,6 @@ class ItemController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

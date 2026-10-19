@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Associations</h1>
 <p><b>What is an association, and what does @ManyToOne do for you?</b></p>
-<p>An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In Java objects, Order points directly to a Member object through a field. When an entity points to another entity like this, it is an association. If you write @ManyToOne above that field, JPA connects the two. When it saves, it takes the id out of the Member object and puts it in the foreign key column, and when it reads, it uses that number to find the Member and puts it in the field. So you can just follow the objects, as in order.getMember().getName(). This lab runs the same code, which saves an order and reads it again, on a database where (1, Kim) is already in the member table, and changes only the field declaration. You see what happens if you remove @ManyToOne, and what changes if you keep only a number (Long memberId) in the field instead of an object.</p>
+<p>An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In Java objects, Order points directly to a Member object through a field (Order and Member are example entity classes made for this lab). When an entity points to another entity like this, it is an association. If you write @ManyToOne above that field, JPA connects the two. When it saves, it takes the id out of the Member object and puts it in the foreign key column, and when it reads, it uses that number to make a Member object and has the field point to it. So you can just follow the objects, as in order.getMember().getName(). This lab runs the same code, which saves an order and reads it again, on a database where (1, Kim) is already in the member table, and changes only the field declaration. You see what happens if you remove @ManyToOne, and what changes if you keep only a number (Long memberId) in the field instead of an object.</p>
 <p>Checked against real execution · Compiled the source of all 4 combinations on Hibernate 7.4.5 and H2 2.4.240, started JPA for real, saved and read again, and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -46,7 +46,7 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The member field with @ManyToOne. JPA takes the number out of the object and puts it in the foreign key column, and when it reads, it uses the number to find the Member and puts it in the field.</li>
+<li><b>Default settings</b> — The member field with @ManyToOne. JPA takes the number out of the object and puts it in the foreign key column, and when it reads, it uses the number to make a Member object and has the field point to it.</li>
 <li><b>Removing @ManyToOne</b> — JPA does not know how to put a field of the Member type into a column, so it cannot start.</li>
 <li><b>Keeping only a number instead of an object</b> — It is saved, but no foreign key constraint is created, and to get the member you have to find it again yourself with the number.</li>
 <li><b>Adding @JoinColumn</b> — Only the name of the foreign key column changes from member_id to buyer_id, and the result of saving and reading is the same.</li>
@@ -54,16 +54,16 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>When the program starts, it tells JPA (here, Hibernate) about the Order and Member classes, and JPA reads the classes. The line that registers them and the settings that connect to the database are shortened on the screen. JPA looks at the member field of Order, and its type is Member, which is another entity, and @ManyToOne is above it. So JPA accepts this field as &quot;a field that points to another entity&quot;.</li>
-<li>JPA makes the orders table in the H2 database following this mapping. The columns are id, member_id, and column member_id holds the id of Member. A foreign key constraint is also made, so the value of this column must be a number that exists in the id of the member table. The column name member_id joins the field name member, an underscore, and the name of the column it points to, id (the default rule of the JPA specification when @JoinColumn is not written). This lab is set so that JPA creates the table when it starts (hibernate.hbm2ddl.auto=create-drop), and we did not write CREATE TABLE. The member table already has the row (1, Kim) that the lab put in ahead of time. This is a preparation that does not appear on the screen.</li>
+<li>JPA makes the orders table in the H2 database following this mapping. The columns are id, member_id, and column member_id holds the id of Member. A foreign key constraint is also made, so the value of this column must be a number that exists in the id of the member table. The column name member_id joins the field name member, an underscore, and the name of the column it points to, id (the default rule of the JPA specification when @JoinColumn is not written). This lab is set so that JPA creates the table when it starts (hibernate.hbm2ddl.auto=create-drop), and we did not write CREATE TABLE. The member table already has the row (1, Kim) that the lab put in ahead of time. The line that puts in this row is left out of the code on the screen.</li>
 <li>Member kim = em.find(Member.class, 1L): JPA reads the row with id 1 from the member table and makes the Member object kim. In this run, 1 SELECT was sent. kim is an ordinary object that has id 1 and the name Kim.</li>
-<li>em.persist(new Order(10L, kim)): it creates an order object and puts the kim object in the member field, not the number 1. While this order is passed to JPA and the saving finishes, 1 INSERT is sent. In this run, the statement that Hibernate 7.4.5 made is &quot;insert into orders (member_id,id) values (?,?)&quot;. JPA took the id 1 out of the kim object and put it in the place of member_id. We did not take out the number and write it. A row (id 10, member_id 1) now exists in the orders table.</li>
-<li>Order o = em2.find(Order.class, 10L): it reads the order with em2, which is a different em from the one used for saving. The separately made em2 does not know the earlier objects, so it reads from the database. 1 SELECT was sent on this line, and that statement read not only the orders table but the member table too. JPA uses the value 1 of member_id in the row to find the Member and puts it in the member field of o. We did not call a separate find to look for the Member.</li>
-<li>System.out.println(o.getMember().getName()): o.getMember() is the Member object that JPA put in, and getName() returns the name of that object. Kim is printed on the screen. We did not handle a number. We only followed the objects.</li>
+<li>em.persist(new Order(10L, kim)): it creates an order object and has the member field point to the kim object, not the number 1. While this order is passed to JPA and the saving finishes, 1 INSERT is sent. In this run, the statement that Hibernate 7.4.5 made is &quot;insert into orders (member_id,id) values (?,?)&quot;. JPA took the id 1 out of the kim object and put it in the place of member_id. We did not take out the number and write it. A row (id 10, member_id 1) now exists in the orders table.</li>
+<li>Order o = em2.find(Order.class, 10L): it reads the order with em2, which is a different em from the one used for saving. The separately made em2 does not know the earlier objects, so it reads from the database. 1 SELECT was sent on this line, and that statement read not only the orders table but the member table too. JPA uses the member row that matches the value 1 of member_id in the row to make a new Member object, and has the member field of o point to it. This Member object was made by em2, and it is a different object from the kim used for saving. We did not call a separate find to look for the Member.</li>
+<li>System.out.println(o.getMember().getName()): o.getMember() is the Member object that the member field of o points to (the one em2 made), and getName() returns the name of that object. Kim is printed on the screen. We did not handle a number. We only followed the objects.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>An association is one entity pointing to another entity. In tables, the orders row points to the member by writing the member number in the member_id column (a foreign key), and in Java objects, Order points to a Member object through a field. @ManyToOne above the field connects the two.</li>
-<li>When it saved, JPA took the id out of the kim object and put it in member_id, and when it read, it used that number to find the Member and put it in the member field. So you get the name of the member by following the objects, as in o.getMember().getName().</li>
+<li>When it saved, JPA took the id out of the kim object and put it in member_id, and when it read, it used that number to make a Member object and had the member field point to it. So you get the name of the member by following the objects, as in o.getMember().getName().</li>
 </ul>
 <h2>Code</h2>
 <pre>@Entity
@@ -171,6 +171,6 @@ System.out.println(o.getMember().getName());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

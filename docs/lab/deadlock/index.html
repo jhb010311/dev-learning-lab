@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -76,7 +76,7 @@
 // 스레드 1: transfer(A, B, 100)
 // 스레드 2: transfer(B, A, 50)</pre>
 <h2>이 모형의 전제</h2>
-<p>두 스레드가 정확히 엇갈리는 가장 나쁜 순서(각자 첫 번째 락을 잡은 뒤 두 번째 락을 요청)를 가정했습니다. 실제로는 타이밍에 따라 문제없이 지나가는 경우가 더 많고, 그래서 재현이 어렵습니다. synchronized는 기다리는 시간에 제한을 둘 수 없어서, 제한이 필요하면 ReentrantLock의 tryLock을 씁니다. DB에서도 두 트랜잭션이 행을 서로 반대 순서로 잠그면 같은 일이 생기며, DB는 이를 감지해 한쪽을 강제로 롤백시킵니다. 이 PC의 JDK 21에서 실제로 실행해 확인했습니다. 반대 순서로 동시에 잡으면 두 스레드가 BLOCKED 상태로 멈췄고 JVM이 교착 스레드 2개를 감지했습니다. 같은 순서로 잡거나 차례로 실행하면 끝났고, tryLock을 쓰면 재시도 1번 뒤에 둘 다 끝났습니다.</p>
+<p>두 스레드가 정확히 엇갈리는 가장 나쁜 순서(각자 첫 번째 락을 잡은 뒤 두 번째 락을 요청)를 가정했습니다. 실제로는 타이밍에 따라 문제없이 지나가는 경우가 더 많고, 그래서 재현이 어렵습니다. synchronized는 기다리는 시간에 제한을 둘 수 없어서, 제한이 필요하면 ReentrantLock의 tryLock을 씁니다. DB에서도 두 트랜잭션이 행을 서로 반대 순서로 잠그면 같은 일이 생기며, MySQL(InnoDB)이나 PostgreSQL 같은 DB는 이를 감지해 한쪽 트랜잭션을 강제로 롤백시킵니다. 자바 쪽 결과는 검증 실행(JDK 21)에서 실제로 실행해 확인했습니다. 반대 순서로 동시에 잡으면 두 스레드가 BLOCKED 상태로 멈췄고 JVM이 교착 스레드 2개를 감지했습니다. 같은 순서로 잡거나 차례로 실행하면 끝났고, tryLock을 쓰면 재시도 1번 뒤에 둘 다 끝났습니다.</p>
 <p>앞 실습: <a href="../../lab/race/">경쟁 상태</a> · 다음 실습: <a href="../../lab/threadpool/">스레드 풀</a></p>
   </div>
 
@@ -164,6 +164,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,7 @@ orders.parallelStream()
 // Request B: 8 tasks of 0.1 seconds each
 items.parallelStream().forEach(this::resize);</pre>
 <h2>Assumptions of this model</h2>
-<p>The three times that B took (217ms, 862ms, 218ms) are values measured by actually running the code on JDK 21 on this PC, with the number of worker threads in the common pool set to 3. The 0.1-second tasks and the 2-second calls were replaced with Thread.sleep. That the default size of the common pool is &quot;number of cores - 1&quot; was checked on JDK 21 on this PC (with 12 processors, the parallelism of the common pool is 11). That parallel streams use the common pool is shown by the measurement above (B slowed down when someone else's parallel stream occupied the common pool).</p>
+<p>The three times that B took (217ms, 862ms, 218ms) are values measured by actually running the code on JDK 21 in our test environment, with the number of worker threads in the common pool set to 3. The 0.1-second tasks and the 2-second calls were replaced with Thread.sleep. That the default size of the common pool is &quot;number of cores - 1&quot; was checked on JDK 21 in our test environment (with 12 processors, the parallelism of the common pool is 11). That parallel streams use the common pool is shown by the measurement above (B slowed down when someone else's parallel stream occupied the common pool).</p>
 <p>Previous lab: <a href="../../lab/collect/">Collecting a stream</a> · Next lab: <a href="../../lab/process/">Processes and threads</a></p>
   </div>
 
@@ -159,6 +159,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

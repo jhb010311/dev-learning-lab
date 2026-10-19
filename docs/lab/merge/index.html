@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>준영속과 병합: merge로 이름만 고쳤는데 왜 다른 값이 지워지나 · 개발 학습 실습실</title>
-<meta name="description" content="영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다.">
+<meta name="description" content="영속성 컨텍스트가 관리하지 않는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 여러 가지가 있는데, 이 실습은 그 가운데 두 가지를 견줍니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 이…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="준영속과 병합: merge로 이름만 고쳤는데 왜 다른 값이 지워지나 · 개발 학습 실습실">
-<meta property="og:description" content="영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다.">
+<meta property="og:description" content="영속성 컨텍스트가 관리하지 않는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 여러 가지가 있는데, 이 실습은 그 가운데 두 가지를 견줍니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 이…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 영속성 관리</p>
 <h1>준영속과 병합</h1>
 <p><b>merge로 이름만 고쳤는데 왜 다른 값이 지워지나</b></p>
-<p>영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다.</p>
+<p>영속성 컨텍스트가 관리하지 않는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 여러 가지가 있는데, 이 실습은 그 가운데 두 가지를 견줍니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 이 실습의 Member는 예시로 만든 엔티티 클래스입니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열여덟 가지 조합을 실행해 줄마다 나간 SQL과 DB에 남은 값을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -169,6 +169,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

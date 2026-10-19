@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -83,7 +83,7 @@ set.add(&quot;fig&quot;);
 System.out.println(set);                   // iterates from the start and prints
 System.out.println(set.size());</pre>
 <h2>Assumptions of this model</h2>
-<p>The output, the size, the value returned when a duplicate is added, and the type of exception were checked for all 30 combinations against the result of running the same code on JDK 21 on this PC. The bucket numbers of HashSet and HashMap were also checked against values read from the internal array of real objects. However, the Java specification does not guarantee the iteration order of the Hash kind. The order shown here is the one on JDK 21 with 16 buckets (12 elements or fewer), and it can change with a different version or a different number of elements. The specific value that the hashCode of a record returns is not specified either, and on JDK 21 the hashCode of Task(int id) was equal to id. A TreeSet decides whether two values are the same by whether the result of compareTo is 0, not by equals. The difference in performance (the Hash kind is faster than the Tree kind) was not measured, and the lab follows the time complexity stated in the documentation.</p>
+<p>The output, the size, the value returned when a duplicate is added, and the type of exception were checked for all 30 combinations against the result of running the same code on JDK 21 in our test environment. The bucket numbers of HashSet and HashMap were also checked against values read from the internal array of real objects. However, the Java specification does not guarantee the iteration order of the Hash kind. The order shown here is the one on JDK 21 with 16 buckets (12 elements or fewer), and it can change with a different version or a different number of elements. The specific value that the hashCode of a record returns is not specified either, and on JDK 21 the hashCode of Task(int id) was equal to id. A TreeSet decides whether two values are the same by whether the result of compareTo is 0, not by equals. The difference in performance (the Hash kind is faster than the Tree kind) was not measured, and the lab follows the time complexity stated in the documentation.</p>
 <p>Previous lab: <a href="../../lab/hashmap/">Inside HashMap</a> · Next lab: <a href="../../lab/sqh/">Stack, queue, priority queue</a></p>
   </div>
 
@@ -171,6 +171,6 @@ System.out.println(set.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

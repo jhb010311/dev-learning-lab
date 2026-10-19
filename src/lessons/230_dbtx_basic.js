@@ -20,8 +20,8 @@ Lab.register({
     var l = ['CREATE TABLE account (id INT PRIMARY KEY, balance INT);', 'INSERT INTO account VALUES (1, 1000), (2, 0);', ''];
     if (c.begin) l.push('-- 시작: 여기서부터의 문장을 한 묶음으로 다룬다', 'BEGIN;');
     l.push('UPDATE account SET balance = balance - 300 WHERE id = 1;', 'UPDATE account SET balance = balance + 300 WHERE id = 2;');
-    if (c.end === 'commit') l.push('-- 끝: 묶음 전체를 확정한다', 'COMMIT;');
-    else if (c.end === 'rollback') l.push('-- 끝: 묶음에서 한 일을 전부 취소한다', 'ROLLBACK;');
+    if (c.end === 'commit') l.push(c.begin ? '-- 끝: 묶음 전체를 확정한다' : '-- 묶음이 없어 확정할 것이 없다(두 UPDATE는 이미 확정됨)', 'COMMIT;');
+    else if (c.end === 'rollback') l.push(c.begin ? '-- 끝: 묶음에서 한 일을 전부 취소한다' : '-- 묶음이 없어 취소할 것이 없다(두 UPDATE는 이미 확정됨)', 'ROLLBACK;');
     l.push('', 'SELECT * FROM account ORDER BY id;');
     return l.join('\n');
   },
@@ -160,8 +160,8 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 252);
     var bt = '이 연결의 묶음' + (s && s.bs === 'open' ? ' · 진행 중' : s && s.bs === 'committed' ? ' · 확정됨' : s && s.bs === 'rolled' ? ' · 취소됨' : s && s.bs === 'dropped' ? ' · 끊겨서 취소됨' : '');
-    if (c.begin) P.region('bd', 14, 12, 330, 160, bt);
-    else P.text('hd', 26, 28, '이 연결이 보낸 UPDATE (묶음 없음)', { cls: 'mut', anchor: 'start' });
+    if (c.begin && s && s.bs) P.region('bd', 14, 12, 330, 160, bt);
+    else P.text('hd', 26, 28, c.begin ? '이 연결이 보낸 UPDATE (아직 BEGIN 전)' : '이 연결이 보낸 UPDATE (묶음 없음)', { cls: 'mut', anchor: 'start' });
     P.region('tb', 380, 12, 286, 160, '확정된 account 테이블');
     var lab = [['첫 UPDATE', '계좌 1: 1000 → 700'], ['둘째 UPDATE', '계좌 2: 0 → 300']];
     var cls = { none: 'ghost', pending: 'wait', done: 'good', gone: 'ghost' };

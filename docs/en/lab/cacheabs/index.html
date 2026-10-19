@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -88,7 +88,7 @@ class ProductService {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the &quot;Caching and TTL&quot; lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = &quot;#id&quot;, the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the &quot;Proxies and self-invocation&quot; lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.</p>
+<p>All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) in our test environment with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the &quot;Caching and TTL&quot; lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = &quot;#id&quot;, the code must be compiled with the -parameters option. When the code was compiled without this option and run in our test environment, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the &quot;Proxies and self-invocation&quot; lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.</p>
 <p>Previous lab: <a href="../../lab/restclient/">Calling external APIs and timeouts</a> · Next lab: <a href="../../lab/security/">Security filter chain</a></p>
   </div>
 
@@ -176,6 +176,6 @@ class ProductService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

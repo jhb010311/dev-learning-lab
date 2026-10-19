@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,8 @@ class Member {
     String email;
     String city;
     @ManyToOne(fetch = FetchType.LAZY)
-    Team team;             // Team에는 id, name, region이 있다
+    Team team;             // Team 엔티티(줄임)에는 id, name, region이 있다
+    // 게터와 세터(getName, getAge, getTeam, setName 등)는 줄였다
 }
 
 // 화면에 내보낼 값만 담는 클래스. 엔티티가 아니다 (패키지는 dtoquery)
@@ -106,7 +107,7 @@ public List&lt;MemberDto&gt; list() {
     return dtos;
 }   // 메서드가 끝나면 커밋</pre>
 <h2>이 모형의 전제</h2>
-<p>열두 가지 조합을 이 PC의 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드로 실제 실행해, 나간 SELECT의 수와 대상 테이블, 첫 SELECT의 컬럼 수, 영속성 컨텍스트가 관리하는 엔티티의 수, 커밋할 때 나간 UPDATE의 수, DB에 남은 이름을 화면과 대조했습니다. 코드 전체가 하나의 트랜잭션(영속성 컨텍스트) 안에서 실행된다고 보았습니다. 화면의 SQL은 읽기 쉽게 줄인 것이고, 실제 문장의 모양과 컬럼 순서는 Hibernate 버전에 따라 다릅니다. fetch join에서 컬럼이 9개가 아니라 8개인 것은 Hibernate 7.4.5가 회원의 team_id를 따로 읽지 않았기 때문이며, 버전에 따라 달라질 수 있습니다. 팀을 읽는 추가 쿼리의 수는 아직 읽지 않은 서로 다른 팀의 수(이 예에서는 2)이고, 배치 크기 설정이 없을 때의 값입니다. JPA 표준은 new 뒤에 패키지 이름까지 포함한 클래스 이름을 적도록 정합니다. Hibernate 7.4.5에서 실행해 보니, createQuery에 결과 타입으로 MemberDto.class를 함께 넘기면 패키지 이름을 빼도 실행됐고, 결과 타입 없이 클래스 이름만 적으면 클래스를 찾지 못해 예외(SemanticException)가 났습니다. 패키지 이름을 빼도 되는 것은 표준이 보장하는 동작이 아닙니다. 스프링 데이터 JPA가 인터페이스나 record로 필요한 값만 받게 해 주는 기능(프로젝션)은 이 실습에서 다루지 않았습니다.</p>
+<p>열두 가지 조합을 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드로 실제 실행해, 나간 SELECT의 수와 대상 테이블, 첫 SELECT의 컬럼 수, 영속성 컨텍스트가 관리하는 엔티티의 수, 커밋할 때 나간 UPDATE의 수, DB에 남은 이름을 화면과 대조했습니다. 코드 전체가 하나의 트랜잭션(영속성 컨텍스트) 안에서 실행된다고 보았습니다. 화면의 SQL은 읽기 쉽게 줄인 것이고, 실제 문장의 모양과 컬럼 순서는 Hibernate 버전에 따라 다릅니다. fetch join에서 컬럼이 9개가 아니라 8개인 것은 Hibernate 7.4.5가 회원의 team_id를 따로 읽지 않았기 때문이며, 버전에 따라 달라질 수 있습니다. 팀을 읽는 추가 쿼리의 수는 아직 읽지 않은 서로 다른 팀의 수(이 예에서는 2)이고, 배치 크기 설정이 없을 때의 값입니다. JPA 표준은 new 뒤에 패키지 이름까지 포함한 클래스 이름을 적도록 정합니다. Hibernate 7.4.5에서 실행해 보니, createQuery에 결과 타입으로 MemberDto.class를 함께 넘기면 패키지 이름을 빼도 실행됐고, 결과 타입 없이 클래스 이름만 적으면 클래스를 찾지 못해 예외(SemanticException)가 났습니다. 패키지 이름을 빼도 되는 것은 표준이 보장하는 동작이 아닙니다. 스프링 데이터 JPA가 인터페이스나 record로 필요한 값만 받게 해 주는 기능(프로젝션)은 이 실습에서 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/stock/">재고 차감과 락</a></p>
   </div>
 
@@ -194,6 +195,6 @@ public List&lt;MemberDto&gt; list() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -17,13 +17,13 @@ const OUT = path.join(__dirname, '..', 'out', 'https_basic'), KEY = path.join(OU
 function screenText(scheme, trust, name) {
   const host = scheme === 'https' && name === 'other' ? '127.0.0.1' : 'localhost', port = scheme === 'https' ? 8443 : 8080;
   const L = ['# 클라이언트가 접속하는 주소', scheme + '://' + host + ':' + port + '/login', '', '# 보내는 내용 (POST 요청의 본문)', 'password=1234'];
-  if (scheme === 'https') L.push('', '# 서버의 인증서', '이름: localhost', trust ? '클라이언트가 믿는 목록에 있음' : '클라이언트가 믿는 목록에 없음');
+  if (scheme === 'https') L.push('', '# 서버의 인증서', '이름: localhost', trust ? '클라이언트가 믿는 기관이 서명함' : '클라이언트가 믿는 기관이 서명하지 않음');
   return L.join('\n');
 }
 function parseScreen(text) {
   const L = text.split('\n'), u = new URL(L[1]), r = { scheme: u.protocol.replace(':', ''), host: u.hostname, shownPort: u.port, path: u.pathname, body: L[L.indexOf('# 보내는 내용 (POST 요청의 본문)') + 1] };
   const i = L.indexOf('# 서버의 인증서');
-  if (i >= 0) { r.certName = L[i + 1].replace('이름: ', ''); r.trusted = /목록에 있음$/.test(L[i + 2]); }
+  if (i >= 0) { r.certName = L[i + 1].replace('이름: ', ''); r.trusted = /서명함$/.test(L[i + 2]); }
   return r;
 }
 

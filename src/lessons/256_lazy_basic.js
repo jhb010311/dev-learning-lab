@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lazy_basic', nav: '지연 로딩', cat: '기초개념', mode: 'step', basic: true, deep: ['lazyproxy', 'nplus1'],
   title: '연관된 객체는 언제 DB에서 읽어 오는가',
-  intro: '주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드에는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)가 들어 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.',
+  intro: '주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)를 가리키고 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.',
   terms: ['지연 로딩과 즉시 로딩', '@ManyToOne', '엔티티 프록시', 'FetchType'],
   controls: [
     { id: 'fetch', label: 'member 필드 위의 표시', type: 'select', value: 'lazy', options: [['lazy', '@ManyToOne(fetch = FetchType.LAZY)'], ['eager', '@ManyToOne(fetch = FetchType.EAGER)']] },
@@ -46,19 +46,19 @@ Lab.register({
     if (lazy) {
       st.mb = 'empty';
       st.log.push(['find', 'SELECT 1번 (orders 테이블만)', '']);
-      push('Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드에는 회원 1의 번호만 아는 대리 객체(프록시)를 넣어 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.', '');
+      push('Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드가 회원 1의 번호만 아는 대리 객체(프록시)를 가리키게 해 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.', '');
     } else {
       st.mb = 'filled'; st.rm = true; st.when = 'find 줄에서';
       st.log.push(['find', 'SELECT 1번 (orders와 member를 조인)', 'hot']);
-      push('Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. member 필드 위에 EAGER가 적혀 있으므로, 이 SELECT 하나가 orders 테이블과 member 테이블을 조인(두 테이블을 번호로 이어 붙여 한 번에 읽는 것)해서 회원 1의 행까지 함께 읽어 옵니다. 그래서 member 필드에는 이름(김철수)까지 채워진 진짜 Member 객체가 들어갑니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.', 'hot');
+      push('Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. member 필드 위에 EAGER가 적혀 있으므로, 이 SELECT 하나가 orders 테이블과 member 테이블을 조인(두 테이블을 번호로 이어 붙여 한 번에 읽는 것)해서 회원 1의 행까지 함께 읽어 옵니다. 그래서 member 필드는 이름(김철수)까지 채워진 진짜 Member 객체를 가리킵니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.', 'hot');
     }
 
     if (use) {
       // 2. getMember()
       step();
       st.cur = 'l2';
-      if (lazy) push('order.getMember(): Order 객체의 member 필드에 들어 있던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.', '');
-      else push('order.getMember(): Order 객체의 member 필드에 들어 있던 Member 객체를 그대로 돌려줍니다. find 줄에서 이미 이름까지 채워져 있으므로 SQL은 나가지 않습니다.', '');
+      if (lazy) push('order.getMember(): Order 객체의 member 필드가 가리키던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.', '');
+      else push('order.getMember(): Order 객체의 member 필드가 가리키던 Member 객체를 그대로 돌려줍니다. find 줄에서 이미 이름까지 채워져 있으므로 SQL은 나가지 않습니다.', '');
 
       // 3. getName()
       step();
@@ -76,7 +76,7 @@ Lab.register({
     step();
     st.cur = ''; st.end = true;
     if (lazy && use) push('코드가 끝났습니다. 나간 SELECT는 모두 2번입니다. 주문을 읽는 find 줄에서 1번, 회원의 이름을 꺼내는 getName 줄에서 1번 나갔고, 회원을 읽은 때는 이름을 실제로 쓴 getName 줄입니다.', '');
-    else if (lazy) push('코드가 끝났습니다. 회원의 이름을 쓰는 줄이 없으므로 member 테이블을 읽는 SELECT는 끝까지 나가지 않았습니다. 나간 SELECT는 find 줄의 1번뿐이고, member 필드에는 이름이 비어 있는 대리 객체가 들어 있는 채로 남았습니다.', 'good');
+    else if (lazy) push('코드가 끝났습니다. 회원의 이름을 쓰는 줄이 없으므로 member 테이블을 읽는 SELECT는 끝까지 나가지 않았습니다. 나간 SELECT는 find 줄의 1번뿐이고, member 필드는 이름이 비어 있는 대리 객체를 가리키는 채로 남았습니다.', 'good');
     else if (use) push('코드가 끝났습니다. 나간 SELECT는 find 줄의 1번뿐입니다. 회원은 이름을 쓰기 전에, 주문을 읽는 find 줄에서 이미 읽혀 있었습니다.', '');
     else push('코드가 끝났습니다. 회원의 이름을 쓰는 줄이 없는데도 나간 SELECT 1번이 회원까지 읽었습니다. EAGER이면 회원을 쓰든 쓰지 않든 find 줄에서 읽어 옵니다.', 'bad');
 
@@ -84,9 +84,9 @@ Lab.register({
     var key = (lazy ? 'lazy' : 'eager') + '|' + (use ? 1 : 0);
     var S = {
       'lazy|1': ['FetchType.LAZY로 적은 member는 "회원은 쓰는 순간에 읽어 온다"는 뜻입니다. 주문을 읽는 find 줄에서는 orders 테이블만 읽었고, 회원을 읽는 SELECT는 이름을 꺼낸 getName 줄에서 나갔습니다(SELECT 모두 2번).', '코드에는 SQL이 한 줄도 없는데 SQL이 두 번 나갔습니다. order.getMember()까지는 SQL이 나가지 않고, 회원의 값을 쓰는 순간에 나갑니다.'],
-      'lazy|0': ['회원의 이름을 쓰지 않으면 member 테이블을 읽는 SELECT는 끝까지 나가지 않습니다(SELECT 모두 1번). LAZY는 쓰지 않는 회원은 읽지 않는다는 뜻입니다.', '그동안 member 필드에는 회원의 번호만 아는, 이름이 비어 있는 대리 객체가 들어 있을 뿐입니다.'],
+      'lazy|0': ['회원의 이름을 쓰지 않으면 member 테이블을 읽는 SELECT는 끝까지 나가지 않습니다(SELECT 모두 1번). LAZY는 쓰지 않는 회원은 읽지 않는다는 뜻입니다.', '그동안 member 필드는 회원의 번호만 아는, 이름이 비어 있는 대리 객체를 가리킬 뿐입니다.'],
       'eager|1': ['FetchType.EAGER로 바꾸면 회원이 주문을 읽는 find 줄에서 함께 읽힙니다. 이 코드에서는 주문과 회원을 조인한 SELECT 하나로 읽었고, getName 줄에서는 SQL이 나가지 않았습니다(SELECT 모두 1번).', '달라진 것은 읽는 때입니다. 회원을 쓰기 전에, 주문을 읽는 순간에 이미 읽어 옵니다.'],
-      'eager|0': ['EAGER이면 회원의 이름을 쓰지 않아도 find 줄에서 회원까지 읽어 옵니다. 쓰지 않을 회원까지 읽은 것입니다.', 'LAZY였다면 이 코드에서는 member 테이블을 읽는 일이 아예 없었습니다. 코드가 회원을 쓸지는 em.find를 부르는 때 알 수 없어서, EAGER는 늘 함께 읽어 둡니다.']
+      'eager|0': ['EAGER이면 회원의 이름을 쓰지 않아도 find 줄에서 회원까지 읽어 옵니다. 쓰지 않을 회원까지 읽은 것입니다.', 'LAZY였다면 이 코드에서는 member 테이블을 읽는 일이 아예 없었습니다. 코드가 회원을 쓸지는 em.find를 부르는 때 알 수 없어서, EAGER는 회원을 쓰든 쓰지 않든 주문을 읽을 때 회원도 읽어 둡니다(이 실습에서는 조인한 SELECT 하나로 읽었습니다).']
     };
     S[key].forEach(function (x) { sum.push(x); });
     var nameCol = !use ? '(그 줄이 없음)' : lazy ? 'SELECT 1번 (member)' : '없음';

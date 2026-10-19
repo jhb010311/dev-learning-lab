@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scope', nav: 'Bean scopes', cat: 'Spring', mode: 'step',
   title: 'It is a prototype bean, so why is there only one object?',
-  intro: 'A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens.',
+  intro: 'A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Cart, OrderService and OrderController in this lab are classes made for this example.',
   terms: ['Bean scope', 'Spring bean', 'ObjectProvider', 'Scoped proxy', 'Proxy'],
   controls: [
     { id: 'scope', label: 'Scope of the Cart bean', type: 'select', value: 'prototype', options: [['singleton', 'singleton (used when no scope is specified)'], ['prototype', 'prototype'], ['request', 'request (HTTP request)']] },
@@ -52,12 +52,12 @@ Lab.register({
         push('Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A request-scoped bean can be created only while an HTTP request is being handled, but the application is starting up now and no request is being handled. A ScopeNotActiveException is thrown and startup fails.', 'bad');
         sum.push('Startup failed: ScopeNotActiveException. OrderService, a singleton, is created at startup, and at that time there is no request in which the request-scoped Cart could be created.');
         sum.push('A longer-lived bean (singleton) cannot hold a shorter-lived bean (request) directly in a field. Either retrieve the bean with ObjectProvider on each use, or have a proxy injected.');
-        sum.push('@RequestScope is the request scope with the proxy approach (proxyMode = TARGET_CLASS) built in. If you put @RequestScope on Cart instead of @Scope("request"), this code starts up as it is.');
+        sum.push('@RequestScope is a request scope annotation whose proxy approach (proxyMode = TARGET_CLASS) is set by default. If you put @RequestScope on Cart instead of @Scope("request"), this code starts up as it is.');
         return { events: ev, summary: sum, chain: chain, holds: '', row: ['Startup failed: ScopeNotActiveException', '-', '-', '-', '-'] };
       }
       held = lookup(0); st.holds = 'Cart #' + held; st.svc = 'created';
-      if (sc === 'singleton') push('Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A singleton bean has only one object in the container. The container passes that one object (Cart #1), and OrderService stores it in a field.', '');
-      else push('Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A prototype bean is created anew each time it is asked for, so the container creates Cart #1 and passes it. OrderService stores this object in a field.', '');
+      if (sc === 'singleton') push('Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A singleton bean has only one object in the container. The container passes that one object (Cart #1), and OrderService makes its field point to it.', '');
+      else push('Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A prototype bean is created anew each time it is asked for, so the container creates Cart #1 and passes it. OrderService makes its field point to this object.', '');
     } else {
       st.holds = g === 'provider' ? 'ObjectProvider<Cart>' : 'Cart proxy'; st.svc = 'created';
       if (g === 'provider') push('Creating the orderService bean: The constructor requires an ObjectProvider<Cart>. The container injects not a Cart object but a tool that can retrieve a Cart later. The container is not asked for a Cart at this point, so no Cart object is created.', '');
@@ -71,10 +71,10 @@ Lab.register({
       push('Request ' + r + ': GET /order comes in. The order() method of OrderController calls orderService.cartNo() twice.', '');
       for (var i = 1; i <= 2; i++) {
         var no, what;
-        if (g === 'inject') { no = held; what = 'cartNo() call #' + i + ': It calls no() on Cart #' + no + ', the object held in the field. ' + (sc === 'prototype' ? 'Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.' : 'The bean is a singleton, so it is always the same object.'); }
+        if (g === 'inject') { no = held; what = 'cartNo() call #' + i + ': It calls no() on Cart #' + no + ', the object the field points to. ' + (sc === 'prototype' ? 'Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.' : 'The bean is a singleton, so it is always the same object.'); }
         else {
           no = lookup(r);
-          what = 'cartNo() call #' + i + ': ' + (g === 'provider' ? 'cartProvider.getObject() asks the container for a Cart. ' : 'It calls no() on the proxy held in the field. The proxy asks the container for the real Cart. ');
+          what = 'cartNo() call #' + i + ': ' + (g === 'provider' ? 'cartProvider.getObject() asks the container for a Cart. ' : 'It calls no() on the proxy the field points to. The proxy asks the container for the real Cart. ');
           what += sc === 'singleton' ? 'The bean is a singleton, so the container returns the only one, Cart #' + no + '.' : sc === 'prototype' ? 'The bean is a prototype, so the container creates Cart #' + no + ' and returns it.' : fresh ? 'This request has no Cart yet, so the container creates Cart #' + no + ' and binds it to this request.' : 'Cart #' + no + ' is already bound to this request, so the container returns it.';
         }
         st.cur = no; st.used[r - 1].push(no);
@@ -96,7 +96,7 @@ Lab.register({
       sum.push('If you need a new object on each use, have an ObjectProvider injected and retrieve the object with getObject(). If two singleton beans have a prototype bean injected, each of the two receives a different object.');
     } else if (sc === 'prototype' && g === 'provider') {
       sum.push('Each call to getObject() asks the container for the bean, so a new object is created each time. Two calls within one request make two objects. Prototype does not mean "one per request".');
-      sum.push('If you need to keep using the same object within one unit of work, retrieve it only once with getObject() and keep it in a local variable.');
+      sum.push('If you need to keep using the same object within one unit of work, retrieve it only once with getObject() and make a local variable point to it.');
     } else if (sc === 'prototype') {
       sum.push('Each time one of its methods is called, the proxy asks the container for a Cart. The bean is a prototype, so a new object is created for every single method call.');
       sum.push('So if you store a value with one method and read it with the next, the read already goes to a different object, and the stored value is not visible. For a prototype bean, ObjectProvider is a better fit than a proxy.');
@@ -114,7 +114,7 @@ Lab.register({
     }), 'Cart objects created so far');
     if (!s.carts.length) H.text(v, s.svc === 'failed' ? 'No Cart object was created.' : 'There are no Cart objects yet.');
   },
-  // Diagram: the two HTTP requests on the left, the singleton orderService in the middle, and the Cart objects created so far on the right. One more box appears each time an object is created.
+  // Diagram: the two HTTP requests on the left, the singleton orderService in the middle, and the Cart objects created so far on the right. One more box appears each time an object is created. Only a singleton Cart, which the container keeps, is inside the container border; prototype and request Carts are outside it.
   draw: function (P, sim, shown) {
     var g = sim.c.get, last = shown[shown.length - 1], s = last ? last.snap : { phase: '', svc: 'none', holds: '', carts: [], req: 0, cur: 0, used: [[], []], result: '' };
     P.size(680, 344);
@@ -122,10 +122,12 @@ Lab.register({
       var u = s.used[i], on = s.req === i + 1;
       P.box('rq' + (i + 1), 16, 60 + i * 84, 186, 56, { cls: on ? 'hot now' : u.length ? 'wait' : 'ghost', title: 'Request ' + (i + 1) + ': GET /order', sub: u.length ? 'Cart used: ' + u.map(function (n) { return '#' + n; }).join(', ') : on ? 'being handled' : 'not received yet' });
     });
-    P.region('ctx', 218, 16, 446, 262, 'Spring container');
+    var keep = sim.c.scope === 'singleton';
+    P.region('ctx', 218, 16, keep ? 446 : 236, 262, 'Spring container');
+    if (!keep) P.text('outl', 564, 34, sim.c.scope === 'prototype' ? 'Not kept by the container' : 'Kept with each request', { cls: 'mut', anchor: 'middle' });
     P.box('svc', 234, 100, 204, 64, { cls: s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'none' ? 'ghost' : 'hot', title: 'orderService (singleton)', sub: s.svc === 'created' ? 'Has: ' + s.holds : s.svc === 'none' ? 'not created yet' : s.svc });
     s.carts.forEach(function (x, i) {
-      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : sim.c.scope === 'prototype' ? 'Container: not kept' : x.when });
+      P.box('cart' + x.no, 480, 44 + i * 58, 168, 48, { cls: x.gone ? 'ghost' : s.cur === x.no ? 'hot now' : 'wait', title: 'Cart #' + x.no, sub: x.gone ? 'ended with request' : x.when });
     });
     if (!s.carts.length) P.text('none', 564, 150, s.svc === 'failed' ? 'No Cart object' : 'No Cart object yet', { cls: 'mut', anchor: 'middle' });
     if (g === 'inject' && s.svc === 'created') P.arrow('hold', 'svc:r', 'cart1:l', { cls: 'good', label: 'field' });
@@ -133,7 +135,7 @@ Lab.register({
     if (s.req) P.arrow('call', 'rq' + s.req + ':r', 'svc:l', { label: 'cartNo()' });
     P.box('r1', 16, 294, 320, 38, { cls: s.carts.length ? 'plain' : 'ghost', title: 'Cart objects created', right: s.carts.length + '' });
     P.box('r2', 344, 294, 320, 38, { cls: s.result ? 'bad' : s.phase ? 'plain' : 'ghost', title: 'Status', right: s.result === 'Startup failed' ? 'ScopeNotActiveException' : s.result || s.phase || 'Not started' });
-    P.note(g === 'inject' ? 'The green arrow points to the object that the field of OrderService holds.' : g === 'provider' ? 'The yellow arrow points to the object that getObject() returned this time.' : 'The yellow arrow points to the real object to which the proxy passed this method call.');
+    P.note(g === 'inject' ? 'The green arrow points to the object that the field of OrderService points to.' : g === 'provider' ? 'The yellow arrow points to the object that getObject() returned this time.' : 'The yellow arrow points to the real object to which the proxy passed this method call.');
   },
-  assume: 'All 9 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService holds (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the "Singleton beans and state" lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.',
+  assume: 'All 9 combinations were actually run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService points to (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the "Singleton beans and state" lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.',
 });

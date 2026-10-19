@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@
 
 search(null, 20);   // 이름은 입력 안 함, 나이는 20 이상</pre>
 <h2>이 모형의 전제</h2>
-<p>문자열을 이어 붙이는 세 가지 방식과 JPA Criteria API 방식의 열여섯 가지 조합은 이 PC의 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드를 실제로 실행해, 조립된 문자열, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 조회된 회원 수를 화면과 대조했습니다. Querydsl의 네 가지 조합은 이 PC에 Querydsl 라이브러리가 없어 실행으로 확인하지 못했습니다. 그 부분은 Querydsl 공식 문서를 따른 설명입니다: FilteredClause.where(Predicate...)의 API 문서(&quot;Adds the given filter conditions. Skips null arguments&quot;), 참조 문서 Querying JPA 장의 여러 필터를 and로 묶는 예, Complex predicates 절의 BooleanBuilder 설명. Querydsl의 결과 칸에 적힌 where와 회원 수는 문서대로 동작한다고 볼 때의 값이며 실행 결과가 아닙니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. &quot;where and&quot;에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. Criteria API에서 조건이 0개일 때 where 절이 생기지 않는다는 것, m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 예외(Hibernate 7.4.5에서는 PathElementException)가 난다는 것도 실행으로 확인했습니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.</p>
+<p>문자열을 이어 붙이는 세 가지 방식과 JPA Criteria API 방식의 열여섯 가지 조합은 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드를 실제로 실행해, 조립된 문자열, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 조회된 회원 수를 화면과 대조했습니다. Querydsl의 네 가지 조합은 검증 실행 환경에 Querydsl 라이브러리가 없어 실행으로 확인하지 못했습니다. 그 부분은 Querydsl 공식 문서를 따른 설명입니다: FilteredClause.where(Predicate...)의 API 문서(&quot;Adds the given filter conditions. Skips null arguments&quot;), 참조 문서 Querying JPA 장의 여러 필터를 and로 묶는 예, Complex predicates 절의 BooleanBuilder 설명. Querydsl의 결과 칸에 적힌 where와 회원 수는 문서대로 동작한다고 볼 때의 값이며 실행 결과가 아닙니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. &quot;where and&quot;에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. Criteria API에서 조건이 0개일 때 where 절이 생기지 않는다는 것, m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 예외(Hibernate 7.4.5에서는 PathElementException)가 난다는 것도 실행으로 확인했습니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.</p>
 <p>앞 실습: <a href="../../lab/datajpa/">스프링 데이터 JPA</a> · 다음 실습: <a href="../../lab/connpool/">커넥션 풀과 OSIV</a></p>
   </div>
 
@@ -172,6 +172,6 @@ search(null, 20);   // 이름은 입력 안 함, 나이는 20 이상</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

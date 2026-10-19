@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -93,7 +93,7 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
     System.out.println(r.name + &quot; &quot; + r.point);
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>For each of the 15 combinations, source code identical to the code on the screen was compiled and run on JDK 21 on this PC, and whether saving and restoring succeeded, the exception that was thrown, the restored value, and the number of times the constructor ran were checked against the model. For the combinations that modify the class after saving, two separate copies of a User class with the same name were compiled, and a file saved with one was read with the other. The following were also confirmed by separate runs: when a field is added to a class that declares serialVersionUID, the file can be read and the new field is null, a transient field of a reference type becomes null, a static field read from a different program is 0, and the object is saved when the Address field is marked transient. The format of the bytes that are actually recorded in the file is simplified in the diagram. That the constructor does not run applies to a class that implements Serializable. The rules for the case where the superclass is not Serializable, how to define writeObject and readObject yourself, and the serialization of records are not covered. Because of security problems, the default serialization mechanism in Java is rarely used in new code, and formats such as JSON are mostly used, but you need to know these rules to understand existing code and libraries.</p>
+<p>For each of the 15 combinations, source code identical to the code on the screen was compiled and run on JDK 21 in our test environment, and whether saving and restoring succeeded, the exception that was thrown, the restored value, and the number of times the constructor ran were checked against the model. For the combinations that modify the class after saving, two separate copies of a User class with the same name were compiled, and a file saved with one was read with the other. The following were also confirmed by separate runs: when a field is added to a class that declares serialVersionUID, the file can be read and the new field is null, a transient field of a reference type becomes null, a static field read from a different program is 0, and the object is saved when the Address field is marked transient. The format of the bytes that are actually recorded in the file is simplified in the diagram. That the constructor does not run applies to a class that implements Serializable. The rules for the case where the superclass is not Serializable, how to define writeObject and readObject yourself, and the serialization of records are not covered. Because of security problems, the default serialization mechanism in Java is rarely used in new code, and formats such as JSON are mostly used, but you need to know these rules to understand existing code and libraries.</p>
 <p>Previous lab: <a href="../../lab/iobuf/">I/O streams and buffers</a></p>
   </div>
 
@@ -181,6 +181,6 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

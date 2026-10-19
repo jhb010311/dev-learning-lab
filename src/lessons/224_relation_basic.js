@@ -1,7 +1,7 @@
 Lab.register({
   id: 'relation_basic', nav: '연관관계', cat: '기초개념', mode: 'step', basic: true, deep: ['owner'],
   title: '연관관계는 무엇이고, @ManyToOne은 무엇을 해 주는가',
-  intro: '주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다. 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @ManyToOne을 적으면 JPA가 둘 사이를 이어 줍니다. 저장할 때는 Member 객체에서 id를 꺼내 외래 키 열에 넣고, 읽을 때는 그 번호로 Member를 찾아 필드에 넣어 줍니다. 그래서 order.getMember().getName()처럼 객체를 따라가면 됩니다. 이 실습은 member 테이블에 (1, 김철수)가 미리 들어 있는 DB에서, 주문을 저장했다가 다시 읽는 같은 코드를 필드 선언만 바꿔 실행합니다. @ManyToOne을 지우면 어떻게 되는지, 객체 대신 번호(Long memberId)만 필드로 두면 무엇이 달라지는지를 봅니다.',
+  intro: '주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @ManyToOne을 적으면 JPA가 둘 사이를 이어 줍니다. 저장할 때는 Member 객체에서 id를 꺼내 외래 키 열에 넣고, 읽을 때는 그 번호로 Member 객체를 만들어 필드가 가리키게 해 줍니다. 그래서 order.getMember().getName()처럼 객체를 따라가면 됩니다. 이 실습은 member 테이블에 (1, 김철수)가 미리 들어 있는 DB에서, 주문을 저장했다가 다시 읽는 같은 코드를 필드 선언만 바꿔 실행합니다. @ManyToOne을 지우면 어떻게 되는지, 객체 대신 번호(Long memberId)만 필드로 두면 무엇이 달라지는지를 봅니다.',
   terms: ['연관관계', '@ManyToOne', '@JoinColumn', '기본 키, 유니크 키, 외래 키'],
   controls: [
     { id: 'how', label: 'Order의 member 필드', type: 'select', value: 'ref', options: [
@@ -13,7 +13,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: '연관관계는 어떻게 생겼고, 주문을 저장했다가 다시 읽으면 회원을 어떻게 얻나', d: '@ManyToOne이 붙은 member 필드. JPA가 객체에서 번호를 꺼내 외래 키 열에 넣고, 읽을 때는 번호로 Member를 찾아 필드에 넣어 줍니다.', v: { how: 'ref' } },
+    { t: '처음 설정으로', q: '연관관계는 어떻게 생겼고, 주문을 저장했다가 다시 읽으면 회원을 어떻게 얻나', d: '@ManyToOne이 붙은 member 필드. JPA가 객체에서 번호를 꺼내 외래 키 열에 넣고, 읽을 때는 번호로 Member 객체를 만들어 필드가 가리키게 해 줍니다.', v: { how: 'ref' } },
     { t: '@ManyToOne을 지우면', q: '@ManyToOne을 지우면', d: 'Member 타입의 필드를 열에 어떻게 담을지 몰라 JPA가 시작하지 못합니다.', v: { how: 'noanno' } },
     { t: '객체 대신 번호만 두면', q: 'Member 객체 대신 회원 번호(Long memberId)만 두면', d: '저장은 되지만 외래 키 제약은 만들어지지 않고, 회원을 얻으려면 번호로 우리가 다시 찾아야 합니다.', v: { how: 'idonly' } },
     { t: '@JoinColumn을 더하면', q: '@JoinColumn(name = "buyer_id")를 더하면', d: '외래 키 열의 이름만 member_id에서 buyer_id로 바뀌고, 저장하고 읽는 결과는 같습니다.', v: { how: 'named' } },
@@ -44,7 +44,7 @@ Lab.register({
     var rowText = 'id 10, ' + col + ' 1';
     // 상태: jpa(JPA 상자의 상태), jl(JPA 상자의 글), ann(member 필드의 표시가 JPA에 닿는가: pass, cut), tbl(테이블이 만들어졌나), mrow(member 행),
     // oo(Order 객체: new 새로 만듦, read 읽어 옴), mo(Member 객체), link(Order가 Member 객체를 가리키는가), orow(orders 행), fk(외래 키 제약), sql(나간 SQL), out(찍힌 글)
-    var st = { phase: '', jpa: 'idle', jl: '시작 전', ann: '', tbl: false, mrow: false, oo: '', mo: false, link: false, orow: false, fk: false, ins: 0, sel: 0, sql: [], out: '' };
+    var st = { phase: '', jpa: 'idle', jl: '시작 전', ann: '', tbl: false, mrow: false, oo: '', mo: false, mby: '', link: false, orow: false, fk: false, ins: 0, sel: 0, sql: [], out: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
 
     // 1. JPA가 시작하면서 Order를 읽는다
@@ -60,34 +60,34 @@ Lab.register({
       st.ann = 'pass';
       push('프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Order와 Member 클래스를 알려 주고, JPA가 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. JPA가 Order의 member 필드를 보니 타입이 Member, 곧 다른 엔티티이고 위에 @ManyToOne이 붙어 있습니다. 그래서 JPA는 이 필드를 "다른 엔티티를 가리키는 필드"로 받아들입니다.' + (how === 'named' ? ' 그 아래의 @JoinColumn(name = "buyer_id")는 가리키는 번호를 담을 열의 이름을 buyer_id로 하라는 표시입니다.' : ''), 'good');
       st.phase = 'table'; st.tbl = true; st.fk = true; st.mrow = true; st.jpa = 'ok'; st.jl = 'orders 테이블을 만듦';
-      push('JPA가 이 짝짓기대로 H2 DB에 orders 테이블을 만듭니다. 열은 ' + cols + '이고, 열 ' + col + '에는 Member의 id를 담습니다. 외래 키 제약도 함께 만들어져, 이 열의 값은 member 테이블의 id에 있는 번호여야 합니다. ' + (how === 'named' ? '열 이름은 @JoinColumn이 정한 buyer_id입니다. 적지 않았다면 필드 이름 member에 _와 가리키는 열 이름 id를 이은 member_id가 되었을 것입니다(JPA 명세의 기본 규칙). ' : '열 이름 member_id는 필드 이름 member에 _와 가리키는 열 이름 id를 이은 것입니다(@JoinColumn을 적지 않았을 때의 JPA 명세의 기본 규칙). ') + '이 실습은 JPA가 시작할 때 테이블을 만들도록 설정했고(hibernate.hbm2ddl.auto=create-drop), 우리는 CREATE TABLE을 쓰지 않았습니다. member 테이블에는 실습이 미리 넣어 둔 행 (1, 김철수)가 있습니다. 화면에는 보이지 않는 준비입니다.', 'good');
+      push('JPA가 이 짝짓기대로 H2 DB에 orders 테이블을 만듭니다. 열은 ' + cols + '이고, 열 ' + col + '에는 Member의 id를 담습니다. 외래 키 제약도 함께 만들어져, 이 열의 값은 member 테이블의 id에 있는 번호여야 합니다. ' + (how === 'named' ? '열 이름은 @JoinColumn이 정한 buyer_id입니다. 적지 않았다면 필드 이름 member에 _와 가리키는 열 이름 id를 이은 member_id가 되었을 것입니다(JPA 명세의 기본 규칙). ' : '열 이름 member_id는 필드 이름 member에 _와 가리키는 열 이름 id를 이은 것입니다(@JoinColumn을 적지 않았을 때의 JPA 명세의 기본 규칙). ') + '이 실습은 JPA가 시작할 때 테이블을 만들도록 설정했고(hibernate.hbm2ddl.auto=create-drop), 우리는 CREATE TABLE을 쓰지 않았습니다. member 테이블에는 실습이 미리 넣어 둔 행 (1, 김철수)이 있습니다. 이 행을 넣는 줄은 화면의 코드에서 줄였습니다.', 'good');
     } else {
       st.ann = 'pass';
       push('프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Order와 Member 클래스를 알려 주고, JPA가 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. JPA가 Order의 memberId 필드를 보니 타입이 Long, 평범한 숫자입니다. 숫자는 열 하나에 그대로 담으면 되므로 @ManyToOne이 없어도 문제가 없습니다. 다만 JPA는 이 숫자가 회원의 번호라는 것을 알지 못합니다.', 'good');
       st.phase = 'table'; st.tbl = true; st.mrow = true; st.jpa = 'ok'; st.jl = 'orders 테이블을 만듦';
-      push('JPA가 이 짝짓기대로 H2 DB에 orders 테이블을 만듭니다. 열은 id와 member_id이고, member_id는 필드 memberId에 맞춘 열 하나입니다. 이 실습은 필드 이름의 대문자 앞에 _를 넣어 열 이름으로 쓰는 규칙(Spring Boot의 기본 규칙과 같음)을 설정했습니다. 외래 키 제약은 만들어지지 않았습니다. member_id는 그냥 숫자를 담는 열이어서 DB가 이 값을 member 테이블과 이어 주지 않습니다. member 테이블에는 실습이 미리 넣어 둔 행 (1, 김철수)가 있습니다. 화면에는 보이지 않는 준비입니다.', 'good');
+      push('JPA가 이 짝짓기대로 H2 DB에 orders 테이블을 만듭니다. 열은 id와 member_id이고, member_id는 필드 memberId에 맞춘 열 하나입니다. 이 실습은 필드 이름의 대문자 앞에 _를 넣어 열 이름으로 쓰는 규칙(Spring Boot의 기본 규칙과 같음)을 설정했습니다. 외래 키 제약은 만들어지지 않았습니다. member_id는 그냥 숫자를 담는 열이어서 DB가 이 값을 member 테이블과 이어 주지 않습니다. member 테이블에는 실습이 미리 넣어 둔 행 (1, 김철수)이 있습니다. 이 행을 넣는 줄은 화면의 코드에서 줄였습니다.', 'good');
     }
 
     if (!fail) {
       // 2. 쓰는 쪽
       if (obj) {
-        st.phase = 'findm'; st.mo = true; st.sel = 1; st.sql = [selM]; st.jl = 'Member를 찾아 kim을 만듦';
+        st.phase = 'findm'; st.mo = true; st.mby = 'em'; st.sel = 1; st.sql = [selM]; st.jl = 'Member를 찾아 kim을 만듦';
         push('Member kim = em.find(Member.class, 1L): JPA가 member 테이블에서 id가 1인 행을 읽어 Member 객체 kim을 만듭니다. 이 실행에서 SELECT가 1번 나갔습니다. kim은 id 1과 name 김철수를 가진 평범한 객체입니다.', '');
         st.phase = 'persist'; st.oo = 'new'; st.link = true; st.ins = 1; st.orow = true; st.sql = [selM, insO]; st.jl = 'INSERT를 보냄';
-        push('em.persist(new Order(10L, kim)): 주문 객체를 만들면서 member 필드에 번호 1이 아니라 kim 객체를 넣습니다. 이 주문을 JPA에 넘기고 저장을 마치는 과정에서 INSERT가 1번 나갑니다. 이 실행에서 Hibernate 7.4.5가 만든 문장은 "' + insO + '"입니다. JPA가 kim 객체에서 id 1을 꺼내 ' + col + ' 자리에 넣었습니다. 우리는 번호를 꺼내 적지 않았습니다. orders 테이블에 행 (' + rowText + ')이 생겼습니다.', 'good');
+        push('em.persist(new Order(10L, kim)): 주문 객체를 만들면서 member 필드가 번호 1이 아니라 kim 객체를 가리키게 합니다. 이 주문을 JPA에 넘기고 저장을 마치는 과정에서 INSERT가 1번 나갑니다. 이 실행에서 Hibernate 7.4.5가 만든 문장은 "' + insO + '"입니다. JPA가 kim 객체에서 id 1을 꺼내 ' + col + ' 자리에 넣었습니다. 우리는 번호를 꺼내 적지 않았습니다. orders 테이블에 행 (' + rowText + ')이 생겼습니다.', 'good');
       } else {
         st.phase = 'persist'; st.oo = 'new'; st.ins = 1; st.orow = true; st.sql = [insO]; st.jl = 'INSERT를 보냄';
         push('em.persist(new Order(10L, 1L)): 주문 객체를 만들면서 회원 번호 1을 우리가 직접 적어 넣습니다. kim 같은 Member 객체는 없습니다. 이 주문을 JPA에 넘기고 저장을 마치는 과정에서 INSERT가 1번 나갑니다. 이 실행에서 Hibernate 7.4.5가 만든 문장은 "' + insO + '"입니다. 넣은 숫자가 그대로 열에 들어가, orders 테이블에 행 (' + rowText + ')이 생겼습니다.', 'good');
       }
       // 3. 다시 읽는다
       if (obj) {
-        st.phase = 'readorder'; st.oo = 'read'; st.sel = 2; st.sql = [selM, insO, readJoin]; st.jl = '번호 1로 Member를 찾아 넣음';
-        push('Order o = em2.find(Order.class, 10L): 저장할 때 쓴 em과 다른 em2로 주문을 읽습니다. 따로 만든 em2는 앞의 객체를 모르기 때문에 DB에서 읽어 옵니다. 이 줄에서 SELECT가 1번 나갔고, 그 문장이 orders 테이블뿐 아니라 member 테이블까지 함께 읽었습니다. JPA가 행의 ' + col + ' 값 1로 Member를 찾아 o의 member 필드에 넣어 줍니다. Member를 찾는 find를 우리가 따로 부르지 않았습니다.', 'good');
+        st.phase = 'readorder'; st.oo = 'read'; st.mby = 'em2'; st.sel = 2; st.sql = [selM, insO, readJoin]; st.jl = '번호 1로 Member 객체를 새로 만듦';
+        push('Order o = em2.find(Order.class, 10L): 저장할 때 쓴 em과 다른 em2로 주문을 읽습니다. 따로 만든 em2는 앞의 객체를 모르기 때문에 DB에서 읽어 옵니다. 이 줄에서 SELECT가 1번 나갔고, 그 문장이 orders 테이블뿐 아니라 member 테이블까지 함께 읽었습니다. JPA가 행의 ' + col + ' 값 1에 맞는 member 행으로 Member 객체를 새로 만들고, o의 member 필드가 그 객체를 가리키게 합니다. 이 Member 객체는 em2가 만든 것으로, 저장할 때 쓴 kim과는 다른 객체입니다. Member를 찾는 find를 우리가 따로 부르지 않았습니다.', 'good');
         st.phase = 'print'; st.out = '김철수'; st.jl = '객체를 따라가면 됨';
-        push('System.out.println(o.getMember().getName()): o.getMember()는 JPA가 넣어 준 Member 객체이고, getName()은 그 객체의 이름을 돌려줍니다. 화면에 김철수가 찍힙니다. 우리는 번호를 다루지 않고 객체를 따라가기만 했습니다.', 'good');
+        push('System.out.println(o.getMember().getName()): o.getMember()는 o의 member 필드가 가리키는 Member 객체(em2가 만든 것)이고, getName()은 그 객체의 이름을 돌려줍니다. 화면에 김철수가 찍힙니다. 우리는 번호를 다루지 않고 객체를 따라가기만 했습니다.', 'good');
         if (how === 'ref') {
           sum.push('연관관계는 한 엔티티가 다른 엔티티를 가리키는 것입니다. 테이블에서는 orders 행이 회원의 번호를 member_id 열(외래 키)에 적어 가리키고, 자바 객체에서는 Order가 Member 객체를 필드로 가리킵니다. 필드 위의 @ManyToOne이 둘을 이어 줍니다.');
-          sum.push('저장할 때 JPA가 kim 객체에서 id를 꺼내 member_id에 넣었고, 읽을 때는 그 번호로 Member를 찾아 member 필드에 넣어 주었습니다. 그래서 o.getMember().getName()처럼 객체를 따라가면 회원의 이름을 얻습니다.');
+          sum.push('저장할 때 JPA가 kim 객체에서 id를 꺼내 member_id에 넣었고, 읽을 때는 그 번호로 Member 객체를 만들어 member 필드가 가리키게 해 주었습니다. 그래서 o.getMember().getName()처럼 객체를 따라가면 회원의 이름을 얻습니다.');
         } else {
           sum.push('@JoinColumn은 외래 키 열의 이름만 정합니다. 열 이름이 member_id에서 buyer_id로 바뀌었을 뿐, 저장하고 읽는 결과는 @ManyToOne만 쓸 때와 같습니다. 외래 키 제약도 그대로 만들어졌습니다.');
           sum.push('주문에서 회원을 꺼내는 코드는 열 이름을 한 번도 쓰지 않습니다. o.getMember().getName()은 열 이름이 무엇이든 같고, 열 이름은 JPA가 SQL을 만들 때와 DB에서 테이블을 볼 때만 나타납니다.');
@@ -95,7 +95,7 @@ Lab.register({
       } else {
         st.phase = 'readorder'; st.oo = 'read'; st.sel = 1; st.sql = [insO, readO]; st.jl = '주문만 읽음';
         push('Order o = em2.find(Order.class, 10L): 저장할 때 쓴 em과 다른 em2로 주문을 읽습니다. 이 줄에서 SELECT가 1번 나갔고, orders 테이블만 읽었습니다. o에는 member_id 값이 getMemberId()가 돌려주는 숫자 1로 들어 있을 뿐이고, Member 객체는 없습니다.', 'good');
-        st.phase = 'findm'; st.mo = true; st.sel = 2; st.sql = [insO, readO, selM]; st.jl = '우리가 부른 find';
+        st.phase = 'findm'; st.mo = true; st.mby = 'em2'; st.sel = 2; st.sql = [insO, readO, selM]; st.jl = '우리가 부른 find';
         push('Member m = em2.find(Member.class, o.getMemberId()): 회원을 얻으려면 이 번호로 Member를 찾는 줄을 우리가 한 줄 더 써야 합니다. 이 줄에서 SELECT가 한 번 더 나가 member 테이블에서 id가 1인 행을 읽습니다.', 'good');
         st.phase = 'print'; st.out = '김철수'; st.jl = '찾는 줄이 하나 더 필요';
         push('System.out.println(m.getName()): m은 방금 우리가 찾은 Member 객체이고, 화면에 김철수가 찍힙니다. 결과는 같지만 o에서 m으로 가는 길은 JPA가 이어 준 것이 아니라 우리가 번호로 찾은 것입니다.', 'good');
@@ -118,22 +118,22 @@ Lab.register({
     if (s.sql.length) H.table(v, ['나간 SQL 문'], s.sql.map(function (q) { return { cls: '', cells: [{ v: q, cls: 'good' }] }; }), 'Hibernate가 만든 문장');
     H.counters(v, [[s.ins, '나간 INSERT'], [s.sel, '나간 SELECT']]);
   },
-  // 그림: 위쪽에 객체 세계(Order 객체와 Member 객체), 아래쪽에 테이블 세계(orders 행과 member 행), 가운데에 둘을 이어 주는 JPA. 연관관계가 있으면 Order 객체에서 Member 객체로, orders 행에서 member 행으로 화살표가 이어진다.
+  // 그림: 위쪽에 객체 세계(Order 객체와 Member 객체. 상자 이름에 그 객체를 만든 쪽을 적는다. 다시 읽은 뒤의 두 상자는 em2가 새로 만든 객체다), 아래쪽에 테이블 세계(orders 행과 member 행), 가운데에 둘을 이어 주는 JPA. 연관관계가 있으면 Order 객체에서 Member 객체로, orders 행에서 member 행으로 화살표가 이어진다.
   draw: function (P, sim, shown) {
     var c = sim.c, how = c.how, obj = how === 'ref' || how === 'named', col = sim.col, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 396);
     var ph = s ? s.phase : '';
     P.region('wo', 14, 12, 652, 108, '객체 세계: 자바 객체');
     var osub = !s || !s.oo ? '객체 없음' : how === 'idonly' ? ['id = 10', 'memberId = 1'] : ['id = 10', 'member = ' + (s.link ? 'Member 객체' : '비어 있음')];
-    P.box('oo', 24, 38, 270, 70, { cls: !s || !s.oo ? 'ghost' : ph === 'persist' || ph === 'readorder' ? 'hot now' : 'wait', title: 'Order 객체', sub: osub });
-    P.box('mo', 386, 38, 270, 70, { cls: !s || !s.mo ? 'ghost' : (ph === 'findm') ? 'hot now' : 'wait', title: 'Member 객체', sub: s && s.mo ? ['id = 1', 'name = 김철수'] : '객체 없음' });
+    P.box('oo', 24, 38, 270, 70, { cls: !s || !s.oo ? 'ghost' : ph === 'persist' || ph === 'readorder' ? 'hot now' : 'wait', title: !s || !s.oo ? 'Order 객체' : s.oo === 'read' ? 'Order 객체 o (em2가 만듦)' : 'Order 객체 (new로 만듦)', sub: osub });
+    P.box('mo', 386, 38, 270, 70, { cls: !s || !s.mo ? 'ghost' : (ph === 'findm' || (obj && ph === 'readorder')) ? 'hot now' : 'wait', title: !s || !s.mby ? 'Member 객체' : s.mby === 'em' ? 'Member 객체 kim (em이 만듦)' : how === 'idonly' ? 'Member 객체 m (em2가 만듦)' : 'Member 객체 (em2가 새로 만듦)', sub: s && s.mo ? ['id = 1', 'name = 김철수'] : '객체 없음' });
     if (obj && s && s.link) P.arrow('lk', 'oo:r', 'mo:l', { cls: 'good' });
     var jcls = !s ? 'ghost' : s.jpa === 'bad' ? 'bad' : s.jpa === 'ok' ? 'good' : 'hot now';
     P.box('jpa', 24, 150, 632, 62, { cls: jcls, title: 'JPA (Hibernate)', sub: s ? s.jl : '시작 전' });
     // 위쪽 화살표: 클래스의 표시가 JPA에 닿는가, 객체가 JPA와 오가는가
     if (s && s.ann === 'cut') { P.arrow('a_o', 'oo:b:0.3', [120, 130], { cls: 'bad' }); P.text('x_o', 120, 142, '×', { cls: 'bad', anchor: 'middle', bold: true }); }
     else if (s && s.ann === 'pass') P.arrow('a_o', 'oo:b:0.3', 'jpa:t:0.1', { cls: ph === 'read' ? 'good' : 'mut' });
-    if (s && s.mo) P.arrow('a_m', 'mo:b:0.7', 'jpa:t:0.9', { cls: ph === 'findm' ? 'hot' : 'mut' });
+    if (s && s.mo) P.arrow('a_m', 'mo:b:0.7', 'jpa:t:0.9', { cls: ph === 'findm' || (obj && ph === 'readorder') ? 'hot' : 'mut' });
     P.region('wt', 14, 232, 652, 104, '테이블 세계: H2 DB');
     var made = !!(s && s.tbl);
     P.box('to', 24, 258, 270, 70, { cls: !made ? 'ghost' : ph === 'table' ? 'hot' : ph === 'persist' || ph === 'readorder' ? 'hot now' : 'wait', title: made ? 'orders 테이블' : '테이블 없음', sub: made ? [sim.cols, s.orow ? 'id 10 · ' + col + ' 1' : '행 없음'] : ' ' });

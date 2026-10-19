@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx_basic', nav: '@Transactional', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['tx', 'txprop'],
   title: 'What does @Transactional group together?',
-  intro: '@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with a runtime exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.',
+  intro: '@Transactional is a marker (an annotation) that you put above a method. The order() method of OrderService, a class made up as an example for this lab, saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with a runtime exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.',
   terms: ['@Transactional', 'Transaction', 'Commit and rollback', 'Proxy'],
   controls: [
     { id: 'tx', label: 'Put @Transactional above order()', type: 'check', value: true },
@@ -124,8 +124,9 @@ Lab.register({
     else P.text('hd', 26, 28, 'Lines of the order() method', { cls: 'mut', anchor: 'start' });
     P.region('db', 380, 12, 286, 214, 'Tables in the database');
     function line(id, y, title, sub, k, failed) {
-      var cur = s && s.cur === id, done = s && s.done[id];
-      P.box(id, 26, y, 306, 52, { cls: cur ? (failed ? 'bad now' : 'hot now') : failed && done ? 'bad' : done ? 'good' : 'plain', title: title, sub: sub });
+      // After a rollback the save on line 1 is undone, so it is shown dashed instead of green
+      var cur = s && s.cur === id, done = s && s.done[id], undone = id === 'l1' && s && s.txs === 'rolled';
+      P.box(id, 26, y, 306, 52, { cls: cur ? (failed ? 'bad now' : 'hot now') : failed && done ? 'bad' : undone ? 'ghost' : done ? 'good' : 'plain', title: title, sub: undone ? sub + ' · rolled back' : sub });
     }
     line('l1', 40, '1. Save the order', 'INSERT INTO orders', 0, false);
     line('l2', 98, '2. Check stock', 'Exception if stock is 0', 0, !!(s && s.fail));

@@ -55,7 +55,7 @@ Lab.register({
     if (op === 'save') {
       L = ['Book book = new Book(1L, "Java", 20000, "Alice");', 'em.persist(book);'];
       s.obj = 'new';
-      push(0, 'new Book(1L, "Java", 20000, "Alice"): Creates one Book object. The id, name, and price inherited from the superclass Item and the author declared by Book are all together in this one object.', '');
+      push(0, 'new Book(1L, "Java", 20000, "Alice"): Creates one Book object. This object has all the fields: id, name, and price inherited from the superclass Item, and author declared by Book. No separate Item object is created.', '');
       s.obj = 'managed';
       push(1, 'em.persist(book): Hands the object to the persistence context. You set the id in the code yourself, so there is nothing to ask the DB, and the INSERT is not sent right away. It is postponed until commit.', '');
       before = '0';

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 
 System.out.println(r);</pre>
 <h2>이 모형의 전제</h2>
-<p>열여덟 가지 코드의 결과(오른쪽 식의 타입, 변수의 타입, 출력이나 예외)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. int r = 3.99가 컴파일 오류라는 것과 그 메시지도 같은 JDK의 컴파일러에 실제로 넣어 확인했습니다(메시지는 영어판 기준). 요약에 적은 7 / 0.0, (double) sum / count, &quot;합: &quot; + 1 + 2, n % 2 == 1, Math.round, Math.addExact의 동작도 함께 실행해 확인했습니다. 다루지 않은 것이 있습니다. float와 char와 short의 계산, byte b = 100처럼 범위 안의 정수 상수를 좁은 타입에 바로 넣을 수 있는 규칙, long을 double로 바꿀 때 큰 수에서 생기는 오차, 0.1 + 0.2 같은 실수 계산의 오차는 넣지 않았습니다. 7 / 2처럼 숫자만으로 된 식은 실제로는 컴파일러가 미리 계산해 두지만 결과는 같습니다.</p>
+<p>열여덟 가지 코드의 결과(오른쪽 식의 타입, 변수의 타입, 출력이나 예외)를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. int r = 3.99가 컴파일 오류라는 것과 그 메시지도 같은 JDK의 컴파일러에 실제로 넣어 확인했습니다(메시지는 영어판 기준). 요약에 적은 7 / 0.0, (double) sum / count, &quot;합: &quot; + 1 + 2, n % 2 == 1, Math.round, Math.addExact의 동작도 함께 실행해 확인했습니다. 다루지 않은 것이 있습니다. float와 char와 short의 계산, byte b = 100처럼 범위 안의 정수 상수를 좁은 타입에 바로 넣을 수 있는 규칙, long을 double로 바꿀 때 큰 수에서 생기는 오차, 0.1 + 0.2 같은 실수 계산의 오차는 넣지 않았습니다. 7 / 2처럼 숫자만으로 된 식은 실제로는 컴파일러가 미리 계산해 두지만 결과는 같습니다.</p>
 <p>앞 실습: <a href="../../lab/vars/">변수와 타입</a> · 다음 실습: <a href="../../lab/loops/">조건문과 반복문</a></p>
   </div>
 
@@ -158,6 +158,6 @@ System.out.println(r);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

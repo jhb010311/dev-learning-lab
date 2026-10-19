@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,13 +61,13 @@
 <li>shop.example의 IP 주소를 모릅니다. DNS 서버에 물어 IP 주소를 받아 옵니다. 결과는 정해진 시간(TTL) 동안 캐시에 보관됩니다.</li>
 <li>그 IP의 443번 포트로 TCP 연결을 맺습니다(3-way handshake). 서버까지 한 번 왕복하는 시간이 듭니다.</li>
 <li>TLS 핸드셰이크로 서버의 인증서를 확인하고 암호화 키를 합의합니다. 한 번 더 왕복합니다.</li>
-<li>암호화된 연결 위로 HTTP 요청을 보냅니다. 요청 줄, 헤더(Host, 쿠키, User-Agent 등)가 서버로 갑니다.</li>
+<li>암호화된 연결 위로 HTTP 요청을 보냅니다. 요청 줄, 헤더(Host, 쿠키, User-Agent 등)가 서버로 갑니다. 서버까지 한 방향으로 가는 시간(왕복의 절반)이 듭니다.</li>
 <li>가장 먼저 요청을 받는 것은 nginx입니다. TLS를 풀고, 경로를 보고 어디서 처리할지 정합니다.</li>
 <li>nginx가 요청을 뒤쪽의 톰캣(8080 포트)으로 넘깁니다. 톰캣이 스레드 풀에서 스레드 하나를 배정하고, 필터를 거쳐 스프링의 DispatcherServlet으로 전달합니다.</li>
 <li>DispatcherServlet이 /orders를 처리할 컨트롤러를 찾아 실행합니다. 컨트롤러는 서비스를, 서비스는 리포지토리를 호출합니다.</li>
 <li>커넥션 풀에서 커넥션을 빌려 SQL을 실행하고 결과를 받습니다. 서버 안에서 쓰는 시간 가운데 가장 큰 부분입니다.</li>
 <li>조회 결과를 JSON이나 HTML로 바꿔 응답을 만듭니다. 응답은 톰캣, nginx를 거쳐 되돌아갑니다.</li>
-<li>응답이 브라우저에 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.</li>
+<li>응답이 서버에서 브라우저까지 한 방향으로 와서 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -79,6 +79,8 @@
 server {
     listen 443 ssl;
     server_name shop.example;
+    ssl_certificate     /etc/nginx/certs/shop.example.crt;   # 인증서
+    ssl_certificate_key /etc/nginx/certs/shop.example.key;   # 개인키
 
     location /static/ {                  # 정적 파일은 직접 응답
         root /var/www;
@@ -89,7 +91,7 @@ server {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 한 번 가는 데 30ms, CDN은 5ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.</p>
+<p>시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 왕복 30ms이고 한 방향은 그 절반인 15ms, CDN 서버까지는 왕복 10ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.</p>
 <p>다음 실습: <a href="../../lab/layers/">계층 구조와 캡슐화</a></p>
   </div>
 
@@ -177,6 +179,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

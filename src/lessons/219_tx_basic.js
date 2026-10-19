@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx_basic', nav: '@Transactional', cat: '기초개념', mode: 'step', basic: true, deep: ['tx', 'txprop'],
   title: '@Transactional은 무엇을 묶어 주는가',
-  intro: '@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 런타임 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.',
+  intro: '@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습에서 예시로 만든 OrderService 클래스의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 런타임 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.',
   terms: ['@Transactional', '트랜잭션', '커밋과 롤백', '프록시(Proxy)'],
   controls: [
     { id: 'tx', label: 'order() 위에 @Transactional을 적는다', type: 'check', value: true },
@@ -124,8 +124,9 @@ Lab.register({
     else P.text('hd', 26, 28, 'order() 메서드의 줄', { cls: 'mut', anchor: 'start' });
     P.region('db', 380, 12, 286, 214, 'DB의 테이블');
     function line(id, y, title, sub, k, failed) {
-      var cur = s && s.cur === id, done = s && s.done[id];
-      P.box(id, 26, y, 306, 52, { cls: cur ? (failed ? 'bad now' : 'hot now') : failed && done ? 'bad' : done ? 'good' : 'plain', title: title, sub: sub });
+      // 롤백되면 1번 줄의 저장은 없던 일이 되므로 초록으로 두지 않고 점선으로 바꾼다
+      var cur = s && s.cur === id, done = s && s.done[id], undone = id === 'l1' && s && s.txs === 'rolled';
+      P.box(id, 26, y, 306, 52, { cls: cur ? (failed ? 'bad now' : 'hot now') : failed && done ? 'bad' : undone ? 'ghost' : done ? 'good' : 'plain', title: title, sub: undone ? sub + ' · 롤백으로 취소됨' : sub });
     }
     line('l1', 40, '1. 주문 저장', 'INSERT INTO orders', 0, false);
     line('l2', 98, '2. 재고 확인', 'stock이 0이면 예외', 0, !!(s && s.fail));

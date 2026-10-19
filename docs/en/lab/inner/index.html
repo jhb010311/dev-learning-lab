@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -83,7 +83,7 @@ public class Main {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The code of the 24 combinations (10 distinct cases when the hidden settings are excluded) was compiled and run as it is on JDK 21 on this PC, and whether compilation succeeded, the error messages, and the output were checked against the results. That an object of an inner class refers to the outer object, and that a static nested class has no such reference, was confirmed by looking at the hidden field with reflection. That an object of an anonymous class and a lambda expression keep a copy of the value of a local variable (the reference, for an array) was also confirmed through hidden fields on this JDK. However, the form in which a lambda expression keeps the value can differ depending on the JVM implementation. The wording of the error messages is that of javac in JDK 21 and can differ slightly by version. javac in JDK 21 does not create the hidden reference field when the class inside does not use the outer object at all (the anonymous class in this lab is such a case). Even so, the rule that an outer object is required to create an inner class without static is the same.</p>
+<p>The code of the 24 combinations (10 distinct cases when the hidden settings are excluded) was compiled and run as it is on JDK 21 in our test environment, and whether compilation succeeded, the error messages, and the output were checked against the results. That an object of an inner class refers to the outer object, and that a static nested class has no such reference, was confirmed by looking at the hidden field with reflection. That an object of an anonymous class and a lambda expression keep a copy of the value of a local variable (the reference, for an array) was also confirmed through hidden fields on this JDK. However, the form in which a lambda expression keeps the value can differ depending on the JVM implementation. The wording of the error messages is that of javac in JDK 21 and can differ slightly by version. javac in JDK 21 does not create the hidden reference field when the class inside does not use the outer object at all (the anonymous class in this lab is such a case). Even so, the rule that an outer object is required to create an inner class without static is the same.</p>
 <p>Previous lab: <a href="../../lab/access/">Access modifiers and encapsulation</a> · Next lab: <a href="../../lab/immut/">Immutability and defensive copies</a></p>
   </div>
 
@@ -171,6 +171,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -79,7 +79,7 @@ Lab.register({
     // 요약
     if (c2 && home) {
       sum.push('커밋은 그 시점의 파일 전체 모습을 저장한 것이고 바로 앞 커밋을 가리킵니다. 브랜치(main, feature)는 커밋을 복사해 둔 것이 아니라 커밋 하나를 가리키는 이름표입니다. feature에서 커밋하면 feature 이름표만 커밋 2로 옮겨 가고 main은 커밋 1에 그대로 있어서, main으로 돌아오면 memo.txt는 v1입니다.');
-      sum.push('git switch main은 이름표를 옮기고 폴더의 파일을 main이 가리키는 커밋의 모습으로 바꿨을 뿐입니다. 커밋 2는 지워지지 않고 feature 이름표가 가리키고 있습니다.');
+      sum.push('git switch main은 지금 있는 브랜치(HEAD)를 main으로 옮기고 폴더의 파일을 main이 가리키는 커밋의 모습으로 바꿨을 뿐, main과 feature 이름표는 옮기지 않았습니다. 커밋 2는 지워지지 않고 feature 이름표가 가리키고 있습니다.');
     } else if (c2) {
       sum.push('main으로 돌아가는 줄이 없으면 feature에 그대로 있어서 memo.txt는 v2입니다. 폴더의 파일은 지금 있는 브랜치가 가리키는 커밋 2의 모습입니다.');
       sum.push('feature에서 커밋해도 main 이름표는 움직이지 않았습니다. 브랜치에서 커밋하면 지금 있는 브랜치의 이름표만 새 커밋으로 옮겨 갑니다.');

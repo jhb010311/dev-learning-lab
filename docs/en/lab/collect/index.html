@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -82,7 +82,7 @@ Map&lt;String, Integer&gt; result = orders.stream()
     .collect(Collectors.toMap(Order::customer, Order::price));
 System.out.println(result);</pre>
 <h2>Assumptions of this model</h2>
-<p>The output and the exceptions (kind and message) of the 24 combinations were checked against the result of running the same code on JDK 21 on this PC. The type of the result was confirmed by whether code that declares the result with that type actually compiles, and it was also confirmed that assigning the result of counting() to a Map&lt;String, Integer&gt; does not compile. The Map that groupingBy and toMap return does not guarantee an order (on JDK 21 it is a HashMap). This lab shows a Map sorted in lexicographic order of the keys, and for the customer names used here, the actual output order on JDK 21 was the same as that. With other names, the actual output order can differ. The wording of the exception message can differ between JDK versions. The lab covers only the case in which a stream handles its elements one at a time in order (a stream that is not parallel).</p>
+<p>The output and the exceptions (kind and message) of the 24 combinations were checked against the result of running the same code on JDK 21 in our test environment. The type of the result was confirmed by whether code that declares the result with that type actually compiles, and it was also confirmed that assigning the result of counting() to a Map&lt;String, Integer&gt; does not compile. The Map that groupingBy and toMap return does not guarantee an order (on JDK 21 it is a HashMap). This lab shows a Map sorted in lexicographic order of the keys, and for the customer names used here, the actual output order on JDK 21 was the same as that. With other names, the actual output order can differ. The wording of the exception message can differ between JDK versions. The lab covers only the case in which a stream handles its elements one at a time in order (a stream that is not parallel).</p>
 <p>Previous lab: <a href="../../lab/stream/">Lazy evaluation in streams</a> · Next lab: <a href="../../lab/parstream/">Parallel streams and the common pool</a></p>
   </div>
 
@@ -170,6 +170,6 @@ System.out.println(result);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

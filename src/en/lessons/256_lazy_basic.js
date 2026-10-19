@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lazy_basic', nav: 'Lazy fetching', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['lazyproxy', 'nplus1'],
   title: 'When is an associated object read from the database?',
-  intro: 'An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field holds a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.',
+  intro: 'An order (Order) points to the member (Member) who placed it (Order and Member are entity classes written for this lab as examples). In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field refers to a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.',
   terms: ['Lazy fetching and eager fetching', '@ManyToOne', 'Entity proxy', 'FetchType'],
   controls: [
     { id: 'fetch', label: 'Marker above the member field', type: 'select', value: 'lazy', options: [['lazy', '@ManyToOne(fetch = FetchType.LAZY)'], ['eager', '@ManyToOne(fetch = FetchType.EAGER)']] },
@@ -46,19 +46,19 @@ Lab.register({
     if (lazy) {
       st.mb = 'empty';
       st.log.push(['find', '1 SELECT (orders table only)', '']);
-      push('Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field gets a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.', '');
+      push('Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field is made to refer to a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.', '');
     } else {
       st.mb = 'filled'; st.rm = true; st.when = 'On the find line';
       st.log.push(['find', '1 SELECT (joins orders and member)', 'hot']);
-      push('Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) and builds an Order object from the row it read. EAGER is written above the member field, so this one SELECT joins the orders table and the member table (it links the two tables by number and reads them at once) and reads the row of member 1 as well. So the member field gets a real Member object that is filled in even with the name (Alice). This SELECT is not in the code we wrote. JPA built and sent it.', 'hot');
+      push('Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) and builds an Order object from the row it read. EAGER is written above the member field, so this one SELECT joins the orders table and the member table (it links the two tables by number and reads them at once) and reads the row of member 1 as well. So the member field refers to a real Member object that is filled in even with the name (Alice). This SELECT is not in the code we wrote. JPA built and sent it.', 'hot');
     }
 
     if (use) {
       // 2. getMember()
       step();
       st.cur = 'l2';
-      if (lazy) push('order.getMember(): returns as it is the proxy that was in the member field of the Order object. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.', '');
-      else push('order.getMember(): returns as it is the Member object that was in the member field of the Order object. It was already filled in even with the name on the find line, so no SQL is sent.', '');
+      if (lazy) push('order.getMember(): returns as it is the proxy that the member field of the Order object referred to. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.', '');
+      else push('order.getMember(): returns as it is the Member object that the member field of the Order object referred to. It was already filled in even with the name on the find line, so no SQL is sent.', '');
 
       // 3. getName()
       step();
@@ -76,7 +76,7 @@ Lab.register({
     step();
     st.cur = ''; st.end = true;
     if (lazy && use) push('The code has finished. SELECT statements sent in total: 2. 1 was sent on the find line that reads the order, and 1 on the getName line that takes the name of the member. The member was read on the getName line, where the name was actually used.', '');
-    else if (lazy) push('The code has finished. There is no line that uses the name of the member, so the SELECT that reads the member table was never sent. SELECT statements sent: only 1, on the find line, and the member field was left holding a proxy whose name is empty.', 'good');
+    else if (lazy) push('The code has finished. There is no line that uses the name of the member, so the SELECT that reads the member table was never sent. SELECT statements sent: only 1, on the find line, and the member field was left referring to a proxy whose name is empty.', 'good');
     else if (use) push('The code has finished. SELECT statements sent: only 1, on the find line. The member had already been read on the find line that reads the order, before its name was used.', '');
     else push('The code has finished. There is no line that uses the name of the member, yet the 1 SELECT that was sent read the member too. With EAGER, the member is read on the find line whether it is used or not.', 'bad');
 
@@ -84,9 +84,9 @@ Lab.register({
     var key = (lazy ? 'lazy' : 'eager') + '|' + (use ? 1 : 0);
     var S = {
       'lazy|1': ['A member marked FetchType.LAZY means "the member is read when it is used." The find line that reads the order read only the orders table, and the SELECT that reads the member was sent on the getName line that took the name (SELECT statements in total: 2).', 'The code has no SQL at all, yet SQL was sent twice. No SQL is sent up to order.getMember(); it is sent at the moment a value of the member is used.'],
-      'lazy|0': ['If the name of the member is not used, the SELECT that reads the member table is never sent (SELECT statements in total: 1). LAZY means that a member that is not used is not read.', 'In the meantime, the member field only holds a proxy that knows only the number of the member and whose name is empty.'],
+      'lazy|0': ['If the name of the member is not used, the SELECT that reads the member table is never sent (SELECT statements in total: 1). LAZY means that a member that is not used is not read.', 'In the meantime, the member field only refers to a proxy that knows only the number of the member and whose name is empty.'],
       'eager|1': ['If you change to FetchType.EAGER, the member is read together on the find line that reads the order. In this code it was read with one SELECT that joins the order and the member, and no SQL was sent on the getName line (SELECT statements in total: 1).', 'What changed is the time of reading. The member is read at the moment the order is read, before it is used.'],
-      'eager|0': ['With EAGER, the find line reads the member too, even if the name is not used. It read a member that would not be used.', 'With LAZY, this code would never have read the member table at all. When em.find is called, it cannot be known whether the code will use the member, so EAGER always reads it together.']
+      'eager|0': ['With EAGER, the find line reads the member too, even if the name is not used. It read a member that would not be used.', 'With LAZY, this code would never have read the member table at all. When em.find is called, it cannot be known whether the code will use the member, so with EAGER the member is read when the order is read, whether it is used or not (in this lab, with one SELECT that uses a join).']
     };
     S[key].forEach(function (x) { sum.push(x); });
     var nameCol = !use ? '(no such line)' : lazy ? '1 SELECT (member)' : 'None';

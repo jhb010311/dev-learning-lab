@@ -23,13 +23,13 @@ Lab.register({
   NEAR: 20, FAR: 200,   // 예시 지연: 사용자와 엣지 사이 왕복 20ms, 엣지와 오리진 사이 왕복 200ms
   code: function (c) {
     var u3 = c.chg && c.after === 'ver' ? this.U2 : this.U1;
-    return '# 오리진이 app.css를 줄 때 붙이는 응답 헤더\nCache-Control: public, s-maxage=' + c.ttl + '     # 공유 캐시(엣지)는 ' + c.ttl + '초 동안 사본을 그대로 써도 된다\n\n// 엣지: 사본을 보관했다가 대신 답하는 서버 (Node.js로 줄여 쓴 모습)\nconst store = new Map();                              // 주소(경로 + 쿼리 문자열) → 보관한 사본\nhttp.createServer(async (req, res) => {\n    if (req.method === \'PURGE\') {                     // 무효화: 그 주소의 사본을 지운다\n        store.delete(req.url);\n        return res.end(\'purged\');\n    }\n    const copy = store.get(req.url);\n    if (copy && age(copy) < copy.ttl) {               // 사본이 있고 유효 시간 안\n        res.setHeader(\'X-Cache\', \'HIT\');\n        return res.end(copy.body);                    // 오리진에 묻지 않고 바로 답한다\n    }\n    const fresh = await fetchFromOrigin(req.url);     // 없거나 유효 시간이 지났으면 오리진으로\n    store.set(req.url, fresh);\n    res.setHeader(\'X-Cache\', copy ? \'EXPIRED\' : \'MISS\');\n    res.end(fresh.body);\n});\n\n// 요청 순서\n//  0초  curl https://cdn.shop.example' + this.U1 + '\n// 10초  curl https://cdn.shop.example' + (c.q2 === 'ref' ? this.UREF : this.U1) + (c.chg ? '\n// 30초  오리진의 app.css를 새 내용으로 배포' + (c.after === 'purge' ? '\n//       curl -X PURGE https://cdn.shop.example' + this.U1 : '') : '') + '\n// 40초  curl https://cdn.shop.example' + u3 + '\n// 80초  curl https://cdn.shop.example' + u3;
+    return '# 오리진이 app.css를 줄 때 붙이는 응답 헤더\nCache-Control: public, s-maxage=' + c.ttl + '     # 공유 캐시(엣지)는 ' + c.ttl + '초 동안 사본을 그대로 써도 된다\n\n// 엣지: 사본을 보관했다가 대신 답하는 서버 (자바가 아니라 Node.js로 줄여 쓴 모습.\n//       fetchFromOrigin과 age는 예시로 만든 도우미 함수다)\nconst store = new Map();                              // 주소(경로 + 쿼리 문자열) → 보관한 사본\nhttp.createServer(async (req, res) => {\n    if (req.method === \'PURGE\') {                     // 무효화: 그 주소의 사본을 지운다\n        store.delete(req.url);\n        return res.end(\'purged\');\n    }\n    const copy = store.get(req.url);\n    if (copy && age(copy) < copy.ttl) {               // 사본이 있고 유효 시간 안\n        res.setHeader(\'X-Cache\', \'HIT\');\n        return res.end(copy.body);                    // 오리진에 묻지 않고 바로 답한다\n    }\n    const fresh = await fetchFromOrigin(req.url);     // 없거나 유효 시간이 지났으면 오리진으로\n    store.set(req.url, fresh);\n    res.setHeader(\'X-Cache\', copy ? \'EXPIRED\' : \'MISS\');\n    res.end(fresh.body);\n});\n\n// 요청 순서\n//  0초  curl https://cdn.shop.example' + this.U1 + '\n// 10초  curl https://cdn.shop.example' + (c.q2 === 'ref' ? this.UREF : this.U1) + (c.chg ? '\n// 30초  오리진의 app.css를 새 내용으로 배포' + (c.after === 'purge' ? '\n//       curl -X PURGE https://cdn.shop.example' + this.U1 : '') : '') + '\n// 40초  curl https://cdn.shop.example' + u3 + '\n// 80초  curl https://cdn.shop.example' + u3;
   },
   label: function (c) { return '유효 ' + c.ttl + '초' + (c.q2 === 'ref' ? ' · 10초에 ?v=1&ref=mail' : '') + (c.chg ? ' · 30초에 내용 변경' + { none: '', purge: ' + 무효화', ver: ' + 주소를 ?v=2로' }[c.after] : ' · 변경 없음'); },
   columns: ['0초의 요청', '10초의 요청', '40초의 요청', '80초의 요청', '오리진에 간 요청'],
   simulate: function (c) {
     var ttl = +c.ttl, U1 = this.U1, U3 = c.chg && c.after === 'ver' ? this.U2 : U1, NEAR = this.NEAR, FAR = this.FAR, ev = [], sum = [];
-    var st = { t: -1, reqs: [], entries: [], origin: 'old', oc: 0, cur: null, changed: false };
+    var st = { t: -1, reqs: [], entries: [], origin: 'old', oc: 0, cur: null, changed: false, act: '', addr: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     function find(url) { return st.entries.filter(function (e) { return e.url === url; })[0]; }
     function name(v) { return !c.chg ? '' : v === 'old' ? '옛 내용' : '새 내용'; }
@@ -50,12 +50,13 @@ Lab.register({
     if (c.q2 === 'same') push('10초: 다른 사용자가 같은 주소를 요청합니다. 엣지에 사본이 있고 받아 온 지 10초라 유효 시간 안입니다(HIT). 엣지가 오리진에 묻지 않고 바로 답합니다. 오리진은 이 요청이 있었는지도 모릅니다. 여러 사용자가 한 사본을 함께 쓰기 때문에 공유 캐시라고 부릅니다.', 'good');
     else push('10초: 다른 사용자가 메일에 있던 링크로 ' + this.UREF + ' 주소를 요청합니다. 같은 파일이지만 쿼리 문자열이 달라 주소가 다릅니다. 엣지는 주소 전체를 이름표로 삼아 사본을 찾으므로 맞는 사본이 없습니다(MISS). 오리진에 한 번 더 다녀오고, 같은 내용의 사본을 이 주소로 하나 더 보관합니다.', 'bad');
     if (c.chg) {
-      st.t = 30; st.origin = 'new'; st.changed = true; st.cur = null;
+      st.t = 30; st.origin = 'new'; st.changed = true; st.cur = null; st.act = 'change';
       push('30초: 개발자가 오리진의 app.css를 새 내용으로 바꿔 배포합니다. 오리진은 이 사실을 엣지에 알리지 않습니다. 엣지가 보관한 사본은 옛 내용 그대로입니다.', '');
       if (c.after === 'purge') {
-        st.entries = st.entries.filter(function (e) { return e.url !== U1; });
+        st.entries = st.entries.filter(function (e) { return e.url !== U1; }); st.act = 'purge';
         push('이어서 엣지에 ' + U1 + ' 주소의 무효화(purge)를 요청합니다. 엣지가 그 주소의 사본을 지웁니다.' + (c.q2 === 'ref' ? ' 주소가 다른 ' + this.UREF + ' 쪽 사본은 지워지지 않고 옛 내용으로 남습니다.' : ''), 'good');
       }
+      if (c.after === 'ver') { st.act = 'ver'; st.addr = this.U2; }
       if (c.after === 'ver') push('이어서 웹 페이지가 가리키는 주소를 ' + this.U2 + '로 바꿉니다. 엣지의 사본은 건드리지 않습니다. 사용자는 이제 새 주소로 요청하게 됩니다.', 'good');
     }
     var r3 = request(40, U3);
@@ -85,7 +86,7 @@ Lab.register({
     var last = shown[shown.length - 1], c = sim.c, ttl = +c.ttl, s = last ? last.snap : { t: 0, reqs: [], entries: [], origin: 'old', oc: 0, cur: null, changed: false }, cur = s.cur;
     var name = function (x) { return !c.chg ? '사본' : x === 'old' ? '옛 내용' : '새 내용'; };
     P.size(680, 300);
-    P.box('u', 16, 62, 124, 60, { cls: cur ? 'wait' : 'plain', title: '사용자', sub: '엣지와 가깝다' });
+    P.box('u', 16, 62, 124, 60, { cls: cur ? 'wait' : 'plain', title: '사용자', sub: s.addr ? ['엣지와 가깝다', '이제 ?v=2로 요청'] : '엣지와 가깝다' });
     P.region('eg', 172, 16, 300, 210, '엣지 서버: 사용자 가까이에 둔 사본 보관소');
     P.box('ed', 184, 44, 276, 32, { cls: !cur ? 'plain' : cur.status === 'HIT' ? 'good' : 'hot', title: '엣지의 판단', right: cur ? cur.status : '-' });
     [this.U1, this.UREF, this.U2].forEach(function (u, i) {
@@ -93,9 +94,9 @@ Lab.register({
       var fresh = s.t - e.at < ttl;
       P.box('e' + i, 184, 84 + i * 46, 276, 40, { cls: (!fresh ? 'ghost' : e.ver !== s.origin ? 'bad' : 'good') + (cur && cur.url === u ? ' now' : ''), title: u, right: name(e.ver), sub: e.at + '초에 받음 · ' + (fresh ? (e.at + ttl) + '초까지 유효' : '유효 시간 지남') });
     });
-    P.box('o', 504, 62, 160, 60, { cls: s.changed && s.t === 30 ? 'hot' : 'plain', title: '오리진 (원본 서버)', sub: ['멀리 있다', 'app.css: ' + (c.chg ? (s.origin === 'old' ? '옛 내용' : '새 내용') : '그대로')] });
+    P.box('o', 504, 62, 160, 60, { cls: s.act === 'change' && !cur ? 'hot' : 'plain', title: '오리진 (원본 서버)', sub: ['멀리 있다', 'app.css: ' + (c.chg ? (s.origin === 'old' ? '옛 내용' : '새 내용') : '그대로')] });
     if (cur) { P.arrow('ue', 'u:r', 'ed:l', { label: '요청' }); if (cur.status !== 'HIT') P.arrow('eo', 'ed:r', 'o:l', { cls: 'hot', label: '받으러 감' }); }
-    P.box('now', 16, 240, 648, 36, { cls: !cur ? 'ghost' : cur.stale ? 'bad' : cur.status === 'HIT' ? 'good' : 'hot', title: cur ? cur.t + '초: GET ' + cur.url : s.t === 30 ? '30초: 오리진의 파일을 바꿈' : '아직 요청 전', right: cur ? cur.status + (c.chg ? ' · ' + name(cur.ver) : '') + ' · ' + cur.ms + 'ms (예시)' : '' });
+    P.box('now', 16, 240, 648, 36, { cls: !cur ? (s.act === 'purge' || s.act === 'ver' ? 'good' : s.act === 'change' ? 'plain' : 'ghost') : cur.stale ? 'bad' : cur.status === 'HIT' ? 'good' : 'hot', title: cur ? cur.t + '초: GET ' + cur.url : s.act === 'purge' ? '30초: 엣지에 ' + this.U1 + '의 무효화(purge)를 요청함' : s.act === 'ver' ? '30초: 페이지가 가리키는 주소를 ' + this.U2 + '로 바꿈' : s.act === 'change' ? '30초: 오리진의 파일을 바꿈' : '아직 요청 전', right: s.act === 'purge' && !cur ? '엣지가 그 주소의 사본을 지움' : s.act === 'ver' && !cur ? '엣지의 사본은 그대로' : cur ? cur.status + (c.chg ? ' · ' + name(cur.ver) : '') + ' · ' + cur.ms + 'ms (예시)' : '' });
     P.note('엣지에서 오리진으로 가는 화살표가 없는 단계는 엣지가 보관한 사본으로 바로 답한 것입니다. 빨간 사본은 오리진의 지금 내용과 다른 옛 사본입니다. 걸린 시간은 거리 차이를 보이기 위한 예시입니다.');
   },
   assume: '열여섯 가지 조합(파일을 바꾸지 않으면 "바꾼 뒤에 하는 일"은 쓰이지 않음)을 127.0.0.1에 띄운 오리진 서버와 엣지 역할의 작은 캐싱 프록시로 실행해, 네 번의 요청이 각각 MISS, HIT, EXPIRED 가운데 무엇이었는지와 받은 내용, 오리진에 도착한 요청 수가 모형과 같은 것을 확인했습니다. 엣지는 Node.js 24로 직접 만든 시험용이며, 사본을 보관해도 되는지와 유효 시간이 남았는지는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2(공유 캐시 모드)에 맡겼습니다. 80초를 기다리지 않도록 엣지의 시계를 빠르게 돌려(모형의 1초를 실제 30ms로) 시험했고, 사용자 역할은 Node의 fetch와 curl 8.21이 번갈아 맡았습니다. 실제 CDN 서비스에서 확인한 것은 아닙니다. 걸린 시간(20ms, 220ms)과 "가깝다, 멀다"는 측정값이 아니라 차이를 보이기 위한 예시입니다. s-maxage가 공유 캐시의 유효 시간을 정한다는 것과 유효 시간이 지난 사본을 그대로 쓰지 않는다는 것은 RFC 9111 4.2절과 5.2.2.10절, 사본을 요청 메서드와 주소로 찾는다는 것은 2절을 따랐습니다. HIT, MISS, EXPIRED라는 이름과 X-Cache 헤더는 표준이 아니라 여러 CDN과 프록시가 쓰는 관례이고 제품마다 표기가 다릅니다. 무효화(purge)도 표준에 없는 제품별 기능이며, 여기서는 PURGE 메서드로 한 주소의 사본을 지우는 흔한 방식을 따랐습니다. 유효 시간이 지났을 때 이 모형의 엣지는 파일 전체를 다시 받지만, 실제 CDN은 대개 조건부 요청으로 "바뀌었는지"만 먼저 묻습니다(HTTP 캐시와 ETag 실습 참고). 엣지가 여러 지역에 여러 대 있고 저마다 사본을 따로 보관한다는 것, 브라우저가 따로 보관하는 사본, 사본을 미리 채워 두는 기능은 다루지 않았습니다.',

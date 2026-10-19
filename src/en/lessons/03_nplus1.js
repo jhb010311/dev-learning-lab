@@ -24,8 +24,8 @@ Lab.register({
   code: function (c) {
     var eager = c.st === 'eager';
     var q = c.st === 'fetch' ? '@Query("select o from Order o join fetch o.member")' : c.st === 'graph' ? '@EntityGraph(attributePaths = "member")\n    @Query("select o from Order o")' : '@Query("select o from Order o")';
-    return '@Entity class Order {\n    @ManyToOne(fetch = FetchType.' + (eager ? 'EAGER' : 'LAZY') + ')\n    Member member;\n}\n\ninterface OrderRepository {\n    ' + q + '\n    List<Order> findOrders();\n}\n' +
-      (c.st === 'batch' ? '\n// application.yml\n// hibernate.default_batch_fetch_size: ' + c.bs + '\n' : '') +
+    return '@Entity class Order {                 // an example entity (only the relevant parts kept)\n    @ManyToOne(fetch = FetchType.' + (eager ? 'EAGER' : 'LAZY') + ')\n    Member member;\n}\n\ninterface OrderRepository extends JpaRepository<Order, Long> {\n    ' + q + '\n    List<Order> findOrders();\n}\n' +
+      (c.st === 'batch' ? '\n// application.yml\n// spring.jpa.properties.hibernate.default_batch_fetch_size: ' + c.bs + '\n' : '') +
       '\n// Service (inside a transaction)\nList<Order> orders = repo.findOrders();   // ' + c.n + (c.n === 1 ? ' order' : ' orders') + '\nfor (Order o : orders) {\n' + (c.use ? '    names.add(o.getMember().getName());  // uses the member name' : '    total += o.getAmount();              // does not use the member') + '\n}';
   },
   label: function (c) { return { lazy: 'Lazy fetching', eager: 'Eager fetching', fetch: 'Fetch join', graph: '@EntityGraph', batch: 'Batch ' + c.bs + ' at a time' }[c.st] + ' · ' + c.n + (c.n === 1 ? ' order' : ' orders') + ' · ' + c.m + (c.m === 1 ? ' member' : ' members') + ' · name ' + (c.use ? 'used' : 'not used'); },

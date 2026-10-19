@@ -1,7 +1,7 @@
 Lab.register({
   id: 'embedded', nav: '값 타입과 임베디드 타입', cat: 'JPA', mode: 'step',
   title: '주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나',
-  intro: '도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔티티의 테이블에 컬럼으로 들어가고, 여러 개를 담은 컬렉션은 그 엔티티의 id를 외래 키로 가진 별도 테이블에 들어갑니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다.',
+  intro: '도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔티티의 테이블에 컬럼으로 들어가고, 여러 개를 담은 컬렉션은 그 엔티티의 id를 외래 키로 가진 별도 테이블에 들어갑니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다. 이 실습의 Address와 Member는 예시로 만든 클래스입니다.',
   terms: ['값 타입', '임베디드 타입(@Embeddable)', '값 타입 컬렉션(@ElementCollection)', '불변 객체', '변경 감지(Dirty Checking)'],
   controls: [
     { id: 'sc', label: '볼 장면', type: 'select', value: 'share', options: [['table', '임베디드 타입이 테이블에 저장되는 모습'], ['share', '같은 주소 객체를 두 회원이 함께 쓸 때'], ['coll', '값 타입 컬렉션에서 주소 하나를 바꿀 때']] },
@@ -14,7 +14,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '같은 Address 객체를 두 회원에게 넣고 setCity로 고치면 DB의 행은 어떻게 되나', d: '회원1의 도시만 고쳤는데 회원2의 행까지 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '복사해서 넣으면', q: '같은 객체 대신 복사한 객체를 넣고 setCity로 고치면', d: '객체가 따로이므로 회원1의 행만 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'copy', ct: 'list', op: 'mod', n: 3 } },
-    { t: '값 타입을 불변으로 만들면', q: 'Address를 불변으로 만들고 member1.setAddress에 새 Address 객체를 갈아 끼우면', d: 'setter가 없어서 함께 쓰는 객체를 고칠 방법이 없습니다.', v: { sc: 'share', tb: 'emb', sh: 'fixed', ct: 'list', op: 'mod', n: 3 } },
+    { t: '값 타입을 불변으로 만들면', q: 'Address를 불변으로 만들고 member1.setAddress에 새 Address 객체를 갈아 끼우면', d: '필드가 private이고 setter가 없어서, Address 밖의 코드는 함께 쓰는 객체를 고칠 방법이 없습니다.', v: { sc: 'share', tb: 'emb', sh: 'fixed', ct: 'list', op: 'mod', n: 3 } },
     { t: '임베디드 타입의 테이블', q: '임베디드 타입 Address를 가진 김철수를 persist하면', d: 'Address 테이블은 생기지 않고 member 테이블의 컬럼이 됩니다.', v: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '같은 값 타입을 두 번 쓰면', q: 'Address를 homeAddress와 workAddress로 두 번 쓰고 컬럼 이름을 바꾸지 않으면', d: '컬럼 이름이 겹쳐서 시작할 때 예외가 납니다.', v: { sc: 'table', tb: 'two', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '값 타입 컬렉션에서 하나만 바꾸면', q: '이미 주소 3개가 저장된 값 타입 컬렉션 List에서 서울을 빼고 제주를 넣으면', d: '그 회원의 주소를 전부 지우고 다시 넣습니다.', v: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
@@ -49,7 +49,7 @@ Lab.register({
       return s + '}\n// 생성자와 getter는 줄였습니다\n\n' + run;
     }
     if (c.sc === 'share') {
-      s = '@Embeddable\nclass Address {\n    String city;\n    String street;\n' + (c.sh === 'fixed' ? '    // setter가 없다. 값을 바꾸려면 새 객체를 만들어야 한다 (불변)\n' : '\n    void setCity(String city) { this.city = city; }   // 값을 고칠 수 있다\n') + '}\n\n@Entity\nclass Member {\n' + id + '\n    @Embedded\n    Address address;\n}\n// 생성자와 getter' + (c.sh === 'fixed' ? ', Member의 setAddress는' : '는') + ' 줄였습니다\n\n// 트랜잭션 안에서\n';
+      s = '@Embeddable\nclass Address {\n' + (c.sh === 'fixed' ? '    private String city;      // 필드는 private이고 setter가 없다\n    private String street;\n    // 값을 바꾸려면 새 객체를 만들어야 한다 (불변)\n' : '    String city;\n    String street;\n\n    void setCity(String city) { this.city = city; }   // 값을 고칠 수 있다\n') + '}\n\n@Entity\nclass Member {\n' + id + '\n    @Embedded\n    Address address;\n}\n// 생성자와 getter' + (c.sh === 'fixed' ? ', Member의 setAddress는' : '는') + ' 줄였습니다\n\n// 트랜잭션 안에서\n';
       return s + run;
     }
     var nn = c.ct === 'setnn', set = c.ct === 'set' || nn;
@@ -83,7 +83,7 @@ Lab.register({
     }
     st.made = true;
     push(0, tb === 'plain' ? '애플리케이션 시작, 테이블 만들기: Member의 필드 네 개(id, name, city, street)가 그대로 member 테이블의 컬럼 네 개가 됩니다.'
-      : emb ? '애플리케이션 시작, 테이블 만들기: Address에는 @Entity가 아니라 @Embeddable이 붙어 있습니다. 그래서 address라는 테이블은 만들어지지 않고, Address 안의 city와 street가 member 테이블의 컬럼으로 펼쳐집니다. 테이블은 member 하나뿐입니다.'
+      : emb ? '애플리케이션 시작, 테이블 만들기: Address에는 @Entity가 아니라 @Embeddable이 붙어 있습니다. 그래서 address라는 테이블은 만들어지지 않고, Address의 city와 street 필드가 member 테이블의 컬럼으로 펼쳐집니다. 테이블은 member 하나뿐입니다.'
       : '애플리케이션 시작, 테이블 만들기: homeAddress의 필드는 city와 street 컬럼이 되고, workAddress의 필드는 @AttributeOverride에 적은 대로 work_city와 work_street 컬럼이 됩니다. 이름이 겹치지 않으므로 member 테이블 하나에 컬럼 여섯 개가 만들어집니다.', emb || two ? 'good' : '');
     st.obj = true;
     push(1, tb === 'plain' ? 'new Member("김철수", "서울", "강남대로"): Member 객체 하나를 만듭니다. 이름과 도시, 거리가 모두 Member의 필드입니다.'
@@ -98,7 +98,7 @@ Lab.register({
       readSent.push({ kind: 'select', table: 'member' }); st.sent.push({ kind: 'select', table: 'member', sql: 'select * from member where id = 1', at: '5번째 줄' });
       push(4, 'em.find(Member.class, 1L): 새 트랜잭션에서 SELECT 한 번으로 member 테이블의 한 행을 읽습니다. 조인은 없습니다. 주소가 같은 행에 들어 있기 때문입니다.', '');
       loaded = tb === 'nul' ? 'null' : '서울/강남대로'; st.read = tb === 'nul' ? 'null' : 'Address(서울, 강남대로)';
-      push(5, tb === 'nul' ? 'found.getAddress(): 읽어 온 행에서 임베디드 타입의 컬럼(city, street)이 모두 null입니다. 이럴 때 Hibernate는 빈 Address 객체를 만들지 않고 address 필드 자체를 null로 둡니다. found.getAddress().getCity()처럼 바로 이어서 부르면 NullPointerException이 납니다.' : 'found.getAddress(): 읽어 온 행의 city와 street 값으로 Address 객체를 다시 만들어 address 필드에 넣어 줍니다. 서울, 강남대로가 들어 있습니다.', tb === 'nul' ? 'bad' : 'good');
+      push(5, tb === 'nul' ? 'found.getAddress(): 읽어 온 행에서 임베디드 타입의 컬럼(city, street)이 모두 null입니다. 이럴 때 Hibernate는 빈 Address 객체를 만들지 않고 address 필드 자체를 null로 둡니다. found.getAddress().getCity()처럼 바로 이어서 부르면 NullPointerException이 납니다.' : 'found.getAddress(): 읽어 온 행의 city와 street 값으로 Address 객체를 다시 만들고, address 필드가 그 객체를 가리키게 합니다. 그 객체의 값은 서울, 강남대로입니다.', tb === 'nul' ? 'bad' : 'good');
     }
     if (tb === 'emb') sum.push('임베디드 타입은 자바에서만 따로 묶인 클래스이고, 테이블에서는 엔티티의 컬럼일 뿐입니다. "묶지 않고 그대로 둠"으로 바꿔 보면 테이블과 SQL이 똑같습니다. 코드에서는 주소와 관련된 값과 메서드를 한곳에 모을 수 있어서 읽기 쉬워집니다.');
     if (tb === 'plain') sum.push('필드를 그대로 둔 경우입니다. "임베디드 타입 Address로 묶음"과 비교해 보면 테이블 모양과 나가는 SQL이 똑같습니다. 임베디드 타입은 테이블을 바꾸지 않고 자바 쪽 코드만 정리해 줍니다.');
@@ -131,7 +131,7 @@ Lab.register({
     push(4, 'em.persist(member2): INSERT가 나가 회원2의 행이 저장됩니다. 테이블에서는 두 행이 각자 city와 street 값을 따로 가지고 있습니다. 객체를 함께 쓴다는 사실은 테이블에 남지 않습니다.', '');
     if (sh === 'fixed') {
       st.objs.push({ n: 'C', city: '부산', street: '강남대로', y: 50 }); st.m1 = 'C';
-      push(5, 'member1.setAddress(new Address("부산", ...)): Address에는 setCity가 없어서 들어 있는 값을 고칠 수 없습니다. 도시를 바꾸려면 새 Address 객체를 만들어 회원1의 address를 통째로 갈아 끼워야 합니다. 회원2는 여전히 예전 객체(서울)를 가리킵니다.', 'good');
+      push(5, 'member1.setAddress(new Address("부산", ...)): Address에는 setCity가 없고 필드도 private이어서, Address 밖의 코드는 그 객체의 값을 고칠 수 없습니다. 도시를 바꾸려면 새 Address 객체를 만들어 회원1의 address를 통째로 갈아 끼워야 합니다. 회원2는 여전히 예전 객체(서울)를 가리킵니다.', 'good');
     } else {
       obj('A').city = '부산';
       push(5, sh === 'same' ? 'member1.getAddress().setCity("부산"): 회원1의 주소만 바꾸려는 코드입니다. 하지만 고친 것은 두 회원이 함께 쓰는 그 객체입니다. member2.getAddress().getCity()도 이제 "부산"입니다.' : 'member1.getAddress().setCity("부산"): 회원1이 가리키는 객체의 city만 바뀝니다. 회원2는 다른 객체를 가리키므로 그대로 "서울"입니다.', sh === 'same' ? 'bad' : '');
@@ -144,7 +144,7 @@ Lab.register({
     } else push(6, '회원2도 비교합니다: 회원2의 address는 값이 그대로(서울)입니다. 달라진 것이 없으므로 UPDATE가 나가지 않습니다.', 'good');
     if (sh === 'same') sum.push('값 타입 객체 하나를 두 엔티티가 함께 가리키면, 한쪽에서 고친 값이 다른 쪽에도 그대로 보입니다. JPA는 두 엔티티가 모두 달라졌다고 보고 UPDATE를 2번 보냅니다. 컴파일 오류도 예외도 없어서 찾기 어려운 버그가 됩니다.', '자바에서는 객체를 변수에 넣거나 넘길 때 객체가 복사되지 않고 참조만 복사됩니다. 그래서 "함께 쓰지 않도록 조심한다"는 것만으로는 막기 어렵습니다.');
     if (sh === 'copy') sum.push('값을 복사해 새 객체를 만들어 넣으면 두 회원이 서로 다른 객체를 가리키므로 안전합니다. 하지만 누군가 복사를 빠뜨리고 같은 객체를 넣어도 컴파일러는 막아 주지 않습니다. 실수할 수 없게 하려면 값 타입을 불변으로 만듭니다.');
-    if (sh === 'fixed') sum.push('값 타입에 setter를 두지 않으면(불변 객체) 같은 객체를 여러 엔티티가 함께 가리켜도 문제가 없습니다. 아무도 그 객체를 고칠 수 없기 때문입니다. 값을 바꾸려면 새 객체를 만들어 갈아 끼우게 되고, 갈아 끼운 엔티티의 행만 UPDATE됩니다.', '그래서 값 타입은 불변으로 만드는 것이 원칙입니다. 생성자로만 값을 넣고 setter는 만들지 않습니다.');
+    if (sh === 'fixed') sum.push('값 타입의 필드를 private으로 두고 setter를 만들지 않으면(불변 객체) 같은 객체를 여러 엔티티가 함께 가리켜도 문제가 없습니다. Address 밖의 코드는 그 객체를 고칠 수 없기 때문입니다. 값을 바꾸려면 새 객체를 만들어 갈아 끼우게 되고, 갈아 끼운 엔티티의 행만 UPDATE됩니다.', '그래서 값 타입은 불변으로 만드는 것이 원칙입니다. 필드는 private으로 두고, 생성자로만 값을 넣고, setter는 만들지 않습니다.');
     var shared = st.m1 === st.m2;
     return { events: ev, summary: sum, L: L, tables: [{ name: 'member', cols: cols }], sent: st.sent, before: 2, shared: shared, db: st.db, cols: cols,
       row: ['member (' + cols.join(', ') + ')', this.kinds(st.sent), '회원1 ' + st.db[0][2] + ', 회원2 ' + st.db[1][2]] };

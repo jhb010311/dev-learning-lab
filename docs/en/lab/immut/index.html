@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Immutability and defensive copies: The field is final, but its value changed · Dev Learning Lab</title>
-<meta name="description" content="An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent…">
+<meta name="description" content="In Order, a class made up for this example, the final field items refers to a list of items. final means only that items cannot be made to refer to a diff…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/immut/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/immut/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/immut/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Immutability and defensive copies: The field is final, but its value changed · Dev Learning Lab">
-<meta property="og:description" content="An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent…">
+<meta property="og:description" content="In Order, a class made up for this example, the final field items refers to a list of items. final means only that items cannot be made to refer to a diff…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/immut/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Immutability and defensive copies</h1>
 <p><b>The field is final, but its value changed</b></p>
-<p>An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing. Making a copy instead of storing or returning the original list is called a defensive copy. This lab shows whether outside code can change the contents of the order, depending on whether the constructor and the getter make a copy.</p>
+<p>In Order, a class made up for this example, the final field items refers to a list of items. final means only that items cannot be made to refer to a different list. It does not prevent the contents of that list from changing. Making a copy instead of storing the list received from outside, or returning the list the field refers to, as it is, is called a defensive copy. This lab shows whether outside code can change the contents of the order, depending on whether the constructor and the getter make a copy.</p>
 <p>Checked against real execution · The 6 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -48,26 +48,28 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — No defense at all. The internal state is changed from outside through two paths.</li>
-<li><b>Copy only in the constructor</b> — Changing the original list has no effect, but the internal state can still be changed through the getter.</li>
-<li><b>Copy on both sides</b> — There is no way to change the internal state from outside.</li>
+<li><b>Default settings</b> — No defense at all. The items of the order are changed from outside through two paths.</li>
+<li><b>Copy only in the constructor</b> — Changing the original list has no effect, but the items of the order can still be changed through the getter.</li>
+<li><b>Copy on both sides</b> — There is no way to change the items of the order from outside.</li>
 <li><b>The getter returns an unmodifiable view</b> — An attempt to change it throws an exception.</li>
-<li><b>A view only, with no copy in the constructor</b> — The internal state can still be changed through the original list.</li>
+<li><b>A view only, with no copy in the constructor</b> — The items of the order can still be changed through the original list.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>An Order is created from the src list [&quot;keyboard&quot;, &quot;mouse&quot;]. The constructor stored the list it received in the field as it is. The variable src and order.items refer to the same single list object on the heap.</li>
-<li>(1) src.add(&quot;monitor&quot;): Outside code adds an element to the original list. It is the same object, so the order now has 3 items inside as well. The state of the Order changed even though not a single method of Order was called. Declaring items as final does not prevent this.</li>
-<li>(2) order.getItems().add(&quot;chair&quot;): The getter returned the internal list itself. Adding to that list is the same as adding to the inside of the order. The order now has 4 items inside.</li>
+<li>(1) src.add(&quot;monitor&quot;): Outside code adds an element to the original list. src and order.items refer to the same list, so looking through order.items also shows 3 items now. The state of the Order changed even though not a single method of Order was called. Declaring items as final does not prevent this.</li>
+<li>(2) order.getItems().add(&quot;chair&quot;): The getter returned the list order.items refers to as it is. Adding to that list is the same as adding to the list order.items refers to. order.items now has 4 items.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>final only prevents a variable from being made to refer to a different object. It does not prevent the contents of that object from changing. To make an object immutable, you must make sure that the mutable objects its fields refer to (lists, arrays, Date, and so on) are not shared with outside code.</li>
-<li>The internal state was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also copy it or wrap it so that it cannot be modified. Making such copies is called defensive copying.</li>
-<li>The same is true of a record. Its fields are final, but if a field holds a mutable object such as a list, the contents of that object can still change.</li>
+<li>The state of the Order was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also hand out a copy or an unmodifiable view. Making such copies is called defensive copying.</li>
+<li>The same is true of a record. Its fields are final, but if a field refers to a mutable object such as a list, the contents of that object can still change.</li>
 </ul>
 <h2>Code</h2>
-<pre>class Order {
+<pre>import java.util.*;
+
+class Order {
     private final List&lt;String&gt; items;          // final: cannot be replaced with another list
 
     Order(List&lt;String&gt; items) {
@@ -75,16 +77,20 @@
     }
 
     List&lt;String&gt; getItems() {
-        return items;                            // exposes the internal list itself
+        return items;                            // hands out the list items refers to
     }
 }
 
-List&lt;String&gt; src = new ArrayList&lt;&gt;(List.of(&quot;keyboard&quot;, &quot;mouse&quot;));
-Order order = new Order(src);
-src.add(&quot;monitor&quot;);                // (1) modifies the original list
-order.getItems().add(&quot;chair&quot;);     // (2) modifies the list returned by the getter</pre>
+class Main {
+    public static void main(String[] args) {
+        List&lt;String&gt; src = new ArrayList&lt;&gt;(List.of(&quot;keyboard&quot;, &quot;mouse&quot;));
+        Order order = new Order(src);
+        src.add(&quot;monitor&quot;);                // (1) modifies the original list
+        order.getItems().add(&quot;chair&quot;);     // (2) modifies the list returned by the getter
+    }
+}</pre>
 <h2>Assumptions of this model</h2>
-<p>The results of the 6 combinations (the number of items inside and the exception) were checked against the results of running the same code on JDK 21 on this PC. In this case the elements of the list (String) are immutable, so a shallow copy is enough. If the elements themselves were mutable objects, the elements would also have to be copied to separate the two completely.</p>
+<p>The results of the 6 combinations (the number of items and the exception) were checked against the results of running the same code on JDK 21 in our test environment. In this case the elements of the list (String) are immutable, so a shallow copy is enough. If the elements themselves were mutable objects, the elements would also have to be copied to separate the two completely.</p>
 <p>Previous lab: <a href="../../lab/inner/">Inner classes and anonymous classes</a> · Next lab: <a href="../../lab/strategy/">Strategy pattern</a></p>
   </div>
 
@@ -172,6 +178,6 @@ order.getItems().add(&quot;chair&quot;);     // (2) modifies the list returned b
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

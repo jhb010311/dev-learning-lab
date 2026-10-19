@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,9 +54,9 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;): the Java program makes a connection to the database. The jdbc in the URL means the convention for Java to connect to a database (JDBC), h2 is the kind of database, and mem:shop is a database named shop that lives in memory. When the connection is made, one place that handles this connection (a session) appears on the database side, and an object conn that points to the connection appears in Java. The member table holds one row, (1, kim). Not a single line of SQL has been sent yet.</li>
-<li>conn.createStatement(): makes a tool (Statement) that sends SQL over the connection conn, and puts it in st. Only the tool was made, so no SQL has gone to the database yet.</li>
-<li>st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;): st sends the SQL text to the database. The database reads the text it received and looks in the member table for the row whose id is 1, and makes the result. The result is a table with 1 row. Java receives this result as a ResultSet object rs. A ResultSet starts standing in front of the first row, so it has not read any row yet.</li>
+<li>DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;): the Java program makes a connection to the database. The jdbc in the URL means the convention for Java to connect to a database (JDBC), h2 is the kind of database, and mem:shop is a database named shop that lives in memory. When the connection is made, one place that handles this connection (a session) appears on the database side, and a Connection object that represents the connection appears in Java, and the variable conn refers to that object. The member table holds one row, (1, kim). Not a single line of SQL has been sent yet.</li>
+<li>conn.createStatement(): makes a tool (a Statement object) that sends SQL over the connection that conn refers to, and makes the variable st refer to that object. Only the tool was made, so no SQL has gone to the database yet.</li>
+<li>st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;): st sends the SQL text to the database. The database reads the text it received and looks in the member table for the row whose id is 1, and makes the result. The result is a table with 1 row. Java receives this result as a ResultSet object, and the variable rs refers to that object. A ResultSet starts standing in front of the first row, so it has not read any row yet.</li>
 <li>rs.next(): moves one step to the next row in the result, and returns true if there is a row at the place it moved to, and false if not. It moves to the first row, and the value true goes into the variable found. If you try to read a value before calling the next() method, a SQLException occurs saying there is no row to read.</li>
 <li>System.out.println(found): prints the value true held in the variable found to the screen.</li>
 <li>rs.getString(&quot;name&quot;): takes the value of the name column from the current row as text and prints the value kim. The program ran to the last line of main and ended. The database received one SQL statement, and there was no exception.</li>
@@ -167,6 +167,6 @@ System.out.println(rs.getString(&quot;name&quot;));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

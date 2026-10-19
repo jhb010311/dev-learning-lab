@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -96,7 +96,7 @@ PriceCache priceCache = context.getBean(PriceCache.class);
 int price = priceCache.price(&quot;apple&quot;);
 context.close();                              // closes the container</pre>
 <h2>Assumptions of this model</h2>
-<p>All 20 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, jakarta.annotation-api 3.0.0) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the container was started, the bean was retrieved and price(&quot;apple&quot;) was called once, and the container was closed. Along the way, the order in which the constructor and each callback were called, and whether the repository field was null at that moment, were recorded and compared one by one with the order in the model. The exception chain of the startup failure was BeanCreationException → BeanInstantiationException → NullPointerException, and the screen shows the innermost cause. Simplifications on the screen: the &quot;dependency injection&quot; stage cannot be recorded separately, so the fact that the field was null in the constructor and set in the initialization callback was taken as confirmation that injection happened in between. Setter injection, and the destruction order among several beans when the container is closed, are not covered. It was also confirmed by execution that, even when destroyMethod is not written in @Bean, a public close() method is called when the container is closed (and is not called for a prototype bean). Two things were not confirmed by execution and follow the official Spring documentation: that @PostConstruct and @PreDestroy are the recommended approach, and that when the process is forcibly terminated, the container cannot close and the destruction callbacks are not called.</p>
+<p>All 20 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, jakarta.annotation-api 3.0.0) in our test environment and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the container was started, the bean was retrieved and price(&quot;apple&quot;) was called once, and the container was closed. Along the way, the order in which the constructor and each callback were called, and whether the repository field was null at that moment, were recorded and compared one by one with the order in the model. The exception chain of the startup failure was BeanCreationException → BeanInstantiationException → NullPointerException, and the screen shows the innermost cause. Simplifications on the screen: the &quot;dependency injection&quot; stage cannot be recorded separately, so the fact that the field was null in the constructor and set in the initialization callback was taken as confirmation that injection happened in between. Setter injection, and the destruction order among several beans when the container is closed, are not covered. It was also confirmed by execution that, even when destroyMethod is not written in @Bean, a public close() method is called when the container is closed (and is not called for a prototype bean). Two things were not confirmed by execution and follow the official Spring documentation: that @PostConstruct and @PreDestroy are the recommended approach, and that when the process is forcibly terminated, the container cannot close and the destruction callbacks are not called.</p>
 <p>Previous lab: <a href="../../lab/scope/">Bean scopes</a> · Next lab: <a href="../../lab/proxy/">Proxies and self-invocation</a></p>
   </div>
 
@@ -184,6 +184,6 @@ context.close();                              // closes the container</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

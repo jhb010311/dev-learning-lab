@@ -64,7 +64,7 @@ Lab.register({
     for (var i = 1; i <= c.c; i++) { var mine = st.parts.filter(function (p) { return p.own === i; }), alive = st.cons.indexOf(i) >= 0;
       if (!alive) H.lane(ln, 'Consumer ' + i, 'Dead', 'bad');
       else if (!mine.length) H.lane(ln, 'Consumer ' + i, 'No partition assigned (waiting)', 'none');
-      else { var inflow = mine.length * c.r / c.p; H.lane(ln, 'Consumer ' + i, 'Handles ' + (mine.length === 1 ? 'partition ' : 'partitions ') + mine.map(function (p) { return p.id; }).join(', ') + ' · inflow ' + Math.round(inflow) + ' / capacity ' + c.k, inflow > c.k ? 'bad' : '', show ? Math.min(1, inflow / c.k) : undefined); } }
+      else { var inflow = mine.length * c.r / c.p; H.lane(ln, 'Consumer ' + i, 'Handles ' + (mine.length === 1 ? 'partition ' : 'partitions ') + mine.map(function (p) { return p.id; }).join(', ') + (show ? ' · inflow ' + Math.round(inflow) + ' / capacity ' + c.k : ''), show && inflow > c.k ? 'bad' : '', show ? Math.min(1, inflow / c.k) : undefined); } }
     if (s.note) H.text(v, s.note);
   },
   // Diagram: The topic's partitions are on the left, and the consumer group is on the right. An arrow means "this consumer handles this partition".
@@ -80,7 +80,7 @@ Lab.register({
     });
     for (var j = 1; j <= c.c; j++) {
       var alive = st.cons.indexOf(j) >= 0, mine = st.parts.filter(function (p) { return p.own === j; }), load = mine.length * c.r / c.p;
-      P.box('cs' + j, 442, 52 + (j - 1) * 42, 210, 34, { cls: s && !alive ? 'bad' : !mine.length ? 'ghost' : load > c.k ? 'hot' : 'good', title: 'Consumer ' + j, right: s && !alive ? 'Dead' : !mine.length ? 'No partition' : stage >= 2 ? c.k + ' per second' : 'Handles ' + mine.length });
+      P.box('cs' + j, 442, 52 + (j - 1) * 42, 210, 34, { cls: s && !alive ? 'bad' : !mine.length ? 'ghost' : stage < 2 ? 'wait' : load > c.k ? 'hot' : 'good', title: 'Consumer ' + j, right: s && !alive ? 'Dead' : !mine.length ? 'No partition' : stage >= 2 ? c.k + ' per second' : 'Handles ' + mine.length });
     }
     P.note('Arrows point to the consumer that handles each partition. A partition is handled by only one consumer, so when there are more consumers than partitions, the extra consumers (dashed) have nothing to do. A yellow consumer is falling behind because more messages arrive than it can process.');
   },

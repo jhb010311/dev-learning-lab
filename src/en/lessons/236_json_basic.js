@@ -100,7 +100,7 @@ Lab.register({
 
     // Step 5: tags
     st.ln[2] = 'good'; st.ln[3] = 'hot';
-    st.o.tags = 'array of 2'; st.arr.push('tags'); st.rows.push(['"tags": ["vip", "new"]', '[ ] is an array of values. Two strings']);
+    st.o.tags = 'array of 2 values'; st.arr.push('tags'); st.rows.push(['"tags": ["vip", "new"]', '[ ] is an array of values. Two strings']);
     push('This is the line after the comma. "tags" is a name wrapped in double quotes, and its value starts with [. [ ] is an array of several values. The "vip" and "new" inside are both wrapped in double quotes, so they are two strings, separated by the comma between them. The array ends at ].' + (c.comma === 'trail' ? ' But there is one more comma after the ].' : ''), '');
     if (c.comma === 'trail') {
       st.ln[3] = 'good'; st.ln[4] = 'bad'; st.rows.push(['}', 'A name must follow the comma, but the end comes']);

@@ -49,7 +49,8 @@ public class AuthnBasicProbe {
             s.append("                // 확인 없음: /admin은 누구에게나 열어 둔다\n");
             s.append("                .requestMatchers(\"/admin\").permitAll()\n");
         }
-        s.append("                // 인증: 그 밖의 주소는 누구인지 확인된 사람이면\n");
+        s.append("                // 인가: 그 밖의 주소는 인증된(누구인지 확인된) 사람만 허용\n");
+        s.append("                // (누구인지 확인하는 일은 이 줄이 아니라 아래 httpBasic이 한다)\n");
         s.append("                .anyRequest().authenticated())\n");
         s.append("            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다\n");
         s.append("            .httpBasic(Customizer.withDefaults());\n");

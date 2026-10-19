@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ System.out.println(&quot;첫 번째 사용 끝&quot;);
 int b = Parent.MAX;
 System.out.println(&quot;두 번째 사용 끝&quot;);</pre>
 <h2>이 모형의 전제</h2>
-<p>열여덟 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 새로 컴파일해 실행하고, 출력된 줄의 순서와 읽어 들인 클래스를 대조했습니다. 클래스를 읽어 들인 시점은 -Xlog:class+load 옵션으로 얻은 JVM의 기록과 대조했습니다. 초기화가 언제 일어나는지는 자바 언어 명세가 정해 둔 것이라 어느 JVM에서나 같습니다. 반면 클래스를 언제 읽어 들이는지는 JVM 구현에 맡겨져 있어서, &quot;처음 쓰일 때 읽는다&quot;와 &quot;상수만 읽으면 읽지도 않는다&quot;는 이 PC의 JVM(HotSpot)에서 확인한 동작입니다. 상수 읽기가 값 10으로 바뀌어 컴파일된다는 것은 javap로 바이트코드를 보고 확인했습니다. 읽어 들인 뒤 초기화 전에 거치는 검증, 준비 같은 세부 단계와, Class.forName이나 인터페이스의 초기화 규칙은 다루지 않았습니다.</p>
+<p>열여덟 가지 조합마다 화면의 코드와 같은 소스를 검증 환경의 JDK 21에서 새로 컴파일해 실행하고, 출력된 줄의 순서와 읽어 들인 클래스를 대조했습니다. 클래스를 읽어 들인 시점은 -Xlog:class+load 옵션으로 얻은 JVM의 기록과 대조했습니다. 초기화가 언제 일어나는지는 자바 언어 명세가 정해 둔 것이라 어느 JVM에서나 같습니다. 반면 클래스를 언제 읽어 들이는지는 JVM 구현에 맡겨져 있어서, &quot;처음 쓰일 때 읽는다&quot;와 &quot;상수만 읽으면 읽지도 않는다&quot;는 검증 환경의 JVM(HotSpot)에서 확인한 동작입니다. 상수 읽기가 값 10으로 바뀌어 컴파일된다는 것은 javap로 바이트코드를 보고 확인했습니다. 읽어 들인 뒤 초기화 전에 거치는 검증, 준비 같은 세부 단계와, Class.forName이나 인터페이스의 초기화 규칙은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/jit/">JIT 워밍업</a> · 다음 실습: <a href="../../lab/iobuf/">입출력 스트림과 버퍼</a></p>
   </div>
 
@@ -172,6 +172,6 @@ System.out.println(&quot;두 번째 사용 끝&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

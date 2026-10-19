@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,9 +51,9 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>Step 1: the client sends a SYN, which says &quot;I want to connect.&quot; It announces the starting number (100) that it will use.</li>
-<li>Step 2: the server answers, &quot;Received (ACK), and I will connect too (SYN).&quot; ack=101 means &quot;I have received up to 100, so send 101 next.&quot;</li>
-<li>Step 3: the client acknowledges the SYN of the server. Both sides have now confirmed that &quot;what I send arrives, and what the other side sends reaches me.&quot; The connection is established.</li>
+<li>This is the first message of the three-way handshake. The client sends a SYN, which says &quot;I want to connect.&quot; It announces the starting number (100) that it will use.</li>
+<li>This is the second message. The server answers, &quot;Received (ACK), and I will connect too (SYN).&quot; ack=101 means &quot;I have received up to 100, so send 101 next.&quot;</li>
+<li>This is the third message. The client acknowledges the SYN of the server. Both sides have now confirmed that &quot;what I send arrives, and what the other side sends reaches me.&quot; The connection is established.</li>
 <li>It splits the data into segments, numbers them, and sends them.</li>
 <li>The server acknowledges: &quot;I have received up to 106, so send 107 next.&quot;</li>
 <li>It sends the second segment.</li>
@@ -162,6 +162,6 @@ socket.close();                                // close the connection</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

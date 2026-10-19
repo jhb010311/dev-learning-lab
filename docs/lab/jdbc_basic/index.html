@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,9 +54,9 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;): 자바 프로그램이 DB에 연결을 맺습니다. 주소의 jdbc는 자바가 DB에 접속하는 약속(JDBC)이라는 뜻이고, h2는 DB의 종류, mem:shop은 메모리 안에 있는 shop이라는 DB입니다. 연결이 맺어지면 DB 쪽에 이 연결을 맡는 자리(세션)가 하나 생기고, 자바에는 그 연결을 가리키는 conn 객체가 생깁니다. member 테이블에는 (1, kim) 한 행이 들어 있습니다. 아직 SQL은 한 줄도 보내지 않았습니다.</li>
-<li>conn.createStatement(): conn 연결로 SQL을 보내는 도구(Statement)를 만들어 st에 담습니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.</li>
-<li>st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;): st가 SQL 글자를 DB에 보냅니다. DB는 받은 글자를 읽어 member 테이블에서 id가 1인 행을 찾아 결과를 만듭니다. 결과는 행이 1개인 표입니다. 자바는 이 결과를 ResultSet 객체 rs로 받습니다. ResultSet은 처음에 첫 행의 앞에 서 있어서 아직 어느 행도 읽지 않았습니다.</li>
+<li>DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;): 자바 프로그램이 DB에 연결을 맺습니다. 주소의 jdbc는 자바가 DB에 접속하는 약속(JDBC)이라는 뜻이고, h2는 DB의 종류, mem:shop은 메모리 안에 있는 shop이라는 DB입니다. 연결이 맺어지면 DB 쪽에 이 연결을 맡는 자리(세션)가 하나 생기고, 자바에는 그 연결을 나타내는 Connection 객체가 생기고, 변수 conn이 그 객체를 가리킵니다. member 테이블에는 (1, kim) 한 행이 들어 있습니다. 아직 SQL은 한 줄도 보내지 않았습니다.</li>
+<li>conn.createStatement(): conn이 가리키는 연결로 SQL을 보내는 도구(Statement 객체)를 만들고, 변수 st가 그 객체를 가리키게 합니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.</li>
+<li>st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;): st가 SQL 글자를 DB에 보냅니다. DB는 받은 글자를 읽어 member 테이블에서 id가 1인 행을 찾아 결과를 만듭니다. 결과는 행이 1개인 표입니다. 자바는 이 결과를 ResultSet 객체로 받고, 변수 rs가 그 객체를 가리킵니다. ResultSet은 처음에 첫 행의 앞에 서 있어서 아직 어느 행도 읽지 않았습니다.</li>
 <li>rs.next(): 결과에서 다음 행으로 한 칸 옮기고, 옮긴 자리에 행이 있으면 true, 없으면 false 값을 돌려줍니다. 첫 행으로 옮겨 true 값이 found 변수에 담깁니다. next() 메서드를 부르기 전에 값을 읽으려 하면 읽을 행이 없다며 SQLException이 납니다.</li>
 <li>System.out.println(found): found 변수에 담긴 true 값을 화면에 출력합니다.</li>
 <li>rs.getString(&quot;name&quot;): 현재 행에서 name 열의 값을 글자로 꺼내 kim 값을 출력합니다. main의 마지막 줄까지 실행되어 프로그램이 끝났고, DB가 받은 SQL은 한 문장, 예외는 없습니다.</li>
@@ -167,6 +167,6 @@ System.out.println(rs.getString(&quot;name&quot;));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

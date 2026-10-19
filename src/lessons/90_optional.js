@@ -140,5 +140,5 @@ Lab.register({
     if (s.ex) P.text('ex', 16, 276, '예외: ' + s.ex, { cls: 'bad' });
     P.note(useMd ? 'orElse는 기본값을 미리 만들어서 넘기고, orElseGet은 기본값을 만드는 코드를 넘깁니다. 그래서 값이 들어 있을 때 makeDefault()가 실행되는지가 다릅니다.' : c.take === 'map' ? 'map은 값이 들어 있을 때만 함수를 실행하고, 비어 있으면 건너뜁니다. 값이 없을 때의 처리는 마지막 orElse가 맡습니다.' : 'get()은 값이 들어 있을 때만 쓸 수 있습니다. 비어 있으면 예외를 던집니다.');
   },
-  assume: '스물네 가지 조합(Optional.empty()는 name을 쓰지 않으므로 서로 다른 경우는 스무 가지)에서 화면에 찍히는 줄과 예외를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. makeDefault()가 실행됐는지는 그 메서드가 찍는 줄이 출력에 있는지로 확인했습니다. map이 비어 있을 때 함수를 실행하지 않는다는 것은 Optional의 문서에 적힌 동작이며, 실행에서는 예외 없이 "이름 없음"이 나오는 것으로 확인했습니다. 예외 메시지 "No value present"는 JDK 21 기준입니다. Optional.of(null)의 NullPointerException에는 메시지가 없습니다.',
+  assume: '스물네 가지 조합(Optional.empty()는 name을 쓰지 않으므로 서로 다른 경우는 스무 가지)에서 화면에 찍히는 줄과 예외를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. makeDefault()가 실행됐는지는 그 메서드가 찍는 줄이 출력에 있는지로 확인했습니다. map이 비어 있을 때 함수를 실행하지 않는다는 것은 Optional의 문서에 적힌 동작이며, 실행에서는 예외 없이 "이름 없음"이 나오는 것으로 확인했습니다. 예외 메시지 "No value present"는 JDK 21 기준입니다. Optional.of(null)의 NullPointerException에는 메시지가 없습니다.',
 });

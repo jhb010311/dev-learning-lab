@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>리포지토리: 리포지토리는 무엇이고, 구현은 누가 만드는가 · 개발 학습 실습실</title>
-<meta name="description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를…">
+<meta name="description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면(MemberRepository와 Member는 이…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/repo_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="리포지토리: 리포지토리는 무엇이고, 구현은 누가 만드는가 · 개발 학습 실습실">
-<meta property="og:description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를…">
+<meta property="og:description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면(MemberRepository와 Member는 이…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>리포지토리</h1>
 <p><b>리포지토리는 무엇이고, 구현은 누가 만드는가</b></p>
-<p>스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository가 부모 인터페이스에서 물려받은 메서드를 다시 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.</p>
+<p>스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면(MemberRepository와 Member는 이 예제에서 지은 이름이고, JpaRepository는 스프링 데이터 JPA가 주는 인터페이스입니다), 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository의 부모 인터페이스인 CrudRepository에 선언된 메서드이고, MemberRepository는 그것을 JpaRepository를 거쳐 물려받습니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1, 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2에서 여섯 가지 조합을 컴파일하고 실제 스프링 시작으로 구현 객체와 나간 SQL을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -69,13 +69,14 @@
 <li>save는 JpaRepository에서 물려받은 메서드이고, findByName은 이름의 규칙(findBy + 필드 이름)을 스프링이 읽어 SELECT를 만든 것입니다. 우리가 쓴 것은 인터페이스의 선언뿐이고, 구현 클래스도 SQL도 쓰지 않았습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 자격: 스프링이 구현을 대신 만들어 준다 (구현 클래스는 쓰지 않는다)
+<pre>// 선언만 한다. 구현 클래스는 쓰지 않고, 스프링이 구현 객체를 만들어 준다
 public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
     // 이름의 규칙(findBy + 필드 이름)을 보고 스프링이 쿼리를 만든다
     List&lt;Member&gt; findByName(String name);
 }
 
 // 쓰는 쪽
+// main 메서드 안의 줄만 남겼다(스프링을 시작하고 memberRepository를 받는 줄은 줄임).
 memberRepository.save(new Member(1L, &quot;김철수&quot;));
 List&lt;Member&gt; found = memberRepository.findByName(&quot;김철수&quot;);
 System.out.println(found.size());</pre>
@@ -168,6 +169,6 @@ System.out.println(found.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -62,7 +62,7 @@ Lab.register({
           push('자바가 이 예외를 잡는 곳이 있는지 찾습니다. 예외가 난 곳은 try 안이므로 이 try에 붙은 catch를 봅니다. catch (ArithmeticException e)는 ArithmeticException 종류를 잡겠다고 적혀 있고, 던져진 것도 ArithmeticException이므로 종류가 맞습니다.', 'good');
           st.ln.ct = 'ok'; st.out.push('0으로 나눌 수 없습니다');
           st.checks.push(['catch 안의 println', { v: '실행됨', cls: 'good' }]);
-          push('실행이 catch 안으로 건너갑니다. 던져진 예외 객체는 변수 e에 담기고, catch 안의 System.out.println("0으로 나눌 수 없습니다"); 줄이 실행되어 그 글을 출력합니다.', 'good');
+          push('실행이 catch 안으로 건너갑니다. 변수 e가 던져진 예외 객체를 가리키게 되고, catch 안의 System.out.println("0으로 나눌 수 없습니다"); 줄이 실행되어 그 글을 출력합니다.', 'good');
           st.hot = 'end'; st.ln.end = 'ok'; st.out.push('끝'); st.ended = 'ok';
           st.checks.push([SHOW, { v: '실행됨', cls: 'good' }]);
           push('catch 안의 줄이 끝나면 예외는 처리된 것으로 칩니다. 프로그램은 멈추지 않고 try-catch 아래의 줄로 이어 가서, ' + SHOW + ' 줄이 "끝"을 출력합니다. main의 마지막 줄까지 실행되어 프로그램이 끝납니다.', 'good');

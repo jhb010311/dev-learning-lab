@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@
 }
 System.out.println(&quot;done&quot;);</pre>
 <h2>Assumptions of this model</h2>
-<p>The output and the counts of the 24 combinations (12 loops and 12 switch statements) were checked against the result of running code with the same structure on JDK 21 on this PC. The number of times the body was entered was obtained by putting counting code on the first line of the body in the program used for the check. For the two combinations that use continue in a while statement, it was confirmed that the real program does not end after 2 seconds and keeps repeating only the body. That the program &quot;never ends&quot; cannot itself be proved by execution. It is a conclusion that follows from the structure of the code, in which i does not change. The model decides that there is an infinite loop, and stops, when control comes back to the condition check with the same value of i. It was also confirmed by execution that a switch without a default executes nothing when it is given a value that matches no case. The switch with arrows has been a standard part of the language since Java 14. The do-while statement, the enhanced for statement (for-each), switch expressions that produce a value, and the labeled break are not covered.</p>
+<p>The output and the counts of the 24 combinations (12 loops and 12 switch statements) were checked against the result of running code with the same structure on JDK 21 in our test environment. The number of times the body was entered was obtained by putting counting code on the first line of the body in the program used for the check. For the two combinations that use continue in a while statement, it was confirmed that the real program does not end after 2 seconds and keeps repeating only the body. That the program &quot;never ends&quot; cannot itself be proved by execution. It is a conclusion that follows from the structure of the code, in which i does not change. The model decides that there is an infinite loop, and stops, when control comes back to the condition check with the same value of i. It was also confirmed by execution that a switch without a default executes nothing when it is given a value that matches no case. The switch with arrows has been a standard part of the language since Java 14. The do-while statement, the enhanced for statement (for-each), switch expressions that produce a value, and the labeled break are not covered.</p>
 <p>Previous lab: <a href="../../lab/casting/">Operators and type conversion</a> · Next lab: <a href="../../lab/array/">Arrays</a></p>
   </div>
 
@@ -169,6 +169,6 @@ System.out.println(&quot;done&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

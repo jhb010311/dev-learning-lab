@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -117,17 +117,30 @@
 </ul>
 <h2>코드</h2>
 <pre>// 힙: Eden 20칸, Survivor 5칸, Old 40칸
+// EventLoop와 Event는 예시로 만든 이름입니다(import 생략, 필요한 부분만 남김).
+class EventLoop {
+    Map&lt;Long, Event&gt; recent = new HashMap&lt;&gt;();        // 한동안 쓰는 객체를 붙잡는 곳
+    Random random = new Random();
+    volatile boolean running = true;
 
-while (running) {                       // 한 바퀴 = 한 틱
-    for (int i = 0; i &lt; 5; i++) {
-        Event e = new Event();           // Eden에 생성
-        if (keepForAWhile(e)) {          // 10%
-            recent.put(e.id(), e);       // 10틱 뒤 제거됨
+    void run() {
+        long tick = 0, nextId = 0;
+        while (running) {                             // 한 바퀴 = 한 틱
+            long now = ++tick;
+            recent.values().removeIf(x -&gt; x.tick() &lt;= now - 10);  // 10틱 지난 것은 참조를 끊음
+            for (int i = 0; i &lt; 5; i++) {
+                Event e = new Event(nextId++, now);   // Eden에 생성
+                int r = random.nextInt(100);
+                if (r &lt; 10) {                         // 10%
+                    recent.put(e.id(), e);            // 10틱 동안 참조됨
+                }
+            }                                         // 나머지는 여기서 버려짐
         }
-    }                                    // 나머지는 여기서 버려짐
-}</pre>
+    }
+}
+record Event(long id, long tick) {}</pre>
 <h2>이 모형의 전제</h2>
-<p>객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 &quot;Minor GC에서 두 번 살아남으면&quot;으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 이 PC의 JDK 21에서 64MB 힙으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.</p>
+<p>객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 &quot;Minor GC에서 두 번 살아남으면&quot;으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 검증 실행(JDK 21, 64MB 힙)으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.</p>
 <p>앞 실습: <a href="../../lab/stack/">스택과 힙</a> · 다음 실습: <a href="../../lab/jit/">JIT 워밍업</a></p>
   </div>
 
@@ -215,6 +228,6 @@ while (running) {                       // 한 바퀴 = 한 틱
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

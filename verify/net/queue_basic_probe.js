@@ -15,15 +15,15 @@ const POLL = 100;        // 알림 서버가 큐를 들여다보는 간격(ms). 
 // ---------- 화면의 코드 글자 ----------
 function screenText(via, consumer) {
   const L = [];
-  if (via === 'queue') L.push('# 주문 서버: 주문 3건마다 "주문 N 알림" 메시지를 큐에 넣는다', '# 큐: 메시지를 넣은 차례대로 보관한다', '# 알림 서버: 큐에서 하나씩 꺼내 처리한다');
-  else L.push('# 주문 서버: 주문 3건마다 "주문 N 알림" 요청을 알림 서버에 직접 보낸다', '# 알림 서버: 받은 요청을 하나씩 처리한다');
+  if (via === 'queue') L.push('# 주문 서버: 주문마다(3건) "주문 N 알림" 메시지를 큐에 넣는다', '# 큐: 메시지를 넣은 차례대로 보관한다', '# 알림 서버: 큐에서 하나씩 꺼내 처리한다');
+  else L.push('# 주문 서버: 주문마다(3건) "주문 N 알림" 요청을 알림 서버에 직접 보낸다', '# 알림 서버: 받은 요청을 하나씩 처리한다');
   if (consumer === 'late') L.push('# 알림 서버: 주문 3건을 보내는 동안 꺼져 있다가 나중에 켜진다');
   return L.join('\n');
 }
 function parseScreen(text) {
   const r = { mode: null, count: 0, tmpl: null, queue: false, notifyKind: null, late: false };
   for (const l of text.split('\n')) {
-    let m = /^# 주문 서버: 주문 (\d+)건마다 "(주문 N 알림)" (메시지를 큐에 넣는다|요청을 알림 서버에 직접 보낸다)$/.exec(l);
+    let m = /^# 주문 서버: 주문마다\((\d+)건\) "(주문 N 알림)" (메시지를 큐에 넣는다|요청을 알림 서버에 직접 보낸다)$/.exec(l);
     if (m) { r.count = +m[1]; r.tmpl = m[2]; r.mode = m[3].startsWith('메시지') ? 'queue' : 'direct'; }
     if (l === '# 큐: 메시지를 넣은 차례대로 보관한다') r.queue = true;
     if (l === '# 알림 서버: 큐에서 하나씩 꺼내 처리한다') r.notifyKind = 'take';

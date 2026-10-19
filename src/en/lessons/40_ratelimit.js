@@ -49,7 +49,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], res = last ? last.snap.res : [], ok = res.filter(function (r) { return r.ok; }).length;
-    H.counters(v, [[res.length + ' / ' + sim.n, 'Requests arrived'], [ok, 'Passed'], [res.length - ok, 'Rejected (429)']]);
+    H.counters(v, [[res.length + ' / ' + sim.n, 'Requests arrived / all to be sent'], [ok, 'Passed'], [res.length - ok, 'Rejected (429)']]);
     [0, 1, 2].forEach(function (sec) { var it = res.filter(function (r) { return Math.floor(r.t) === sec; }); H.title(v, 'Requests that arrived between ' + sec + 's and ' + (sec + 1) + 's'); H.slots(v, it.map(function (r, i) { return [r.t.toFixed(2), (r.ok ? 'd' : 'r') + (r === res[res.length - 1] ? ' now' : '')]; }), 'None', true); });
     H.text(v, 'The number in each cell is the arrival time (in seconds). Green passed and red was rejected.');
   },

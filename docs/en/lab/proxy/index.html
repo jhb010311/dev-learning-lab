@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,9 +59,9 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>When the application starts, Spring finds a bean that has a method annotated with @Transactional and registers, as the bean, a proxy that receives the calls in place of the original object. This proxy is what other beans receive by injection. A bean with no such method is registered as the original object itself.</li>
+<li>When the application starts, Spring finds a bean that has a method annotated with @Transactional and registers, as the bean, a proxy that receives the calls in place of the original object. This proxy is what other beans receive by injection. A bean with no such method is registered as the original object itself. In the code, OrderService and their methods are examples made for this lab, while annotations such as @Service and @Transactional come from Spring.</li>
 <li>The controller calls orderService.placeOrder(). The proxy receives the call, but placeOrder() has no annotation, so the proxy passes the call on to the real object as it is.</li>
-<li>Inside the real object, the code calls saveAll(). This call is this.saveAll(). Here, this is the real object itself, not the proxy, so the call does not go through the proxy.</li>
+<li>placeOrder() of the real object calls saveAll(). This call is this.saveAll(). Here, this is the real object itself, not the proxy, so the call does not go through the proxy.</li>
 <li>No proxy is there to start a transaction. Order A is inserted with INSERT. There is no transaction, so this INSERT is committed as soon as it runs (auto-commit).</li>
 <li>Order B is inserted with INSERT. It is also committed right away.</li>
 <li>An exception is thrown, but there is no transaction to roll back. Orders A and B, which are already committed, stay in the DB as they are. The data of a failed operation is left half saved.</li>
@@ -72,7 +72,10 @@
 <li>A call within the same class does not pass through the proxy. It is easy to miss because the annotation is silently ignored, with no exception and no warning. The most common solution is to move the method to another bean, and another way is to inject the proxy of the bean itself and call through it.</li>
 </ul>
 <h2>Code</h2>
-<pre>@Service class OrderService {
+<pre>// Only the needed parts are kept: the imports and the declarations of the fields and variables
+// made for this example (orderDao, a, b) are left out.
+
+@Service class OrderService {
     public void placeOrder() {                 // called by the controller
         saveAll();                             // same as this.saveAll()
     }
@@ -173,6 +176,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

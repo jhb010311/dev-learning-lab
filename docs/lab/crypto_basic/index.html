@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>암호화: 암호화는 무엇이고, 열쇠가 없으면 어떻게 되는가 · 개발 학습 실습실</title>
-<meta name="description" content="암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열…">
+<meta name="description" content="암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 이 실습의 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="암호화: 암호화는 무엇이고, 열쇠가 없으면 어떻게 되는가 · 개발 학습 실습실">
-<meta property="og:description" content="암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열…">
+<meta property="og:description" content="암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 이 실습의 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/crypto_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › 보안</p>
 <h1>암호화</h1>
 <p><b>암호화는 무엇이고, 열쇠가 없으면 어떻게 되는가</b></p>
-<p>암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열쇠를 넘기면 원래 글자를 되찾습니다. 이것을 복호화라고 합니다. 열쇠가 없거나 다른 열쇠를 가진 쪽은 되찾지 못하므로, 지켜야 하는 것은 값이 아니라 열쇠입니다. 이 실습은 받는 쪽이 가진 열쇠를 같은 것, 다른 것, 없는 것으로 바꾸고 암호화 자체를 빼기도 하면서, 중간에서 보이는 값과 받는 쪽이 읽은 것을 실제로 실행해 확인합니다. (열쇠를 만드는 newKey와 계산하는 encrypt, decrypt의 본문은 화면에서 줄였습니다.)</p>
+<p>암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 이 실습의 코드에서는 encrypt(&quot;카드번호 1234&quot;, key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열쇠를 넘기면 원래 글자를 되찾습니다. 이것을 복호화라고 합니다. 열쇠가 없거나 다른 열쇠를 가진 쪽은 되찾지 못하므로, 지켜야 하는 것은 값이 아니라 열쇠입니다. 이 실습은 받는 쪽이 가진 열쇠를 같은 것, 다른 것, 없는 것으로 바꾸고 암호화 자체를 빼기도 하면서, 중간에서 보이는 값과 받는 쪽이 읽은 것을 실제로 실행해 확인합니다. (열쇠를 만드는 newKey와 계산하는 encrypt, decrypt는 자바 표준 라이브러리(javax.crypto)를 써서 이 실습에서 예시로 만든 도우미 메서드이고, 본문은 화면에서 줄였습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조, Node.js와 NIST 시험 벡터로 계산 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -53,7 +53,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>SecretKey key = newKey(); 줄을 실행합니다. 도우미 메서드 newKey()가 열쇠를 하나 만들어 key에 담습니다. 열쇠는 글자를 암호화할 때와 풀 때 계산에 함께 넣는 값입니다.</li>
+<li>SecretKey key = newKey(); 줄을 실행합니다. 예시로 만든 도우미 메서드 newKey()가 열쇠를 하나 만들고, 변수 key가 그 열쇠를 가리킵니다. 열쇠는 글자를 암호화할 때와 풀 때 계산에 함께 넣는 값입니다.</li>
 <li>String sent = encrypt(&quot;카드번호 1234&quot;, key); 줄에서 보내는 쪽이 글자 &quot;카드번호 1234&quot;와 열쇠 key를 encrypt에 넣습니다. encrypt는 글자를 열쇠와 함께 계산해서 다른 값으로 바꿉니다.</li>
 <li>계산이 끝나고 알아볼 수 없는 값이 나와 sent에 담깁니다. 이 실습에서는 ih/DXie50GTx…로 시작하는 60자의 글자가 나왔습니다. 이 값에서는 &quot;카드번호 1234&quot;를 읽을 수 없습니다. 같은 글자를 같은 열쇠로 다시 암호화하면 다른 값이 나오므로, 이 값은 한 예입니다.</li>
 <li>sent의 값이 중간(네트워크나 저장소)을 지나 받는 쪽으로 갑니다. 중간에서 보이는 것은 이 값뿐입니다. 글자와 열쇠는 중간으로 보내지 않았으므로 보이지 않습니다.</li>
@@ -166,6 +166,6 @@ System.out.println(read);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

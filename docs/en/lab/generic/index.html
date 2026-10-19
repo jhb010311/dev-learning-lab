@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ System.out.println(ints.getClass() == strs.getClass());
 Integer last = ints.get(ints.size() - 1);
 System.out.println(&quot;last value: &quot; + last);</pre>
 <h2>Assumptions of this model</h2>
-<p>All 20 combinations were actually compiled on JDK 21 on this PC (javac -Xlint:unchecked) from a source file that places the code on the screen inside a main method, and those that compiled were run, and the compilation result, the line and the message of each error, the warning message, the output, the kind of exception, and the line where the exception was thrown were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only, and CAP#1 for an unknown type). The code on the screen omits import java.util.ArrayList, import java.util.List, and the declaration of the main method. When you compile without -Xlint:unchecked, you get only the note &quot;uses unchecked or unsafe operations&quot; in place of the details of the warning. null can be added even to a list declared with ? extends, but the model does not cover this. Even though type erasure happens, the generic information written in the declarations of fields and methods remains in the class file and can be read through reflection. What is erased is the information that an object has at run time.</p>
+<p>All 20 combinations were actually compiled on JDK 21 in our test environment (javac -Xlint:unchecked) from a source file that places the code on the screen inside a main method, and those that compiled were run, and the compilation result, the line and the message of each error, the warning message, the output, the kind of exception, and the line where the exception was thrown were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only, and CAP#1 for an unknown type). The code on the screen omits import java.util.ArrayList, import java.util.List, and the declaration of the main method. When you compile without -Xlint:unchecked, you get only the note &quot;uses unchecked or unsafe operations&quot; in place of the details of the warning. null can be added even to a list declared with ? extends, but the model does not cover this. Even though type erasure happens, the generic information written in the declarations of fields and methods remains in the class file and can be read through reflection. What is erased is the information that an object has at run time.</p>
 <p>Previous lab: <a href="../../lab/chkex/">Checked and unchecked exceptions</a> · Next lab: <a href="../../lab/enumtype/">Enum classes</a></p>
   </div>
 
@@ -172,6 +172,6 @@ System.out.println(&quot;last value: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

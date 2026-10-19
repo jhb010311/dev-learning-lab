@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,12 +77,12 @@
 <li>On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (10).</li>
 </ul>
 <h2>Code</h2>
-<pre>@Entity class Order {
+<pre>@Entity class Order {                 // an example entity (only the relevant parts kept)
     @ManyToOne(fetch = FetchType.LAZY)
     Member member;
 }
 
-interface OrderRepository {
+interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
     @Query(&quot;select o from Order o&quot;)
     List&lt;Order&gt; findOrders();
 }
@@ -181,6 +181,6 @@ for (Order o : orders) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

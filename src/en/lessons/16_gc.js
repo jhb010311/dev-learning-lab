@@ -20,7 +20,37 @@ Lab.register({
   SIZES: { small: [12, 3, 24], mid: [20, 5, 40], large: [32, 8, 64] },
   code: function (c) {
     var z = this.SIZES[c.heap];
-    return '// Heap: eden ' + z[0] + ' slots, survivor ' + z[1] + ' slots, old ' + z[2] + ' slots\n' + (c.leak ? 'static List<Event> history = new ArrayList<>();   // no code removes anything\n\n' : '\n') + 'while (running) {                       // one pass = one tick\n    for (int i = 0; i < ' + c.rate + '; i++) {\n        Event e = new Event();           // created in eden\n        if (keepForAWhile(e)) {          // ' + c.live + '%\n            recent.put(e.id(), e);       // removed 10 ticks later\n        }\n' + (c.leak ? '        if (e.isImportant()) {           // 40%\n            history.add(e);              // still referenced -> cannot be collected\n        }\n' : '') + '    }                                    // the rest are discarded here\n}';
+    function pad(x) { while (x.length < 54) x += ' '; return x; }
+    return [
+      '// Heap: eden ' + z[0] + ' slots, survivor ' + z[1] + ' slots, old ' + z[2] + ' slots',
+      '// EventLoop and Event are names made up for this example (imports omitted, only the relevant parts kept).',
+      'class EventLoop {',
+    ].concat(c.leak ? ['    static List<Event> history = new ArrayList<>();  // no code removes anything'] : [], [
+      '    Map<Long, Event> recent = new HashMap<>();        // holds objects used for a while',
+      '    Random random = new Random();',
+      '    volatile boolean running = true;',
+      '',
+      '    void run() {',
+      '        long tick = 0, nextId = 0;',
+      '        while (running) {                             // one pass = one tick',
+      '            long now = ++tick;',
+      '            recent.values().removeIf(x -> x.tick() <= now - 10);  // drops references older than 10 ticks',
+      '            for (int i = 0; i < ' + c.rate + '; i++) {',
+      '                Event e = new Event(nextId++, now);   // created in eden',
+      '                int r = random.nextInt(100);',
+      pad('                if (r < ' + c.live + ') {') + '// ' + c.live + '%',
+      '                    recent.put(e.id(), e);            // referenced for 10 ticks',
+      c.leak ? pad('                } else if (r < ' + (c.live + 40) + ') {') + '// 40%' : '                }',
+    ], c.leak ? [
+      '                    history.add(e);                   // still referenced -> cannot be collected',
+      '                }',
+    ] : [], [
+      '            }                                         // the rest are discarded here',
+      '        }',
+      '    }',
+      '}',
+      'record Event(long id, long tick) {}',
+    ]).join('\n');
   },
   label: function (c) { return 'Per tick: ' + c.rate + ' objects · long-lived: ' + c.live + '% · heap: ' + { small: 'small', mid: 'medium', large: 'large' }[c.heap] + (c.leak ? ' · leak' : ''); },
   columns: ['Minor GCs', 'Full GCs', 'Total pause time', 'Old generation in use at the end', 'Result'],
@@ -28,14 +58,14 @@ Lab.register({
     var z = this.SIZES[c.heap], EC = z[0], SC = z[1], OC = z[2], TH = 2, TICKS = 40, objs = [], ev = [], minor = 0, full = 0, pause = 0, oom = false, made = 0, t = 0, la = 0, lk = 0;
     function cnt(w) { var n = 0; objs.forEach(function (o) { if (o.w === w) n++; }); return n; }
     function snap() { return { t: t, minor: minor, full: full, pause: pause, E: reg('E'), S: reg('S'), O: reg('O') }; }
-    function reg(w) { return objs.filter(function (o) { return o.w === w; }).map(function (o) { return o.die === Infinity ? 'b' : o.die > t ? 'd' : 'r'; }); }
+    function reg(w) { return objs.filter(function (o) { return (o.w === 'X' ? o.pw : o.w) === w; }).map(function (o) { return o.die === Infinity ? 'b' : o.die > t ? 'd' : 'r'; }); }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
     function fullGC() { full++; pause += 10; var before = cnt('O'); objs = objs.filter(function (o) { return o.die > t; }); var after = cnt('O'); push('Tick ' + t + ': Surviving objects have to be promoted to the old generation, but the old generation is full. A full GC examines the whole heap. The old generation held ' + before + ' objects. The full GC reclaims the ones that are no longer referenced (' + (before - after) + '), which leaves ' + after + '. All threads of the application are paused during this time (a pause of 10).', 'bad'); }
     function promote(o) { if (cnt('O') >= OC) { fullGC(); if (cnt('O') >= OC) { oom = true; return false; } } o.w = 'O'; return true; }
     function minorGC() {
       minor++; pause += 1; var young = objs.filter(function (o) { return o.w !== 'O'; }), dead = young.filter(function (o) { return o.die <= t; }).length, toS = 0, toO = 0;
       objs = objs.filter(function (o) { return o.w === 'O' || o.die > t; });
-      var alive = objs.filter(function (o) { return o.w !== 'O'; }); alive.forEach(function (o) { o.w = 'X'; });
+      var alive = objs.filter(function (o) { return o.w !== 'O'; }); alive.forEach(function (o) { o.pw = o.w; o.w = 'X'; });
       for (var i = 0; i < alive.length; i++) { var o = alive[i]; o.age++; if (o.age >= TH || cnt('S') >= SC) { if (!promote(o)) break; toO++; } else { o.w = 'S'; toS++; } }
       if (oom) return;
       push('Tick ' + t + ': Eden is full. A minor GC examines only the young generation (' + young.length + ' objects). It discards the objects that are not referenced (' + dead + ') and moves the live objects (' + alive.length + '). Moved to the survivor space: ' + toS + '. Promoted to the old generation: ' + toO + '. Eden is now empty. The application pauses briefly (a pause of 1).', '');
@@ -46,7 +76,7 @@ Lab.register({
         if (oom) break;
         made++; var die = t;                                    // default: discarded when the tick in which it was created ends
         var a2 = Math.floor(made * c.live / 100); if (a2 > la) { la = a2; die = t + 10; }
-        if (c.leak) { var k2 = Math.floor(made * 0.4); if (k2 > lk) { lk = k2; die = Infinity; } }
+        if (c.leak && die === t) { var k2 = Math.floor(made * 0.4); if (k2 > lk) { lk = k2; die = Infinity; } }
         objs.push({ w: 'E', die: die, age: 0 });
       }
       if (!oom) push('Tick ' + t + ': ' + c.rate + ' objects are created. Eden: ' + cnt('E') + '/' + EC + ' slots in use.', '');
@@ -78,5 +108,5 @@ Lab.register({
     P.box('msg', 16, rh + 30, 648, 30, { cls: kind === 'oom' || kind === 'full' ? 'bad' : kind === 'minor' ? 'hot' : 'ghost', center: true, title: { oom: 'OutOfMemoryError: referenced objects alone fill the heap', full: 'Full GC: examines the whole heap (all threads pause for a long time)', minor: 'Minor GC: examines only eden and the survivor space (brief pause)', '': last ? 'Creating new objects in eden with no GC' : 'Click Run to start' }[kind] });
     P.note('Green marks an object that is still referenced, red marks an object whose references are gone but that has not been reclaimed yet, yellow marks a leaked object (still referenced), and a dashed outline marks an empty slot.');
   },
-  assume: 'This is a simple model of generational garbage collection in which all objects have the same size and the heap is counted in slots. The condition for promotion is lowered to "survives two minor GCs" (the real default maximum is 15, and the garbage collector adjusts it to the situation). The pause times 1 and 10 only express the relationship that a minor GC is much shorter than a full GC. Real collectors such as G1 and ZGC work differently, for example by dividing the heap into smaller parts and working concurrently with the application, but the principle is the same: the area for new objects and the area for old objects are handled separately, and objects that are still referenced cannot be reclaimed. The slot counts and GC counts are values of the model. However, the same situations were actually run on JDK 21 on this PC with a 64MB heap to check the direction. Creating only objects that are discarded quickly gave 24 young collections and 0 full GCs. Mixing in objects that are held for a long time gave 7 full GCs (average pause: young 2.1ms, full 11.5ms). Continually adding objects to a list that is never cleared ended with an OutOfMemoryError after 37 repeated full GCs. With the heap enlarged to 128MB, the same leak ended with the same error after creating about twice as many objects.',
+  assume: 'This is a simple model of generational garbage collection in which all objects have the same size and the heap is counted in slots. The condition for promotion is lowered to "survives two minor GCs" (the real default maximum is 15, and the garbage collector adjusts it to the situation). The pause times 1 and 10 only express the relationship that a minor GC is much shorter than a full GC. Real collectors such as G1 and ZGC work differently, for example by dividing the heap into smaller parts and working concurrently with the application, but the principle is the same: the area for new objects and the area for old objects are handled separately, and objects that are still referenced cannot be reclaimed. The slot counts and GC counts are values of the model. However, the same situations were actually run in our test run (JDK 21, 64MB heap) to check the direction. Creating only objects that are discarded quickly gave 24 young collections and 0 full GCs. Mixing in objects that are held for a long time gave 7 full GCs (average pause: young 2.1ms, full 11.5ms). Continually adding objects to a list that is never cleared ended with an OutOfMemoryError after 37 repeated full GCs. With the heap enlarged to 128MB, the same leak ended with the same error after creating about twice as many objects.',
 });

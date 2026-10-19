@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>static</h1>
 <p><b>static은 무엇이고, 붙이면 무엇이 달라지는가</b></p>
-<p>static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 &quot;어느 객체의 것인지&quot;가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.</p>
+<p>static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고(Counter는 이 실습에서 예시로 만든 클래스입니다), static이 아닌 필드는 &quot;어느 객체의 것인지&quot;가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 네 가지 조합을 javax.tools로 컴파일하고 실행해 대조, count가 있는 곳은 읽는 줄만 a.count와 b.count로 바꾼 소스를 실행해 실측</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -56,8 +56,8 @@
 <li>컴파일러가 소스를 위에서부터 읽습니다. 먼저 Counter 클래스의 count 선언을 읽습니다. count 앞에 static이 있으므로, count는 객체마다 생기는 것이 아니라 Counter 클래스에 하나만 있는 변수로 정해집니다.</li>
 <li>컴파일러가 main 안의 System.out.println(Counter.count); 줄을 확인합니다. Counter.count는 클래스 이름으로 count를 가리킵니다. count가 static이어서 Counter 클래스에 하나 있으므로, 객체 없이도 가리킬 수 있습니다. 오류가 아닙니다.</li>
 <li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다.</li>
-<li>java Main으로 실행합니다. main이 시작되고, 첫 new Counter()가 Counter 객체를 만들어 변수 a에 담습니다. count는 static이어서 이 객체 안에는 count 칸이 생기지 않습니다. Counter 클래스에 count 칸이 하나 있고 값은 0입니다.</li>
-<li>두 번째 new Counter()가 Counter 객체를 하나 더 만들어 변수 b에 담습니다. 객체는 둘이 되었지만 count 칸은 새로 생기지 않았습니다. 여전히 Counter 클래스에 하나뿐입니다.</li>
+<li>java Main으로 실행합니다. main이 시작되고, 첫 new Counter()가 Counter 객체를 만들고, 변수 a가 그 객체를 가리키게 됩니다. count는 static이어서 이 객체 안에는 count 칸이 생기지 않습니다. Counter 클래스에 count 칸이 하나 있고 값은 0입니다.</li>
+<li>두 번째 new Counter()가 Counter 객체를 하나 더 만들고, 변수 b가 그 객체를 가리키게 됩니다. 객체는 둘이 되었지만 count 칸은 새로 생기지 않았습니다. 여전히 Counter 클래스에 하나뿐입니다.</li>
 <li>a.up() 호출이 실행됩니다. up 메서드의 count = count + 1; 은 count를 읽어 1을 더해 다시 담습니다. 이 count는 Counter 클래스에 하나뿐인 칸이어서, 그 칸의 값이 0에서 1이 됩니다. 객체 b를 거쳐 읽어도 지금 이 칸의 값은 1입니다.</li>
 <li>b.up() 호출이 실행됩니다. 같은 count = count + 1; 입니다. b의 up도 같은 하나뿐인 칸을 올리므로, 값이 1에서 2가 됩니다. a가 올린 것 위에 b가 더한 것입니다.</li>
 <li>System.out.println(Counter.count); 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 2가 출력됩니다.</li>
@@ -174,6 +174,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

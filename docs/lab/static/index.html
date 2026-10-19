@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -87,7 +87,7 @@ a.hit();
 b.hit();
 System.out.println(a.count + &quot; &quot; + b.count);</pre>
 <h2>이 모형의 전제</h2>
-<p>서른 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 &quot;객체를 인자로 받는 static 메서드&quot;가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 &quot;클래스&quot; 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 &quot;실행 시작&quot; 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
+<p>서른 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 &quot;객체를 인자로 받는 static 메서드&quot;가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 &quot;클래스&quot; 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 &quot;실행 시작&quot; 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
 <p>앞 실습: <a href="../../lab/ctor/">클래스, 객체, 생성자</a> · 다음 실습: <a href="../../lab/inherit/">상속과 오버라이딩</a></p>
   </div>
 
@@ -175,6 +175,6 @@ System.out.println(a.count + &quot; &quot; + b.count);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

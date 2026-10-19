@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>의존성 주입: 의존성 주입은 무엇을 대신해 주는가 · 개발 학습 실습실</title>
-<meta name="description" content="의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는…">
+<meta name="description" content="의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 예시로 만든 클래스 OrderService는 결제를 하려고, 역시 예시로 만든 PayService의 객체가 필요하고, 이것을 &quot;OrderService가 PayServ…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/di_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/di_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="의존성 주입: 의존성 주입은 무엇을 대신해 주는가 · 개발 학습 실습실">
-<meta property="og:description" content="의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는…">
+<meta property="og:description" content="의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 예시로 만든 클래스 OrderService는 결제를 하려고, 역시 예시로 만든 PayService의 객체가 필요하고, 이것을 &quot;OrderService가 PayServ…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/di_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>의존성 주입</h1>
 <p><b>의존성 주입은 무엇을 대신해 주는가</b></p>
-<p>의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.</p>
+<p>의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 예시로 만든 클래스 OrderService는 결제를 하려고, 역시 예시로 만든 PayService의 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9에서 여섯 가지 조합을 실제 컴포넌트 스캔으로 컴파일해 실행하고, 필드의 객체까지 리플렉션으로 재어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -68,12 +68,22 @@
 <li>스프링은 생성자의 매개변수에서 OrderService가 PayService에 의존한다는 것을 읽고, PayService를 먼저 만든 뒤 그것을 넣어 OrderService를 만들었습니다. 우리 코드에는 두 객체를 만드는 new가 하나도 없고, 만들어진 PayService 객체는 1개입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@Component
+<pre>// 파일: app/PayService.java
+package app;
+
+import org.springframework.stereotype.Component;
+
+@Component
 public class PayService {
     public String pay() {
         return &quot;결제 완료&quot;;
     }
 }
+
+// 파일: app/OrderService.java
+package app;
+
+import org.springframework.stereotype.Component;
 
 @Component
 public class OrderService {
@@ -89,6 +99,12 @@ public class OrderService {
     }
 }
 
+// 파일: app/Main.java
+package app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 public class Main {
     public static void main(String[] args) {
         ApplicationContext context =
@@ -98,7 +114,7 @@ public class Main {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않고, 화면의 main이 그대로 쓰는 AnnotationConfigApplicationContext(&quot;app&quot;)의 컴포넌트 스캔만 썼습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 PayService, OrderService, Main)를 javac(-parameters)로 컴파일하고 자식 자바 프로세스로 실행해 확인했습니다. 컴포넌트를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했습니다. 대조용 소스에만 Probe 클래스를 더하고 네 줄을 끼웠습니다. 두 클래스에는 객체가 만들어질 때 그 생성자를 부른 쪽(스프링인지 OrderService의 어느 생성자인지)을 스택에서 읽어 적는 인스턴스 초기화 블록 한 줄씩을, main에는 컨텍스트가 만들어진 뒤와 getBean 뒤에 측정하는 줄을 한 줄씩 더했고, 대조 스크립트는 화면의 코드와 견줄 때 이 줄들을 뺍니다. 대조한 것은 실행 결과(출력, 시작 실패한 예외의 종류와 원인, 멈춘 예외와 그 자리), OrderService가 쓰는 PayService, 만들어진 PayService 객체의 수입니다. &quot;OrderService가 쓰는 PayService&quot;는 짐작이 아니라 실측했습니다. 실행 중에 리플렉션으로 OrderService 객체의 payService 필드를 읽어, 컨텍스트에 있는 PayService 빈과 같은 객체인지(==)와 비어 있는지를 견주었습니다. 객체의 수도 생성자가 불린 횟수를 센 것입니다. 단계 문장이 기대는 사실도 따로 재서 확인했습니다. 컴포넌트 스캔이 찾은 클래스, 객체가 만들어진 순서(생성자 주입에서는 PayService가 먼저, 직접 만들 때는 OrderService가 만들어지는 중에 PayService가 만들어짐), 모든 객체가 컨텍스트를 만드는 줄에서 만들어지고 getBean 줄에서는 새로 만들어지지 않는다는 것, 스프링이 기록한 OrderService의 의존 대상(생성자로 받을 때만 payService), PayService 빈이 없을 때 OrderService가 만들어지지 않고 main이 첫 줄에서 멈춘다는 것, 비어 있는 필드를 쓰다 멈추는 자리가 OrderService의 order() 메서드라는 것, 우리 코드에 new OrderService(...)라는 줄이 없다는 것입니다. 시작에 실패한 조합의 실제 예외는 UnsatisfiedDependencyException이고 원인은 NoSuchBeanDefinitionException(PayService 타입의 빈이 없음)이며, 원문은 Probe 출력에 남겼습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 Dependency Injection 절(의존성 주입이 객체가 의존하는 다른 객체를 생성자 인자 등으로만 정하고 컨테이너가 빈을 만들 때 그것을 넣어 주는 과정이라는 것, 생성자 기반 주입이 컨테이너가 각각 의존성을 뜻하는 인자를 가진 생성자를 부르는 것이라는 것), Using @Autowired 절(대상 빈의 생성자가 하나뿐이면 그 생성자에 @Autowired를 붙이지 않아도 된다는 것), Classpath Scanning and Managed Components 절과 @Component, AnnotationConfigApplicationContext의 API 문서(@Component가 붙은 클래스가 자동 탐지의 후보이고, 지정한 패키지를 스캔해 빈 정의를 등록한다는 것)입니다. 같은 실행에서 본 다음 동작은 문서가 정한 것이 아니라 이 버전에서 관찰한 것입니다. 클래스 파일을 훑는 순서에서 OrderService가 PayService보다 먼저 나왔고, 생성자 주입에서는 그 때문에 OrderService를 만들다가 PayService를 먼저 만들었다는 것, new로 직접 만들 때 스프링이 OrderService를 먼저 만들고 PayService 빈을 그다음에 만든다는 것(스캔 순서에 달린 것이어서 클래스 이름이 바뀌면 달라질 수 있음), 비어 있는 필드를 스프링이 오류로 알리지 않는다는 것입니다. 화면의 코드는 package와 import 줄을 줄였습니다. 이 실습은 생성자 주입만 다룹니다. 세터 주입, 필드 주입(@Autowired), 같은 타입의 빈이 여러 개일 때, 순환 의존, 빈의 범위와 생명주기, 인터페이스로 받는 설계는 다루지 않았고, &quot;세부 동작 실습: 빈 생성과 주입&quot;에서 다룹니다.</p>
+<p>스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않고, 화면의 main이 그대로 쓰는 AnnotationConfigApplicationContext(&quot;app&quot;)의 컴포넌트 스캔만 썼습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 PayService, OrderService, Main)를 javac(-parameters)로 컴파일하고 자식 자바 프로세스로 실행해 확인했습니다. 컴포넌트를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했습니다. 대조용 소스에만 Probe 클래스를 더하고 네 줄을 끼웠습니다. 두 클래스에는 객체가 만들어질 때 그 생성자를 부른 쪽(스프링인지 OrderService의 어느 생성자인지)을 스택에서 읽어 적는 인스턴스 초기화 블록 한 줄씩을, main에는 컨텍스트가 만들어진 뒤와 getBean 뒤에 측정하는 줄을 한 줄씩 더했고, 대조 스크립트는 화면의 코드와 견줄 때 이 줄들을 뺍니다. 대조한 것은 실행 결과(출력, 시작 실패한 예외의 종류와 원인, 멈춘 예외와 그 자리), OrderService가 쓰는 PayService, 만들어진 PayService 객체의 수입니다. &quot;OrderService가 쓰는 PayService&quot;는 짐작이 아니라 실측했습니다. 실행 중에 리플렉션으로 OrderService 객체의 payService 필드를 읽어, 컨텍스트에 있는 PayService 빈과 같은 객체인지(==)와 비어 있는지를 견주었습니다. 객체의 수도 생성자가 불린 횟수를 센 것입니다. 단계 문장이 기대는 사실도 따로 재서 확인했습니다. 컴포넌트 스캔이 찾은 클래스, 객체가 만들어진 순서(생성자 주입에서는 PayService가 먼저, 직접 만들 때는 OrderService가 만들어지는 중에 PayService가 만들어짐), 모든 객체가 컨텍스트를 만드는 줄에서 만들어지고 getBean 줄에서는 새로 만들어지지 않는다는 것, 스프링이 기록한 OrderService의 의존 대상(생성자로 받을 때만 payService), PayService 빈이 없을 때 OrderService가 만들어지지 않고 main이 첫 줄에서 멈춘다는 것, 비어 있는 필드를 쓰다 멈추는 자리가 OrderService의 order() 메서드라는 것, 우리 코드에 new OrderService(...)라는 줄이 없다는 것입니다. 시작에 실패한 조합의 실제 예외는 UnsatisfiedDependencyException이고 원인은 NoSuchBeanDefinitionException(PayService 타입의 빈이 없음)이며, 원문은 Probe 출력에 남겼습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 Dependency Injection 절(의존성 주입이 객체가 의존하는 다른 객체를 생성자 인자 등으로만 정하고 컨테이너가 빈을 만들 때 그것을 넣어 주는 과정이라는 것, 생성자 기반 주입이 컨테이너가 각각 의존성을 뜻하는 인자를 가진 생성자를 부르는 것이라는 것), Using @Autowired 절(대상 빈의 생성자가 하나뿐이면 그 생성자에 @Autowired를 붙이지 않아도 된다는 것), Classpath Scanning and Managed Components 절과 @Component, AnnotationConfigApplicationContext의 API 문서(@Component가 붙은 클래스가 자동 탐지의 후보이고, 지정한 패키지를 스캔해 빈 정의를 등록한다는 것)입니다. 같은 실행에서 본 다음 동작은 문서가 정한 것이 아니라 이 버전에서 관찰한 것입니다. 클래스 파일을 훑는 순서에서 OrderService가 PayService보다 먼저 나왔고, 생성자 주입에서는 그 때문에 OrderService를 만들다가 PayService를 먼저 만들었다는 것, new로 직접 만들 때 스프링이 OrderService를 먼저 만들고 PayService 빈을 그다음에 만든다는 것(스캔 순서에 달린 것이어서 클래스 이름이 바뀌면 달라질 수 있음), 비어 있는 필드를 스프링이 오류로 알리지 않는다는 것입니다. 화면의 코드는 파일 세 개를 &quot;// 파일:&quot; 줄로 나눠 이어 보인 것이며, 파일마다 package와 import 줄까지 그대로 컴파일됩니다. 이 실습은 생성자 주입만 다룹니다. 세터 주입, 필드 주입(@Autowired), 같은 타입의 빈이 여러 개일 때, 순환 의존, 빈의 범위와 생명주기, 인터페이스로 받는 설계는 다루지 않았고, &quot;세부 동작 실습: 빈 생성과 주입&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/bean_basic/">빈</a> · 다음 실습: <a href="../../lab/aop_basic/">AOP와 프록시</a></p>
   </div>
 
@@ -186,6 +202,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

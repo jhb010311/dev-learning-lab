@@ -31,7 +31,7 @@ public class RepoBasicProbe {
     // 화면의 코드(실습의 code 함수) 앞쪽: 리포지토리 인터페이스
     static String repoSource(boolean ext, String method) {
         List<String> l = new ArrayList<>();
-        if (ext) l.add("// 자격: 스프링이 구현을 대신 만들어 준다 (구현 클래스는 쓰지 않는다)");
+        if (ext) l.add("// 선언만 한다. 구현 클래스는 쓰지 않고, 스프링이 구현 객체를 만들어 준다");
         l.add("public interface MemberRepository" + (ext ? " extends JpaRepository<Member, Long>" : "") + " {");
         if (method.equals("name")) {
             l.add("    // 이름의 규칙(findBy + 필드 이름)을 보고 스프링이 쿼리를 만든다");
@@ -48,6 +48,7 @@ public class RepoBasicProbe {
     static List<String> usage(String method) {
         List<String> l = new ArrayList<>();
         l.add("// 쓰는 쪽");
+        l.add("// main 메서드 안의 줄만 남겼다(스프링을 시작하고 memberRepository를 받는 줄은 줄임).");
         l.add("memberRepository.save(new Member(1L, \"김철수\"));");
         if (method.equals("name")) { l.add("List<Member> found = memberRepository.findByName(\"김철수\");"); l.add("System.out.println(found.size());"); }
         else if (method.equals("nick")) { l.add("List<Member> found = memberRepository.findByNickname(\"철수\");"); l.add("System.out.println(found.size());"); }

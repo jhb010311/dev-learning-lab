@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,19 +71,23 @@
 </ul>
 <h2>Code</h2>
 <pre>-- product table: (1, 'keyboard', stock 10)
--- The stock column has a CHECK (stock &gt;= 0) constraint
+-- The stock column has a CHECK constraint chk_stock (stock &gt;= 0)
 
 CREATE VIEW v_stock AS            -- View: stores only the SELECT statement
   SELECT name, stock FROM product;
 CREATE TABLE stock_copy AS        -- Copy: stores the current result as rows
   SELECT name, stock FROM product;
 
+-- When running in the mysql client: change the end-of-statement mark to //
+-- so that a ; inside the body does not end the statement, then change it back to ;
+DELIMITER //
 CREATE TRIGGER trg_order_stock AFTER INSERT ON orders FOR EACH ROW
 BEGIN
   UPDATE product SET stock = stock - NEW.qty WHERE id = NEW.product_id;
   INSERT INTO stock_log (product_id, change_qty, memo)
     VALUES (NEW.product_id, -NEW.qty, 'trigger');
-END;
+END //
+DELIMITER ;
 
 -- The application runs only this one statement
 INSERT INTO orders (product_id, qty) VALUES (1, 3);
@@ -91,7 +95,7 @@ INSERT INTO orders (product_id, qty) VALUES (1, 3);
 SELECT stock FROM v_stock;        -- Query through the view
 SELECT stock FROM stock_copy;     -- Query the copy</pre>
 <h2>Assumptions of this model</h2>
-<p>For all 12 combinations, the same tables, view, procedure, and trigger as the ones on the screen were created on MySQL 8.4 (InnoDB, autocommit on) on the PC used to write this lab, and the order statement was run. The error or success, the number of rows in each table, the stock, and the values from the view and the copy were checked against the screen. That the view stores no data was checked in information_schema, where v_stock shows up as a VIEW with no storage engine and stock_copy shows up as an InnoDB table. That the stock returns when the statements are grouped in a transaction and rolled back was also checked by running it once on the same database. That the original statement is rolled back together with a failed trigger is the behavior on an engine that supports transactions, such as InnoDB. How much remains after an error inside a procedure depends on the autocommit setting, START TRANSACTION inside the procedure, and handlers (DECLARE ... HANDLER), and here the simplest procedure without any of these was used. The error when the stock is short was produced by a CHECK constraint (which MySQL actually enforces from 8.0.16).</p>
+<p>For all 12 combinations, the same tables, view, procedure, and trigger as the ones on the screen were created on MySQL 8.4 (InnoDB, autocommit on), and the order statement was run. The error or success, the number of rows in each table, the stock, and the values from the view and the copy were checked against the screen. That the view stores no data was checked in information_schema, where v_stock shows up as a VIEW with no storage engine and stock_copy shows up as an InnoDB table. That the stock returns when the statements are grouped in a transaction and rolled back was also checked by running it once on the same database. That the original statement is rolled back together with a failed trigger is the behavior on an engine that supports transactions, such as InnoDB. How much remains after an error inside a procedure depends on the autocommit setting, START TRANSACTION inside the procedure, and handlers (DECLARE ... HANDLER), and here the simplest procedure without any of these was used. The error when the stock is short was produced by a CHECK constraint (which MySQL actually enforces from 8.0.16).</p>
 <p>Previous lab: <a href="../../lab/paging/">Offset and keyset pagination</a> · Next lab: <a href="../../lab/btree/">Binary search and B-trees</a></p>
   </div>
 
@@ -179,6 +183,6 @@ SELECT stock FROM stock_copy;     -- Query the copy</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spring Boot: What does Spring Boot do for you? · Dev Learning Lab</title>
-<meta name="description" content="A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App…">
+<meta name="description" content="A Spring Boot application is an ordinary Java class (named App in this example) that has a main method. It starts when the main method calls one line, Spr…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/boot_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Spring Boot: What does Spring Boot do for you? · Dev Learning Lab">
-<meta property="og:description" content="A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App…">
+<meta property="og:description" content="A Spring Boot application is an ordinary Java class (named App in this example) that has a main method. It starts when the main method calls one line, Spr…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Spring Boot</h1>
 <p><b>What does Spring Boot do for you?</b></p>
-<p>A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App.class, args). This one line starts Spring (it scans the classes and makes beans), starts a web server (Tomcat) inside the program, and gets ready to receive requests. We do not install Tomcat separately, and we do not write code that starts a server. @SpringBootApplication above App is a marker that tells Spring Boot to scan from the package of this class and configure what is needed automatically, and it decides what to configure by looking at the libraries in the project. If a web library is there, it starts Tomcat, and if not, it does not. In this lab, you remove the run line, @SpringBootApplication, and the web library one at a time and run the program with the java command, to see whether the program keeps running, whether Tomcat starts, and whether it answers a request from the browser.</p>
+<p>A Spring Boot application is an ordinary Java class (named App in this example) that has a main method. It starts when the main method calls one line, SpringApplication.run(App.class, args). This one line starts Spring (it scans the classes and makes beans), starts a web server (Tomcat) inside the program, and gets ready to receive requests. We do not install Tomcat separately, and we do not write code that starts a server. @SpringBootApplication above App is a marker that tells Spring Boot to scan from the package of this class and configure what is needed automatically, and it decides what to configure by looking at the libraries in the project. If a web library is there, it starts Tomcat, and if not, it does not. In this lab, you remove the run line, @SpringBootApplication, and the web library one at a time and run the program with the java command, to see whether the program keeps running, whether Tomcat starts, and whether it answers a request from the browser.</p>
 <p>Checked against real execution · Compiled the source for each of the 8 combinations on Spring Boot 4.1.1 and ran it as a child java process, observed the listening port and HTTP requests from outside, and checked against them (the classpath without the web library was decided from the dependencies in the poms)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -56,7 +56,7 @@
 <li>When you run the App class with the java command on the computer, Java calls the main method of the App class. The main method is where a Java program starts.</li>
 <li>The line SpringApplication.run(App.class, args) in the main method runs. This one line starts Spring Boot. App.class passes the class that is the starting point of the program, and args passes the arguments that main received as they are.</li>
 <li>Spring Boot looks at the libraries in the project. Spring MVC, which handles web requests, is there, so it decides that this is a web application and prepares a Spring that uses a web server.</li>
-<li>Spring starts. @SpringBootApplication is above App, so Spring scans classes from the package that holds the App class, finds HelloController, which has @RestController, and creates its object and keeps it. It also configures what is needed automatically to match the libraries. Because there is a web library, DispatcherServlet, which receives requests and distributes them to controllers, is also created at this time. The code we wrote has neither new HelloController() nor new DispatcherServlet().</li>
+<li>Spring starts. @SpringBootApplication is above App, so Spring scans classes from the package that holds the App class, finds HelloController (a controller class made up as an example), which has @RestController, and creates its object and keeps it. It also configures what is needed automatically to match the libraries. Because there is a web library, DispatcherServlet, which receives requests and distributes them to controllers, is also created at this time. The code we wrote has neither new HelloController() nor new DispatcherServlet().</li>
 <li>Spring Boot starts Tomcat (the web server) inside this java process and registers the DispatcherServlet it made with Tomcat. We did not install Tomcat, and the code we wrote has no line that starts a server. If you do not set it, the port on which Tomcat receives requests is 8080.</li>
 <li>The SpringApplication.run line ends, and the main method reaches its end too. But the java process does not end. Tomcat made threads (separate flows of execution) and they are alive, so Java does not end the program while they are alive, and Tomcat waits for requests on those threads.</li>
 <li>You type localhost:8080/hello in the address bar of the browser, and the browser sends a GET /hello request to the server.</li>
@@ -177,6 +177,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

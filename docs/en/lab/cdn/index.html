@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -72,7 +72,8 @@
 <pre># Response header that the origin adds when it serves app.css
 Cache-Control: public, s-maxage=300     # a shared cache (the edge) may use the copy as it is for 300 seconds
 
-// Edge: a server that keeps copies and answers on their behalf (a shortened version in Node.js)
+// Edge: a server that keeps copies and answers on their behalf (a shortened version in Node.js, not Java.
+//       fetchFromOrigin and age are helper functions made up for this example)
 const store = new Map();                              // address (path + query string) → stored copy
 http.createServer(async (req, res) =&gt; {
     if (req.method === 'PURGE') {                     // invalidation: deletes the copy of that address
@@ -185,6 +186,6 @@ http.createServer(async (req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

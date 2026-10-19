@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — Wrapped in a buffer and not closed. write was called 9 times, but the file has 0 bytes.</li>
+<li><b>Default settings</b> — Written through a buffer and not closed. write was called 9 times, but the file has 0 bytes.</li>
 <li><b>Closing with close</b> — The 9 bytes collected in the buffer are written out in one write and end up in the file.</li>
 <li><b>Writing with no buffer</b> — The 9 calls to write reach the underlying stream as 9 writes.</li>
 <li><b>With a 4-byte buffer</b> — The buffer is written out each time it fills up, and if the stream is not closed, the last 1 byte is left behind.</li>
@@ -56,7 +56,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>new FileOutputStream(&quot;out.txt&quot;): This opens the file for writing. A CountingOutputStream, which counts write calls, is wrapped around it. On top of that sits a BufferedOutputStream whose buffer is 8192 bytes, so out.write goes through the buffer before it reaches the underlying stream.</li>
+<li>new FileOutputStream(&quot;out.txt&quot;): This opens the file for writing. A CountingOutputStream (a class made for this example), which counts write calls, holds a reference to this file stream and passes each write on to it. A BufferedOutputStream whose buffer is 8192 bytes holds a reference to the CountingOutputStream, so out.write goes through the buffer before it reaches the underlying stream.</li>
 <li>The 3 bytes of &quot;가&quot; (EA B0 80), one at a time with out.write(b): All three writes only store the bytes in the buffer, and nothing reaches the underlying stream. The buffer has collected 3 bytes, and the file has 0 bytes.</li>
 <li>The 3 bytes of &quot;나&quot; (EB 82 98), one at a time with out.write(b): All three writes only store the bytes in the buffer, and nothing reaches the underlying stream. The buffer has collected 6 bytes, and the file has 0 bytes.</li>
 <li>The 3 bytes of &quot;다&quot; (EB 8B A4), one at a time with out.write(b): All three writes only store the bytes in the buffer, and nothing reaches the underlying stream. The buffer has collected 9 bytes, and the file has 0 bytes.</li>
@@ -69,7 +69,7 @@
 <li>BufferedOutputStream collects data in a buffer in memory and writes it out all at once. The data is written out only when the buffer becomes full or when flush or close is called. So if the stream is not closed, the data left in the buffer at the end is not written to the file.</li>
 </ul>
 <h2>Code</h2>
-<pre>class CountingOutputStream extends OutputStream {       // a stream that counts the write calls that reach it
+<pre>class CountingOutputStream extends OutputStream {       // a class made for this example. It counts the write calls that reach it
     private final OutputStream out;
     int calls = 0;
     boolean closed = false;
@@ -81,7 +81,7 @@
 
 byte[] data = &quot;가나다&quot;.getBytes(StandardCharsets.UTF_8);    // 9 bytes
 CountingOutputStream counting = new CountingOutputStream(new FileOutputStream(&quot;out.txt&quot;));
-OutputStream out = new BufferedOutputStream(counting);     // wrap it in a buffer
+OutputStream out = new BufferedOutputStream(counting);     // a stream that has a buffer
 for (byte b : data) out.write(b);                           // one byte at a time, 9 times
 
 System.out.println(counting.calls);                          // number of writes that reached the underlying stream
@@ -94,7 +94,7 @@ try (Reader in = new InputStreamReader(new FileInputStream(&quot;out.txt&quot;),
 }
 System.out.println(sb);</pre>
 <h2>Assumptions of this model</h2>
-<p>The results of the 48 combinations (the number of writes that reached the underlying stream and the number of bytes in each one, the file size, whether the stream was closed, and the characters read back) were checked against the results of running the code on JDK 21 on this PC. The following were also confirmed by separate runs on the same PC: a BufferedOutputStream created without a size writes its data out after it has collected 8192 bytes, the data left in the buffer is not written to the file even when the program ends normally without closing the stream, and the English letters abc stay the same even when each byte is converted to a character. 8192 is the value seen on this JDK and is not a figure that the Java documentation fixes. &quot;File&quot; in the diagram means the point up to which the program has handed the write over to the operating system. The operating system has buffers of its own, so the data may actually be recorded on the disk later than that, and this is not covered. In the result of reading byte by byte, a character that cannot be shown on the screen is displayed as □. The difference in speed with and without a buffer was not measured. Character streams on the writing side (Writer) and write(byte[]), which writes a large chunk at once, are not covered.</p>
+<p>The results of the 48 combinations (the number of writes that reached the underlying stream and the number of bytes in each one, the file size, whether the stream was closed, and the characters read back) were checked against the results of actually running the code on JDK 21. The following were also confirmed by separate runs on the same JDK: a BufferedOutputStream created without a size writes its data out after it has collected 8192 bytes, the data left in the buffer is not written to the file even when the program ends normally without closing the stream, and the English letters abc stay the same even when each byte is converted to a character. 8192 is the value seen on this JDK and is not a figure that the Java documentation fixes. &quot;File&quot; in the diagram means the point up to which the program has handed the write over to the operating system. The operating system has buffers of its own, so the data may actually be recorded on the disk later than that, and this is not covered. In the result of reading byte by byte, a character that cannot be shown on the screen is displayed as □. The difference in speed with and without a buffer was not measured. Character streams on the writing side (Writer) and write(byte[]), which writes a large chunk at once, are not covered.</p>
 <p>Previous lab: <a href="../../lab/classload/">Class loading and initialization</a> · Next lab: <a href="../../lab/serial/">Serialization</a></p>
   </div>
 
@@ -182,6 +182,6 @@ System.out.println(sb);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

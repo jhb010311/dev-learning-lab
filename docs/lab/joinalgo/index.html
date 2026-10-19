@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ SELECT m.name, o.amount
   FROM member m
   STRAIGHT_JOIN orders o ON o.member_id = m.id;   -- FROM에 쓴 순서대로 읽게 한다</pre>
 <h2>이 모형의 전제</h2>
-<p>화면에서 고를 수 있는 일곱 가지 조합 모두, 같은 테이블(member 1,000행, orders 10,000행)을 이 PC의 MySQL 8.4에 만들고 ANALYZE TABLE을 한 뒤 대조했습니다. 먼저 읽는 테이블과 나중 테이블의 type, key, Extra는 EXPLAIN으로, 조인 방식은 EXPLAIN FORMAT=TREE의 첫 줄로, 나중 테이블을 읽은 횟수와 한 번에 읽은 행 수는 실제로 실행하며 세어 주는 EXPLAIN ANALYZE의 loops와 rows로 확인했습니다. 해시 조인 설정이 숨겨지는 다섯 가지 경우에는 NO_BNL 힌트를 붙여도 계획이 바뀌지 않는 것도 확인했습니다. 옵티마이저에게 맡겼을 때의 순서는 비용 계산의 결과라서 데이터의 양과 분포에 따라 달라질 수 있습니다. &quot;읽은 행&quot;은 테이블이나 인덱스에서 꺼낸 행의 수이며, 인덱스를 타고 내려가는 비용, 해시 테이블을 만들고 찾는 비용, 걸린 시간은 넣지 않았습니다. 해시 조인은 MySQL 8.0.18에 들어왔고 8.0.20부터 인덱스 없는 조인에 쓰이던 블록 중첩 루프를 대신합니다. 해시 테이블이 메모리(join_buffer_size)에 다 들어가지 않으면 디스크를 함께 씁니다. 이 두 가지는 실행으로 확인한 것이 아니라 MySQL 문서의 해시 조인 최적화 설명을 따른 것입니다. 그림은 회원 3명, 주문 6건으로 줄인 것입니다.</p>
+<p>화면에서 고를 수 있는 일곱 가지 조합 모두, 같은 테이블(member 1,000행, orders 10,000행)을 MySQL 8.4에 만들고 ANALYZE TABLE을 한 뒤 대조했습니다. 먼저 읽는 테이블과 나중 테이블의 type, key, Extra는 EXPLAIN으로, 조인 방식은 EXPLAIN FORMAT=TREE의 첫 줄로, 나중 테이블을 읽은 횟수와 한 번에 읽은 행 수는 실제로 실행하며 세어 주는 EXPLAIN ANALYZE의 loops와 rows로 확인했습니다. 해시 조인 설정이 숨겨지는 다섯 가지 경우에는 NO_BNL 힌트를 붙여도 계획이 바뀌지 않는 것도 확인했습니다. 옵티마이저에게 맡겼을 때의 순서는 비용 계산의 결과라서 데이터의 양과 분포에 따라 달라질 수 있습니다. &quot;읽은 행&quot;은 테이블이나 인덱스에서 꺼낸 행의 수이며, 인덱스를 타고 내려가는 비용, 해시 테이블을 만들고 찾는 비용, 걸린 시간은 넣지 않았습니다. 해시 조인은 MySQL 8.0.18에 들어왔고 8.0.20부터 인덱스 없는 조인에 쓰이던 블록 중첩 루프를 대신합니다. 해시 테이블이 메모리(join_buffer_size)에 다 들어가지 않으면 디스크를 함께 씁니다. 이 두 가지는 실행으로 확인한 것이 아니라 MySQL 문서의 해시 조인 최적화 설명을 따른 것입니다. 그림은 회원 3명, 주문 6건으로 줄인 것입니다.</p>
 <p>앞 실습: <a href="../../lab/explainplan/">실행 계획 읽기</a> · 다음 실습: <a href="../../lab/tx/">트랜잭션 기본</a></p>
   </div>
 
@@ -167,6 +167,6 @@ SELECT m.name, o.amount
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

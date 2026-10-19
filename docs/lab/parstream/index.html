@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,7 @@ orders.parallelStream()
 // 요청 B: 0.1초짜리 작업 8개
 items.parallelStream().forEach(this::resize);</pre>
 <h2>이 모형의 전제</h2>
-<p>B의 소요 시간 세 가지(217ms, 862ms, 218ms)는 이 PC의 JDK 21에서 공용 풀의 일꾼 수를 3개로 맞추고 실제로 실행해 잰 값입니다. 0.1초짜리 작업과 2초짜리 호출은 Thread.sleep으로 대신했습니다. 공용 풀의 기본 크기가 &quot;코어 수 - 1&quot;이라는 점은 이 PC의 JDK 21에서 확인했습니다(프로세서 12개에서 공용 풀의 병렬 수준이 11). 병렬 스트림이 공용 풀을 쓴다는 점은 위의 측정에서 드러납니다(남의 병렬 스트림이 공용 풀을 차지하자 B가 느려졌습니다).</p>
+<p>B의 소요 시간 세 가지(217ms, 862ms, 218ms)는 검증 환경의 JDK 21에서 공용 풀의 일꾼 수를 3개로 맞추고 실제로 실행해 잰 값입니다. 0.1초짜리 작업과 2초짜리 호출은 Thread.sleep으로 대신했습니다. 공용 풀의 기본 크기가 &quot;코어 수 - 1&quot;이라는 점은 검증 환경의 JDK 21에서 확인했습니다(프로세서 12개에서 공용 풀의 병렬 수준이 11). 병렬 스트림이 공용 풀을 쓴다는 점은 위의 측정에서 드러납니다(남의 병렬 스트림이 공용 풀을 차지하자 B가 느려졌습니다).</p>
 <p>앞 실습: <a href="../../lab/collect/">스트림으로 모으기</a> · 다음 실습: <a href="../../lab/process/">프로세스와 스레드</a></p>
   </div>
 
@@ -159,6 +159,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

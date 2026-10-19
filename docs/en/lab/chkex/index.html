@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ public class Main {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>All 24 combinations were actually compiled on JDK 21 on this PC from the same source as the code on the screen, and those that compiled were run, and the compilation result, the line with the error, the compiler message, the output, the exit status, and the first line of standard error were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only). It was confirmed in the same way that throwing an Error with no handling also compiles and that throwing Exception itself is treated as a checked exception. The model covers only the case with two methods (read and main). The rule is the same when the calls go deeper: every method that a checked exception passes through must catch it or declare it. An uncaught exception ending the program applies to the case where main is the only thread.</p>
+<p>All 24 combinations were actually compiled on JDK 21 in our test environment from the same source as the code on the screen, and those that compiled were run, and the compilation result, the line with the error, the compiler message, the output, the exit status, and the first line of standard error were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only). It was confirmed in the same way that throwing an Error with no handling also compiles and that throwing Exception itself is treated as a checked exception. The model covers only the case with two methods (read and main). The rule is the same when the calls go deeper: every method that a checked exception passes through must catch it or declare it. An uncaught exception ending the program applies to the case where main is the only thread.</p>
 <p>Previous lab: <a href="../../lab/exflow/">Exceptions and finally</a> · Next lab: <a href="../../lab/generic/">Generics</a></p>
   </div>
 
@@ -168,6 +168,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

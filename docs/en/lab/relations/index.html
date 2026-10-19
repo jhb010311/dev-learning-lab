@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,7 +69,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>In a unidirectional one-to-many, the foreign key is in the member table too. This is because in a table, the foreign key always sits on the &quot;many&quot; side. But what manages it is the list in the entity on the other side, Team. When Member is INSERTed, it cannot know the team, so the foreign key is filled in later with an UPDATE. One more UPDATE was sent for each member (2 in all).</li>
+<li>In a unidirectional one-to-many, the foreign key is in the member table too. This is because when a one-to-many relationship is expressed with a single foreign key column, that column can only sit in the table on the &quot;many&quot; side. One row of a team has no place to write the ids of several members. But what manages it is the list in the entity on the other side, Team. When Member is INSERTed, it cannot know the team, so the foreign key is filled in later with an UPDATE. One more UPDATE was sent for each member (2 in all).</li>
 <li>The table shape is exactly the same as in a many-to-one, but more SQL is sent. So a common approach is to use many-to-one first, and if the team needs a list of its members, to make the relationship bidirectional by adding mappedBy.</li>
 </ul>
 <h2>Code</h2>
@@ -190,6 +190,6 @@ for (int i = 1; i &lt;= 2; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

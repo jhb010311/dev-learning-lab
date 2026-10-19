@@ -1,7 +1,7 @@
 Lab.register({
   id: 'test_basic', nav: 'Test code', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['testing', 'cicd'],
   title: 'What is test code, and who decides whether a test passes or fails?',
-  intro: 'Test code is code that writes down "if you give this method this input, it must give this output." The CalcTest class in this lab is an example. Its adds() method calls add(2, 3) of the Calc class, and assertEquals(5, ...) compares the value that add returned with the expected value, 5. If the two values differ, an error occurs on that line. The @Test above adds() is a marker that says "this method is a test." It is not we who run this code, but JUnit, a testing tool. JUnit finds the methods that have @Test and calls them. If a method ends without an error, JUnit counts it as passed. If it ends with the error that assertEquals threw, JUnit counts it as failed. In this lab you break add, write the expected value wrongly, or remove @Test, and run the same code with real JUnit each time, and you see how the number of tests found, the verdict of pass or fail, and the failure message change. (The code on the screen leaves out the import lines.)',
+  intro: 'Test code is code that writes down "if you give this method this input, it must give this output." The CalcTest class, written for this lab as an example, is one. Its adds() method calls add(2, 3) of the Calc class, which is also an example written for this lab, and assertEquals(5, ...) compares the value that add returned with the expected value, 5. If the two values differ, an error occurs on that line. The @Test above adds() is a marker that says "this method is a test." It is not we who run this code, but JUnit, a testing tool. JUnit finds the methods that have @Test and calls them. If a method ends without an error, JUnit counts it as passed. If it ends with the error that assertEquals threw, JUnit counts it as failed. In this lab you break add, write the expected value wrongly, or remove @Test, and run the same code with real JUnit each time, and you see how the number of tests found, the verdict of pass or fail, and the failure message change. (The code on the screen leaves out the import lines.)',
   terms: ['Test code', 'JUnit', '@Test', 'assertEquals'],
   controls: [
     { id: 'impl', label: 'Expression that the add method returns', type: 'select', value: 'plus', options: [['plus', 'return a + b;  (adds)'], ['minus', 'return a - b;  (subtracts by mistake)']] },
@@ -50,9 +50,8 @@ Lab.register({
         st.hot = 'ju'; st.phase = 'judge'; st.passed = 1; st.verdict = 'pass';
         push('JUnit sees that adds() ended without an error and counts it as passed. It was JUnit that judged the pass, not a person reading the output with their eyes.', 'good');
       } else {
-        st.msg = msg;
         push('assertEquals(' + E + ', ...) compares the two values. The expected value is ' + E + ' and the actual value is ' + A + '. The two values differ, so assertEquals throws an error called AssertionFailedError, and adds() ends with an error on this line.', 'bad');
-        st.hot = 'ju'; st.phase = 'judge'; st.failed = 1; st.verdict = 'fail';
+        st.hot = 'ju'; st.phase = 'judge'; st.failed = 1; st.verdict = 'fail'; st.msg = msg;
         push('JUnit sees that adds() ended with an error, counts it as failed, and records the message of the error, "' + msg + '". It was JUnit that judged the failure, not a person reading the output.', 'bad');
       }
       st.phase = 'end'; st.verdict = eq ? 'pass' : 'fail';

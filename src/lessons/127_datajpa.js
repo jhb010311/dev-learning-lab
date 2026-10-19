@@ -225,7 +225,7 @@ Lab.register({
           st.steps[1] = { t: st.steps[1].t, r: '없음 (두 번 조회)', cls: 'hot' };
           st.steps[2] = { t: '쓰기 SQL', r: '없음 (예외)', cls: 'bad' };
           st.out = { t: 'ObjectOptimisticLockingFailureException', s: 'INSERT도 UPDATE도 하지 않음', cls: 'bad' };
-          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 이 PC의 Hibernate 7.4.5에서는 같은 SELECT가 한 번 더 나간 뒤, Hibernate가 던진 낙관적 락 예외를 스프링이 바꿔 던진 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
+          push('예외: Member는 id를 DB가 정해 주는 엔티티입니다. 그런 엔티티에 id가 들어 있다면 전에 저장된 적이 있는 객체라는 뜻인데, DB에는 그 행이 없습니다. Hibernate는 "있던 행을 그사이 누군가 지웠다"고 보고 예외를 던집니다. 검증 실행(Hibernate 7.4.5)에서는 같은 SELECT가 한 번 더 나간 뒤, Hibernate가 던진 낙관적 락 예외를 스프링이 바꿔 던진 ObjectOptimisticLockingFailureException이 났습니다. 새 행으로 INSERT해 주지 않습니다.', 'bad');
           row = ['성공', '2번', 'SELECT → SELECT', '예외 (ObjectOptimisticLockingFailureException) · DB 변화 없음'];
           sum.push('id를 DB가 정하는 엔티티에 없는 id를 넣어 save하면 저장되지 않고 예외가 납니다. 새로 저장할 객체에는 id를 넣지 않습니다.');
           sum.push('이 동작은 Hibernate 버전에 따라 다릅니다. Hibernate 6.6의 마이그레이션 안내에는, 그 전 버전에서는 이런 경우 예외 없이 INSERT가 나갔다고 적혀 있습니다(예전 버전은 실행해 보지 않았습니다).');
@@ -237,7 +237,7 @@ Lab.register({
           push('결과: 쿠폰은 2장이 됐습니다. save가 돌려준 객체는 넘긴 객체가 아니라 merge가 만든 관리되는 객체입니다.', 'good');
           row = ['성공', '2번', 'SELECT → INSERT', '쿠폰 2장이 됨 · 돌려준 객체는 넘긴 객체와 다름'];
           sum.push('id를 코드에서 직접 정하는 엔티티는 처음 저장할 때도 id가 들어 있습니다. save는 "새 엔티티가 아니다"라고 보고 SELECT를 먼저 보냅니다. 많이 저장하면 그 수만큼 SELECT가 더 나갑니다.');
-          sum.push('이럴 때는 엔티티가 Persistable 인터페이스를 구현해 새 엔티티인지를 직접 알려 주거나, @Version 필드를 둡니다. Persistable로 새 엔티티라고 알려 주면 SELECT 없이 INSERT 한 번만 나가는 것을 이 PC에서 실행해 확인했습니다.');
+          sum.push('이럴 때는 엔티티가 Persistable 인터페이스를 구현해 새 엔티티인지를 직접 알려 주거나, @Version 필드를 둡니다. Persistable로 새 엔티티라고 알려 주면 SELECT 없이 INSERT 한 번만 나가는 것을 실행해 확인했습니다.');
         }
       }
     }
@@ -264,5 +264,5 @@ Lab.register({
     if (fresh.length) P.arrow('sql', 'impl:r', 'db:l', { cls: 'hot', label: fresh.map(function (q) { return q.sql.split(' ')[0].toUpperCase(); }).join(', ') });
     P.note(c.sc === 'name' ? '왼쪽 상자는 메서드 이름을 잘라 읽은 조각이고, 오른쪽 글자는 그 조각이 쿼리에서 맡는 부분입니다. select 뒤의 …은 회원의 모든 컬럼을 뜻합니다. 초록색 행은 조건에 맞아 조회된 회원입니다.' : c.sc === 'page' ? '초록색 행이 이번 페이지로 돌려주는 회원입니다. 파란색 행은 Slice가 다음이 있는지 보려고 한 건 더 읽은 것으로, 돌려주지는 않습니다.' : '가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 뜻입니다. 노란색 행은 새로 생기거나 값이 바뀐 행, 파란색 행은 merge가 조회한 행입니다.');
   },
-  assume: '모든 장면(메서드 이름 여섯 가지, 페이지 요청 여덟 가지, save 다섯 가지)을 이 PC에서 스프링 부트 4.1.1의 자동 설정으로 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2 데이터베이스를 실제로 띄워 실행하고, 기동 성공 여부와 예외 이름과 메시지, DB로 나간 SQL의 수와 종류, where와 order by의 모양, 건너뛴 건수와 요청한 건수, 돌려받은 결과를 화면과 대조했습니다. 리포지토리의 구현이 프록시이고 그 뒤에 SimpleJpaRepository가 있다는 것도 실행으로 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 실제 SQL에는 테이블 별칭이 붙고 like 조건에는 escape 절이 덧붙으며, 문장의 모양은 Hibernate 버전과 DB에 따라 다릅니다. 잘못된 메서드 이름 두 가지는 그 메서드만 가진 리포지토리를 따로 띄워 확인했습니다. 결과 요약에서 말한 Or 같은 다른 키워드는 스프링 데이터 JPA 문서의 키워드 표를 따른 것이고 실행해 보지는 않았습니다. save의 "새 엔티티인가" 판단은 스프링 데이터 JPA 문서의 Entity State-detection Strategies 절을 따랐고, @Version 필드가 있는 엔티티는 id가 아니라 그 필드가 null인지로 판단합니다. id 999의 예에서 SELECT가 두 번 나가고 예외가 나는 것은 Hibernate 7.4.5에서 본 결과이며 버전에 따라 다릅니다. id를 직접 정하는 엔티티가 Persistable을 구현해 새 엔티티라고 알려 주면 SELECT 없이 INSERT 한 번만 나가는 것도 실행으로 확인했습니다(@Version 필드를 두는 방법은 실행해 보지 않았습니다). save는 바깥에 트랜잭션이 없는 상태에서 불렀으므로 save 자신의 트랜잭션이 끝날 때 UPDATE와 INSERT가 나갑니다. 바깥에 @Transactional이 있으면 그 트랜잭션이 커밋될 때 나갑니다.',
+  assume: '모든 장면(메서드 이름 여섯 가지, 페이지 요청 여덟 가지, save 다섯 가지)을 스프링 부트 4.1.1의 자동 설정으로 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2 데이터베이스를 실제로 띄워 실행하고, 기동 성공 여부와 예외 이름과 메시지, DB로 나간 SQL의 수와 종류, where와 order by의 모양, 건너뛴 건수와 요청한 건수, 돌려받은 결과를 화면과 대조했습니다. 리포지토리의 구현이 프록시이고 그 뒤에 SimpleJpaRepository가 있다는 것도 실행으로 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 실제 SQL에는 테이블 별칭이 붙고 like 조건에는 escape 절이 덧붙으며, 문장의 모양은 Hibernate 버전과 DB에 따라 다릅니다. 잘못된 메서드 이름 두 가지는 그 메서드만 가진 리포지토리를 따로 띄워 확인했습니다. 결과 요약에서 말한 Or 같은 다른 키워드는 스프링 데이터 JPA 문서의 키워드 표를 따른 것이고 실행해 보지는 않았습니다. save의 "새 엔티티인가" 판단은 스프링 데이터 JPA 문서의 Entity State-detection Strategies 절을 따랐고, @Version 필드가 있는 엔티티는 id가 아니라 그 필드가 null인지로 판단합니다. id 999의 예에서 SELECT가 두 번 나가고 예외가 나는 것은 Hibernate 7.4.5에서 본 결과이며 버전에 따라 다릅니다. id를 직접 정하는 엔티티가 Persistable을 구현해 새 엔티티라고 알려 주면 SELECT 없이 INSERT 한 번만 나가는 것도 실행으로 확인했습니다(@Version 필드를 두는 방법은 실행해 보지 않았습니다). save는 바깥에 트랜잭션이 없는 상태에서 불렀으므로 save 자신의 트랜잭션이 끝날 때 UPDATE와 INSERT가 나갑니다. 바깥에 @Transactional이 있으면 그 트랜잭션이 커밋될 때 나갑니다.',
 });

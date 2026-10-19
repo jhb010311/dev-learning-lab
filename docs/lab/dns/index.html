@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -47,7 +47,7 @@
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
 <li><b>처음 설정으로</b> — 처음 묻는 이름. 리졸버가 루트 서버부터 차례로 물어 답을 찾습니다.</li>
-<li><b>방금 물었던 이름</b> — 이 PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.</li>
+<li><b>방금 물었던 이름</b> — PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.</li>
 <li><b>레코드를 바꿨는데 예전 주소로 간다</b> — 리졸버의 캐시에 TTL이 남아 있어 예전 값을 받습니다.</li>
 <li><b>TTL이 지난 뒤</b> — 다시 묻고 새 값을 받습니다. 루트 서버부터 묻지는 않습니다.</li>
 <li><b>CNAME을 거치는 이름</b> — 별명의 진짜 이름을 알아낸 뒤 그 이름으로 한 번 더 찾습니다.</li>
@@ -55,17 +55,17 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>브라우저가 shop.example에 접속하려면 IP 주소가 필요합니다. 찾을 것은 shop.example의 A 레코드(IPv4 주소)입니다. 먼저 이 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. 처음 묻는 이름이라 없습니다.</li>
-<li>이 PC가 재귀 리졸버에게 묻습니다. 재귀 리졸버는 답을 대신 찾아다 주는 DNS 서버로, 보통 통신사나 회사가 운영하며 그 주소는 네트워크 설정에 들어 있습니다. 리졸버도 먼저 자기 캐시를 봅니다. 없습니다. 리졸버가 처음부터 알고 있는 것은 루트 서버의 주소뿐입니다.</li>
+<li>브라우저가 shop.example에 접속하려면 IP 주소가 필요합니다. 찾을 것은 shop.example의 A 레코드(IPv4 주소)입니다. 먼저 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. 처음 묻는 이름이라 없습니다.</li>
+<li>PC가 재귀 리졸버에게 묻습니다. 재귀 리졸버는 답을 대신 찾아다 주는 DNS 서버로, 보통 통신사나 회사가 운영하며 그 주소는 네트워크 설정에 들어 있습니다. 리졸버도 먼저 자기 캐시를 봅니다. 없습니다. 리졸버가 처음부터 알고 있는 것은 루트 서버의 주소뿐입니다.</li>
 <li>리졸버 → 루트 서버: 리졸버가 같은 질문을 루트 서버에 보냅니다. 루트 서버는 답을 가지고 있지 않습니다. 대신 이름의 맨 끝(.example)을 보고, .example로 끝나는 이름을 맡은 서버(TLD 서버)의 주소를 알려 줍니다. 이렇게 아래 서버에 맡겨 둔 것을 위임이라고 합니다.</li>
 <li>리졸버 → .example 서버: 같은 질문을 다시 보냅니다. 이 서버도 답은 가지고 있지 않고, shop.example을 맡은 네임 서버의 주소를 알려 줍니다.</li>
 <li>리졸버 → shop.example의 권한 있는 네임 서버: 이 도메인의 레코드 원본을 가진 서버입니다. 답을 줍니다: shop.example A 203.0.113.10, TTL 300초.</li>
-<li>리졸버가 받은 레코드를 자기 캐시에 넣고 이 PC에 답을 돌려줍니다. 앞으로 300초 동안은 누가 같은 것을 물어도 캐시에서 답합니다. 오는 길에 알게 된 위임 정보도 함께 기억해 둡니다. 이 PC도 받은 답을 TTL 동안 캐시에 넣어 둡니다.</li>
+<li>리졸버가 받은 레코드를 자기 캐시에 넣고 PC에 답을 돌려줍니다. 앞으로 300초 동안은 누가 같은 것을 물어도 캐시에서 답합니다. 오는 길에 알게 된 위임 정보도 함께 기억해 둡니다. PC도 받은 답을 TTL 동안 캐시에 넣어 둡니다.</li>
 <li>브라우저는 받은 주소(203.0.113.10)로 접속합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답의 원본은 그 도메인의 권한 있는 네임 서버가 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.</li>
+<li>어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답의 원본은 그 도메인의 권한 있는 네임 서버가 가지고 있습니다. PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.</li>
 <li>A 레코드는 이름에 IPv4 주소를 연결합니다. 가장 기본이 되는 레코드입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -170,6 +170,6 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

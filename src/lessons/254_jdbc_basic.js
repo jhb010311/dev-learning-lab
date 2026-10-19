@@ -37,16 +37,16 @@ Lab.register({
 
     // 1. 연결
     st.cn = 'open'; st.se = true; st.hot = 'cn'; st.log.push(['DriverManager.getConnection', { v: '연결을 맺음', cls: 'good' }]);
-    push('DriverManager.getConnection("jdbc:h2:mem:shop"): 자바 프로그램이 DB에 연결을 맺습니다. 주소의 jdbc는 자바가 DB에 접속하는 약속(JDBC)이라는 뜻이고, h2는 DB의 종류, mem:shop은 메모리 안에 있는 shop이라는 DB입니다. 연결이 맺어지면 DB 쪽에 이 연결을 맡는 자리(세션)가 하나 생기고, 자바에는 그 연결을 가리키는 conn 객체가 생깁니다. member 테이블에는 (1, kim) 한 행이 들어 있습니다. 아직 SQL은 한 줄도 보내지 않았습니다.', '');
+    push('DriverManager.getConnection("jdbc:h2:mem:shop"): 자바 프로그램이 DB에 연결을 맺습니다. 주소의 jdbc는 자바가 DB에 접속하는 약속(JDBC)이라는 뜻이고, h2는 DB의 종류, mem:shop은 메모리 안에 있는 shop이라는 DB입니다. 연결이 맺어지면 DB 쪽에 이 연결을 맡는 자리(세션)가 하나 생기고, 자바에는 그 연결을 나타내는 Connection 객체가 생기고, 변수 conn이 그 객체를 가리킵니다. member 테이블에는 (1, kim) 한 행이 들어 있습니다. 아직 SQL은 한 줄도 보내지 않았습니다.', '');
 
     // 2. Statement
     st.sm = true; st.hot = 'sm'; st.log.push(['conn.createStatement', { v: 'SQL을 보낼 도구를 만듦', cls: '' }]);
-    push('conn.createStatement(): conn 연결로 SQL을 보내는 도구(Statement)를 만들어 st에 담습니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.', '');
+    push('conn.createStatement(): conn이 가리키는 연결로 SQL을 보내는 도구(Statement 객체)를 만들고, 변수 st가 그 객체를 가리키게 합니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.', '');
 
     // 3. 닫기
     if (closed) {
       st.cn = 'closed'; st.se = false; st.hot = 'cn'; st.log.push(['conn.close', { v: '연결을 닫음', cls: 'bad' }]);
-      push('conn.close(): 연결을 끊습니다. DB 쪽에 있던 이 연결의 자리가 사라지고, conn은 닫힌 연결이 됩니다. st는 방금 닫은 conn으로 만든 도구입니다.', 'bad');
+      push('conn.close(): 연결을 끊습니다. DB 쪽에 있던 이 연결의 자리가 사라지고, conn이 가리키는 Connection 객체는 닫힌 연결이 됩니다. st가 가리키는 Statement는 방금 닫은 그 연결로 만든 도구입니다.', 'bad');
     }
 
     // 4. 보내기
@@ -54,7 +54,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: '보내지 못함', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC 드라이버가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
+      push('st.executeQuery("' + S + '"): SQL을 보내려 하지만 conn이 가리키는 연결이 이미 닫혀 있습니다. 이 줄은 DB에 닿기 전에, JDBC 드라이버가 닫힌 연결이라는 것을 알아채고 SQLException을 던집니다. DB는 이 SQL을 받은 적이 없습니다. ' +
         (typo ? '테이블 이름이 틀렸다는 것도 DB가 SQL을 읽어 봐야 알 수 있어서, 닫힌 연결 오류가 먼저 나오고 틀린 이름은 알려지지 않습니다. ' : none ? 'WHERE id = 99라는 조건도 DB가 읽어 본 적이 없습니다. ' : '') +
         '예외를 처리하는 코드가 없어서 프로그램은 이 줄에서 멈추고, 아래 줄들은 실행되지 않습니다.', 'bad');
     } else if (typo) {
@@ -65,7 +65,7 @@ Lab.register({
       st.sq = 'go'; st.ans = none ? 'rows0' : 'rows1'; st.rs = 'before'; st.n = none ? 0 : 1; recv = 1; st.recv = 1;
       st.log.push(['st.executeQuery', { v: 'DB가 실행해 결과를 돌려줌 (행 ' + st.n + '개)', cls: 'good' }]);
       push('st.executeQuery("' + S + '"): st가 SQL 글자를 DB에 보냅니다. DB는 받은 글자를 읽어 member 테이블에서 ' + (none ? 'id가 99인 행을 찾지만 그런 행은 없습니다. 실행은 성공했고 결과는 행이 0개인 표입니다. 이것은 오류가 아닙니다. ' : 'id가 1인 행을 찾아 결과를 만듭니다. 결과는 행이 1개인 표입니다. ') +
-        '자바는 이 결과를 ResultSet 객체 rs로 받습니다. ResultSet은 처음에 첫 행의 앞에 서 있어서 아직 어느 행도 읽지 않았습니다.', 'good');
+        '자바는 이 결과를 ResultSet 객체로 받고, 변수 rs가 그 객체를 가리킵니다. ResultSet은 처음에 첫 행의 앞에 서 있어서 아직 어느 행도 읽지 않았습니다.', 'good');
     }
     if (!closed && !typo) {
       // 5. next

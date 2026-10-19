@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -62,7 +62,7 @@
 <h3>Result of this run</h3>
 <ul>
 <li>For tasks that mostly compute, having more threads than cores does not increase throughput. The threads share the cores, so each task just finishes later. Each thread also uses memory of its own (its stack), so a number of threads close to the number of cores is appropriate.</li>
-<li>A web server has far more threads for handling requests than it has cores (200 by default in Tomcat) because most of the time spent handling a request goes to waiting for a database or an external response.</li>
+<li>A web server has far more threads for handling requests than it has cores (with the default settings, the embedded Tomcat in Spring Boot allows up to 200, set by server.tomcat.threads.max) because most of the time spent handling a request goes to waiting for a database or an external response.</li>
 </ul>
 <h2>Code</h2>
 <pre>int cores = Runtime.getRuntime().availableProcessors();   // 4
@@ -70,11 +70,12 @@
 // mostly computation: as many threads as cores is enough
 ExecutorService pool = Executors.newFixedThreadPool(16);
 
-for (Task task : tasks) {
-    pool.submit(() -&gt; resize(image));
-}</pre>
+for (Photo photo : photos) {
+    pool.submit(() -&gt; resize(photo));
+}
+// Photo, photos, and resize() are names made up for this example (only the needed part is shown)</pre>
 <h2>Assumptions of this model</h2>
-<p>This model assumes that one task uses the CPU for 0.1s. The trend is the same as in results actually measured on JDK 21 on this PC (12 logical cores). For tasks that mostly compute, throughput was 102 tasks per second with 1 thread, 562 with 6, 768 with 12, 820 with 24, and 826 with 48, so it stopped growing near the number of cores. For tasks that mostly wait (1ms of computation + 9ms of waiting), it was 1,104 with 12 threads, 4,417 with 48, 7,871 with 120, 8,202 with 240, and 8,144 with 480, so it grew up to about 10 times the number of cores and then stopped. Even with far more threads than cores, throughput did not drop noticeably. The cost of the switching itself was too small to show up in this measurement, which is why the model does not include a drop in throughput either. The measured throughput is not exactly proportional to the number of cores because the 12 logical cores share 6 physical cores. The formula for the suitable number of threads is a widely cited guideline in the field of Java concurrency.</p>
+<p>This model assumes that one task uses the CPU for 0.1s. The trend is the same as in results actually measured on JDK 21 in our test environment (12 logical cores). For tasks that mostly compute, throughput was 102 tasks per second with 1 thread, 562 with 6, 768 with 12, 820 with 24, and 826 with 48, so it stopped growing near the number of cores. For tasks that mostly wait (1ms of computation + 9ms of waiting), it was 1,104 with 12 threads, 4,417 with 48, 7,871 with 120, 8,202 with 240, and 8,144 with 480, so it grew up to about 10 times the number of cores and then stopped. Even with far more threads than cores, throughput did not drop noticeably. The cost of the switching itself was too small to show up in this measurement, which is why the model does not include a drop in throughput either. The measured throughput is not exactly proportional to the number of cores because the 12 logical cores share 6 physical cores. The formula for the suitable number of threads is a widely cited guideline in the field of Java concurrency.</p>
 <p>Previous lab: <a href="../../lab/threadpool/">Thread pool</a> · Next lab: <a href="../../lab/parallel/">Sequential and parallel calls</a></p>
   </div>
 
@@ -162,6 +163,6 @@ for (Task task : tasks) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ SELECT *
   FROM member
  WHERE LEFT(name, 7) = 'user001';</pre>
 <h2>Assumptions of this model</h2>
-<p>For all 50 combinations, the SQL shown on the screen was run with EXPLAIN on MySQL 8.4 on the PC used to write this lab, and type, possible_keys, key, and Extra were compared character for character. The tables held 20,000 rows in member (two rows for each name) and 20,000 rows in orders, and ANALYZE TABLE was run before the queries. rows is a value estimated from statistics and differs slightly from run to run (on this PC, between 19,700 and 20,400 for a full scan), so only whether it is 1 row, some of the rows, or close to the whole table was compared. The number of rows that actually match the condition was also counted on the same data. An execution plan is chosen by the optimizer by calculating costs, so with a different number of rows or a different distribution of values, the same query can get a different plan. For example, in a table with only a few rows, or when a very large number of rows match the condition, ALL can be chosen even if an index exists (the explanation of full table scans in the MySQL documentation). The sentences that explain why nothing is shown in Extra (it is a single value, so no sort is needed, and so on) follow the explanation of ORDER BY optimization in the MySQL documentation. The id, select_type, partitions, key_len, and filtered columns are left out of the display.</p>
+<p>For all 50 combinations, the SQL shown on the screen was run with EXPLAIN on MySQL 8.4, and type, possible_keys, key, and Extra were compared character for character. The tables held 20,000 rows in member (two rows for each name) and 20,000 rows in orders, and ANALYZE TABLE was run before the queries. rows is a value estimated from statistics and differs slightly from run to run (in our test run, between 19,700 and 20,400 for a full scan), so only whether it is 1 row, some of the rows, or close to the whole table was compared. The number of rows that actually match the condition was also counted on the same data. An execution plan is chosen by the optimizer by calculating costs, so with a different number of rows or a different distribution of values, the same query can get a different plan. For example, in a table with only a few rows, or when a very large number of rows match the condition, ALL can be chosen even if an index exists (the explanation of full table scans in the MySQL documentation). The sentences that explain why nothing is shown in Extra (it is a single value, so no sort is needed, and so on) follow the explanation of ORDER BY optimization in the MySQL documentation. The id, select_type, partitions, key_len, and filtered columns are left out of the display.</p>
 <p>Previous lab: <a href="../../lab/compidx/">Composite and covering indexes</a> · Next lab: <a href="../../lab/joinalgo/">Join algorithms</a></p>
   </div>
 
@@ -167,6 +167,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

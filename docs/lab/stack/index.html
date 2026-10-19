@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ public static void main(String[] args) {
     System.out.println(factorial(4));
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>스택 크기를 &quot;프레임 개수&quot;로 단순화했습니다. 실제로는 바이트 단위의 크기(-Xss, 64비트 리눅스 기본 1MB 안팎)이고, 프레임마다 지역 변수 수에 따라 크기가 달라서 들어가는 프레임 수가 일정하지 않습니다. JIT 컴파일 여부에 따라서도 달라집니다. 스택이 스레드마다 따로 있고 힙은 공유된다는 점, 프레임이 호출 시 쌓이고 반환 시 사라진다는 점은 JVM 명세의 정의와 같습니다. 이 PC의 JDK 21에서 실제로 실행해 확인했습니다. 종료 조건이 없는 재귀는 깊이 약 1만 7천에서 StackOverflowError가 났습니다. 종료 조건이 있어도 깊이 20만은 기본 스택에서 StackOverflowError가 났고, 스택을 64MB로 키우자(-Xss64m) 정상 종료했습니다. 한 스레드의 스택이 넘친 뒤에도 다른 스레드는 계속 실행됐습니다.</p>
+<p>스택 크기를 &quot;프레임 개수&quot;로 단순화했습니다. 실제로는 바이트 단위의 크기(-Xss, 64비트 리눅스 기본 1MB 안팎)이고, 프레임마다 지역 변수 수에 따라 크기가 달라서 들어가는 프레임 수가 일정하지 않습니다. JIT 컴파일 여부에 따라서도 달라집니다. 스택이 스레드마다 따로 있고 힙은 공유된다는 점, 프레임이 호출 시 쌓이고 반환 시 사라진다는 점은 JVM 명세의 정의와 같습니다. 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 종료 조건이 없는 재귀는 깊이 약 1만 7천에서 StackOverflowError가 났습니다. 종료 조건이 있어도 깊이 20만은 기본 스택에서 StackOverflowError가 났고, 스택을 64MB로 키우자(-Xss64m) 정상 종료했습니다. 한 스레드의 스택이 넘친 뒤에도 다른 스레드는 계속 실행됐습니다.</p>
 <p>앞 실습: <a href="../../lab/blocking/">블로킹·논블로킹·가상 스레드</a> · 다음 실습: <a href="../../lab/gc/">GC와 메모리 누수</a></p>
   </div>
 
@@ -167,6 +167,6 @@ public static void main(String[] args) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

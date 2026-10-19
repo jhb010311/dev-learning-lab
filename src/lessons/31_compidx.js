@@ -64,7 +64,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var p = sim.p, num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
     if (st >= 5) { H.counters(v, [[num(p.idxRead), '인덱스에서 읽은 항목'], [st >= 6 || p.type === 'ALL' ? num(p.tblRead) : '?', '테이블에서 읽은 행'], [num(Math.max(1, p.out)), '결과 행 (약)']]);
-      H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'EXPLAIN으로 보면 (주요 컬럼만)'); }
+      H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'EXPLAIN에 나올 것으로 예상한 값 (주요 컬럼만, 이 실습의 계산이며 실제 DB에서 실행한 결과가 아님)'); }
   },
   // 그림: 인덱스 전체를 긴 띠로 보고, 컬럼을 하나 지날 때마다 읽을 범위가 어떻게 좁아지는지(또는 못 좁히는지) 그린다.
   draw: function (P, sim, shown) {

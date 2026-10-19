@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit breaker: If you keep calling a dead service, you go down too · Dev Learning Lab</title>
-<meta name="description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes…">
+<meta name="description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate reac…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Circuit breaker: If you keep calling a dead service, you go down too · Dev Learning Lab">
-<meta property="og:description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes…">
+<meta property="og:description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate reac…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
 <h1>Circuit breaker</h1>
 <p><b>If you keep calling a dead service, you go down too</b></p>
-<p>The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes over a set level, a circuit breaker blocks the calls themselves. This stops threads from being tied up waiting for a service that does not respond.</p>
+<p>The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate reaches a set level (the threshold) or goes above it, a circuit breaker blocks the calls themselves. This stops threads from being tied up waiting for a service that does not respond.</p>
 <p>Checked against real execution · The call sequences of the 27 combinations were fed to Resilience4j 2.4.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -71,14 +71,14 @@
 <li>17s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
 <li>18s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
 <li>19s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
-<li>20s: It has been 5s since the calls were blocked. To check whether the service has recovered, a few calls are let through as a trial (HALF_OPEN). The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Trial call 1/3.</li>
+<li>20s: This is the first call after 5s of blocking. The state changes to HALF_OPEN as this call arrives (with the default settings of Resilience4j, it does not change on its own just because the time has passed). To check whether the service has recovered, a few calls, starting with this one, are let through as a trial. The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Trial call 1/3.</li>
 <li>21s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Trial call 2/3.</li>
 <li>22s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. The failure rate of the 3 trial calls is 100%, at or above the threshold. The service is judged not recovered yet, so calls are blocked again (OPEN).</li>
 <li>23s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
 <li>24s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
 <li>25s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
 <li>26s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
-<li>27s: It has been 5s since the calls were blocked. To check whether the service has recovered, a few calls are let through as a trial (HALF_OPEN). The call to the payment service succeeded. Trial call 1/3.</li>
+<li>27s: This is the first call after 5s of blocking. The state changes to HALF_OPEN as this call arrives (with the default settings of Resilience4j, it does not change on its own just because the time has passed). To check whether the service has recovered, a few calls, starting with this one, are let through as a trial. The call to the payment service succeeded. Trial call 1/3.</li>
 <li>28s: The call to the payment service succeeded. Trial call 2/3.</li>
 <li>29s: The call to the payment service succeeded. The failure rate of the 3 trial calls is 0%, below the threshold. The service is judged recovered, and the circuit returns to the normal state (CLOSED).</li>
 <li>30s: The call to the payment service succeeded.</li>
@@ -116,7 +116,7 @@ PaymentResult payLater(Order order, Throwable t) {
     return PaymentResult.pending();      // runs instead when calls fail or are blocked
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>This follows the behavior of Resilience4j with a count-based sliding window (the last 10 calls). All 27 combinations that use the circuit breaker were fed, in the same call order, to a real Resilience4j 2.4.0 circuit breaker (advancing the clock by 1 second at a time), and the numbers of successes, failures, and blocked calls and the order of state transitions were confirmed to match the screen. There is one difference. Resilience4j lets calls through as trial calls only after the wait duration has fully passed, so a call that arrives at exactly the same moment as the end of the wait duration is still blocked. The screen shows the result of treating the call as arriving a tiny bit after that moment. The circuit opens when the failure rate is at or above the threshold, and after the set time, the results of 3 trial calls decide whether to close it or open it again. It is simplified so that calls are made once per second and a service in an outage always fails with a 3s timeout. In real use, you can also use the slow call rate as a criterion, and there is a time-based sliding window too.</p>
+<p>This follows the behavior of Resilience4j with a count-based sliding window (the last 10 calls). All 27 combinations that use the circuit breaker were fed, in the same call order, to a real Resilience4j 2.4.0 circuit breaker (advancing the clock by 1 second at a time), and the numbers of successes, failures, and blocked calls and the order of state transitions were confirmed to match the screen. There is one difference. Resilience4j lets calls through as trial calls only after the wait duration has fully passed, so a call that arrives at exactly the same moment as the end of the wait duration is still blocked. The screen shows the result of treating the call as arriving a tiny bit after that moment. Also, with the default settings of Resilience4j (automaticTransitionFromOpenToHalfOpenEnabled is false), the state does not become HALF_OPEN on its own when the wait duration has passed; it changes at the first call that arrives after that. Because calls arrive every second in this lab, it changes at the call right after the wait duration. If you set this value to true, the state changes when the time comes even if there are no calls. The circuit opens when the failure rate is at or above the threshold, and after the set time, the results of 3 trial calls decide whether to close it or open it again. It is simplified so that calls are made once per second and a service in an outage always fails with a 3s timeout. In real use, you can also use the slow call rate as a criterion, and there is a time-based sliding window too.</p>
 <p>Previous lab: <a href="../../lab/kafka/">Kafka partitions and consumers</a> · Next lab: <a href="../../lab/saga/">Saga and outbox</a></p>
   </div>
 
@@ -204,6 +204,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

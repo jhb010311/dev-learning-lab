@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ OrderDto get(@PathVariable long id) {
     return OrderDto.of(order, d);
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>요청 처리에서 CPU를 쓰는 시간은 무시하고, 외부 응답을 기다리는 시간만 있다고 단순화했습니다. 이벤트 루프와 가상 스레드를 실어 나르는 OS 스레드는 2개로 고정했습니다(실제 기본값은 CPU 코어 수에 맞춰집니다). 가상 스레드는 JDK 21에서 정식 기능이 됐으며, JDK 21~23에서는 synchronized 블록 안에서 기다리면 OS 스레드를 내려놓지 못하는 제약이 있었고 JDK 24에서 해소됐습니다. 이 PC의 JDK 21에서 기다리는 시간을 0.2초로 줄여 실제로 쟀습니다. 요청 12건 기준으로 스레드 4개 풀은 619ms(세 번에 나눠 처리), 스레드 2개에서 블로킹하면 1,227ms, 가상 스레드는 OS 스레드 2개로 216ms, 스레드 2개에서 기다림을 등록만 하는 방식은 201ms였습니다. 모형의 비율(6초, 12초, 2초, 2초)과 같습니다. 스프링 WebFlux 자체를 띄운 것은 아니고 같은 원리를 JDK만으로 재현한 측정입니다.</p>
+<p>요청 처리에서 CPU를 쓰는 시간은 무시하고, 외부 응답을 기다리는 시간만 있다고 단순화했습니다. 이벤트 루프와 가상 스레드를 실어 나르는 OS 스레드는 2개로 고정했습니다(실제 기본값은 CPU 코어 수에 맞춰집니다). 가상 스레드는 JDK 21에서 정식 기능이 됐으며, JDK 21~23에서는 synchronized 블록 안에서 기다리면 OS 스레드를 내려놓지 못하는 제약이 있었고 JDK 24에서 해소됐습니다. 검증 환경의 JDK 21에서 기다리는 시간을 0.2초로 줄여 실제로 쟀습니다. 요청 12건 기준으로 스레드 4개 풀은 619ms(세 번에 나눠 처리), 스레드 2개에서 블로킹하면 1,227ms, 가상 스레드는 OS 스레드 2개로 216ms, 스레드 2개에서 기다림을 등록만 하는 방식은 201ms였습니다. 모형의 비율(6초, 12초, 2초, 2초)과 같습니다. 스프링 WebFlux 자체를 띄운 것은 아니고 같은 원리를 JDK만으로 재현한 측정입니다.</p>
 <p>앞 실습: <a href="../../lab/parallel/">순차 호출과 병렬 호출</a> · 다음 실습: <a href="../../lab/stack/">스택과 힙</a></p>
   </div>
 
@@ -166,6 +166,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

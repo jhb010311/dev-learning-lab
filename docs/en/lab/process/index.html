@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,7 +77,7 @@ for (int i = 1; i &lt;= 3; i++) {
     new Thread(() -&gt; work(id)).start();
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The 9 combinations were checked by actually running them on JDK 21 on this PC. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).</p>
+<p>The 9 combinations were checked by actually running them on JDK 21 in our test environment. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).</p>
 <p>Previous lab: <a href="../../lab/parstream/">Parallel streams and the common pool</a> · Next lab: <a href="../../lab/thread/">Creating threads and thread states</a></p>
   </div>
 
@@ -165,6 +165,6 @@ for (int i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

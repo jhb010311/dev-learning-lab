@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ CREATE INDEX idx_name ON member(name);
 
 SELECT * FROM member WHERE name = '회원777';</pre>
 <h2>이 모형의 전제</h2>
-<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 실행했습니다. 화면의 &quot;회원 1000명을 넣는다&quot; 주석 줄이 있는 자리에서는 대조 프로그램이 회원 1000명(id 1~1000, name은 회원1~회원1000, city는 서울, 부산, 대구, 광주를 돌아가며 250명씩)을 넣었고, INSERT 문은 화면에서 줄였습니다. 대조한 것은 SELECT가 돌려준 행 수, H2의 EXPLAIN이 알려 준 찾는 방법(name 색인 IDX_NAME, 기본 키의 색인 PRIMARY_KEY, 색인 없이 tableScan), EXPLAIN ANALYZE가 알려 준 scanCount, 그리고 단계 문장이 기대는 사실입니다. 기대는 사실은 CREATE TABLE 직후 id 열의 색인이 자동으로 생겨 있다는 것, CREATE INDEX가 name 열을 순서대로 정리한 색인을 만들었다는 것, CREATE INDEX 전후로 행이 1000행 그대로라는 것, 색인이 있을 때와 없을 때 SELECT가 같은 행을 돌려준다는 것입니다. 화면의 &quot;DB가 읽은 행&quot;은 scanCount에서 1을 뺀 값입니다. H2 문서는 scanCount의 뜻을 따로 정의하지 않았고, 이 버전에서 관찰한 scanCount는 읽은 행 수보다 1 큽니다(더 읽을 행이 없음을 확인하는 한 번이 더해지는 것으로 보입니다). 근거는 이렇습니다. 행이 0개, 10개, 1000개인 테이블을 처음부터 끝까지 읽으면 scanCount는 1, 11, 1001이고, 조건에 행마다 불린 횟수를 세는 함수를 써서 전체를 읽게 했더니 함수가 1000번 불렸고 scanCount는 1001이었습니다. 색인으로 없는 값을 찾으면 scanCount가 1, 있는 값을 찾으면 2였습니다. 색인으로 찾을 때의 &quot;1행&quot;은 이 관찰에 따라 같은 방식으로 1을 뺀 값이며, 찾아낸 행 수와 같습니다. 어떤 방법으로 찾을지는 DB가 데이터의 양과 분포를 보고 정하므로, 다른 DB나 다른 데이터에서는 색인이 있어도 쓰지 않을 수 있습니다. 이 PC의 H2에서 이 데이터로 관찰한 결과입니다. 문서는 H2 문서의 performance 페이지에서 &quot;How Data is Stored and How Indexes Work&quot;(색인은 색인된 열과 행 번호를 담은 표와 같다), &quot;Statement Execution Plans (EXPLAIN)&quot;(EXPLAIN ANALYZE는 읽은 행을 보여 주고, tableScan은 색인을 쓰지 않았다는 뜻이며, 기본 키와 유니크 제약에는 색인이 자동으로 만들어진다)를 열어 확인했습니다. MySQL 8.4 문서는 10.3.1절 How MySQL Uses Indexes(색인이 없으면 첫 행부터 테이블 전체를 읽어야 한다), 15.1.15절 CREATE INDEX Statement(기존 테이블에 색인을 더한다), 10.3.2절 Primary Key Optimization(기본 키에는 색인이 딸려 있다), CREATE TABLE 문의 PRIMARY KEY 항목을 열어 확인했습니다. 다만 MySQL에서의 실행 대조는 하지 않았습니다. 또 이 화면은 기본 키의 색인도 name 색인처럼 상자로 그렸지만, H2와 MySQL(InnoDB)은 정수 기본 키를 테이블 데이터 자체의 정렬 기준으로 쓰므로 기본 키의 색인이 name 색인처럼 테이블과 따로 있는 목록은 아닙니다. 색인의 구조(B-트리 등)와, 색인이 있으면 INSERT, UPDATE, DELETE가 색인도 고쳐야 해서 드는 비용은 다루지 않았고 &quot;세부 동작 실습: 인덱스&quot;에서 다룹니다.</p>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 실행했습니다. 화면의 &quot;회원 1000명을 넣는다&quot; 주석 줄이 있는 자리에서는 대조 프로그램이 회원 1000명(id 1~1000, name은 회원1~회원1000, city는 서울, 부산, 대구, 광주를 돌아가며 250명씩)을 넣었고, INSERT 문은 화면에서 줄였습니다. 대조한 것은 SELECT가 돌려준 행 수, H2의 EXPLAIN이 알려 준 찾는 방법(name 색인 IDX_NAME, 기본 키의 색인 PRIMARY_KEY, 색인 없이 tableScan), EXPLAIN ANALYZE가 알려 준 scanCount, 그리고 단계 문장이 기대는 사실입니다. 기대는 사실은 CREATE TABLE 직후 id 열의 색인이 자동으로 생겨 있다는 것, CREATE INDEX가 name 열을 순서대로 정리한 색인을 만들었다는 것, CREATE INDEX 전후로 행이 1000행 그대로라는 것, 색인이 있을 때와 없을 때 SELECT가 같은 행을 돌려준다는 것입니다. 화면의 &quot;DB가 읽은 행&quot;은 scanCount에서 1을 뺀 값입니다. H2 문서는 scanCount의 뜻을 따로 정의하지 않았고, 이 버전에서 관찰한 scanCount는 읽은 행 수보다 1 큽니다(더 읽을 행이 없음을 확인하는 한 번이 더해지는 것으로 보입니다). 근거는 이렇습니다. 행이 0개, 10개, 1000개인 테이블을 처음부터 끝까지 읽으면 scanCount는 1, 11, 1001이고, 조건에 행마다 불린 횟수를 세는 함수를 써서 전체를 읽게 했더니 함수가 1000번 불렸고 scanCount는 1001이었습니다. 색인으로 없는 값을 찾으면 scanCount가 1, 있는 값을 찾으면 2였습니다. 색인으로 찾을 때의 &quot;1행&quot;은 이 관찰에 따라 같은 방식으로 1을 뺀 값이며, 찾아낸 행 수와 같습니다. 어떤 방법으로 찾을지는 DB가 데이터의 양과 분포를 보고 정하므로, 다른 DB나 다른 데이터에서는 색인이 있어도 쓰지 않을 수 있습니다. 검증 실행(H2 2.4.240)에서 이 데이터로 관찰한 결과입니다. 문서는 H2 문서의 performance 페이지에서 &quot;How Data is Stored and How Indexes Work&quot;(색인은 색인된 열과 행 번호를 담은 표와 같다), &quot;Statement Execution Plans (EXPLAIN)&quot;(EXPLAIN ANALYZE는 읽은 행을 보여 주고, tableScan은 색인을 쓰지 않았다는 뜻이며, 기본 키와 유니크 제약에는 색인이 자동으로 만들어진다)를 열어 확인했습니다. MySQL 8.4 문서는 10.3.1절 How MySQL Uses Indexes(색인이 없으면 첫 행부터 테이블 전체를 읽어야 한다), 15.1.15절 CREATE INDEX Statement(기존 테이블에 색인을 더한다), 10.3.2절 Primary Key Optimization(기본 키에는 색인이 딸려 있다), CREATE TABLE 문의 PRIMARY KEY 항목을 열어 확인했습니다. 다만 MySQL에서의 실행 대조는 하지 않았습니다. 또 이 화면은 기본 키의 색인도 name 색인처럼 상자로 그렸지만, H2와 MySQL(InnoDB)은 정수 기본 키를 테이블 데이터 자체의 정렬 기준으로 쓰므로 기본 키의 색인이 name 색인처럼 테이블과 따로 있는 목록은 아닙니다. 색인의 구조(B-트리 등)와, 색인이 있으면 INSERT, UPDATE, DELETE가 색인도 고쳐야 해서 드는 비용은 다루지 않았고 &quot;세부 동작 실습: 인덱스&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/groupby_basic/">GROUP BY와 집계</a> · 다음 실습: <a href="../../lab/dbtx_basic/">트랜잭션</a></p>
   </div>
 
@@ -166,6 +166,6 @@ SELECT * FROM member WHERE name = '회원777';</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

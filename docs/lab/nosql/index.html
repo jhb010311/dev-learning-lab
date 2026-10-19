@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ UPDATE order_doc
 SET doc = JSON_SET(doc, JSON_UNQUOTE(JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name')), '기계식 키보드')
 WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;</pre>
 <h2>이 모형의 전제</h2>
-<p>문서 모델은 MySQL의 JSON 컬럼으로 재현했습니다. 스무 가지 조합(저장 방식 둘, 하는 일 넷, 주문 수 2건, 3건, 5건)을 이 PC의 MySQL 8.4.11에서 화면과 같은 문장으로 실행해, 오류 코드, EXPLAIN에 나오는 테이블 수와 결과 행 수, UPDATE가 고친 행(문서) 수, gift가 있는 문서 수, 수량 합계가 화면과 일치하는 것을 확인했습니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 조인 없이 읽으면 테이블마다 한 번씩 쿼리 세 번이 필요합니다. ALTER TABLE로 컬럼을 추가한 뒤에는 같은 INSERT가 들어가고 기존 행에도 그 칸이 생깁니다. 문서 하나만 고치면 같은 상품의 이름이 두 가지로 남습니다. JSON_SCHEMA_VALID 제약을 건 뒤에는 필드 이름을 틀린 문서가 오류 3819로 거절됩니다. 전용 문서 DB(MongoDB 등)는 이 PC에 없어 실행하지 못했습니다. 그래서 여기서 보인 것은 &quot;주문을 문서 하나로 담았을 때의 읽기와 쓰기의 모양&quot;이며, 문서 DB 제품의 동작 그대로는 아닙니다. 쿼리 문법, 배열 안의 값을 고치는 방법, 스키마 검사 기능, 여러 문서에 걸친 트랜잭션과 조인 지원은 제품과 버전에 따라 다릅니다. 어느 방식이 더 빠른지는 데이터의 양과 인덱스, 제품에 따라 달라지므로 다루지 않았고, 화면의 결과는 속도가 아니라 읽거나 고치는 곳의 수입니다. 키-값 저장소, 와이드 컬럼 저장소, 그래프 DB 같은 다른 종류의 NoSQL은 다루지 않았습니다.</p>
+<p>문서 모델은 MySQL의 JSON 컬럼으로 재현했습니다. 스무 가지 조합(저장 방식 둘, 하는 일 넷, 주문 수 2건, 3건, 5건)을 검증 환경의 MySQL 8.4.11에서 화면과 같은 문장으로 실행해, 오류 코드, EXPLAIN에 나오는 테이블 수와 결과 행 수, UPDATE가 고친 행(문서) 수, gift가 있는 문서 수, 수량 합계가 화면과 일치하는 것을 확인했습니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 조인 없이 읽으면 테이블마다 한 번씩 쿼리 세 번이 필요합니다. ALTER TABLE로 컬럼을 추가한 뒤에는 같은 INSERT가 들어가고 기존 행에도 그 칸이 생깁니다. 문서 하나만 고치면 같은 상품의 이름이 두 가지로 남습니다. JSON_SCHEMA_VALID 제약을 건 뒤에는 필드 이름을 틀린 문서가 오류 3819로 거절됩니다. 전용 문서 DB(MongoDB 등)는 검증 환경에 없어 실행하지 못했습니다. 그래서 여기서 보인 것은 &quot;주문을 문서 하나로 담았을 때의 읽기와 쓰기의 모양&quot;이며, 문서 DB 제품의 동작 그대로는 아닙니다. 쿼리 문법, 배열 안의 값을 고치는 방법, 스키마 검사 기능, 여러 문서에 걸친 트랜잭션과 조인 지원은 제품과 버전에 따라 다릅니다. 어느 방식이 더 빠른지는 데이터의 양과 인덱스, 제품에 따라 달라지므로 다루지 않았고, 화면의 결과는 속도가 아니라 읽거나 고치는 곳의 수입니다. 키-값 저장소, 와이드 컬럼 저장소, 그래프 DB 같은 다른 종류의 NoSQL은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/redis/">Redis의 한 줄 처리</a></p>
   </div>
 
@@ -169,6 +169,6 @@ WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

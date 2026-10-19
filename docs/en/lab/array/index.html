@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ b[2] = 7;                               // stores at index 2
 System.out.println(Arrays.toString(a));
 System.out.println(Arrays.toString(b));</pre>
 <h2>Assumptions of this model</h2>
-<p>The results of the 72 combinations (a == b, the exception and its message, and the two outputs) were checked against the result of running code with the same structure on JDK 21 on this PC. Of the points made in the summary, the following were also confirmed by running them: getting a longer array with Arrays.copyOf, rows not being shared when each row is cloned, a change made inside a method to an array passed to it being visible outside, an exception being thrown when a loop runs with i &lt;= a.length, a NullPointerException being thrown when a method is called on a null element, and the values of a.length and a[0].length. The wording of the exception message can differ from one JDK version to another, and the one given here is that of JDK 21. Whether the elements of an array are actually placed side by side in memory was not confirmed by execution. It is an explanation that follows the way a JVM is generally implemented. In the diagram, the String value &quot;A&quot; is written directly in the element, but the element actually holds a reference to a String object. Creating an array by writing out its values, as in { 1, 2, 3 }, two-dimensional arrays whose rows have different lengths, and the enhanced for statement are not covered.</p>
+<p>The results of the 72 combinations (a == b, the exception and its message, and the two outputs) were checked against the result of running code with the same structure on JDK 21 in our test environment. Of the points made in the summary, the following were also confirmed by running them: getting a longer array with Arrays.copyOf, rows not being shared when each row is cloned, a change made inside a method to an array passed to it being visible outside, an exception being thrown when a loop runs with i &lt;= a.length, a NullPointerException being thrown when a method is called on a null element, and the values of a.length and a[0].length. The wording of the exception message can differ from one JDK version to another, and the one given here is that of JDK 21. Whether the elements of an array are actually placed side by side in memory was not confirmed by execution. It is an explanation that follows the way a JVM is generally implemented. In the diagram, the String value &quot;A&quot; is written directly in the element, but the element actually holds a reference to a String object. Creating an array by writing out its values, as in { 1, 2, 3 }, two-dimensional arrays whose rows have different lengths, and the enhanced for statement are not covered.</p>
 <p>Previous lab: <a href="../../lab/loops/">Conditionals and loops</a> · Next lab: <a href="../../lab/ctor/">Classes, objects, and constructors</a></p>
   </div>
 
@@ -166,6 +166,6 @@ System.out.println(Arrays.toString(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -74,7 +74,7 @@
 <li>Your code cannot decide which side is rolled back. So prepare for the possibility that both transactions can get error 1213.</li>
 </ul>
 <h2>Code</h2>
-<pre>-- account table: accounts 1 and 2 each have a balance of 1000
+<pre>-- account table (columns id, balance, memo): accounts 1 and 2 each have a balance of 1000
 
 -- Transaction A: moves 100 from account 1 to account 2
 START TRANSACTION;
@@ -91,7 +91,7 @@ COMMIT;
 -- What the side that got the error does
 ROLLBACK;                          -- and stops</pre>
 <h2>Assumptions of this model</h2>
-<p>Ten combinations (the settings that make sense for each of the three orders) were run in the same order as shown on the screen, with two sessions, on MySQL 8.4.11 on the PC used to write this lab (InnoDB, isolation level REPEATABLE READ, innodb_deadlock_detect on, innodb_rollback_on_timeout off). The lab was checked against these runs: which side gets which error code, whether the changes and locks remain in that transaction right after the error, and the final balances all match the screen. In the deadlock, error 1213 arrived within a few milliseconds (with the lock wait timeout set to 20 seconds), and when the session that got the error read again the row it had changed, it saw the original value 1000 and held 0 record locks. For the lock wait timeout, instead of waiting for the default 50 seconds, innodb_lock_wait_timeout of that session was reduced to 2 seconds, and even after error 1205 arrived 2 seconds later, the value 950 that the session had changed and 1 record lock were still there. Which side is rolled back in a deadlock with equal amounts of work is not set by the documentation, so the lab does not state it as a fact. Over 30 repetitions, B, which started waiting later, was rolled back all 30 times, and when B first changed 50 other rows, A was rolled back all 30 times. The statements that InnoDB tries to choose a small transaction, and that a deadlock rolls back the whole transaction while a lock wait timeout rolls back only that statement, also agree with the explanations in 17.7.5.2 Deadlock Detection and 17.20.5 InnoDB Error Handling of the MySQL 8.4 Reference Manual. What changes when the server settings are changed (when deadlock detection is turned off, or innodb_rollback_on_timeout is turned on) is not covered. The lab assumes that the two transactions interleave in exactly this order; in practice, depending on the timing, they more often pass without a deadlock.</p>
+<p>Ten combinations (the settings that make sense for each of the three orders) were run in the same order as shown on the screen, with two sessions, on MySQL 8.4.11 in our test run (InnoDB, isolation level REPEATABLE READ, innodb_deadlock_detect on, innodb_rollback_on_timeout off). The lab was checked against these runs: which side gets which error code, whether the changes and locks remain in that transaction right after the error, and the final balances all match the screen. In the deadlock, error 1213 arrived within a few milliseconds (with the lock wait timeout set to 20 seconds), and when the session that got the error read again the row it had changed, it saw the original value 1000 and held 0 record locks. For the lock wait timeout, instead of waiting for the default 50 seconds, innodb_lock_wait_timeout of that session was reduced to 2 seconds, and even after error 1205 arrived 2 seconds later, the value 950 that the session had changed and 1 record lock were still there. Which side is rolled back in a deadlock with equal amounts of work is not set by the documentation, so the lab does not state it as a fact. Over 30 repetitions, B, which started waiting later, was rolled back all 30 times, and when B first changed 50 other rows, A was rolled back all 30 times. The statements that InnoDB tries to choose a small transaction, and that a deadlock rolls back the whole transaction while a lock wait timeout rolls back only that statement, also agree with the explanations in 17.7.5.2 Deadlock Detection and 17.20.5 InnoDB Error Handling of the MySQL 8.4 Reference Manual. What changes when the server settings are changed (when deadlock detection is turned off, or innodb_rollback_on_timeout is turned on) is not covered. The lab assumes that the two transactions interleave in exactly this order; in practice, depending on the timing, they more often pass without a deadlock.</p>
 <p>Previous lab: <a href="../../lab/stock/">Stock decrement and locks</a> · Next lab: <a href="../../lab/undoredo/">Undo and redo logs</a></p>
   </div>
 
@@ -179,6 +179,6 @@ ROLLBACK;                          -- and stops</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

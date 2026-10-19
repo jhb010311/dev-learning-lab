@@ -69,8 +69,8 @@ Lab.register({
     if (fk) {
       push(q2 + ': 둘째 주문을 넣으려 합니다. DB는 행을 넣기 전에 ' + (who === 'null' ? 'member_id를 봅니다. member_id가 비어 있어(NULL) 찾아볼 회원 번호가 없습니다.' : 'member 테이블에서 id가 ' + m2 + '인 행을 찾아봅니다.') + ' 이 확인도 DB가 스스로 합니다.', '');
       if (insRej) {
-        st.rej = { m: m2 }; st.log.push([shortQ, res2, 'good']);
-        push('DB의 확인 결과: member 테이블에 id가 99인 행이 없습니다. 약속을 어기므로 DB는 이 INSERT를 거부하고, "참조하는 행이 없다"는 종류의 오류를 돌려줍니다. 주문 11은 orders에 들어가지 않았고, 테이블은 INSERT 전 그대로입니다.', 'good');
+        st.rej = { m: m2 }; st.log.push([shortQ, res2, 'bad']);
+        push('DB의 확인 결과: member 테이블에 id가 99인 행이 없습니다. 약속을 어기므로 DB는 이 INSERT를 거부하고, "참조하는 행이 없다"는 종류의 오류를 돌려줍니다. 주문 11은 orders에 들어가지 않았고, 테이블은 INSERT 전 그대로입니다.', 'bad');
       } else {
         st.orders.push({ id: '11', m: m2, hot: true, bad: false }); refresh(); st.log.push([shortQ, res2, 'good']);
         push(who === 'null'
@@ -89,8 +89,8 @@ Lab.register({
     var res3 = fk ? '거부됨: 이 회원을 가리키는 주문이 있음' : '지워짐';
     if (fk) {
       push('DELETE FROM member WHERE id = 1: 회원 1(김철수)을 지우려 합니다. DB는 지우기 전에 orders 테이블에서 member_id가 1인 주문이 있는지 찾아봅니다. ' + refText + ' 있습니다.', '');
-      st.delrej = true; st.members[0].hot = true; st.log.push(['DELETE member (id = 1)', res3, 'good']);
-      push('DB의 확인 결과: 이 회원을 가리키는 주문이 남아 있으므로 DB는 이 DELETE를 거부하고, "다른 테이블이 참조하고 있다"는 종류의 오류를 돌려줍니다. 회원 1은 지워지지 않았고 member 테이블은 DELETE 전 그대로입니다. 그래서 주문이 가리키는 회원이 사라지는 일은 일어나지 않습니다.', 'good');
+      st.delrej = true; st.members[0].hot = true; st.log.push(['DELETE member (id = 1)', res3, 'bad']);
+      push('DB의 확인 결과: 이 회원을 가리키는 주문이 남아 있으므로 DB는 이 DELETE를 거부하고, "다른 테이블이 참조하고 있다"는 종류의 오류를 돌려줍니다. 회원 1은 지워지지 않았고 member 테이블은 DELETE 전 그대로입니다. 그래서 주문이 가리키는 회원이 사라지는 일은 일어나지 않습니다.', 'bad');
     } else {
       st.members[0].gone = true; refresh();
       st.log.push(['DELETE member (id = 1)', res3, 'bad']);

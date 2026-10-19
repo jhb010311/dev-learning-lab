@@ -20,8 +20,8 @@ Lab.register({
     var l = ['CREATE TABLE account (id INT PRIMARY KEY, balance INT);', 'INSERT INTO account VALUES (1, 1000), (2, 0);', ''];
     if (c.begin) l.push('-- Start: treat the statements from here on as one transaction', 'BEGIN;');
     l.push('UPDATE account SET balance = balance - 300 WHERE id = 1;', 'UPDATE account SET balance = balance + 300 WHERE id = 2;');
-    if (c.end === 'commit') l.push('-- End: make the whole transaction final', 'COMMIT;');
-    else if (c.end === 'rollback') l.push('-- End: cancel everything done in the transaction', 'ROLLBACK;');
+    if (c.end === 'commit') l.push(c.begin ? '-- End: make the whole transaction final' : '-- No transaction, so there is nothing to commit (both UPDATEs are already final)', 'COMMIT;');
+    else if (c.end === 'rollback') l.push(c.begin ? '-- End: cancel everything done in the transaction' : '-- No transaction, so there is nothing to cancel (both UPDATEs are already final)', 'ROLLBACK;');
     l.push('', 'SELECT * FROM account ORDER BY id;');
     return l.join('\n');
   },
@@ -160,8 +160,8 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 252);
     var bt = 'Transaction of this connection' + (s && s.bs === 'open' ? ' · in progress' : s && s.bs === 'committed' ? ' · committed' : s && s.bs === 'rolled' ? ' · rolled back' : s && s.bs === 'dropped' ? ' · canceled by the drop' : '');
-    if (c.begin) P.region('bd', 14, 12, 330, 160, bt);
-    else P.text('hd', 26, 28, 'UPDATEs sent by this connection (no transaction)', { cls: 'mut', anchor: 'start' });
+    if (c.begin && s && s.bs) P.region('bd', 14, 12, 330, 160, bt);
+    else P.text('hd', 26, 28, c.begin ? 'UPDATEs sent by this connection (before BEGIN)' : 'UPDATEs sent by this connection (no transaction)', { cls: 'mut', anchor: 'start' });
     P.region('tb', 380, 12, 286, 160, 'Final account table');
     var lab = [['First UPDATE', 'Account 1: 1000 → 700'], ['Second UPDATE', 'Account 2: 0 → 300']];
     var cls = { none: 'ghost', pending: 'wait', done: 'good', gone: 'ghost' };

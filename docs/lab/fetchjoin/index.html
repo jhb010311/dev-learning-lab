@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,6 +81,8 @@ class Post {
 
     @OneToMany(mappedBy = &quot;post&quot;)
     List&lt;Attachment&gt; files = new ArrayList&lt;&gt;();     // 첨부 파일
+
+    public List&lt;Comment&gt; getComments() { return comments; }
 }
 
 @Entity
@@ -88,6 +90,16 @@ class Post {
 class Comment {
     @Id Long id;
     String text;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    Post post;
+}
+
+@Entity
+@Table(name = &quot;files&quot;)
+class Attachment {     // 첨부 파일
+    @Id Long id;
+    String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     Post post;
@@ -103,7 +115,7 @@ for (Post p : posts) {
     p.getComments().size();        // 게시글마다 댓글을 사용한다
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>게시글 1에 댓글 3개, 게시글 2에 댓글 2개가 있는 상태에서 열두 가지 조합(JPQL 여섯, 페이징 여부)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 결과 목록의 크기와 순서, DB가 돌려준 행 수, SQL에 댓글 컬럼과 행 수 제한이 들어 있는지와 그 위치, 뒤따른 조회 수, 경고와 예외가 화면과 일치하는 것을 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 행 수 제한을 limit 1로 적었지만 H2에서 실제로 나간 문장은 offset ? rows fetch first ? rows only이고 DB 종류에 따라 다릅니다. 이 주제는 버전에 따라 결과가 달라집니다. 페치 조인에 페이징을 걸었을 때 서브쿼리로 DB에서 자르는 것, 그냥 join의 결과에서 같은 엔티티가 한 번만 담기는 것은 7.4.5에서 실행한 결과입니다. &quot;예전 버전은 늘 메모리에서 잘랐다&quot;, &quot;Hibernate 5까지는 distinct가 필요했다&quot;는 설명은 문서를 따른 것이며 이 PC에는 예전 버전이 없어 실행으로 확인하지 못했습니다. 대조는 조합마다 애플리케이션을 새로 시작한 상태(SessionFactory를 새로 만듦)에서 했습니다. 같은 SessionFactory에서 같은 페치 조인 JPQL을 페이징 없이 먼저 실행한 뒤 페이징을 걸어 실행했더니, 행 수 제한이 붙지 않은 SQL이 다시 쓰여 전체가 돌아오는 것을 이 환경에서 보았기 때문입니다. 또 페치 조인한 댓글에 where 조건을 걸고 페이징하면 이 환경에서는 SQL 문법 오류가 났습니다. 컬렉션 페치 조인과 페이징을 함께 쓰는 코드는 쓰는 버전에서 실제 SQL을 확인해야 합니다. 그냥 join과 join fetch는 내부 조인이라 댓글이 없는 게시글은 결과에서 빠지는데, 이 실습의 자료에는 그런 게시글이 없습니다.</p>
+<p>게시글 1에 댓글 3개, 게시글 2에 댓글 2개가 있는 상태에서 열두 가지 조합(JPQL 여섯, 페이징 여부)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 결과 목록의 크기와 순서, DB가 돌려준 행 수, SQL에 댓글 컬럼과 행 수 제한이 들어 있는지와 그 위치, 뒤따른 조회 수, 경고와 예외가 화면과 일치하는 것을 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 행 수 제한을 limit 1로 적었지만 H2에서 실제로 나간 문장은 offset ? rows fetch first ? rows only이고 DB 종류에 따라 다릅니다. 이 주제는 버전에 따라 결과가 달라집니다. 페치 조인에 페이징을 걸었을 때 서브쿼리로 DB에서 자르는 것, 그냥 join의 결과에서 같은 엔티티가 한 번만 담기는 것은 7.4.5에서 실행한 결과입니다. &quot;예전 버전은 늘 메모리에서 잘랐다&quot;, &quot;Hibernate 5까지는 distinct가 필요했다&quot;는 설명은 문서를 따른 것이며, 예전 버전으로는 실행해 확인하지 않았습니다. 대조는 조합마다 애플리케이션을 새로 시작한 상태(SessionFactory를 새로 만듦)에서 했습니다. 같은 SessionFactory에서 같은 페치 조인 JPQL을 페이징 없이 먼저 실행한 뒤 페이징을 걸어 실행했더니, 행 수 제한이 붙지 않은 SQL이 다시 쓰여 전체가 돌아오는 것을 이 환경에서 보았기 때문입니다. 또 페치 조인한 댓글에 where 조건을 걸고 페이징하면 이 환경에서는 SQL 문법 오류가 났습니다. 컬렉션 페치 조인과 페이징을 함께 쓰는 코드는 쓰는 버전에서 실제 SQL을 확인해야 합니다. 그냥 join과 join fetch는 내부 조인이라 댓글이 없는 게시글은 결과에서 빠지는데, 이 실습의 자료에는 그런 게시글이 없습니다.</p>
 <p>앞 실습: <a href="../../lab/nplus1/">N+1</a> · 다음 실습: <a href="../../lab/bulk/">벌크 연산</a></p>
   </div>
 
@@ -191,6 +203,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

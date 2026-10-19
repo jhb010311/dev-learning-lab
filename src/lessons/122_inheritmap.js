@@ -55,7 +55,7 @@ Lab.register({
     if (op === 'save') {
       L = ['Book book = new Book(1L, "자바책", 20000, "김저자");', 'em.persist(book);'];
       s.obj = 'new';
-      push(0, 'new Book(1L, "자바책", 20000, "김저자"): Book 객체 하나를 만듭니다. 부모 Item에게서 물려받은 id, name, price와 Book이 선언한 author가 한 객체 안에 함께 들어 있습니다.', '');
+      push(0, 'new Book(1L, "자바책", 20000, "김저자"): Book 객체 하나를 만듭니다. 이 객체는 부모 Item에게서 물려받은 필드 id, name, price와 Book이 선언한 필드 author를 모두 가집니다. Item 객체가 따로 하나 더 만들어지지는 않습니다.', '');
       s.obj = 'managed';
       push(1, 'em.persist(book): 영속성 컨텍스트에 보관합니다. id를 코드에서 직접 넣었으므로 DB에 물어볼 것이 없어서, INSERT는 바로 나가지 않고 커밋 때까지 미뤄집니다.', '');
       before = '0';

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,9 +59,9 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>애플리케이션이 뜰 때 스프링은 @Transactional이 붙은 메서드를 가진 빈을 발견하면, 원래 객체 대신 호출을 받을 프록시를 만들어 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다. 그런 메서드가 없는 빈은 원래 객체 그대로 등록됩니다.</li>
+<li>애플리케이션이 뜰 때 스프링은 @Transactional이 붙은 메서드를 가진 빈을 발견하면, 원래 객체 대신 호출을 받을 프록시를 만들어 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다. 그런 메서드가 없는 빈은 원래 객체 그대로 등록됩니다. 코드의 OrderService와 그 메서드들은 예시로 만든 것이고, @Service와 @Transactional 같은 애너테이션은 스프링이 주는 것입니다.</li>
 <li>컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애너테이션이 없으므로 그대로 실제 객체에 넘깁니다.</li>
-<li>실제 객체 안에서 saveAll()을 호출합니다. 이 호출은 this.saveAll()입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.</li>
+<li>실제 객체의 placeOrder()가 saveAll()을 호출합니다. 이 호출은 this.saveAll()입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.</li>
 <li>트랜잭션을 시작해 줄 프록시가 없습니다. 주문 A를 INSERT합니다. 트랜잭션이 없으므로 이 INSERT는 실행되자마자 커밋됩니다(자동 커밋).</li>
 <li>주문 B를 INSERT합니다. 이것도 바로 커밋됩니다.</li>
 <li>예외가 발생했지만 롤백해 줄 트랜잭션이 없습니다. 이미 커밋된 주문 A와 B는 DB에 그대로 남습니다. 실패한 작업의 데이터가 반쯤 저장된 상태가 됩니다.</li>
@@ -72,7 +72,9 @@
 <li>같은 클래스 안에서의 호출은 프록시를 지나지 않습니다. 예외도 경고도 없이 조용히 무시되기 때문에 놓치기 쉽습니다. 해법은 그 메서드를 다른 빈으로 옮기는 것이 가장 일반적이고, 자기 자신의 프록시를 주입받아 호출하는 방법도 있습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@Service class OrderService {
+<pre>// 필요한 부분만 남김: import와, 예시로 만든 필드·변수(orderDao, a, b)의 선언은 줄였다.
+
+@Service class OrderService {
     public void placeOrder() {                 // 컨트롤러가 호출
         saveAll();                             // this.saveAll()과 같다
     }
@@ -173,6 +175,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

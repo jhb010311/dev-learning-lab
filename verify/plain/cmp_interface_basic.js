@@ -10,7 +10,7 @@ console.log(lines[0]);
 const KO = {
   'compiler.err.cant.resolve': 'Payable이라는 타입을 찾을 수 없음',
   'compiler.err.cant.resolve.location': 'Payable이라는 타입을 찾을 수 없음',
-  'compiler.err.prob.found.req': 'Card는 Payable 타입이 아니어서 담을 수 없음',
+  'compiler.err.prob.found.req': 'Card는 Payable 타입이 아니어서 Payable 변수가 가리킬 수 없음',
   'compiler.err.does.not.override.abstract': 'Card가 pay 메서드를 작성하지 않았음',
 };
 // 영어 메시지 첫 줄도 함께 확인해, 코드와 메시지가 같은 오류를 가리키는지 본다

@@ -16,19 +16,19 @@ Lab.register({
     { t: '정적 파일을 CDN에서', q: 'IP 주소를 알고 있고 맺어 둔 연결도 남아 있는 상태에서 /static/logo.png를 CDN에서 받으면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
-    return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
+    return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n    ssl_certificate     /etc/nginx/certs/shop.example.crt;   # 인증서\n    ssl_certificate_key /etc/nginx/certs/shop.example.key;   # 개인키\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
   },
   label: function (c) { return (c.what === 'api' ? '동적 페이지' : '정적 파일' + (c.cdn ? ' (CDN)' : '')) + ' · DNS 캐시 ' + (c.dns ? '있음' : '없음') + ' · 연결 재사용 ' + (c.conn ? '함' : '안 함'); },
   columns: ['전체 시간', '거친 단계', '건너뛴 단계', '응답을 만든 곳'],
   simulate: function (c) {
-    var ev = [], rows = [], total = 0, skipped = 0, sum = [], cdn = c.what === 'static' && c.cdn, rtt = cdn ? 5 : 30, maker;
+    var ev = [], rows = [], total = 0, skipped = 0, sum = [], cdn = c.what === 'static' && c.cdn, rtt = cdn ? 10 : 30, one = rtt / 2, maker;
     function step(name, ms, s, k, skip) { if (skip) skipped++; else total += ms; rows.push({ cls: skip ? 'gone' : '', cells: [name, skip ? '건너뜀' : ms + 'ms', { v: skip ? '-' : total + 'ms', cls: k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), total: total } }); }
     step('주소 해석', 0, '브라우저가 주소 https://shop.example' + (c.what === 'api' ? '/orders' : '/static/logo.png') + '를 프로토콜(https), 호스트(shop.example), 경로로 나눕니다. https이므로 443번 포트로 접속할 것입니다.', '');
     if (c.dns) step('DNS 조회', 0, '도메인의 IP 주소가 브라우저나 운영체제의 캐시에 남아 있습니다. DNS 서버에 묻지 않습니다.', 'good', true);
     else step('DNS 조회', 40, 'shop.example의 IP 주소를 모릅니다. DNS 서버에 물어 IP 주소를 받아 옵니다' + (cdn ? '. CDN을 쓰는 도메인이라 사용자와 가까운 CDN 서버의 주소가 돌아옵니다.' : '.') + ' 결과는 정해진 시간(TTL) 동안 캐시에 보관됩니다.', '');
     if (c.conn) { step('TCP 연결', 0, '이 서버와 맺어 둔 연결이 아직 살아 있습니다(keep-alive). 새로 연결하지 않고 그대로 씁니다.', 'good', true); step('TLS 핸드셰이크', 0, '기존 연결은 이미 암호화돼 있습니다. 핸드셰이크도 다시 하지 않습니다.', 'good', true); }
     else { step('TCP 연결', rtt, '그 IP의 443번 포트로 TCP 연결을 맺습니다(3-way handshake). 서버까지 한 번 왕복하는 시간이 듭니다.', ''); step('TLS 핸드셰이크', rtt, 'TLS 핸드셰이크로 서버의 인증서를 확인하고 암호화 키를 합의합니다. 한 번 더 왕복합니다.', ''); }
-    step('HTTP 요청 전송', rtt, '암호화된 연결 위로 HTTP 요청을 보냅니다. 요청 줄, 헤더(Host, 쿠키, User-Agent 등)가 서버로 갑니다.', '');
+    step('HTTP 요청 전송', one, '암호화된 연결 위로 HTTP 요청을 보냅니다. 요청 줄, 헤더(Host, 쿠키, User-Agent 등)가 서버로 갑니다. 서버까지 한 방향으로 가는 시간(왕복의 절반)이 듭니다.', '');
     if (cdn) { maker = 'CDN 서버'; step('CDN 서버', 2, '사용자와 가까운 곳에 있는 CDN 서버가 요청을 받습니다. 보관하고 있던 logo.png 사본을 바로 돌려줍니다. 원래 서버(오리진)에는 요청이 가지 않습니다.', 'good'); }
     else {
       step('리버스 프록시 (nginx)', 1, '가장 먼저 요청을 받는 것은 nginx입니다. TLS를 풀고, 경로를 보고 어디서 처리할지 정합니다.', '');
@@ -40,7 +40,7 @@ Lab.register({
         step('응답 생성', 3, '조회 결과를 JSON이나 HTML로 바꿔 응답을 만듭니다. 응답은 톰캣, nginx를 거쳐 되돌아갑니다.', '');
       }
     }
-    step('응답 수신과 화면 표시', rtt, '응답이 브라우저에 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.', 'good');
+    step('응답 수신과 화면 표시', one, '응답이 서버에서 브라우저까지 한 방향으로 와서 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.', 'good');
     if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? '첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가' : !c.dns ? '이번 요청에서는 DNS 조회가' : '이번 요청에서는 TCP 연결과 TLS 핸드셰이크가') + ' 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
@@ -62,5 +62,5 @@ Lab.register({
     P.size(680, end + 64);
     P.note('화살표는 그 단계에서 누가 누구에게 갔는지를, 숫자는 걸린 시간을 나타냅니다.');
   },
-  assume: '시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 한 번 가는 데 30ms, CDN은 5ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.',
+  assume: '시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 왕복 30ms이고 한 방향은 그 절반인 15ms, CDN 서버까지는 왕복 10ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.',
 });

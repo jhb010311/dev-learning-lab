@@ -76,6 +76,7 @@ Lab.register({
       calm(); st.r[0].bal = 900; st.r[0].pend = null; st.r[0].lock = ''; st.r[0].hot = true; st.a = { cls: 'good', sub: ['COMMIT으로 확정', '잠금이 풀림'] };
       st.log.push(['A: COMMIT', '900 확정 · 잠금 풀림', 'good']);
       if (same) {
+        st.r[0].wait = false; st.waiting = 0; st.b = { cls: 'wait', sub: ['A의 잠금이 풀림', 'UPDATE를 이어서 실행할 차례'] };
         push('COMMIT (연결 A): A가 묶음을 확정합니다. id 1인 행의 900이 확정되어 다른 연결에서도 읽히고, A가 건 잠금이 풀립니다. 기다리던 B가 있으므로 DB는 곧바로 B의 UPDATE를 이어서 실행합니다.', 'good');
         // 7. B의 UPDATE가 이어서 실행된다
         calm(); st.r[0].wait = false; st.waiting = 0; st.r[0].lock = 'B'; st.r[0].pend = 950; st.fl.b = 'pass'; st.b = { cls: 'hot', sub: ['id 1인 행을 고침', '확정 전 잔액 950'] };

@@ -23,11 +23,11 @@ Lab.register({
   label: function (c) { return { nostore: 'no-store', max: 'max-age=60 · ' + c.when + '초 뒤', nocache: 'no-cache' }[c.cc] + (c.chg ? ' · 내용 바뀜' : ' · 내용 그대로'); },
   columns: ['두 번째에 서버로 간 요청', '응답', '전송된 본문', '화면에 보인 내용'],
   simulate: function (c) {
-    var ev = [], rows = [], sum = [], SIZE = 200, sent = SIZE, cache = '없음';
+    var ev = [], rows = [], sum = [], SIZE = 200, sent = 0, cache = '없음';
     function step(dir, what, res, s, k) { rows.push({ cells: [dir, what, { v: res, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), cache: cache, sent: sent } }); }
     var hdr = { nostore: 'Cache-Control: no-store', max: 'Cache-Control: max-age=60, ETag: "v1"', nocache: 'Cache-Control: no-cache, ETag: "v1"' }[c.cc];
     step('브라우저 → 서버', 'GET /products/1', '(첫 요청)', '처음 여는 주소입니다. 브라우저에 저장된 것이 없으므로 서버에 요청합니다.', '');
-    cache = c.cc === 'nostore' ? '없음 (저장 금지)' : '본문 200KB, ETag "v1"' + (c.cc === 'max' ? ', 60초 동안 유효' : ', 쓸 때마다 확인 필요');
+    sent += SIZE; cache = c.cc === 'nostore' ? '없음 (저장 금지)' : '본문 200KB, ETag "v1"' + (c.cc === 'max' ? ', 60초 동안 유효' : ', 쓸 때마다 확인 필요');
     step('서버 → 브라우저', '200 OK + 본문 200KB', hdr, '서버가 본문 200KB와 함께 캐시 지시를 내려 줍니다.' + (c.cc === 'nostore' ? ' no-store이므로 브라우저는 이 응답을 저장하지 않습니다.' : ' 브라우저는 본문과 ETag(내용의 버전을 나타내는 표시)를 함께 보관합니다.'), '');
     var when = c.cc === 'max' ? +c.when : 120, req2, res2, body2, shown;
     if (c.chg) step('서버', '상품 정보가 수정됨', 'ETag가 "v2"로 바뀜', '그 사이 서버에서 상품 정보가 바뀌었습니다. 서버가 계산하는 ETag도 "v2"가 됩니다.', '');
@@ -36,7 +36,7 @@ Lab.register({
     else {
       step('브라우저 → 서버', 'GET /products/1 + If-None-Match: "v1"', '(조건부 요청)', when + '초 뒤 같은 주소를 다시 엽니다. ' + (c.cc === 'max' ? '유효 시간 60초가 지났습니다.' : 'no-cache는 쓰기 전에 반드시 서버에 확인하라는 뜻입니다.') + ' 브라우저는 저장해 둔 것을 버리지 않고, "내가 가진 것은 v1인데 아직 그대로인가?"라고 묻습니다.', '');
       req2 = 'GET + If-None-Match';
-      if (c.chg) { res2 = '200 OK'; body2 = '200KB'; sent += SIZE; shown = '새 내용'; cache = '본문 200KB, ETag "v2"'; step('서버 → 브라우저', '200 OK + 본문 200KB', 'ETag: "v2"', '서버의 현재 ETag는 "v2"입니다. 브라우저가 보낸 "v1"과 다르므로 새 본문 전체와 새 ETag를 보냅니다. 브라우저는 저장해 둔 것을 교체합니다.', ''); }
+      if (c.chg) { res2 = '200 OK'; body2 = '200KB'; sent += SIZE; shown = '새 내용'; cache = '본문 200KB, ETag "v2"' + (c.cc === 'max' ? ', 60초 동안 유효' : ', 쓸 때마다 확인 필요'); step('서버 → 브라우저', '200 OK + 본문 200KB', 'ETag: "v2"', '서버의 현재 ETag는 "v2"입니다. 브라우저가 보낸 "v1"과 다르므로 새 본문 전체와 새 ETag를 보냅니다. 브라우저는 저장해 둔 것을 교체합니다.', ''); }
       else { res2 = '304 Not Modified'; body2 = '0KB'; shown = '같은 내용'; step('서버 → 브라우저', '304 Not Modified (본문 없음)', 'ETag: "v1"', '서버의 현재 ETag도 "v1"입니다. 바뀐 것이 없으므로 본문 없이 304만 응답합니다. 브라우저는 저장해 둔 본문을 그대로 씁니다.' + (c.cc === 'max' ? ' 유효 시간도 다시 시작합니다.' : '') + ' 200KB를 다시 보내지 않았습니다.', 'good'); }
       sum.push(c.chg ? '내용이 바뀌었으므로 새 본문을 받았습니다. ETag 덕분에 "바뀌었을 때만" 전체를 받습니다.' : '304 응답은 본문이 없어 전송량이 거의 없습니다. 다만 요청과 응답의 왕복은 한 번 일어나고, 서버는 현재 ETag를 알기 위해 일을 해야 합니다.');
       if (c.cc === 'nocache') sum.push('no-cache는 이름과 달리 "저장하지 말라"가 아니라 "저장하되 쓸 때마다 서버에 확인하라"입니다. 저장 자체를 막는 것은 no-store입니다.');
@@ -52,7 +52,7 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: '', sent: 0 }, ids = { '브라우저': 'b', '서버': 's' };
     var msgs = s.rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[1]); m.cls = P.c(r.cells[1]) || P.c(r.cells[2]); return m; });
     var end = P.seq([['b', '브라우저', 'wait'], ['s', '서버', 'wait']], msgs, { keep: 6 });
-    P.box('cache', 16, end + 14, 440, 48, { cls: s.cache ? 'good' : 'ghost', title: '브라우저가 보관한 사본 (캐시)', sub: s.cache || '없음' });
+    P.box('cache', 16, end + 14, 440, 48, { cls: !s.cache || s.cache.indexOf('없음') === 0 ? 'ghost' : 'good', title: '브라우저가 보관한 사본 (캐시)', sub: s.cache || '없음' });
     P.box('sent', 468, end + 14, 196, 48, { cls: 'plain', title: '받은 본문 합계', sub: s.sent + 'KB' });
     P.size(680, end + 78);
     P.note('브라우저 쪽 상자만 있고 화살표가 없는 단계는 서버에 묻지 않고 보관한 사본을 쓴 것입니다. 304 응답은 화살표는 오가지만 본문이 없어 전송량이 늘지 않습니다.');

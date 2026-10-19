@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ javac Hello.java
 # 실행: java가 JVM을 띄워 Hello.class의 main을 실행한다
 java Hello</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 글(# Hello.java 구역과 # 터미널 구역)을 조합마다 빈 폴더에 만들고, 그 글에서 소스 파일과 명령을 읽어 실제 javac 프로그램과 java 프로그램을 프로세스로 띄워 실행한 결과와 대조했습니다. 대조한 것은 폴더에 Hello.class가 생겼는지, javac의 종료 코드와 표준 출력, 첫 오류 메시지와 오류 개수와 오류가 난 줄, java의 종료 코드와 출력과 오류 메시지, 고치는 일이 Hello.class를 바꾸지 않는지, Hello.class 파일 맨 앞 네 바이트(CAFEBABE)와 버전(65, 자바 21)입니다. 고친 뒤 javac 명령을 다시 쓰면 &quot;잘 가&quot;가 출력되는 것도 따로 실행해 확인했습니다. 실행한 명령은 화면과 두 가지가 다릅니다. 출력 글자와 오류 메시지를 같은 방식으로 읽으려고 javac와 java에 출력 인코딩을 UTF-8로, 메시지 언어를 영어로 하는 옵션(-Dstdout.encoding=UTF-8, -Duser.language=en 등)을 더했습니다. 옵션 없이 이 PC(한국어 Windows)에서 java Hello 명령을 쓰면 같은 오류가 한국어 메시지로 나옵니다. 문서는 직접 열어 확인했습니다. Java 가상 머신 명세 Java SE 21 판 1.2절(JVM은 자바 언어를 모르고 class 파일 형식만 안다, class 파일에는 JVM 명령어인 바이트코드가 들어 있다), 같은 명세 4.1절(class 파일 맨 앞의 magic 값은 0xCAFEBABE, 자바 SE 21의 major 버전은 65, 이 장은 일부만 읽었습니다), JDK 21 javac 도구 문서(.java 소스 파일을 읽어 .class 파일로 컴파일한다, 따로 정하지 않으면 소스와 같은 폴더에 만든다, 오류가 없으면 class 파일을 출력 폴더에 놓는다), java 도구 문서(JVM을 띄워 지정한 클래스를 읽고 main을 부른다, 클래스 경로를 정하지 않으면 현재 폴더이다, 앞쪽 일부만 읽었고 종료 코드 절은 읽지 못했습니다)를 따랐습니다. 오류가 났을 때 Hello.class를 만들지 않는 것, 종료 코드가 0과 1이라는 것, 오류 메시지의 글은 문서가 정한 것이 아니라 이 JDK에서 관찰한 것입니다. 화면의 코드는 폴더에 Hello.java 하나만 있는 상황으로 줄였고, 패키지가 있는 클래스, 클래스 경로 설정, jar 파일, IDE나 빌드 도구가 대신 컴파일하는 것은 다루지 않았습니다. java Hello.java처럼 소스 파일을 바로 실행하는 방법(소스 파일 모드)도 화면에서 쓰지 않았습니다. 이 JDK에서 실행해 보니 Hello.class를 만들지 않고 안녕을 출력했고(java 문서도 소스를 메모리에 컴파일해 실행한다고 설명합니다), 세미콜론이 빠진 소스는 이 방식에서도 같은 컴파일 오류로 실패했습니다. 또 컴파일에 성공한 뒤 소스를 틀리게 고치고 javac 명령을 다시 쓰면 오류가 나지만 옛 Hello.class는 폴더에 그대로 남아 java Hello 명령이 옛 코드를 실행하는 것도 확인했으나, 화면에서는 다루지 않았습니다. JVM이 Hello.class를 읽어 들이는 방식은 &quot;세부 동작 실습: 클래스 로딩과 초기화&quot;에서, 바이트코드를 기계어로 다시 컴파일하는 JIT는 &quot;세부 동작 실습: JIT 워밍업&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 글(# Hello.java 구역과 # 터미널 구역)을 조합마다 빈 폴더에 만들고, 그 글에서 소스 파일과 명령을 읽어 실제 javac 프로그램과 java 프로그램을 프로세스로 띄워 실행한 결과와 대조했습니다. 대조한 것은 폴더에 Hello.class가 생겼는지, javac의 종료 코드와 표준 출력, 첫 오류 메시지와 오류 개수와 오류가 난 줄, java의 종료 코드와 출력과 오류 메시지, 고치는 일이 Hello.class를 바꾸지 않는지, Hello.class 파일 맨 앞 네 바이트(CAFEBABE)와 버전(65, 자바 21)입니다. 고친 뒤 javac 명령을 다시 쓰면 &quot;잘 가&quot;가 출력되는 것도 따로 실행해 확인했습니다. 실행한 명령은 화면과 두 가지가 다릅니다. 출력 글자와 오류 메시지를 같은 방식으로 읽으려고 javac와 java에 출력 인코딩을 UTF-8로, 메시지 언어를 영어로 하는 옵션(-Dstdout.encoding=UTF-8, -Duser.language=en 등)을 더했습니다. 옵션 없이 검증 실행에 쓴 한국어 Windows에서 java Hello 명령을 쓰면 같은 오류가 한국어 메시지로 나옵니다. 문서는 직접 열어 확인했습니다. Java 가상 머신 명세 Java SE 21 판 1.2절(JVM은 자바 언어를 모르고 class 파일 형식만 안다, class 파일에는 JVM 명령어인 바이트코드가 들어 있다), 같은 명세 4.1절(class 파일 맨 앞의 magic 값은 0xCAFEBABE, 자바 SE 21의 major 버전은 65, 이 장은 일부만 읽었습니다), JDK 21 javac 도구 문서(.java 소스 파일을 읽어 .class 파일로 컴파일한다, 따로 정하지 않으면 소스와 같은 폴더에 만든다, 오류가 없으면 class 파일을 출력 폴더에 놓는다), java 도구 문서(JVM을 띄워 지정한 클래스를 읽고 main을 부른다, 클래스 경로를 정하지 않으면 현재 폴더이다, 앞쪽 일부만 읽었고 종료 코드 절은 읽지 못했습니다)를 따랐습니다. 오류가 났을 때 Hello.class를 만들지 않는 것, 종료 코드가 0과 1이라는 것, 오류 메시지의 글은 문서가 정한 것이 아니라 이 JDK에서 관찰한 것입니다. 화면의 코드는 폴더에 Hello.java 하나만 있는 상황으로 줄였고, 패키지가 있는 클래스, 클래스 경로 설정, jar 파일, IDE나 빌드 도구가 대신 컴파일하는 것은 다루지 않았습니다. java Hello.java처럼 소스 파일을 바로 실행하는 방법(소스 파일 모드)도 화면에서 쓰지 않았습니다. 이 JDK에서 실행해 보니 Hello.class를 만들지 않고 안녕을 출력했고(java 문서도 소스를 메모리에 컴파일해 실행한다고 설명합니다), 세미콜론이 빠진 소스는 이 방식에서도 같은 컴파일 오류로 실패했습니다. 또 컴파일에 성공한 뒤 소스를 틀리게 고치고 javac 명령을 다시 쓰면 오류가 나지만 옛 Hello.class는 폴더에 그대로 남아 java Hello 명령이 옛 코드를 실행하는 것도 확인했으나, 화면에서는 다루지 않았습니다. JVM이 Hello.class를 읽어 들이는 방식은 &quot;세부 동작 실습: 클래스 로딩과 초기화&quot;에서, 바이트코드를 기계어로 다시 컴파일하는 JIT는 &quot;세부 동작 실습: JIT 워밍업&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/pool_basic/">스레드 풀</a> · 다음 실습: <a href="../../lab/io_basic/">파일 입출력</a></p>
   </div>
 
@@ -168,6 +168,6 @@ java Hello</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

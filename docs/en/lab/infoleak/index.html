@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
 
 // Request: GET /orders/7</pre>
 <h2>Assumptions of this model</h2>
-<p>12 error responses (2 message settings × 3 stack trace settings × whether the trace parameter is present), 2 responses built by hand, and 6 login failures were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1, Spring JDBC, H2) server started on 127.0.0.1. The message texts and the number of stack trace lines vary with the version and the environment, so what was checked is which items are in the body, whether the SQL statement, the stack trace lines, and the name of the database driver are visible in the body, whether the two login failure responses are the same, which exception occurred, and how many times the password comparison was called. The message values on screen were seen on the PC used to write this lab, and the example errorId is a made-up value. The checks were based on requests that receive JSON; for a request that receives HTML, as a browser does, the same content appearing on the error page was confirmed for one setting. The setting names are the spring.web.error.* names of Spring Boot 4.1.1 (server.error.* up to Spring Boot 3). include-exception, include-binding-errors, and the on_param value of message are not covered. That the whole exception is written to the log in the safe response was confirmed by collecting the log output. Not run: the difference in response time was not measured (only the number of times the password comparison was called was checked), and the messages on the sign-up and password recovery screens are an explanation that follows the authentication guidance of OWASP. How much the leaked information helps in a real attack differs from server to server.</p>
+<p>12 error responses (2 message settings × 3 stack trace settings × whether the trace parameter is present), 2 responses built by hand, and 6 login failures were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1, Spring JDBC, H2) server started on 127.0.0.1. The message texts and the number of stack trace lines vary with the version and the environment, so what was checked is which items are in the body, whether the SQL statement, the stack trace lines, and the name of the database driver are visible in the body, whether the two login failure responses are the same, which exception occurred, and how many times the password comparison was called. The message values on screen are the ones seen in this test run, and the example errorId is a made-up value. The checks were based on requests that receive JSON; for a request that receives HTML, as a browser does, the same content appearing on the error page was confirmed for one setting. The setting names are the spring.web.error.* names of Spring Boot 4.1.1 (server.error.* up to Spring Boot 3). include-exception, include-binding-errors, and the on_param value of message are not covered. That the whole exception is written to the log in the safe response was confirmed by collecting the log output. Not run: the difference in response time was not measured (only the number of times the password comparison was called was checked), and the messages on the sign-up and password recovery screens are an explanation that follows the authentication guidance of OWASP. How much the leaked information helps in a real attack differs from server to server.</p>
 <p>Previous lab: <a href="../../lab/clickjack/">Clickjacking and open redirects</a> · Next lab: <a href="../../lab/ratelimit/">Rate limiting</a></p>
   </div>
 
@@ -172,6 +172,6 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

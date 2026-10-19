@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@Transactional: What does @Transactional group together? · Dev Learning Lab</title>
-<meta name="description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an or…">
+<meta name="description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method of OrderService, a class made up as an example for this lab, sa…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tx_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="@Transactional: What does @Transactional group together? · Dev Learning Lab">
-<meta property="og:description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an or…">
+<meta property="og:description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method of OrderService, a class made up as an example for this lab, sa…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>@Transactional</h1>
 <p><b>What does @Transactional group together?</b></p>
-<p>@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with a runtime exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.</p>
+<p>@Transactional is a marker (an annotation) that you put above a method. The order() method of OrderService, a class made up as an example for this lab, saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with a runtime exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.</p>
 <p>Checked against real execution · Ran all 4 combinations with a real @Transactional proxy on Spring 7.0.9 and H2 2.4.240, and checked the row counts and the facts behind the step sentences</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -174,6 +174,6 @@ public class OrderService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

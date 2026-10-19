@@ -59,6 +59,7 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? '스택 (오른쪽이 맨 위)' : c.ds === 'queue' ? '큐 (왼쪽이 맨 앞, 오른쪽이 맨 뒤)' : '내부 배열 (0번 칸이 맨 위 = 가장 작은 값)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), '비어 있음');
+    if (c.ds === 'stack') H.text(v, '위 칸은 오른쪽을 맨 위로 그렸습니다. 실제 ArrayDeque의 push는 값을 앞쪽에 넣으므로 System.out.println(stack)으로 출력하면 맨 위가 왼쪽에 와서 순서가 반대로 보입니다' + (s.a.length ? '(지금은 [' + s.a.slice().reverse().join(', ') + ']).' : '.'));
   },
   // 그림: 스택은 위로 쌓고, 큐는 옆으로 줄 세우고, 우선순위 큐는 트리(힙)로 그린다. 꺼낸 값은 아래 줄로 옮겨 간다.
   draw: function (P, sim, shown) {
@@ -82,5 +83,5 @@ Lab.register({
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
     P.note(c.ds === 'pq' ? '노란 칸이 맨 위(가장 작은 값)입니다. 트리는 아래의 내부 배열을 다르게 본 모습이며, i번 칸의 자식은 2i+1번과 2i+2번 칸입니다.' : '노란 칸이 다음에 꺼낼 값입니다. 꺼낸 값은 아래 줄로 옮겨 갑니다.');
   },
-  assume: '꺼낸 순서와 우선순위 큐 내부 배열의 변화는 이 PC의 JDK 21에서 실제 ArrayDeque와 PriorityQueue를 실행해 대조했습니다(내부 배열은 넣을 때마다, 꺼낼 때마다 모두 일치). PriorityQueue는 기본적으로 작은 값이 먼저 나오며, Comparator를 주면 기준을 바꿀 수 있습니다.',
+  assume: '꺼낸 순서와 우선순위 큐 내부 배열의 변화는 검증 환경의 JDK 21에서 실제 ArrayDeque와 PriorityQueue를 실행해 대조했습니다(내부 배열은 넣을 때마다, 꺼낼 때마다 모두 일치). PriorityQueue는 기본적으로 작은 값이 먼저 나오며, Comparator를 주면 기준을 바꿀 수 있습니다.',
 });

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>테스트: 테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나 · 개발 학습 실습실</title>
-<meta name="description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에…">
+<meta name="description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 관리하는 컨테이너)에…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/testing/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="테스트: 테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나 · 개발 학습 실습실">
-<meta property="og:description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에…">
+<meta property="og:description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 관리하는 컨테이너)에…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
 <h1>테스트</h1>
 <p><b>테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나</b></p>
-<p>컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에 들어가는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.</p>
+<p>컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 관리하는 컨테이너)에 등록되는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. 예시로 만든 OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1, spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0에서 서른여섯 가지 조합을 조합마다 새 JVM으로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -131,7 +131,7 @@ class OrderRepository {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>서른여섯 가지 조합 모두를 이 PC에서 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. 스프링 부트 4에서는 @MockBean이 없고(4.1.1의 spring-boot-test jar에 그 클래스가 없음을 확인) 스프링 프레임워크의 @MockitoBean(org.springframework.test.context.bean.override.mockito)을 씁니다. @WebMvcTest와 @AutoConfigureMockMvc는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있습니다. 3.x의 패키지 이름과 다르므로 import 문을 옮겨 적을 때 주의합니다. 자동 설정의 통제: 이 PC의 클래스패스에는 스프링 시큐리티, H2와 HikariCP, Hibernate, 스프링 데이터 JPA, 액추에이터가 함께 있습니다. 대조 실행에서는 @SpringBootApplication의 exclude로 시큐리티 자동 설정 다섯 개와 DataSource, Hibernate JPA, 스프링 데이터 JPA 리포지토리 자동 설정을 뺐습니다. 빼지 않고 실행했을 때는 @SpringBootTest의 요청이 시큐리티에 막혀 401이 되었고 @WebMvcTest는 그대로 통과했습니다(실습을 만들면서 따로 실행해 본 결과이며, 저장해 둔 대조 출력에는 들어 있지 않습니다. 이 클래스패스에서 @WebMvcTest가 불러오는 자동 설정 목록에는 시큐리티가 없었습니다. spring-boot-security-test 모듈이 있을 때의 동작은 확인하지 않았습니다). 화면의 @SpringBootApplication 클래스는 생략했습니다. 화면의 코드와 대조용 코드의 차이: 대조용 코드는 테스트 클래스의 이름이 다르고, 같은 본문을 abstract 클래스에서 물려받으며, 객체가 진짜인지 가짜인지 적어 두는 줄과 컨텍스트 횟수를 세는 코드가 더 있습니다. &quot;@MockitoBean이 하나 더 있다&quot;는 첫 번째 클래스가 바꾸지 않은 것 하나(OrderRepository, 이미 바꿨으면 OrderService)를 더 바꾼 경우입니다. DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. 같은 설정의 컨텍스트가 한 번 실패하면 다시 만들지 않는 한도는 spring.test.context.failure.threshold이고 기본값이 1입니다(spring-test 7.0.9의 상수로 확인). @DirtiesContext는 클래스에 붙였을 때의 기본 동작(클래스의 테스트가 끝난 뒤 닫음)만 다뤘습니다. 이 PC에서 컨텍스트의 빈 정의 수는 @SpringBootTest가 303개, @WebMvcTest가 130개였고(가짜 빈이 추가되면 131개), 이 수는 클래스패스와 위의 exclude에 따라 달라집니다. 걸린 시간은 실행할 때마다 달라서 결과 표에 넣지 않았습니다. 이 PC의 한 번 실행에서 첫 번째 클래스는 스프링 없는 테스트가 약 0.7~0.9초(Mockito 준비 포함), @WebMvcTest가 약 2.7초, @SpringBootTest가 약 3.4~4.4초였고, 컨텍스트를 다시 쓴 두 번째 클래스는 0.05초 이하였습니다. Mockito는 JDK 21에서 가짜 객체를 만들기 위해 실행 중에 스스로 에이전트를 붙이며 경고를 내는데, 동작에는 지장이 없어 그대로 두었습니다. 테스트 메서드의 @Transactional 롤백, @DataJpaTest 같은 다른 슬라이스, @MockitoSpyBean, 캐시의 최대 크기, 빌드 도구가 테스트를 여러 프로세스로 나눠 실행하는 경우(캐시는 프로세스마다 따로입니다)는 다루지 않았고 실행으로 확인하지도 않았습니다.</p>
+<p>서른여섯 가지 조합 모두를 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. 스프링 부트 4에서는 @MockBean이 없고(4.1.1의 spring-boot-test jar에 그 클래스가 없음을 확인) 스프링 프레임워크의 @MockitoBean(org.springframework.test.context.bean.override.mockito)을 씁니다. @WebMvcTest와 @AutoConfigureMockMvc는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있습니다. 3.x의 패키지 이름과 다르므로 import 문을 옮겨 적을 때 주의합니다. 자동 설정의 통제: 검증 실행의 클래스패스에는 스프링 시큐리티, H2와 HikariCP, Hibernate, 스프링 데이터 JPA, 액추에이터가 함께 있습니다. 대조 실행에서는 @SpringBootApplication의 exclude로 시큐리티 자동 설정 다섯 개와 DataSource, Hibernate JPA, 스프링 데이터 JPA 리포지토리 자동 설정을 뺐습니다. 빼지 않고 실행했을 때는 @SpringBootTest의 요청이 시큐리티에 막혀 401이 되었고 @WebMvcTest는 그대로 통과했습니다(실습을 만들면서 따로 실행해 본 결과이며, 저장해 둔 대조 출력에는 들어 있지 않습니다. 이 클래스패스에서 @WebMvcTest가 불러오는 자동 설정 목록에는 시큐리티가 없었습니다. spring-boot-security-test 모듈이 있을 때의 동작은 확인하지 않았습니다). 화면의 @SpringBootApplication 클래스는 생략했습니다. 화면의 코드와 대조용 코드의 차이: 대조용 코드는 테스트 클래스의 이름이 다르고, 같은 본문을 abstract 클래스에서 물려받으며, 객체가 진짜인지 가짜인지 적어 두는 줄과 컨텍스트 횟수를 세는 코드가 더 있습니다. &quot;@MockitoBean이 하나 더 있다&quot;는 첫 번째 클래스가 바꾸지 않은 것 하나(OrderRepository, 이미 바꿨으면 OrderService)를 더 바꾼 경우입니다. DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. 같은 설정의 컨텍스트가 한 번 실패하면 다시 만들지 않는 한도는 spring.test.context.failure.threshold이고 기본값이 1입니다(spring-test 7.0.9의 상수로 확인). @DirtiesContext는 클래스에 붙였을 때의 기본 동작(클래스의 테스트가 끝난 뒤 닫음)만 다뤘습니다. 검증 실행에서 컨텍스트의 빈 정의 수는 @SpringBootTest가 303개, @WebMvcTest가 130개였고(가짜 빈이 추가되면 131개), 이 수는 클래스패스와 위의 exclude에 따라 달라집니다. 걸린 시간은 실행할 때마다 달라서 결과 표에 넣지 않았습니다. 검증 실행 가운데 한 번에서 첫 번째 클래스는 스프링 없는 테스트가 약 0.7~0.9초(Mockito 준비 포함), @WebMvcTest가 약 2.7초, @SpringBootTest가 약 3.4~4.4초였고, 컨텍스트를 다시 쓴 두 번째 클래스는 0.05초 이하였습니다. Mockito는 JDK 21에서 가짜 객체를 만들기 위해 실행 중에 스스로 에이전트를 붙이며 경고를 내는데, 동작에는 지장이 없어 그대로 두었습니다. 테스트 메서드의 @Transactional 롤백, @DataJpaTest 같은 다른 슬라이스, @MockitoSpyBean, 캐시의 최대 크기, 빌드 도구가 테스트를 여러 프로세스로 나눠 실행하는 경우(캐시는 프로세스마다 따로입니다)는 다루지 않았고 실행으로 확인하지도 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/actuator/">액추에이터와 헬스 체크</a> · 다음 실습: <a href="../../lab/restclient/">외부 API 호출과 타임아웃</a></p>
   </div>
 
@@ -219,6 +219,6 @@ class OrderRepository {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

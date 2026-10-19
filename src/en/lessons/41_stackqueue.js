@@ -59,6 +59,7 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? 'Stack (the right end is the top)' : c.ds === 'queue' ? 'Queue (the left end is the head, the right end is the tail)' : 'Internal array (index 0 is the top = the smallest value)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), 'empty');
+    if (c.ds === 'stack') H.text(v, 'The boxes above are drawn with the right end as the top. A real ArrayDeque\'s push puts the value at the front, so if you print it with System.out.println(stack), the top comes first on the left and the order looks reversed' + (s.a.length ? ' (right now, [' + s.a.slice().reverse().join(', ') + ']).' : '.'));
   },
   // Diagram: the stack is drawn piling upward, the queue as a line from side to side, and the priority queue as a tree (heap). A removed value moves to the row at the bottom.
   draw: function (P, sim, shown) {
@@ -82,5 +83,5 @@ Lab.register({
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
     P.note(c.ds === 'pq' ? 'The yellow box is the top (the smallest value). The tree is another view of the internal array below it, and the children of index i are at indexes 2i+1 and 2i+2.' : 'The yellow box is the value that will be removed next. A removed value moves to the row at the bottom.');
   },
-  assume: 'The removal order and the changes to the internal array of the priority queue were checked by running the real ArrayDeque and PriorityQueue on JDK 21 on this PC (the internal array matched after every insertion and after every removal). By default, PriorityQueue returns the smallest value first, and you can change the ordering by supplying a Comparator.',
+  assume: 'The removal order and the changes to the internal array of the priority queue were checked by running the real ArrayDeque and PriorityQueue on JDK 21 in our test environment (the internal array matched after every insertion and after every removal). By default, PriorityQueue returns the smallest value first, and you can change the ordering by supplying a Comparator.',
 });

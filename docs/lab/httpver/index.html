@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 </ul>
 <h2>코드</h2>
 <pre># application.yml
-server.http2.enabled: false        # HTTP/2 (TLS 필요)
+server.http2.enabled: false        # 브라우저는 TLS(https)에서만 HTTP/2를 씀
 
 # nginx
 server {
@@ -76,7 +76,7 @@ server {
 
 &lt;!-- 페이지 하나가 요청하는 파일: 30개 --&gt;</pre>
 <h2>이 모형의 전제</h2>
-<p>파일 하나를 받는 데 100ms, 유실된 패킷의 재전송에 200ms, 연결 수립에 HTTP/1.1은 60ms(연결 6개가 동시에), HTTP/2는 30ms, HTTP/3는 20ms가 든다고 가정한 모형입니다. 실제 숫자는 네트워크와 파일 크기에 따라 다르며, 브라우저가 같은 서버에 맺는 HTTP/1.1 연결 수 6개는 주요 브라우저의 기본값입니다. 버전별 특징은 각 표준(RFC 9112, 9113, 9114)의 설명을 따랐습니다. 연결 수에 관한 부분은 실제로 확인했습니다. 실제 브라우저(크로미움 기반)에서 0.3초씩 걸리는 요청 18개를 HTTP/1.1 서버에 동시에 보내니 연결 6개로 최대 6개씩 처리되어 931ms가 걸렸고, HTTP/2(Node 내장 구현)로는 요청 30개가 TCP 연결 1개에서 동시에 처리되어 324ms에 끝났습니다. 패킷 유실 시의 차이와 HTTP/3는 이 PC에서 재현하지 못했습니다.</p>
+<p>파일 하나를 받는 데 100ms, 유실된 패킷의 재전송에 200ms, 연결 수립에 HTTP/1.1은 60ms(연결 6개가 동시에), HTTP/2는 30ms, HTTP/3는 20ms가 든다고 가정한 모형입니다. 실제 숫자는 네트워크와 파일 크기에 따라 다르며, 브라우저가 같은 서버에 맺는 HTTP/1.1 연결 수 6개는 주요 브라우저의 기본값입니다. 버전별 특징은 각 표준(RFC 9112, 9113, 9114)의 설명을 따랐습니다. 연결 수에 관한 부분은 실제로 확인했습니다. 실제 브라우저(크로미움 기반)에서 0.3초씩 걸리는 요청 18개를 HTTP/1.1 서버에 동시에 보내니 연결 6개로 최대 6개씩 처리되어 931ms가 걸렸고, HTTP/2(Node 내장 구현)로는 요청 30개가 TCP 연결 1개에서 동시에 처리되어 324ms에 끝났습니다. 패킷 유실 시의 차이와 HTTP/3는 검증 환경에서 재현하지 못했습니다.</p>
 <p>앞 실습: <a href="../../lab/httpmsg/">HTTP 메시지와 상태 코드</a> · 다음 실습: <a href="../../lab/cookie/">쿠키</a></p>
   </div>
 
@@ -164,6 +164,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

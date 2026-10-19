@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,8 +60,8 @@
 <ol>
 <li>new Post, addComment twice: Created one post object and two comment objects and connected them to each other. They are still ordinary Java objects that JPA does not know about (New). The DB has nothing.</li>
 <li>em.persist(post): The post comes under the management of the persistence context. The primary key uses the IDENTITY strategy, so the INSERT is sent right away to get the id.</li>
-<li>Because cascade does not have PERSIST, the persist stops at the post. The two comments in the list are still New objects that JPA does not know about.</li>
-<li>Method ends, commit: It commits without an exception. comments is the side with mappedBy, so it does not manage the foreign key, and Hibernate does not complain even if this list holds objects that have not been saved. The comment INSERTs were never sent.</li>
+<li>Because cascade does not have PERSIST, the persist stops at the post. The two comments that the list points to are still New objects that JPA does not know about.</li>
+<li>Method ends, commit: It commits without an exception. comments is the side with mappedBy, so it does not manage the foreign key, and Hibernate does not complain even if this list points to objects that have not been saved. The comment INSERTs were never sent.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -76,6 +76,11 @@ class Post {
 
     @OneToMany(mappedBy = &quot;post&quot;)
     List&lt;Comment&gt; comments = new ArrayList&lt;&gt;();
+
+    protected Post() { }               // the no-argument constructor JPA uses to create the entity
+    Post(String title) { this.title = title; }
+
+    public List&lt;Comment&gt; getComments() { return comments; }
 
     void addComment(String text) {     // sets both sides together
         Comment c = new Comment(text);
@@ -92,6 +97,9 @@ class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     Post post;                         // foreign key post_id
+
+    protected Comment() { }
+    Comment(String text) { this.text = text; }
 }
 
 // Runs inside a transaction
@@ -189,6 +197,6 @@ em.persist(post);                      // persists only the post
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,6 +81,8 @@ class Post {
 
     @OneToMany(mappedBy = &quot;post&quot;)
     List&lt;Attachment&gt; files = new ArrayList&lt;&gt;();     // attachments
+
+    public List&lt;Comment&gt; getComments() { return comments; }
 }
 
 @Entity
@@ -88,6 +90,16 @@ class Post {
 class Comment {
     @Id Long id;
     String text;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    Post post;
+}
+
+@Entity
+@Table(name = &quot;files&quot;)
+class Attachment {     // an attachment
+    @Id Long id;
+    String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     Post post;
@@ -103,7 +115,7 @@ for (Post p : posts) {
     p.getComments().size();        // use the comments of each post
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>With 3 comments on post 1 and 2 comments on post 2, all 12 combinations (6 JPQL queries, each with and without pagination) were run on real Hibernate 7.4.5 and an H2 database, and the size and order of the result list, the number of rows the database returned, whether the SQL contains the comment columns and a row limit and where, the number of follow-up queries, and the warnings and exceptions were confirmed to match the screen. The SQL on the screen is shortened to be easy to read. The row limit is written as limit 1, but the statement actually sent on H2 was offset ? rows fetch first ? rows only, and it differs by database. The result for this topic differs by version. Cutting in the database with a subquery when you add pagination to a fetch join, and holding the same entity only once in the result of a plain join, are results of running 7.4.5. The statements &quot;older versions always cut in memory&quot; and &quot;up to Hibernate 5, distinct was needed&quot; follow the documentation, and they were not verified by execution because no older version is installed on the PC used to write this lab. The comparison was done with the application freshly started for each combination (a new SessionFactory was created). This is because, in the same environment, when the same fetch join JPQL was first run without pagination and then run with pagination in the same SessionFactory, the SQL without a row limit was reused, and the whole result came back. Also, when a where condition was placed on the fetch-joined comments and pagination was applied, an SQL syntax error occurred in this environment. Code that uses a collection fetch join together with pagination needs its actual SQL checked on the version you use. A plain join and a join fetch are inner joins, so posts without comments drop out of the result, but the data of this lab has no such post.</p>
+<p>With 3 comments on post 1 and 2 comments on post 2, all 12 combinations (6 JPQL queries, each with and without pagination) were run on real Hibernate 7.4.5 and an H2 database, and the size and order of the result list, the number of rows the database returned, whether the SQL contains the comment columns and a row limit and where, the number of follow-up queries, and the warnings and exceptions were confirmed to match the screen. The SQL on the screen is shortened to be easy to read. The row limit is written as limit 1, but the statement actually sent on H2 was offset ? rows fetch first ? rows only, and it differs by database. The result for this topic differs by version. Cutting in the database with a subquery when you add pagination to a fetch join, and holding the same entity only once in the result of a plain join, are results of running 7.4.5. The statements &quot;older versions always cut in memory&quot; and &quot;up to Hibernate 5, distinct was needed&quot; follow the documentation, and they were not verified by running an older version. The comparison was done with the application freshly started for each combination (a new SessionFactory was created). This is because, in the same environment, when the same fetch join JPQL was first run without pagination and then run with pagination in the same SessionFactory, the SQL without a row limit was reused, and the whole result came back. Also, when a where condition was placed on the fetch-joined comments and pagination was applied, an SQL syntax error occurred in this environment. Code that uses a collection fetch join together with pagination needs its actual SQL checked on the version you use. A plain join and a join fetch are inner joins, so posts without comments drop out of the result, but the data of this lab has no such post.</p>
 <p>Previous lab: <a href="../../lab/nplus1/">N+1</a> · Next lab: <a href="../../lab/bulk/">Bulk update and delete operations</a></p>
   </div>
 
@@ -191,6 +203,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

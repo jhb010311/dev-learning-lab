@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Bean scopes</h1>
 <p><b>It is a prototype bean, so why is there only one object?</b></p>
-<p>A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens.</p>
+<p>A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Cart, OrderService and OrderController in this lab are classes made for this example.</p>
 <p>Checked against real execution · A Spring Boot 4.1.1 server was started, and HTTP requests were sent for all 9 combinations and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -59,15 +59,15 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>Container startup: The three beans orderController, orderService, and cart are registered. orderController and orderService are singletons, and the scope of cart is prototype.</li>
-<li>Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A prototype bean is created anew each time it is asked for, so the container creates Cart #1 and passes it. OrderService stores this object in a field.</li>
+<li>Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A prototype bean is created anew each time it is asked for, so the container creates Cart #1 and passes it. OrderService makes its field point to this object.</li>
 <li>Startup is finished. Cart objects created so far: 1.</li>
 <li>Request 1: GET /order comes in. The order() method of OrderController calls orderService.cartNo() twice.</li>
-<li>cartNo() call #1: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
-<li>cartNo() call #2: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #1: It calls no() on Cart #1, the object the field points to. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #2: It calls no() on Cart #1, the object the field points to. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
 <li>The response to request 1 is &quot;1,1&quot;.</li>
 <li>Request 2: GET /order comes in. The order() method of OrderController calls orderService.cartNo() twice.</li>
-<li>cartNo() call #1: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
-<li>cartNo() call #2: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #1: It calls no() on Cart #1, the object the field points to. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #2: It calls no() on Cart #1, the object the field points to. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
 <li>The response to request 2 is &quot;1,1&quot;.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -121,7 +121,7 @@ class OrderController {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>All 9 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService holds (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the &quot;Singleton beans and state&quot; lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.</p>
+<p>All 9 combinations were actually run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService points to (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the &quot;Singleton beans and state&quot; lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.</p>
 <p>Previous lab: <a href="../../lab/singleton/">Singleton beans and state</a> · Next lab: <a href="../../lab/lifecycle/">Bean lifecycle callbacks</a></p>
   </div>
 
@@ -209,6 +209,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

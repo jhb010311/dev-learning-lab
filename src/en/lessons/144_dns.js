@@ -5,14 +5,14 @@ Lab.register({
   terms: ['DNS', 'DNS record', 'Recursive resolver and authoritative name server', 'DNS cache and TTL'],
   controls: [
     { id: 'q', label: 'What to ask for', type: 'select', value: 'a', options: [['a', 'IPv4 address of shop.example (A)'], ['aaaa', 'IPv6 address of shop.example (AAAA)'], ['cname', 'Address of www.shop.example (through a CNAME)'], ['mx', 'Mail server of shop.example (MX)']] },
-    { id: 'cache', label: 'State of the caches', type: 'select', value: 'none', options: [['none', 'Nowhere (a name asked for the first time)'], ['resolver', 'In the resolver\'s cache (another user asked 120s ago)'], ['os', 'In this PC\'s cache (asked 120s ago)'], ['expired', 'This PC asked 400s ago (the TTL of 300s has passed)']] },
+    { id: 'cache', label: 'State of the caches', type: 'select', value: 'none', options: [['none', 'Nowhere (a name asked for the first time)'], ['resolver', 'In the resolver\'s cache (another user asked 120s ago)'], ['os', 'In the PC\'s cache (asked 120s ago)'], ['expired', 'The PC asked 400s ago (the TTL of 300s has passed)']] },
     { id: 'changed', label: 'The administrator changed the value of the record a moment ago', type: 'check', value: false, hint: 'Only the value on the authoritative name server changes. Answers already in a cache stay as they are.' },
   ],
   presets: [
     { t: 'Default settings', q: 'How does the PC get the answer when it asks for the IPv4 address of shop.example (A) and no cache has the name?', d: 'A name asked for the first time. The resolver asks from the root server down, one server at a time, to find the answer.', v: { q: 'a', cache: 'none', changed: false } },
-    { t: 'A name that was just asked for', q: 'What if this PC\'s cache has an answer from a query made 120s ago?', d: 'The answer is in this PC\'s cache, so no one is asked.', v: { q: 'a', cache: 'os', changed: false } },
+    { t: 'A name that was just asked for', q: 'What if the PC\'s cache has an answer from a query made 120s ago?', d: 'The answer is in the PC\'s cache, so no one is asked.', v: { q: 'a', cache: 'os', changed: false } },
     { t: 'Record changed, but traffic still goes to the old address', q: 'What if the resolver\'s cache has an answer another user asked 120s ago, and the administrator changed the value of the record a moment ago?', d: 'The TTL has not run out in the resolver\'s cache, so it gets the old value.', v: { q: 'a', cache: 'resolver', changed: true } },
-    { t: 'After the TTL has passed', q: 'What if this PC asked 400s ago, so the TTL of 300s has passed, and the administrator changed the value of the record a moment ago?', d: 'It asks again and gets the new value. It does not start from the root server.', v: { q: 'a', cache: 'expired', changed: true } },
+    { t: 'After the TTL has passed', q: 'What if the PC asked 400s ago, so the TTL of 300s has passed, and the administrator changed the value of the record a moment ago?', d: 'It asks again and gets the new value. It does not start from the root server.', v: { q: 'a', cache: 'expired', changed: true } },
     { t: 'A name that goes through a CNAME', q: 'What if you ask for the address of www.shop.example (through a CNAME)?', d: 'It finds the canonical name of the alias, and then looks up that name once more.', v: { q: 'cname', cache: 'none', changed: false } },
     { t: 'Finding the mail server', q: 'What if you ask for the mail server of shop.example (MX)?', d: 'An MX record gives the name of the mail server, not an address.', v: { q: 'mx', cache: 'none', changed: false } },
   ],
@@ -32,7 +32,7 @@ Lab.register({
   columns: ['Answer received', 'Where the answer came from', 'Queries from the PC to the resolver', 'Queries from the resolver to name servers', 'Was the changed value reflected?'],
   simulate: function (c) {
     var K = this.CASES[c.q], cn = c.q === 'cname', TTL = 300, AGO = 120, LEFT = TTL - AGO, OLD = 400, NS = 172800, ev = [], sum = [];
-    var st = { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' };
+    var st = { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '', stale: false };   // stale: whether it has come out that the answer received is the old value from before the change
     function push(s, kind) { ev.push({ s: s, k: kind || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function msg(f, t, s, cls) { st.msgs.push({ f: f, t: t, s: s, cls: cls || '' }); }
     var cached = c.cache === 'os' || c.cache === 'resolver', val = c.changed && !cached ? K.neu : K.old, show = function (v) { return cn ? K.alias + ' → ' + v : v; };
@@ -49,19 +49,21 @@ Lab.register({
     // 1. the cache of the PC
     if (c.cache === 'os') {
       msg('pc', '', 'In cache (' + LEFT + 's left)', 'good'); st.ans = show(K.old); st.src = 'PC\'s cache';
-      push(need + ' First it looks at the cache of this PC (the place where the operating system and the browser remember answers they received earlier). There is an answer that was received when the same thing was asked ' + AGO + 's ago, and of the TTL of ' + TTL + 's, ' + LEFT + 's is left. It uses the answer from the cache as it is. No question goes out over the network.', 'good');
-      if (c.changed) push('But a moment ago the administrator ' + chg + '. The only thing that changed is the value on the authoritative name server, and this PC has no way to know it. It asks again and gets the new value only after ' + LEFT + 's, when the TTL in its cache ends.', 'bad');
+      push(need + ' First it looks at the cache of the PC (the place where the operating system and the browser remember answers they received earlier). There is an answer that was received when the same thing was asked ' + AGO + 's ago, and of the TTL of ' + TTL + 's, ' + LEFT + 's is left. It uses the answer from the cache as it is. No question goes out over the network.', 'good');
+      if (c.changed) st.stale = true;
+      if (c.changed) push('But a moment ago the administrator ' + chg + '. The only thing that changed is the value on the authoritative name server, and the PC has no way to know it. It asks again and gets the new value only after ' + LEFT + 's, when the TTL in its cache ends.', 'bad');
     } else {
-      if (c.cache === 'expired') { msg('pc', '', 'Cached answer: TTL passed'); st.pc = []; push(need + ' First it looks at the cache of this PC. There was an answer received earlier, but it is from ' + OLD + 's ago, so the TTL of ' + TTL + 's has passed. An answer whose TTL has passed is not used and is discarded.'); }
-      else { msg('pc', '', 'Not in cache'); push(need + ' First it looks at the cache of this PC (the place where the operating system and the browser remember answers they received earlier). ' + (c.cache === 'none' ? 'It is a name asked for the first time, so there is nothing.' : 'This PC has never asked for it, so there is nothing.')); }
+      if (c.cache === 'expired') { msg('pc', '', 'Cached answer: TTL passed'); st.pc = []; push(need + ' First it looks at the cache of the PC. There was an answer received earlier, but it is from ' + OLD + 's ago, so the TTL of ' + TTL + 's has passed. An answer whose TTL has passed is not used and is discarded.'); }
+      else { msg('pc', '', 'Not in cache'); push(need + ' First it looks at the cache of the PC (the place where the operating system and the browser remember answers they received earlier). ' + (c.cache === 'none' ? 'It is a name asked for the first time, so there is nothing.' : 'The PC has never asked for it, so there is nothing.')); }
       // 2. the recursive resolver
       msg('pc', 'rs', ask); st.pcq = 1;
-      var intro2 = 'This PC asks the recursive resolver. A recursive resolver is a DNS server that looks for the answer on your behalf. It is usually run by an internet provider or a company, and its address is in the network settings. The resolver also looks at its own cache first. ';
+      var intro2 = 'The PC asks the recursive resolver. A recursive resolver is a DNS server that looks for the answer on your behalf. It is usually run by an internet provider or a company, and its address is in the network settings. The resolver also looks at its own cache first. ';
       if (c.cache === 'resolver') {
         msg('rs', '', 'In cache (' + LEFT + 's left)', 'good');
         push(intro2 + 'Another user asked for the same thing ' + AGO + 's ago, so it has the answer, and ' + LEFT + 's of the TTL is left.', 'good');
         msg('rs', 'pc', 'Answer: ' + K.old + (K.type === 'MX' ? '' : ' (TTL ' + LEFT + ')'), 'good'); st.pc = recs(K.old, LEFT + 's'); st.ans = show(K.old); st.src = 'Resolver\'s cache';
-        push('The resolver returns the answer from its cache right away, without asking the root server or the authoritative name server. The TTL written in the answer is not the original ' + TTL + 's but the ' + LEFT + 's that remain. This PC also remembers the answer only for those ' + LEFT + 's.', 'good');
+        push('The resolver returns the answer from its cache right away, without asking the root server or the authoritative name server. The TTL written in the answer is not the original ' + TTL + 's but the ' + LEFT + 's that remain. The PC also remembers the answer only for those ' + LEFT + 's.', 'good');
+        if (c.changed) st.stale = true;
         if (c.changed) push('But a moment ago the administrator ' + chg + '. While the TTL in its cache remains, the resolver does not ask the authoritative name server again, so every user of this resolver gets the old value for the remaining ' + LEFT + 's.', 'bad');
       } else {
         var chNote = c.changed ? ' This is the new value that the administrator changed a moment ago.' : '';
@@ -92,13 +94,13 @@ Lab.register({
           push('Resolver → authoritative name server of cdn.example: ' + (c.cache === 'expired' ? 'It searches again with the canonical name (' + K.alias + '). The delegation information for cdn.example is also in the cache, so it asks directly. ' : '') + 'It gives the answer: ' + K.alias + ' A ' + val + ', TTL ' + TTL + 's.' + chNote, 'good');
         }
         msg('rs', 'pc', 'Answer: ' + val + (K.type === 'MX' ? '' : ' (TTL ' + TTL + ')'), 'good'); st.pc = recs(val, TTL + 's'); st.ans = answer; st.src = 'Authoritative name server';
-        push('The resolver puts the records it received in its own cache and returns the answer to this PC. For the next ' + TTL + 's, it answers anyone who asks the same thing from its cache.' + (c.cache === 'none' ? ' It also remembers the delegation information it learned on the way.' : '') + ' This PC also puts the answer it received in its cache for the TTL.' + (c.changed ? ' No cache held the old value, so the new value was reflected right away.' : ''), 'good');
+        push('The resolver puts the records it received in its own cache and returns the answer to the PC. For the next ' + TTL + 's, it answers anyone who asks the same thing from its cache.' + (c.cache === 'none' ? ' It also remembers the delegation information it learned on the way.' : '') + ' The PC also puts the answer it received in its cache for the TTL.' + (c.changed ? ' No cache held the old value, so the new value was reflected right away.' : ''), 'good');
       }
     }
     var stale = c.changed && cached;
     push(c.q === 'mx' ? 'Mail is sent to the ' + st.ans.slice(3) + ' server. The IP address of this name is looked up once more with an A record (the name server may also include it in the MX answer).' + (stale ? ' This is the old server from before the administrator changed it.' : '') : 'The browser connects to the address it received (' + (cn ? val : st.ans) + ').' + (stale ? ' This is the old address from before the administrator changed it.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? 'Not changed' : cached ? 'Still the old value' : 'Reflected (new value)';
-    if (c.cache === 'none') sum.push('No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and the original answer is held by the authoritative name server of that domain. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.');
+    if (c.cache === 'none') sum.push('No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and the original answer is held by the authoritative name server of that domain. The PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.');
     if (cached) sum.push('An answer that has been received stays in the cache for the TTL, and during that time it is not asked for again. There are caches on the PC and on the resolver. Thanks to this, most lookups finish without reaching a root server.');
     if (c.cache === 'expired') sum.push('Once the TTL has passed, it asks again. Even so, it does not start from the root server again. This is because which name servers are responsible for the domain is remembered separately, with a longer TTL.');
     if (stale) sum.push('Even if you change a record, an answer that is already in a cache is used until its TTL ends. So each user gets the new value at a different time, and at the latest it takes as long as the TTL before the change. If you plan to move a server, shorten the TTL in advance, and keep the old server running for a while after the move.');
@@ -108,11 +110,11 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    if (!last) H.text(v, 'Click Run to look for the answer in order, starting with the cache of this PC.');
+    if (!last) H.text(v, 'Click Run to look for the answer in order, starting with the cache of the PC.');
     var ln = H.lanes(v);
     H.lane(ln, 'Where the answer came from', s.src || 'None yet', s.src ? (s.src === 'Authoritative name server' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL passed' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(empty)', '', '', ''] }]; };
-    H.table(v, ['Name', 'Type', 'Value', 'TTL left'], rows(s.pc), 'Cache of this PC');
+    H.table(v, ['Name', 'Type', 'Value', 'TTL left'], rows(s.pc), 'Cache of the PC');
     H.table(v, ['Name', 'Type', 'Value', 'TTL left'], rows(s.rs), 'Cache of the recursive resolver (NS is delegation information that says "which server is responsible for this name")');
     var kind = c.q === 'cname' ? 'CNAME' : this.CASES[c.q].type;
     H.table(v, ['Type', 'What it connects the name to', 'Example'], [['A', 'IPv4 address', 'shop.example → 203.0.113.10'], ['AAAA', 'IPv6 address', 'shop.example → 2001:db8::10'], ['CNAME', 'Another name (this name is an alias)', 'www.shop.example → shop.cdn.example'], ['MX', 'Name and priority of the server that receives mail', 'shop.example → 10 mail.shop.example']].map(function (r) { return { cells: [{ v: r[0], cls: r[0] === kind ? 'hot' : '' }, r[1], r[2]] }; }), 'Record types');
@@ -121,9 +123,9 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' };
     var actors = sim.cn ? [['pc', 'PC', 'wait'], ['rs', 'Resolver', 'wait'], ['root', 'Root'], ['tld', '.example'], ['shop', 'shop.example'], ['cdn', 'cdn.example']] : [['pc', 'PC', 'wait'], ['rs', 'Resolver', 'wait'], ['root', 'Root server'], ['tld', '.example'], ['shop', 'Authoritative']];
-    var end = P.seq(actors, s.msgs.map(function (m) { return m.t ? { f: m.f, t: m.t, s: m.s, cls: m.cls } : { f: m.f, s: m.s, cls: m.cls }; }), { keep: 9 });
+    var end = P.seq(actors, s.msgs.map(function (m) { return m.t ? { f: m.f, t: m.t, s: m.s, cls: m.cls } : { f: m.f, s: m.s, cls: m.cls }; }), { keep: Math.max(1, sim.events[sim.events.length - 1].snap.msgs.length) });
     P.box('cnt', 16, end + 14, 262, 34, { cls: 'plain', title: 'Questions sent', right: 'PC ' + s.pcq + ' · resolver ' + s.upq });
-    P.box('ans', 286, end + 14, 378, 34, { cls: s.ans ? (sim.row[4] === 'Still the old value' ? 'bad' : 'good') : 'ghost', title: 'Answer received', right: s.ans || 'None yet' });
+    P.box('ans', 286, end + 14, 378, 34, { cls: s.ans ? (s.stale ? 'bad' : 'good') : 'ghost', title: 'Answer received', right: s.ans || 'None yet' });
     P.size(680, end + 64);
     P.note('Each arrow is one question or one answer, and time flows from top to bottom. A box is the result of looking in the cache at that server. Resolver is the recursive resolver, and Authoritative is the authoritative name server that holds the original records of the domain (when a CNAME is involved, shop.example and cdn.example stand for the authoritative name servers of those domains). If the cache has the answer, the arrows end there and do not reach the servers on the right.');
   },

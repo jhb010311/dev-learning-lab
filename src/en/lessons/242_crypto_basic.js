@@ -1,7 +1,7 @@
 Lab.register({
   id: 'crypto_basic', nav: 'Encryption', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['crypto'],
   title: 'What is encryption, and what happens without the key?',
-  intro: 'Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt("Card number 1234", key), and you get back a value that cannot be read. A party that has the same key passes that value and the key to decrypt(sent, key) and gets the original text back. This is called decryption. A party that has no key, or a different key, cannot get the text back, so what you must protect is the key, not the value. In this lab, you change the key that the receiver has to the same key, a different key, or no key, and sometimes you remove the encryption itself. You see the value that is visible in the middle and what the receiver read, both checked by actually running the code. (The bodies of newKey, which makes a key, and of encrypt and decrypt, which do the calculation, are shortened on the screen.)',
+  intro: 'Encryption means calculating text together with a key to turn it into a value that cannot be read. In this lab\'s code, you pass the text and a key to encrypt("Card number 1234", key), and you get back a value that cannot be read. A party that has the same key passes that value and the key to decrypt(sent, key) and gets the original text back. This is called decryption. A party that has no key, or a different key, cannot get the text back, so what you must protect is the key, not the value. In this lab, you change the key that the receiver has to the same key, a different key, or no key, and sometimes you remove the encryption itself. You see the value that is visible in the middle and what the receiver read, both checked by actually running the code. (newKey, which makes a key, and encrypt and decrypt, which do the calculation, are helper methods written for this lab as examples using the standard Java library (javax.crypto); their bodies are shortened on the screen.)',
   terms: ['Encryption', 'Decryption', 'Key', 'Symmetric-key cryptography and public-key cryptography'],
   controls: [
     { id: 'enc', label: 'Sender (the String sent line)', type: 'select', value: 'on', options: [['on', 'Encrypt with a key and send: encrypt("Card number 1234", key)'], ['off', 'Send the text as it is, without encrypting: "Card number 1234"']] },
@@ -44,7 +44,7 @@ Lab.register({
 
     // 1. Make the key
     st.hot = 'k1'; st.k1 = 'made';
-    push('The SecretKey key = newKey(); line runs. The helper method newKey() makes one key and puts it in key. A key is a value that you put into the calculation together with the text, both when you encrypt and when you decrypt.', '');
+    push('The SecretKey key = newKey(); line runs. The helper method newKey(), written for this lab as an example, makes one key, and the variable key refers to that key. A key is a value that you put into the calculation together with the text, both when you encrypt and when you decrypt.', '');
 
     if (on) {
       // 2-4. The sender
@@ -126,7 +126,7 @@ Lab.register({
     P.region('rv', 468, 6, 206, 258, 'Receiver');
     P.box('pt', 14, 36, 190, 50, { cls: hot === 'pt' ? 'hot now' : 'plain', title: 'Text', sub: PT });
     var enSub = !on ? 'No calculation' : s && s.enc === 'done' ? 'Unreadable value made' : 'Calculates text and key';
-    P.box('en', 14, 112, 190, 62, { cls: !on ? 'ghost' : hot === 'en' ? 'hot now' : s && s.enc === 'done' ? 'good' : 'plain', title: 'Encryption', sub: enSub });
+    P.box('en', 14, 112, 190, 62, { cls: !on ? 'ghost' : s && s.enc === 'done' ? (hot === 'en' ? 'good now' : 'good') : hot === 'en' ? 'hot now' : 'plain', title: 'Encryption', sub: enSub });
     var k1Sub = !s || s.k1 === 'none' ? 'None yet' : s.k1 === 'unused' ? 'Made but not used' : 'key (Key A)';
     P.box('k1', 14, 202, 190, 50, { cls: !s || s.k1 === 'none' || s.k1 === 'unused' ? 'ghost' : hot === 'k1' ? 'hot now' : 'plain', title: 'Key', sub: k1Sub });
 

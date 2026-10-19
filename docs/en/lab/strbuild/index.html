@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,7 +77,7 @@ System.out.println(s);
 System.out.println(first);
 System.out.println(s == first);   // same object?</pre>
 <h2>Assumptions of this model</h2>
-<p>The output of the 18 combinations (10 distinct cases when the hidden setting is left out) was checked against the results of running the same code on JDK 21 on this PC. Saying that &quot;a new object was created&quot; means that a == comparison confirmed that the object is different from the previous one. How many objects are actually created in memory at run time can vary with the optimizations of the JVM, so no claim is made about it. The methods and values chosen here are all cases in which the contents change. For a call that does not change the contents (for example, replace when there is no character to replace), String sometimes returns itself without creating a new object. How a StringBuilder grows the internal space that holds its characters is not covered by this model.</p>
+<p>The output of the 18 combinations (10 distinct cases when the hidden setting is left out) was checked against the results of running the same code on JDK 21 in our test environment. Saying that &quot;a new object was created&quot; means that a == comparison confirmed that the object is different from the previous one. How many objects are actually created in memory at run time can vary with the optimizations of the JVM, so no claim is made about it. The methods and values chosen here are all cases in which the contents change. For a call that does not change the contents (for example, replace when there is no character to replace), String sometimes returns itself without creating a new object. How a StringBuilder grows the internal space that holds its characters is not covered by this model.</p>
 <p>Previous lab: <a href="../../lab/eqhash/">equals and hashCode</a> · Next lab: <a href="../../lab/datetime/">Dates and times</a></p>
   </div>
 
@@ -165,6 +165,6 @@ System.out.println(s == first);   // same object?</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

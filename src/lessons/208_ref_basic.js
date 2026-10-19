@@ -1,14 +1,14 @@
 Lab.register({
   id: 'ref_basic', nav: '참조', cat: '기초개념', mode: 'step', basic: true, deep: ['eq'],
   title: '변수에 객체를 담는다는 것은 무슨 뜻인가',
-  intro: 'Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 변수를 다른 변수에 담으면 객체는 복사되지 않고 가리키는 값만 복사되어, a와 b가 같은 객체를 가리키게 됩니다. 한쪽으로 객체의 내용을 바꾸면 다른 쪽으로 봐도 바뀌어 있습니다. int 같은 기본 타입 변수는 다릅니다. 값 자체가 들어 있어서 int b = a;는 값을 복사합니다. 이 실습은 b에 담는 것을 a에서 복사한 참조, new로 새로 만든 객체, 새로 만든 뒤 owner만 옮겨 담은 객체, int 값으로 바꿔 가며 같은 줄을 실행해, b를 바꾼 뒤 a가 어떻게 되는지와 만들어진 Card 객체가 몇 개인지를 봅니다.',
+  intro: 'Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 변수를 다른 변수에 담으면 객체는 복사되지 않고 가리키는 값만 복사되어, a와 b가 같은 객체를 가리키게 됩니다. 한쪽으로 객체의 내용을 바꾸면 다른 쪽으로 봐도 바뀌어 있습니다. int 같은 기본 타입 변수는 다릅니다. 값 자체가 들어 있어서 int b = a;는 값을 복사합니다. 이 실습은 b에 담는 것을 a에서 복사한 참조, new로 새로 만든 객체, 새로 만든 뒤 owner만 옮겨 담은 객체, int 값으로 바꿔 가며 같은 줄을 실행해, b를 바꾼 뒤 a가 어떻게 되는지와 만들어진 Card 객체가 몇 개인지를 봅니다.',
   terms: ['참조', '클래스와 객체', '기본형과 참조형', '동일성과 동등성'],
   controls: [
     { id: 'how', label: 'b에 담는 코드', type: 'select', value: 'same', options: [['same', 'Card b = a;'], ['fresh', 'Card b = new Card();'], ['copy', 'Card b = new Card(); b.owner = a.owner;'], ['prim', 'Card 대신 int로: int a = 1; int b = a; b = 2;']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: 'Card b = a; 뒤에 b로 값을 바꾸면 a는 어떻게 되나', d: 'b에는 a가 가리키는 같은 객체가 담깁니다. b로 바꾸면 a로 봐도 바뀌어 있고, 객체는 1개뿐입니다.', v: { how: 'same' } },
+    { t: '처음 설정으로', q: 'Card b = a; 뒤에 b로 값을 바꾸면 a는 어떻게 되나', d: 'b도 a가 가리키는 같은 객체를 가리킵니다. b로 바꾸면 a로 봐도 바뀌어 있고, 객체는 1개뿐입니다.', v: { how: 'same' } },
     { t: 'b에 new Card()를 담으면', q: 'b에 a 대신 new Card()를 담으면', d: '새 객체가 하나 더 만들어져 a와 b는 서로 다른 객체를 가리킵니다. b를 바꿔도 a는 그대로입니다.', v: { how: 'fresh' } },
     { t: '새로 만든 뒤 값만 옮기면', q: 'b를 new Card()로 새로 만들고 a.owner 값만 옮겨 담으면', d: 'owner의 글을 옮겨 담아도 객체는 둘입니다. 처음엔 내용이 같았지만 서로 다른 객체입니다.', v: { how: 'copy' } },
     { t: 'int로 바꾸면', q: 'Card 대신 int로 b = a를 한 뒤 b를 바꾸면', d: '기본 타입 변수에는 값 자체가 들어 있어서 대입하면 값이 복사됩니다. b를 바꿔도 a는 그대로입니다.', v: { how: 'prim' } },
@@ -20,7 +20,7 @@ Lab.register({
       return o.join('\n');
     }
     o.push('class Card {', '    String owner;', '}', '', 'public class Main {', '    public static void main(String[] args) {', '        Card a = new Card();', '        a.owner = "김철수";');
-    if (c.how === 'same') o.push('        // b에는 a가 가리키는 그 객체가 담긴다. 객체는 새로 생기지 않는다', '        Card b = a;');
+    if (c.how === 'same') o.push('        // a가 가진 참조가 b에 복사되어 b도 같은 객체를 가리킨다. 객체는 새로 생기지 않는다', '        Card b = a;');
     else {
       o.push('        Card b = new Card();');
       if (c.how === 'copy') o.push('        b.owner = a.owner;');
@@ -91,11 +91,11 @@ Lab.register({
         sum.push('Card 변수에는 Card 객체 자체가 아니라 그 객체를 가리키는 값(참조)이 들어 있습니다. 그래서 Card b = a;는 객체를 복사하지 않고, 같은 객체를 가리키는 변수를 하나 더 만듭니다.');
         sum.push('b로 owner를 바꿨는데 a로 읽어도 이영희였던 것, a == b가 true였던 것, Card 객체가 1개뿐이었던 것은 모두 같은 이유입니다. 객체를 따로 갖고 싶으면 new Card()로 새로 만들어야 합니다.');
       } else if (how === 'fresh') {
-        sum.push('b에 new Card()를 담으면 새 객체가 만들어져, a와 b가 서로 다른 객체를 가리킵니다. b로 이영희를 담아도 a의 객체는 김철수 그대로였고, a == b는 false였습니다.');
+        sum.push('Card b = new Card();로 하면 새 객체가 만들어지고 b가 그 객체를 가리켜, a와 b가 서로 다른 객체를 가리킵니다. b로 이영희를 담아도 a의 객체는 김철수 그대로였고, a == b는 false였습니다.');
         sum.push('new Card()가 실행될 때마다 객체가 하나 더 생겼습니다(이번에는 2개). 객체를 따로 갖고 싶으면 이렇게 new로 새로 만들어야 합니다.');
       } else {
         sum.push('새로 만든 객체에 a.owner의 글을 옮겨 담으면 두 객체의 내용은 같아지지만, 객체는 둘입니다. b를 바꿔도 a의 객체는 김철수 그대로였고, a == b는 false였습니다.');
-        sum.push('a == b는 owner의 글이 같은지가 아니라 같은 객체를 가리키는지를 묻습니다. 내용이 같은 객체 두 개라도 a == b는 false입니다.');
+        sum.push('a == b는 owner의 글이 같은지가 아니라 같은 객체를 가리키는지를 묻습니다. 마지막 줄의 a == b는 b.owner를 이영희로 바꾼 뒤라 내용도 달랐지만, b.owner = a.owner; 직후 두 객체의 owner가 같은 김철수였을 때에도 a == b는 false였습니다(검증 실행에서 그 시점의 a == b도 확인했습니다).');
       }
     }
     return { events: ev, summary: sum, after: after, row: [st.out[0], st.out[1], prim ? '없음 (기본 타입)' : st.made + '개'] };

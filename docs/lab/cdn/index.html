@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -72,7 +72,8 @@
 <pre># 오리진이 app.css를 줄 때 붙이는 응답 헤더
 Cache-Control: public, s-maxage=300     # 공유 캐시(엣지)는 300초 동안 사본을 그대로 써도 된다
 
-// 엣지: 사본을 보관했다가 대신 답하는 서버 (Node.js로 줄여 쓴 모습)
+// 엣지: 사본을 보관했다가 대신 답하는 서버 (자바가 아니라 Node.js로 줄여 쓴 모습.
+//       fetchFromOrigin과 age는 예시로 만든 도우미 함수다)
 const store = new Map();                              // 주소(경로 + 쿼리 문자열) → 보관한 사본
 http.createServer(async (req, res) =&gt; {
     if (req.method === 'PURGE') {                     // 무효화: 그 주소의 사본을 지운다
@@ -185,6 +186,6 @@ http.createServer(async (req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

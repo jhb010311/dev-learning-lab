@@ -17,10 +17,10 @@ Lab.register({
   ],
   code: function (c) {
     var tx = c.feat === 'tx', ann = tx ? '@Transactional' : '@Async', m = tx ? 'saveAll' : 'sendMail', body = tx ? '        orderDao.insert(a);\n        orderDao.insert(b);\n        throw new IllegalStateException();   // 도중에 실패' : '        mailClient.send(mail);               // 3초 걸림';
-    var acc = c.path === 'priv' ? 'private' : 'public';
-    if (c.path === 'ext') return '@RestController class OrderController {\n    private final OrderService orderService;   // 주입된 것은 프록시\n\n    @PostMapping("/orders")\n    void order() {\n        orderService.' + m + '();              // 프록시를 거친다\n    }\n}\n\n@Service class OrderService {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
-    if (c.path === 'split') return '@Service class OrderService {\n    private final ' + (tx ? 'OrderWriter writer' : 'MailSender sender') + ';   // 다른 빈 (프록시)\n\n    public void placeOrder() {\n        ' + (tx ? 'writer' : 'sender') + '.' + m + '();                    // 프록시를 거친다\n    }\n}\n\n@Service class ' + (tx ? 'OrderWriter' : 'MailSender') + ' {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
-    return '@Service class OrderService {\n' + (c.path === 'inject' ? '    @Autowired @Lazy\n    private OrderService self;                 // 자기 자신의 프록시\n\n' : '') + '    public void placeOrder() {                 // 컨트롤러가 호출\n        ' + (c.path === 'inject' ? 'self.' + m + '();                        // 프록시를 거친다' : m + '();                             // this.' + m + '()과 같다') + '\n    }\n\n    ' + ann + '\n    ' + acc + ' void ' + m + '() {\n' + body + '\n    }\n}';
+    var acc = c.path === 'priv' ? 'private' : 'public', head = '// 필요한 부분만 남김: import와, 예시로 만든 필드·변수(' + (tx ? 'orderDao, a, b' : 'mailClient, mail') + ')의 선언은 줄였다.\n\n';
+    if (c.path === 'ext') return head + '@RestController class OrderController {\n    private final OrderService orderService;   // 주입된 것은 프록시\n\n    OrderController(OrderService orderService) {   // 생성자로 주입받는다\n        this.orderService = orderService;\n    }\n\n    @PostMapping("/orders")\n    void order() {\n        orderService.' + m + '();              // 프록시를 거친다\n    }\n}\n\n@Service class OrderService {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
+    if (c.path === 'split') return head + '@Service class OrderService {\n    private final ' + (tx ? 'OrderWriter writer' : 'MailSender sender') + ';   // 다른 빈 (프록시)\n\n    OrderService(' + (tx ? 'OrderWriter writer' : 'MailSender sender') + ') {   // 생성자로 주입받는다\n        this.' + (tx ? 'writer = writer' : 'sender = sender') + ';\n    }\n\n    public void placeOrder() {\n        ' + (tx ? 'writer' : 'sender') + '.' + m + '();                    // 프록시를 거친다\n    }\n}\n\n@Service class ' + (tx ? 'OrderWriter' : 'MailSender') + ' {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
+    return head + '@Service class OrderService {\n' + (c.path === 'inject' ? '    @Autowired @Lazy\n    private OrderService self;                 // 자기 자신의 프록시\n\n' : '') + '    public void placeOrder() {                 // 컨트롤러가 호출\n        ' + (c.path === 'inject' ? 'self.' + m + '();                        // 프록시를 거친다' : m + '();                             // this.' + m + '()과 같다') + '\n    }\n\n    ' + ann + '\n    ' + acc + ' void ' + m + '() {\n' + body + '\n    }\n}';
   },
   label: function (c) { return (c.feat === 'tx' ? '@Transactional' : '@Async') + ' · ' + { ext: '다른 빈에서 호출', self: '같은 클래스에서 호출', priv: '같은 클래스 + private', inject: '자기 주입 후 호출', split: '다른 빈으로 분리' }[c.path]; },
   columns: ['프록시를 거쳤나', '애너테이션 적용', '결과'],
@@ -30,11 +30,11 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     var S = { caller: '', proxy: '대기', target: '대기', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
-    push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하면, 원래 객체 대신 호출을 받을 프록시를 만들어 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다. 그런 메서드가 없는 빈은 원래 객체 그대로 등록됩니다.', '', snap({ caller: '아직 호출 전' }));
+    push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하면, 원래 객체 대신 호출을 받을 프록시를 만들어 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다. 그런 메서드가 없는 빈은 원래 객체 그대로 등록됩니다. 코드의 ' + (c.path === 'ext' ? 'OrderController, OrderService' : c.path === 'split' ? 'OrderService, ' + target : 'OrderService') + '와 그 메서드들은 예시로 만든 것이고, @Service와 ' + (tx ? '@Transactional' : '@Async') + ' 같은 애너테이션은 스프링이 주는 것입니다.', '', snap({ caller: '아직 호출 전' }));
     if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '을 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
     else {
       if (c.path === 'split') push('컨트롤러가 orderService.placeOrder()를 호출합니다. 이 코드의 OrderService에는 애너테이션이 붙은 메서드가 없어서 스프링이 프록시를 만들지 않았습니다. 컨트롤러가 주입받은 것은 실제 객체이고, 호출도 실제 객체가 바로 받습니다.', '', snap({ caller: '컨트롤러 → OrderService.placeOrder()', target: 'OrderService.placeOrder() 실행 중' })); else push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애너테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
-      if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
+      if (c.path === 'self' || c.path === 'priv') push('실제 객체의 placeOrder()가 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
       if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '을 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
       if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '을 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
     }
@@ -42,7 +42,7 @@ Lab.register({
       if (via) {
         push('프록시가 메서드를 실행하기 전에 트랜잭션을 시작합니다. 그다음 실제 객체의 ' + m + '을 호출합니다.', '', snap({ proxy: '트랜잭션 시작', target: m + ' 실행 중' }));
         push('주문 A, 주문 B를 INSERT했습니다. 같은 트랜잭션 안이며 아직 커밋 전입니다.', '', snap({ rows: [['주문 A', 'INSERT함 (커밋 전)', 'hot'], ['주문 B', 'INSERT함 (커밋 전)', 'hot']] }));
-        push('예외가 발생해 메서드 밖으로 나갑니다. 프록시가 예외를 보고 트랜잭션을 롤백합니다. 두 INSERT가 모두 취소됩니다.', 'good', snap({ proxy: '예외 감지 → 롤백', target: '예외 발생', rows: [['주문 A', '롤백됨', 'bad'], ['주문 B', '롤백됨', 'bad']] }));
+        push('예외가 발생해 메서드 밖으로 나갑니다. 프록시가 예외를 보고 트랜잭션을 롤백합니다. 두 INSERT가 모두 취소됩니다.', 'good', snap({ proxy: '예외 감지 → 롤백', target: '예외 발생', rows: [['주문 A', '롤백됨 (DB에 남지 않음)', 'good'], ['주문 B', '롤백됨 (DB에 남지 않음)', 'good']] }));
         res = '둘 다 롤백 (DB에 남은 것 없음)';
       } else {
         push('트랜잭션을 시작해 줄 프록시가 없습니다. 주문 A를 INSERT합니다. 트랜잭션이 없으므로 이 INSERT는 실행되자마자 커밋됩니다(자동 커밋).', 'bad', snap({ rows: [['주문 A', '커밋됨', 'good']] }));

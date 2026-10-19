@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Interfaces: What does an interface look like in code, and what does it decide? · Dev Learning Lab</title>
-<meta name="description" content="An interface is a contract that you declare with interface. It says, for example, &quot;anything of type Payable must have a pay method&quot;, and it writes only th…">
+<meta name="description" content="An interface is a contract that you declare with interface. This lab uses the example names Payable (an interface), Card (a class), and pay (a method). It…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/interface_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/interface_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/interface_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Interfaces: What does an interface look like in code, and what does it decide? · Dev Learning Lab">
-<meta property="og:description" content="An interface is a contract that you declare with interface. It says, for example, &quot;anything of type Payable must have a pay method&quot;, and it writes only th…">
+<meta property="og:description" content="An interface is a contract that you declare with interface. This lab uses the example names Payable (an interface), Card (a class), and pay (a method). It…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/interface_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Interfaces</h1>
 <p><b>What does an interface look like in code, and what does it decide?</b></p>
-<p>An interface is a contract that you declare with interface. It says, for example, &quot;anything of type Payable must have a pay method&quot;, and it writes only the name of the method, with no body. A class declares with implements Payable that it will follow the contract, and it actually writes the pay method that the contract names. Then you can put an object of that class in a variable of type Payable. In this lab you remove the interface declaration, implements, and the pay method one at a time, and the same code is compiled and run each time. You see what the compiler reports and what is printed.</p>
+<p>An interface is a contract that you declare with interface. This lab uses the example names Payable (an interface), Card (a class), and pay (a method). It says, for example, &quot;anything of type Payable must have a pay method&quot;, and it writes only the name of the method, with no body. A class declares with implements Payable that it will follow the contract, and it actually writes the pay method that the contract names. Then a variable of type Payable can point to an object of that class. In this lab you remove the interface declaration, implements, and the pay method one at a time, and the same code is compiled and run each time. You see what the compiler reports and what is printed.</p>
 <p>Checked against real execution · Twelve combinations were compiled with javax.tools and run on JDK 21, and the results were checked against the model</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -57,15 +57,15 @@
 <li>The compiler reads the source from the top. First it reads the interface Payable declaration, and from this declaration it learns the type named Payable. The Payable type is created by this declaration. The line void pay(); has only a name and no body, and in an interface this shape is a contract: &quot;anything of type Payable must have a pay method&quot; (an abstract method).</li>
 <li>The compiler reads the line class Card implements Payable. It is a declaration that Card will follow the contract of Payable. So the pay method that the contract names must be written inside Card.</li>
 <li>The compiler looks inside Card for the pay method that the contract names. There is a line public void pay() { ... } and it has a body, so the contract is followed.</li>
-<li>The compiler checks the line Payable p = new Card();. Card agreed to the contract with implements Payable, so it is fine to put a Card object in the variable p of type Payable. This is not running. It is the compiler checking in advance whether it is allowed.</li>
+<li>The compiler checks the line Payable p = new Card();. Card agreed to the contract with implements Payable, so it is fine for the variable p of type Payable to point to a Card object. This is not running. It is the compiler checking in advance whether it is allowed.</li>
 <li>Compilation succeeds and the Main class file that will run is created. Whether the contract is followed was not checked at run time. The compiler checked it just now, while compiling.</li>
-<li>You run it with java Main. main starts, and new Card() creates a Card object and puts it in the variable p of type Payable.</li>
-<li>p.pay() runs. The object held in p is a Card object, so the pay method written in Card runs. The println in the body prints &quot;paid by card&quot;.</li>
+<li>You run it with java Main. main starts, and new Card() creates a Card object, and the variable p of type Payable points to it.</li>
+<li>p.pay() runs. The object p points to is a Card object, so the pay method written in Card runs. The println in the body prints &quot;paid by card&quot;.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>An interface is a contract that you declare with interface: &quot;anything of this type must have this method&quot;. It writes only the name of the method and no body. The interface Payable declaration creates the type named Payable, and Card declares with implements Payable that it will follow the contract and then actually writes the pay method.</li>
-<li>So you could put a Card object in the variable p of type Payable, and p.pay() ran the pay of Card. Whether the contract was followed was not checked at run time. The compiler checked it while compiling.</li>
+<li>So the variable p of type Payable could point to a Card object, and p.pay() ran the pay of Card. Whether the contract was followed was not checked at run time. The compiler checked it while compiling.</li>
 </ul>
 <h2>Code</h2>
 <pre>// Contract: anything of type Payable must have a pay method (only the name is written)
@@ -83,13 +83,13 @@ class Card implements Payable {
 
 public class Main {
     public static void main(String[] args) {
-        // Put a Card object in a variable of type Payable
+        // Make the variable p of type Payable point to a Card object
         Payable p = new Card();
         p.pay();
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.resolve, cant.resolve.location, prob.found.req, and does.not.override.abstract, shown on the screen as the three error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that an interface method that ends with a semicolon and has no body is an abstract method and is public follows section 9.4. The rule that a class that is not abstract must implement all the abstract methods of the interfaces it implements follows sections 8.1.5 and 8.1.1.1. The rule that if the method body is a block and not a semicolon the method is an implementation, and that the block may be empty, follows section 8.4.7 and the example (alert() { }) in section 8.1.1.1. The rule that interfaces and classes are both reference types and that an interface a class implements is a supertype of the class follows sections 4.3 and 4.10.2. The rule that a value of a subtype can be put in a variable of its supertype follows sections 5.1.5 and 5.2. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When there are several errors, javac reports all of them, but the table shows only the first. Even when compilation failed, some class files such as Card were created, but the Main class file was never created, so the table says it cannot run. An interface can also have default methods, static methods, and constants, and one class can implement several interfaces, but this lab did not cover them. How interfaces are used and how they differ from abstract classes are covered in &quot;In-depth lab: Interfaces and abstract classes&quot;.</p>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.resolve, cant.resolve.location, prob.found.req, and does.not.override.abstract, shown on the screen as the three error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that an interface method that ends with a semicolon and has no body is an abstract method and is public follows section 9.4. The rule that a class that is not abstract must implement all the abstract methods of the interfaces it implements follows sections 8.1.5 and 8.1.1.1. The rule that if the method body is a block and not a semicolon the method is an implementation, and that the block may be empty, follows section 8.4.7 and the example (alert() { }) in section 8.1.1.1. The rule that interfaces and classes are both reference types and that an interface a class implements is a supertype of the class follows sections 4.3 and 4.10.2. The rule that a variable of a supertype can refer to an object of its subtype follows sections 5.1.5 and 5.2. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When there are several errors, javac reports all of them, but the table shows only the first. Even when compilation failed, some class files such as Card were created, but the Main class file was never created, so the table says it cannot run. An interface can also have default methods, static methods, and constants, and one class can implement several interfaces, but this lab did not cover them. How interfaces are used and how they differ from abstract classes are covered in &quot;In-depth lab: Interfaces and abstract classes&quot;.</p>
 <p>Previous lab: <a href="../../lab/inherit_basic/">Inheritance</a> · Next lab: <a href="../../lab/exception_basic/">Exceptions</a></p>
   </div>
 
@@ -177,6 +177,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

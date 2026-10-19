@@ -1,7 +1,7 @@
 Lab.register({
   id: 'repo_basic', nav: 'Repositories', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['datajpa'],
   title: 'What is a repository, and who creates the implementation?',
-  intro: 'A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository<Member, Long>, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is a method that JpaRepository itself inherits from a parent interface, so it is inherited here too. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.',
+  intro: 'A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository<Member, Long> (MemberRepository and Member are names made up for this example, and JpaRepository is an interface provided by Spring Data JPA), Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in CrudRepository, a parent interface of JpaRepository, and MemberRepository inherits it through JpaRepository. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.',
   terms: ['Repository', 'JpaRepository', 'Query method', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ext', label: 'Write extends JpaRepository<Member, Long> in the MemberRepository declaration', type: 'check', value: true },
@@ -23,10 +23,10 @@ Lab.register({
   // The code on the screen and the source that the checking program (verify/spring/src/RepoBasicProbe.java) compiled are the same text (the checking script compares them character by character).
   code: function (c) {
     var f = this.find(c), o = [];
-    if (c.ext) o.push('// Requirement: Spring creates the implementation for you (you do not write an implementation class)');
+    if (c.ext) o.push('// Only declare it. You do not write an implementation class; Spring creates the implementation object');
     o.push('public interface MemberRepository' + (c.ext ? ' extends JpaRepository<Member, Long>' : '') + ' {');
     if (f.decl) o.push('    // Spring reads the naming rule (findBy + field name) and creates the query', '    List<Member> ' + f.decl + ';');
-    o.push('}', '', '// Calling side', 'memberRepository.save(new Member(1L, "Alice"));');
+    o.push('}', '', '// Calling side', '// Only the lines inside the main method are kept (the lines that start Spring and get memberRepository are omitted).', 'memberRepository.save(new Member(1L, "Alice"));');
     if (f.decl) o.push('List<Member> found = memberRepository.' + f.call + ';', 'System.out.println(found.size());');
     else o.push('System.out.println(memberRepository.count());');
     return o.join('\n');
@@ -48,17 +48,17 @@ Lab.register({
       st.phase = 'compile'; st.hot = 'if';
       push('The compiler reads MemberRepository.java. The interface MemberRepository declaration has no extends, so it is an ordinary interface that inherits nothing. The methods this interface has are ' + (none ? 'none at all (the inside is empty).' : f.decl + ' is the only one.'), '');
       st.phase = 'fail'; st.errs = 1; st.errText = 'MemberRepository has no save method';
-      push('The compiler checks the line memberRepository.save(new Member(1L, "Alice")) on the calling side. MemberRepository has no save method. save is a method declared in JpaRepository, and this interface does not inherit JpaRepository. The error occurs on this line (javac: cannot find symbol, method save(Member)).', 'bad');
+      push('The compiler checks the line memberRepository.save(new Member(1L, "Alice")) on the calling side. MemberRepository has no save method. save is a method that JpaRepository inherits from its parent interface (CrudRepository), and this interface does not inherit JpaRepository. The error occurs on this line (javac: cannot find symbol, method save(Member)).', 'bad');
       if (none) {
         st.errs = 2;
-        push('It checks the next line, System.out.println(memberRepository.count()), too. count is also a method declared in JpaRepository, so this interface does not have it, and the same kind of error occurs once more (javac: cannot find symbol, method count()). javac reported 2 errors in all.', 'bad');
+        push('It checks the next line, System.out.println(memberRepository.count()), too. count is also a method that JpaRepository inherits from CrudRepository, so this interface does not have it, and the same kind of error occurs once more (javac: cannot find symbol, method count()). javac reported 2 errors in all.', 'bad');
       } else {
         push('The line memberRepository.' + f.call + ' on the calling side calls a method that is declared in this interface, so it is not an error. The compiler checks only whether the method is declared, not who implements it. javac reported only 1 error, on the save line.', '');
       }
       push('Compiling fails. The compiler reported ' + st.errs + ' errors, and the first error is "' + st.errText + '". The Main class file was not created, so the program cannot run, and Spring cannot start either.', 'bad');
       st.phase = 'plain';
       push('What happens if you give the same interface to Spring, without the calling side, was run and checked separately. Spring starts successfully, but it does not create an implementation object of MemberRepository (0 of them). What Spring Data looks for is an interface that extends a repository interface such as JpaRepository, and it does not look for an ordinary interface. We did not write a class to implement it, so this interface has no implementation anywhere.', '');
-      sum.push('If you remove extends JpaRepository, MemberRepository is an ordinary interface. save was a method declared in JpaRepository, so this interface does not have it, and the compiler said it could not find save, so compiling failed.' + (none ? ' count is the same, so there were 2 errors.' : ' The line of ' + f.short + ', which we declared ourselves, has a declaration and was not an error.'));
+      sum.push('If you remove extends JpaRepository, MemberRepository is an ordinary interface. save was a method that JpaRepository inherits from CrudRepository, so this interface does not have it, and the compiler said it could not find save, so compiling failed.' + (none ? ' count is the same, so there were 2 errors.' : ' The line of ' + f.short + ', which we declared ourselves, has a declaration and was not an error.'));
       sum.push('Spring creates an implementation only for an interface that extends a Spring Data repository interface such as JpaRepository. This interface does not extend it, so even if you avoid the compile error, Spring made 0 implementation objects.');
       return { events: ev, summary: sum, f: f, row: ['Compile error: MemberRepository has no save method', 'None', 'None'] };
     }

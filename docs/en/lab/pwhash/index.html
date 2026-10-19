@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,7 @@
 byte[] hash = md.digest(rawPassword.getBytes(UTF_8));
 member.setPassword(HexFormat.of().formatHex(hash));</pre>
 <h2>Assumptions of this model</h2>
-<p>The SHA-256 values are actually computed. The bcrypt stored values are example strings that show the format. The guessing speeds show rough orders of magnitude. They assume that, for one high-performance graphics card, SHA-256 makes tens of billions of attempts per second and bcrypt with cost 10 makes a few thousand per second, and they are values chosen to match the orders of magnitude of published benchmarks. The login verification times are also rough values that vary with the server CPU. The default cost of Spring Security's BCryptPasswordEncoder is 10. On the PC used to write this lab, the SHA-256 speed measured with openssl was about 32 million per second on one CPU core (the tens of billions per second on screen is a published figure for a graphics card). bcrypt was not actually measured because the PC has no library for it.</p>
+<p>The SHA-256 values are actually computed. The bcrypt stored values are example strings that show the format. The guessing speeds show rough orders of magnitude. They assume that, for one high-performance graphics card, SHA-256 makes tens of billions of attempts per second and bcrypt with cost 10 makes a few thousand per second, and they are values chosen to match the orders of magnitude of published benchmarks. The login verification times are what we measured in our test run for one call of matches with BCryptPasswordEncoder from Spring Security 7.1.1 (about 58 ms for cost 10, about 232 ms for 12, and about 952 ms for 14). The time grew about 4 times for each 2 steps of cost, which matches the explanation that raising the cost by 1 doubles the time. These times vary with the server CPU. The default cost of Spring Security's BCryptPasswordEncoder is 10. In our test run, the SHA-256 speed measured with openssl was about 32 million per second on one CPU core (the tens of billions per second on screen is a published figure for a graphics card). We did not measure the attacker's bcrypt speed (on a graphics card) ourselves.</p>
 <p>Previous lab: <a href="../../lab/cookie/">Cookies</a> · Next lab: <a href="../../lab/jwt/">JWT structure and verification</a></p>
   </div>
 
@@ -156,6 +156,6 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

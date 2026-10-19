@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The cause is that the input was interpreted as &quot;SQL syntax&quot;, not as a &quot;value&quot;. In the same way, SQL that reads other tables or deletes data can be slipped in.</li>
+<li>The cause is that the input was interpreted as &quot;SQL syntax&quot;, not as a &quot;value&quot;. In the same way, an attacker can append a UNION to make the query read data from other tables too. Whether an attack that adds another statement such as DELETE after a semicolon works depends on the driver and the database. For example, MySQL Connector/J does not run several statements at once in its default setting (allowMultiQueries=false), so it is blocked, but it can work with a driver or setting that runs several statements at once.</li>
 </ul>
 <h2>Code</h2>
 <pre>// The input is concatenated into a string
@@ -160,6 +160,6 @@ ResultSet rs = statement.executeQuery(sql);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

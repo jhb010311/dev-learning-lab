@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,6 +70,18 @@
     Long id;
     int amount;
     Member member;        // 객체에서는 회원 객체를 바로 가리키고 싶다
+    void setId(Long id) { this.id = id; }
+    void setAmount(int amount) { this.amount = amount; }
+    void setMember(Member member) { this.member = member; }
+    Member getMember() { return member; }
+}
+
+class Member {
+    Long id;
+    String name;
+    void setId(Long id) { this.id = id; }
+    void setName(String name) { this.name = name; }
+    String getName() { return name; }
 }
 
 class OrderDao {
@@ -93,7 +105,7 @@ class OrderDao {
 Order order = orderDao.findById(1L);
 System.out.println(order.getMember().getName());</pre>
 <h2>이 모형의 전제</h2>
-<p>열두 가지 조합을 이 PC에서 실제로 실행해 대조했습니다(JDBC 쪽은 화면과 같은 구조의 DAO 코드를 H2 데이터베이스에, JPA 쪽은 Hibernate 7.4.5와 H2에 실행). 대조한 것은 코드에 적은 SQL 문장의 수, 줄마다 나간 SQL의 종류와 테이블, a == b의 값, 회원 이름 또는 예외, 다시 읽은 grade와 DB에 남은 grade입니다. &quot;직접 채웠다&quot;는 설정은 JDBC에서만 뜻이 있고, JPA에서는 결과에 영향이 없습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것이며, Hibernate가 실제로 만드는 문장은 컬럼 순서와 별칭이 다릅니다. JPA의 @ManyToOne은 지연 로딩(LAZY)으로 두었습니다. 기본값인 즉시 로딩(EAGER)이면 em.find 한 번에 주문과 회원을 함께 읽습니다. JDBC 쪽의 코드 양은 이 예제의 DAO를 기준으로 한 것입니다. 스프링의 JdbcTemplate이나 MyBatis를 쓰면 반복되는 코드는 줄지만, SQL을 직접 쓰고 필드가 바뀔 때 SQL을 함께 고쳐야 한다는 점은 같습니다. &quot;고친 곳 네 곳&quot;은 화면의 코드에서 센 것입니다.</p>
+<p>열두 가지 조합을 실제로 실행해 대조했습니다(JDBC 쪽은 화면과 같은 구조의 DAO 코드를 H2 데이터베이스에, JPA 쪽은 Hibernate 7.4.5와 H2에 실행). 대조한 것은 코드에 적은 SQL 문장의 수, 줄마다 나간 SQL의 종류와 테이블, a == b의 값, 회원 이름 또는 예외, 다시 읽은 grade와 DB에 남은 grade입니다. &quot;직접 채웠다&quot;는 설정은 JDBC에서만 뜻이 있고, JPA에서는 결과에 영향이 없습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것이며, Hibernate가 실제로 만드는 문장은 컬럼 순서와 별칭이 다릅니다. JPA의 @ManyToOne은 지연 로딩(LAZY)으로 두었습니다. 기본값인 즉시 로딩(EAGER)이면 em.find 한 번에 주문과 회원을 함께 읽습니다. JDBC 쪽의 코드 양은 이 예제의 DAO를 기준으로 한 것입니다. 스프링의 JdbcTemplate이나 MyBatis를 쓰면 반복되는 코드는 줄지만, SQL을 직접 쓰고 필드가 바뀔 때 SQL을 함께 고쳐야 한다는 점은 같습니다. &quot;고친 곳 네 곳&quot;은 화면의 코드에서 센 것입니다.</p>
 <p>다음 실습: <a href="../../lab/pc/">영속성 컨텍스트</a></p>
   </div>
 
@@ -181,6 +193,6 @@ System.out.println(order.getMember().getName());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

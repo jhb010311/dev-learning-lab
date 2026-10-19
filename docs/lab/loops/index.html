@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@
 }
 System.out.println(&quot;끝&quot;);</pre>
 <h2>이 모형의 전제</h2>
-<p>스물네 가지 조합(반복문 12, switch 12)의 출력과 횟수를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 본문에 들어간 횟수는 대조용 프로그램의 본문 첫 줄에 세는 코드를 넣어 얻었습니다. while문에서 continue를 쓴 두 조합은 실제 프로그램이 2초가 지나도 끝나지 않고 본문만 계속 되풀이하는 것을 확인했습니다. &quot;영원히 끝나지 않는다&quot;는 것 자체는 실행으로 증명할 수 없고, i가 바뀌지 않는다는 코드의 구조에서 나오는 결론입니다. 모형은 같은 i 값으로 조건 검사에 다시 돌아오면 무한 반복으로 판단하고 멈춥니다. default가 없는 switch에 일치하는 case가 없는 값을 넣으면 아무것도 실행하지 않는다는 것도 실행해 확인했습니다. 화살표 switch는 Java 14부터 정식 문법입니다. do-while문, 향상된 for문(for-each), 값을 돌려주는 switch 식, 이름표를 붙인 break는 다루지 않았습니다.</p>
+<p>스물네 가지 조합(반복문 12, switch 12)의 출력과 횟수를 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 본문에 들어간 횟수는 대조용 프로그램의 본문 첫 줄에 세는 코드를 넣어 얻었습니다. while문에서 continue를 쓴 두 조합은 실제 프로그램이 2초가 지나도 끝나지 않고 본문만 계속 되풀이하는 것을 확인했습니다. &quot;영원히 끝나지 않는다&quot;는 것 자체는 실행으로 증명할 수 없고, i가 바뀌지 않는다는 코드의 구조에서 나오는 결론입니다. 모형은 같은 i 값으로 조건 검사에 다시 돌아오면 무한 반복으로 판단하고 멈춥니다. default가 없는 switch에 일치하는 case가 없는 값을 넣으면 아무것도 실행하지 않는다는 것도 실행해 확인했습니다. 화살표 switch는 Java 14부터 정식 문법입니다. do-while문, 향상된 for문(for-each), 값을 돌려주는 switch 식, 이름표를 붙인 break는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/casting/">연산자와 형변환</a> · 다음 실습: <a href="../../lab/array/">배열</a></p>
   </div>
 
@@ -169,6 +169,6 @@ System.out.println(&quot;끝&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

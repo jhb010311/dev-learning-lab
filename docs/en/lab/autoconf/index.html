@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,18 +57,18 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The application starts. The @EnableAutoConfiguration inside @SpringBootApplication loads the list of auto-configuration classes that ship with Spring Boot (a little over 100). Your own @Configuration and @Component classes are registered first, and then the conditions of the auto-configurations are evaluated one by one.</li>
+<li>The application starts. The @EnableAutoConfiguration on @SpringBootApplication gathers and loads the lists of auto-configuration classes written in each Spring Boot jar on the classpath. Spring Boot 4 splits auto-configuration into a module (jar) per technology, so the auto-configuration of a technology enters the list only when you add its dependency. Your own @Configuration and @Component classes are registered first, and then the conditions of the auto-configurations are evaluated one by one.</li>
 <li>Embedded server auto-configuration: The web starter brought in the Tomcat library with it. Tomcat is on the classpath, so Spring Boot registers the bean that starts an embedded Tomcat. That is why the application runs from a single jar, with no separate application server to install.</li>
 <li>Spring MVC auto-configuration: The DispatcherServlet class is present, so Spring Boot registers DispatcherServlet and the default MVC components (message converters, handler mappings, and so on).</li>
 <li>Jackson auto-configuration: You have not registered a JsonMapper yourself, so a JsonMapper with the default settings is registered.</li>
-<li>DataSource auto-configuration: The JDBC classes are present, and you have not registered a DataSource yourself. Spring Boot creates a HikariCP connection pool with the connection URL from the settings and registers it.</li>
+<li>DataSource auto-configuration: The spring-jdbc classes are present, and you have not registered a DataSource yourself. Spring Boot creates a HikariCP connection pool with the connection URL from the settings and registers it.</li>
 <li>JPA auto-configuration: It uses the DataSource prepared earlier to register an EntityManagerFactory and a transaction manager for JPA. Auto-configurations also have an order among themselves, so this one is evaluated after the DataSource is ready.</li>
 <li>Spring Data JPA auto-configuration: It finds the interfaces that extend JpaRepository, creates an implementation object for each of them, and registers it as a bean.</li>
-<li>The remaining auto-configurations: Their libraries are not on the classpath, so most of them fail their conditions. Many configurations are prepared, but the only ones actually applied are those that match the dependencies you added.</li>
+<li>The remaining auto-configurations: Even when they are in the list, they are skipped if their conditions are not met. For example, the JMX auto-configuration applies only when spring.jmx.enabled is turned on, so it is left out with the default settings. In Spring Boot 4, the auto-configurations for technologies whose dependencies you did not add, such as Redis or Kafka, are not in the list at all.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Auto-configuration decides on two criteria: whether the library is on the classpath (@ConditionalOnClass), and whether the developer has already registered a bean of the same type (@ConditionalOnMissingBean). The role of a starter is to bring in the set of libraries that are needed all at once, which satisfies the first condition.</li>
+<li>Two conditions often found on auto-configurations are whether the library is on the classpath (@ConditionalOnClass), and whether the developer has already registered a bean of the same type (@ConditionalOnMissingBean). There are also conditions that look at settings (@ConditionalOnBooleanProperty and others). A starter brings in the set of libraries that are needed all at once, which satisfies the first condition, and in Spring Boot 4 it also brings in the auto-configuration module of that technology.</li>
 <li>An auto-configuration with such a condition (@ConditionalOnMissingBean) backs away when you register a bean of the same type yourself. Start with the defaults, and register yourself only the parts that you want to change. To see which auto-configurations were applied or left out, and why, run the application with the --debug option, which prints a conditions report.</li>
 </ul>
 <h2>Code</h2>
@@ -82,11 +82,13 @@ dependencies {
 # application.yml
 spring.datasource.url: jdbc:mysql://localhost:3306/shop
 
-// An auto-configuration class looks like this inside
-// @ConditionalOnClass(DataSource.class)       only when the class is on the classpath
-// @ConditionalOnMissingBean(DataSource.class) only when you have not registered the bean yourself</pre>
+// Conditions on DataSourceAutoConfiguration (only the relevant parts kept)
+// @ConditionalOnClass({DataSource.class, EmbeddedDatabaseType.class})
+//   DataSource is in the JDK, so this really checks for spring-jdbc
+// @ConditionalOnMissingBean({DataSource.class, XADataSource.class})
+//   pool only when you registered no DataSource (on a nested class)</pre>
 <h2>Assumptions of this model</h2>
-<p>This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that &quot;auto-configuration backs away when you have registered the bean yourself&quot; follow the explanation in the official Spring Boot documentation. The dependency names are those of Spring Boot 4 (up to Spring Boot 3, the web starter was named spring-boot-starter-web). These results were not checked against a running Spring Boot application. That the Jackson auto-configuration registers a JsonMapper-type bean with @ConditionalOnMissingBean was verified by opening the class files of spring-boot-jackson 4.1.1 on this PC.</p>
+<p>This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that &quot;auto-configuration backs away when you have registered the bean yourself&quot; follow the explanation in the official Spring Boot documentation. The dependency names are those of Spring Boot 4 (up to Spring Boot 3, the web starter was named spring-boot-starter-web). When we opened and counted the Spring Boot 4.1.1 jars in our test environment, the list of auto-configurations in the spring-boot-autoconfigure jar (AutoConfiguration.imports) had only 12 entries, and the rest were in modules split by technology, such as spring-boot-jdbc and spring-boot-webmvc. On a classpath with the web MVC, JPA, security, and AspectJ starters, the total was 57. The DataSource auto-configuration conditions shown in the code panel and the condition of the JMX auto-configuration (spring.jmx.enabled) were also checked by opening the class files of those jars. These results were not checked against a running Spring Boot application. That the Jackson auto-configuration registers a JsonMapper-type bean with @ConditionalOnMissingBean was verified by opening the class files of spring-boot-jackson 4.1.1 in our test environment.</p>
 <p>Previous lab: <a href="../../lab/msgconv/">REST APIs and message converters</a> · Next lab: <a href="../../lab/config/">Configuration precedence</a></p>
   </div>
 
@@ -174,6 +176,6 @@ spring.datasource.url: jdbc:mysql://localhost:3306/shop
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -5,14 +5,14 @@ Lab.register({
   terms: ['DNS', 'DNS 레코드', '재귀 리졸버와 권한 있는 네임 서버', 'DNS 캐시와 TTL'],
   controls: [
     { id: 'q', label: '묻는 것', type: 'select', value: 'a', options: [['a', 'shop.example의 IPv4 주소 (A)'], ['aaaa', 'shop.example의 IPv6 주소 (AAAA)'], ['cname', 'www.shop.example의 주소 (CNAME을 거침)'], ['mx', 'shop.example의 메일 서버 (MX)']] },
-    { id: 'cache', label: '캐시의 상태', type: 'select', value: 'none', options: [['none', '어디에도 없다 (처음 묻는 이름)'], ['resolver', '리졸버의 캐시에 있다 (다른 사용자가 120초 전에 물음)'], ['os', '이 PC의 캐시에 있다 (120초 전에 물음)'], ['expired', '이 PC가 400초 전에 물었다 (TTL 300초가 지남)']] },
+    { id: 'cache', label: '캐시의 상태', type: 'select', value: 'none', options: [['none', '어디에도 없다 (처음 묻는 이름)'], ['resolver', '리졸버의 캐시에 있다 (다른 사용자가 120초 전에 물음)'], ['os', 'PC의 캐시에 있다 (120초 전에 물음)'], ['expired', 'PC가 400초 전에 물었다 (TTL 300초가 지남)']] },
     { id: 'changed', label: '관리자가 조금 전에 레코드의 값을 바꿨다', type: 'check', value: false, hint: '권한 있는 네임 서버의 값만 바뀝니다. 캐시에 이미 들어 있는 답은 그대로입니다.' },
   ],
   presets: [
     { t: '처음 설정으로', q: '캐시가 어디에도 없는 처음 묻는 이름 shop.example의 IPv4 주소를 물으면 PC는 어떤 경로로 답을 얻나', d: '처음 묻는 이름. 리졸버가 루트 서버부터 차례로 물어 답을 찾습니다.', v: { q: 'a', cache: 'none', changed: false } },
-    { t: '방금 물었던 이름', q: '이 PC의 캐시에 120초 전에 물은 답이 있으면', d: '이 PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.', v: { q: 'a', cache: 'os', changed: false } },
+    { t: '방금 물었던 이름', q: 'PC의 캐시에 120초 전에 물은 답이 있으면', d: 'PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.', v: { q: 'a', cache: 'os', changed: false } },
     { t: '레코드를 바꿨는데 예전 주소로 간다', q: '리졸버의 캐시에 다른 사용자가 120초 전에 물은 답이 있는데 관리자가 레코드의 값을 조금 전에 바꾸면', d: '리졸버의 캐시에 TTL이 남아 있어 예전 값을 받습니다.', v: { q: 'a', cache: 'resolver', changed: true } },
-    { t: 'TTL이 지난 뒤', q: '이 PC가 400초 전에 물어 TTL 300초가 지났는데 관리자가 레코드의 값을 조금 전에 바꾸면', d: '다시 묻고 새 값을 받습니다. 루트 서버부터 묻지는 않습니다.', v: { q: 'a', cache: 'expired', changed: true } },
+    { t: 'TTL이 지난 뒤', q: 'PC가 400초 전에 물어 TTL 300초가 지났는데 관리자가 레코드의 값을 조금 전에 바꾸면', d: '다시 묻고 새 값을 받습니다. 루트 서버부터 묻지는 않습니다.', v: { q: 'a', cache: 'expired', changed: true } },
     { t: 'CNAME을 거치는 이름', q: 'CNAME을 거치는 www.shop.example의 주소를 물으면', d: '별명의 진짜 이름을 알아낸 뒤 그 이름으로 한 번 더 찾습니다.', v: { q: 'cname', cache: 'none', changed: false } },
     { t: '메일 서버 찾기', q: 'MX 레코드로 shop.example의 메일 서버를 물으면', d: 'MX 레코드는 주소가 아니라 메일 서버의 이름을 알려 줍니다.', v: { q: 'mx', cache: 'none', changed: false } },
   ],
@@ -32,7 +32,7 @@ Lab.register({
   columns: ['받은 답', '답이 나온 곳', 'PC가 리졸버에 물은 횟수', '리졸버가 네임 서버에 물은 횟수', '바꾼 값이 반영됐나'],
   simulate: function (c) {
     var K = this.CASES[c.q], cn = c.q === 'cname', TTL = 300, AGO = 120, LEFT = TTL - AGO, OLD = 400, NS = 172800, ev = [], sum = [];
-    var st = { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' };
+    var st = { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '', stale: false };   // stale: 받은 답이 바꾸기 전의 예전 값이라는 것이 드러났는가
     function push(s, kind) { ev.push({ s: s, k: kind || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function msg(f, t, s, cls) { st.msgs.push({ f: f, t: t, s: s, cls: cls || '' }); }
     var cached = c.cache === 'os' || c.cache === 'resolver', val = c.changed && !cached ? K.neu : K.old, show = function (v) { return cn ? K.alias + ' → ' + v : v; };
@@ -49,19 +49,21 @@ Lab.register({
     // 1. PC의 캐시
     if (c.cache === 'os') {
       msg('pc', '', '캐시에 있음 (' + LEFT + '초 남음)', 'good'); st.ans = show(K.old); st.src = 'PC의 캐시';
-      push(need + ' 먼저 이 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + AGO + '초 전에 같은 것을 물어 받은 답이 있고, TTL ' + TTL + '초 가운데 ' + LEFT + '초가 남았습니다. 캐시의 답을 그대로 씁니다. 네트워크로는 아무 질문도 나가지 않습니다.', 'good');
-      if (c.changed) push('그런데 관리자가 조금 전에 ' + chg + '. 바뀐 것은 권한 있는 네임 서버가 가진 값뿐이고, 이 PC는 그 사실을 알 방법이 없습니다. 캐시의 TTL이 끝나는 ' + LEFT + '초 뒤에야 다시 묻고 새 값을 받습니다.', 'bad');
+      push(need + ' 먼저 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + AGO + '초 전에 같은 것을 물어 받은 답이 있고, TTL ' + TTL + '초 가운데 ' + LEFT + '초가 남았습니다. 캐시의 답을 그대로 씁니다. 네트워크로는 아무 질문도 나가지 않습니다.', 'good');
+      if (c.changed) st.stale = true;
+      if (c.changed) push('그런데 관리자가 조금 전에 ' + chg + '. 바뀐 것은 권한 있는 네임 서버가 가진 값뿐이고, PC는 그 사실을 알 방법이 없습니다. 캐시의 TTL이 끝나는 ' + LEFT + '초 뒤에야 다시 묻고 새 값을 받습니다.', 'bad');
     } else {
-      if (c.cache === 'expired') { msg('pc', '', '캐시의 답은 TTL이 지남'); st.pc = []; push(need + ' 먼저 이 PC의 캐시를 봅니다. 전에 받은 답이 있었지만 ' + OLD + '초 전의 것이라 TTL ' + TTL + '초가 지났습니다. TTL이 지난 답은 쓰지 않고 버립니다.'); }
-      else { msg('pc', '', '캐시에 없음'); push(need + ' 먼저 이 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + (c.cache === 'none' ? '처음 묻는 이름이라 없습니다.' : '이 PC는 물은 적이 없어 캐시에 없습니다.')); }
+      if (c.cache === 'expired') { msg('pc', '', '캐시의 답은 TTL이 지남'); st.pc = []; push(need + ' 먼저 PC의 캐시를 봅니다. 전에 받은 답이 있었지만 ' + OLD + '초 전의 것이라 TTL ' + TTL + '초가 지났습니다. TTL이 지난 답은 쓰지 않고 버립니다.'); }
+      else { msg('pc', '', '캐시에 없음'); push(need + ' 먼저 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + (c.cache === 'none' ? '처음 묻는 이름이라 없습니다.' : 'PC는 물은 적이 없어 캐시에 없습니다.')); }
       // 2. 재귀 리졸버
       msg('pc', 'rs', ask); st.pcq = 1;
-      var intro2 = '이 PC가 재귀 리졸버에게 묻습니다. 재귀 리졸버는 답을 대신 찾아다 주는 DNS 서버로, 보통 통신사나 회사가 운영하며 그 주소는 네트워크 설정에 들어 있습니다. 리졸버도 먼저 자기 캐시를 봅니다. ';
+      var intro2 = 'PC가 재귀 리졸버에게 묻습니다. 재귀 리졸버는 답을 대신 찾아다 주는 DNS 서버로, 보통 통신사나 회사가 운영하며 그 주소는 네트워크 설정에 들어 있습니다. 리졸버도 먼저 자기 캐시를 봅니다. ';
       if (c.cache === 'resolver') {
         msg('rs', '', '캐시에 있음 (' + LEFT + '초 남음)', 'good');
         push(intro2 + '다른 사용자가 ' + AGO + '초 전에 같은 것을 물었기 때문에 답이 있고, TTL이 ' + LEFT + '초 남았습니다.', 'good');
         msg('rs', 'pc', '답: ' + K.old + (K.type === 'MX' ? '' : ' (TTL ' + LEFT + ')'), 'good'); st.pc = recs(K.old, LEFT + '초'); st.ans = show(K.old); st.src = '리졸버의 캐시';
-        push('리졸버가 루트 서버나 권한 있는 네임 서버에 묻지 않고 캐시의 답을 바로 돌려줍니다. 답에 적힌 TTL은 처음의 ' + TTL + '초가 아니라 남은 ' + LEFT + '초입니다. 이 PC도 그 ' + LEFT + '초 동안만 답을 기억합니다.', 'good');
+        push('리졸버가 루트 서버나 권한 있는 네임 서버에 묻지 않고 캐시의 답을 바로 돌려줍니다. 답에 적힌 TTL은 처음의 ' + TTL + '초가 아니라 남은 ' + LEFT + '초입니다. PC도 그 ' + LEFT + '초 동안만 답을 기억합니다.', 'good');
+        if (c.changed) st.stale = true;
         if (c.changed) push('그런데 관리자가 조금 전에 ' + chg + '. 리졸버는 캐시의 TTL이 남아 있는 동안 권한 있는 네임 서버에 다시 묻지 않으므로, 이 리졸버를 쓰는 사용자는 모두 남은 ' + LEFT + '초 동안 예전 값을 받습니다.', 'bad');
       } else {
         var chNote = c.changed ? ' 관리자가 조금 전에 바꾼 새 값입니다.' : '';
@@ -92,13 +94,13 @@ Lab.register({
           push('리졸버 → cdn.example의 권한 있는 네임 서버: ' + (c.cache === 'expired' ? '진짜 이름(' + K.alias + ')으로 다시 찾습니다. cdn.example의 위임 정보도 캐시에 있으므로 바로 묻습니다. ' : '') + '답을 줍니다: ' + K.alias + ' A ' + val + ', TTL ' + TTL + '초.' + chNote, 'good');
         }
         msg('rs', 'pc', '답: ' + val + (K.type === 'MX' ? '' : ' (TTL ' + TTL + ')'), 'good'); st.pc = recs(val, TTL + '초'); st.ans = answer; st.src = '권한 있는 네임 서버';
-        push('리졸버가 받은 레코드를 자기 캐시에 넣고 이 PC에 답을 돌려줍니다. 앞으로 ' + TTL + '초 동안은 누가 같은 것을 물어도 캐시에서 답합니다.' + (c.cache === 'none' ? ' 오는 길에 알게 된 위임 정보도 함께 기억해 둡니다.' : '') + ' 이 PC도 받은 답을 TTL 동안 캐시에 넣어 둡니다.' + (c.changed ? ' 어느 캐시에도 예전 값이 남아 있지 않았기 때문에 새 값이 바로 반영됐습니다.' : ''), 'good');
+        push('리졸버가 받은 레코드를 자기 캐시에 넣고 PC에 답을 돌려줍니다. 앞으로 ' + TTL + '초 동안은 누가 같은 것을 물어도 캐시에서 답합니다.' + (c.cache === 'none' ? ' 오는 길에 알게 된 위임 정보도 함께 기억해 둡니다.' : '') + ' PC도 받은 답을 TTL 동안 캐시에 넣어 둡니다.' + (c.changed ? ' 어느 캐시에도 예전 값이 남아 있지 않았기 때문에 새 값이 바로 반영됐습니다.' : ''), 'good');
       }
     }
     var stale = c.changed && cached;
     push(c.q === 'mx' ? '메일을 ' + st.ans.slice(3) + ' 서버로 보냅니다. 이 이름의 IP 주소는 A 레코드로 한 번 더 찾습니다(네임 서버가 MX 답에 함께 실어 주기도 합니다).' + (stale ? ' 관리자가 바꾸기 전의 예전 서버입니다.' : '') : '브라우저는 받은 주소(' + (cn ? val : st.ans) + ')로 접속합니다.' + (stale ? ' 관리자가 바꾸기 전의 예전 주소입니다.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? '바꾸지 않음' : cached ? '아직 예전 값' : '반영됨 (새 값)';
-    if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답의 원본은 그 도메인의 권한 있는 네임 서버가 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
+    if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답의 원본은 그 도메인의 권한 있는 네임 서버가 가지고 있습니다. PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
     if (cached) sum.push('한 번 받은 답은 TTL 동안 캐시에 남아, 그동안은 다시 묻지 않습니다. 캐시는 PC에도 있고 리졸버에도 있습니다. 덕분에 대부분의 조회는 루트 서버까지 가지 않고 끝납니다.');
     if (c.cache === 'expired') sum.push('TTL이 지나면 다시 묻습니다. 그래도 루트 서버부터 다시 가는 것은 아닙니다. 어느 네임 서버가 그 도메인을 맡는지는 따로, 더 긴 TTL로 기억하고 있기 때문입니다.');
     if (stale) sum.push('레코드를 바꿔도 이미 캐시에 들어간 답은 TTL이 끝날 때까지 그대로 쓰입니다. 그래서 사용자마다 새 값을 받는 시점이 다르고, 늦으면 바꾸기 전의 TTL만큼 걸립니다. 서버를 옮길 계획이 있으면 미리 TTL을 짧게 줄여 두고, 옮긴 뒤에도 예전 서버를 한동안 켜 둡니다.');
@@ -108,11 +110,11 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    if (!last) H.text(v, '실행을 누르면 이 PC의 캐시부터 차례로 찾아봅니다.');
+    if (!last) H.text(v, '실행을 누르면 PC의 캐시부터 차례로 찾아봅니다.');
     var ln = H.lanes(v);
     H.lane(ln, '답이 나온 곳', s.src || '아직 없음', s.src ? (s.src === '권한 있는 네임 서버' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL 지남' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(비어 있음)', '', '', ''] }]; };
-    H.table(v, ['이름', '종류', '값', '남은 TTL'], rows(s.pc), '이 PC의 캐시');
+    H.table(v, ['이름', '종류', '값', '남은 TTL'], rows(s.pc), 'PC의 캐시');
     H.table(v, ['이름', '종류', '값', '남은 TTL'], rows(s.rs), '재귀 리졸버의 캐시 (NS는 "이 이름은 어느 서버가 맡는가"를 적은 위임 정보)');
     var kind = c.q === 'cname' ? 'CNAME' : this.CASES[c.q].type;
     H.table(v, ['종류', '이름에 연결하는 것', '예'], [['A', 'IPv4 주소', 'shop.example → 203.0.113.10'], ['AAAA', 'IPv6 주소', 'shop.example → 2001:db8::10'], ['CNAME', '다른 이름 (이 이름은 별명)', 'www.shop.example → shop.cdn.example'], ['MX', '메일을 받는 서버의 이름과 우선순위', 'shop.example → 10 mail.shop.example']].map(function (r) { return { cells: [{ v: r[0], cls: r[0] === kind ? 'hot' : '' }, r[1], r[2]] }; }), '레코드의 종류');
@@ -121,9 +123,9 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' };
     var actors = sim.cn ? [['pc', 'PC', 'wait'], ['rs', '리졸버', 'wait'], ['root', '루트'], ['tld', '.example'], ['shop', 'shop 권한'], ['cdn', 'cdn 권한']] : [['pc', 'PC', 'wait'], ['rs', '재귀 리졸버', 'wait'], ['root', '루트 서버'], ['tld', '.example 서버'], ['shop', '권한 서버']];
-    var end = P.seq(actors, s.msgs.map(function (m) { return m.t ? { f: m.f, t: m.t, s: m.s, cls: m.cls } : { f: m.f, s: m.s, cls: m.cls }; }), { keep: 9 });
+    var end = P.seq(actors, s.msgs.map(function (m) { return m.t ? { f: m.f, t: m.t, s: m.s, cls: m.cls } : { f: m.f, s: m.s, cls: m.cls }; }), { keep: Math.max(1, sim.events[sim.events.length - 1].snap.msgs.length) });
     P.box('cnt', 16, end + 14, 262, 34, { cls: 'plain', title: '보낸 질문', right: 'PC ' + s.pcq + '번 · 리졸버 ' + s.upq + '번' });
-    P.box('ans', 286, end + 14, 378, 34, { cls: s.ans ? (sim.row[4] === '아직 예전 값' ? 'bad' : 'good') : 'ghost', title: '받은 답', right: s.ans || '아직 없음' });
+    P.box('ans', 286, end + 14, 378, 34, { cls: s.ans ? (s.stale ? 'bad' : 'good') : 'ghost', title: '받은 답', right: s.ans || '아직 없음' });
     P.size(680, end + 64);
     P.note('화살표 하나가 질문이나 답 하나이고, 위에서 아래로 시간이 흐릅니다. 상자는 그 서버 안에서 캐시를 찾아본 결과입니다. 권한 서버는 그 도메인의 레코드 원본을 가진 권한 있는 네임 서버를 줄여 쓴 것입니다. 캐시에 답이 있으면 오른쪽 서버들까지 가지 않고 끝납니다.');
   },

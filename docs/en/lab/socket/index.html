@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,7 +55,7 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>serverA.listen(9000): Server A creates a socket, binds it to port 9000, and registers with the operating system: &quot;Give the connections that arrive on port 9000 to this socket.&quot; Port 9000 was free, so this succeeds. Server A now waits for connections.</li>
-<li>serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. Only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.</li>
+<li>serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. With the default settings, without special socket options, only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.</li>
 <li>Client 1 calls net.connect(9000): The code gives only the destination port. The operating system picks one of the free numbers (here 50001) as the source port. Server A is listening on port 9000, so the connection is established.</li>
 <li>Client 2 calls net.connect(9000): This time the operating system picks 50002 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The operating system treats connections as different if even one of the four values (source IP, source port, destination IP, destination port) differs.</li>
 <li>Client 3 calls net.connect(9000): This time the operating system picks 50003 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The earlier two connections are not closed and stay open.</li>
@@ -87,7 +87,7 @@ for (let i = 1; i &lt;= 3; i++) {
   socket.on('error', e =&gt; console.log(e.code));
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The 27 combinations were actually run with the net module on 127.0.0.1 of the PC used to write this lab (Windows, Node.js 24) and checked against the results. What was checked: the result of the listen call of Server B (success or EADDRINUSE), the number of successful and refused client connections (ECONNREFUSED), the server that received the data, the number of connections the server saw, whether the ports of the server-side sockets were all the same as the one listening port, and whether the client-side ports were different from each other. In the runs, three ports that were free at the time were used instead of 9000, 9001, and 9002, and because the client-side port numbers (such as 50001 on the screen) change on every run, only the fact that they are &quot;different from each other&quot; was used as a result. The range from which an operating system picks ephemeral ports depends on the operating system and its settings (the range that IANA recommends is 49152 to 65535, Section 6 of RFC 6335). That a connection is identified by the IP addresses and ports on both sides is the definition in the TCP specification (the entries for connection and socket in the glossary in Section 4 of RFC 9293). Not covered: clients on another computer, and special socket options (such as SO_REUSEPORT) that let several programs share the same port.</p>
+<p>The 27 combinations were actually run with the net module on 127.0.0.1 in our test run (Windows, Node.js 24) and checked against the results. What was checked: the result of the listen call of Server B (success or EADDRINUSE), the number of successful and refused client connections (ECONNREFUSED), the server that received the data, the number of connections the server saw, whether the ports of the server-side sockets were all the same as the one listening port, and whether the client-side ports were different from each other. In the runs, three ports that were free at the time were used instead of 9000, 9001, and 9002, and because the client-side port numbers (such as 50001 on the screen) change on every run, only the fact that they are &quot;different from each other&quot; was used as a result. The range from which an operating system picks ephemeral ports depends on the operating system and its settings (the range that IANA recommends is 49152 to 65535, Section 6 of RFC 6335). That a connection is identified by the IP addresses and ports on both sides is the definition in the TCP specification (the entries for connection and socket in the glossary in Section 4 of RFC 9293). Not covered: clients on another computer, and special socket options (such as SO_REUSEPORT) that let several programs share the same port.</p>
 <p>Previous lab: <a href="../../lab/routing/">Switches and routers</a> · Next lab: <a href="../../lab/tcp/">TCP connections and retransmission</a></p>
   </div>
 
@@ -175,6 +175,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

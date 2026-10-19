@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,19 +71,23 @@
 </ul>
 <h2>코드</h2>
 <pre>-- product 테이블: (1, '키보드', stock 10)
--- stock 컬럼에는 CHECK (stock &gt;= 0) 제약이 있다
+-- stock 컬럼에는 CHECK 제약 chk_stock (stock &gt;= 0)이 있다
 
 CREATE VIEW v_stock AS            -- 뷰: SELECT 문만 저장
   SELECT name, stock FROM product;
 CREATE TABLE stock_copy AS        -- 복사본: 지금의 결과를 행으로 저장
   SELECT name, stock FROM product;
 
+-- mysql 클라이언트에서 실행할 때: 본문 안의 ;에서 문장이 끝나지 않도록
+-- 문장의 끝 표시를 //로 바꿨다가 다시 ;로 되돌린다
+DELIMITER //
 CREATE TRIGGER trg_order_stock AFTER INSERT ON orders FOR EACH ROW
 BEGIN
   UPDATE product SET stock = stock - NEW.qty WHERE id = NEW.product_id;
   INSERT INTO stock_log (product_id, change_qty, memo)
     VALUES (NEW.product_id, -NEW.qty, '트리거');
-END;
+END //
+DELIMITER ;
 
 -- 애플리케이션이 실행하는 문장은 이것 하나
 INSERT INTO orders (product_id, qty) VALUES (1, 3);
@@ -91,7 +95,7 @@ INSERT INTO orders (product_id, qty) VALUES (1, 3);
 SELECT stock FROM v_stock;        -- 뷰로 조회
 SELECT stock FROM stock_copy;     -- 복사본으로 조회</pre>
 <h2>이 모형의 전제</h2>
-<p>열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. &quot;트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다&quot;는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.</p>
+<p>열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. &quot;트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다&quot;는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.</p>
 <p>앞 실습: <a href="../../lab/paging/">OFFSET과 키셋 페이징</a> · 다음 실습: <a href="../../lab/btree/">이진 탐색과 B-트리</a></p>
   </div>
 
@@ -179,6 +183,6 @@ SELECT stock FROM stock_copy;     -- 복사본으로 조회</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

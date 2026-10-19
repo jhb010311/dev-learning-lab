@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -128,7 +128,7 @@ class MemberService {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>All 72 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1, with AspectJ weaver 1.9.25.1 and JDK 21) on this PC, using code with the same structure as on the screen, and these were checked against the results: whether the pointcut matches the method, the order of the lines printed on the console, what the caller receives, and whether the bean is a proxy. It was also confirmed by execution that all 72 results are the same when the advice methods are written in the class in the reverse order, and that the method body does not run when @Around does not call pjp.proceed(). Two things could not be confirmed by execution and follow the Spring documentation. First, the order of execution within one aspect has been defined as it is now since Spring Framework 5.2.7, and in older versions @After sometimes ran before @AfterReturning (this PC has no old version). Second, the order among aspects that have no @Order is undefined. The code on the screen assumes that @EnableAspectJAutoProxy is turned on (for the runs, it was put directly on the configuration class; the documentation says that in Spring Boot it is turned on automatically when the AOP starter is added, but this part was not confirmed by execution). The method is assumed to be called from another bean. When it is called from within the same class, the call does not go through the proxy and the advice does not run, which is covered in the &quot;Proxies and self-invocation&quot; lab. The pointcut method is named pick. On this PC, when it was named target, none of the advice of LogAspect ran, and there was no error (target is a word that has its own use in pointcut expressions).</p>
+<p>All 72 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1, with AspectJ weaver 1.9.25.1 and JDK 21) in our test environment, using code with the same structure as on the screen, and these were checked against the results: whether the pointcut matches the method, the order of the lines printed on the console, what the caller receives, and whether the bean is a proxy. It was also confirmed by execution that all 72 results are the same when the advice methods are written in the class in the reverse order, and that the method body does not run when @Around does not call pjp.proceed(). Two things could not be confirmed by execution and follow the Spring documentation. First, the order of execution within one aspect has been defined as it is now since Spring Framework 5.2.7, and in older versions @After sometimes ran before @AfterReturning (our test environment has no old version). Second, the order among aspects that have no @Order is undefined. The code on the screen assumes that @EnableAspectJAutoProxy is turned on (for the runs, it was put directly on the configuration class; the documentation says that in Spring Boot it is turned on automatically when the AOP starter is added, but this part was not confirmed by execution). The method is assumed to be called from another bean. When it is called from within the same class, the call does not go through the proxy and the advice does not run, which is covered in the &quot;Proxies and self-invocation&quot; lab. The pointcut method is named pick. In our test environment, when it was named target, none of the advice of LogAspect ran, and there was no error (target is a word that has its own use in pointcut expressions).</p>
 <p>Previous lab: <a href="../../lab/proxy/">Proxies and self-invocation</a> · Next lab: <a href="../../lab/tx/">Transaction basics</a></p>
   </div>
 
@@ -216,6 +216,6 @@ class MemberService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

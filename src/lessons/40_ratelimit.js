@@ -49,7 +49,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], res = last ? last.snap.res : [], ok = res.filter(function (r) { return r.ok; }).length;
-    H.counters(v, [[res.length + ' / ' + sim.n, '도착한 요청'], [ok, '통과'], [res.length - ok, '거절 (429)']]);
+    H.counters(v, [[res.length + ' / ' + sim.n, '도착한 요청 / 보낼 요청 전체'], [ok, '통과'], [res.length - ok, '거절 (429)']]);
     [0, 1, 2].forEach(function (sec) { var it = res.filter(function (r) { return Math.floor(r.t) === sec; }); H.title(v, sec + '초 ~ ' + (sec + 1) + '초 사이에 도착한 요청'); H.slots(v, it.map(function (r, i) { return [r.t.toFixed(2), (r.ok ? 'd' : 'r') + (r === res[res.length - 1] ? ' now' : '')]; }), '없음', true); });
     H.text(v, '칸의 숫자는 도착 시각(초)입니다. 초록은 통과, 빨강은 거절.');
   },

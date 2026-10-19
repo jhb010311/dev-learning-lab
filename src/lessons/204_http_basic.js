@@ -38,9 +38,9 @@ Lab.register({
     // 2단계: 첫 줄을 읽는다
     st.arr1 = true; st.lc = broken ? 'bad' : 'hot'; st.rdc = broken ? 'bad' : 'hot'; st.rdt = ['첫 줄을 읽는 중'];
     if (broken) {
-      st.rdt = ['요청으로 읽지 못함']; st.cdt = ['불리지 않음']; st.resp = '400'; st.ran = '아니요';
+      st.rdt = ['요청으로 읽지 못함'];
       push('서버를 이루는 Node.js가 첫 줄을 읽습니다. 읽은 글은 "/hello"입니다. 요청 줄은 메서드, 경로, 버전 세 칸이어야 하는데, 메서드가 와야 할 자리에 /hello가 와서 메서드로 읽을 수 없습니다. Node.js는 이 글을 요청으로 읽지 못합니다.', 'bad');
-      st.rcv = true; st.done = true;
+      st.cdt = ['불리지 않음']; st.resp = '400'; st.ran = '아니요'; st.rcv = true; st.done = true;
       push('Node.js는 우리가 쓴 서버 코드를 부르지 않고 스스로 400 응답을 돌려줍니다.' + (!c.blank ? ' 빈 줄이 오지 않았는데도 기다리지 않습니다. 첫 줄이 틀렸다는 것은 첫 줄만 읽고도 알 수 있기 때문입니다.' : '') + (!c.host ? ' Host 줄이 없는 것도 문제이지만, 그것을 따지기 전에 첫 줄에서 이미 400이 정해졌습니다.' : ''), 'bad');
       push('브라우저가 400 응답을 받습니다. 글이 요청으로 읽히지 않았으므로 우리가 쓴 서버 코드까지 가지 못했습니다.', 'bad');
       sum.push('GET과 HTTP/1.1을 지운 첫 줄은 요청 줄이 아니라서, 서버(Node.js)가 이 글을 요청으로 읽지 못하고 400으로 답합니다.');

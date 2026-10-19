@@ -13,7 +13,7 @@ Lab.register({
     { t: '인가 코드를 가로채 다시 쓰면', q: '가로챈 인가 코드를 다시 사용하려고 시도하면', d: '코드는 한 번만, 그리고 클라이언트 비밀값과 함께만 쓸 수 있습니다.', v: { sc: 'reuse' } },
   ],
   code: function () {
-    return '# application.yml (스프링 시큐리티 OAuth2 클라이언트)\nspring.security.oauth2.client.registration.kakao:\n  client-id: abc123                     # 공개돼도 되는 값\n  client-secret: ********               # 서버만 아는 값\n  authorization-grant-type: authorization_code\n  redirect-uri: https://shop.example/login/oauth2/code/kakao\n  scope: profile_nickname, account_email\n\n// 아래 과정은 스프링 시큐리티가 대신 처리한다';
+    return '# application.yml (스프링 시큐리티 OAuth2 클라이언트)\nspring.security.oauth2.client:\n  registration.kakao:\n    client-id: abc123                   # 공개돼도 되는 값\n    client-secret: "********"           # 서버만 아는 값 (여기서는 가림)\n    client-authentication-method: client_secret_post\n    authorization-grant-type: authorization_code\n    redirect-uri: https://shop.example/login/oauth2/code/kakao\n    scope: profile_nickname, account_email\n  # 카카오는 스프링 시큐리티가 주소를 미리 알고 있는 제공자가 아니라서\n  # 인가 서버와 API 서버의 주소를 직접 적는다\n  provider.kakao:\n    authorization-uri: https://kauth.kakao.com/oauth/authorize\n    token-uri: https://kauth.kakao.com/oauth/token\n    user-info-uri: https://kapi.kakao.com/v2/user/me\n    user-name-attribute: id\n\n# 아래 과정은 스프링 시큐리티가 대신 처리한다';
   },
   label: function (c) { return { ok: '정상 로그인', deny: '사용자가 동의 취소', state: 'state 불일치', reuse: '인가 코드 재사용 시도' }[c.sc]; },
   columns: ['결과', '우리 서비스가 받은 것', '사용자 비밀번호를 본 곳'],
@@ -38,8 +38,8 @@ Lab.register({
         step('우리 서비스', '카카오 인가 서버', '서버 간 직접 통신', 'code=Aq7Lp + client_secret', '우리 서버가 카카오의 토큰 주소로 직접 요청합니다. 인가 코드와 함께, 우리 서버만 아는 client_secret을 보냅니다. 이 통신은 브라우저를 거치지 않습니다.', '');
         step('카카오 인가 서버', '우리 서비스', '서버 간 직접 통신', '액세스 토큰 (+ 리프레시 토큰)', '카카오가 코드와 비밀값을 확인하고 액세스 토큰을 발급합니다. 토큰은 브라우저에 노출되지 않고 우리 서버에만 전달됩니다. 인가 코드는 이 순간 폐기됩니다.', 'good');
         if (c.sc === 'reuse') {
-          step('공격자', '카카오 인가 서버', '직접 요청', 'code=Aq7Lp (가로챈 코드)', '공격자가 브라우저 기록이나 로그에서 인가 코드를 얻어 토큰으로 바꾸려 합니다.', '');
-          step('카카오 인가 서버', '공격자', '응답', 'error=invalid_grant', '거부됩니다. 이 코드는 이미 사용됐고, 공격자는 client_secret도 모릅니다. 인가 코드만으로는 토큰을 얻을 수 없습니다.', 'good');
+          step('공격자', '카카오 인가 서버', '직접 요청', 'code=Aq7Lp (가로챈 코드, client_secret 없음)', '공격자가 브라우저 기록이나 로그에서 인가 코드를 얻어 토큰으로 바꾸려 합니다. 공격자는 client_secret을 모르므로 코드만 보냅니다.', '');
+          step('카카오 인가 서버', '공격자', '응답', 'error=invalid_client', '거부됩니다. 표준(RFC 6749)에서는 토큰 주소가 요청한 쪽이 등록된 클라이언트인지(client_secret)를 확인하고, 이 확인에 실패하면 invalid_client 오류를 돌려줍니다. 비밀값을 알아냈더라도 이 코드는 이미 사용됐으므로 invalid_grant 오류로 거부됩니다. 인가 코드만으로는 토큰을 얻을 수 없습니다.', 'good');
         }
         step('우리 서비스', '카카오 API 서버', '서버 간 직접 통신', 'Authorization: Bearer (액세스 토큰)', '우리 서버가 액세스 토큰으로 카카오의 사용자 정보 API를 호출합니다. 토큰에 허용된 범위(scope)의 정보만 받을 수 있습니다.', '');
         step('카카오 API 서버', '우리 서비스', '서버 간 직접 통신', '카카오 회원 번호, 닉네임, 이메일', '사용자 정보를 받았습니다. 우리 서비스는 카카오 회원 번호로 우리 회원을 찾거나 새로 가입시킵니다.', 'good');

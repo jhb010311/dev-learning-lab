@@ -69,8 +69,8 @@ Lab.register({
     if (fk) {
       push(q2 + ': This tries to insert the second order. Before it adds the row, the database ' + (who === 'null' ? 'looks at member_id. member_id is empty (NULL), so there is no member number to look up.' : 'looks for the row with id ' + m2 + ' in the member table.') + ' The database does this check by itself, too.', '');
       if (insRej) {
-        st.rej = { m: m2 }; st.log.push([shortQ, res2, 'good']);
-        push('Result of the check: The member table has no row with id 99. That breaks the promise, so the database rejects this INSERT and returns an error of the kind "the referenced row does not exist." Order 11 was not added to orders, and the table is exactly as it was before the INSERT.', 'good');
+        st.rej = { m: m2 }; st.log.push([shortQ, res2, 'bad']);
+        push('Result of the check: The member table has no row with id 99. That breaks the promise, so the database rejects this INSERT and returns an error of the kind "the referenced row does not exist." Order 11 was not added to orders, and the table is exactly as it was before the INSERT.', 'bad');
       } else {
         st.orders.push({ id: '11', m: m2, hot: true, bad: false }); refresh(); st.log.push([shortQ, res2, 'good']);
         push(who === 'null'
@@ -89,8 +89,8 @@ Lab.register({
     var res3 = fk ? 'Rejected: an order points to this member' : 'Deleted';
     if (fk) {
       push('DELETE FROM member WHERE id = 1: This tries to delete member 1 (Alice). Before it deletes the row, the database looks in the orders table for orders whose member_id is 1. It finds ' + refText + '.', '');
-      st.delrej = true; st.members[0].hot = true; st.log.push(['DELETE member (id = 1)', res3, 'good']);
-      push('Result of the check: Orders that point to this member are still there, so the database rejects this DELETE and returns an error of the kind "another table references this row." Member 1 was not deleted, and the member table is exactly as it was before the DELETE. So a member that an order points to never disappears.', 'good');
+      st.delrej = true; st.members[0].hot = true; st.log.push(['DELETE member (id = 1)', res3, 'bad']);
+      push('Result of the check: Orders that point to this member are still there, so the database rejects this DELETE and returns an error of the kind "another table references this row." Member 1 was not deleted, and the member table is exactly as it was before the DELETE. So a member that an order points to never disappears.', 'bad');
     } else {
       st.members[0].gone = true; refresh();
       st.log.push(['DELETE member (id = 1)', res3, 'bad']);

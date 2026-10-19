@@ -31,10 +31,10 @@ public class DbTxBasicProbe {
         l.add("UPDATE account SET balance = balance - 300 WHERE id = 1;");
         l.add("UPDATE account SET balance = balance + 300 WHERE id = 2;");
         if (end.equals("commit")) {
-            l.add("-- 끝: 묶음 전체를 확정한다");
+            l.add(begin ? "-- 끝: 묶음 전체를 확정한다" : "-- 묶음이 없어 확정할 것이 없다(두 UPDATE는 이미 확정됨)");
             l.add("COMMIT;");
         } else if (end.equals("rollback")) {
-            l.add("-- 끝: 묶음에서 한 일을 전부 취소한다");
+            l.add(begin ? "-- 끝: 묶음에서 한 일을 전부 취소한다" : "-- 묶음이 없어 취소할 것이 없다(두 UPDATE는 이미 확정됨)");
             l.add("ROLLBACK;");
         }
         l.add("");

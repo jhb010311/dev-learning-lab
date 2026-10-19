@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -98,7 +98,7 @@ SELECT COUNT(*)
   LEFT JOIN member m ON m.id = o.member_id
  WHERE o.member_id IS NOT NULL AND m.id IS NULL;</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a small example with 3 members and 3 orders. For all 48 combinations (8 statements × with or without constraints × 3 ON DELETE actions), the SQL on the screen was run as it is on a real MySQL 8.4.11 (InnoDB, default sql_mode), and the error number and error message, the number of rows changed, all the rows of the two tables afterwards, and the result of the check query were checked to be the same as in the model. The error numbers and messages are those of MySQL, and they differ in other databases. That an UPDATE that changes a NOT NULL column to NULL is rejected with error 1048 holds in strict SQL mode (the default in MySQL 8), and when the same UPDATE is run in a session with strict mode turned off, it saves an empty string without an error. That NULL can go into a unique column several times is behavior that was confirmed by running it on MySQL, and some databases, such as SQL Server, allow NULL only once (this comparison followed the documentation and was not checked by execution). When you do not write ON DELETE, MySQL behaves the same as RESTRICT (NO ACTION), and in InnoDB there is no difference between the two. That the child rows deleted together by CASCADE are not included in the number of rows changed is also MySQL behavior that was confirmed by running it. It was also confirmed by running it that when you write only REFERENCES right after a column definition (member_id INT REFERENCES member(id)), MySQL accepts it without an error but does not create a foreign key. That is why the screen writes a separate FOREIGN KEY clause. The foreign keys are for InnoDB, and this lab covers only the case where one statement is run at a time.</p>
+<p>This is a small example with 3 members and 3 orders. For all 48 combinations (8 statements × with or without constraints × 3 ON DELETE actions), the SQL on the screen was run as it is on a real MySQL 8.4.11 (InnoDB, default sql_mode), and the error number and error message, the number of rows changed, all the rows of the two tables afterwards, and the result of the check query were checked to be the same as in the model. The error numbers and messages are those of MySQL, and they differ in other databases. That an UPDATE that changes a NOT NULL column to NULL is rejected with error 1048 holds in strict SQL mode (the default in MySQL 8), and when the same UPDATE is run in a session with strict mode turned off, it saves an empty string without an error. That NULL can go into a unique column several times is behavior that was confirmed by running it on MySQL, and some databases, such as SQL Server, allow NULL only once (this comparison followed the documentation and was not checked by execution). When you do not write ON DELETE, MySQL behaves the same as RESTRICT (NO ACTION), and in InnoDB there is no difference between the two. MySQL actually checks CHECK constraints from 8.0.16 on, and earlier versions only accept the CHECK clause and ignore it (this part follows the CHECK constraint description in the MySQL documentation, not a run). That the child rows deleted together by CASCADE are not included in the number of rows changed is also MySQL behavior that was confirmed by running it. It was also confirmed by running it that when you write only REFERENCES right after a column definition (member_id INT REFERENCES member(id)), MySQL accepts it without an error but does not create a foreign key. That is why the screen writes a separate FOREIGN KEY clause. The foreign keys are for InnoDB, and this lab covers only the case where one statement is run at a time.</p>
 <p>Next lab: <a href="../../lab/ermodel/">ER modeling</a></p>
   </div>
 
@@ -186,6 +186,6 @@ SELECT COUNT(*)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

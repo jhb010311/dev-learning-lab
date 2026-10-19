@@ -25,7 +25,7 @@ Lab.register({
     return [c.how === 'fetch' ? '"select m from Member m join fetch m.team"' : '"select m from Member m"'];
   },
   code: function (c) {
-    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    int age;\n    String email;\n    String city;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Team team;             // Team에는 id, name, region이 있다\n}\n\n';
+    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    int age;\n    String email;\n    String city;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Team team;             // Team 엔티티(줄임)에는 id, name, region이 있다\n    // 게터와 세터(getName, getAge, getTeam, setName 등)는 줄였다\n}\n\n';
     var dto = '// 화면에 내보낼 값만 담는 클래스. 엔티티가 아니다 (패키지는 dtoquery)\npublic class MemberDto {\n    private String name;\n    private int age;\n' + (c.team ? '    private String teamName;\n    public MemberDto(String name, int age, String teamName) {\n        this.name = name; this.age = age; this.teamName = teamName;\n    }\n' : '    public MemberDto(String name, int age) {\n        this.name = name; this.age = age;\n    }\n') + '    public void setName(String name) { this.name = name; }\n}\n\n';
     var q = this.jpql(c), body;
     if (c.how === 'dto') body = '    List<MemberDto> dtos = em.createQuery(\n        ' + q.join('\n        ') + ', MemberDto.class)\n        .getResultList();\n' + (c.mod ? '\n    dtos.get(0).setName("김영수");      // 조회한 DTO의 이름을 바꿔 본다\n' : '');
@@ -45,9 +45,8 @@ Lab.register({
     if (isDto) {
       st.cols = c.team ? 3 : 2; st.arrow = 'direct';
       send(c.team ? 'select m.name, m.age, t.name from member m join team t' : 'select m.name, m.age from member m', 'JPQL의 new');
-      st.dtos = D.map(dtoText);
       push('em.createQuery("select new dtoquery.MemberDto(…) …"): new 뒤에 DTO 클래스의 이름과, 생성자에 넘길 값을 적었습니다. SQL의 SELECT 절에는 그 값에 해당하는 컬럼 ' + st.cols + '개만 들어갑니다' + (c.team ? '(회원의 이름과 나이, 팀의 이름). 팀 이름은 team 테이블에 있으므로 같은 쿼리에서 조인해 가져옵니다.' : '(회원의 이름과 나이).') + ' 쿼리는 한 번입니다.', 'good');
-      st.arrow = '';
+      st.arrow = ''; st.dtos = D.map(dtoText);
       push('결과 만들기: Hibernate가 돌아온 행마다 MemberDto의 생성자를 불러 DTO 4개를 만듭니다. Member 엔티티는 만들지 않습니다. 그래서 영속성 컨텍스트에는 아무것도 들어가지 않고, 처음 값을 기억해 두는 스냅샷도 없습니다.', 'good');
       if (c.mod) { st.dtos[0] = { t: '김영수 · 30', r: st.dtos[0].r, cls: 'hot' }; push('dtos.get(0).setName("김영수"): DTO의 이름을 바꿨습니다. DTO는 @Entity가 없는 보통 자바 객체입니다. 영속성 컨텍스트는 이 객체를 알지 못합니다.'); }
       push('메서드 종료, 커밋: 영속성 컨텍스트가 관리하는 엔티티가 없으므로 비교할 것도, 보낼 SQL도 없습니다.' + (c.mod ? ' DTO의 이름은 김영수로 바뀌었지만 UPDATE는 나가지 않았고, DB의 이름은 김철수 그대로입니다.' : ''), c.mod ? 'bad' : '');
@@ -124,5 +123,5 @@ Lab.register({
     P.box('q', 16, 264, 648, 46, { cls: s.sql ? 'plain' : 'ghost', title: '마지막으로 DB에 나간 SQL', sub: s.sql || '아직 없음', mono: true });
     P.note('가운데 영역에 들어온 객체만 영속성 컨텍스트가 관리합니다. DTO는 오른쪽 영역에만 있으므로 바꿔도 DB에 반영되지 않습니다. 점선으로 된 팀은 아직 읽지 않은 것(프록시)입니다.');
   },
-  assume: '열두 가지 조합을 이 PC의 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드로 실제 실행해, 나간 SELECT의 수와 대상 테이블, 첫 SELECT의 컬럼 수, 영속성 컨텍스트가 관리하는 엔티티의 수, 커밋할 때 나간 UPDATE의 수, DB에 남은 이름을 화면과 대조했습니다. 코드 전체가 하나의 트랜잭션(영속성 컨텍스트) 안에서 실행된다고 보았습니다. 화면의 SQL은 읽기 쉽게 줄인 것이고, 실제 문장의 모양과 컬럼 순서는 Hibernate 버전에 따라 다릅니다. fetch join에서 컬럼이 9개가 아니라 8개인 것은 Hibernate 7.4.5가 회원의 team_id를 따로 읽지 않았기 때문이며, 버전에 따라 달라질 수 있습니다. 팀을 읽는 추가 쿼리의 수는 아직 읽지 않은 서로 다른 팀의 수(이 예에서는 2)이고, 배치 크기 설정이 없을 때의 값입니다. JPA 표준은 new 뒤에 패키지 이름까지 포함한 클래스 이름을 적도록 정합니다. Hibernate 7.4.5에서 실행해 보니, createQuery에 결과 타입으로 MemberDto.class를 함께 넘기면 패키지 이름을 빼도 실행됐고, 결과 타입 없이 클래스 이름만 적으면 클래스를 찾지 못해 예외(SemanticException)가 났습니다. 패키지 이름을 빼도 되는 것은 표준이 보장하는 동작이 아닙니다. 스프링 데이터 JPA가 인터페이스나 record로 필요한 값만 받게 해 주는 기능(프로젝션)은 이 실습에서 다루지 않았습니다.',
+  assume: '열두 가지 조합을 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드로 실제 실행해, 나간 SELECT의 수와 대상 테이블, 첫 SELECT의 컬럼 수, 영속성 컨텍스트가 관리하는 엔티티의 수, 커밋할 때 나간 UPDATE의 수, DB에 남은 이름을 화면과 대조했습니다. 코드 전체가 하나의 트랜잭션(영속성 컨텍스트) 안에서 실행된다고 보았습니다. 화면의 SQL은 읽기 쉽게 줄인 것이고, 실제 문장의 모양과 컬럼 순서는 Hibernate 버전에 따라 다릅니다. fetch join에서 컬럼이 9개가 아니라 8개인 것은 Hibernate 7.4.5가 회원의 team_id를 따로 읽지 않았기 때문이며, 버전에 따라 달라질 수 있습니다. 팀을 읽는 추가 쿼리의 수는 아직 읽지 않은 서로 다른 팀의 수(이 예에서는 2)이고, 배치 크기 설정이 없을 때의 값입니다. JPA 표준은 new 뒤에 패키지 이름까지 포함한 클래스 이름을 적도록 정합니다. Hibernate 7.4.5에서 실행해 보니, createQuery에 결과 타입으로 MemberDto.class를 함께 넘기면 패키지 이름을 빼도 실행됐고, 결과 타입 없이 클래스 이름만 적으면 클래스를 찾지 못해 예외(SemanticException)가 났습니다. 패키지 이름을 빼도 되는 것은 표준이 보장하는 동작이 아닙니다. 스프링 데이터 JPA가 인터페이스나 record로 필요한 값만 받게 해 주는 기능(프로젝션)은 이 실습에서 다루지 않았습니다.',
 });

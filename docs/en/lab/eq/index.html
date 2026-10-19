@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>String a = &quot;hello&quot;: Only one copy of a string literal is created, and it is kept in the string pool. a refers to the &quot;hello&quot; object in the pool.</li>
 <li>String b = new String(&quot;hello&quot;): new always creates a new object. Its contents are the same as the &quot;hello&quot; in the pool, but it is a separate object at a different place on the heap.</li>
 <li>a == b: This compares whether the two variables refer to the same object. a refers to object 1 and b refers to object 2, so the result is false.</li>
-<li>a.equals(b): This compares the values inside the objects. The contents are the same, so the result is true.</li>
+<li>a.equals(b): The equals method of String checks whether the two strings have the same characters in the same order. Both are hello, so the result is true.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -73,7 +73,7 @@ String b = new String(&quot;hello&quot;);
 System.out.println(a == b);
 System.out.println(a.equals(b));</pre>
 <h2>Assumptions of this model</h2>
-<p>The == result of every combination was checked against the result of running the same code on JDK 21 on this PC. The Integer cache range of -128 to 127 is the minimum range that the Java Language Specification guarantees, and the upper bound can be raised with a JVM option. The string pool has been located inside the heap since JDK 7, but the diagram shows it separately to set it apart.</p>
+<p>The == result of every combination was checked against the result of running the same code in our test run (JDK 21). The Integer cache range of -128 to 127 is the minimum range that the Java Language Specification guarantees, and the upper bound can be raised with a JVM option. The string pool has been located inside the heap since JDK 7, but the diagram shows it separately to set it apart.</p>
 <p>Previous lab: <a href="../../lab/strategy/">Strategy pattern</a> · Next lab: <a href="../../lab/eqhash/">equals and hashCode</a></p>
   </div>
 
@@ -161,6 +161,6 @@ System.out.println(a.equals(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

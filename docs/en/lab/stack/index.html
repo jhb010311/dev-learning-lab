@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ public static void main(String[] args) {
     System.out.println(factorial(4));
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>This model simplifies the stack size to a number of frames. In reality the size is measured in bytes (-Xss, about 1MB by default on 64-bit Linux), and the size of a frame depends on how many local variables it has, so the number of frames that fit is not fixed. It also depends on whether the code has been JIT-compiled. That each thread has its own stack while the heap is shared, and that a frame is pushed on a call and removed on a return, matches the definitions in the JVM specification. This was checked by actually running code on JDK 21 on this PC. Recursion without a base case threw a StackOverflowError at a depth of about 17,000. Even with a base case, a depth of 200,000 threw a StackOverflowError with the default stack, and the same code finished normally once the stack was enlarged to 64MB (-Xss64m). After the stack of one thread overflowed, the other threads kept running.</p>
+<p>This model simplifies the stack size to a number of frames. In reality the size is measured in bytes (-Xss, about 1MB by default on 64-bit Linux), and the size of a frame depends on how many local variables it has, so the number of frames that fit is not fixed. It also depends on whether the code has been JIT-compiled. That each thread has its own stack while the heap is shared, and that a frame is pushed on a call and removed on a return, matches the definitions in the JVM specification. This was checked by actually running code on JDK 21 in our test environment. Recursion without a base case threw a StackOverflowError at a depth of about 17,000. Even with a base case, a depth of 200,000 threw a StackOverflowError with the default stack, and the same code finished normally once the stack was enlarged to 64MB (-Xss64m). After the stack of one thread overflowed, the other threads kept running.</p>
 <p>Previous lab: <a href="../../lab/blocking/">Blocking, non-blocking, and virtual threads</a> · Next lab: <a href="../../lab/gc/">GC and memory leaks</a></p>
   </div>
 
@@ -167,6 +167,6 @@ public static void main(String[] args) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

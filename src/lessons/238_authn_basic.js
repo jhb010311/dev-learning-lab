@@ -27,7 +27,7 @@ Lab.register({
     var out = ['@Configuration', 'public class SecurityConfig {', '    @Bean', '    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {', '        http.authorizeHttpRequests(auth -> auth'];
     if (c.rule === 'role') out.push('                // 인가: /admin은 ADMIN 권한이 있는 사람만', '                .requestMatchers("/admin").hasRole("ADMIN")');
     if (c.rule === 'open') out.push('                // 확인 없음: /admin은 누구에게나 열어 둔다', '                .requestMatchers("/admin").permitAll()');
-    out.push('                // 인가 규칙: 그 밖의 주소는 누구인지 확인된(인증된) 사람만 허용', '                .anyRequest().authenticated())', '            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
+    out.push('                // 인가: 그 밖의 주소는 인증된(누구인지 확인된) 사람만 허용', '                // (누구인지 확인하는 일은 이 줄이 아니라 아래 httpBasic이 한다)', '                .anyRequest().authenticated())', '            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다', '            .httpBasic(Customizer.withDefaults());', '        return http.build();', '    }', '}', '',
       '@RestController', 'public class AdminController {', '    @GetMapping("/admin")', '    public String admin() {', '        return "관리자 화면";', '    }', '}');
     return out.join('\n');
   },

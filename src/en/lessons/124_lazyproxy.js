@@ -40,8 +40,8 @@ Lab.register({
     }
     if (how === 'lazy') {
       st.order = true; st.m = 'proxy'; send('select * from orders where id = 1', 'When em.find(Order) is called');
-      push('em.find(Order.class, 1L): A SELECT reads order 1. The order row holds only the identifier of the member (member_id = 1). The member field is LAZY, so the member table is not queried, and a proxy that knows only the identifier 1 is put in its place.', '');
-      push('order.getMember(): Returns the proxy that was in the field as it is. No SQL has been sent to the member table yet.', '');
+      push('em.find(Order.class, 1L): A SELECT reads order 1. The order row holds only the identifier of the member (member_id = 1). The member field is LAZY, so the member table is not queried, and the member field is set to point to a proxy that knows only the identifier 1.', '');
+      push('order.getMember(): Returns the proxy that the member field was pointing to, as it is. No SQL has been sent to the member table yet.', '');
     }
     if (how === 'find') {
       st.m = 'entity'; st.real = true; send(selM, 'When em.find is called'); when = 'When em.find is called';

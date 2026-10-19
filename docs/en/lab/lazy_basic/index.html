@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lazy fetching: When is an associated object read from the database? · Dev Learning Lab</title>
-<meta name="description" content="An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in…">
+<meta name="description" content="An order (Order) points to the member (Member) who placed it (Order and Member are entity classes written for this lab as examples). In code, the member f…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Lazy fetching: When is an associated object read from the database? · Dev Learning Lab">
-<meta property="og:description" content="An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in…">
+<meta property="og:description" content="An order (Order) points to the member (Member) who placed it (Order and Member are entity classes written for this lab as examples). In code, the member f…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Lazy fetching</h1>
 <p><b>When is an associated object read from the database?</b></p>
-<p>An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field holds a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.</p>
+<p>An order (Order) points to the member (Member) who placed it (Order and Member are entity classes written for this lab as examples). In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field refers to a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.</p>
 <p>Checked against real execution · Ran 4 combinations on Hibernate 7.4.5 and H2 2.4.240 and checked the SQL sent on each line against the results, and checked the FetchType rules against the Jakarta Persistence 3.2 API documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -54,8 +54,8 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to a table (one object of the class is one row), and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.</li>
-<li>Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field gets a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.</li>
-<li>order.getMember(): returns as it is the proxy that was in the member field of the Order object. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.</li>
+<li>Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field is made to refer to a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.</li>
+<li>order.getMember(): returns as it is the proxy that the member field of the Order object referred to. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.</li>
 <li>.getName(): the proxy holds only the number of the member, so it does not know the name. At this moment, JPA (Hibernate) sends a SELECT statement that reads the member table, reads the row of member 1, fills in the proxy, and returns the name Alice. The SELECT was sent on this line, where a value of the member was taken for the first time, and this SELECT is not in the code we wrote either.</li>
 <li>The code has finished. SELECT statements sent in total: 2. 1 was sent on the find line that reads the order, and 1 on the getName line that takes the name of the member. The member was read on the getName line, where the name was actually used.</li>
 </ol>
@@ -180,6 +180,6 @@ String name = order.getMember().getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

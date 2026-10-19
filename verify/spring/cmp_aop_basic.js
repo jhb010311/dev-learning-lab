@@ -19,7 +19,7 @@ for (const ln of lines.slice(1)) {
   let good = true;
   if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + k + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
   // 화면의 코드 = Probe가 실행한 소스에서 package/import 머리글을 뺀 것
-  const all = f.src.split('\\n'), body = all.slice(all.findIndex(l => l === '// 끼워 넣는 일: OrderService의 order()를 부를 때마다 실행된다' || l === '@Service'));
+  const all = f.src.split('\\n'), body = all.slice(all.findIndex(l => l === '// 끼워 넣는 일: 스프링이 보관한 OrderService 빈의 order()를 부를 때마다 실행된다' || l === '@Service'));
   while (body.length && body[body.length - 1] === '') body.pop();
   const want = lesson.code.call(lesson, c);
   if (body.join('\n') !== want) { good = false; console.log('화면의 코드가 Probe가 실행한 소스와 다름: ' + k + '\n   화면 ' + want.replace(/\n/g, '\\n') + '\n   실행 ' + body.join('\\n')); }

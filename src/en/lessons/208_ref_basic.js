@@ -1,14 +1,14 @@
 Lab.register({
   id: 'ref_basic', nav: 'References', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['eq'],
   title: 'What does it mean to store an object in a variable?',
-  intro: 'In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.',
+  intro: 'Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.',
   terms: ['Reference', 'Classes and objects', 'Primitive types and reference types', 'Identity and equality'],
   controls: [
     { id: 'how', label: 'Code that stores into b', type: 'select', value: 'same', options: [['same', 'Card b = a;'], ['fresh', 'Card b = new Card();'], ['copy', 'Card b = new Card(); b.owner = a.owner;'], ['prim', 'int instead of Card: int a = 1; int b = a; b = 2;']] },
   ],
   // q is the question shown on the question-style screen; t and d are the name and description used in the text-only version
   presets: [
-    { t: 'Default settings', q: 'After Card b = a;, what happens to a when you change the value through b?', d: 'b holds the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.', v: { how: 'same' } },
+    { t: 'Default settings', q: 'After Card b = a;, what happens to a when you change the value through b?', d: 'b refers to the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.', v: { how: 'same' } },
     { t: 'Store new Card() in b', q: 'What if you store new Card() in b instead of a?', d: 'One more new object is created, and a and b refer to different objects. Changing b leaves a unchanged.', v: { how: 'fresh' } },
     { t: 'Create, then only copy the value', q: 'What if you create a new object and then only copy the value over?', d: 'Even if you copy the text of owner over, there are 2 objects. The contents were the same at first, but they are different objects.', v: { how: 'copy' } },
     { t: 'Use int', q: 'What if it is int instead of Card?', d: 'A variable of a primitive type holds the value itself, so assigning copies the value. Changing b leaves a unchanged.', v: { how: 'prim' } },
@@ -20,7 +20,7 @@ Lab.register({
       return o.join('\n');
     }
     o.push('class Card {', '    String owner;', '}', '', 'public class Main {', '    public static void main(String[] args) {', '        Card a = new Card();', '        a.owner = "Alice";');
-    if (c.how === 'same') o.push('        // b holds the very object that a refers to. No new object is created', '        Card b = a;');
+    if (c.how === 'same') o.push('        // the reference in a is copied to b, so b refers to that same object. No new object is created', '        Card b = a;');
     else {
       o.push('        Card b = new Card();');
       if (c.how === 'copy') o.push('        b.owner = a.owner;');
@@ -91,11 +91,11 @@ Lab.register({
         sum.push('A Card variable has inside it not the Card object itself but a value (a reference) that refers to that object. So Card b = a; does not copy the object. It makes one more variable that refers to the same object.');
         sum.push('The owner was changed through b yet a read Bob too, a == b was true, and there was only 1 Card object. All of these have the same reason. If you want a separate object, you have to create it anew with new Card().');
       } else if (how === 'fresh') {
-        sum.push('When you store new Card() in b, a new object is created, and a and b refer to different objects. Even after Bob was stored through b, the object of a was still Alice, and a == b was false.');
+        sum.push('With Card b = new Card();, a new object is created and b refers to it, so a and b refer to different objects. Even after Bob was stored through b, the object of a was still Alice, and a == b was false.');
         sum.push('Each time new Card() ran, one more object was created (2 this time). If you want a separate object, you create it anew with new like this.');
       } else {
         sum.push('If you copy the text of a.owner into a newly created object, the contents of the two objects become the same, but there are two objects. Even after b was changed, the object of a was still Alice, and a == b was false.');
-        sum.push('a == b asks not whether the text of owner is the same but whether they refer to the same object. Even for two objects with the same contents, a == b is false.');
+        sum.push('a == b asks not whether the text of owner is the same but whether they refer to the same object. The a == b on the last line ran after b.owner was changed to Bob, so the contents were different by then too, but right after b.owner = a.owner;, when the owner of both objects was Alice, a == b was also false (our test run checked a == b at that point too).');
       }
     }
     return { events: ev, summary: sum, after: after, row: [st.out[0], st.out[1], prim ? 'None (primitive type)' : String(st.made)] };

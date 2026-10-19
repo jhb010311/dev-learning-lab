@@ -64,7 +64,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var p = sim.p, num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
     if (st >= 5) { H.counters(v, [[num(p.idxRead), 'Index entries read'], [st >= 6 || p.type === 'ALL' ? num(p.tblRead) : '?', 'Table rows read'], [num(Math.max(1, p.out)), 'Result rows (approx.)']]);
-      H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'In EXPLAIN (main columns only)'); }
+      H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'Values expected in EXPLAIN (main columns only; worked out by this lab, not the result of running it on a real DB)'); }
   },
   // Diagram: the whole index is drawn as a long strip, showing how the range to read narrows (or fails to narrow) as each column is passed.
   draw: function (P, sim, shown) {

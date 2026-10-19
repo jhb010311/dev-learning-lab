@@ -36,8 +36,8 @@ Lab.register({
         push("The server concatenated the input into the SQL string as is. The single quote in the input closed the string in the SQL, and the OR '1'='1' after it became part of the SQL syntax.", 'bad');
         box.push(['Result in the database', "The condition is always true → member rows are returned\n→ login succeeds without knowing the password"]);
         push("'1'='1' is always true, so the whole WHERE condition becomes true. A member row is returned, and the server decides that the login succeeded.", 'bad');
-        res = 'Succeeded'; harm = 'Logged in without a password (data can also be read or deleted)';
-        sum.push('The cause is that the input was interpreted as "SQL syntax", not as a "value". In the same way, SQL that reads other tables or deletes data can be slipped in.');
+        res = 'Succeeded'; harm = 'Logged in without a password (other data can also be read)';
+        sum.push('The cause is that the input was interpreted as "SQL syntax", not as a "value". In the same way, an attacker can append a UNION to make the query read data from other tables too. Whether an attack that adds another statement such as DELETE after a semicolon works depends on the driver and the database. For example, MySQL Connector/J does not run several statements at once in its default setting (allowMultiQueries=false), so it is blocked, but it can work with a driver or setting that runs several statements at once.');
       } else {
         box.push(['What the server sent to the database', "SQL template: SELECT * FROM member WHERE email = ? AND password = ?\nValue 1: admin@shop.example\nValue 2: ' OR '1'='1"]);
         push('The server sends the SQL template and the values separately. The database first parses the template and fixes the structure, then puts the values into the placeholders. Whatever a value contains, it is not interpreted as SQL syntax.', 'good');

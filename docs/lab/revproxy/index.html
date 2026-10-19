@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,8 @@
 <li>서버가 받은 연결은 HTTP지만, X-Forwarded-Proto: https 덕분에 사용자가 원래 HTTPS로 접속했다는 것을 압니다. 이 헤더도 X-Forwarded-For처럼 믿을 수 있는 프록시가 붙인 것만 써야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 리버스 프록시: HTTPS로 받아 뒤의 서버(10.0.0.9)로 넘긴다
+<pre>// 아래는 자바가 아니라 Node.js(자바스크립트)로 쓴 시험용 코드다(필요한 부분만 남김).
+// 리버스 프록시: HTTPS로 받아 뒤의 서버(10.0.0.9)로 넘긴다
 https.createServer(tls, (req, res) =&gt; {
     const headers = { ...req.headers };
     const peer = req.socket.remoteAddress;               // 이 프록시에 연결한 상대의 주소
@@ -96,7 +97,7 @@ http.createServer((req, res) =&gt; {
 // 클라이언트
 // curl -H 'X-Forwarded-For: 198.51.100.99' https://shop.example/whoami</pre>
 <h2>이 모형의 전제</h2>
-<p>서로 다른 42가지 조합(직접 연결에는 프록시 설정이 쓰이지 않음)을 이 PC 안에서 실행해 다섯 열이 모두 모형과 같은 것을 확인했습니다. 클라이언트, 프록시, 서버를 이 PC의 루프백 주소 셋(127.0.0.10, 127.0.0.20, 127.0.0.30)에 나눠 띄우고, Node.js 24로 만든 작은 프록시와 서버에 두 가지 클라이언트(Node의 http·https 모듈, curl 8.21)로 요청해 서버가 실제로 본 연결 상대 주소와 헤더를 기록했습니다. 두 클라이언트의 결과는 모든 조합에서 같았습니다. 리버스 프록시는 시험용 인증서로 HTTPS를 받아 서버에는 HTTP로 넘겼고, 포워드 프록시에는 curl의 -x 옵션으로 요청해 요청 줄에 전체 주소가 실려 오는 것을 확인했습니다. 화면의 주소(203.0.113.7, 198.51.100.99, 192.0.2.50)는 문서 예시용으로 정해진 주소이고 10.0.0.x는 사설망 주소이며, 시험에 쓴 루프백 주소를 바꿔 적은 것입니다. 프록시는 시험용으로 직접 만든 것이라 실제 제품의 기본 동작과는 다를 수 있습니다. 예를 들어 nginx는 따로 설정하지 않으면 받은 헤더를 그대로 넘기고, proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for가 &quot;덧붙이기&quot;, $remote_addr가 &quot;새로 쓰기&quot;에 해당합니다(nginx 문서 기준이며 실행으로 확인하지 않았습니다). X-Forwarded-For와 X-Forwarded-Proto는 표준이 아니라 널리 쓰이는 관례이고, 같은 정보를 담는 표준 헤더로 Forwarded(RFC 7239)가 있습니다. HTTPS 요청을 포워드 프록시로 보낼 때는 프록시가 내용을 볼 수 없는 통로(CONNECT)만 이어 주므로 헤더를 덧붙일 수 없는데, 이 실습의 포워드 프록시는 HTTP 요청만 다뤘습니다. 서버가 헤더가 없을 때 연결 상대 주소를 대신 쓰는 것은 이 모형에서 정한 규칙입니다. 프록시가 여러 대 이어진 경우와 로드밸런서의 분산은 다루지 않았습니다.</p>
+<p>서로 다른 42가지 조합(직접 연결에는 프록시 설정이 쓰이지 않음)을 실제로 실행해 다섯 열이 모두 모형과 같은 것을 확인했습니다. 클라이언트, 프록시, 서버를 한 컴퓨터의 루프백 주소 셋(127.0.0.10, 127.0.0.20, 127.0.0.30)에 나눠 띄우고, Node.js 24로 만든 작은 프록시와 서버에 두 가지 클라이언트(Node의 http·https 모듈, curl 8.21)로 요청해 서버가 실제로 본 연결 상대 주소와 헤더를 기록했습니다. 두 클라이언트의 결과는 모든 조합에서 같았습니다. 리버스 프록시는 시험용 인증서로 HTTPS를 받아 서버에는 HTTP로 넘겼고, 포워드 프록시에는 curl의 -x 옵션으로 요청해 요청 줄에 전체 주소가 실려 오는 것을 확인했습니다. 화면의 주소(203.0.113.7, 198.51.100.99, 192.0.2.50)는 문서 예시용으로 정해진 주소이고 10.0.0.x는 사설망 주소이며, 시험에 쓴 루프백 주소를 바꿔 적은 것입니다. 프록시는 시험용으로 직접 만든 것이라 실제 제품의 기본 동작과는 다를 수 있습니다. 예를 들어 nginx는 따로 설정하지 않으면 받은 헤더를 그대로 넘기고, proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for가 &quot;덧붙이기&quot;, $remote_addr가 &quot;새로 쓰기&quot;에 해당합니다(nginx 문서 기준이며 실행으로 확인하지 않았습니다). X-Forwarded-For와 X-Forwarded-Proto는 표준이 아니라 널리 쓰이는 관례이고, 같은 정보를 담는 표준 헤더로 Forwarded(RFC 7239)가 있습니다. HTTPS 요청을 포워드 프록시로 보낼 때는 프록시가 내용을 볼 수 없는 통로(CONNECT)만 이어 주므로 헤더를 덧붙일 수 없는데, 이 실습의 포워드 프록시는 HTTP 요청만 다뤘습니다. 서버가 헤더가 없을 때 연결 상대 주소를 대신 쓰는 것은 이 모형에서 정한 규칙입니다. 프록시가 여러 대 이어진 경우와 로드밸런서의 분산은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/scale/">로드밸런서와 스케일 아웃</a> · 다음 실습: <a href="../../lab/cdn/">CDN</a></p>
   </div>
 
@@ -184,6 +185,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

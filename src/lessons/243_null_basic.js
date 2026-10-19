@@ -9,12 +9,12 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: 'name 변수에 문자열 "kim"이 담겨 있으면, name.length() 줄은 무슨 일을 하나', d: 'name이 가리키는 "kim" 객체가 글자 수 3을 돌려줍니다.', v: { value: 'kim', check: false } },
+    { t: '처음 설정으로', q: 'name 변수가 문자열 "kim"을 가리키면, name.length() 줄은 무슨 일을 하나', d: 'name이 가리키는 "kim" 객체가 글자 수 3을 돌려줍니다.', v: { value: 'kim', check: false } },
     { t: 'null을 담으면', q: 'name에 "kim" 대신 null을 담으면', d: 'name이 가리키는 객체가 없어 name.length()에서 NullPointerException이 납니다.', v: { value: 'null', check: false } },
     { t: 'null인데 확인하면', q: 'null인데 name.length() 앞에 if (name != null)로 먼저 확인하면', d: '확인에서 걸러져 length()를 부르지 않고, 예외도 나지 않습니다.', v: { value: 'null', check: true } },
-    { t: '"kim"인데 확인하면', q: '"kim"이 담겨 있는데 if (name != null)로 확인하면', d: '확인을 통과해 length()가 실행되고 결과는 같습니다.', v: { value: 'kim', check: true } },
-    { t: '빈 문자열을 담으면', q: 'null이 아니라 빈 문자열 ""을 담으면', d: '빈 문자열도 객체여서 length()가 0을 돌려주고 예외는 나지 않습니다.', v: { value: 'empty', check: false } },
-    { t: '빈 문자열인데 확인하면', q: '빈 문자열 ""을 담았는데 if (name != null)로 확인하면', d: '빈 문자열은 null이 아니어서 확인을 통과합니다.', v: { value: 'empty', check: true } },
+    { t: '"kim"인데 확인하면', q: 'name이 "kim"을 가리키는데 if (name != null)로 확인하면', d: '확인을 통과해 length()가 실행되고 결과는 같습니다.', v: { value: 'kim', check: true } },
+    { t: '빈 문자열을 가리키면', q: 'null이 아니라 빈 문자열 ""을 가리키게 하면', d: '빈 문자열도 객체여서 length()가 0을 돌려주고 예외는 나지 않습니다.', v: { value: 'empty', check: false } },
+    { t: '빈 문자열인데 확인하면', q: 'name이 빈 문자열 ""을 가리키는데 if (name != null)로 확인하면', d: '빈 문자열은 null이 아니어서 확인을 통과합니다.', v: { value: 'empty', check: true } },
   ],
   // 화면에 쓰는 말: 담는 값의 글, name이 가리키는 것의 설명
   vtxt: { kim: '"kim"', null: 'null', empty: '""' },
@@ -112,15 +112,15 @@ Lab.register({
     var nmSub = !val ? '아직 담기 전' : isNull ? ['null', '아무 객체도 가리키지 않음'] : [val === 'kim' ? '"kim" 객체를 가리킴' : '"" 객체를 가리킴'];
     P.box('nm', 14, 16, 250, 118, { cls: ph === 'fail' ? 'bad' : hot === 'nm' ? 'hot now' : 'plain', title: 'name (변수)', sub: nmSub });
     var obSub = !val ? '아직 없음' : isNull ? (ph === 'fail' ? '시킬 객체가 없음' : '이 변수가 가리키는 객체 없음') : val === 'kim' ? ['"kim"', '글자 3개'] : ['""', '글자 0개'];
-    P.box('ob', 416, 16, 250, 118, { cls: ph === 'fail' ? 'bad ghost' : !val || isNull ? 'ghost' : ph === 'call' ? 'hot now' : 'plain', title: 'String 객체', sub: obSub });
+    P.box('ob', 416, 16, 250, 118, { cls: !val || isNull ? 'ghost' : ph === 'call' ? 'hot now' : 'plain', title: 'String 객체', sub: obSub });
     if (val && !isNull) P.arrow('ref', 'nm:r:0.8', 'ob:l:0.8', { cls: 'mut', label: '가리킴' });
     if (ph === 'call') P.arrow('call', 'nm:r:0.2', 'ob:l:0.2', { cls: 'hot', label: 'length()' });
-    if (ph === 'fail') P.arrow('call', 'nm:r:0.2', 'ob:l:0.2', { cls: 'bad', label: 'length()' });
+    if (ph === 'fail') { P.arrow('call', 'nm:r:0.2', [404, 40], { cls: 'bad', label: 'length()' }); P.text('callx', 396, 45, '×', { cls: 'bad', anchor: 'middle', bold: true }); }
     if (ph === 'ret') P.arrow('ret', 'ob:l:0.5', 'nm:r:0.5', { cls: 'good', label: s.got });
     P.box('ck', 14, 150, 652, 36, { cls: !c.check ? 'ghost' : ph === 'if' || ph === 'else' ? 'hot now' : s && s.ifres ? 'plain' : 'ghost', title: 'if (name != null) 확인', right: !c.check ? '쓰지 않음' : s && s.ifres ? (s.ifres === 'true' ? 'true: 객체를 가리킴' : 'false: null') : '' });
     P.box('o1', 14, 194, 652, 36, { cls: s && s.out.length ? 'good' : 'ghost', title: '출력', right: s && s.out.length ? s.out.join(' / ') : s && s.ended ? '(출력 없음)' : '' });
     P.box('o2', 14, 238, 652, 36, { cls: s && s.exc ? 'bad' : s && s.ended ? 'good' : 'ghost', title: '예외', right: s && s.exc ? s.exc : s && s.ended ? '없음' : '' });
     P.box('o3', 14, 282, 652, 36, { cls: s && s.count ? 'wait' : s && s.exc ? 'bad' : 'ghost', title: 'length()가 실행된 횟수', right: (s ? s.count : 0) + '번' });
   },
-  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일된 Main을 새 java 프로세스로 실행해 표준 출력, 표준 오류의 첫 줄, 종료 코드를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 출력, 예외가 났는지(표준 오류의 첫 줄이 NullPointerException인지)와 예외가 난 줄(스택 추적이 가리킨 줄이 name.length() 줄), 종료 코드입니다. 표의 "length() 실행"은 출력에 글자 수가 나왔는지로, "if 확인"은 어느 블록의 출력이 나왔는지로 실제 출력에서 가려냈습니다. 단계 문장이 기대는 사실은 별도 프로그램으로 확인했습니다. 값 세 개 각각에 대해 name == null이 "kim"은 false, null은 true, ""는 false이고 length()는 3, (null이라 부를 수 없음), 0인 것, 그리고 String name = null; 줄은 예외 없이 실행되고 예외는 그다음 name.length() 줄에서 나며 프로그램이 종료 코드 1로 끝나는 것입니다. 문서는 직접 열어 확인했습니다. null 타입의 값은 null 참조 하나뿐이고 어떤 참조 타입에도 담을 수 있다는 것은 Java Language Specification(Java SE 21) 3.10.8절과 4.1절, 참조 값은 객체를 가리키거나 아무 객체도 가리키지 않는 null 참조라는 것은 4.3.1절, 참조를 ==와 !=로 비교하는 규칙은 15.21.3절, if문이 조건이 true이면 첫 번째 문장을, false이면 else의 문장을 실행한다는 것은 14.9.1절과 14.9.2절, 문자열 리터럴이 실행할 때 String 객체를 가리키는 값이고 ""가 빈 문자열이라는 것은 3.10.5절을 따랐습니다. NullPointerException API 문서는 null인 객체의 인스턴스 메서드를 부를 때 던져진다고 적고 있고(Java SE 21 API), String.length()와 isEmpty()의 설명도 같은 API 문서에서 열어 확인했습니다. 인스턴스 메서드 호출에서 대상이 null이면 NullPointerException이 난다는 문장은 JLS 15장(15.6절)의 것을 확인했고, 호출 처리를 자세히 정한 15.12.4.1절과 15.12.4.4절은 본문을 열지 못했습니다. 이 PC의 javac는 변수 이름을 클래스 파일에 넣지 않아 NullPointerException의 상세 메시지에 name 대신 <local1>이 찍혔는데, 이 메시지는 명세가 정한 것이 아니라 이 JDK에서 관찰한 것이어서 화면에는 쓰지 않았습니다. 화면의 코드는 실제로 컴파일되는 모양 그대로이고 줄인 것이 없습니다. 이 밖에 int 같은 기본형 변수와 null, 배열이나 필드가 처음에 null인 것, 두 문자열을 ==와 equals로 견주는 것, null일 수 있는 값을 Optional로 다루는 방법은 다루지 않았고, Optional은 "세부 동작 실습: Optional"에서 다룹니다.',
+  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일된 Main을 새 java 프로세스로 실행해 표준 출력, 표준 오류의 첫 줄, 종료 코드를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 출력, 예외가 났는지(표준 오류의 첫 줄이 NullPointerException인지)와 예외가 난 줄(스택 추적이 가리킨 줄이 name.length() 줄), 종료 코드입니다. 표의 "length() 실행"은 출력에 글자 수가 나왔는지로, "if 확인"은 어느 블록의 출력이 나왔는지로 실제 출력에서 가려냈습니다. 단계 문장이 기대는 사실은 별도 프로그램으로 확인했습니다. 값 세 개 각각에 대해 name == null이 "kim"은 false, null은 true, ""는 false이고 length()는 3, (null이라 부를 수 없음), 0인 것, 그리고 String name = null; 줄은 예외 없이 실행되고 예외는 그다음 name.length() 줄에서 나며 프로그램이 종료 코드 1로 끝나는 것입니다. 문서는 직접 열어 확인했습니다. null 타입의 값은 null 참조 하나뿐이고 어떤 참조 타입에도 담을 수 있다는 것은 Java Language Specification(Java SE 21) 3.10.8절과 4.1절, 참조 값은 객체를 가리키거나 아무 객체도 가리키지 않는 null 참조라는 것은 4.3.1절, 참조를 ==와 !=로 비교하는 규칙은 15.21.3절, if문이 조건이 true이면 첫 번째 문장을, false이면 else의 문장을 실행한다는 것은 14.9.1절과 14.9.2절, 문자열 리터럴이 실행할 때 String 객체를 가리키는 값이고 ""가 빈 문자열이라는 것은 3.10.5절을 따랐습니다. NullPointerException API 문서는 null인 객체의 인스턴스 메서드를 부를 때 던져진다고 적고 있고(Java SE 21 API), String.length()와 isEmpty()의 설명도 같은 API 문서에서 열어 확인했습니다. 인스턴스 메서드 호출에서 대상이 null이면 NullPointerException이 난다는 문장은 JLS 15장(15.6절)의 것을 확인했고, 호출 처리를 자세히 정한 15.12.4.1절과 15.12.4.4절은 본문을 열지 못했습니다. 검증 실행에서는 javac를 기본 옵션(-g 없음)으로 써서 변수 이름이 클래스 파일에 들어가지 않았고, 그래서 NullPointerException의 상세 메시지에 name 대신 <local1>이 찍혔는데, 이 메시지는 명세가 정한 것이 아니라 이 JDK에서 관찰한 것이어서 화면에는 쓰지 않았습니다. 화면의 코드는 실제로 컴파일되는 모양 그대로이고 줄인 것이 없습니다. 이 밖에 int 같은 기본형 변수와 null, 배열이나 필드가 처음에 null인 것, 두 문자열을 ==와 equals로 견주는 것, null일 수 있는 값을 Optional로 다루는 방법은 다루지 않았고, Optional은 "세부 동작 실습: Optional"에서 다룹니다.',
 });

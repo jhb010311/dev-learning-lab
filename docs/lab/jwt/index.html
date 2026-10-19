@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -102,10 +102,11 @@ Claims verify(String token, long now) throws Exception {
     return new Claims(field(payload, &quot;sub&quot;), field(payload, &quot;role&quot;));   // 여기까지 와야 내용을 믿는다
 }
 
-// field(json, 이름)은 JSON에서 값 하나를 꺼내는 도우미다.
+// Claims, BadTokenException, field(json, 이름)은 이 예제에서 만든 클래스와 메서드다.
+// field는 JSON에서 값 하나를 꺼내는 도우미다.
 // 원리를 보이려고 직접 적은 코드다. 실제 서비스에서는 검증된 JWT 라이브러리를 쓴다.</pre>
 <h2>이 모형의 전제</h2>
-<p>화면의 토큰 글자, 서명 값, 열여섯 가지 조합의 검증 결과는 이 PC의 Node.js 24에 든 crypto(HMAC-SHA256)로 토큰을 실제로 만들고 검증해 본 결과와 대조했습니다. 화면의 자바 코드도 JDK 21에서 그대로 실행해 같은 토큰과 같은 결과가 나오는 것을 확인했습니다. 이 PC에는 JWT 라이브러리가 없어서, 검증 절차는 표준 문서를 보고 직접 적은 코드로 실행했습니다. 근거는 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 &quot;첫째 부분.둘째 부분&quot;이라는 것은 RFC 7515 5.1절, 검증 순서는 RFC 7515 5.2절과 RFC 7519 7.2절, 지금이 exp보다 앞이어야 한다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절입니다. 지금이 exp와 정확히 같을 때는 거절됩니다(직접 실행해 확인). 서버가 받을 알고리즘을 정해 두어야 한다는 것은 RFC 8725 3.1절의 권고이고, 널리 쓰이는 JWT 라이브러리가 none을 기본으로 거절한다는 것은 실행으로 확인하지 못했습니다. 실제 서버는 시계 오차를 감안해 exp에 몇 초에서 몇 분의 여유를 두기도 하고(RFC 7519 4.1.4절이 허용), iss, aud 같은 다른 클레임도 함께 확인합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버에서 alg를 HS256으로 바꿔 보내는 문제는 다루지 않았습니다.</p>
+<p>화면의 토큰 글자, 서명 값, 열여섯 가지 조합의 검증 결과는 검증 실행에서 Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들고 검증해 본 결과와 대조했습니다. 화면의 자바 코드도 JDK 21에서 그대로 실행해 같은 토큰과 같은 결과가 나오는 것을 확인했습니다. 검증 실행 환경에는 JWT 라이브러리를 두지 않아서, 검증 절차는 표준 문서를 보고 직접 적은 코드로 실행했습니다. 근거는 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 &quot;첫째 부분.둘째 부분&quot;이라는 것은 RFC 7515 5.1절, 검증 순서는 RFC 7515 5.2절과 RFC 7519 7.2절, 지금이 exp보다 앞이어야 한다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절입니다. 지금이 exp와 정확히 같을 때는 거절됩니다(직접 실행해 확인). 서버가 받을 알고리즘을 정해 두어야 한다는 것은 RFC 8725 3.1절의 권고이고, 널리 쓰이는 JWT 라이브러리가 none을 기본으로 거절한다는 것은 실행으로 확인하지 못했습니다. 실제 서버는 시계 오차를 감안해 exp에 몇 초에서 몇 분의 여유를 두기도 하고(RFC 7519 4.1.4절이 허용), iss, aud 같은 다른 클레임도 함께 확인합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버에서 alg를 HS256으로 바꿔 보내는 문제는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/pwhash/">비밀번호 해시</a> · 다음 실습: <a href="../../lab/oauth/">OAuth 로그인 흐름</a></p>
   </div>
 
@@ -193,6 +194,6 @@ Claims verify(String token, long now) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

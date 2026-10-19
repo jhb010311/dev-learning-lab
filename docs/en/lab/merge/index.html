@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Detached entities and merge: Why were other values erased when I only fixed the name with merge? · Dev Learning Lab</title>
-<meta name="description" content="A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One i…">
+<meta name="description" content="A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Detached entities and merge: Why were other values erased when I only fixed the name with merge? · Dev Learning Lab">
-<meta property="og:description" content="A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One i…">
+<meta property="og:description" content="A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>Detached entities and merge</h1>
 <p><b>Why were other values erased when I only fixed the name with merge?</b></p>
-<p>A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change.</p>
+<p>A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply it, and this lab compares two of them. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Member in this lab is an entity class made for this example.</p>
 <p>Checked against real execution · 18 combinations were run on Hibernate 7.4.5 and H2, and the SQL of each line and the values left in the DB were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -169,6 +169,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

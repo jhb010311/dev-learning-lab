@@ -37,16 +37,16 @@ Lab.register({
 
     // 1. Connect
     st.cn = 'open'; st.se = true; st.hot = 'cn'; st.log.push(['DriverManager.getConnection', { v: 'Connection made', cls: 'good' }]);
-    push('DriverManager.getConnection("jdbc:h2:mem:shop"): the Java program makes a connection to the database. The jdbc in the URL means the convention for Java to connect to a database (JDBC), h2 is the kind of database, and mem:shop is a database named shop that lives in memory. When the connection is made, one place that handles this connection (a session) appears on the database side, and an object conn that points to the connection appears in Java. The member table holds one row, (1, kim). Not a single line of SQL has been sent yet.', '');
+    push('DriverManager.getConnection("jdbc:h2:mem:shop"): the Java program makes a connection to the database. The jdbc in the URL means the convention for Java to connect to a database (JDBC), h2 is the kind of database, and mem:shop is a database named shop that lives in memory. When the connection is made, one place that handles this connection (a session) appears on the database side, and a Connection object that represents the connection appears in Java, and the variable conn refers to that object. The member table holds one row, (1, kim). Not a single line of SQL has been sent yet.', '');
 
     // 2. Statement
     st.sm = true; st.hot = 'sm'; st.log.push(['conn.createStatement', { v: 'Made a tool for sending SQL', cls: '' }]);
-    push('conn.createStatement(): makes a tool (Statement) that sends SQL over the connection conn, and puts it in st. Only the tool was made, so no SQL has gone to the database yet.', '');
+    push('conn.createStatement(): makes a tool (a Statement object) that sends SQL over the connection that conn refers to, and makes the variable st refer to that object. Only the tool was made, so no SQL has gone to the database yet.', '');
 
     // 3. Close
     if (closed) {
       st.cn = 'closed'; st.se = false; st.hot = 'cn'; st.log.push(['conn.close', { v: 'Closed the connection', cls: 'bad' }]);
-      push('conn.close(): cuts the connection. The place on the database side that handled this connection disappears, and conn becomes a closed connection. st is a tool that was made from the conn that was just closed.', 'bad');
+      push('conn.close(): cuts the connection. The place on the database side that handled this connection disappears, and the Connection object that conn refers to becomes a closed connection. The Statement that st refers to is a tool that was made from that connection, which was just closed.', 'bad');
     }
 
     // 4. Send
@@ -54,7 +54,7 @@ Lab.register({
     if (closed) {
       st.sq = 'blocked'; st.ans = 'none'; st.exc = this.errName.closed; excKind = 'closed';
       st.log.push(['st.executeQuery', { v: 'Could not send', cls: 'bad' }]);
-      push('st.executeQuery("' + S + '"): tries to send the SQL, but conn is already closed. Before this line reaches the database, the JDBC driver notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
+      push('st.executeQuery("' + S + '"): tries to send the SQL, but the connection that conn refers to is already closed. Before this line reaches the database, the JDBC driver notices that the connection is closed and throws a SQLException. The database has never received this SQL. ' +
         (typo ? 'Whether the table name is wrong can be known only when the database reads the SQL, so the closed-connection error comes first and the wrong name is never found out. ' : none ? 'The condition WHERE id = 99 has never been read by the database either. ' : '') +
         'There is no code that handles the exception, so the program stops at this line and the lines below it do not run.', 'bad');
     } else if (typo) {
@@ -65,7 +65,7 @@ Lab.register({
       st.sq = 'go'; st.ans = none ? 'rows0' : 'rows1'; st.rs = 'before'; st.n = none ? 0 : 1; recv = 1; st.recv = 1;
       st.log.push(['st.executeQuery', { v: 'Database ran it and returned the result (rows: ' + st.n + ')', cls: 'good' }]);
       push('st.executeQuery("' + S + '"): st sends the SQL text to the database. The database reads the text it received and looks in the member table for ' + (none ? 'the row whose id is 99, but there is no such row. The run succeeded, and the result is a table with 0 rows. This is not an error. ' : 'the row whose id is 1, and makes the result. The result is a table with 1 row. ') +
-        'Java receives this result as a ResultSet object rs. A ResultSet starts standing in front of the first row, so it has not read any row yet.', 'good');
+        'Java receives this result as a ResultSet object, and the variable rs refers to that object. A ResultSet starts standing in front of the first row, so it has not read any row yet.', 'good');
     }
     if (!closed && !typo) {
       // 5. next

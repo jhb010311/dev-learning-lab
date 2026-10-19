@@ -40,8 +40,8 @@ Lab.register({
     }
     if (how === 'lazy') {
       st.order = true; st.m = 'proxy'; send('select * from orders where id = 1', 'em.find(Order)를 부를 때');
-      push('em.find(Order.class, 1L): SELECT로 주문 1을 읽어 옵니다. 주문 행에는 회원의 식별자(member_id = 1)만 들어 있습니다. member 필드가 LAZY이므로 회원 테이블은 조회하지 않고, 그 자리에 식별자 1만 아는 프록시를 넣어 둡니다.', '');
-      push('order.getMember(): 필드에 들어 있던 프록시를 그대로 돌려줍니다. 회원 테이블에는 아직 SQL이 나가지 않았습니다.', '');
+      push('em.find(Order.class, 1L): SELECT로 주문 1을 읽어 옵니다. 주문 행에는 회원의 식별자(member_id = 1)만 들어 있습니다. member 필드가 LAZY이므로 회원 테이블은 조회하지 않고, member 필드가 식별자 1만 아는 프록시를 가리키게 해 둡니다.', '');
+      push('order.getMember(): member 필드가 가리키던 프록시를 그대로 돌려줍니다. 회원 테이블에는 아직 SQL이 나가지 않았습니다.', '');
     }
     if (how === 'find') {
       st.m = 'entity'; st.real = true; send(selM, 'em.find를 부를 때'); when = 'em.find를 부를 때';

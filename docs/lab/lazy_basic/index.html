@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>지연 로딩: 연관된 객체는 언제 DB에서 읽어 오는가 · 개발 학습 실습실</title>
-<meta name="description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JP…">
+<meta name="description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_i…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="지연 로딩: 연관된 객체는 언제 DB에서 읽어 오는가 · 개발 학습 실습실">
-<meta property="og:description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JP…">
+<meta property="og:description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_i…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>지연 로딩</h1>
 <p><b>연관된 객체는 언제 DB에서 읽어 오는가</b></p>
-<p>주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드에는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)가 들어 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.</p>
+<p>주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)를 가리키고 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 실행해 줄마다 나간 SQL을 대조, FetchType 규칙은 Jakarta Persistence 3.2 API 문서와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -54,8 +54,8 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블에 대응하는 자바 클래스(엔티티, 그 객체 하나가 한 행)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.</li>
-<li>Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드에는 회원 1의 번호만 아는 대리 객체(프록시)를 넣어 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.</li>
-<li>order.getMember(): Order 객체의 member 필드에 들어 있던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.</li>
+<li>Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드가 회원 1의 번호만 아는 대리 객체(프록시)를 가리키게 해 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.</li>
+<li>order.getMember(): Order 객체의 member 필드가 가리키던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.</li>
 <li>.getName(): 대리 객체가 가진 것은 회원의 번호뿐이라 이름을 알 수 없습니다. 이 순간 JPA(Hibernate)가 member 테이블을 읽는 SELECT 문을 보내 회원 1의 행을 읽어 오고, 대리 객체를 채워 이름 김철수를 돌려줍니다. 회원의 값을 처음 꺼낸 이 줄에서 SELECT가 나갔고, 이 SELECT도 우리가 쓴 코드에 없습니다.</li>
 <li>코드가 끝났습니다. 나간 SELECT는 모두 2번입니다. 주문을 읽는 find 줄에서 1번, 회원의 이름을 꺼내는 getName 줄에서 1번 나갔고, 회원을 읽은 때는 이름을 실제로 쓴 getName 줄입니다.</li>
 </ol>
@@ -180,6 +180,6 @@ String name = order.getMember().getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

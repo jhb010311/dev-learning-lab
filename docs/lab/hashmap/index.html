@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -92,8 +92,10 @@
     }
 }
 
+int[] ids = {3817, 9204, 1466, 7531, 2890, 6043, 5178, 8312, 4725, 1039,
+             6654, 3391, 7968};   // 넣을 id 13개
 Map&lt;MemberKey, String&gt; map = new HashMap&lt;&gt;(16, 0.75f);
-for (int id : ids) {                 // id 13개
+for (int id : ids) {
     map.put(new MemberKey(id), &quot;회원&quot;);
 }
 
@@ -101,7 +103,7 @@ for (int id : ids) {                 // id 13개
 map.put(new MemberKey(ids[0]), &quot;수정&quot;);
 map.get(new MemberKey(ids[0]));</pre>
 <h2>이 모형의 전제</h2>
-<p>초기 버킷 수는 16개로 고정했습니다. 버킷 번호 계산(해시의 위쪽 16비트를 아래쪽에 섞은 뒤 버킷 수로 나눈 나머지), 늘리는 기준(저장 개수 &gt; 버킷 수 × 로드 팩터), 한 버킷에 9번째 노드가 달릴 때 버킷 수가 64개 미만이면 늘리고 64개 이상이면 트리로 바꾸는 규칙은 JDK HashMap 구현과 같습니다. 이 PC의 JDK 21에서 실제 HashMap 내부를 꺼내 본 결과와 대조했고, hashCode 세 가지 × 로드 팩터 세 가지로 40개씩 넣은 360단계 모두에서 버킷 수, 버킷별 개수, 트리 여부가 일치했습니다. hashCode를 재정의하지 않았을 때의 값은 실제로는 JVM이 객체마다 정하는 값이며, 여기서는 임의의 수로 대신했습니다.</p>
+<p>초기 버킷 수는 16개로 고정했습니다. 버킷 번호 계산(해시의 위쪽 16비트를 아래쪽에 섞은 뒤 버킷 수로 나눈 나머지), 늘리는 기준(저장 개수 &gt; 버킷 수 × 로드 팩터), 한 버킷에 9번째 노드가 달릴 때 버킷 수가 64개 미만이면 늘리고 64개 이상이면 트리로 바꾸는 규칙은 JDK HashMap 구현과 같습니다. 검증 환경의 JDK 21에서 실제 HashMap 내부를 꺼내 본 결과와 대조했고, hashCode 세 가지 × 로드 팩터 세 가지로 40개씩 넣은 360단계 모두에서 버킷 수, 버킷별 개수, 트리 여부가 일치했습니다. hashCode를 재정의하지 않았을 때의 값은 실제로는 JVM이 객체마다 정하는 값이며, 여기서는 임의의 수로 대신했습니다.</p>
 <p>앞 실습: <a href="../../lab/list/">ArrayList와 LinkedList</a> · 다음 실습: <a href="../../lab/setmap/">Set과 Map의 종류</a></p>
   </div>
 
@@ -189,6 +191,6 @@ map.get(new MemberKey(ids[0]));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

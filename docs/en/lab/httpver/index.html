@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 </ul>
 <h2>Code</h2>
 <pre># application.yml
-server.http2.enabled: false        # HTTP/2 (needs TLS)
+server.http2.enabled: false        # browsers use HTTP/2 only over TLS (https)
 
 # nginx
 server {
@@ -76,7 +76,7 @@ server {
 
 &lt;!-- Files requested by one page: 30 --&gt;</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a model that assumes it takes 100ms to receive one file, 200ms to retransmit a lost packet, and, to set up the connection, 60ms for HTTP/1.1 (the 6 connections at the same time), 30ms for HTTP/2, and 20ms for HTTP/3. The real numbers depend on the network and the file sizes, and the 6 HTTP/1.1 connections that a browser opens to the same server is the default of the major browsers. The characteristics of each version follow the descriptions in the standards (RFC 9112, 9113, 9114). The part about the number of connections was checked in practice. In a real browser (Chromium-based), 18 requests that each take 0.3s were sent at the same time to an HTTP/1.1 server, and they were handled on 6 connections, at most 6 at a time, which took 931ms; with HTTP/2 (the built-in Node implementation), 30 requests were handled at the same time on 1 TCP connection and finished in 324ms. The difference when a packet is lost, and HTTP/3, could not be reproduced on the PC used to write this lab.</p>
+<p>This is a model that assumes it takes 100ms to receive one file, 200ms to retransmit a lost packet, and, to set up the connection, 60ms for HTTP/1.1 (the 6 connections at the same time), 30ms for HTTP/2, and 20ms for HTTP/3. The real numbers depend on the network and the file sizes, and the 6 HTTP/1.1 connections that a browser opens to the same server is the default of the major browsers. The characteristics of each version follow the descriptions in the standards (RFC 9112, 9113, 9114). The part about the number of connections was checked in practice. In a real browser (Chromium-based), 18 requests that each take 0.3s were sent at the same time to an HTTP/1.1 server, and they were handled on 6 connections, at most 6 at a time, which took 931ms; with HTTP/2 (the built-in Node implementation), 30 requests were handled at the same time on 1 TCP connection and finished in 324ms. The difference when a packet is lost, and HTTP/3, could not be reproduced in our test environment.</p>
 <p>Previous lab: <a href="../../lab/httpmsg/">HTTP messages and status codes</a> · Next lab: <a href="../../lab/cookie/">Cookies</a></p>
   </div>
 
@@ -164,6 +164,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

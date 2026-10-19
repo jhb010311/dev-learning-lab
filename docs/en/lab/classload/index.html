@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ System.out.println(&quot;first use done&quot;);
 int b = Parent.MAX;
 System.out.println(&quot;second use done&quot;);</pre>
 <h2>Assumptions of this model</h2>
-<p>For each of the 18 combinations, source code identical to the code on the screen was newly compiled and run on JDK 21 on this PC, and the order of the printed lines and the classes that were loaded were checked against the model. The point at which each class was loaded was checked against the JVM log obtained with the -Xlog:class+load option. When initialization happens is defined by the Java Language Specification, so it is the same on every JVM. When a class is loaded, in contrast, is left to the JVM implementation, so &quot;a class is loaded when it is first used&quot; and &quot;a class is not even loaded when only a constant is read&quot; are behaviors confirmed on the JVM of this PC (HotSpot). That reading the constant is compiled into the value 10 was confirmed by looking at the bytecode with javap. The detailed steps that a class goes through after loading and before initialization, such as verification and preparation, and the initialization rules for Class.forName and for interfaces are not covered.</p>
+<p>For each of the 18 combinations, source code identical to the code on the screen was newly compiled and run on JDK 21 in our test environment, and the order of the printed lines and the classes that were loaded were checked against the model. The point at which each class was loaded was checked against the JVM log obtained with the -Xlog:class+load option. When initialization happens is defined by the Java Language Specification, so it is the same on every JVM. When a class is loaded, in contrast, is left to the JVM implementation, so &quot;a class is loaded when it is first used&quot; and &quot;a class is not even loaded when only a constant is read&quot; are behaviors confirmed on the JVM of our test environment (HotSpot). That reading the constant is compiled into the value 10 was confirmed by looking at the bytecode with javap. The detailed steps that a class goes through after loading and before initialization, such as verification and preparation, and the initialization rules for Class.forName and for interfaces are not covered.</p>
 <p>Previous lab: <a href="../../lab/jit/">JIT warmup</a> · Next lab: <a href="../../lab/iobuf/">I/O streams and buffers</a></p>
   </div>
 
@@ -172,6 +172,6 @@ System.out.println(&quot;second use done&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

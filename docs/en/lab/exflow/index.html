@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
 <h1>Exceptions and finally</h1>
 <p><b>When an exception is thrown, which blocks run, and in what order?</b></p>
-<p>When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.</p>
+<p>When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception (it does not run if System.exit() ends the JVM itself). The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.</p>
 <p>Checked against real execution · All 32 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -60,7 +60,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The finally block runs in every case: normal completion, a return, or an exception. That is why releasing locks and cleaning up resources are placed in the finally block.</li>
+<li>The finally block runs in every case: normal completion, a return, or an exception (except when System.exit() ends the JVM). That is why releasing locks and cleaning up resources are placed in the finally block.</li>
 </ul>
 <h2>Code</h2>
 <pre>int run() {
@@ -77,7 +77,7 @@
     return 2;
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>For all 32 combinations, the code exactly as shown (with only a fail field set to true, print, and Resource added) was compiled and run on JDK 21 on this PC, and the output order and the final result were checked (verify/plain/exflow_code_check.js). Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.</p>
+<p>For all 32 combinations, the code exactly as shown (with only a fail field set to true, print, and Resource added) was compiled and run on JDK 21 in our test run, and the output order and the final result were checked (verify/plain/exflow_code_check.js). Only the case with one resource is covered. When there are several resources, they are closed in the opposite order from the order in which they were opened, and an exception thrown by close() is attached to the original exception as a suppressed exception.</p>
 <p>Previous lab: <a href="../../lab/optional/">Optional</a> · Next lab: <a href="../../lab/chkex/">Checked and unchecked exceptions</a></p>
   </div>
 
@@ -165,6 +165,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

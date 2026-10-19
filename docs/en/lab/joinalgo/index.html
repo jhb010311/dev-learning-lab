@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ SELECT m.name, o.amount
   FROM member m
   STRAIGHT_JOIN orders o ON o.member_id = m.id;   -- read the tables in the order written</pre>
 <h2>Assumptions of this model</h2>
-<p>For all seven combinations that can be chosen on the screen, the same tables (member with 1,000 rows and orders with 10,000 rows) were created in MySQL 8.4 on the PC used to write this lab, ANALYZE TABLE was run, and the results were checked against the model. The type, key, and Extra of the table read first and the table read later were checked with EXPLAIN, the join method with the first line of EXPLAIN FORMAT=TREE, and the number of times the later table was read and the rows read each time with loops and rows of EXPLAIN ANALYZE, which counts while it actually runs the query. In the five cases where the hash join setting is hidden, it was also confirmed that adding the NO_BNL hint does not change the plan. The order chosen when the choice is left to the optimizer is the result of a cost calculation, so it can differ depending on the amount and distribution of the data. &quot;Rows read&quot; is the number of rows taken out of the tables or indexes. It does not include the cost of descending an index, the cost of building and searching a hash table, or the time taken. Hash joins were introduced in MySQL 8.0.18, and from 8.0.20 they replace the block nested-loop join that was used for joins without an index. If the hash table does not fit in memory (join_buffer_size), disk is used as well. These two points were not confirmed by running them; they follow the explanation of hash join optimization in the MySQL documentation. The diagram is reduced to 3 members and 6 orders.</p>
+<p>For all seven combinations that can be chosen on the screen, the same tables (member with 1,000 rows and orders with 10,000 rows) were created in MySQL 8.4, ANALYZE TABLE was run, and the results were checked against the model. The type, key, and Extra of the table read first and the table read later were checked with EXPLAIN, the join method with the first line of EXPLAIN FORMAT=TREE, and the number of times the later table was read and the rows read each time with loops and rows of EXPLAIN ANALYZE, which counts while it actually runs the query. In the five cases where the hash join setting is hidden, it was also confirmed that adding the NO_BNL hint does not change the plan. The order chosen when the choice is left to the optimizer is the result of a cost calculation, so it can differ depending on the amount and distribution of the data. &quot;Rows read&quot; is the number of rows taken out of the tables or indexes. It does not include the cost of descending an index, the cost of building and searching a hash table, or the time taken. Hash joins were introduced in MySQL 8.0.18, and from 8.0.20 they replace the block nested-loop join that was used for joins without an index. If the hash table does not fit in memory (join_buffer_size), disk is used as well. These two points were not confirmed by running them; they follow the explanation of hash join optimization in the MySQL documentation. The diagram is reduced to 3 members and 6 orders.</p>
 <p>Previous lab: <a href="../../lab/explainplan/">Reading the execution plan</a> · Next lab: <a href="../../lab/tx/">Transaction basics</a></p>
   </div>
 
@@ -167,6 +167,6 @@ SELECT m.name, o.amount
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

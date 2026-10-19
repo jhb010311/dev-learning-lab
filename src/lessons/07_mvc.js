@@ -6,7 +6,7 @@ Lab.register({
   controls: [
     { id: 'kind', label: '컨트롤러 종류', type: 'select', value: 'view', options: [['view', '@Controller (화면 이름 반환)'], ['rest', '@RestController (JSON 응답)']] },
     { id: 'what', label: '도중에 생기는 일', type: 'select', value: 'none', options: [['none', '아무 일 없음 (정상 처리)'], ['filter', '필터가 요청을 거절 (인증 실패)'], ['pre', '인터셉터 preHandle이 false 반환'], ['ex', '컨트롤러에서 예외 발생']] },
-    { id: 'advice', label: '@ControllerAdvice에 이 예외를 처리하는 @ExceptionHandler가 있다', type: 'check', value: true, show: function (c) { return c.what === 'ex'; } },
+    { id: 'advice', label: '@RestControllerAdvice 클래스에 이 예외를 처리하는 @ExceptionHandler가 있다', type: 'check', value: true, show: function (c) { return c.what === 'ex'; } },
   ],
   presets: [
     { t: '처음 설정으로', q: '@Controller가 화면 이름을 반환하는 요청이 아무 일 없이 정상 처리되면 어떤 경로를 지나나', d: '화면을 돌려주는 요청이 정상 처리되는 전체 경로입니다. 컨트롤러, 모델, 뷰가 모두 나옵니다.', v: { kind: 'view', what: 'none', advice: true } },
@@ -20,10 +20,10 @@ Lab.register({
     var ctl = c.kind === 'rest'
       ? '@RestController\nclass OrderController {\n    @PostMapping("/orders")\n    OrderResponse create(@RequestBody OrderRequest req) {\n' + (c.what === 'ex' ? '        throw new OutOfStockException();   // 재고 부족\n' : '        return orderService.create(req);\n') + '    }\n}'
       : '@Controller\nclass OrderController {\n    @GetMapping("/orders")\n    String list(Model model) {\n' + (c.what === 'ex' ? '        throw new OutOfStockException();   // 예외 발생\n' : '        model.addAttribute("orders", orderService.findAll());\n        return "orders/list";              // 화면 이름\n') + '    }\n}';
-    if (c.what === 'filter') ctl = 'class AuthFilter extends OncePerRequestFilter {\n    protected void doFilterInternal(req, res, chain) {\n        if (!hasValidToken(req)) {\n            res.sendError(401);            // 여기서 끝낸다\n            return;                        // chain.doFilter 호출 안 함\n        }\n        chain.doFilter(req, res);\n    }\n}\n\n' + ctl;
-    if (c.what === 'pre') ctl = 'class LoginCheckInterceptor implements HandlerInterceptor {\n    public boolean preHandle(req, res, handler) {\n        if (notLoggedIn(req)) {\n            res.sendError(401);\n            return false;                  // 컨트롤러를 부르지 않는다\n        }\n        return true;\n    }\n}\n\n' + ctl;
+    if (c.what === 'filter') ctl = 'class AuthFilter extends OncePerRequestFilter {\n    @Override\n    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,\n            FilterChain chain) throws ServletException, IOException {\n        if (!hasValidToken(req)) {         // hasValidToken: 예시로 만든 메서드\n            res.sendError(401);            // 여기서 끝낸다\n            return;                        // chain.doFilter 호출 안 함\n        }\n        chain.doFilter(req, res);\n    }\n}\n\n' + ctl;
+    if (c.what === 'pre') ctl = 'class LoginCheckInterceptor implements HandlerInterceptor {\n    @Override\n    public boolean preHandle(HttpServletRequest req, HttpServletResponse res,\n            Object handler) throws IOException {\n        if (notLoggedIn(req)) {            // notLoggedIn: 예시로 만든 메서드\n            res.sendError(401);\n            return false;                  // 컨트롤러를 부르지 않는다\n        }\n        return true;\n    }\n}\n\n' + ctl;
     if (c.what === 'ex' && c.advice) ctl += '\n\n@RestControllerAdvice\nclass GlobalExceptionHandler {\n    @ExceptionHandler(OutOfStockException.class)\n    ResponseEntity<ErrorResponse> handle(OutOfStockException e) {\n        return ResponseEntity.status(409)\n            .body(new ErrorResponse("재고 부족"));\n    }\n}';
-    return ctl;
+    return '// 필요한 부분만 남김: import와, 예시로 만든 필드·클래스·메서드의 선언은 줄였다.\n\n' + ctl;
   },
   label: function (c) { return (c.kind === 'rest' ? '@RestController' : '@Controller') + ' · ' + { none: '정상 처리', filter: '필터에서 거절', pre: 'preHandle false', ex: '컨트롤러 예외' + (c.advice ? ' · 처리기 있음' : ' · 처리기 없음') }[c.what]; },
   columns: ['응답', '컨트롤러 실행', 'postHandle', 'afterCompletion', '응답을 만든 곳'],
@@ -48,10 +48,10 @@ Lab.register({
         go('IP', '인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.', '');
         go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.', '');
         if (c.what === 'ex') {
-          go('CT', '컨트롤러 메서드가 실행되다가 OutOfStockException을 던집니다. 반환값 처리와 postHandle은 건너뜁니다.', 'bad');
+          go('CT', '컨트롤러 메서드가 실행되다가 예시로 만든 예외 OutOfStockException을 던집니다. 반환값 처리와 postHandle은 건너뜁니다.', 'bad');
           if (c.advice) {
             resp = '409 Conflict + 오류 JSON'; maker = '@ExceptionHandler';
-            go('EX', 'DispatcherServlet이 예외를 잡아 HandlerExceptionResolver에 넘깁니다. @ControllerAdvice에서 OutOfStockException을 처리하는 @ExceptionHandler 메서드를 찾아 실행하고, 그 반환값이 409 응답 본문으로 쓰입니다.', '');
+            go('EX', 'DispatcherServlet이 예외를 잡아 HandlerExceptionResolver에 넘깁니다. 코드의 @RestControllerAdvice는 @ControllerAdvice에 @ResponseBody를 더한 스프링 애너테이션입니다. @ControllerAdvice처럼 여러 컨트롤러의 예외를 한곳에서 처리하고, @ExceptionHandler 메서드의 반환값을 응답 본문으로 씁니다. 그 클래스(예시로 만든 GlobalExceptionHandler)에서 OutOfStockException을 처리하는 @ExceptionHandler 메서드를 찾아 실행하고, 그 메서드가 돌려준 ResponseEntity의 409 상태와 본문이 응답이 됩니다.', '');
             go('AC', '인터셉터의 afterCompletion이 호출됩니다. 예외가 났어도 호출되므로 자원 정리나 소요 시간 기록은 여기에 둡니다.', '');
             go('F2', '응답이 필터 체인을 거꾸로 지나 클라이언트로 나갑니다. 예외는 스프링 MVC 안에서 응답으로 바뀌었기 때문에 필터에는 예외가 전달되지 않습니다.', 'end');
           } else {
@@ -61,7 +61,7 @@ Lab.register({
             go('F2', '예외가 필터를 지나 서블릿 컨테이너까지 올라갑니다. 스프링 부트에서는 컨테이너가 /error 경로로 요청을 다시 보내고, 기본 오류 컨트롤러가 500 응답을 만듭니다.', 'bad');
           }
         } else {
-          go('CT', rest ? '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 실제 업무를 처리하고, 결과를 OrderResponse 객체로 돌려줍니다.' : '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 "orders/list"를 돌려줍니다.', '');
+          go('CT', rest ? '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 실제 업무를 처리하고, 결과를 OrderResponse 객체(예시로 만든 클래스)로 돌려줍니다.' : '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 "orders/list"를 돌려줍니다.', '');
           if (rest) { resp = '200 OK + JSON'; maker = '컨트롤러 반환값';
             go('RV', '반환값을 처리합니다. @RestController이므로 화면을 찾지 않고, HttpMessageConverter(Jackson)가 OrderResponse 객체를 JSON으로 바꿔 응답 본문에 바로 씁니다. 모델에 담아 뷰로 넘기는 과정이 없으므로, 이 경로에는 뷰(V)가 일하는 단계가 없습니다.', '');
             go('PO', '인터셉터의 postHandle이 호출됩니다. 응답 본문은 앞 단계에서 이미 쓰였으므로, 여기서 응답 내용을 바꾸기에는 늦습니다.', '');

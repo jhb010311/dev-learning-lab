@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ System.out.println(d);
 System.out.println(first);
 System.out.println(d == first);      // same object?</pre>
 <h2>Assumptions of this model</h2>
-<p>The output of the 135 combinations (11 distinct cases, because each topic uses only one of the settings) was checked against the results of running the same code on JDK 21 on this PC. The code uses only fixed dates and time zones specified by name, so it gives the same result regardless of the current date or the time zone setting of the PC, and running it with the default time zone of the PC changed to other values confirmed that the output is the same. The time in each time zone follows the time zone data included in the JDK. New York being 5 hours behind UTC applies to this date (winter), and the difference is 4 hours during daylight saving time. Calculations for the days on which daylight saving time starts or ends are not covered by this model. Results for years that are not leap years (for example, February 28) are not within the range that was run and checked.</p>
+<p>The output of the 135 combinations (11 distinct cases, because each topic uses only one of the settings) was checked against the results of running the same code on JDK 21 in our test environment. The code uses only fixed dates and time zones specified by name, so it gives the same result regardless of the current date or the time zone setting of the PC, and running it with the default time zone of the PC changed to other values confirmed that the output is the same. The time in each time zone follows the time zone data included in the JDK. New York being 5 hours behind UTC applies to this date (winter), and the difference is 4 hours during daylight saving time. Calculations for the days on which daylight saving time starts or ends are not covered by this model. Results for years that are not leap years (for example, February 28) are not within the range that was run and checked.</p>
 <p>Previous lab: <a href="../../lab/strbuild/">String, StringBuilder</a> · Next lab: <a href="../../lab/optional/">Optional</a></p>
   </div>
 
@@ -166,6 +166,6 @@ System.out.println(d == first);      // same object?</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

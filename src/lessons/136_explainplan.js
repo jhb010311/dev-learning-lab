@@ -153,7 +153,7 @@ Lab.register({
     if (join) H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN 결과 (주요 칸만)');
     if (!join && s.a >= 3) H.counters(v, [[String(sim.match).replace(/\B(?=(\d{3})+(?!\d))/g, ','), '조건에 실제로 맞는 행'], [this.rowsText(c, p[0]), '읽을 것으로 예상한 행 (rows)']]);
     if (join && s.b >= 3) H.counters(v, [['약 20,000', 'o에서 읽는 행'], ['1', 'o의 행마다 m에서 읽는 행']]);
-    H.text(v, 'rows는 통계로 추정한 값이라 실행할 때마다 조금씩 다를 수 있습니다. 여기 적힌 수는 이 PC에서 본 값을 어림한 것입니다.');
+    H.text(v, 'rows는 통계로 추정한 값이라 실행할 때마다 조금씩 다를 수 있습니다. 여기 적힌 수는 검증 실행(MySQL 8.4)에서 본 값을 어림한 것입니다.');
   },
   // 그림: 위쪽에 EXPLAIN이 돌려준 줄을 칸별 상자로 놓고 지금 읽는 칸을 강조한다. 아래쪽에는 type 값을 읽는 양이 적은 것부터 늘어놓고 이 쿼리의 type을 표시한다.
   draw: function (P, sim, shown) {
@@ -181,12 +181,12 @@ Lab.register({
     var types = [['const', '한 행'], ['eq_ref', '행마다 한 행'], ['ref', '같은 값들'], ['range', '한 구간'], ['index', '인덱스 전체'], ['ALL', '테이블 전체']];
     types.forEach(function (tp, i) {
       var mine = p.some(function (r, ri) { return r.type === tp[0] && (ri === 0 ? s.a : s.b) >= 1; });
-      P.box('t' + tp[0], 28 + i * 105, 212, 99, 48, { cls: mine ? (i >= 5 ? 'bad' : i === 4 ? 'hot' : 'good') + ' now' : 'plain', title: tp[0], sub: tp[1] });
+      P.box('t' + tp[0], 28 + i * 105, 212, 99, 48, { cls: mine ? (i >= 5 ? (c.w === 'none' || join ? 'hot' : 'bad') : i === 4 ? 'hot' : 'good') + ' now' : 'plain', title: tp[0], sub: tp[1] });
     });
     P.text('lo', 28, 284, '적게 읽음', { cls: 'mut' });
     P.text('hi', 652, 284, '많이 읽음', { cls: 'mut', anchor: 'end' });
     P.arrow('ax', [100, 280], [580, 280], { cls: 'mut' });
     P.note(join ? '위는 EXPLAIN이 돌려준 두 줄에서 주요 칸만 뽑은 것입니다. 아래는 type에 나올 수 있는 값을 읽는 양이 적은 것부터 늘어놓은 것이고, 이 계획에 나온 type 두 개가 표시됩니다.' : '위는 EXPLAIN이 돌려준 한 줄에서 주요 칸만 뽑은 것입니다. 아래는 type에 나올 수 있는 값을 읽는 양이 적은 것부터 늘어놓은 것이고, 이 쿼리의 type이 표시됩니다. eq_ref는 조인에서만 나옵니다.');
   },
-  assume: '쉰 가지 조합 모두, 화면의 SQL을 이 PC의 MySQL 8.4에서 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 글자 그대로 대조했습니다. 테이블에는 member 2만 행(이름 하나에 두 행)과 orders 2만 행을 넣고 ANALYZE TABLE을 한 뒤에 실행했습니다. rows는 통계로 추정하는 값이라 실행할 때마다 조금씩 다르므로(이 PC에서는 전체 스캔일 때 19,700에서 20,400 사이), 1행인지, 일부인지, 테이블 전체에 가까운지만 대조했습니다. 조건에 실제로 맞는 행 수도 같은 데이터에서 세어 확인했습니다. 실행 계획은 옵티마이저가 비용을 계산해 고르는 것이어서, 행 수나 값의 분포가 다르면 같은 쿼리라도 다른 계획이 나올 수 있습니다. 예를 들어 행이 몇 개뿐인 테이블이나 조건에 맞는 행이 아주 많은 경우에는 인덱스가 있어도 ALL이 선택될 수 있습니다(MySQL 문서의 풀 테이블 스캔 설명). Extra에 표시가 없는 이유를 설명한 문장(한 값으로 정해져 있어 정렬이 필요 없다 등)은 MySQL 문서의 ORDER BY 최적화 설명을 따른 풀이입니다. 화면에서는 id, select_type, partitions, key_len, filtered 칸을 뺐습니다.',
+  assume: '쉰 가지 조합 모두, 화면의 SQL을 MySQL 8.4에서 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 글자 그대로 대조했습니다. 테이블에는 member 2만 행(이름 하나에 두 행)과 orders 2만 행을 넣고 ANALYZE TABLE을 한 뒤에 실행했습니다. rows는 통계로 추정하는 값이라 실행할 때마다 조금씩 다르므로(검증 실행에서는 전체 스캔일 때 19,700에서 20,400 사이), 1행인지, 일부인지, 테이블 전체에 가까운지만 대조했습니다. 조건에 실제로 맞는 행 수도 같은 데이터에서 세어 확인했습니다. 실행 계획은 옵티마이저가 비용을 계산해 고르는 것이어서, 행 수나 값의 분포가 다르면 같은 쿼리라도 다른 계획이 나올 수 있습니다. 예를 들어 행이 몇 개뿐인 테이블이나 조건에 맞는 행이 아주 많은 경우에는 인덱스가 있어도 ALL이 선택될 수 있습니다(MySQL 문서의 풀 테이블 스캔 설명). Extra에 표시가 없는 이유를 설명한 문장(한 값으로 정해져 있어 정렬이 필요 없다 등)은 MySQL 문서의 ORDER BY 최적화 설명을 따른 풀이입니다. 화면에서는 id, select_type, partitions, key_len, filtered 칸을 뺐습니다.',
 });

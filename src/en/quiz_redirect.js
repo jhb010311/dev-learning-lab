@@ -15,6 +15,6 @@ Lab.quiz([
     sim: { c: { code: '302', m: 'POST', dest: 'ok' }, col: 2, has: 'GET /orders' } },
   { lv: 3, id: 'redirect', q: '/order is wrongly set to redirect to /orders, and /orders is set to redirect back to /order. What happens when a client requests /order?',
     a: ['The client follows the redirects up to a limit it has set, then reports an error and stops', 'The server notices on the second round trip and responds with 200', 'The client keeps sending requests until it gets a response, with no end', 'The Location of the first response is ignored and the request ends after one request'],
-    why: 'A server only responds to each request, so it does not know about the repetition. It is the client that stops, and the limit differs from client to client. On the PC used to write this lab, fetch reported an error after following 20 redirects and curl after following 50.',
+    why: 'A server only responds to each request, so it does not know about the repetition. It is the client that stops, and the limit differs from client to client. In our test run, fetch reported an error after following 20 redirects and curl after following 50.',
     sim: { c: { code: '302', m: 'GET', dest: 'loop' }, col: 4, has: 'Stopped with an error' } },
 ]);

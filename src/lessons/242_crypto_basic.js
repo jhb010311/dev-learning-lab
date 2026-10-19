@@ -1,7 +1,7 @@
 Lab.register({
   id: 'crypto_basic', nav: '암호화', cat: '기초개념', mode: 'step', basic: true, deep: ['crypto'],
   title: '암호화는 무엇이고, 열쇠가 없으면 어떻게 되는가',
-  intro: '암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 코드에서는 encrypt("카드번호 1234", key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열쇠를 넘기면 원래 글자를 되찾습니다. 이것을 복호화라고 합니다. 열쇠가 없거나 다른 열쇠를 가진 쪽은 되찾지 못하므로, 지켜야 하는 것은 값이 아니라 열쇠입니다. 이 실습은 받는 쪽이 가진 열쇠를 같은 것, 다른 것, 없는 것으로 바꾸고 암호화 자체를 빼기도 하면서, 중간에서 보이는 값과 받는 쪽이 읽은 것을 실제로 실행해 확인합니다. (열쇠를 만드는 newKey와 계산하는 encrypt, decrypt의 본문은 화면에서 줄였습니다.)',
+  intro: '암호화는 글자를 열쇠와 함께 계산해서 알아볼 수 없는 값으로 바꾸는 것입니다. 이 실습의 코드에서는 encrypt("카드번호 1234", key)처럼 글자와 열쇠(key)를 넘기면 알아볼 수 없는 값이 돌아옵니다. 같은 열쇠를 가진 쪽이 decrypt(sent, key)처럼 그 값과 열쇠를 넘기면 원래 글자를 되찾습니다. 이것을 복호화라고 합니다. 열쇠가 없거나 다른 열쇠를 가진 쪽은 되찾지 못하므로, 지켜야 하는 것은 값이 아니라 열쇠입니다. 이 실습은 받는 쪽이 가진 열쇠를 같은 것, 다른 것, 없는 것으로 바꾸고 암호화 자체를 빼기도 하면서, 중간에서 보이는 값과 받는 쪽이 읽은 것을 실제로 실행해 확인합니다. (열쇠를 만드는 newKey와 계산하는 encrypt, decrypt는 자바 표준 라이브러리(javax.crypto)를 써서 이 실습에서 예시로 만든 도우미 메서드이고, 본문은 화면에서 줄였습니다.)',
   terms: ['암호화', '복호화', '열쇠(키)', '대칭키 암호화와 비대칭키 암호화'],
   controls: [
     { id: 'enc', label: '보내는 쪽 (String sent 줄)', type: 'select', value: 'on', options: [['on', '열쇠로 암호화해서 보낸다: encrypt("카드번호 1234", key)'], ['off', '암호화하지 않고 그대로 보낸다: "카드번호 1234"']] },
@@ -44,7 +44,7 @@ Lab.register({
 
     // 1. 열쇠를 만든다
     st.hot = 'k1'; st.k1 = 'made';
-    push('SecretKey key = newKey(); 줄을 실행합니다. 도우미 메서드 newKey()가 열쇠를 하나 만들어 key에 담습니다. 열쇠는 글자를 암호화할 때와 풀 때 계산에 함께 넣는 값입니다.', '');
+    push('SecretKey key = newKey(); 줄을 실행합니다. 예시로 만든 도우미 메서드 newKey()가 열쇠를 하나 만들고, 변수 key가 그 열쇠를 가리킵니다. 열쇠는 글자를 암호화할 때와 풀 때 계산에 함께 넣는 값입니다.', '');
 
     if (on) {
       // 2~4. 보내는 쪽
@@ -126,7 +126,7 @@ Lab.register({
     P.region('rv', 468, 6, 206, 258, '받는 쪽');
     P.box('pt', 14, 36, 190, 50, { cls: hot === 'pt' ? 'hot now' : 'plain', title: '글자', sub: PT });
     var enSub = !on ? '계산하지 않음' : s && s.enc === 'done' ? '알아볼 수 없는 값이 나옴' : '글자와 열쇠를 계산';
-    P.box('en', 14, 112, 190, 62, { cls: !on ? 'ghost' : hot === 'en' ? 'hot now' : s && s.enc === 'done' ? 'good' : 'plain', title: '암호화', sub: enSub });
+    P.box('en', 14, 112, 190, 62, { cls: !on ? 'ghost' : s && s.enc === 'done' ? (hot === 'en' ? 'good now' : 'good') : hot === 'en' ? 'hot now' : 'plain', title: '암호화', sub: enSub });
     var k1Sub = !s || s.k1 === 'none' ? '아직 없음' : s.k1 === 'unused' ? '만들었지만 쓰이지 않음' : 'key (열쇠 A)';
     P.box('k1', 14, 202, 190, 50, { cls: !s || s.k1 === 'none' || s.k1 === 'unused' ? 'ghost' : hot === 'k1' ? 'hot now' : 'plain', title: '열쇠', sub: k1Sub });
 

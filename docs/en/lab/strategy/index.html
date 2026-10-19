@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -88,7 +88,7 @@ class PaymentService {
     // the same branches are repeated in refund() and cancel()
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The actual payment processing is left out, and only the structures are compared. That the if-else version has the same branches in refund and cancel as well is an assumption based on a common situation. The definition of the Strategy pattern follows the description in the GoF book Design Patterns, and injecting all the implementations of the same interface at once as a List is a standard Spring feature. Two things were confirmed with code of the same structure on JDK 21 on this PC: that the method of the implementation object taken from the map is the one that actually runs, and the number of comparisons in the if-else version. The part where Spring injects the implementations was not run.</p>
+<p>The actual payment processing is left out, and only the structures are compared. That the if-else version has the same branches in refund and cancel as well is an assumption based on a common situation. The definition of the Strategy pattern follows the description in the GoF book Design Patterns, and injecting all the implementations of the same interface at once as a List is a standard Spring feature. Two things were confirmed with code of the same structure on JDK 21 in our test environment: that the method of the implementation object taken from the map is the one that actually runs, and the number of comparisons in the if-else version. The part where Spring injects the implementations was not run.</p>
 <p>Previous lab: <a href="../../lab/immut/">Immutability and defensive copies</a> · Next lab: <a href="../../lab/eq/">== and equals</a></p>
   </div>
 
@@ -176,6 +176,6 @@ class PaymentService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

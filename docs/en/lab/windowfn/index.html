@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -87,7 +87,7 @@ SELECT name, team, pts,
   FROM score
  ORDER BY pts DESC;</pre>
 <h2>Assumptions of this model</h2>
-<p>For all 24 combinations, the same SQL statement as the one on the screen was run on MySQL 8.4 on the PC used to write this lab, and the number of result rows and the value added to each row were checked against the screen. The values with ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW in the running total were checked the same way. SQL does not define which of the tied rows is placed first (see the ROW_NUMBER description in the MySQL documentation), so the order of the two tied people on the screen is just one example, and the check was made on the team, the score, and the added value, not on the names. Window functions are available from MySQL 8.0. The way the step sentences calculate (for example, adding 1 to the number of rows with a higher score) is a plain-words version of each function's definition. A real database sorts the rows and then makes one pass over them to compute the values.</p>
+<p>For all 24 combinations, the same SQL statement as the one on the screen was run on MySQL 8.4, and the number of result rows and the value added to each row were checked against the screen. The values with ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW in the running total were checked the same way. SQL does not define which of the tied rows is placed first (see the ROW_NUMBER description in the MySQL documentation), so the order of the two tied people on the screen is just one example, and the check was made on the team, the score, and the added value, not on the names. Window functions are available from MySQL 8.0. The way the step sentences calculate (for example, adding 1 to the number of rows with a higher score) is a plain-words version of each function's definition. A real database sorts the rows and then makes one pass over them to compute the values.</p>
 <p>Previous lab: <a href="../../lab/subquery/">Subqueries</a> · Next lab: <a href="../../lab/paging/">Offset and keyset pagination</a></p>
   </div>
 
@@ -175,6 +175,6 @@ SELECT name, team, pts,
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

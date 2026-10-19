@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,8 +71,12 @@
 // @EnableMethodSecurity가 없다
 class SecurityConfig { }
 
+record Order(long id, String owner) { }            // 예시로 만든 주문 타입
+
 @Service
-class OrderService {
+class OrderService {                         // 예시로 만든 서비스
+    private final Map&lt;Long, Order&gt; orders = new HashMap&lt;&gt;();   // 주문 저장소
+
     @PreAuthorize(&quot;hasRole('ADMIN')&quot;)                 // 메서드를 실행하기 전에 확인
     public String deleteAll() {
         orders.clear();
@@ -91,7 +95,7 @@ class OrderController {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>서른여섯 가지 조합 모두를 이 PC의 스프링 시큐리티 7.1.1(스프링 프레임워크 7.0.9, JDK 21)에서 화면과 같은 구조의 코드로 실행해 대조했습니다. 조합의 대조는 웹 서버 없이 스프링 컨텍스트에서 서비스 빈의 메서드를 직접 불러서 했으며, 로그인한 사용자는 SecurityContext에 직접 넣었습니다. 권한 검사가 실행됐는지는 검사할 때마다 불리는 AuthorizationEventPublisher 빈으로 세었고, 메서드 본문이 실행됐는지, 부른 쪽이 받은 값이나 예외의 종류, 빈이 프록시인지를 함께 확인했습니다. 거부될 때 던져지는 AuthorizationDeniedException이 AccessDeniedException의 한 종류라는 것도 실행으로 확인했습니다. 웹 요청에서 이 예외가 403 응답이 된다는 것은 스프링 부트 4.1.1 서버를 127.0.0.1에 띄워 따로 확인했습니다. 컨트롤러가 deleteAll()을 부르는 주소에 USER인 kim으로 요청하니 403이 나오고 본문은 실행되지 않았으며, ADMIN인 park으로 요청하니 200이 나왔습니다. 식에서 #owner처럼 인자의 이름을 쓰려면 컴파일할 때 -parameters 옵션이 필요합니다. 이 옵션 없이 컴파일해 실행했더니 #owner가 비어 있어 주인인 kim의 호출도 거부됐습니다(스프링 부트의 빌드 도구는 이 옵션을 기본으로 켠다고 문서에 나와 있으나 그 부분은 확인하지 않았습니다). 로그인 정보가 전혀 없는 상태에서 검사가 걸린 메서드를 부르면 AuthorizationDeniedException이 아니라 AuthenticationCredentialsNotFoundException이 나왔습니다. 화면의 본문 코드(orders.clear() 등)는 뜻을 보이려고 줄여 적은 것이며, 실행할 때는 본문이 실행된 횟수를 세었습니다. 스프링 부트가 이 설정을 대신 켜 주지는 않았습니다. 같은 스프링 부트 서버에서 @EnableMethodSecurity만 빼고 실행하니 USER인 kim의 요청에도 200이 나오고 본문이 실행됐습니다. 같은 클래스 안의 호출에서 검사가 빠지는 것은 프록시 방식의 일반적인 한계이고, &quot;프록시와 자기 호출&quot; 실습에서 자세히 다룹니다. @PreFilter, @PostFilter, @Secured, 직접 만든 빈을 식에서 부르는 방법은 다루지 않았습니다.</p>
+<p>서른여섯 가지 조합 모두를 검증 환경의 스프링 시큐리티 7.1.1(스프링 프레임워크 7.0.9, JDK 21)에서 화면과 같은 구조의 코드로 실행해 대조했습니다. 조합의 대조는 웹 서버 없이 스프링 컨텍스트에서 서비스 빈의 메서드를 직접 불러서 했으며, 로그인한 사용자는 SecurityContext에 직접 넣었습니다. 권한 검사가 실행됐는지는 검사할 때마다 불리는 AuthorizationEventPublisher 빈으로 세었고, 메서드 본문이 실행됐는지, 부른 쪽이 받은 값이나 예외의 종류, 빈이 프록시인지를 함께 확인했습니다. 거부될 때 던져지는 AuthorizationDeniedException이 AccessDeniedException의 한 종류라는 것도 실행으로 확인했습니다. 웹 요청에서 이 예외가 403 응답이 된다는 것은 스프링 부트 4.1.1 서버를 127.0.0.1에 띄워 따로 확인했습니다. 컨트롤러가 deleteAll()을 부르는 주소에 USER인 kim으로 요청하니 403이 나오고 본문은 실행되지 않았으며, ADMIN인 park으로 요청하니 200이 나왔습니다. 식에서 #owner처럼 인자의 이름을 쓰려면 컴파일할 때 -parameters 옵션이 필요합니다. 이 옵션 없이 컴파일해 실행했더니 #owner가 비어 있어 주인인 kim의 호출도 거부됐습니다(스프링 부트의 빌드 도구는 이 옵션을 기본으로 켠다고 문서에 나와 있으나 그 부분은 확인하지 않았습니다). 로그인 정보가 전혀 없는 상태에서 검사가 걸린 메서드를 부르면 AuthorizationDeniedException이 아니라 AuthenticationCredentialsNotFoundException이 나왔습니다. 화면의 본문 코드(orders.clear() 등)는 뜻을 보이려고 줄여 적은 것이며, 실행할 때는 본문이 실행된 횟수를 세었습니다. 스프링 부트가 이 설정을 대신 켜 주지는 않았습니다. 같은 스프링 부트 서버에서 @EnableMethodSecurity만 빼고 실행하니 USER인 kim의 요청에도 200이 나오고 본문이 실행됐습니다. 같은 클래스 안의 호출에서 검사가 빠지는 것은 프록시 방식의 일반적인 한계이고, &quot;프록시와 자기 호출&quot; 실습에서 자세히 다룹니다. @PreFilter, @PostFilter, @Secured, 직접 만든 빈을 식에서 부르는 방법은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/accessctl/">접근 제어</a> · 다음 실습: <a href="../../lab/webattack/">웹 공격 세 가지</a></p>
   </div>
 
@@ -179,6 +183,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'poly', nav: '다형성과 메서드 선택', cat: '자바 언어', mode: 'step',
   title: '어느 메서드가 실행될지는 누가, 언제 정하나',
-  intro: '변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다.',
+  intro: '변수의 선언 타입과 그 변수가 실제로 가리키는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다.',
   terms: ['다형성', '오버라이딩', '오버로딩', 'static', '상속'], ranks: ['oop', 'absint'],
   controls: [
     { id: 'v', label: '변수의 선언 타입', type: 'select', value: 'Animal', options: [['Animal', 'Animal a'], ['Dog', 'Dog a']] },
@@ -18,7 +18,7 @@ Lab.register({
   ],
   code: function (c) {
     var use = { override: 'a.sound();', overload: 'new Printer().print(a);', static: 'a.info();          // 권장하지 않는 호출 방식', field: 'System.out.println(a.name);' }[c.w];
-    return 'class Animal {\n    String name = "동물";\n    void sound()       { System.out.println("Animal.sound"); }\n    static void info() { System.out.println("Animal.info"); }\n}\nclass Dog extends Animal {\n    String name = "개";                 // 같은 이름의 필드\n    @Override\n    void sound()       { System.out.println("Dog.sound"); }\n    static void info() { System.out.println("Dog.info"); }\n}\nclass Printer {\n    void print(Animal x) { System.out.println("print(Animal)"); }\n    void print(Dog x)    { System.out.println("print(Dog)"); }\n}\n\n' + c.v + ' a = new ' + c.o + '();\n' + use;
+    return 'class Animal {\n    String name = "동물";\n    void sound()       { System.out.println("Animal.sound"); }\n    static void info() { System.out.println("Animal.info"); }\n}\nclass Dog extends Animal {\n    String name = "개";                 // 같은 이름의 필드\n    @Override\n    void sound()       { System.out.println("Dog.sound"); }\n    static void info() { System.out.println("Dog.info"); }\n}\nclass Printer {\n    void print(Animal x) { System.out.println("print(Animal)"); }\n    void print(Dog x)    { System.out.println("print(Dog)"); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        ' + c.v + ' a = new ' + c.o + '();\n        ' + use + '\n    }\n}';
   },
   label: function (c) { return c.v + ' a = new ' + c.o + '() · ' + { override: 'a.sound()', overload: 'print(a)', static: 'a.info()', field: 'a.name' }[c.w]; },
   columns: ['출력', '정해진 시점', '기준이 된 타입'],
@@ -46,9 +46,9 @@ Lab.register({
       sum.push('오버라이딩된 인스턴스 메서드는 변수의 선언 타입이 아니라 실제 객체의 타입으로 정해집니다. 이것이 다형성이며, 스프링이 인터페이스 타입으로 주입받은 구현체를 실행할 수 있는 원리입니다.');
     } else {
       when = '컴파일 시점'; basis = '선언 타입 (' + c.v + ')';
-      if (c.w === 'overload') { push('컴파일 시점: print 메서드가 두 개입니다. 컴파일러는 넘기는 인자 a의 선언 타입 ' + c.v + '만 보고 print(' + c.v + ')' + (c.v === 'Animal' ? '을' : '를') + ' 고릅니다. 이 선택은 바이트코드에 고정됩니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: 'print(' + c.v + ')', out: '' }); push('실행 시점: 이미 정해진 print(' + c.v + ')' + (c.v === 'Animal' ? '이' : '가') + ' 실행됩니다. a에 실제로 ' + c.o + ' 객체가 들어 있다는 사실은 메서드 선택에 쓰이지 않습니다.', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: 'print(' + c.v + ')', out: out }); sum.push('오버로딩은 이름만 같은 서로 다른 메서드이고, 어느 것을 부를지는 컴파일할 때 인자의 선언 타입으로 정해집니다. 실제 객체 타입은 영향을 주지 않습니다.'); }
+      if (c.w === 'overload') { push('컴파일 시점: print 메서드가 두 개입니다. 컴파일러는 넘기는 인자 a의 선언 타입 ' + c.v + '만 보고 print(' + c.v + ')' + (c.v === 'Animal' ? '을' : '를') + ' 고릅니다. 이 선택은 바이트코드에 고정됩니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: 'print(' + c.v + ')', out: '' }); push('실행 시점: 이미 정해진 print(' + c.v + ')' + (c.v === 'Animal' ? '이' : '가') + ' 실행됩니다. a가 실제로 ' + c.o + ' 객체를 가리킨다는 사실은 메서드 선택에 쓰이지 않습니다.', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: 'print(' + c.v + ')', out: out }); sum.push('오버로딩은 이름만 같은 서로 다른 메서드이고, 어느 것을 부를지는 컴파일할 때 인자의 선언 타입으로 정해집니다. 실제 객체 타입은 영향을 주지 않습니다.'); }
       if (c.w === 'static') { push('컴파일 시점: info()는 static 메서드입니다. static 메서드는 객체가 아니라 클래스에 속하므로, 컴파일러가 a.info()를 선언 타입에 따라 ' + c.v + '.info()로 바꿔 놓습니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '.info()', out: '' }); push('실행 시점: ' + c.v + '.info()가 실행됩니다. Dog에도 info()가 있지만 이것은 오버라이딩이 아니라, 같은 이름의 별개 메서드로 부모 것을 가린 것(하이딩)입니다.', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '.info()', out: out }); sum.push('static 메서드는 오버라이딩되지 않습니다. 그래서 변수로 static 메서드를 부르는 것은 혼란을 주므로, 클래스 이름으로 호출하는 것이 원칙입니다.'); }
-      if (c.w === 'field') { push('컴파일 시점: 필드 접근은 메서드 호출과 달리 선언 타입으로 정해집니다. 컴파일러가 a.name을 ' + c.v + ' 클래스의 name 필드로 확정합니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '의 name 필드', out: '' }); push('실행 시점: ' + c.v + '의 name 값 "' + out + '"' + (out === '개' ? '를' : '을') + ' 읽습니다.' + (c.o === 'Dog' ? ' Dog 객체 안에는 Animal의 name과 Dog의 name이 둘 다 들어 있고, 어느 쪽을 읽을지가 선언 타입으로 갈립니다.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '의 name 필드', out: out }); sum.push('필드에는 다형성이 적용되지 않습니다. 필드를 직접 노출하지 않고 메서드(getter)로 접근하게 하는 이유 중 하나입니다.'); }
+      if (c.w === 'field') { push('컴파일 시점: 필드 접근은 메서드 호출과 달리 선언 타입으로 정해집니다. 컴파일러가 a.name을 ' + c.v + ' 클래스의 name 필드로 확정합니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '의 name 필드', out: '' }); push('실행 시점: ' + c.v + '의 name 값 "' + out + '"' + (out === '개' ? '를' : '을') + ' 읽습니다.' + (c.o === 'Dog' ? ' Dog 객체에는 Animal이 선언한 name 필드와 Dog가 선언한 name 필드가 따로 있고, 어느 쪽을 읽을지가 선언 타입으로 갈립니다.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '의 name 필드', out: out }); sum.push('필드에는 다형성이 적용되지 않습니다. 필드를 직접 노출하지 않고 메서드(getter)로 접근하게 하는 이유 중 하나입니다.'); }
     }
     return { events: ev, summary: sum, row: [out, when, basis] };
   },
@@ -69,7 +69,7 @@ Lab.register({
     P.box('var', 30, 50, 222, 44, { cls: 'wait', title: 'a', sub: '선언 타입: ' + s.decl });
     P.box('obj', 428, 50, 222, 44, err ? { cls: 'bad', title: 'Animal 객체', sub: 'Dog 변수에 넣을 수 없음' } : { cls: 'good', title: s.obj + ' 객체', sub: '실제 타입: ' + s.obj });
     if (!err) P.arrow('pt', 'var:r', 'obj:l', { label: '가리킴' });
-    var names = { override: ['Animal의 sound()', 'Dog의 sound() (재정의)'], overload: ['print(Animal a)', 'print(Dog d)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal의 name 필드', 'Dog의 name 필드'] }[c.w];
+    var names = { override: ['Animal의 sound()', 'Dog의 sound() (재정의)'], overload: ['print(Animal x)', 'print(Dog x)'], static: ['Animal.info() (static)', 'Dog.info() (static)'], field: ['Animal의 name 필드', 'Dog의 name 필드'] }[c.w];
     P.region('cand', 16, 132, 648, 100, { override: '실행될 수 있는 메서드', overload: 'Printer의 두 메서드', static: '두 클래스의 static 메서드', field: '이름이 name인 두 필드' }[c.w]);
     var pick = err || !s.pick ? '' : /Dog/.test(s.pick) ? 'D' : /Animal/.test(s.pick) ? 'A' : '', late = c.w === 'override' && s.stage === '실행', chosen = late || c.w !== 'override';
     [['A', 30], ['D', 344]].forEach(function (m, i) { var on = pick === m[0]; P.box('m' + m[0], m[1], 168, 306, 48, { cls: on ? (chosen ? 'hot now' : 'wait') : 'plain', title: names[i], sub: on ? (chosen ? '이것이 선택됨' : '있는지만 확인함') : ' ' }); });
@@ -77,5 +77,5 @@ Lab.register({
     P.box('out', 16, 248, 648, 34, { cls: s.out ? 'plain' : 'ghost', title: '콘솔 출력', right: s.out || (err ? '컴파일 오류로 실행되지 않음' : '아직 실행 전') });
     P.note('아래 후보를 고르는 화살표가 왼쪽 변수(선언 타입)에서 출발하면 컴파일할 때 정해진 것이고, 오른쪽 객체(실제 타입)에서 출발하면 실행할 때 정해진 것입니다. 오버라이딩된 메서드만 객체에서 출발합니다.');
   },
-  assume: '모든 조합의 출력은 이 PC의 JDK 21에서 같은 코드를 실제로 컴파일·실행한 결과와 대조했습니다. 변수를 통해 static 메서드를 호출하는 a.info()는 문법상 가능하지만 권장되지 않는 방식이며, 선언 타입 기준으로 정해진다는 점을 보이려고 넣었습니다.',
+  assume: '모든 조합의 출력은 JDK 21에서 같은 코드를 실제로 컴파일·실행한 결과와 대조했습니다. 변수를 통해 static 메서드를 호출하는 a.info()는 문법상 가능하지만 권장되지 않는 방식이며, 선언 타입 기준으로 정해진다는 점을 보이려고 넣었습니다.',
 });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ public class Main {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>스물네 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드와 같은 소스로 실제로 컴파일하고, 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄, 컴파일러 메시지, 출력, 종료 코드, 오류 출력의 첫 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만)으로 적었습니다. Error 계열을 아무 처리 없이 던져도 컴파일된다는 것과, Exception 자체를 던지면 체크 예외로 취급된다는 것도 같은 방법으로 확인했습니다. 모형은 메서드가 둘(read, main)인 경우만 다룹니다. 호출이 더 깊어도 규칙은 같아서, 체크 예외가 지나가는 메서드마다 잡거나 선언해야 합니다. 잡히지 않은 예외가 프로그램을 끝내는 것은 스레드가 main 하나뿐인 경우의 이야기입니다.</p>
+<p>스물네 가지 조합 모두를 검증 환경의 JDK 21에서 화면의 코드와 같은 소스로 실제로 컴파일하고, 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄, 컴파일러 메시지, 출력, 종료 코드, 오류 출력의 첫 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만)으로 적었습니다. Error 계열을 아무 처리 없이 던져도 컴파일된다는 것과, Exception 자체를 던지면 체크 예외로 취급된다는 것도 같은 방법으로 확인했습니다. 모형은 메서드가 둘(read, main)인 경우만 다룹니다. 호출이 더 깊어도 규칙은 같아서, 체크 예외가 지나가는 메서드마다 잡거나 선언해야 합니다. 잡히지 않은 예외가 프로그램을 끝내는 것은 스레드가 main 하나뿐인 경우의 이야기입니다.</p>
 <p>앞 실습: <a href="../../lab/exflow/">예외와 finally</a> · 다음 실습: <a href="../../lab/generic/">제네릭</a></p>
   </div>
 
@@ -168,6 +168,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

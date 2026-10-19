@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -73,7 +73,7 @@ for (Integer x : list) {
     if (x == 2) list.remove(x);          // modifies the list directly during iteration
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The final list and the exception were checked for all 10 combinations against the result of running the same code on JDK 21 on this PC. Removal inside an enhanced for statement sometimes ends without an exception, depending on the position of the element that is removed (when the second-to-last element is removed), but such code relies on luck and must not be used.</p>
+<p>The final list and the exception were checked for all 10 combinations against the result of running the same code on JDK 21 in our test environment. Removal inside an enhanced for statement sometimes ends without an exception, depending on the position of the element that is removed (when the second-to-last element is removed), but such code relies on luck and must not be used.</p>
 <p>Previous lab: <a href="../../lab/sqh/">Stack, queue, priority queue</a> · Next lab: <a href="../../lab/sorting/">Sorting and Comparator</a></p>
   </div>
 
@@ -161,6 +161,6 @@ for (Integer x : list) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

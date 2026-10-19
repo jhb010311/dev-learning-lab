@@ -1,11 +1,11 @@
 Lab.register({
   id: 'injection_basic', nav: '입력과 인젝션', cat: '기초개념', mode: 'step', basic: true, deep: ['webattack', 'jdbctmpl'],
   title: '사용자가 입력한 글이 코드로 읽히면 무슨 일이 생기는가',
-  intro: 'SQL은 DB에 글자로 보내는 명령입니다. 사용자가 입력창에 쓴 이름으로 회원을 찾으려면 그 이름이 SQL 어딘가에 들어가야 하는데, 자바 코드에는 방법이 두 가지 있습니다. 하나는 SQL 글자에 입력을 이어 붙이는 것("… name = \'" + input + "\'")이고, 하나는 SQL에 ?로 값 자리를 비워 두고 입력은 PreparedStatement(값을 따로 받는 도구)로 따로 넘기는 것입니다. 이어 붙이면 입력 안에 든 따옴표 같은 글자도 SQL 글자의 일부가 되어서, DB가 그것을 SQL 문법으로 읽습니다. 그러면 입력이 값이 아니라 명령이 됩니다. 이것이 SQL 인젝션입니다. ?로 넘기면 입력 안의 따옴표나 OR도 찾을 값의 일부일 뿐입니다. 이 실습은 두 방법에 평범한 이름, 따옴표와 OR가 든 글, 따옴표가 든 평범한 이름을 하나씩 넣어, DB가 받은 SQL과 돌아온 행을 봅니다. (화면의 코드는 main 메서드 안에 있다고 보고 import 줄과 main 선언은 줄였습니다. 입력창은 만들지 않고 input 변수에 글을 적어 두었습니다. 웹 공격 전반과 JdbcTemplate은 세부 동작 실습에서 다룹니다.)',
+  intro: 'SQL은 DB에 글자로 보내는 명령입니다. 사용자가 입력창에 쓴 이름으로 회원을 찾으려면 그 이름이 SQL 어딘가에 들어가야 하는데, 이 실습에서 견주는 자바 코드의 방법은 두 가지입니다. 하나는 SQL 글자에 입력을 이어 붙이는 것("… name = \'" + input + "\'")이고, 하나는 SQL에 ?로 값 자리를 비워 두고 입력은 PreparedStatement(값을 따로 받는 도구)로 따로 넘기는 것입니다. 이어 붙이면 입력 안에 든 따옴표 같은 글자도 SQL 글자의 일부가 되어서, DB가 그것을 SQL 문법으로 읽습니다. 그러면 입력이 값이 아니라 명령이 됩니다. 이것이 SQL 인젝션입니다. ?로 넘기면 입력 안의 따옴표나 OR도 찾을 값의 일부일 뿐입니다. 이 실습은 두 방법에 평범한 이름, 따옴표와 OR가 든 글, 따옴표가 든 평범한 이름을 하나씩 넣어, DB가 받은 SQL과 돌아온 행을 봅니다. (화면의 코드는 main 메서드 안에 있다고 보고 import 줄과 main 선언은 줄였습니다. 입력창은 만들지 않고 input 변수에 글을 적어 두었습니다. 웹 공격 전반과 JdbcTemplate은 세부 동작 실습에서 다룹니다.)',
   terms: ['Statement와 executeQuery', 'PreparedStatement와 바인드 파라미터', 'SQL 문자열 값과 따옴표', 'SQL Injection'],
   controls: [
     { id: 'how', label: 'input을 SQL에 넣는 방법', type: 'select', value: 'bind', options: [['bind', 'sql에 ?를 적고 ps.setString으로 값을 따로 넘긴다'], ['concat', 'sql 글자에 input을 이어 붙이고 st.executeQuery(sql)로 보낸다']] },
-    { id: 'input', label: 'input에 담긴 글', type: 'select', value: 'kim', options: [['kim', 'kim'], ['or', '\' OR \'1\'=\'1'], ['oneil', 'O\'Neil (따옴표가 든 평범한 이름)']] },
+    { id: 'input', label: 'input이 가리키는 글', type: 'select', value: 'kim', options: [['kim', 'kim'], ['or', '\' OR \'1\'=\'1'], ['oneil', 'O\'Neil (따옴표가 든 평범한 이름)']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
@@ -45,17 +45,17 @@ Lab.register({
     var kind = { kim: '평범한 이름입니다.', or: '따옴표와 OR가 든 글입니다.', oneil: '따옴표가 든 평범한 이름입니다.' }[k];
 
     // 1. input
-    st.inp = true; st.hot = 'in'; st.log.push(['String input', { v: '글이 담김: ' + I, cls: '' }]);
-    push('String input = "' + I + '": input 변수에 "' + I + '"라는 글이 담깁니다. ' + kind + ' 이 실습에서는 이것이 사용자가 입력창에 쓴 글이라고 보고, 입력창 대신 코드에 글을 적어 두었습니다. DB의 member 테이블에는 kim, lee, O\'Neil 세 행이 들어 있습니다.', '');
+    st.inp = true; st.hot = 'in'; st.log.push(['String input', { v: '가리키는 글: ' + I, cls: '' }]);
+    push('String input = "' + I + '": input 변수가 가리키는 글은 "' + I + '"입니다. ' + kind + ' 이 실습에서는 이것이 사용자가 입력창에 쓴 글이라고 보고, 입력창 대신 코드에 글을 적어 두었습니다. DB의 member 테이블에는 kim, lee, O\'Neil 세 행이 들어 있습니다.', '');
 
     // 2. sql 변수
-    st.sql = 'made'; st.hot = 'tl';
+    st.sql = 'made'; st.hot = '';
     if (bind) {
       st.log.push(['String sql', { v: '값 자리가 ?로 빈 SQL 글자', cls: '' }]);
-      push('String sql = "SELECT name FROM member WHERE name = ?": sql 변수에 SQL 글자를 담습니다. 값이 들어갈 자리는 ?로 비어 있고, input의 글은 이 글자에 들어가지 않습니다. 아직 DB에는 아무것도 보내지 않았습니다.', '');
+      push('String sql = "SELECT name FROM member WHERE name = ?": sql 변수가 SQL 글자를 가리킵니다. 값이 들어갈 자리는 ?로 비어 있고, input의 글은 이 글자에 들어가지 않습니다. 아직 DB에는 아무것도 보내지 않았습니다.', '');
     } else {
       st.log.push(['String sql', { v: 'input이 섞인 SQL 글자', cls: k === 'kim' ? '' : 'hot' }]);
-      push('String sql = "SELECT name FROM member WHERE name = \'" + input + "\'": 자바가 글자를 이어 붙여 완성한 SQL 글자를 sql 변수에 담습니다. 담긴 글은 "' + S + '"입니다. ' +
+      push('String sql = "SELECT name FROM member WHERE name = \'" + input + "\'": 자바가 글자를 이어 붙여 SQL 글자를 완성하고, sql 변수가 그 글자를 가리킵니다. 그 글은 "' + S + '"입니다. ' +
         (k === 'kim' ? 'input 자리에 "kim"이라는 글이 그대로 들어갔습니다.' : '자바에게는 SQL을 쓴 사람이 넣은 따옴표와 input 안에 든 따옴표가 똑같은 글자라서, 구별하지 않고 그대로 이어 붙입니다.') +
         ' 아직 DB에는 아무것도 보내지 않았습니다.', k === 'kim' ? '' : 'bad');
     }
@@ -64,14 +64,14 @@ Lab.register({
     st.hot = 'tl';
     if (bind) {
       st.tool = 'ps'; st.log.push(['conn.prepareStatement', { v: 'ps 만듦 (? 자리 1개)', cls: '' }]);
-      push('conn.prepareStatement(sql): sql 글자를 가진 PreparedStatement 객체를 만들어 ps에 담습니다. ps가 가진 SQL에는 ? 자리가 1개 있고 값은 아직 없습니다. DB의 실행 기록에도 이 SELECT는 아직 없습니다.', '');
+      push('conn.prepareStatement(sql): sql 글자를 가진 PreparedStatement 객체를 만들고, ps가 그 객체를 가리킵니다. ps가 가진 SQL에는 ? 자리가 1개 있고 값은 아직 없습니다. DB의 실행 기록에도 이 SELECT는 아직 없습니다.', '');
       // 4. 값
       st.val = true; st.hot = 'in';
       st.log.push(['ps.setString', { v: '1번 ? 자리의 값이 정해짐', cls: 'good' }]);
       push('ps.setString(1, input): 1번 ? 자리에 input의 글을 값으로 넘깁니다. ps는 SQL 글자(? 자리가 있는 그대로)와 1번 자리의 값을 따로 가집니다. input의 글은 SQL 글자에 끼워 넣어지지 않습니다.', 'good');
     } else {
       st.tool = 'st'; st.log.push(['conn.createStatement', { v: 'SQL을 보낼 도구를 만듦', cls: '' }]);
-      push('conn.createStatement(): SQL을 보내는 도구(Statement)를 만들어 st에 담습니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.', '');
+      push('conn.createStatement(): SQL을 보내는 도구(Statement) 객체를 만들고, st가 그 객체를 가리킵니다. 도구를 만든 것뿐이라 DB에는 아직 SQL이 가지 않았습니다.', '');
     }
 
     // 5. 보내기
@@ -81,7 +81,7 @@ Lab.register({
       st.ans = 'rows'; st.n = o.names.length;
       st.log.push(['ps.executeQuery', { v: 'DB가 실행해 결과를 돌려줌 (행 ' + st.n + '개)', cls: 'good' }]);
       push('ps.executeQuery(): ps는 값을 SQL 글과 따로 다뤄서, 값이 SQL 문법으로 읽히지 않게 합니다. DB가 실행한 SQL은 "' + S + '"이고, 이 글자 어디에도 input의 글은 없습니다. DB는 member 테이블에서 name이 값과 같은 행을 찾습니다. ' +
-        (k === 'or' ? '값은 "' + I + '"라는 글 전체이고, ' + tbl + '은 없어서 결과는 행이 0개입니다. 값 안의 따옴표와 OR는 SQL 문법으로 읽히지 않고 이름의 일부일 뿐입니다.'
+        (k === 'or' ? '값은 글 "' + I + '" 전체이고, ' + tbl + '은 없어서 결과는 행이 0개입니다. 값 안의 따옴표와 OR는 SQL 문법으로 읽히지 않고 이름의 일부일 뿐입니다.'
           : k === 'oneil' ? tbl + '은 1개입니다. 값 안의 따옴표는 이름의 일부일 뿐이라 SQL을 끝내거나 깨뜨리지 않습니다.'
           : tbl + '은 1개입니다.') +
         ' 자바는 결과를 ResultSet rs로 받습니다.', 'good');
@@ -125,7 +125,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
-    if (!s) { H.text(v, '실행을 누르면 input 변수에 글이 담기는 것부터 시작합니다.'); return; }
+    if (!s) { H.text(v, '실행을 누르면 input 변수가 글을 가리키게 되는 것부터 시작합니다.'); return; }
     H.table(v, ['실행한 줄', '일어난 일'], s.log.map(function (r) { return { cls: '', cells: [r[0], r[1]] }; }), '자바와 DB 사이에서 일어난 일');
     H.counters(v, [[s.recv, 'DB가 받은 SQL'], [s.n, '돌아온 행'], [s.exc ? 1 : 0, '던져진 예외']]);
   },
@@ -146,16 +146,16 @@ Lab.register({
     var csub = !s || !s.sent ? '아직 없음' : bind ? '? 자리가 있는 글자' : 'input이 섞인 글자';
     P.box('rc', 386, 92, 270, 40, { cls: s && s.ans === 'err' ? 'bad' : s && s.sent ? (bind ? 'wait' : (c.input === 'kim' ? 'wait' : 'hot')) : 'ghost', title: 'DB가 받은 SQL 글자', sub: csub });
     var an = !s || !s.ans ? '아직 답 없음' : s.ans === 'err' ? '오류: SQL 문법 오류' : '결과: 행 ' + s.n + '개';
-    P.box('an', 386, 144, 270, 40, { cls: s && s.ans === 'err' ? 'bad' : s && s.ans === 'rows' ? 'good' : 'ghost', title: 'DB의 답', sub: an });
+    P.box('an', 386, 144, 270, 40, { cls: s && s.ans === 'err' ? 'bad' : s && s.ans === 'rows' ? (!bind && c.input === 'or' ? 'bad' : 'good') : 'ghost', title: 'DB의 답', sub: an });
     if (s && s.sent) {
       P.arrow('sq', 'tl:r', 'rc:l', { cls: s.ans === 'err' ? 'bad' : 'hot' });
       if (bind) P.arrow('vv', 'in:r', 'vl:l', { cls: 'good' });
     }
-    if (s && s.ans === 'rows') P.arrow('rt', 'an:l', 'rs:r', { cls: 'good' });
+    if (s && s.ans === 'rows') P.arrow('rt', 'an:l', 'rs:r', { cls: !bind && c.input === 'or' ? 'bad' : 'good' });
     var recv = s && s.recv ? sim.row[0] : '';
     P.box('r1', 14, 204, 652, 36, { cls: s && s.recv ? (s.ans === 'err' ? 'bad' : 'wait') : 'ghost', title: 'DB가 받은 SQL', right: recv });
     P.box('r2', 14, 248, 652, 36, { cls: s && s.outs.length ? (!bind && c.input === 'or' ? 'bad' : 'good') : 'ghost', title: '출력된 값', right: s && s.outs.length ? s.outs.join(' / ') : '' });
     P.box('r3', 14, 292, 652, 36, { cls: s && s.exc ? 'bad' : 'ghost', title: '예외', right: s && s.exc ? s.exc : '' });
   },
-  assume: 'JDK 21.0.12.1과 H2 2.4.240(메모리 DB)에서 실행해 대조했고, MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 코드를 main 메서드가 든 Main.java에 넣어(import java.sql.*와 main 선언만 더했습니다) javax.tools로 컴파일하고, 조합마다 새 자바 프로세스에서 실행했습니다. 실행 전에 같은 프로세스에서 member 테이블(id INT 기본 키, name VARCHAR(20))과 세 행 (1, kim), (2, lee), (3, O\'Neil)을 만들어 두었는데, 화면에서는 이 준비 코드를 줄였습니다. 입력창은 만들지 않고 input 변수에 글을 적어 두었습니다. 대조한 것은 결과 표의 세 항목입니다. DB가 받은 SQL은 H2의 INFORMATION_SCHEMA.QUERY_STATISTICS(실행 기록)에 남은 SELECT이고, 문법 오류로 실행되지 못한 조합은 오류가 DB 엔진의 파서에서 났고 오류 메시지가 그 SQL을 인용한 것으로 판정했습니다(실행 기록은 비어 있었습니다). 돌아온 행은 코드가 출력한 name이고, 입력이 다뤄진 방식은 실제 값에서 얻었습니다. DB가 받은 SQL에 input의 글이 들어 있으면 "SQL 글자의 일부", 들어 있지 않으면 "값으로만 다뤄짐"이고, 괄호 안은 오류가 났는지, 이름이 input과 같은 행보다 많은 행이 돌아왔는지로 정했습니다. 결과 표의 첫 항목에서 ?로 넘긴 조합의 값은 코드에서 setString으로 넘긴 글입니다. 이 값이 ps에 SQL 글자와 따로 들어 있는 것은 H2가 ps를 문자열로 보여 주는 모양(SQL 글자 뒤에 {1: 값})으로 확인했습니다. 이 모양에서 값 안의 작은따옴표가 두 번 쓰이는 것은 H2가 값을 SQL 글자 값으로 보여 주는 표기이고, 값이 SQL 글자에 끼워졌다는 뜻이 아닙니다. 단계 문장이 기대는 사실로, prepareStatement와 setString까지 한 시점과 createStatement까지 한 시점에는 DB의 실행 기록에 이 SELECT가 없는 것, ps의 ? 자리가 1개이고 이어 붙인 SQL의 ? 자리는 0개인 것도 실행으로 확인했습니다(실행 기록은 한 번 읽으면 새 기록이 보이지 않아 시점마다 DB를 따로 만들어 한 번씩만 읽었습니다). O\'Neil을 이어 붙인 조합의 오류는 H2의 SQLState 42000(문법 오류)이고, 메시지의 오류 위치는 Neil 바로 뒤였으며 오류가 난 곳은 H2의 문자열 읽기(Tokenizer.readCharacterString)였습니다. 화면의 설명("두 번째 따옴표가 문자열을 끝내고 마지막 따옴표는 닫히지 않은 문자열을 연다")은 이 관찰과 문자열 안의 따옴표를 두 번 써야 한다는 H2 문서에 맞춘 풀이이고, H2가 글자를 어떻게 나누는지는 직접 추적하지 않았습니다. 이 오류 코드는 H2의 것이어서 MySQL에서는 다를 수 있습니다. 실제 DB 로그에 SQL 글자가 어떻게 남는지와 결과 행의 순서(ORDER BY가 없어 DB가 정하는 순서)는 H2에서 본 것일 뿐입니다. 문서는 직접 열어 확인했습니다. OWASP SQL Injection Prevention Cheat Sheet에서 문자열 이어 붙이기와 사용자 입력으로 만든 질의가 위험하다는 것(What Is a SQL Injection Attack?), 준비된 문장에서는 SQL을 먼저 정하고 값을 나중에 넘기며 DB가 입력이 무엇이든 코드와 데이터를 구별한다는 것(Defense Option 1), Java 예제가 SELECT에 ?를 쓰고 setString으로 값을 넘기며 tom\' or \'1\'=\'1 같은 입력도 그 글 전체와 같은 이름을 찾을 뿐이라는 것(Safe Java Prepared Statement Example)을 따랐습니다. Java SE 21 API 문서의 PreparedStatement에서는 미리 컴파일된 SQL 문장이라는 설명, 값을 넣는 setter가 ? 자리(IN 파라미터)의 값을 정한다는 것, 자리 번호가 1부터라는 것을, Statement에서는 정해진(static) SQL 문장을 실행하는 객체이고 executeQuery(String)이 ResultSet 하나를 돌려준다는 것을 확인했습니다. PreparedStatement 문서는 setString이 따옴표를 어떻게 다루는지는 적고 있지 않아서, 값이 따옴표와 상관없이 다뤄지는 것은 문서가 정한 것이 아니라 이 H2에서 관찰한 동작입니다. H2 문서 grammar 페이지에서 문자열 값이 작은따옴표로 시작하고 끝나며 안에 작은따옴표를 넣으려면 두 번 쓴다는 것을, MySQL 8.4 문서의 String Literals에서 같은 규칙(MySQL은 \\를 앞에 붙이는 방법도 허용)을 확인했습니다. 열린 문서는 모두 도구가 돌려준 요약으로 읽었고 원문 전체를 읽지는 않았습니다. 화면의 코드는 짧게 하려고 연결과 ResultSet을 닫는 줄과 예외를 처리하는 코드를 적지 않았고, 예외가 난 줄에서 프로그램이 멈추고 아래 줄이 실행되지 않는 것은 출력이 비어 있는 것으로 확인했습니다. 이 실습은 SQL 인젝션 하나만 다루며, 입력 검사, 출력할 때의 이스케이프, DB 계정 권한, 실제 공격에서 쓰는 다른 수법, 입력이 SQL이 아닌 곳(HTML, 명령어 등)에서 코드로 읽히는 경우는 다루지 않습니다. 웹 공격 전반(XSS, CSRF 포함)은 "웹 공격 세 가지", SQL을 직접 쓰는 JDBC의 반복되는 코드를 줄여 주는 JdbcTemplate은 "JdbcTemplate과 예외 변환"에서 다룹니다.',
+  assume: 'JDK 21.0.12.1과 H2 2.4.240(메모리 DB)에서 실행해 대조했고, MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 코드를 main 메서드가 든 Main.java에 넣어(import java.sql.*와 main 선언만 더했습니다) javax.tools로 컴파일하고, 조합마다 새 자바 프로세스에서 실행했습니다. 실행 전에 같은 프로세스에서 member 테이블(id INT 기본 키, name VARCHAR(20))과 세 행 (1, kim), (2, lee), (3, O\'Neil)을 만들어 두었는데, 화면에서는 이 준비 코드를 줄였습니다. 입력창은 만들지 않고 input 변수에 글을 적어 두었습니다. 대조한 것은 결과 표의 세 항목입니다. DB가 받은 SQL은 H2의 INFORMATION_SCHEMA.QUERY_STATISTICS(실행 기록)에 남은 SELECT이고, 문법 오류로 실행되지 못한 조합은 오류가 DB 엔진의 파서에서 났고 오류 메시지가 그 SQL을 인용한 것으로 판정했습니다(실행 기록은 비어 있었습니다). 돌아온 행은 코드가 출력한 name이고, 입력이 다뤄진 방식은 실제 값에서 얻었습니다. DB가 받은 SQL에 input의 글이 들어 있으면 "SQL 글자의 일부", 들어 있지 않으면 "값으로만 다뤄짐"이고, 괄호 안은 오류가 났는지, 이름이 input과 같은 행보다 많은 행이 돌아왔는지로 정했습니다. 결과 표의 첫 항목에서 ?로 넘긴 조합의 값은 코드에서 setString으로 넘긴 글입니다. ps가 이 값을 SQL 글자와 따로 갖고 있는 것은 H2가 ps를 문자열로 보여 주는 모양(SQL 글자 뒤에 {1: 값})으로 확인했습니다. 이 모양에서 값 안의 작은따옴표가 두 번 쓰이는 것은 H2가 값을 SQL 글자 값으로 보여 주는 표기이고, 값이 SQL 글자에 끼워졌다는 뜻이 아닙니다. 단계 문장이 기대는 사실로, prepareStatement와 setString까지 한 시점과 createStatement까지 한 시점에는 DB의 실행 기록에 이 SELECT가 없는 것, ps의 ? 자리가 1개이고 이어 붙인 SQL의 ? 자리는 0개인 것도 실행으로 확인했습니다(실행 기록은 한 번 읽으면 새 기록이 보이지 않아 시점마다 DB를 따로 만들어 한 번씩만 읽었습니다). O\'Neil을 이어 붙인 조합의 오류는 H2의 SQLState 42000(문법 오류)이고, 메시지의 오류 위치는 Neil 바로 뒤였으며 오류가 난 곳은 H2의 문자열 읽기(Tokenizer.readCharacterString)였습니다. 화면의 설명("두 번째 따옴표가 문자열을 끝내고 마지막 따옴표는 닫히지 않은 문자열을 연다")은 이 관찰과 문자열 안의 따옴표를 두 번 써야 한다는 H2 문서에 맞춘 풀이이고, H2가 글자를 어떻게 나누는지는 직접 추적하지 않았습니다. 이 오류 코드는 H2의 것이어서 MySQL에서는 다를 수 있습니다. 실제 DB 로그에 SQL 글자가 어떻게 남는지와 결과 행의 순서(ORDER BY가 없어 DB가 정하는 순서)는 H2에서 본 것일 뿐입니다. 문서는 직접 열어 확인했습니다. OWASP SQL Injection Prevention Cheat Sheet에서 문자열 이어 붙이기와 사용자 입력으로 만든 질의가 위험하다는 것(What Is a SQL Injection Attack?), 준비된 문장에서는 SQL을 먼저 정하고 값을 나중에 넘기며 DB가 입력이 무엇이든 코드와 데이터를 구별한다는 것(Defense Option 1), Java 예제가 SELECT에 ?를 쓰고 setString으로 값을 넘기며 tom\' or \'1\'=\'1 같은 입력도 그 글 전체와 같은 이름을 찾을 뿐이라는 것(Safe Java Prepared Statement Example)을 따랐습니다. Java SE 21 API 문서의 PreparedStatement에서는 미리 컴파일된 SQL 문장이라는 설명, 값을 넣는 setter가 ? 자리(IN 파라미터)의 값을 정한다는 것, 자리 번호가 1부터라는 것을, Statement에서는 정해진(static) SQL 문장을 실행하는 객체이고 executeQuery(String)이 ResultSet 하나를 돌려준다는 것을 확인했습니다. PreparedStatement 문서는 setString이 따옴표를 어떻게 다루는지는 적고 있지 않아서, 값이 따옴표와 상관없이 다뤄지는 것은 문서가 정한 것이 아니라 이 H2에서 관찰한 동작입니다. H2 문서 grammar 페이지에서 문자열 값이 작은따옴표로 시작하고 끝나며 안에 작은따옴표를 넣으려면 두 번 쓴다는 것을, MySQL 8.4 문서의 String Literals에서 같은 규칙(MySQL은 \\를 앞에 붙이는 방법도 허용)을 확인했습니다. 열린 문서는 모두 도구가 돌려준 요약으로 읽었고 원문 전체를 읽지는 않았습니다. 화면의 코드는 짧게 하려고 연결과 ResultSet을 닫는 줄과 예외를 처리하는 코드를 적지 않았고, 예외가 난 줄에서 프로그램이 멈추고 아래 줄이 실행되지 않는 것은 출력이 비어 있는 것으로 확인했습니다. 이 실습은 SQL 인젝션 하나만 다루며, 입력 검사, 출력할 때의 이스케이프, DB 계정 권한, 실제 공격에서 쓰는 다른 수법, 입력이 SQL이 아닌 곳(HTML, 명령어 등)에서 코드로 읽히는 경우는 다루지 않습니다. 웹 공격 전반(XSS, CSRF 포함)은 "웹 공격 세 가지", SQL을 직접 쓰는 JDBC의 반복되는 코드를 줄여 주는 JdbcTemplate은 "JdbcTemplate과 예외 변환"에서 다룹니다.',
 });

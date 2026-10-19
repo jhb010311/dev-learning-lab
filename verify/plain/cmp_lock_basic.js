@@ -30,7 +30,7 @@ for (const ln of lines.slice(1)) {
   let real;
   const allExact = vals.every(x => x === +expect);
   if (allExact) real = [expect, expect, '없음'];
-  else if (+less === vals.length && new Set(vals).size >= 2) real = ['200000보다 작은 값 (실행마다 다름)', expect, '있음 (실행마다 다름)'];
+  else if (+less === vals.length && new Set(vals).size >= 2) real = ['대개 200000보다 작은 값 (실행마다 다름)', expect, '있음 (실행마다 다름)'];
   else real = ['(실행마다 다름, 일부는 기대한 값과 같음) 작게 나온 횟수 ' + less + ' / ' + vals.length, expect, '(판정 불가)'];
   if (+expect !== 200000 && real[0].startsWith('200000보다')) probs.push('기대한 값이 100000인 조합에서 값이 모자람');
   if (JSON.stringify(row) !== JSON.stringify(real)) probs.push('표 모형 ' + row.join(' | ') + '\n   실제 ' + real.join(' | '));

@@ -58,5 +58,5 @@ Lab.register({
     H.title(v, '람다가 실제로 실행된 순서'); H.slots(v, s.log.map(function (l, i) { return [l, (l.indexOf('map') === 0 ? 'q' : '') + (i === s.log.length - 1 ? ' now' : '')]; }), '아직 한 번도 실행되지 않았습니다.');
     H.title(v, '결과로 나온 값'); H.slots(v, s.out.map(function (x) { return [String(x), 'd']; }), '아직 없음');
   },
-  assume: '12가지 조합 모두의 실행 순서와 결과를 이 PC의 JDK 21에서 같은 파이프라인을 실행한 결과와 대조했습니다. 순차 스트림 기준이며, 병렬 스트림에서는 원소가 처리되는 순서가 달라집니다.',
+  assume: '12가지 조합 모두의 실행 순서와 결과를 검증 실행(JDK 21)에서 같은 파이프라인을 실행한 결과와 대조했습니다. 순차 스트림 기준이며, 병렬 스트림에서는 원소가 처리되는 순서가 달라집니다.',
 });

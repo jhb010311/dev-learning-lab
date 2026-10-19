@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exflow', nav: '예외와 finally', cat: '자바 언어', mode: 'step',
   title: '예외가 나면 어느 블록이 어떤 순서로 실행되나',
-  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
+  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다(System.exit()로 JVM 자체를 끝내면 실행되지 않습니다). return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
   terms: ['finally와 try-with-resources', '예외(Exception)와 Error', 'Checked 예외와 Unchecked 예외'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: '예외', type: 'select', value: 'match', options: [['none', '예외 없음'], ['match', 'try에서 발생, catch가 잡는 타입'], ['nomatch', 'try에서 발생, catch가 잡지 못하는 타입'], ['incatch', 'try에서 발생해 잡았는데 catch 안에서 또 발생']] },
@@ -19,7 +19,7 @@ Lab.register({
   ],
   code: function (c) {
     var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        if (fail) throw new IllegalStateException();     // fail은 true. catch가 잡지 못함\n' : '        if (fail) throw new IllegalArgumentException();  // fail은 true\n', tail = !(c.fret || (c.ret && c.ex === 'incatch'));
-    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{\n        print("try 시작");\n' + t + '        print("try 끝");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // catch 안에서 또 예외\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n' + (tail ? '    print("블록 다음");\n    return 2;\n}' : '    // 이 뒤에는 문장을 둘 수 없다. ' + (c.fret ? 'finally가 return으로 끝나서' : 'try는 return, catch는 throw로 끝나서') + ' 도달할 수 없는 문장(컴파일 오류)이 된다\n}');
+    return 'int run() {\n    try ' + (c.res ? '(Resource r = new Resource()) ' : '') + '{' + (c.res ? '   // Resource: 예시로 만든 AutoCloseable 클래스' : '') + '\n        print("try 시작");\n' + t + '        print("try 끝");\n' + (c.ret ? '        return 1;\n' : '') + '    } catch (IllegalArgumentException e) {\n        print("catch");\n' + (c.ex === 'incatch' ? '        throw new RuntimeException();           // catch 안에서 또 예외\n' : '') + '    } finally {\n        print("finally");\n' + (c.fret ? '        return 3;\n' : '') + '    }\n' + (tail ? '    print("블록 다음");\n    return 2;\n}' : '    // 이 뒤에는 문장을 둘 수 없다. ' + (c.fret ? 'finally가 return으로 끝나서' : 'try는 return, catch는 throw로 끝나서') + ' 도달할 수 없는 문장(컴파일 오류)이 된다\n}');
   },
   label: function (c) { return { none: '예외 없음', match: '잡는 예외', nomatch: '못 잡는 예외', incatch: 'catch에서 또 예외' }[c.ex] + (c.ret ? ' · try에 return' : '') + (c.fret ? ' · finally에 return' : '') + (c.res ? ' · 자원 사용' : ''); },
   columns: ['실행 순서', '최종 결과'],
@@ -56,7 +56,7 @@ Lab.register({
     else if (tr.out.indexOf('throw') === 0) push(null, 'finally가 끝난 뒤, 처리되지 않은 ' + tr.out.slice(6) + '이 메서드 밖으로 나갑니다.' + (c.ret && c.ex === 'incatch' ? '' : ' "블록 다음"은 실행되지 않습니다.'), 'bad');
     else push(null, '메서드가 여기서 끝납니다. 반환값은 ' + tr.out.slice(7) + '입니다.' + (c.fret ? '' : ' "블록 다음"은 실행되지 않습니다.'), c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' 발생' : tr.out.slice(7) + ' 반환';
-    sum.push('finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다. 락 해제나 자원 정리를 finally에 두는 이유입니다.');
+    sum.push('finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다(System.exit()로 JVM을 끝내는 경우는 제외). 락 해제나 자원 정리를 finally에 두는 이유입니다.');
     if (c.fret && before) sum.push('finally 안의 return은 진행 중이던 예외나 반환값을 조용히 지워 버립니다. 예외가 났다는 사실이 사라지므로 finally에는 return을 쓰지 않습니다.');
     if (c.res) sum.push('try-with-resources의 자원은 try 블록이 끝나는 시점에 닫히므로, catch와 finally가 실행될 때는 이미 닫혀 있습니다. 직접 finally에서 close()를 부르는 것보다 안전합니다.');
     if (c.ex === 'nomatch' && !c.fret) sum.push('catch는 선언한 타입(과 그 하위 타입)만 잡습니다. 맞지 않는 예외는 호출한 쪽으로 계속 올라갑니다.');
@@ -66,8 +66,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], pend: '' };
     H.title(v, '지금까지 실행된 블록'); H.slots(v, s.seen.map(function (x, i) { return [x, i === s.seen.length - 1 ? 'b' : 'd']; }), '아직 없음');
     H.counters(v, [[s.pend || '없음', '아직 처리되지 않고 대기 중인 것 (예외 또는 반환값)']]);
-    H.title(v, '콘솔 출력'); var out = s.seen.filter(function (x) { return x.indexOf('자원') < 0; });
+    H.title(v, '콘솔 출력 (print가 찍은 줄)'); var out = s.seen.filter(function (x) { return x.indexOf('자원') < 0; });
     v.appendChild(H.el('pre', 'code', out.length ? out.join('\n') : '(아직 없음)'));
   },
-  assume: '32가지 조합 모두에서 화면의 코드 그대로(값이 true인 fail 필드와 print, Resource만 더함)를 이 PC의 JDK 21에서 컴파일하고 실행해, 출력 순서와 최종 결과를 대조했습니다(verify/plain/exflow_code_check.js). 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.',
+  assume: '32가지 조합 모두에서 화면의 코드 그대로(값이 true인 fail 필드와 print, Resource만 더함)를 검증 실행(JDK 21)에서 컴파일하고 실행해, 출력 순서와 최종 결과를 대조했습니다(verify/plain/exflow_code_check.js). 자원이 하나인 경우만 다뤘습니다. 자원이 여러 개면 연 순서의 반대로 닫히고, close()에서 난 예외는 원래 예외에 억제된 예외(suppressed)로 붙습니다.',
 });

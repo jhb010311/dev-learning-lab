@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -92,8 +92,10 @@
     }
 }
 
+int[] ids = {3817, 9204, 1466, 7531, 2890, 6043, 5178, 8312, 4725, 1039,
+             6654, 3391, 7968};   // ids to put: 13
 Map&lt;MemberKey, String&gt; map = new HashMap&lt;&gt;(16, 0.75f);
-for (int id : ids) {                 // number of ids: 13
+for (int id : ids) {
     map.put(new MemberKey(id), &quot;member&quot;);
 }
 
@@ -101,7 +103,7 @@ for (int id : ids) {                 // number of ids: 13
 map.put(new MemberKey(ids[0]), &quot;updated&quot;);
 map.get(new MemberKey(ids[0]));</pre>
 <h2>Assumptions of this model</h2>
-<p>The initial number of buckets is fixed at 16. The calculation of the bucket number (the upper 16 bits of the hash are mixed into the lower bits, and then the remainder of dividing by the number of buckets is taken), the resize threshold (number of entries &gt; number of buckets × load factor), and the rule that when node #9 is added to a single bucket the number of buckets is increased if there are fewer than 64 buckets and the bucket is converted to a tree if there are 64 or more are the same as in the JDK HashMap implementation. The model was checked against the result of taking out the internals of a real HashMap on JDK 21 on this PC, and in all 360 steps of putting 40 keys each with 3 hashCode implementations × 3 load factors, the number of buckets, the number of entries in each bucket, and whether each bucket is a tree matched. The value of hashCode when it is not overridden is in reality a value that the JVM decides for each object, and here an arbitrary number is used in its place.</p>
+<p>The initial number of buckets is fixed at 16. The calculation of the bucket number (the upper 16 bits of the hash are mixed into the lower bits, and then the remainder of dividing by the number of buckets is taken), the resize threshold (number of entries &gt; number of buckets × load factor), and the rule that when node #9 is added to a single bucket the number of buckets is increased if there are fewer than 64 buckets and the bucket is converted to a tree if there are 64 or more are the same as in the JDK HashMap implementation. The model was checked against the result of taking out the internals of a real HashMap on JDK 21 in our test environment, and in all 360 steps of putting 40 keys each with 3 hashCode implementations × 3 load factors, the number of buckets, the number of entries in each bucket, and whether each bucket is a tree matched. The value of hashCode when it is not overridden is in reality a value that the JVM decides for each object, and here an arbitrary number is used in its place.</p>
 <p>Previous lab: <a href="../../lab/list/">ArrayList and LinkedList</a> · Next lab: <a href="../../lab/setmap/">Kinds of Set and Map</a></p>
   </div>
 
@@ -189,6 +191,6 @@ map.get(new MemberKey(ids[0]));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

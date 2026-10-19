@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>불변과 방어적 복사: final을 붙였는데 값이 바뀌었다 · 개발 학습 실습실</title>
-<meta name="description" content="Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 &quot;다른 리스트로 바꿔 끼울 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 안에 가진 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적…">
+<meta name="description" content="예시로 만든 Order 클래스의 final 필드 items가 상품 리스트를 가리킵니다. final은 &quot;items가 다른 리스트를 가리키게 바꿀 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 필드가 가리키는 리스트를 그대로 주고받지…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/immut/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/immut/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/immut/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="불변과 방어적 복사: final을 붙였는데 값이 바뀌었다 · 개발 학습 실습실">
-<meta property="og:description" content="Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 &quot;다른 리스트로 바꿔 끼울 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 안에 가진 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적…">
+<meta property="og:description" content="예시로 만든 Order 클래스의 final 필드 items가 상품 리스트를 가리킵니다. final은 &quot;items가 다른 리스트를 가리키게 바꿀 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 필드가 가리키는 리스트를 그대로 주고받지…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/immut/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>불변과 방어적 복사</h1>
 <p><b>final을 붙였는데 값이 바뀌었다</b></p>
-<p>Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 &quot;다른 리스트로 바꿔 끼울 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 안에 가진 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적 복사라고 합니다. 생성자와 getter에서 복사를 하느냐에 따라 밖의 코드가 주문의 내용을 바꿀 수 있는지를 봅니다.</p>
+<p>예시로 만든 Order 클래스의 final 필드 items가 상품 리스트를 가리킵니다. final은 &quot;items가 다른 리스트를 가리키게 바꿀 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 필드가 가리키는 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적 복사라고 합니다. 생성자와 getter에서 복사를 하느냐에 따라 밖의 코드가 주문의 내용을 바꿀 수 있는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -48,26 +48,28 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 아무 방어도 없음. 밖에서 두 가지 경로로 내부가 바뀝니다.</li>
+<li><b>처음 설정으로</b> — 아무 방어도 없음. 밖에서 두 가지 경로로 주문의 상품 목록이 바뀝니다.</li>
 <li><b>생성자에서만 복사</b> — 원본을 바꿔도 영향이 없지만 getter로는 여전히 바뀝니다.</li>
-<li><b>양쪽 모두 복사</b> — 밖에서 내부를 바꿀 방법이 없습니다.</li>
+<li><b>양쪽 모두 복사</b> — 밖에서 주문의 상품 목록을 바꿀 방법이 없습니다.</li>
 <li><b>getter는 수정 불가 뷰</b> — 바꾸려 하면 예외가 납니다.</li>
 <li><b>뷰만 주고 생성자에서 복사 안 하면</b> — 원본 리스트를 통해서는 여전히 바뀝니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>src 리스트 [&quot;키보드&quot;, &quot;마우스&quot;]로 Order를 만듭니다. 생성자가 받은 리스트를 그대로 필드에 저장했습니다. 변수 src와 order.items는 힙에 있는 같은 리스트 객체 하나를 가리킵니다.</li>
-<li>(1) src.add(&quot;모니터&quot;): 밖에서 원본 리스트에 원소를 추가합니다. 같은 객체이므로 order 내부의 상품도 3개가 됐습니다. Order의 메서드를 하나도 호출하지 않았는데 Order의 상태가 바뀌었습니다. items가 final이어도 막지 못합니다.</li>
-<li>(2) order.getItems().add(&quot;의자&quot;): getter가 내부 리스트를 그대로 돌려줬습니다. 그 리스트에 추가하면 곧 order 내부에 추가하는 것입니다. 내부 상품이 4개가 됐습니다.</li>
+<li>(1) src.add(&quot;모니터&quot;): 밖에서 원본 리스트에 원소를 추가합니다. src와 order.items가 같은 리스트를 가리키므로 order.items로 보아도 상품이 3개가 됐습니다. Order의 메서드를 하나도 호출하지 않았는데 Order의 상태가 바뀌었습니다. items가 final이어도 막지 못합니다.</li>
+<li>(2) order.getItems().add(&quot;의자&quot;): getter가 order.items가 가리키는 리스트를 그대로 돌려줬습니다. 그 리스트에 추가하는 것은 곧 order.items가 가리키는 리스트에 추가하는 것입니다. order.items의 상품이 4개가 됐습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
 <li>final은 변수가 가리키는 대상을 바꾸지 못하게 할 뿐, 대상 객체의 내용 변경은 막지 않습니다. 객체를 불변으로 만들려면 필드가 가리키는 가변 객체(리스트, 배열, Date 등)가 밖과 공유되지 않도록 해야 합니다.</li>
-<li>밖에서 내부 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사하거나 수정 불가로 감싸야(getter) 합니다. 이렇게 복사해 두는 것을 방어적 복사라고 합니다.</li>
-<li>record도 마찬가지입니다. 필드는 final이지만 리스트 같은 가변 객체를 담으면 그 내용은 바뀔 수 있습니다.</li>
+<li>밖에서 Order의 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사본이나 수정할 수 없는 뷰를 내줘야(getter) 합니다. 이렇게 복사해 두는 것을 방어적 복사라고 합니다.</li>
+<li>record도 마찬가지입니다. 필드는 final이지만 필드가 리스트 같은 가변 객체를 가리키면 그 객체의 내용은 바뀔 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class Order {
+<pre>import java.util.*;
+
+class Order {
     private final List&lt;String&gt; items;          // final: 다른 리스트로 교체 불가
 
     Order(List&lt;String&gt; items) {
@@ -75,16 +77,20 @@
     }
 
     List&lt;String&gt; getItems() {
-        return items;                            // 내부 리스트를 그대로 노출
+        return items;                            // items가 가리키는 리스트를 그대로 내줌
     }
 }
 
-List&lt;String&gt; src = new ArrayList&lt;&gt;(List.of(&quot;키보드&quot;, &quot;마우스&quot;));
-Order order = new Order(src);
-src.add(&quot;모니터&quot;);                 // (1) 원본 리스트를 수정
-order.getItems().add(&quot;의자&quot;);      // (2) getter로 받은 리스트를 수정</pre>
+class Main {
+    public static void main(String[] args) {
+        List&lt;String&gt; src = new ArrayList&lt;&gt;(List.of(&quot;키보드&quot;, &quot;마우스&quot;));
+        Order order = new Order(src);
+        src.add(&quot;모니터&quot;);                 // (1) 원본 리스트를 수정
+        order.getItems().add(&quot;의자&quot;);      // (2) getter로 받은 리스트를 수정
+    }
+}</pre>
 <h2>이 모형의 전제</h2>
-<p>여섯 가지 조합의 결과(내부 상품 수와 예외)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. 리스트의 원소(String)가 불변이라 얕은 복사로 충분한 경우입니다. 원소 자체가 가변 객체라면 원소까지 복사해야 완전히 분리됩니다.</p>
+<p>여섯 가지 조합의 결과(상품 수와 예외)를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. 리스트의 원소(String)가 불변이라 얕은 복사로 충분한 경우입니다. 원소 자체가 가변 객체라면 원소까지 복사해야 완전히 분리됩니다.</p>
 <p>앞 실습: <a href="../../lab/inner/">내부 클래스와 익명 클래스</a> · 다음 실습: <a href="../../lab/strategy/">전략 패턴</a></p>
   </div>
 
@@ -172,6 +178,6 @@ order.getItems().add(&quot;의자&quot;);      // (2) getter로 받은 리스트
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,7 @@ System.out.println(t.getState());
 t.join();                                   // t가 끝날 때까지 기다린다
 System.out.println(t.getState());</pre>
 <h2>이 모형의 전제</h2>
-<p>스물네 가지 조합의 결과(작업을 실행한 스레드 이름, 중간과 마지막의 t.getState(), 발생한 예외, 작업이 끝날 때의 interrupt 표시)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 화면의 코드는 main이 Thread.sleep(100)으로 잠깐 기다린 뒤 상태를 보지만, 이 100밀리초는 &quot;대개 충분한&quot; 시간일 뿐 보장된 것이 아닙니다. 대조할 때는 시간에 기대지 않도록 t의 상태가 RUNNABLE을 벗어나 그대로 머무를 때까지 되풀이해 확인했습니다. start() 바로 뒤에 t.getState()를 부르면 RUNNABLE일 수도, 이미 다른 상태일 수도 있어서 결과로 삼지 않았습니다. RUNNABLE은 &quot;실행 중&quot;과 &quot;CPU 차례를 기다리는 중&quot;을 구분하지 않으며, 자바는 이 둘을 따로 알려 주지 않습니다. WAITING은 join 말고도 Object.wait()나 LockSupport.park()로도 생기지만 여기서는 join만 다뤘습니다. 여러 스레드가 함께 쓰는 데이터의 문제는 &quot;경쟁 상태&quot; 실습에서, 스레드를 미리 만들어 두고 다시 쓰는 방법은 &quot;스레드 풀&quot; 실습에서 다룹니다.</p>
+<p>스물네 가지 조합의 결과(작업을 실행한 스레드 이름, 중간과 마지막의 t.getState(), 발생한 예외, 작업이 끝날 때의 interrupt 표시)를 검증 환경의 JDK 21에서 실행한 결과와 대조했습니다. 화면의 코드는 main이 Thread.sleep(100)으로 잠깐 기다린 뒤 상태를 보지만, 이 100밀리초는 &quot;대개 충분한&quot; 시간일 뿐 보장된 것이 아닙니다. 대조할 때는 시간에 기대지 않도록 t의 상태가 RUNNABLE을 벗어나 그대로 머무를 때까지 되풀이해 확인했습니다. start() 바로 뒤에 t.getState()를 부르면 RUNNABLE일 수도, 이미 다른 상태일 수도 있어서 결과로 삼지 않았습니다. RUNNABLE은 &quot;실행 중&quot;과 &quot;CPU 차례를 기다리는 중&quot;을 구분하지 않으며, 자바는 이 둘을 따로 알려 주지 않습니다. WAITING은 join 말고도 Object.wait()나 LockSupport.park()로도 생기지만 여기서는 join만 다뤘습니다. 여러 스레드가 함께 쓰는 데이터의 문제는 &quot;경쟁 상태&quot; 실습에서, 스레드를 미리 만들어 두고 다시 쓰는 방법은 &quot;스레드 풀&quot; 실습에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/process/">프로세스와 스레드</a> · 다음 실습: <a href="../../lab/race/">경쟁 상태</a></p>
   </div>
 
@@ -177,6 +177,6 @@ System.out.println(t.getState());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

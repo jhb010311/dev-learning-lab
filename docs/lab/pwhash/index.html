@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,7 @@
 byte[] hash = md.digest(rawPassword.getBytes(UTF_8));
 member.setPassword(HexFormat.of().formatHex(hash));</pre>
 <h2>이 모형의 전제</h2>
-<p>SHA-256 값은 실제로 계산한 값입니다. bcrypt 저장값은 형식을 보이기 위한 예시 문자열입니다. 대입 속도는 대략적인 크기를 나타냅니다. 고성능 그래픽 카드 한 장 기준으로 SHA-256은 초당 수백억 번, bcrypt cost 10은 초당 수천 번 수준이라고 보았고, 공개된 벤치마크의 자릿수에 맞춘 값입니다. 로그인 검증 시간도 서버 CPU에 따라 달라지는 어림값입니다. 스프링 시큐리티의 BCryptPasswordEncoder 기본 cost는 10입니다. 이 PC에서 openssl로 잰 SHA-256 속도는 CPU 코어 하나로 초당 약 3,200만 번이었습니다(화면의 초당 수백억 번은 그래픽 카드 기준의 공개 수치입니다). bcrypt는 이 PC에 라이브러리가 없어 실제로 재지 못했습니다.</p>
+<p>SHA-256 값은 실제로 계산한 값입니다. bcrypt 저장값은 형식을 보이기 위한 예시 문자열입니다. 대입 속도는 대략적인 크기를 나타냅니다. 고성능 그래픽 카드 한 장 기준으로 SHA-256은 초당 수백억 번, bcrypt cost 10은 초당 수천 번 수준이라고 보았고, 공개된 벤치마크의 자릿수에 맞춘 값입니다. 로그인 검증 시간은 검증 실행에서 스프링 시큐리티 7.1.1의 BCryptPasswordEncoder로 matches 한 번에 걸린 시간을 잰 값(cost 10은 약 58ms, 12는 약 232ms, 14는 약 952ms)이며, cost가 2 오를 때 약 4배가 되어 cost를 1 올리면 두 배가 된다는 설명과 맞았습니다. 이 시간은 서버 CPU에 따라 달라집니다. 스프링 시큐리티의 BCryptPasswordEncoder 기본 cost는 10입니다. 검증 실행에서 openssl로 잰 SHA-256 속도는 CPU 코어 하나로 초당 약 3,200만 번이었습니다(화면의 초당 수백억 번은 그래픽 카드 기준의 공개 수치입니다). bcrypt를 공격하는 쪽의 속도(그래픽 카드 기준)는 직접 재지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/cookie/">쿠키</a> · 다음 실습: <a href="../../lab/jwt/">JWT의 구조와 검증</a></p>
   </div>
 
@@ -156,6 +156,6 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

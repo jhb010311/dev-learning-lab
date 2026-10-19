@@ -17,7 +17,7 @@ Lab.register({
   code: function (c) {
     if (c.how === 'plain') return '// 입력을 그대로 저장\nmember.setPassword(rawPassword);';
     if (c.how === 'sha') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] hash = md.digest(rawPassword.getBytes(UTF_8));\nmember.setPassword(HexFormat.of().formatHex(hash));';
-    if (c.how === 'salt') return 'String salt = randomString(6);                  // 회원마다 다른 임의의 값\nbyte[] hash = md.digest((salt + rawPassword).getBytes(UTF_8));\nmember.setSalt(salt);                            // 솔트는 숨기지 않고 함께 저장\nmember.setPassword(HexFormat.of().formatHex(hash));';
+    if (c.how === 'salt') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nString salt = randomString(6);                  // 회원마다 다른 임의의 값 (randomString은 예시로 만든 메서드)\nbyte[] hash = md.digest((salt + rawPassword).getBytes(UTF_8));\nmember.setSalt(salt);                            // 솔트는 숨기지 않고 함께 저장\nmember.setPassword(HexFormat.of().formatHex(hash));';
     return 'PasswordEncoder encoder = new BCryptPasswordEncoder(' + c.cost + ');\n\n// 가입: 솔트 생성과 해시를 한 번에\nmember.setPassword(encoder.encode(rawPassword));\n\n// 로그인: 저장된 값에서 솔트와 cost를 꺼내 같은 방식으로 계산해 비교\nboolean ok = encoder.matches(rawPassword, member.getPassword());';
   },
   label: function (c) { return { plain: '평문', sha: 'SHA-256', salt: 'SHA-256 + 솔트', bcrypt: 'bcrypt cost ' + c.cost }[c.how]; },
@@ -26,7 +26,7 @@ Lab.register({
     var ev = [], sum = [], rows = [], H = c.how;
     var SHA = 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', S1 = '34ec6e5610ddbdd724d48b5b999df8a383d09d06a6035f836ef949881287ac53', S2 = '3f4ac84a9098fe3e661ef85f5f0543d060ae2b4a038b17f99d750dfda5df99ec';
     var stored = { plain: [['-', 'password123'], ['-', 'password123']], sha: [['-', SHA], ['-', SHA]], salt: [['x7Kp2q', S1], ['M4nT9z', S2]], bcrypt: [['(값 안에 포함)', '$2a$' + c.cost + '$N9qo8uLOickgx2ZMRZoMye…'], ['(값 안에 포함)', '$2a$' + c.cost + '$Xk3pQ7vRt1WzbY0aHdLu4.…']] }[H];
-    var speed = { plain: 0, sha: 2e10, salt: 2e10, bcrypt: +c.cost === 10 ? 6000 : +c.cost === 12 ? 1500 : 375 }[H], verify = { plain: '거의 0', sha: '거의 0', salt: '거의 0', bcrypt: +c.cost === 10 ? '약 0.1초' : +c.cost === 12 ? '약 0.3초' : '약 1초' }[H];
+    var speed = { plain: 0, sha: 2e10, salt: 2e10, bcrypt: +c.cost === 10 ? 6000 : +c.cost === 12 ? 1500 : 375 }[H], verify = { plain: '거의 0', sha: '거의 0', salt: '거의 0', bcrypt: +c.cost === 10 ? '약 0.06초' : +c.cost === 12 ? '약 0.23초' : '약 0.95초' }[H];
     function dur(sec) { return sec < 1 ? '1초 미만' : sec < 3600 ? '약 ' + Math.round(sec / 60) + '분' : sec < 86400 * 2 ? '약 ' + Math.round(sec / 3600) + '시간' : '약 ' + Math.round(sec / 86400) + '일'; }
     var crack = H === 'plain' ? '필요 없음 (그대로 보임)' : dur(1e8 / speed), same = stored[0][1] === stored[1][1], table = H === 'plain' ? '필요 없음' : H === 'sha' ? '가능' : '불가능';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
@@ -47,9 +47,9 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
-    if (st >= 1) H.table(v, ['회원', '입력한 비밀번호', '솔트', 'DB에 저장된 값'], [['김철수', sim.stored[0]], ['이영희', sim.stored[1]]].map(function (r) { return { cells: [r[0], 'password123', r[1][0], { v: r[1][1], cls: st >= 2 ? (sim.same ? 'bad' : 'good') : '' }] }; }), 'member 테이블');
+    if (st >= 1) H.table(v, ['회원', '가입 때 입력한 값 (테이블의 열이 아님)', '솔트 (저장됨)', 'DB에 저장된 값'], [['김철수', sim.stored[0]], ['이영희', sim.stored[1]]].map(function (r) { return { cells: [r[0], 'password123', r[1][0], { v: r[1][1], cls: st >= 2 ? (sim.same ? 'bad' : 'good') : '' }] }; }), '입력한 비밀번호와 member 테이블에 저장된 값');
     if (st >= 4) H.counters(v, [[sim.k.table, '미리 계산한 표로 역추적'], [st >= 5 ? sim.k.crack : '?', '사전 1억 개 대입에 걸리는 시간'], [sim.k.verify, '정상 로그인 1회 검증 시간']]);
     if (sim.c.how === 'bcrypt' && st >= 1) H.text(v, 'bcrypt 저장값의 구조: $2a$ (알고리즘) + ' + sim.c.cost + '$ (cost) + 솔트 22자 + 해시 31자. 표의 값은 구조를 보이기 위한 예시이며 뒷부분은 줄였습니다.');
   },
-  assume: 'SHA-256 값은 실제로 계산한 값입니다. bcrypt 저장값은 형식을 보이기 위한 예시 문자열입니다. 대입 속도는 대략적인 크기를 나타냅니다. 고성능 그래픽 카드 한 장 기준으로 SHA-256은 초당 수백억 번, bcrypt cost 10은 초당 수천 번 수준이라고 보았고, 공개된 벤치마크의 자릿수에 맞춘 값입니다. 로그인 검증 시간도 서버 CPU에 따라 달라지는 어림값입니다. 스프링 시큐리티의 BCryptPasswordEncoder 기본 cost는 10입니다. 이 PC에서 openssl로 잰 SHA-256 속도는 CPU 코어 하나로 초당 약 3,200만 번이었습니다(화면의 초당 수백억 번은 그래픽 카드 기준의 공개 수치입니다). bcrypt는 이 PC에 라이브러리가 없어 실제로 재지 못했습니다.',
+  assume: 'SHA-256 값은 실제로 계산한 값입니다. bcrypt 저장값은 형식을 보이기 위한 예시 문자열입니다. 대입 속도는 대략적인 크기를 나타냅니다. 고성능 그래픽 카드 한 장 기준으로 SHA-256은 초당 수백억 번, bcrypt cost 10은 초당 수천 번 수준이라고 보았고, 공개된 벤치마크의 자릿수에 맞춘 값입니다. 로그인 검증 시간은 검증 실행에서 스프링 시큐리티 7.1.1의 BCryptPasswordEncoder로 matches 한 번에 걸린 시간을 잰 값(cost 10은 약 58ms, 12는 약 232ms, 14는 약 952ms)이며, cost가 2 오를 때 약 4배가 되어 cost를 1 올리면 두 배가 된다는 설명과 맞았습니다. 이 시간은 서버 CPU에 따라 달라집니다. 스프링 시큐리티의 BCryptPasswordEncoder 기본 cost는 10입니다. 검증 실행에서 openssl로 잰 SHA-256 속도는 CPU 코어 하나로 초당 약 3,200만 번이었습니다(화면의 초당 수백억 번은 그래픽 카드 기준의 공개 수치입니다). bcrypt를 공격하는 쪽의 속도(그래픽 카드 기준)는 직접 재지 않았습니다.',
 });

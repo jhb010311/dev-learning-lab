@@ -114,8 +114,9 @@ Lab.register({
     } else if (mFirst) {
       M.forEach(function (m, i) { mBox(i, lx, active(i) ? 'hot' + (s.cur === i ? ' now' : '') : 'wait'); });
       O.forEach(function (o, i) {
+        // 인덱스 없이 모든 회원을 다 돈 뒤에는, 주문마다 짝이 된 것은 한 번이고 나머지 회원의 차례에서는 읽고 버렸으므로 빨강으로 둔다
         var match = on && (s.all || M[s.cur] === o[1]), touched = on && p.algo === 'scan';
-        oBox(i, rx, match ? 'good' : touched ? 'bad' : 'plain');
+        oBox(i, rx, touched && s.all ? 'bad' : match ? 'good' : touched ? 'bad' : 'plain');
       });
       if (p.algo === 'nl') {
         P.box('mid', 252, 114, 176, 60, { cls: on ? 'hot' : 'plain', title: '인덱스 idx_member', sub: 'member_id 순서로 정렬' });
@@ -134,10 +135,10 @@ Lab.register({
       O.forEach(function (o, i) { if (active(i)) P.arrow('q' + o[0], 'o' + o[0] + ':r', 'mid:l:' + (0.1 + i * 0.16), { cls: s.cur === i ? 'hot' : 'mut' }); });
       M.forEach(function (m, i) { if (on && (s.all || O[s.cur][1] === m)) P.arrow('b' + m, 'mid:r:' + (0.25 + i * 0.25), 'm' + m + ':l', { cls: 'good' }); });
     }
-    var done = s.stage >= 6 || (p.algo === 'hash' && s.stage >= 5);
+    var done = s.stage >= 7;   // 두 테이블에서 읽은 행의 합계는 마지막 단계에서 알린다
     P.box('r1', 16, 288, 320, 36, { cls: s.stage >= 3 ? (p.algo === 'scan' ? 'bad' : 'good') : 'ghost', title: '조인 방식', right: s.stage >= 3 ? (p.algo === 'hash' ? '해시 조인' : '중첩 루프 조인') : '?' });
     P.box('r2', 344, 288, 320, 36, { cls: done ? (p.algo === 'scan' ? 'bad' : 'good') : 'ghost', title: '두 테이블에서 읽은 행', right: done ? num(p.total) + '행' : '?' });
-    P.note('회원 3명과 주문 6건으로 줄여 그렸습니다(실제 수치는 member 1,000행, orders 10,000행 기준). 초록은 읽어서 짝이 된 행, 빨강은 읽고 나서 버린 행, 흰색은 읽지 않은 행입니다. 주문은 회원 번호 순서로 놓여 있지 않아서, 인덱스가 없으면 어디에 짝이 있는지 알 수 없습니다.');
+    P.note('회원 3명과 주문 6건으로 줄여 그렸습니다(실제 수치는 member 1,000행, orders 10,000행 기준). 초록은 읽어서 짝이 된 행, 빨강은 읽고 나서 버린 행, 흰색은 읽지 않은 행입니다. 주문은 회원 번호 순서로 놓여 있지 않아서, 인덱스가 없으면 어디에 짝이 있는지 알 수 없습니다.' + (p.algo === 'scan' && s.all ? ' 인덱스 없는 중첩 루프를 끝까지 돌면 주문마다 짝이 된 것은 한 번뿐이고, 다른 회원의 차례에서는 매번 읽고 버렸으므로 모두 빨강입니다.' : ''));
   },
-  assume: '화면에서 고를 수 있는 일곱 가지 조합 모두, 같은 테이블(member 1,000행, orders 10,000행)을 이 PC의 MySQL 8.4에 만들고 ANALYZE TABLE을 한 뒤 대조했습니다. 먼저 읽는 테이블과 나중 테이블의 type, key, Extra는 EXPLAIN으로, 조인 방식은 EXPLAIN FORMAT=TREE의 첫 줄로, 나중 테이블을 읽은 횟수와 한 번에 읽은 행 수는 실제로 실행하며 세어 주는 EXPLAIN ANALYZE의 loops와 rows로 확인했습니다. 해시 조인 설정이 숨겨지는 다섯 가지 경우에는 NO_BNL 힌트를 붙여도 계획이 바뀌지 않는 것도 확인했습니다. 옵티마이저에게 맡겼을 때의 순서는 비용 계산의 결과라서 데이터의 양과 분포에 따라 달라질 수 있습니다. "읽은 행"은 테이블이나 인덱스에서 꺼낸 행의 수이며, 인덱스를 타고 내려가는 비용, 해시 테이블을 만들고 찾는 비용, 걸린 시간은 넣지 않았습니다. 해시 조인은 MySQL 8.0.18에 들어왔고 8.0.20부터 인덱스 없는 조인에 쓰이던 블록 중첩 루프를 대신합니다. 해시 테이블이 메모리(join_buffer_size)에 다 들어가지 않으면 디스크를 함께 씁니다. 이 두 가지는 실행으로 확인한 것이 아니라 MySQL 문서의 해시 조인 최적화 설명을 따른 것입니다. 그림은 회원 3명, 주문 6건으로 줄인 것입니다.',
+  assume: '화면에서 고를 수 있는 일곱 가지 조합 모두, 같은 테이블(member 1,000행, orders 10,000행)을 MySQL 8.4에 만들고 ANALYZE TABLE을 한 뒤 대조했습니다. 먼저 읽는 테이블과 나중 테이블의 type, key, Extra는 EXPLAIN으로, 조인 방식은 EXPLAIN FORMAT=TREE의 첫 줄로, 나중 테이블을 읽은 횟수와 한 번에 읽은 행 수는 실제로 실행하며 세어 주는 EXPLAIN ANALYZE의 loops와 rows로 확인했습니다. 해시 조인 설정이 숨겨지는 다섯 가지 경우에는 NO_BNL 힌트를 붙여도 계획이 바뀌지 않는 것도 확인했습니다. 옵티마이저에게 맡겼을 때의 순서는 비용 계산의 결과라서 데이터의 양과 분포에 따라 달라질 수 있습니다. "읽은 행"은 테이블이나 인덱스에서 꺼낸 행의 수이며, 인덱스를 타고 내려가는 비용, 해시 테이블을 만들고 찾는 비용, 걸린 시간은 넣지 않았습니다. 해시 조인은 MySQL 8.0.18에 들어왔고 8.0.20부터 인덱스 없는 조인에 쓰이던 블록 중첩 루프를 대신합니다. 해시 테이블이 메모리(join_buffer_size)에 다 들어가지 않으면 디스크를 함께 씁니다. 이 두 가지는 실행으로 확인한 것이 아니라 MySQL 문서의 해시 조인 최적화 설명을 따른 것입니다. 그림은 회원 3명, 주문 6건으로 줄인 것입니다.',
 });

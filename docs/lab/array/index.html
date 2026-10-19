@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,7 @@ b[2] = 7;                               // 2번 칸에 넣는다
 System.out.println(Arrays.toString(a));
 System.out.println(Arrays.toString(b));</pre>
 <h2>이 모형의 전제</h2>
-<p>일흔두 가지 조합의 결과(a == b, 예외와 그 메시지, 두 번의 출력)를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 요약에 적은 내용 가운데 Arrays.copyOf로 더 긴 배열을 얻는 것, 행마다 clone하면 행을 함께 쓰지 않는 것, 메서드에 넘긴 배열을 메서드 안에서 바꾸면 밖에서도 보이는 것, i &lt;= a.length로 돌면 예외가 나는 것, null인 칸에 메서드를 부르면 NullPointerException이 나는 것, a.length와 a[0].length의 값도 함께 실행해 확인했습니다. 예외 메시지의 문장은 JDK 버전에 따라 다를 수 있으며 여기 적은 것은 JDK 21의 것입니다. 배열의 칸이 메모리에서 실제로 나란히 붙어 있는지는 실행으로 확인한 것이 아니라 JVM의 일반적인 구현 방식을 따른 설명입니다. 그림에서 String 값 &quot;A&quot;는 칸 안에 바로 적었지만, 실제로는 칸에 String 객체의 참조가 들어 있습니다. { 1, 2, 3 }처럼 값을 적어 만드는 방법, 행마다 길이가 다른 2차원 배열, 향상된 for문은 다루지 않았습니다.</p>
+<p>일흔두 가지 조합의 결과(a == b, 예외와 그 메시지, 두 번의 출력)를 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 요약에 적은 내용 가운데 Arrays.copyOf로 더 긴 배열을 얻는 것, 행마다 clone하면 행을 함께 쓰지 않는 것, 메서드에 넘긴 배열을 메서드 안에서 바꾸면 밖에서도 보이는 것, i &lt;= a.length로 돌면 예외가 나는 것, null인 칸에 메서드를 부르면 NullPointerException이 나는 것, a.length와 a[0].length의 값도 함께 실행해 확인했습니다. 예외 메시지의 문장은 JDK 버전에 따라 다를 수 있으며 여기 적은 것은 JDK 21의 것입니다. 배열의 칸이 메모리에서 실제로 나란히 붙어 있는지는 실행으로 확인한 것이 아니라 JVM의 일반적인 구현 방식을 따른 설명입니다. 그림에서 String 값 &quot;A&quot;는 칸 안에 바로 적었지만, 실제로는 칸에 String 객체의 참조가 들어 있습니다. { 1, 2, 3 }처럼 값을 적어 만드는 방법, 행마다 길이가 다른 2차원 배열, 향상된 for문은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/loops/">조건문과 반복문</a> · 다음 실습: <a href="../../lab/ctor/">클래스, 객체, 생성자</a></p>
   </div>
 
@@ -166,6 +166,6 @@ System.out.println(Arrays.toString(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

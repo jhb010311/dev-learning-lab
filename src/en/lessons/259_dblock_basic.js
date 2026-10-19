@@ -76,6 +76,7 @@ Lab.register({
       calm(); st.r[0].bal = 900; st.r[0].pend = null; st.r[0].lock = ''; st.r[0].hot = true; st.a = { cls: 'good', sub: ['Final with COMMIT', 'Lock released'] };
       st.log.push(['A: COMMIT', '900 made final · lock released', 'good']);
       if (same) {
+        st.r[0].wait = false; st.waiting = 0; st.b = { cls: 'wait', sub: ['A released its lock', 'Its UPDATE runs next'] };
         push('COMMIT (connection A): A makes its transaction final. The 900 in the id 1 row is now final and can be read from other connections, and the lock that A held is released. B was waiting, so the database right away continues the UPDATE of B.', 'good');
         // 7. The UPDATE of B continues
         calm(); st.r[0].wait = false; st.waiting = 0; st.r[0].lock = 'B'; st.r[0].pend = 950; st.fl.b = 'pass'; st.b = { cls: 'hot', sub: ['Changing the id 1 row', 'Not final: 950'] };

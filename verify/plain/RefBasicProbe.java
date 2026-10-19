@@ -48,7 +48,7 @@ public class RefBasicProbe {
             + "    public static void main(String[] args) {\n"
             + "        Card a = new Card();\n"
             + "        a.owner = \"김철수\";\n");
-        if (how.equals("same")) s.append("        // b에는 a가 가리키는 그 객체가 담긴다. 객체는 새로 생기지 않는다\n"
+        if (how.equals("same")) s.append("        // a가 가진 참조가 b에 복사되어 b도 같은 객체를 가리킨다. 객체는 새로 생기지 않는다\n"
             + "        Card b = a;\n");
         else {
             s.append("        Card b = new Card();\n");

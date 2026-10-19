@@ -19,11 +19,14 @@ Lab.register({
   ],
   code: function (c) {
     var eq = c.eq === 'both' || c.eq === 'eqonly', hc = c.eq === 'both' || c.eq === 'hconly';
+    var all = this.IDS.slice(0, c.n), rows = [];
+    for (var i = 0; i < all.length; i += 10) rows.push(all.slice(i, i + 10).join(', '));
+    var ids = rows.join(',\n             ');
     var body = { good: 'return Integer.hashCode(id);   // id 그대로', mod4: 'return id % 4;                 // 값이 4가지뿐', same: 'return 1;                      // 전부 같은 값' }[c.hash];
     return 'class MemberKey {\n    final int id;\n    MemberKey(int id) { this.id = id; }\n' +
       (eq ? '\n    @Override public boolean equals(Object o) {\n        return o instanceof MemberKey k && k.id == id;\n    }\n' : '\n    // equals 재정의 안 함: 같은 객체일 때만 true\n') +
       (hc ? '\n    @Override public int hashCode() {\n        ' + body + '\n    }\n' : '\n    // hashCode 재정의 안 함: 객체마다 다른 값\n') +
-      '}\n\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {                 // id ' + c.n + '개\n    map.put(new MemberKey(id), "회원");\n}\n\n// 처음 넣은 것과 같은 id로 새 객체를 만들어서\nmap.put(new MemberKey(ids[0]), "수정");\nmap.get(new MemberKey(ids[0]));';
+      '}\n\nint[] ids = {' + ids + '};   // 넣을 id ' + c.n + '개\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {\n    map.put(new MemberKey(id), "회원");\n}\n\n// 처음 넣은 것과 같은 id로 새 객체를 만들어서\nmap.put(new MemberKey(ids[0]), "수정");\nmap.get(new MemberKey(ids[0]));';
   },
   label: function (c) { var hc = c.eq === 'both' || c.eq === 'hconly'; return { both: 'equals+hashCode', eqonly: 'equals만', hconly: 'hashCode만', none: '재정의 없음' }[c.eq] + (hc ? ' · hashCode ' + { good: 'id 그대로', mod4: 'id % 4', same: '항상 1' }[c.hash] : '') + ' · 로드 팩터 ' + c.lf + ' · ' + c.n + '개'; },
   columns: ['버킷 수', '늘린 횟수', '가장 긴 버킷', '트리 버킷', '같은 키로 다시 put', '같은 키로 get'],
@@ -111,5 +114,5 @@ Lab.register({
     if (!pick.length) P.text('none', 340, top2 + 120, last ? '아직 충돌이 난 칸이 없습니다' : '실행을 누르면 키를 하나씩 넣습니다', { cls: 'mut', anchor: 'middle' });
     P.note('위 배열에서 초록은 1개, 파랑은 2~7개(충돌), 빨강은 8개 이상 달린 칸이고 굵은 테두리는 방금 건드린 칸입니다. 아래에서 화살표로 이어진 것은 한 칸 안의 연결 리스트이며, 빨간 키는 같은 id가 두 번 저장된 것입니다.');
   },
-  assume: '초기 버킷 수는 16개로 고정했습니다. 버킷 번호 계산(해시의 위쪽 16비트를 아래쪽에 섞은 뒤 버킷 수로 나눈 나머지), 늘리는 기준(저장 개수 > 버킷 수 × 로드 팩터), 한 버킷에 9번째 노드가 달릴 때 버킷 수가 64개 미만이면 늘리고 64개 이상이면 트리로 바꾸는 규칙은 JDK HashMap 구현과 같습니다. 이 PC의 JDK 21에서 실제 HashMap 내부를 꺼내 본 결과와 대조했고, hashCode 세 가지 × 로드 팩터 세 가지로 40개씩 넣은 360단계 모두에서 버킷 수, 버킷별 개수, 트리 여부가 일치했습니다. hashCode를 재정의하지 않았을 때의 값은 실제로는 JVM이 객체마다 정하는 값이며, 여기서는 임의의 수로 대신했습니다.',
+  assume: '초기 버킷 수는 16개로 고정했습니다. 버킷 번호 계산(해시의 위쪽 16비트를 아래쪽에 섞은 뒤 버킷 수로 나눈 나머지), 늘리는 기준(저장 개수 > 버킷 수 × 로드 팩터), 한 버킷에 9번째 노드가 달릴 때 버킷 수가 64개 미만이면 늘리고 64개 이상이면 트리로 바꾸는 규칙은 JDK HashMap 구현과 같습니다. 검증 환경의 JDK 21에서 실제 HashMap 내부를 꺼내 본 결과와 대조했고, hashCode 세 가지 × 로드 팩터 세 가지로 40개씩 넣은 360단계 모두에서 버킷 수, 버킷별 개수, 트리 여부가 일치했습니다. hashCode를 재정의하지 않았을 때의 값은 실제로는 JVM이 객체마다 정하는 값이며, 여기서는 임의의 수로 대신했습니다.',
 });

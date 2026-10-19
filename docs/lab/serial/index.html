@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -93,7 +93,7 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
     System.out.println(r.name + &quot; &quot; + r.point);
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>열다섯 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 컴파일하고 실행해, 저장과 되살리기의 성공 여부, 발생한 예외, 되살린 값, 생성자가 실행된 횟수를 대조했습니다. 저장한 뒤 클래스를 고치는 조합은 같은 이름의 User 클래스를 두 벌 따로 컴파일해, 한쪽으로 저장한 파일을 다른 쪽으로 읽었습니다. serialVersionUID를 적어 둔 채 필드를 추가하면 읽을 수 있고 새 필드가 null이라는 것, transient인 참조형 필드가 null이 된다는 것, static 필드를 다른 프로그램에서 읽으면 0이라는 것, Address 필드에 transient를 붙이면 저장된다는 것도 따로 실행해 확인했습니다. 파일에 실제로 기록되는 바이트의 형식은 그림에서 줄였습니다. 생성자가 실행되지 않는 것은 Serializable을 구현한 클래스의 이야기이며, 부모 클래스가 Serializable이 아닌 경우의 규칙, writeObject와 readObject를 직접 정의하는 방법, record의 직렬화는 다루지 않았습니다. 자바의 기본 직렬화는 보안 문제 때문에 새 코드에서는 잘 쓰지 않고 JSON 같은 형식을 주로 쓰지만, 기존 코드와 라이브러리를 이해하려면 이 규칙들을 알아야 합니다.</p>
+<p>열다섯 가지 조합마다 화면의 코드와 같은 소스를 검증 환경의 JDK 21에서 컴파일하고 실행해, 저장과 되살리기의 성공 여부, 발생한 예외, 되살린 값, 생성자가 실행된 횟수를 대조했습니다. 저장한 뒤 클래스를 고치는 조합은 같은 이름의 User 클래스를 두 벌 따로 컴파일해, 한쪽으로 저장한 파일을 다른 쪽으로 읽었습니다. serialVersionUID를 적어 둔 채 필드를 추가하면 읽을 수 있고 새 필드가 null이라는 것, transient인 참조형 필드가 null이 된다는 것, static 필드를 다른 프로그램에서 읽으면 0이라는 것, Address 필드에 transient를 붙이면 저장된다는 것도 따로 실행해 확인했습니다. 파일에 실제로 기록되는 바이트의 형식은 그림에서 줄였습니다. 생성자가 실행되지 않는 것은 Serializable을 구현한 클래스의 이야기이며, 부모 클래스가 Serializable이 아닌 경우의 규칙, writeObject와 readObject를 직접 정의하는 방법, record의 직렬화는 다루지 않았습니다. 자바의 기본 직렬화는 보안 문제 때문에 새 코드에서는 잘 쓰지 않고 JSON 같은 형식을 주로 쓰지만, 기존 코드와 라이브러리를 이해하려면 이 규칙들을 알아야 합니다.</p>
 <p>앞 실습: <a href="../../lab/iobuf/">입출력 스트림과 버퍼</a></p>
   </div>
 
@@ -181,6 +181,6 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

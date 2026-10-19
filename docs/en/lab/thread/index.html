@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,7 @@ System.out.println(t.getState());
 t.join();                                   // waits until t terminates
 System.out.println(t.getState());</pre>
 <h2>Assumptions of this model</h2>
-<p>The results of the 24 combinations (the name of the thread that ran the task, t.getState() partway and at the end, the exceptions thrown, and the interrupt status when the task ends) were checked against the results of running them on JDK 21 on this PC. In the code on the screen, main waits briefly with Thread.sleep(100) and then looks at the state, but these 100 milliseconds are only a time that is &quot;usually enough&quot;, not a guaranteed one. So that the check would not depend on timing, the state of t was checked repeatedly until it had left RUNNABLE and stayed where it was. If t.getState() is called right after start(), the state can be RUNNABLE or already another state, so that value was not used as a result. RUNNABLE does not distinguish &quot;running&quot; from &quot;waiting for a turn on the CPU&quot;, and Java does not report the two separately. WAITING also results from Object.wait() or LockSupport.park() besides join, but this lab covers only join. The problems of data that several threads share are covered in the &quot;Race condition&quot; lab, and how to create threads in advance and reuse them is covered in the &quot;Thread pool&quot; lab.</p>
+<p>The results of the 24 combinations (the name of the thread that ran the task, t.getState() partway and at the end, the exceptions thrown, and the interrupt status when the task ends) were checked against the results of running them on JDK 21 in our test environment. In the code on the screen, main waits briefly with Thread.sleep(100) and then looks at the state, but these 100 milliseconds are only a time that is &quot;usually enough&quot;, not a guaranteed one. So that the check would not depend on timing, the state of t was checked repeatedly until it had left RUNNABLE and stayed where it was. If t.getState() is called right after start(), the state can be RUNNABLE or already another state, so that value was not used as a result. RUNNABLE does not distinguish &quot;running&quot; from &quot;waiting for a turn on the CPU&quot;, and Java does not report the two separately. WAITING also results from Object.wait() or LockSupport.park() besides join, but this lab covers only join. The problems of data that several threads share are covered in the &quot;Race condition&quot; lab, and how to create threads in advance and reuse them is covered in the &quot;Thread pool&quot; lab.</p>
 <p>Previous lab: <a href="../../lab/process/">Processes and threads</a> · Next lab: <a href="../../lab/race/">Race condition</a></p>
   </div>
 
@@ -177,6 +177,6 @@ System.out.println(t.getState());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

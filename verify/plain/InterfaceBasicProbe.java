@@ -44,7 +44,7 @@ public class InterfaceBasicProbe {
         s.append("}\n\n");
         s.append("public class Main {\n"
             + "    public static void main(String[] args) {\n"
-            + "        // Payable 타입 변수에 Card 객체를 담는다\n"
+            + "        // Payable 타입 변수 p가 Card 객체를 가리키게 한다\n"
             + "        Payable p = new Card();\n"
             + "        p.pay();\n"
             + "    }\n"

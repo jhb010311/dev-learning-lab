@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>테스트 코드: 테스트 코드는 무엇이고, 통과와 실패는 누가 정하는가 · 개발 학습 실습실</title>
-<meta name="description" content="테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습의 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준…">
+<meta name="description" content="테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습에서 예시로 만든 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 역시 예시로 만든 Calc 클래스의 add(2, 3)을 부르고, assertEquals(…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/test_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/test_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="테스트 코드: 테스트 코드는 무엇이고, 통과와 실패는 누가 정하는가 · 개발 학습 실습실">
-<meta property="og:description" content="테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습의 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준…">
+<meta property="og:description" content="테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습에서 예시로 만든 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 역시 예시로 만든 Calc 클래스의 add(2, 3)을 부르고, assertEquals(…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/test_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>테스트 코드</h1>
 <p><b>테스트 코드는 무엇이고, 통과와 실패는 누가 정하는가</b></p>
-<p>테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습의 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준 값을 기대한 값 5와 견줍니다. 두 값이 다르면 그 줄에서 오류가 납니다. adds() 위의 @Test는 &quot;이 메서드가 테스트&quot;라는 표시입니다. 이 코드를 실행하는 것은 우리가 아니라 테스트 도구 JUnit입니다. JUnit이 @Test가 붙은 메서드를 찾아 부르고, 오류 없이 끝나면 통과, assertEquals가 낸 오류로 끝나면 실패로 셉니다. 이 실습은 add를 틀리게 고치거나, 기대한 값을 틀리게 적거나, @Test를 지워 가며 같은 코드를 실제 JUnit으로 실행해, 찾은 테스트 수와 통과와 실패 판정, 실패 메시지가 어떻게 달라지는지 봅니다. (화면의 코드는 import 줄을 줄였습니다.)</p>
+<p>테스트 코드는 &quot;이 메서드에 이것을 넣으면 이것이 나와야 한다&quot;를 코드로 적어 둔 것입니다. 이 실습에서 예시로 만든 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 역시 예시로 만든 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준 값을 기대한 값 5와 견줍니다. 두 값이 다르면 그 줄에서 오류가 납니다. adds() 위의 @Test는 &quot;이 메서드가 테스트&quot;라는 표시입니다. 이 코드를 실행하는 것은 우리가 아니라 테스트 도구 JUnit입니다. JUnit이 @Test가 붙은 메서드를 찾아 부르고, 오류 없이 끝나면 통과, assertEquals가 낸 오류로 끝나면 실패로 셉니다. 이 실습은 add를 틀리게 고치거나, 기대한 값을 틀리게 적거나, @Test를 지워 가며 같은 코드를 실제 JUnit으로 실행해, 찾은 테스트 수와 통과와 실패 판정, 실패 메시지가 어떻게 달라지는지 봅니다. (화면의 코드는 import 줄을 줄였습니다.)</p>
 <p>실행으로 대조 · JDK 21과 JUnit 6.0.3에서 여덟 가지 조합을 컴파일하고 JUnit Launcher로 실행해 찾은 테스트 수, 통과와 실패, 실패 메시지를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -175,6 +175,6 @@ class CalcTest {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

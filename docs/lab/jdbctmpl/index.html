@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ public int insert(Long id, String name, String city) throws SQLException {
     return rows;
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>열여덟 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)의 JdbcTemplate, HikariCP 커넥션 풀, H2 2.4.240에서 화면과 같은 구조의 코드로 실행해, 호출한 쪽이 받는 것, 예외가 체크 예외인지, 호출이 끝난 뒤 풀에 반납되지 않은 커넥션이 있는지를 대조했습니다. DuplicateKeyException이 DataIntegrityViolationException의 하위 클래스라는 것, EmptyResultDataAccessException이 IncorrectResultSizeDataAccessException의 하위 클래스라는 것, 바뀐 예외의 원인(cause)에 원래의 SQLException이 들어 있다는 것, JdbcTemplate이 예외를 바꾸는 시점에는 커넥션이 이미 반납되어 있다는 것도 실행으로 확인했습니다. SQLState 값(23505, 23502, 42S22)은 H2가 준 값입니다. 다른 DB 제품에서 코드가 다를 수 있다는 것과, 그래도 스프링이 같은 예외로 바꿔 준다는 것은 이 PC에서 H2로만 실행했으므로 스프링 문서를 따른 설명입니다. queryForObject가 결과를 다 읽고 커넥션을 반납한 다음에 건수를 확인한다는 단계의 순서는 스프링의 소스 코드를 따랐습니다(실행으로는 호출이 끝난 뒤 커넥션이 반납되어 있다는 것만 확인했습니다). H2는 SQL의 오타를 PreparedStatement를 만들 때 알려 주지만, SQL을 실행할 때에야 알려 주는 DB도 있습니다. 화면에서는 이것을 구분하지 않고 &quot;SQL 실행&quot; 단계로 그렸습니다. 스프링이 관리하는 트랜잭션 안에서는 JdbcTemplate이 커넥션을 풀에 바로 반납하지 않고 트랜잭션이 끝날 때 반납합니다. 여기서는 트랜잭션이 없는 경우만 다뤘습니다.</p>
+<p>열여덟 가지 조합 모두를 검증 환경의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)의 JdbcTemplate, HikariCP 커넥션 풀, H2 2.4.240에서 화면과 같은 구조의 코드로 실행해, 호출한 쪽이 받는 것, 예외가 체크 예외인지, 호출이 끝난 뒤 풀에 반납되지 않은 커넥션이 있는지를 대조했습니다. DuplicateKeyException이 DataIntegrityViolationException의 하위 클래스라는 것, EmptyResultDataAccessException이 IncorrectResultSizeDataAccessException의 하위 클래스라는 것, 바뀐 예외의 원인(cause)에 원래의 SQLException이 들어 있다는 것, JdbcTemplate이 예외를 바꾸는 시점에는 커넥션이 이미 반납되어 있다는 것도 실행으로 확인했습니다. SQLState 값(23505, 23502, 42S22)은 H2가 준 값입니다. 다른 DB 제품에서 코드가 다를 수 있다는 것과, 그래도 스프링이 같은 예외로 바꿔 준다는 것은 검증 환경에서 H2로만 실행했으므로 스프링 문서를 따른 설명입니다. queryForObject가 결과를 다 읽고 커넥션을 반납한 다음에 건수를 확인한다는 단계의 순서는 스프링의 소스 코드를 따랐습니다(실행으로는 호출이 끝난 뒤 커넥션이 반납되어 있다는 것만 확인했습니다). H2는 SQL의 오타를 PreparedStatement를 만들 때 알려 주지만, SQL을 실행할 때에야 알려 주는 DB도 있습니다. 화면에서는 이것을 구분하지 않고 &quot;SQL 실행&quot; 단계로 그렸습니다. 스프링이 관리하는 트랜잭션 안에서는 JdbcTemplate이 커넥션을 풀에 바로 반납하지 않고 트랜잭션이 끝날 때 반납합니다. 여기서는 트랜잭션이 없는 경우만 다뤘습니다.</p>
 <p>앞 실습: <a href="../../lab/txprop/">트랜잭션 전파</a> · 다음 실습: <a href="../../lab/connpool/">커넥션 풀과 OSIV</a></p>
   </div>
 
@@ -174,6 +174,6 @@ public int insert(Long id, String name, String city) throws SQLException {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

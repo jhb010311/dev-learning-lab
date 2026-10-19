@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -97,7 +97,7 @@
 Order o = new Order();
 System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
 <h2>Assumptions of this model</h2>
-<p>All 16 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the order in which the initializer, the block, and the constructor bodies ran, and the output were checked against the results. The order of execution was confirmed by inserting only logging lines into the same code, and it was also confirmed by execution that the fields already hold their default values (0, null) before the initializers run. Simplifications: every constructor calls a constructor of its superclass (here, Object) before its own body, and the diagram leaves this step out (the &quot;Inheritance and overriding&quot; lab covers it). Initializer blocks are not used often in practice, and they are included here to show the order. The error message is the first line of the English message from javac. That this(...) can be used only as the first statement of a constructor is as of JDK 21 and was confirmed by compiling on this PC. In newer JDKs this is said to have changed so that some statements can come before this(...), but this was not verified on this PC.</p>
+<p>All 16 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, the order in which the initializer, the block, and the constructor bodies ran, and the output were checked against the results. The order of execution was confirmed by inserting only logging lines into the same code, and it was also confirmed by execution that the fields already hold their default values (0, null) before the initializers run. Simplifications: every constructor calls a constructor of its superclass (here, Object) before its own body, and the diagram leaves this step out (the &quot;Inheritance and overriding&quot; lab covers it). Initializer blocks are not used often in practice, and they are included here to show the order. The error message is the first line of the English message from javac. That this(...) can be used only as the first statement of a constructor is as of JDK 21 and was confirmed by compiling in our test run. In newer JDKs this is said to have changed so that some statements can come before this(...), but this was not verified in our test run.</p>
 <p>Previous lab: <a href="../../lab/array/">Arrays</a> · Next lab: <a href="../../lab/static/">static and instance</a></p>
   </div>
 
@@ -185,6 +185,6 @@ System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

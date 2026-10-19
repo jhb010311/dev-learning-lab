@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ public int insert(Long id, String name, String city) throws SQLException {
     return rows;
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>All 18 combinations were run on this PC with code of the same structure as on the screen, using the JdbcTemplate of Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1), the HikariCP connection pool, and H2 2.4.240, and three things were checked against the results: what the caller gets, whether the exception is a checked exception, and whether any connection is left unreturned to the pool after the call ends. Execution also confirmed that DuplicateKeyException is a subclass of DataIntegrityViolationException, that EmptyResultDataAccessException is a subclass of IncorrectResultSizeDataAccessException, that the cause of the translated exception holds the original SQLException, and that the connection has already been returned at the point where JdbcTemplate translates the exception. The SQLState values (23505, 23502, 42S22) are the values that H2 gave. That the codes can differ in other database products, and that Spring still translates them to the same exceptions, are statements that follow the Spring documentation, because execution on this PC used only H2. The order of the steps, in which queryForObject checks the row count after it has read the whole result and returned the connection, follows the Spring source code (execution confirmed only that the connection has been returned after the call ends). H2 reports a typo in the SQL when the PreparedStatement is created, but some databases report it only when the SQL is run. The screen does not distinguish the two and draws this as the &quot;Run the SQL&quot; step. Inside a transaction managed by Spring, JdbcTemplate does not return the connection to the pool right away. It returns it when the transaction ends. Only the case without a transaction is covered here.</p>
+<p>All 18 combinations were run in our test environment with code of the same structure as on the screen, using the JdbcTemplate of Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1), the HikariCP connection pool, and H2 2.4.240, and three things were checked against the results: what the caller gets, whether the exception is a checked exception, and whether any connection is left unreturned to the pool after the call ends. Execution also confirmed that DuplicateKeyException is a subclass of DataIntegrityViolationException, that EmptyResultDataAccessException is a subclass of IncorrectResultSizeDataAccessException, that the cause of the translated exception holds the original SQLException, and that the connection has already been returned at the point where JdbcTemplate translates the exception. The SQLState values (23505, 23502, 42S22) are the values that H2 gave. That the codes can differ in other database products, and that Spring still translates them to the same exceptions, are statements that follow the Spring documentation, because execution in our test environment used only H2. The order of the steps, in which queryForObject checks the row count after it has read the whole result and returned the connection, follows the Spring source code (execution confirmed only that the connection has been returned after the call ends). H2 reports a typo in the SQL when the PreparedStatement is created, but some databases report it only when the SQL is run. The screen does not distinguish the two and draws this as the &quot;Run the SQL&quot; step. Inside a transaction managed by Spring, JdbcTemplate does not return the connection to the pool right away. It returns it when the transaction ends. Only the case without a transaction is covered here.</p>
 <p>Previous lab: <a href="../../lab/txprop/">Transaction propagation</a> · Next lab: <a href="../../lab/connpool/">Connection pool and OSIV</a></p>
   </div>
 
@@ -174,6 +174,6 @@ public int insert(Long id, String name, String city) throws SQLException {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

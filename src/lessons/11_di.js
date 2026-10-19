@@ -1,7 +1,7 @@
 Lab.register({
   id: 'di', nav: '빈 생성과 주입', cat: '스프링', mode: 'step',
   title: '스프링은 객체를 어떤 순서로 만들고 연결하나',
-  intro: '애플리케이션이 뜰 때 스프링 컨테이너가 빈을 하나씩 만들고 서로 연결합니다. 주입 방식에 따라 객체가 만들어지는 순서가 달라지고, 두 빈이 서로를 필요로 하면(순환 참조) 기동이 실패하기도 합니다.',
+  intro: '애플리케이션이 뜰 때 스프링 컨테이너가 빈을 하나씩 만들고 서로 연결합니다. 주입 방식에 따라 객체가 만들어지는 순서가 달라지고, 두 빈이 서로를 필요로 하면(순환 참조) 기동이 실패하기도 합니다. 이 실습의 OrderController, OrderService, PaymentService, OrderRepository는 예시로 만든 클래스입니다.',
   terms: ['IoC(제어의 역전)', 'DI(의존성 주입)', '생성자 주입, 세터 주입, 필드 주입', '스프링 빈(Bean)', '빈 생명주기', '순환 참조'], ranks: ['di', 'bean'],
   controls: [
     { id: 'inj', label: '주입 방식', type: 'select', value: 'ctor', options: [['ctor', '생성자 주입'], ['field', '필드 주입 (@Autowired)'], ['setter', '세터 주입']] },
@@ -78,7 +78,7 @@ Lab.register({
     H.table(v, ['빈', '상태', '필요한 의존성', '채워진 의존성'], sim.order.map(function (n) {
       var x = s.st[n], need = sim.deps[n];
       return { cells: [n, { v: x, cls: x === '완성' ? 'good' : x === '실패' ? 'bad' : x === '정의만 등록됨' ? '' : 'hot' }, need.length ? need.join(', ') : '없음', need.length ? (s.got[n].length ? s.got[n].join(', ') : '(아직 없음)') + (s.got[n].length < need.length && x.indexOf('객체만') === 0 ? ' · 나머지는 null' : '') : '-'] };
-    }), '스프링 컨테이너 안의 빈 (' + how + '로 주입)');
+    }), '스프링 컨테이너가 관리하는 빈 (' + how + '로 주입)');
     H.title(v, '지금 만드는 중인 빈 (바깥 → 안쪽)');
     H.slots(v, s.stack.map(function (n, i) { return [n, i === s.stack.length - 1 ? 'b' : 'q']; }), '없음');
   },

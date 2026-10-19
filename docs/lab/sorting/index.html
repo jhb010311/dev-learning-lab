@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,7 @@ System.out.println(order.compare(list.get(0), list.get(2)));   // park와 kim
 list.sort(order);
 System.out.println(list);</pre>
 <h2>이 모형의 전제</h2>
-<p>열여섯 가지 조합의 정렬 결과, 두 번의 compare가 돌려준 값, 잔액 순서가 맞는지를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. compare가 돌려주는 값 가운데 명세가 정한 것은 부호(음수, 0, 양수)뿐입니다. comparingInt의 1과 -1, 문자열 비교의 13과 5 같은 구체적인 숫자는 JDK 21에서 나온 값입니다. 빼서 비교하는 Comparator처럼 규칙을 어기는 비교를 주면 정렬 결과는 정렬 알고리즘의 내부 동작에 따라 달라집니다. 이 실습의 틀린 순서는 원소가 다섯 개일 때 JDK 21의 List.sort가 내는 결과입니다. List.sort의 문서에는 Comparator가 규약을 어긴 것이 발견되면 IllegalArgumentException을 던질 수 있다고 적혀 있습니다(이 경우는 실행해 보지 않았습니다). 정렬 과정의 비교는 여러 번 일어나지만, 화면에는 그 가운데 두 번만 따로 실행해 보여 줍니다.</p>
+<p>열여섯 가지 조합의 정렬 결과, 두 번의 compare가 돌려준 값, 잔액 순서가 맞는지를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. compare가 돌려주는 값 가운데 명세가 정한 것은 부호(음수, 0, 양수)뿐입니다. comparingInt의 1과 -1, 문자열 비교의 13과 5 같은 구체적인 숫자는 JDK 21에서 나온 값입니다. 빼서 비교하는 Comparator처럼 규칙을 어기는 비교를 주면 정렬 결과는 정렬 알고리즘의 내부 동작에 따라 달라집니다. 이 실습의 틀린 순서는 원소가 다섯 개일 때 JDK 21의 List.sort가 내는 결과입니다. List.sort의 문서에는 Comparator가 규약을 어긴 것이 발견되면 IllegalArgumentException을 던질 수 있다고 적혀 있습니다(이 경우는 실행해 보지 않았습니다). 정렬 과정의 비교는 여러 번 일어나지만, 화면에는 그 가운데 두 번만 따로 실행해 보여 줍니다.</p>
 <p>앞 실습: <a href="../../lab/cme/">순회 중 삭제</a> · 다음 실습: <a href="../../lab/lambda/">람다와 함수형 인터페이스</a></p>
   </div>
 
@@ -177,6 +177,6 @@ System.out.println(list);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

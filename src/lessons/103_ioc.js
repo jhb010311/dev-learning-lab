@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ioc', nav: '스프링 컨테이너와 빈', cat: '스프링', mode: 'step',
   title: 'new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나',
-  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.',
+  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 이 실습의 OrderService, DiscountPolicy, FixedDiscountPolicy, RateDiscountPolicy, AppConfig는 예시로 만든 클래스와 인터페이스입니다.',
   terms: ['IoC(제어의 역전)', '스프링 빈(Bean)', '@Configuration과 @Bean', '@Primary와 @Qualifier', 'NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException'],
   controls: [
     { id: 'how', label: '할인 정책 객체를 만드는 쪽', type: 'select', value: 'comp', options: [['new', 'OrderService가 직접 new로 만든다'], ['comp', '컨테이너가 만든다 (@Component로 등록)'], ['bean', '컨테이너가 만든다 (@Bean 메서드로 등록)']] },
@@ -81,7 +81,7 @@ Lab.register({
       var names = ['orderService'].concat(f.regFixed ? ['fixedDiscountPolicy'] : [], f.regRate ? ['rateDiscountPolicy'] : []), n = names.length - 1;
       ['fixed', 'rate'].forEach(function (k) { if (st.beans[k].reg) st.beans[k].s = 'def'; });
       st.svc = '등록됨';
-      if (f.comp) push('컨테이너 시작: 컨테이너가 클래스들을 훑어 @Component가 붙은 것을 빈으로 등록합니다(컴포넌트 스캔). 등록된 빈은 ' + names.join(', ') + '입니다. 빈의 이름은 클래스 이름의 첫 글자를 소문자로 바꾼 것입니다.' + (n < 2 ? ' @Component가 없는 구현 클래스는 컨테이너가 알지 못합니다.' : ''), '');
+      if (f.comp) push('컨테이너 시작: 컨테이너가 클래스들을 훑어 @Component가 붙은 것을 빈으로 등록합니다(컴포넌트 스캔). 등록된 빈은 ' + names.join(', ') + '입니다. @Component에 이름을 따로 적지 않으면, 빈의 이름은 클래스 이름의 첫 글자를 소문자로 바꾼 것입니다(URLParser처럼 앞의 두 글자가 모두 대문자인 이름은 바꾸지 않고 그대로 씁니다).' + (n < 2 ? ' @Component가 없는 구현 클래스는 컨테이너가 알지 못합니다.' : ''), '');
       else push('컨테이너 시작: 컨테이너가 @Component가 붙은 OrderService와 @Configuration이 붙은 AppConfig 클래스를 찾습니다. ' + (n ? '그리고 AppConfig 안의 @Bean 메서드 ' + n + '개를 빈으로 등록합니다. @Bean으로 등록한 빈의 이름은 메서드 이름입니다. ' : 'AppConfig 안에는 @Bean 메서드가 없어 더 등록되는 빈이 없습니다. ') + '등록된 빈은 ' + names.join(', ') + '입니다(AppConfig 자신도 빈으로 등록됩니다).', '');
       st.svc = '만드는 중';
       ['fixed', 'rate'].forEach(function (k) { if (st.beans[k].reg) st.beans[k].s = 'cand'; });
@@ -147,5 +147,5 @@ Lab.register({
     P.box('r2', 344, isNew ? 258 : 340, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
     P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
   },
-  assume: '서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',
+  assume: '서른 가지 조합을 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실제로 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었습니다. 바깥으로 던져진 예외는 UnsatisfiedDependencyException이고, 그 원인(getCause)을 따라가면 이 예외가 나옵니다. 클래스 이름의 앞 두 글자가 대문자이면 빈 이름이 바뀌지 않는 것(URLParser는 URLParser)은 스프링 프레임워크 7.0.9에서 따로 실행해 확인했습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',
 });

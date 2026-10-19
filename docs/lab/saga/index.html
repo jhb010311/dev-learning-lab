@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,8 @@
 <li>Saga는 긴 트랜잭션을 서비스별 로컬 트랜잭션의 연속으로 나누고, 실패하면 보상 트랜잭션으로 되돌립니다. DB의 롤백처럼 &quot;없던 일&quot;이 되는 것이 아니라 취소 기록이 남는 새 작업입니다. 그래서 중간 상태가 외부에 보일 수 있고(격리되지 않음), 보상 작업 자체도 실패할 수 있어 재시도와 멱등성이 필요합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 각 단계는 자기 서비스의 로컬 트랜잭션으로 커밋된다
+<pre>// 자바 코드가 아니라 단계와 보상 작업을 적은 목록
+// 각 단계는 자기 서비스의 로컬 트랜잭션으로 커밋된다
 1. 주문 서비스   주문 생성 (PENDING)      보상: 주문 취소
 2. 결제 서비스   결제 승인                보상: 결제 취소(환불)
 3. 재고 서비스   재고 차감                보상: 재고 복구
@@ -167,6 +168,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

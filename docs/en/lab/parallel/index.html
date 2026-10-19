@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -76,7 +76,7 @@ var recommend = recommendApi.list(id);
 
 return new ProductPage(product, stock, reviews, recommend);</pre>
 <h2>Assumptions of this model</h2>
-<p>The time each call takes (product details 0.3s, stock 0.5s, reviews 0.8s, recommendations 1.6s, coupons 0.4s) is a fixed example, and the model assumes that the calls do not need each other's results. If the result of one call is the input of the next, those two must be made sequentially. For parallel calls, the model assumes blocking calls, in which one thread makes one call and waits for it. completeOnTimeout is a method that has existed since JDK 9. This was checked by actually running code on JDK 21 on this PC. With 4 calls of the same durations, the measured times were 3,243ms sequential, 1,603ms parallel (5 threads), 2,127ms parallel (2 threads), and 1,011ms with the timeout of 1s applied, which matched the values of the model (3.2s, 1.6s, 2.1s, 1.0s).</p>
+<p>The time each call takes (product details 0.3s, stock 0.5s, reviews 0.8s, recommendations 1.6s, coupons 0.4s) is a fixed example, and the model assumes that the calls do not need each other's results. If the result of one call is the input of the next, those two must be made sequentially. For parallel calls, the model assumes blocking calls, in which one thread makes one call and waits for it. completeOnTimeout is a method that has existed since JDK 9. This was checked by actually running code on JDK 21 in our test environment. With 4 calls of the same durations, the measured times were 3,243ms sequential, 1,603ms parallel (5 threads), 2,127ms parallel (2 threads), and 1,011ms with the timeout of 1s applied, which matched the values of the model (3.2s, 1.6s, 2.1s, 1.0s).</p>
 <p>Previous lab: <a href="../../lab/ctx/">Thread count and context switching</a> · Next lab: <a href="../../lab/blocking/">Blocking, non-blocking, and virtual threads</a></p>
   </div>
 
@@ -164,6 +164,6 @@ return new ProductPage(product, stock, reviews, recommend);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

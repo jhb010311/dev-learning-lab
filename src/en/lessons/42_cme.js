@@ -64,5 +64,5 @@ Lab.register({
     H.title(v, 'List (position = index)'); H.slots(v, s.list.map(function (x, i) { return [String(x), (x === 2 ? 'r' : 'd') + (i === s.cur ? ' now' : '')]; }), 'empty');
     H.text(v, 'Red marks the value 2, which must be removed, and the thick border marks the element that is being looked at now.');
   },
-  assume: 'The final list and the exception were checked for all 10 combinations against the result of running the same code on JDK 21 on this PC. Removal inside an enhanced for statement sometimes ends without an exception, depending on the position of the element that is removed (when the second-to-last element is removed), but such code relies on luck and must not be used.',
+  assume: 'The final list and the exception were checked for all 10 combinations against the result of running the same code on JDK 21 in our test environment. Removal inside an enhanced for statement sometimes ends without an exception, depending on the position of the element that is removed (when the second-to-last element is removed), but such code relies on luck and must not be used.',
 });

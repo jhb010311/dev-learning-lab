@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -108,7 +108,7 @@ class Dog extends Animal {
 Dog d = new Dog();
 d.describe();</pre>
 <h2>이 모형의 전제</h2>
-<p>서른여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 &quot;다형성과 메서드 선택&quot; 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
+<p>서른여섯 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 검증할 때는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 &quot;다형성과 메서드 선택&quot; 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
 <p>앞 실습: <a href="../../lab/static/">static과 인스턴스</a> · 다음 실습: <a href="../../lab/poly/">다형성과 메서드 선택</a></p>
   </div>
 
@@ -196,6 +196,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

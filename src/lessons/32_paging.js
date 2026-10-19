@@ -38,13 +38,13 @@ Lab.register({
     } else {
       read = s; skip = 0;
       push('post 테이블에는 글이 100만 개 있고 id가 클수록 최신입니다. 앞 페이지에서 마지막으로 본 글의 id를 기억해 두었다가 그것을 조건으로 요청합니다.', '', { read: 0, skip: 0, out: 0 });
-      push(p > 1 ? 'DB는 id 인덱스(B-트리)에서 id < ' + num(firstId + 1) + '인 첫 위치를 몇 단계 만에 바로 찾아갑니다. 앞쪽 행은 한 건도 읽지 않습니다.' : '첫 페이지는 조건 없이 가장 최신 글부터 읽습니다.', 'good', { read: 0, skip: 0, out: 0 });
+      push(p > 1 ? 'DB는 id 인덱스(B-트리)에서 id < ' + num(firstId + 1) + '인 첫 위치를 몇 단계 만에 바로 찾아갑니다. 앞쪽 행은 한 건도 읽지 않습니다.' : '첫 페이지는 조건 없이 가장 최신 글부터 읽습니다.', 'good', { read: 0, skip: 0, out: 0, jump: p > 1 });
       push('그 위치부터 ' + s + '행을 읽어 돌려줍니다. id ' + num(firstId) + '부터 ' + num(firstId - s + 1) + '까지입니다.', 'good', { read: s, skip: 0, out: s });
       sum.push('몇 번째 페이지든 ' + s + '행만 읽습니다. 다만 "1,000페이지로 바로 가기"처럼 임의의 페이지로 건너뛸 수는 없고, 다음·이전으로만 이동할 수 있습니다. 무한 스크롤이나 "더 보기"에 맞는 방식입니다.');
     }
     if (c.ins) {
-      if (c.how === 'offset') { effect = '중복 노출 1건'; push('사용자가 다음 페이지를 누르기 전에 새 글이 하나 등록됐습니다. 최신순 목록의 맨 앞에 새 글이 끼어들어 기존 글들이 전부 한 칸씩 뒤로 밀립니다.', '', { read: read, skip: skip, out: s, shift: 1 }); push('다음 페이지를 OFFSET ' + num(off + s) + '으로 요청합니다. 한 칸씩 밀렸으므로, 방금 본 페이지의 마지막 글(id ' + num(firstId - s + 1) + ')이 다음 페이지의 첫 줄에 다시 나옵니다. 반대로 글이 삭제되면 한 건을 건너뛰게 됩니다.', 'bad', { read: read, skip: skip, out: s, dup: firstId - s + 1 }); sum.push('OFFSET은 "앞에서 몇 번째"라는 위치 기준이라서, 그 사이 데이터가 추가되거나 삭제되면 같은 글이 두 번 보이거나 빠집니다.'); }
-      else { effect = '영향 없음'; push('사용자가 다음 페이지를 누르기 전에 새 글이 하나 등록됐습니다.', '', { read: read, skip: 0, out: s, shift: 1 }); push('다음 페이지를 "id < ' + num(firstId - s + 1) + '" 조건으로 요청합니다. 기준이 위치가 아니라 글의 id이므로, 새 글이 앞에 끼어들어도 이어서 볼 글은 그대로입니다. 중복도 누락도 없습니다.', 'good', { read: read, skip: 0, out: s }); sum.push('키셋은 "이 글 다음부터"라는 값 기준이라서 중간에 데이터가 바뀌어도 목록이 밀리지 않습니다.'); }
+      if (c.how === 'offset') { effect = '중복 노출 1건'; push('사용자가 다음 페이지를 누르기 전에 새 글이 하나 등록됐습니다. 최신순 목록의 맨 앞에 새 글이 끼어들어 기존 글들이 전부 한 칸씩 뒤로 밀립니다.', '', { read: read, skip: skip, out: s, shift: 1 }); push('다음 페이지(' + num(p + 1) + '페이지)를 OFFSET ' + num(off + s) + '으로 요청합니다. 코드 칸의 OFFSET ' + num(off) + '에서 한 페이지만큼 더 간 값입니다. 한 칸씩 밀렸으므로, 방금 본 페이지의 마지막 글(id ' + num(firstId - s + 1) + ')이 다음 페이지의 첫 줄에 다시 나옵니다. 반대로 글이 삭제되면 한 건을 건너뛰게 됩니다.', 'bad', { read: read, skip: skip, out: s, dup: firstId - s + 1 }); sum.push('OFFSET은 "앞에서 몇 번째"라는 위치 기준이라서, 그 사이 데이터가 추가되거나 삭제되면 같은 글이 두 번 보이거나 빠집니다.'); }
+      else { effect = '영향 없음'; push('사용자가 다음 페이지를 누르기 전에 새 글이 하나 등록됐습니다.', '', { read: read, skip: 0, out: s, shift: 1 }); push('다음 페이지(' + num(p + 1) + '페이지)는 이 페이지에서 마지막으로 본 글의 id(' + num(firstId - s + 1) + ')를 기준으로 "id < ' + num(firstId - s + 1) + '" 조건으로 요청합니다. 코드 칸의 쿼리는 이 페이지를 가져온 것이고, 다음 페이지에서는 기준 id가 이 값으로 바뀝니다. 기준이 위치가 아니라 글의 id이므로, 새 글이 앞에 끼어들어도 이어서 볼 글은 그대로입니다. 중복도 누락도 없습니다.', 'good', { read: read, skip: 0, out: s }); sum.push('키셋은 "이 글 다음부터"라는 값 기준이라서 중간에 데이터가 바뀌어도 목록이 밀리지 않습니다.'); }
     }
     return { events: ev, summary: sum, firstId: firstId, row: [num(read) + '행', num(skip) + '행', s + '행', effect] };
   },
@@ -56,6 +56,26 @@ Lab.register({
     H.lane(ln, '쓴 행', num(s.out) + '행', s.out ? 'good' : 'none', s.out ? Math.max(0.01, s.out / mx) : undefined);
     if (s.out) H.text(v, '이 페이지에 나온 글: id ' + num(sim.firstId) + ' ~ ' + num(sim.firstId - size + 1) + (s.dup ? ' · 다음 페이지 첫 줄에 id ' + num(s.dup) + '번 글이 다시 나옴' : ''));
     if (s.shift) H.text(v, '새 글(id 1,000,001)이 목록 맨 앞에 추가됨');
+  },
+  // 그림: id 인덱스의 앞부분(가장 최신 글부터 이 페이지 끝까지)을 가로 띠로 그린다. 빨강은 읽고 버린 행, 초록은 돌려준 행, 점선은 읽지 않은 범위다. 폭은 행 수에 비례한다.
+  draw: function (P, sim, shown) {
+    var c = sim.c, num = this.num, last = shown[shown.length - 1], s = last ? last.snap : { read: 0, skip: 0, out: 0 }, p = +c.page, size = +c.size, off = (p - 1) * size, mx = off + size, key = c.how === 'keyset';
+    var X = 28, W = 624, outW = Math.max(8, W * size / mx), outX = X + W - outW, jumped = key && p > 1 && (s.jump || s.out > 0);
+    P.size(680, 276);
+    P.region('ix', 16, 16, 648, 168, 'id 인덱스 (왼쪽이 가장 최신 글, 이 페이지 끝까지)');
+    P.box('all', X, 68, W, 30, { cls: 'ghost' });
+    if (s.skip) P.box('skip', X, 68, outX - X, 30, { cls: 'bad' });
+    if (s.out) P.box('out', outX, 68, outW, 30, { cls: 'good' });
+    if (jumped) P.arrow('jump', [X, 62], [outX, 62], { cls: 'good', label: '인덱스로 바로 찾아감' });
+    P.text('l0', X, 118, 'id ' + num(1000000) + ' (가장 최신)', { cls: 'mut' });
+    P.text('l1', X + W, 118, 'id ' + num(sim.firstId - size + 1) + ' (이 페이지 끝)', { cls: 'mut', anchor: 'end' });
+    var say = !s.read && !jumped ? (key ? (p > 1 ? '앞 페이지에서 마지막으로 본 글의 id를 조건으로 요청함' : '첫 페이지라 조건 없이 요청함') : 'OFFSET ' + num(off) + '으로 요청함') : key ? (p > 1 ? '앞 ' + num(off) + '행은 읽지 않음' : '첫 페이지라 맨 앞부터 읽음') + (s.out ? ' · ' + num(s.out) + '행을 읽어 돌려줌' : '') : (s.skip ? num(s.skip) + '행을 읽고 버림' : '버린 행 없음') + (s.out ? ' · 다음 ' + num(s.out) + '행을 돌려줌' : '');
+    P.text('say', X, 144, say, { cls: s.skip ? 'bad' : s.out ? 'good' : 'mut' });
+    if (s.shift || s.dup) P.text('sh', X, 168, s.dup ? '새 글(id 1,000,001)이 맨 앞에 끼어듦 · 다음 페이지 첫 줄에 id ' + num(s.dup) + '번 글이 다시 나옴' : '새 글(id 1,000,001)이 맨 앞에 끼어듦', { cls: s.dup ? 'bad' : 'mut' });
+    P.box('n1', 16, 200, 210, 36, { cls: s.read ? 'wait' : 'ghost', title: '읽은 행', right: num(s.read) + '행' });
+    P.box('n2', 235, 200, 210, 36, { cls: s.skip ? 'bad' : 'ghost', title: '읽고 버린 행', right: num(s.skip) + '행' });
+    P.box('n3', 454, 200, 210, 36, { cls: s.out ? 'good' : 'ghost', title: '돌려준 행', right: num(s.out) + '행' });
+    P.note('가로 띠는 id 인덱스의 앞부분입니다. 빨강은 읽고 버린 행, 초록은 결과로 돌려준 행, 점선은 읽지 않은 범위이고, 폭은 행 수에 비례합니다(돌려준 행이 너무 좁으면 보이도록 넓혀 그렸습니다).');
   },
   assume: '글 100만 개가 id 순으로 정렬돼 있고 id에 인덱스(기본 키)가 있다고 가정했습니다. OFFSET으로 건너뛰는 행도 서버 안에서는 계산해야 하므로 OFFSET이 크면 비효율적일 수 있다는 것은 PostgreSQL 공식 문서(LIMIT and OFFSET)의 설명입니다. MySQL 문서에서는 같은 문장을 확인하지 못했습니다. 정렬 기준이 id가 아니라 등록 시각처럼 값이 겹칠 수 있는 컬럼이면, 키셋 조건에 (등록 시각, id)처럼 겹치지 않는 컬럼을 함께 써야 합니다. 행 수는 계산값이며 실제 DB에서 측정한 것은 아닙니다. 결과의 내용은 실제 SQL 엔진(SQLite)에서 확인했습니다. 두 방식이 같은 페이지에서 같은 글을 돌려줬고, 새 글이 하나 끼어든 뒤 OFFSET의 다음 페이지 첫 줄에는 앞 페이지의 마지막 글이 다시 나왔으며 키셋에서는 그다음 글이 나왔습니다.',
 });

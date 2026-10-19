@@ -57,7 +57,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: '비어 있음', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
-    H.table(v, ['필터 체인 (위에서 아래 순서로 배치됨)', '상태'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? '지금 여기' : seen ? (bads.indexOf(id) >= 0 ? '여기서 막힘' : '지나감') : done ? '할 일 없이 지나갔거나 도달 안 함' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
+    H.table(v, ['필터 체인 (위에서 아래 순서로 배치됨)', '상태'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0, waitEtf = id === 'ETF' && !seen && s.seen.indexOf('AUTHZ') >= 0 && s.seen.indexOf('OUT') < 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? '지금 여기' : seen ? (bads.indexOf(id) >= 0 ? '여기서 막힘' : '지나감') : waitEtf ? '지나왔고, 뒤에서 던질 예외를 기다림' : done ? '할 일 없이 지나갔거나 도달 안 함' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
     H.text(v, 'ExceptionTranslationFilter는 AuthorizationFilter보다 앞에 있어서, 뒤에서 던진 예외를 받아 처리합니다.');
   },
   // 그림: 필터들이 위에서 아래로 늘어선 통로. 요청이 어디까지 들어갔다가 어디서 막혔는지를 색으로 보인다.
@@ -65,10 +65,10 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: '비어 있음', resp: '' }, bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
     P.size(680, 330);
     P.region('chain', 16, 16, 440, 298, '필터 체인 (위에서 아래로 지나감)');
-    this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? '막힘' : '' }); });
-    P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === '비어 있음' || s.ctx === '비워짐' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['들어 있는 것:', s.ctx] });
+    this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0, waitEtf = id === 'ETF' && !seen && s.seen.indexOf('AUTHZ') >= 0 && s.seen.indexOf('OUT') < 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : waitEtf ? 'wait' : 'ghost', title: st[1], right: blocked ? '막힘' : waitEtf ? '대기' : '' }); });
+    P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === '비어 있음' || s.ctx === '비워짐' ? 'ghost' : s.ctx.indexOf('익명') === 0 ? 'plain' : 'good', title: 'SecurityContext', sub: ['인증 정보:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: '응답', sub: [s.resp || '처리 중', ' '] });
-    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 점선은 할 일 없이 지나갔거나 도달하지 않은 곳입니다.');
+    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 파랑은 이미 지나왔지만 뒤에서 던질 예외를 받으려고 기다리는 필터, 점선은 할 일 없이 지나갔거나 도달하지 않은 곳입니다. SecurityContext 상자는 인증된 사용자가 있으면 초록, 익명 사용자이면 흰색입니다.');
   },
   assume: '세션을 쓰지 않는 JWT 방식의 일반적인 구성을 가정했습니다. 직접 만든 JwtAuthenticationFilter는 토큰이 없거나 잘못된 경우 거절하지 않고 넘긴다고 보았습니다(잘못된 토큰이면 이 필터에서 바로 401을 내도록 구현하기도 합니다). 열두 가지 조합 모두를 실제 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버에 HTTP 요청을 보내, 응답 코드와 응답을 만든 곳(AuthenticationEntryPoint, AccessDeniedHandler), 컨트롤러 실행 여부가 화면과 일치하는 것을 확인했습니다. 이때 두 가지를 알게 됐습니다. 첫째, 인증 실패 때의 응답을 정하지 않으면(exceptionHandling 설정이 없으면) 토큰 없는 요청에 401이 아니라 403이 돌아옵니다. 그래서 화면의 코드에 exceptionHandling 설정을 넣었습니다. 둘째, 권한 부족을 스프링 시큐리티의 기본 처리기에 맡기면 USER가 관리자 경로를 요청했을 때 403이 아니라 401이 돌아왔습니다. 기본 처리기가 오류 페이지(/error)로 요청을 다시 넘기는데, 그 요청에는 인증 정보가 없어 다시 인증 실패로 처리되기 때문입니다. 화면처럼 403이 나오게 하려면 처리기에서 상태 코드를 직접 응답하거나 /error 경로를 허용해야 합니다. 실제 체인에는 여기 적지 않은 필터가 더 있습니다.',
 });

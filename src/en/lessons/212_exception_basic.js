@@ -62,7 +62,7 @@ Lab.register({
           push('Java looks for a place that catches this exception. The exception occurred inside try, so it looks at the catch attached to this try. catch (ArithmeticException e) says it catches the ArithmeticException kind, and the exception that was thrown is an ArithmeticException, so the kind matches.', 'good');
           st.ln.ct = 'ok'; st.out.push('Cannot divide by zero');
           st.checks.push(['println inside catch', { v: 'Ran', cls: 'good' }]);
-          push('Execution jumps into catch. The thrown exception object is stored in variable e, and the line System.out.println("Cannot divide by zero"); inside catch runs and prints that text.', 'good');
+          push('Execution jumps into catch. Variable e now refers to the thrown exception object, and the line System.out.println("Cannot divide by zero"); inside catch runs and prints that text.', 'good');
           st.hot = 'end'; st.ln.end = 'ok'; st.out.push('Done'); st.ended = 'ok';
           st.checks.push([SHOW, { v: 'Ran', cls: 'good' }]);
           push('When the lines inside catch finish, the exception counts as handled. The program does not stop. It continues with the lines below the try-catch, and the line ' + SHOW + ' prints "Done". The last line of main has run, so the program ends.', 'good');

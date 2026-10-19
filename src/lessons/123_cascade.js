@@ -19,7 +19,7 @@ Lab.register({
   ],
   code: function (c) {
     var opt = 'mappedBy = "post"' + (c.cas !== 'none' ? ', cascade = CascadeType.' + c.cas : '') + (c.orphan ? ', orphanRemoval = true' : '');
-    var ent = '@Entity\nclass Post {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    Long id;\n    String title;\n\n    @OneToMany(' + opt + ')\n    List<Comment> comments = new ArrayList<>();\n\n    void addComment(String text) {     // 양쪽을 함께 맞춘다\n        Comment c = new Comment(text);\n        c.post = this;\n        comments.add(c);\n    }\n}\n\n@Entity\nclass Comment {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    Long id;\n    String text;\n\n    @ManyToOne(fetch = FetchType.LAZY)\n    Post post;                         // 외래 키 post_id\n}\n\n';
+    var ent = '@Entity\nclass Post {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    Long id;\n    String title;\n\n    @OneToMany(' + opt + ')\n    List<Comment> comments = new ArrayList<>();\n\n    protected Post() { }               // JPA가 엔티티를 만들 때 쓰는 기본 생성자\n    Post(String title) { this.title = title; }\n\n    public List<Comment> getComments() { return comments; }\n\n    void addComment(String text) {     // 양쪽을 함께 맞춘다\n        Comment c = new Comment(text);\n        c.post = this;\n        comments.add(c);\n    }\n}\n\n@Entity\nclass Comment {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    Long id;\n    String text;\n\n    @ManyToOne(fetch = FetchType.LAZY)\n    Post post;                         // 외래 키 post_id\n\n    protected Comment() { }\n    Comment(String text) { this.text = text; }\n}\n\n';
     var run = c.act === 'persist' ? 'Post post = new Post("공지");\npost.addComment("첫째 댓글");\npost.addComment("둘째 댓글");\nem.persist(post);                      // 게시글만 persist한다'
       : c.act === 'remove' ? '// DB에는 게시글 1과 그 댓글 둘이 이미 있다\nPost post = em.find(Post.class, 1L);\nem.remove(post);                       // 게시글만 remove한다'
       : '// DB에는 게시글 1과 그 댓글 둘이 이미 있다\nPost post = em.find(Post.class, 1L);\npost.getComments().remove(0);          // 목록에서 첫째 댓글을 뺀다';
@@ -44,11 +44,11 @@ Lab.register({
       if (cp) {
         st.c1 = 'managed'; st.c2 = 'managed'; st.db.c1 = true; st.db.c2 = true; st.hot.c1 = 1; st.hot.c2 = 1;
         send('I:comment', "insert into comment (text, post_id) values ('첫째 댓글', 1)", 'em.persist(post)를 부를 때'); send('I:comment', "insert into comment (text, post_id) values ('둘째 댓글', 1)", 'em.persist(post)를 부를 때');
-        push('영속성 전이: cascade에 PERSIST가 들어 있으므로, 게시글에 한 persist가 comments 목록에 든 댓글 둘에게도 전달됩니다. 댓글마다 INSERT가 한 번씩 나갑니다.', 'good');
+        push('영속성 전이: cascade에 PERSIST가 들어 있으므로, 게시글에 한 persist가 comments 목록이 가리키는 댓글 둘에게도 전달됩니다. 댓글마다 INSERT가 한 번씩 나갑니다.', 'good');
         push('메서드 종료, 커밋: 보낼 SQL은 이미 다 나갔습니다. 그대로 커밋합니다.', '');
       } else {
-        push('cascade에 PERSIST가 없으므로 persist는 게시글에서 멈춥니다. 목록에 담겨 있는 댓글 둘은 여전히 JPA가 모르는 비영속 객체입니다.', '');
-        push('메서드 종료, 커밋: 예외 없이 커밋됩니다. comments는 mappedBy가 붙은 쪽이라 외래 키를 관리하지 않으므로, Hibernate는 이 목록에 저장되지 않은 객체가 들어 있어도 문제 삼지 않습니다. 댓글 INSERT는 끝내 나가지 않았습니다.', 'bad');
+        push('cascade에 PERSIST가 없으므로 persist는 게시글에서 멈춥니다. 목록이 가리키는 댓글 둘은 여전히 JPA가 모르는 비영속 객체입니다.', '');
+        push('메서드 종료, 커밋: 예외 없이 커밋됩니다. comments는 mappedBy가 붙은 쪽이라 외래 키를 관리하지 않으므로, Hibernate는 이 목록이 저장되지 않은 객체를 가리켜도 문제 삼지 않습니다. 댓글 INSERT는 끝내 나가지 않았습니다.', 'bad');
       }
     }
     if (c.act === 'remove') {
@@ -120,7 +120,7 @@ Lab.register({
     P.box('d2', 434, 180, 216, 48, { cls: s.db.c2 ? (s.hot.c2 ? 'hot' : 'plain') : 'ghost', title: 'comment 테이블', sub: s.db.c2 ? 'id 2, post_id 1' : s.hot.c2 ? '행이 지워짐' : '행 없음' });
     if (s.fresh.length) { var kinds = {}; s.fresh.forEach(function (k) { kinds[k] = (kinds[k] || 0) + 1; }); P.arrow('sql', 'mem:r', 'db:l', { cls: s.ex ? 'bad' : 'hot', label: Object.keys(kinds).map(function (k) { return k + (kinds[k] > 1 ? ' ×' + kinds[k] : ''); }).join(', ') }); }
     P.box('res', 16, 254, 648, 34, { cls: s.ex ? 'bad' : 'plain', title: s.ex ? '예외: ' + s.ex : 'DB로 나간 SQL ' + s.sent.length + '건', right: s.ex ? '롤백됨' : '' });
-    P.note('왼쪽의 화살표는 게시글의 comments 목록에 그 댓글이 들어 있다는 뜻입니다. 초록은 영속성 컨텍스트가 관리하는 객체, 빨강은 삭제 예정, 노랑은 목록에서 빠진 댓글입니다. 가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 표시입니다.');
+    P.note('왼쪽의 화살표는 게시글의 comments 목록이 그 댓글을 가리킨다(참조로 갖고 있다)는 뜻입니다. 초록은 영속성 컨텍스트가 관리하는 객체, 빨강은 삭제 예정, 노랑은 목록에서 빠진 댓글입니다. 가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 표시입니다.');
   },
   assume: '양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. "cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다"는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 "영속성 컨텍스트" 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.',
 });

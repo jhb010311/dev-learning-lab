@@ -100,7 +100,7 @@ Lab.register({
 
     // 5단계: tags
     st.ln[2] = 'good'; st.ln[3] = 'hot';
-    st.o.tags = '목록 2개'; st.arr.push('tags'); st.rows.push(['"tags": ["vip", "new"]', '[ ]는 값의 목록. 글자 두 개']);
+    st.o.tags = '값 2개인 목록'; st.arr.push('tags'); st.rows.push(['"tags": ["vip", "new"]', '[ ]는 값의 목록. 글자 두 개']);
     push('쉼표 다음 줄입니다. "tags"는 큰따옴표로 감싼 이름이고, 값은 [로 시작합니다. [ ]는 값 여러 개의 목록입니다. 안의 "vip"와 "new"는 둘 다 큰따옴표로 감싸여 글자 두 개이고, 사이의 쉼표로 나뉩니다. ]에서 목록이 끝납니다.' + (c.comma === 'trail' ? ' 그런데 ] 뒤에 쉼표가 하나 더 있습니다.' : ''), '');
     if (c.comma === 'trail') {
       st.ln[3] = 'good'; st.ln[4] = 'bad'; st.rows.push(['}', '쉼표 뒤에 이름이 와야 하는데 끝이 나옴']);

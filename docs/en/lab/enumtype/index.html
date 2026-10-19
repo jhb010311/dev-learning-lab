@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -92,7 +92,7 @@ Status s = Status.values()[saved];
 System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;);
 System.out.println(s == Status.PAID);</pre>
 <h2>Assumptions of this model</h2>
-<p>All 45 combinations were checked by actually compiling and running the code shown on the screen (the enum declaration after the change and the code below it) on JDK 21 on this PC, and comparing the saved value, the two lines of output, the exit code, and the exception message. The saved values were obtained by actually getting ordinal(), name(), and code from the enum with the old declaration. In the code on the screen, the five lines below the enum declaration are inside the main method, and the declaration of main is omitted. The following were also checked in the same way: the same constant is the same object no matter how it is obtained, valueOf also throws an exception for a name that differs only in case, == does not throw an exception even when one side is null, and comparing constants of different enum classes with == is a compile-time error. No real database was used. The saved value was written directly in the code to imitate one. A change that removes a constant is not included in the settings. If a constant is removed, reading by ordinal returns a later constant that has moved up or throws an exception because the index is outside the array (ArrayIndexOutOfBoundsException), and reading by name makes valueOf throw an exception (this was also checked by running it separately).</p>
+<p>All 45 combinations were checked by actually compiling and running the code shown on the screen (the enum declaration after the change and the code below it) on JDK 21 in our test environment, and comparing the saved value, the two lines of output, the exit code, and the exception message. The saved values were obtained by actually getting ordinal(), name(), and code from the enum with the old declaration. In the code on the screen, the five lines below the enum declaration are inside the main method, and the declaration of main is omitted. The following were also checked in the same way: the same constant is the same object no matter how it is obtained, valueOf also throws an exception for a name that differs only in case, == does not throw an exception even when one side is null, and comparing constants of different enum classes with == is a compile-time error. No real database was used. The saved value was written directly in the code to imitate one. A change that removes a constant is not included in the settings. If a constant is removed, reading by ordinal returns a later constant that has moved up or throws an exception because the index is outside the array (ArrayIndexOutOfBoundsException), and reading by name makes valueOf throw an exception (this was also checked by running it separately).</p>
 <p>Previous lab: <a href="../../lab/generic/">Generics</a> · Next lab: <a href="../../lab/annot/">Annotations</a></p>
   </div>
 
@@ -180,6 +180,6 @@ System.out.println(s == Status.PAID);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'interface_basic', nav: '인터페이스', cat: '기초개념', mode: 'step', basic: true, deep: ['absint'],
   title: '인터페이스는 코드에서 어떻게 생겼고 무엇을 정하는가',
-  intro: '인터페이스는 interface로 선언하는 약속입니다. "Payable 타입이라면 pay 메서드를 갖춰야 한다"처럼 메서드의 이름만 적고 본문은 적지 않습니다. 클래스는 implements Payable로 그 약속을 지키겠다고 선언하고, 약속한 pay 메서드를 실제로 작성합니다. 그러면 그 클래스의 객체를 Payable 타입 변수에 담을 수 있습니다. 이 실습은 interface 선언, implements, pay 메서드를 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
+  intro: '인터페이스는 interface로 선언하는 약속입니다. 이 실습은 예시로 지은 이름 Payable(인터페이스), Card(클래스), pay(메서드)를 씁니다. "Payable 타입이라면 pay 메서드를 갖춰야 한다"처럼 메서드의 이름만 적고 본문은 적지 않습니다. 클래스는 implements Payable로 그 약속을 지키겠다고 선언하고, 약속한 pay 메서드를 실제로 작성합니다. 그러면 Payable 타입 변수가 그 클래스의 객체를 가리킬 수 있습니다. 이 실습은 interface 선언, implements, pay 메서드를 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
   terms: ['인터페이스', 'implements', '추상 메서드', '타입'],
   controls: [
     { id: 'decl', label: 'interface Payable 선언이 있다', type: 'check', value: true },
@@ -18,7 +18,7 @@ Lab.register({
   ],
   // 컴파일러가 알려 주는 오류의 종류(실제 javac의 진단 코드를 옮긴 것)
   errType: 'Payable이라는 타입을 찾을 수 없음',
-  errFit: 'Card는 Payable 타입이 아니어서 담을 수 없음',
+  errFit: 'Card는 Payable 타입이 아니어서 Payable 변수가 가리킬 수 없음',
   errMiss: 'Card가 pay 메서드를 작성하지 않았음',
   code: function (c) {
     var o = [];
@@ -27,7 +27,7 @@ Lab.register({
     o.push('class Card' + (c.impl ? ' implements Payable' : '') + ' {');
     if (c.method === 'body') o.push('    // 약속한 메서드를 실제로 작성한 것', '    public void pay() {', '        System.out.println("카드로 결제");', '    }');
     else if (c.method === 'empty') o.push('    // 약속한 메서드를 실제로 작성한 것', '    public void pay() { }');
-    o.push('}', '', 'public class Main {', '    public static void main(String[] args) {', '        // Payable 타입 변수에 Card 객체를 담는다', '        Payable p = new Card();', '        p.pay();', '    }', '}');
+    o.push('}', '', 'public class Main {', '    public static void main(String[] args) {', '        // Payable 타입 변수 p가 Card 객체를 가리키게 한다', '        Payable p = new Card();', '        p.pay();', '    }', '}');
     return o.join('\n');
   },
   label: function (c) { return (c.decl ? 'Payable 선언 있음' : 'Payable 선언 없음') + ' · ' + (c.impl ? 'implements 있음' : 'implements 없음') + ' · ' + { body: 'pay 본문 있음', empty: 'pay 본문 비어 있음', none: 'pay 없음' }[c.method]; },
@@ -89,19 +89,19 @@ Lab.register({
     st.hot = 'pv';
     if (ok) {
       st.fit = 'ok';
-      st.checks.push(['Card 객체를 Payable 변수에 담기', { v: '담을 수 있음', cls: 'good' }]);
-      push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. Card는 implements Payable로 약속했으므로 Card의 객체를 Payable 타입 변수 p에 담아도 됩니다. 이것은 실행이 아니라, 컴파일러가 담아도 되는지 미리 확인하는 일입니다.', 'good');
+      st.checks.push(['Payable 변수가 Card 객체를 가리키게 하기', { v: '가리킬 수 있음', cls: 'good' }]);
+      push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. Card는 implements Payable로 약속했으므로 Payable 타입 변수 p가 Card의 객체를 가리켜도 됩니다. 이것은 실행이 아니라, 컴파일러가 그래도 되는지 미리 확인하는 일입니다.', 'good');
     } else if (c.decl && c.impl) {
       st.fit = 'ok';
-      st.checks.push(['Card 객체를 Payable 변수에 담기', { v: '오류 아님', cls: '' }]);
+      st.checks.push(['Payable 변수가 Card 객체를 가리키게 하기', { v: '오류 아님', cls: '' }]);
       push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. Card가 implements Payable을 썼으므로 이 줄 자체는 오류가 아닙니다(javac가 알린 오류는 위의 1개뿐입니다). 하지만 앞의 오류 때문에 컴파일은 실패합니다.', '');
     } else if (c.decl) {
       st.fit = 'bad'; st.bad.pv = true; fail(errFit);
-      st.checks.push(['Card 객체를 Payable 변수에 담기', { v: '담을 수 없음: 오류', cls: 'bad' }]);
-      push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. Card에 implements Payable이 없어 Payable 타입이 아니므로, Card의 객체를 Payable 타입 변수 p에 담을 수 없습니다(javac: incompatible types: Card cannot be converted to Payable).' + (c.method !== 'none' ? ' Card에 pay 메서드가 똑같이 있어도 마찬가지입니다. 메서드가 있다고 그 타입이 되는 것은 아닙니다.' : ' pay 메서드가 없다는 오류는 따로 나지 않습니다. implements가 없으면 지킬 약속이 없기 때문입니다.'), 'bad');
+      st.checks.push(['Payable 변수가 Card 객체를 가리키게 하기', { v: '가리킬 수 없음: 오류', cls: 'bad' }]);
+      push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. Card에 implements Payable이 없어 Payable 타입이 아니므로, Payable 타입 변수 p가 Card의 객체를 가리킬 수 없습니다(javac: incompatible types: Card cannot be converted to Payable).' + (c.method !== 'none' ? ' Card에 pay 메서드가 똑같이 있어도 마찬가지입니다. 메서드가 있다고 그 타입이 되는 것은 아닙니다.' : ' pay 메서드가 없다는 오류는 따로 나지 않습니다. implements가 없으면 지킬 약속이 없기 때문입니다.'), 'bad');
     } else {
       st.bad.pv = true; fail(errType);
-      st.checks.push(['Card 객체를 Payable 변수에 담기', { v: '오류: Payable 타입을 찾을 수 없음', cls: 'bad' }]);
+      st.checks.push(['Payable 변수가 Card 객체를 가리키게 하기', { v: '오류: Payable 타입을 찾을 수 없음', cls: 'bad' }]);
       push('컴파일러가 Payable p = new Card(); 줄을 확인합니다. 변수 p의 타입으로 적은 Payable을 찾을 수 없어 ' + (c.impl ? '같은 오류가 한 번 더 납니다. javac가 알린 오류는 모두 2개입니다.' : '오류가 납니다(javac: cannot find symbol). Card 클래스에는 문제가 없어도, 선언이 없는 이름은 타입으로 쓸 수 없습니다.'), 'bad');
     }
 
@@ -121,17 +121,17 @@ Lab.register({
     var out = '';
     if (ok) {
       st.hot = 'ob'; st.obj = true;
-      push('java Main으로 실행합니다. main이 시작되고, new Card()가 Card 객체를 만들어 Payable 타입 변수 p에 담습니다.', '');
+      push('java Main으로 실행합니다. main이 시작되고, new Card()가 Card 객체를 만들고, Payable 타입 변수 p가 그 객체를 가리킵니다.', '');
       st.hot = 'ob'; st.ran = true; out = c.method === 'body' ? '카드로 결제' : '';
       st.out = out;
       st.checks.push(['실행했을 때 출력', { v: out || '(아무것도 출력되지 않음)', cls: 'good' }]);
-      push('p.pay()가 실행됩니다. p에 담긴 객체는 Card의 객체이므로 Card에 작성한 pay 메서드가 실행됩니다.' + (c.method === 'body' ? ' 본문의 println이 "카드로 결제"를 출력합니다.' : ' 본문이 비어 있어 아무것도 출력하지 않고 끝납니다. 오류는 없습니다.'), 'good');
+      push('p.pay()가 실행됩니다. p가 가리키는 객체는 Card의 객체이므로 Card에 작성한 pay 메서드가 실행됩니다.' + (c.method === 'body' ? ' 본문의 println이 "카드로 결제"를 출력합니다.' : ' 본문이 비어 있어 아무것도 출력하지 않고 끝납니다. 오류는 없습니다.'), 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답
     if (ok && c.method === 'body') {
       sum.push('인터페이스는 interface로 선언하는, "이 타입이라면 이 메서드를 갖춰야 한다"는 약속입니다. 메서드의 이름만 적고 본문은 적지 않습니다. interface Payable 선언이 Payable이라는 타입을 만들고, Card는 implements Payable로 그 약속을 지키겠다고 선언한 뒤 pay 메서드를 실제로 작성합니다.');
-      sum.push('그래서 Card의 객체를 Payable 타입 변수 p에 담을 수 있었고, p.pay()가 Card의 pay를 실행했습니다. 약속을 지켰는지는 실행할 때가 아니라 컴파일러가 컴파일할 때 확인했습니다.');
+      sum.push('그래서 Payable 타입 변수 p가 Card의 객체를 가리킬 수 있었고, p.pay()가 Card의 pay를 실행했습니다. 약속을 지켰는지는 실행할 때가 아니라 컴파일러가 컴파일할 때 확인했습니다.');
     } else if (ok) {
       sum.push('본문이 비어 있어도 pay 메서드를 작성한 것이므로 약속을 지킨 것입니다. 컴파일에 성공했고, 실행해도 아무것도 출력되지 않았습니다.');
       sum.push('약속은 "이런 이름의 메서드가 있어야 한다"까지이고, 안에서 무엇을 하는지는 약속에 없습니다. 컴파일러는 pay 메서드가 있는지를 확인했고, 비어 있다는 이유로 오류를 내지 않았습니다.');
@@ -139,7 +139,7 @@ Lab.register({
       sum.push('interface Payable 선언이 없으면 Payable이라는 타입이 없습니다. 컴파일러가 Payable이라는 타입을 찾을 수 없다고 알려 주었고, 컴파일에 실패해 실행할 수 없었습니다.');
       sum.push('Payable 타입은 interface 선언에서 만들어집니다. 오류가 난 곳은 ' + (c.impl ? 'implements Payable 줄과 Payable p 줄, 두 군데였습니다.' : 'Payable p 줄 한 군데였습니다. Card 클래스에는 문제가 없었습니다.'));
     } else if (!c.impl) {
-      sum.push('implements Payable을 지우면 Card는 Payable 타입이 아니어서, Card의 객체를 Payable 타입 변수에 담을 수 없습니다. 컴파일에 실패해 실행할 수 없었습니다.' + (c.method !== 'none' ? ' pay 메서드가 똑같이 있어도 마찬가지였습니다.' : ''));
+      sum.push('implements Payable을 지우면 Card는 Payable 타입이 아니어서, Payable 타입 변수가 Card의 객체를 가리킬 수 없습니다. 컴파일에 실패해 실행할 수 없었습니다.' + (c.method !== 'none' ? ' pay 메서드가 똑같이 있어도 마찬가지였습니다.' : ''));
       sum.push('메서드를 갖췄다고 그 타입이 되는 것이 아닙니다. 약속을 지키겠다는 implements 선언이 있어야 컴파일러가 Card를 Payable 타입으로 인정합니다.');
     } else {
       sum.push('Card가 pay 메서드를 작성하지 않아 컴파일에 실패했습니다. implements Payable로 약속했으면 약속한 메서드를 실제로 작성해야 합니다.');
@@ -168,5 +168,5 @@ Lab.register({
     P.box('r1', 14, 232, 652, 52, { cls: s && s.compile === 'ok' ? 'good' : s && s.compile === 'err' ? 'bad' : 'ghost', title: '컴파일', right: s && s.compile ? (s.compile === 'ok' ? '성공' : '오류') : '', sub: s && s.errText ? s.errText : '' });
     P.box('r2', 14, 292, 652, 36, { cls: s && s.ran ? 'good' : s && s.compile === 'err' ? 'bad' : 'ghost', title: '실행했을 때 출력', right: s && s.ran ? (s.out || '(아무것도 출력되지 않음)') : s && s.compile === 'err' ? '실행할 수 없음' : '' });
   },
-  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve, cant.resolve.location, prob.found.req, does.not.override.abstract를 화면의 세 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 본문 없이 세미콜론으로 끝나는 인터페이스 메서드가 추상 메서드이고 public이라는 것은 9.4절, 추상 클래스가 아닌 클래스는 implements한 인터페이스의 추상 메서드를 모두 구현해야 한다는 것은 8.1.5절과 8.1.1.1절, 메서드 본문이 세미콜론이 아니라 블록이면 구현이고 블록이 비어 있어도 되는 것은 8.4.7절과 8.1.1.1절의 예(alert() { })를, 인터페이스와 클래스가 모두 참조 타입이고 implements한 인터페이스가 클래스의 상위 타입이라는 것은 4.3절과 4.10.2절, 하위 타입의 값을 상위 타입 변수에 담을 수 있다는 것은 5.1.5절과 5.2절을 따랐습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 오류가 여럿이면 javac는 모두 알리는데, 표에는 첫 번째 것만 적었습니다. 컴파일에 실패해도 Card 같은 일부 클래스 파일은 만들어졌지만 Main 클래스 파일은 한 번도 만들어지지 않았고, 그래서 실행할 수 없다고 적었습니다. 인터페이스는 이 밖에도 default 메서드, static 메서드, 상수를 가질 수 있고 한 클래스가 여러 인터페이스를 implements할 수 있지만 이 실습은 다루지 않았습니다. 인터페이스의 쓰임과 추상 클래스와의 차이는 "세부 동작 실습: 인터페이스와 추상 클래스"에서 다룹니다.',
+  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve, cant.resolve.location, prob.found.req, does.not.override.abstract를 화면의 세 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 본문 없이 세미콜론으로 끝나는 인터페이스 메서드가 추상 메서드이고 public이라는 것은 9.4절, 추상 클래스가 아닌 클래스는 implements한 인터페이스의 추상 메서드를 모두 구현해야 한다는 것은 8.1.5절과 8.1.1.1절, 메서드 본문이 세미콜론이 아니라 블록이면 구현이고 블록이 비어 있어도 되는 것은 8.4.7절과 8.1.1.1절의 예(alert() { })를, 인터페이스와 클래스가 모두 참조 타입이고 implements한 인터페이스가 클래스의 상위 타입이라는 것은 4.3절과 4.10.2절, 상위 타입 변수가 하위 타입의 객체를 가리킬 수 있다는 것은 5.1.5절과 5.2절을 따랐습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 오류가 여럿이면 javac는 모두 알리는데, 표에는 첫 번째 것만 적었습니다. 컴파일에 실패해도 Card 같은 일부 클래스 파일은 만들어졌지만 Main 클래스 파일은 한 번도 만들어지지 않았고, 그래서 실행할 수 없다고 적었습니다. 인터페이스는 이 밖에도 default 메서드, static 메서드, 상수를 가질 수 있고 한 클래스가 여러 인터페이스를 implements할 수 있지만 이 실습은 다루지 않았습니다. 인터페이스의 쓰임과 추상 클래스와의 차이는 "세부 동작 실습: 인터페이스와 추상 클래스"에서 다룹니다.',
 });

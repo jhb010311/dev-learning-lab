@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test code: What is test code, and who decides whether a test passes or fails? · Dev Learning Lab</title>
-<meta name="description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds(…">
+<meta name="description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class, written for this lab as an example,…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/test_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Test code: What is test code, and who decides whether a test passes or fails? · Dev Learning Lab">
-<meta property="og:description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds(…">
+<meta property="og:description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class, written for this lab as an example,…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Test code</h1>
 <p><b>What is test code, and who decides whether a test passes or fails?</b></p>
-<p>Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds() method calls add(2, 3) of the Calc class, and assertEquals(5, ...) compares the value that add returned with the expected value, 5. If the two values differ, an error occurs on that line. The @Test above adds() is a marker that says &quot;this method is a test.&quot; It is not we who run this code, but JUnit, a testing tool. JUnit finds the methods that have @Test and calls them. If a method ends without an error, JUnit counts it as passed. If it ends with the error that assertEquals threw, JUnit counts it as failed. In this lab you break add, write the expected value wrongly, or remove @Test, and run the same code with real JUnit each time, and you see how the number of tests found, the verdict of pass or fail, and the failure message change. (The code on the screen leaves out the import lines.)</p>
+<p>Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class, written for this lab as an example, is one. Its adds() method calls add(2, 3) of the Calc class, which is also an example written for this lab, and assertEquals(5, ...) compares the value that add returned with the expected value, 5. If the two values differ, an error occurs on that line. The @Test above adds() is a marker that says &quot;this method is a test.&quot; It is not we who run this code, but JUnit, a testing tool. JUnit finds the methods that have @Test and calls them. If a method ends without an error, JUnit counts it as passed. If it ends with the error that assertEquals threw, JUnit counts it as failed. In this lab you break add, write the expected value wrongly, or remove @Test, and run the same code with real JUnit each time, and you see how the number of tests found, the verdict of pass or fail, and the failure message change. (The code on the screen leaves out the import lines.)</p>
 <p>Checked against real execution · Compiled 8 combinations on JDK 21 and JUnit 6.0.3 and ran them with the JUnit Launcher, and checked the number of tests found, passed and failed, and the failure message against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -175,6 +175,6 @@ class CalcTest {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

@@ -79,7 +79,7 @@ Lab.register({
     // Summary
     if (c2 && home) {
       sum.push('A commit stores the whole state of the files at one moment, and it points to the commit right before it. A branch (main, feature) is not a copy of commits but a label that points to one commit. When you commit on feature, only the feature label moves to commit 2 and main stays at commit 1, so when you return to main, memo.txt is v1.');
-      sum.push('git switch main only moved the label you are on and changed the files in the folder to the state of the commit main points to. Commit 2 was not deleted. The feature label points to it.');
+      sum.push('git switch main only changed the branch you are on (HEAD) to main and changed the files in the folder to the state of the commit main points to. It did not move the main or feature label. Commit 2 was not deleted. The feature label points to it.');
     } else if (c2) {
       sum.push('Without the line that goes back to main, you stay on feature, so memo.txt is v2. The file in the folder is the state of commit 2, which the branch you are on points to.');
       sum.push('Even when you committed on feature, the main label did not move. When you commit on a branch, only the label of the branch you are on moves to the new commit.');

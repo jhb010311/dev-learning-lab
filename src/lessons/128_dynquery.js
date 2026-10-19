@@ -164,16 +164,16 @@ Lab.register({
       st.line = 0; push('selectFrom(m): 회원을 조회하는 쿼리 객체를 만듭니다. m은 QMember.member로, Querydsl이 Member 엔티티를 보고 만들어 둔 Q클래스의 객체입니다. m.name, m.age처럼 프로퍼티를 자바 코드로 가리킬 수 있습니다.');
       st.line = 1;
       st.pieces[0] = { t: 'nameEq(name)', r: c.name ? 'm.name.eq("김철수")' : 'null', cls: c.name ? 'good' : 'ghost' };
-      push('nameEq(name): ' + (c.name ? '이름이 있으므로 "name = 김철수"를 뜻하는 조건 객체(BooleanExpression)를 돌려줍니다.' : '이름이 null이므로 조건 객체 대신 null을 돌려줍니다.'));
+      push('nameEq(name): 이 예제에서 만든 메서드입니다(Querydsl이 주는 메서드가 아닙니다). ' + (c.name ? '이름이 있으므로 "name = 김철수"를 뜻하는 조건 객체(BooleanExpression)를 돌려줍니다.' : '이름이 null이므로 조건 객체 대신 null을 돌려줍니다.'));
       st.pieces[1] = { t: 'ageGoe(age)', r: c.age ? 'm.age.goe(20)' : 'null', cls: c.age ? 'good' : 'ghost' };
-      push('ageGoe(age): ' + (c.age ? '나이가 있으므로 "age >= 20"을 뜻하는 조건 객체를 돌려줍니다. goe는 "크거나 같다"는 뜻입니다.' : '나이가 null이므로 null을 돌려줍니다.'));
+      push('ageGoe(age): nameEq와 마찬가지로 이 예제에서 만든 메서드입니다. ' + (c.age ? '나이가 있으므로 "age >= 20"을 뜻하는 조건 객체를 돌려줍니다. goe는 "크거나 같다"는 뜻입니다.' : '나이가 null이므로 null을 돌려줍니다.'));
       st.pieces[2] = { t: st.pieces[2].t, r: 'null을 뺀 조건 ' + n + '개', cls: 'good' };
       st.full = { t: '조립된 쿼리 (객체)', s: n ? '조건 ' + n + '개' + (n > 1 ? '를 and로 묶음' : '') : '조건 없음 (where 절이 생기지 않음)', cls: 'plain' };
       push('where(nameEq(name), ageGoe(age)): Querydsl의 where는 넘겨받은 조건 가운데 null인 것을 건너뛰고(공식 API 문서: "Skips null arguments"), 남은 조건을 and로 묶습니다. 이번에는 조건 ' + n + '개가 남습니다.' + (n === 0 ? ' 하나도 남지 않으면 where 절이 없는 쿼리가 됩니다.' : ''), 'good');
       st.line = 2; st.run = { s: '실행하지 못함 · 문서 기준: ' + where + ' · ' + hit + '명', cls: 'wait' };
-      push('fetch(): 쿼리를 실행해 목록을 돌려주는 메서드입니다. 이 PC에는 Querydsl 라이브러리가 없어서 이 단계는 실제로 실행해 보지 못했습니다. 문서대로라면 ' + (n ? '조건이 "' + where + '"인 쿼리' : 'where가 없는 쿼리') + '가 되고, 같은 조건을 실행으로 확인한 Criteria API의 결과로 미루어 ' + hit + '명이 조회됩니다.');
+      push('fetch(): 쿼리를 실행해 목록을 돌려주는 메서드입니다. 검증 실행 환경에는 Querydsl 라이브러리가 없어서 이 단계는 실제로 실행해 보지 못했습니다. 문서대로라면 ' + (n ? '조건이 "' + where + '"인 쿼리' : 'where가 없는 쿼리') + '가 되고, 같은 조건을 실행으로 확인한 Criteria API의 결과로 미루어 ' + hit + '명이 조회됩니다.');
       row = ['null이 아닌 조건 ' + n + '개 (문자열 없음)', '실행하지 못함 (문서 기준: 오류 없음)', '문서 기준: ' + where, '문서 기준: ' + hit + '명'];
-      sum.push('Querydsl은 이 PC에서 실행하지 못했습니다. 아래 내용은 Querydsl 공식 문서에 근거한 설명입니다.');
+      sum.push('Querydsl은 실행해 확인하지 못했습니다. 아래 내용은 Querydsl 공식 문서에 근거한 설명입니다.');
       sum.push('조건 메서드가 값이 없을 때 null을 돌려주고, where가 null을 건너뛰므로, if 문으로 where와 and를 맞출 필요가 없습니다. 조건이 늘어도 where 안에 메서드 하나를 더 적으면 됩니다.');
       sum.push('m.name처럼 프로퍼티를 자바 코드로 쓰기 때문에, 이름을 틀리면 실행 전에 컴파일 오류로 드러납니다. 조건을 하나씩 쌓아 가는 BooleanBuilder를 써도 같은 일을 할 수 있습니다.');
     }
@@ -197,7 +197,7 @@ Lab.register({
     P.box('full', 28, 194, 624, 46, { cls: s.full.cls, title: s.full.t || '조립된 쿼리', sub: s.full.s, mono: true });
     P.box('run', 16, 270, 648, 44, { cls: s.run.cls, title: '실행 결과', sub: s.run.s });
     if (s.run.cls !== 'ghost') P.arrow('go', 'full:b', 'run:t', { cls: s.run.cls === 'bad' ? 'bad' : s.run.cls === 'good' ? 'good' : 'dash', label: c.how === 'querydsl' ? 'fetch (실행 못 함)' : 'createQuery' });
-    P.note(c.how === 'querydsl' ? 'Querydsl은 이 PC에 라이브러리가 없어 실행하지 못했습니다. 그림은 공식 문서가 설명하는 동작을 옮긴 것입니다. 점선 상자는 null이라서 where가 건너뛴 조건입니다.' : c.how === 'criteria' ? '점선 상자는 값이 없어 목록에 넣지 않은 조건입니다. where와 and는 조건의 개수에 맞춰 JPA가 만듭니다.' : '점선 상자는 값이 없어 붙이지 않은 조각입니다. 따옴표 안의 띄어쓰기까지 그대로 이어 붙는다는 점을 눈여겨보세요. 붙지 않은 조각이 있어도 나머지 조각은 자기 모양 그대로 붙습니다.');
+    P.note(c.how === 'querydsl' ? 'Querydsl은 검증 실행 환경에 라이브러리가 없어 실행하지 못했습니다. 그림은 공식 문서가 설명하는 동작을 옮긴 것입니다. 점선 상자는 null이라서 where가 건너뛴 조건입니다.' : c.how === 'criteria' ? '점선 상자는 값이 없어 목록에 넣지 않은 조건입니다. where와 and는 조건의 개수에 맞춰 JPA가 만듭니다.' : '점선 상자는 값이 없어 붙이지 않은 조각입니다. 따옴표 안의 띄어쓰기까지 그대로 이어 붙는다는 점을 눈여겨보세요. 붙지 않은 조각이 있어도 나머지 조각은 자기 모양 그대로 붙습니다.');
   },
-  assume: '문자열을 이어 붙이는 세 가지 방식과 JPA Criteria API 방식의 열여섯 가지 조합은 이 PC의 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드를 실제로 실행해, 조립된 문자열, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 조회된 회원 수를 화면과 대조했습니다. Querydsl의 네 가지 조합은 이 PC에 Querydsl 라이브러리가 없어 실행으로 확인하지 못했습니다. 그 부분은 Querydsl 공식 문서를 따른 설명입니다: FilteredClause.where(Predicate...)의 API 문서("Adds the given filter conditions. Skips null arguments"), 참조 문서 Querying JPA 장의 여러 필터를 and로 묶는 예, Complex predicates 절의 BooleanBuilder 설명. Querydsl의 결과 칸에 적힌 where와 회원 수는 문서대로 동작한다고 볼 때의 값이며 실행 결과가 아닙니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. "where and"에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. Criteria API에서 조건이 0개일 때 where 절이 생기지 않는다는 것, m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 예외(Hibernate 7.4.5에서는 PathElementException)가 난다는 것도 실행으로 확인했습니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.',
+  assume: '문자열을 이어 붙이는 세 가지 방식과 JPA Criteria API 방식의 열여섯 가지 조합은 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드를 실제로 실행해, 조립된 문자열, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 조회된 회원 수를 화면과 대조했습니다. Querydsl의 네 가지 조합은 검증 실행 환경에 Querydsl 라이브러리가 없어 실행으로 확인하지 못했습니다. 그 부분은 Querydsl 공식 문서를 따른 설명입니다: FilteredClause.where(Predicate...)의 API 문서("Adds the given filter conditions. Skips null arguments"), 참조 문서 Querying JPA 장의 여러 필터를 and로 묶는 예, Complex predicates 절의 BooleanBuilder 설명. Querydsl의 결과 칸에 적힌 where와 회원 수는 문서대로 동작한다고 볼 때의 값이며 실행 결과가 아닙니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. "where and"에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. Criteria API에서 조건이 0개일 때 where 절이 생기지 않는다는 것, m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 예외(Hibernate 7.4.5에서는 PathElementException)가 난다는 것도 실행으로 확인했습니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.',
 });

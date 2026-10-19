@@ -1,7 +1,7 @@
 Lab.register({
   id: 'static_basic', nav: 'static', cat: '기초개념', mode: 'step', basic: true, deep: ['static'],
   title: 'static은 무엇이고, 붙이면 무엇이 달라지는가',
-  intro: 'static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
+  intro: 'static은 필드(클래스 안에 선언한 변수)나 메서드 앞에 붙이는 키워드입니다(이 실습은 필드만 봅니다). static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고(Counter는 이 실습에서 예시로 만든 클래스입니다), static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
   terms: ['static', '필드', '인스턴스 필드와 static 필드', '클래스와 객체'],
   controls: [
     { id: 'st', label: 'count 앞에 static을 적는다', type: 'check', value: true },
@@ -71,10 +71,10 @@ Lab.register({
       // 4. new Counter() 두 번
       st.hot = 'oa'; st.objs = 1;
       if (c.st) { st.cls = 0; st.cells = 1; } else { st.a = 0; st.cells = 1; }
-      push('java Main으로 실행합니다. main이 시작되고, 첫 new Counter()가 Counter 객체를 만들어 변수 a에 담습니다.' + (c.st ? ' count는 static이어서 이 객체 안에는 count 칸이 생기지 않습니다. Counter 클래스에 count 칸이 하나 있고 값은 0입니다.' : ' count는 static이 아니어서 이 객체 안에 count 칸이 생기고, 값은 0입니다.'), '');
+      push('java Main으로 실행합니다. main이 시작되고, 첫 new Counter()가 Counter 객체를 만들고, 변수 a가 그 객체를 가리키게 됩니다.' + (c.st ? ' count는 static이어서 이 객체 안에는 count 칸이 생기지 않습니다. Counter 클래스에 count 칸이 하나 있고 값은 0입니다.' : ' count는 static이 아니어서 이 객체 안에 count 칸이 생기고, 값은 0입니다.'), '');
       st.hot = 'ob'; st.objs = 2;
       if (!c.st) { st.b = 0; st.cells = 2; }
-      push('두 번째 new Counter()가 Counter 객체를 하나 더 만들어 변수 b에 담습니다.' + (c.st ? ' 객체는 둘이 되었지만 count 칸은 새로 생기지 않았습니다. 여전히 Counter 클래스에 하나뿐입니다.' : ' 이 객체 안에도 count 칸이 따로 생기고 값은 0입니다. 이제 count 칸은 a의 것과 b의 것, 둘입니다.'), '');
+      push('두 번째 new Counter()가 Counter 객체를 하나 더 만들고, 변수 b가 그 객체를 가리키게 됩니다.' + (c.st ? ' 객체는 둘이 되었지만 count 칸은 새로 생기지 않았습니다. 여전히 Counter 클래스에 하나뿐입니다.' : ' 이 객체 안에도 count 칸이 따로 생기고 값은 0입니다. 이제 count 칸은 a의 것과 b의 것, 둘입니다.'), '');
 
       // 5. a.up()
       if (c.st) { st.cls = 1; st.hot = 'cl'; st.by = 'a'; } else { st.a = 1; st.hot = 'oa'; }

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -108,7 +108,7 @@ class Dog extends Animal {
 Dog d = new Dog();
 d.describe();</pre>
 <h2>Assumptions of this model</h2>
-<p>All 36 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the output while the object is being created, and the output of d.describe() were checked against the results. It was also confirmed by compiling that the same error occurs when the subclass declares no constructor and the superclass has no no-argument constructor, and that super(...) must be the first statement of a constructor (as of JDK 21). In newer JDKs this is said to have changed so that some statements can come before super(...), but this was not verified on this PC. Simplifications: the constructor of Animal also calls the constructor of its own superclass, Object, before anything else, and this step is left out. The detailed rules for which method is selected are covered in the &quot;Polymorphism and method selection&quot; lab. The error message is the first line of the English message from javac.</p>
+<p>All 36 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, the output while the object is being created, and the output of d.describe() were checked against the results. It was also confirmed by compiling that the same error occurs when the subclass declares no constructor and the superclass has no no-argument constructor, and that super(...) must be the first statement of a constructor (as of JDK 21). In newer JDKs this is said to have changed so that some statements can come before super(...), but this was not verified in our test run. Simplifications: the constructor of Animal also calls the constructor of its own superclass, Object, before anything else, and this step is left out. The detailed rules for which method is selected are covered in the &quot;Polymorphism and method selection&quot; lab. The error message is the first line of the English message from javac.</p>
 <p>Previous lab: <a href="../../lab/static/">static and instance</a> · Next lab: <a href="../../lab/poly/">Polymorphism and method selection</a></p>
   </div>
 
@@ -196,6 +196,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

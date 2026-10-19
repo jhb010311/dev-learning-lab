@@ -24,8 +24,8 @@ Lab.register({
   code: function (c) {
     var eager = c.st === 'eager';
     var q = c.st === 'fetch' ? '@Query("select o from Order o join fetch o.member")' : c.st === 'graph' ? '@EntityGraph(attributePaths = "member")\n    @Query("select o from Order o")' : '@Query("select o from Order o")';
-    return '@Entity class Order {\n    @ManyToOne(fetch = FetchType.' + (eager ? 'EAGER' : 'LAZY') + ')\n    Member member;\n}\n\ninterface OrderRepository {\n    ' + q + '\n    List<Order> findOrders();\n}\n' +
-      (c.st === 'batch' ? '\n// application.yml\n// hibernate.default_batch_fetch_size: ' + c.bs + '\n' : '') +
+    return '@Entity class Order {                 // 예시로 만든 엔티티 (필요한 부분만 남김)\n    @ManyToOne(fetch = FetchType.' + (eager ? 'EAGER' : 'LAZY') + ')\n    Member member;\n}\n\ninterface OrderRepository extends JpaRepository<Order, Long> {\n    ' + q + '\n    List<Order> findOrders();\n}\n' +
+      (c.st === 'batch' ? '\n// application.yml\n// spring.jpa.properties.hibernate.default_batch_fetch_size: ' + c.bs + '\n' : '') +
       '\n// 서비스 (트랜잭션 안)\nList<Order> orders = repo.findOrders();   // 주문 ' + c.n + '건\nfor (Order o : orders) {\n' + (c.use ? '    names.add(o.getMember().getName());  // 회원 이름 사용' : '    total += o.getAmount();              // 회원은 쓰지 않음') + '\n}';
   },
   label: function (c) { return { lazy: '지연 로딩', eager: '즉시 로딩', fetch: 'fetch join', graph: '@EntityGraph', batch: '배치 ' + c.bs + '개씩' }[c.st] + ' · 주문 ' + c.n + '건 · 회원 ' + c.m + '명 · 이름 ' + (c.use ? '사용' : '사용 안 함'); },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -74,29 +74,31 @@
 </ul>
 <h2>코드</h2>
 <pre>// 서버 (Node.js). Negotiator는 Accept 계열 헤더를 해석해 주는 라이브러리
+// http, zlib, negotiator를 불러오는 줄은 줄임(필요한 부분만 남김)
 http.createServer((req, res) =&gt; {
     const want = new Negotiator(req);
     const type = want.mediaType(['text/html', 'application/json', 'image/png']);        // Accept
     const lang = want.language(['ko', 'en']) || 'ko';                                    // Accept-Language, 맞는 것이 없으면 ko
     const enc  = want.encoding(['br', 'gzip', 'identity'], { preferred: ['br', 'gzip'] });  // Accept-Encoding
 
-    let body = load(type, lang);                       // 고른 형식과 언어의 본문
+    let body = load(type, lang);                       // 고른 형식과 언어의 본문 (load는 예시로 만든 함수)
     if (enc === 'gzip') body = zlib.gzipSync(body);
     if (enc === 'br')   body = zlib.brotliCompressSync(body);
 
-    res.writeHead(200, {
+    const headers = {
         'Content-Type': type,
-        'Content-Language': lang,                      // 그림에는 붙이지 않는다
-        'Content-Encoding': enc,                       // 압축하지 않았으면 붙이지 않는다
         'Cache-Control': 'public, max-age=60',         // 공유 캐시가 60초 동안 보관해도 된다
-    });
+    };
+    if (type !== 'image/png') headers['Content-Language'] = lang;   // 그림에는 붙이지 않는다
+    if (enc !== 'identity') headers['Content-Encoding'] = enc;      // 압축하지 않았으면 붙이지 않는다
+    res.writeHead(200, headers);
     res.end(body);
 });
 
 // 클라이언트 A의 요청
 // curl -H 'Accept: text/html' -H 'Accept-Language: ko' -H 'Accept-Encoding: gzip, br' http://shop.example/guide</pre>
 <h2>이 모형의 전제</h2>
-<p>본문 세 가지(긴 HTML, 짧은 JSON, PNG 그림)는 시험용으로 만든 예시이며, 크기는 그 본문을 이 PC의 Node.js 24에 든 zlib 1.3.1(gzip)과 brotli 1.2.0의 기본 설정으로 압축한 실제 값입니다. 압축 수준이나 라이브러리 버전이 다르면 몇 바이트씩 달라질 수 있습니다. 예시의 HTML은 같은 모양의 표가 되풀이되어 보통의 문서보다 훨씬 많이 줄어든 편입니다. 서로 다른 88가지 조합(그림에는 언어 설정이 쓰이지 않음)을 127.0.0.1에 띄운 시험 서버로 실행해 서버가 고른 형식, 언어, 압축, 전송된 크기, Vary, B가 받은 응답이 모형과 같은 것을 확인했습니다. 시험 서버는 Node의 http에 헤더 해석 라이브러리 negotiator 1.0(Express가 쓰는 것)과 zlib을 붙여 만들었고, 공유 캐시는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2로 판단하는 작은 캐싱 프록시를 직접 만들어 썼습니다. 실제 CDN이나 프록시 제품으로 확인한 것은 아닙니다. 추가로 fetch(기본값으로 Accept-Encoding: gzip, deflate를 보냄)와 curl --compressed가 압축된 응답을 스스로 풀어 돌려주는 것, 옵션 없는 curl은 Accept-Encoding을 보내지 않는 것, Vary 없는 캐시 뒤에서 옵션 없는 curl이 br로 압축된 한국어 응답을 그대로 받는 것을 실행으로 확인했습니다. q 값의 뜻과 생략하면 1이라는 것, 맞는 언어가 없을 때 무시하거나 406으로 응답할 수 있다는 것은 RFC 9110 12.4.2절과 12.5.4절, Vary의 뜻은 12.5.5절, 캐시가 Vary에 적힌 요청 헤더를 비교한다는 것은 RFC 9111 4.1절을 따랐습니다. 선호도가 같은 압축 방식 가운데 무엇을 고를지는 표준이 정하지 않아 서버마다 다릅니다(이 시험 서버는 br 우선). 표준(RFC 9110 12.5.3절)에 따르면 Accept-Encoding이 없는 요청에는 서버가 어떤 압축이든 써도 되지만, 이 시험 서버를 포함해 대부분의 서버는 압축하지 않고 보냅니다. B가 압축을 &quot;풀지 못한다&quot;는 것은 B를 압축을 지원하지 않는 프로그램으로 가정한 것입니다. 브라우저처럼 Content-Encoding을 보고 스스로 푸는 클라이언트라면 내용은 읽을 수 있지만, 원하지 않은 언어를 받는 문제는 그대로입니다.</p>
+<p>본문 세 가지(긴 HTML, 짧은 JSON, PNG 그림)는 시험용으로 만든 예시이며, 크기는 그 본문을 검증 실행에 쓴 Node.js 24에 든 zlib 1.3.1(gzip)과 brotli 1.2.0의 기본 설정으로 압축한 실제 값입니다. 압축 수준이나 라이브러리 버전이 다르면 몇 바이트씩 달라질 수 있습니다. 예시의 HTML은 같은 모양의 표가 되풀이되어 보통의 문서보다 훨씬 많이 줄어든 편입니다. 서로 다른 88가지 조합(그림에는 언어 설정이 쓰이지 않음)을 127.0.0.1에 띄운 시험 서버로 실행해 서버가 고른 형식, 언어, 압축, 전송된 크기, Vary, B가 받은 응답이 모형과 같은 것을 확인했습니다. 시험 서버는 Node의 http에 헤더 해석 라이브러리 negotiator 1.0(Express가 쓰는 것)과 zlib을 붙여 만들었고, 공유 캐시는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2로 판단하는 작은 캐싱 프록시를 직접 만들어 썼습니다. 실제 CDN이나 프록시 제품으로 확인한 것은 아닙니다. 추가로 fetch(기본값으로 Accept-Encoding: gzip, deflate를 보냄)와 curl --compressed가 압축된 응답을 스스로 풀어 돌려주는 것, 옵션 없는 curl은 Accept-Encoding을 보내지 않는 것, Vary 없는 캐시 뒤에서 옵션 없는 curl이 br로 압축된 한국어 응답을 그대로 받는 것을 실행으로 확인했습니다. q 값의 뜻과 생략하면 1이라는 것, 맞는 언어가 없을 때 무시하거나 406으로 응답할 수 있다는 것은 RFC 9110 12.4.2절과 12.5.4절, Vary의 뜻은 12.5.5절, 캐시가 Vary에 적힌 요청 헤더를 비교한다는 것은 RFC 9111 4.1절을 따랐습니다. 선호도가 같은 압축 방식 가운데 무엇을 고를지는 표준이 정하지 않아 서버마다 다릅니다(이 시험 서버는 br 우선). 표준(RFC 9110 12.5.3절)에 따르면 Accept-Encoding이 없는 요청에는 서버가 어떤 압축이든 써도 되지만, 이 시험 서버를 포함해 대부분의 서버는 압축하지 않고 보냅니다. B가 압축을 &quot;풀지 못한다&quot;는 것은 B를 압축을 지원하지 않는 프로그램으로 가정한 것입니다. 브라우저처럼 Content-Encoding을 보고 스스로 푸는 클라이언트라면 내용은 읽을 수 있지만, 원하지 않은 언어를 받는 문제는 그대로입니다.</p>
 <p>앞 실습: <a href="../../lab/redirect/">리다이렉션</a> · 다음 실습: <a href="../../lab/cors/">CORS</a></p>
   </div>
 
@@ -184,6 +186,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

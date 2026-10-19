@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <li>try { 줄에 닿습니다. try 안의 줄은 평소처럼 위에서부터 차례로 실행됩니다. try는 &quot;이 안에서 예외가 나면 아래의 catch로 넘기겠다&quot;고 미리 알려 두는 것이고, 예외가 나지 않으면 try를 쓰지 않은 것과 같게 실행됩니다.</li>
 <li>System.out.println(a / b); 줄을 실행합니다. println이 출력하려면 먼저 괄호 안의 a / b를 계산해야 합니다. 10 / 0을 계산하려는 순간, 자바(JVM)가 정수를 0으로 나눌 수 없다는 것을 알고 ArithmeticException이라는 예외 객체를 만들어 던집니다(throw). 예외가 던져지면 자바는 그 자리에서 하던 일을 멈추므로, 출력할 값이 없는 println은 실행되지 않습니다.</li>
 <li>자바가 이 예외를 잡는 곳이 있는지 찾습니다. 예외가 난 곳은 try 안이므로 이 try에 붙은 catch를 봅니다. catch (ArithmeticException e)는 ArithmeticException 종류를 잡겠다고 적혀 있고, 던져진 것도 ArithmeticException이므로 종류가 맞습니다.</li>
-<li>실행이 catch 안으로 건너갑니다. 던져진 예외 객체는 변수 e에 담기고, catch 안의 System.out.println(&quot;0으로 나눌 수 없습니다&quot;); 줄이 실행되어 그 글을 출력합니다.</li>
+<li>실행이 catch 안으로 건너갑니다. 변수 e가 던져진 예외 객체를 가리키게 되고, catch 안의 System.out.println(&quot;0으로 나눌 수 없습니다&quot;); 줄이 실행되어 그 글을 출력합니다.</li>
 <li>catch 안의 줄이 끝나면 예외는 처리된 것으로 칩니다. 프로그램은 멈추지 않고 try-catch 아래의 줄로 이어 가서, System.out.println(&quot;끝&quot;); 줄이 &quot;끝&quot;을 출력합니다. main의 마지막 줄까지 실행되어 프로그램이 끝납니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

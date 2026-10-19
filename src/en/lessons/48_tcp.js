@@ -34,13 +34,13 @@ Lab.register({
       return { events: ev, summary: sum, row: ['"' + got.join('') + '"', '0', 'None'] };
     }
     if (c.loss === 'syn') { step('Client → (lost)', 'SYN', 'The client sent a connection request (SYN), but it was lost on the way.', 'bad'); re++; step('Client', 'No reply → retransmit after about 1 second', 'There is no reply from the server. The client waits for a set time and then sends the SYN again. If that fails too, it doubles the waiting time each time and tries a few more times. This is why a connection can be established "slowly."', 'hot'); }
-    step('Client → Server', 'SYN (seq=100)', 'Step 1: the client sends a SYN, which says "I want to connect." It announces the starting number (100) that it will use.', '');
-    step('Server → Client', 'SYN + ACK (seq=300, ack=101)', 'Step 2: the server answers, "Received (ACK), and I will connect too (SYN)." ack=101 means "I have received up to 100, so send 101 next."', '');
-    step('Client → Server', 'ACK (ack=301)', 'Step 3: the client acknowledges the SYN of the server. Both sides have now confirmed that "what I send arrives, and what the other side sends reaches me." The connection is established.', 'good');
+    step('Client → Server', 'SYN (seq=100)', 'This is the first message of the three-way handshake. The client sends a SYN, which says "I want to connect." It announces the starting number (100) that it will use.', '');
+    step('Server → Client', 'SYN + ACK (seq=300, ack=101)', 'This is the second message. The server answers, "Received (ACK), and I will connect too (SYN)." ack=101 means "I have received up to 100, so send 101 next."', '');
+    step('Client → Server', 'ACK (ack=301)', 'This is the third message. The client acknowledges the SYN of the server. Both sides have now confirmed that "what I send arrives, and what the other side sends reaches me." The connection is established.', 'good');
     step('Client → Server', 'Segment 1 "Hello," (seq=101, 6 bytes)', 'It splits the data into segments, numbers them, and sends them.', ''); got.push('Hello,'); ev[ev.length - 1].snap.got = got.slice();
     step('Server → Client', 'ACK (ack=107)', 'The server acknowledges: "I have received up to 106, so send 107 next."', '');
     if (c.loss === 'data') {
-      step('Client → (lost)', 'Segment 2 " world" (seq=107)', 'The second segment was lost in the network.', 'bad');
+      step('Client → (lost)', 'Segment 2 " world" (seq=107, 6 bytes)', 'The second segment was lost in the network.', 'bad');
       step('Client → Server', 'Segment 3 "!!!" (seq=113, 3 bytes)', 'The third segment arrived. The server expects 107 but received 113, so it is out of order. It keeps this segment and does not pass it to the application.', '');
       step('Server → Client', 'ACK (ack=107) again', 'The server sends the same acknowledgment again, saying "I am still waiting for 107."', '');
       re++; step('Client → Server', 'Segment 2 " world" retransmitted (seq=107)', 'The client sees that no acknowledgment for 107 has arrived, or that the same acknowledgment keeps arriving, and concludes that segment 2 was lost, so it sends it again.', 'hot'); got.push(' world'); got.push('!!!'); ev[ev.length - 1].snap.got = got.slice();

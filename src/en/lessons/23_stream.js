@@ -58,5 +58,5 @@ Lab.register({
     H.title(v, 'Order in which the lambda expressions actually ran'); H.slots(v, s.log.map(function (l, i) { return [l, (l.indexOf('map') === 0 ? 'q' : '') + (i === s.log.length - 1 ? ' now' : '')]; }), 'Nothing has run yet.');
     H.title(v, 'Values in the result'); H.slots(v, s.out.map(function (x) { return [String(x), 'd']; }), 'none yet');
   },
-  assume: 'The execution order and the result of all 12 combinations were checked against the result of running the same pipeline on JDK 21 on this PC. This applies to a sequential stream, and in a parallel stream the order in which the elements are handled is different.',
+  assume: 'The execution order and the result of all 12 combinations were checked against the result of running the same pipeline on JDK 21 in our test run. This applies to a sequential stream, and in a parallel stream the order in which the elements are handled is different.',
 });

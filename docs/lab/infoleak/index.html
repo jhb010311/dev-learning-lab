@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
 
 // 요청: GET /orders/7</pre>
 <h2>이 모형의 전제</h2>
-<p>오류 응답 열두 가지(메시지 설정 2 × 스택 트레이스 설정 3 × trace 파라미터 유무)와 직접 만든 응답 두 가지, 로그인 실패 여섯 가지를 스프링 부트 4.1.1(스프링 시큐리티 7.1.1, 스프링 JDBC, H2) 서버를 127.0.0.1에 띄워 실제 응답과 대조했습니다. 응답의 글귀와 스택 트레이스의 줄 수는 버전과 환경에 따라 달라지므로, 대조한 것은 본문에 어떤 항목이 있는지, 본문에 SQL 문장과 스택 트레이스의 줄과 DB 드라이버의 이름이 보이는지, 두 로그인 실패 응답이 같은지, 어떤 예외가 났는지, 비밀번호 비교가 몇 번 불렸는지입니다. 화면의 message 값은 이 PC에서 본 것이고, errorId의 예는 꾸민 값입니다. JSON으로 받는 요청을 기준으로 했으며, 브라우저처럼 HTML을 받는 요청에는 같은 내용이 오류 화면에 실리는 것을 한 가지 설정에서 확인했습니다. 설정 이름은 스프링 부트 4.1.1의 spring.web.error.*를 썼습니다(스프링 부트 3까지는 server.error.*). include-exception, include-binding-errors와 message의 on_param 값은 다루지 않았습니다. 안전한 응답에서 예외 전체가 로그에 남는 것은 로그 기록을 모아 확인했습니다. 실행하지 않은 것: 응답 시간의 차이는 재지 않았고(비밀번호 비교가 불린 횟수만 확인), 회원 가입과 비밀번호 찾기 화면의 글귀는 OWASP의 인증 관련 안내를 따른 설명입니다. 새어 나간 정보가 실제 공격에 얼마나 쓰이는지는 서버마다 다릅니다.</p>
+<p>오류 응답 열두 가지(메시지 설정 2 × 스택 트레이스 설정 3 × trace 파라미터 유무)와 직접 만든 응답 두 가지, 로그인 실패 여섯 가지를 스프링 부트 4.1.1(스프링 시큐리티 7.1.1, 스프링 JDBC, H2) 서버를 127.0.0.1에 띄워 실제 응답과 대조했습니다. 응답의 글귀와 스택 트레이스의 줄 수는 버전과 환경에 따라 달라지므로, 대조한 것은 본문에 어떤 항목이 있는지, 본문에 SQL 문장과 스택 트레이스의 줄과 DB 드라이버의 이름이 보이는지, 두 로그인 실패 응답이 같은지, 어떤 예외가 났는지, 비밀번호 비교가 몇 번 불렸는지입니다. 화면의 message 값은 이 검증 실행에서 본 것이고, errorId의 예는 꾸민 값입니다. JSON으로 받는 요청을 기준으로 했으며, 브라우저처럼 HTML을 받는 요청에는 같은 내용이 오류 화면에 실리는 것을 한 가지 설정에서 확인했습니다. 설정 이름은 스프링 부트 4.1.1의 spring.web.error.*를 썼습니다(스프링 부트 3까지는 server.error.*). include-exception, include-binding-errors와 message의 on_param 값은 다루지 않았습니다. 안전한 응답에서 예외 전체가 로그에 남는 것은 로그 기록을 모아 확인했습니다. 실행하지 않은 것: 응답 시간의 차이는 재지 않았고(비밀번호 비교가 불린 횟수만 확인), 회원 가입과 비밀번호 찾기 화면의 글귀는 OWASP의 인증 관련 안내를 따른 설명입니다. 새어 나간 정보가 실제 공격에 얼마나 쓰이는지는 서버마다 다릅니다.</p>
 <p>앞 실습: <a href="../../lab/clickjack/">클릭재킹과 오픈 리다이렉트</a> · 다음 실습: <a href="../../lab/ratelimit/">요청 수 제한</a></p>
   </div>
 
@@ -172,6 +172,6 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

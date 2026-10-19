@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -92,7 +92,7 @@ packet.ttl -= 1;
 if (packet.ttl === 0) discardAndReportTimeExceeded(packet);   // 버리고 보낸 쪽에 알린다
 else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간으로. IP 주소는 그대로</pre>
 <h2>이 모형의 전제</h2>
-<p>실제 장비로 실행한 결과가 아니라 표준 문서의 규칙을 옮긴 개념 모형입니다. 이 PC 한 대로는 스위치와 라우터 두 대를 거치는 길을 만들 수 없어 실행으로 대조하지 못했습니다. 그 대신 모형의 결과를, 같은 규칙을 다른 방법(기기마다 IP 주소, 마스크, 라우팅 표, ARP 표를 두고 패킷을 넘겨 가는 계산)으로 옮긴 계산과 열여덟 가지 조합에서 대조했습니다. 근거로 삼은 문서: 보내는 컴퓨터가 마스크로 같은 네트워크인지 판단해 직접 보내거나 게이트웨이로 보내는 것은 RFC 1122 3.3.1.1절, IP 주소로 MAC 주소를 알아내는 ARP는 RFC 826, TTL의 뜻은 RFC 791 3.2절, 라우터가 전달할 때 TTL을 줄이고 0이 되면 버리며 ICMP 시간 초과를 보내는 것은 RFC 1812 5.3.1절과 RFC 792, 받는 컴퓨터는 TTL이 작아도 받는다는 것은 RFC 1122 3.2.1.7절입니다. 스위치가 MAC 주소로 전달하는 방식은 IEEE 802.1D의 내용입니다. 단순화한 것: 네트워크 B와 C에도 스위치가 있지만 그리지 않았고, 스위치가 어느 포트에 어느 MAC 주소가 있는지 배우는 과정, 라우터가 TTL을 줄인 뒤 IP 헤더의 체크섬을 다시 계산하는 일, 주소 변환(NAT)은 다루지 않았습니다. 집에서 쓰는 공유기를 지날 때는 NAT 때문에 보내는 IP 주소도 바뀝니다. IP 주소는 사설 대역(192.168.x.x), MAC 주소는 문서용으로 예약된 대역(RFC 7042, 지금은 RFC 9542)의 값이며 실제 기기의 주소가 아닙니다. 처음 TTL은 운영체제마다 다릅니다.</p>
+<p>실제 장비로 실행한 결과가 아니라 표준 문서의 규칙을 옮긴 개념 모형입니다. 컴퓨터 한 대로는 스위치와 라우터 두 대를 거치는 길을 만들 수 없어 실행으로 대조하지 못했습니다. 그 대신 모형의 결과를, 같은 규칙을 다른 방법(기기마다 IP 주소, 마스크, 라우팅 표, ARP 표를 두고 패킷을 넘겨 가는 계산)으로 옮긴 계산과 열여덟 가지 조합에서 대조했습니다. 근거로 삼은 문서: 보내는 컴퓨터가 마스크로 같은 네트워크인지 판단해 직접 보내거나 게이트웨이로 보내는 것은 RFC 1122 3.3.1.1절, IP 주소로 MAC 주소를 알아내는 ARP는 RFC 826, TTL의 뜻은 RFC 791 3.2절, 라우터가 전달할 때 TTL을 줄이고 0이 되면 버리며 ICMP 시간 초과를 보내는 것은 RFC 1812 5.3.1절과 RFC 792, 받는 컴퓨터는 TTL이 작아도 받는다는 것은 RFC 1122 3.2.1.7절입니다. 스위치가 MAC 주소로 전달하는 방식은 IEEE 802.1D의 내용입니다. 단순화한 것: 네트워크 B와 C에도 스위치가 있지만 그리지 않았고, 스위치가 어느 포트에 어느 MAC 주소가 있는지 배우는 과정, 라우터가 TTL을 줄인 뒤 IP 헤더의 체크섬을 다시 계산하는 일, 주소 변환(NAT)은 다루지 않았습니다. 집에서 쓰는 공유기를 지날 때는 NAT 때문에 보내는 IP 주소도 바뀝니다. IP 주소는 사설 대역(192.168.x.x), MAC 주소는 문서용으로 예약된 대역(RFC 7042, 지금은 RFC 9542)의 값이며 실제 기기의 주소가 아닙니다. 처음 TTL은 운영체제마다 다릅니다.</p>
 <p>앞 실습: <a href="../../lab/subnet/">IP 주소와 서브넷</a> · 다음 실습: <a href="../../lab/socket/">소켓과 포트</a></p>
   </div>
 
@@ -180,6 +180,6 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

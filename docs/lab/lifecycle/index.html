@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -96,7 +96,7 @@ PriceCache priceCache = context.getBean(PriceCache.class);
 int price = priceCache.price(&quot;사과&quot;);
 context.close();                              // 컨테이너를 닫는다</pre>
 <h2>이 모형의 전제</h2>
-<p>스무 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, jakarta.annotation-api 3.0.0)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 컨테이너를 띄우고, 빈을 꺼내 price(&quot;사과&quot;)를 한 번 부른 뒤 컨테이너를 닫으면서, 생성자와 각 콜백이 불린 순서와 그때 repository 필드가 null이었는지를 기록해 모형의 순서와 하나하나 비교했습니다. 기동 실패의 예외 사슬은 BeanCreationException → BeanInstantiationException → NullPointerException이었고, 화면에는 맨 안쪽 원인을 적었습니다. 화면에서 단순화한 것: &quot;의존성 주입&quot; 단계는 따로 기록할 수 없어, 생성자에서는 null이고 초기화 콜백에서는 들어 있었다는 것으로 그 사이에 주입이 일어났음을 확인했습니다. 세터 주입과, 컨테이너가 닫힐 때 여러 빈 사이의 소멸 순서는 다루지 않았습니다. @Bean에 destroyMethod를 적지 않아도 public close() 메서드가 있으면 컨테이너가 닫힐 때 불리는 것(프로토타입이면 불리지 않는 것)도 실행으로 확인했습니다. 실행으로 확인하지 않고 스프링 공식 문서의 설명을 따른 것은 두 가지입니다: @PostConstruct와 @PreDestroy가 권장되는 방법이라는 것, 프로세스가 강제로 종료되면 컨테이너가 닫히지 못해 소멸 콜백이 불리지 않는다는 것.</p>
+<p>스무 가지 조합을 검증 환경의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, jakarta.annotation-api 3.0.0)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 컨테이너를 띄우고, 빈을 꺼내 price(&quot;사과&quot;)를 한 번 부른 뒤 컨테이너를 닫으면서, 생성자와 각 콜백이 불린 순서와 그때 repository 필드가 null이었는지를 기록해 모형의 순서와 하나하나 비교했습니다. 기동 실패의 예외 사슬은 BeanCreationException → BeanInstantiationException → NullPointerException이었고, 화면에는 맨 안쪽 원인을 적었습니다. 화면에서 단순화한 것: &quot;의존성 주입&quot; 단계는 따로 기록할 수 없어, 생성자에서는 null이고 초기화 콜백에서는 들어 있었다는 것으로 그 사이에 주입이 일어났음을 확인했습니다. 세터 주입과, 컨테이너가 닫힐 때 여러 빈 사이의 소멸 순서는 다루지 않았습니다. @Bean에 destroyMethod를 적지 않아도 public close() 메서드가 있으면 컨테이너가 닫힐 때 불리는 것(프로토타입이면 불리지 않는 것)도 실행으로 확인했습니다. 실행으로 확인하지 않고 스프링 공식 문서의 설명을 따른 것은 두 가지입니다: @PostConstruct와 @PreDestroy가 권장되는 방법이라는 것, 프로세스가 강제로 종료되면 컨테이너가 닫히지 못해 소멸 콜백이 불리지 않는다는 것.</p>
 <p>앞 실습: <a href="../../lab/scope/">빈 스코프</a> · 다음 실습: <a href="../../lab/proxy/">프록시와 자기 호출</a></p>
   </div>
 
@@ -184,6 +184,6 @@ context.close();                              // 컨테이너를 닫는다</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

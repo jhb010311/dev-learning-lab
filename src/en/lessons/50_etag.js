@@ -23,11 +23,11 @@ Lab.register({
   label: function (c) { return { nostore: 'no-store', max: 'max-age=60 · ' + c.when + 's later', nocache: 'no-cache' }[c.cc] + (c.chg ? ' · content changed' : ' · content unchanged'); },
   columns: ['Request sent to the server the second time', 'Response', 'Body transferred', 'What appeared on screen'],
   simulate: function (c) {
-    var ev = [], rows = [], sum = [], SIZE = 200, sent = SIZE, cache = 'None';
+    var ev = [], rows = [], sum = [], SIZE = 200, sent = 0, cache = 'None';
     function step(dir, what, res, s, k) { rows.push({ cells: [dir, what, { v: res, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), cache: cache, sent: sent } }); }
     var hdr = { nostore: 'Cache-Control: no-store', max: 'Cache-Control: max-age=60, ETag: "v1"', nocache: 'Cache-Control: no-cache, ETag: "v1"' }[c.cc];
     step('Browser → Server', 'GET /products/1', '(first request)', 'This is the first time this address is opened. Nothing is stored in the browser, so it sends a request to the server.', '');
-    cache = c.cc === 'nostore' ? 'None (storing is forbidden)' : 'Body 200KB, ETag "v1"' + (c.cc === 'max' ? ', fresh for 60s' : ', must be checked before each use');
+    sent += SIZE; cache = c.cc === 'nostore' ? 'None (storing is forbidden)' : 'Body 200KB, ETag "v1"' + (c.cc === 'max' ? ', fresh for 60s' : ', must be checked before each use');
     step('Server → Browser', '200 OK + 200KB body', hdr, 'The server sends the 200KB body together with a cache directive.' + (c.cc === 'nostore' ? ' Because of no-store, the browser does not store this response.' : ' The browser stores the body together with the ETag (a tag that marks the version of the content).'), '');
     var when = c.cc === 'max' ? +c.when : 120, req2, res2, body2, shown;
     if (c.chg) step('Server', 'Product data updated', 'ETag changes to "v2"', 'The product data changed on the server in the meantime. The ETag that the server computes is now "v2" too.', '');
@@ -36,7 +36,7 @@ Lab.register({
     else {
       step('Browser → Server', 'GET /products/1 + If-None-Match: "v1"', '(conditional request)', when + 's later, the same address is opened again. ' + (c.cc === 'max' ? 'The freshness lifetime of 60s has passed.' : 'no-cache means the browser must check with the server before it uses the response.') + ' The browser does not throw away what it stored. It asks, "What I have is v1. Is it still the same?"', '');
       req2 = 'GET + If-None-Match';
-      if (c.chg) { res2 = '200 OK'; body2 = '200KB'; sent += SIZE; shown = 'New content'; cache = 'Body 200KB, ETag "v2"'; step('Server → Browser', '200 OK + 200KB body', 'ETag: "v2"', 'The current ETag on the server is "v2". It differs from the "v1" that the browser sent, so the server sends the whole new body and the new ETag. The browser replaces what it stored.', ''); }
+      if (c.chg) { res2 = '200 OK'; body2 = '200KB'; sent += SIZE; shown = 'New content'; cache = 'Body 200KB, ETag "v2"' + (c.cc === 'max' ? ', fresh for 60s' : ', must be checked before each use'); step('Server → Browser', '200 OK + 200KB body', 'ETag: "v2"', 'The current ETag on the server is "v2". It differs from the "v1" that the browser sent, so the server sends the whole new body and the new ETag. The browser replaces what it stored.', ''); }
       else { res2 = '304 Not Modified'; body2 = '0KB'; shown = 'Same content'; step('Server → Browser', '304 Not Modified (no body)', 'ETag: "v1"', 'The current ETag on the server is "v1" too. Nothing has changed, so the server answers with just 304 and no body. The browser uses the body it stored as it is.' + (c.cc === 'max' ? ' It also starts the freshness lifetime again.' : '') + ' The 200KB was not sent again.', 'good'); }
       sum.push(c.chg ? 'The content changed, so the new body was received. Thanks to the ETag, the whole body is received only when it has changed.' : 'A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.');
       if (c.cc === 'nocache') sum.push('Despite its name, no-cache does not mean "do not store". It means "store it, but check with the server every time before using it". The directive that prevents storing is no-store.');
@@ -52,7 +52,7 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: '', sent: 0 }, ids = { 'Browser': 'b', 'Server': 's' };
     var msgs = s.rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[1]); m.cls = P.c(r.cells[1]) || P.c(r.cells[2]); return m; });
     var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server', 'wait']], msgs, { keep: 6 });
-    P.box('cache', 16, end + 14, 440, 48, { cls: s.cache ? 'good' : 'ghost', title: 'Copy kept by the browser (cache)', sub: s.cache || 'None' });
+    P.box('cache', 16, end + 14, 440, 48, { cls: !s.cache || s.cache.indexOf('None') === 0 ? 'ghost' : 'good', title: 'Copy kept by the browser (cache)', sub: s.cache || 'None' });
     P.box('sent', 468, end + 14, 196, 48, { cls: 'plain', title: 'Total body received', sub: s.sent + 'KB' });
     P.size(680, end + 78);
     P.note('A step that has only a box on the browser side and no arrow is one where the browser used its stored copy without asking the server. A 304 response has arrows going back and forth but no body, so the amount transferred does not grow.');

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -76,7 +76,7 @@
 // Thread 1: transfer(A, B, 100)
 // Thread 2: transfer(B, A, 50)</pre>
 <h2>Assumptions of this model</h2>
-<p>The model assumes the worst order, in which the two threads interleave exactly: each acquires its first lock and then requests its second lock. In reality, the timing more often lets the threads pass without a problem, and that is why a deadlock is hard to reproduce. synchronized cannot limit the waiting time, so when a limit is needed, use tryLock of ReentrantLock. In a database too, the same thing happens when two transactions lock rows in opposite orders, and the database detects it and forces one of them to roll back. This was checked by actually running it on JDK 21 on this PC. When the locks were acquired in opposite orders at the same time, the two threads stopped in the BLOCKED state and the JVM detected 2 deadlocked threads. When the locks were acquired in the same order, or the threads ran one after the other, both finished, and with tryLock both finished after 1 retry.</p>
+<p>The model assumes the worst order, in which the two threads interleave exactly: each acquires its first lock and then requests its second lock. In reality, the timing more often lets the threads pass without a problem, and that is why a deadlock is hard to reproduce. synchronized cannot limit the waiting time, so when a limit is needed, use tryLock of ReentrantLock. In a database too, the same thing happens when two transactions lock rows in opposite orders, and databases such as MySQL (InnoDB) and PostgreSQL detect it and force one of the transactions to roll back. The Java results were checked by actually running the code in our test run (JDK 21). When the locks were acquired in opposite orders at the same time, the two threads stopped in the BLOCKED state and the JVM detected 2 deadlocked threads. When the locks were acquired in the same order, or the threads ran one after the other, both finished, and with tryLock both finished after 1 retry.</p>
 <p>Previous lab: <a href="../../lab/race/">Race condition</a> · Next lab: <a href="../../lab/threadpool/">Thread pool</a></p>
   </div>
 
@@ -164,6 +164,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

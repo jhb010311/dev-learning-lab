@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,9 +51,9 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>1단계: 클라이언트가 &quot;연결하고 싶다&quot;는 SYN을 보냅니다. 자신이 쓸 시작 번호(100)를 알립니다.</li>
-<li>2단계: 서버가 &quot;받았다(ACK), 나도 연결하겠다(SYN)&quot;고 답합니다. ack=101은 &quot;100번까지 받았으니 다음은 101번을 달라&quot;는 뜻입니다.</li>
-<li>3단계: 클라이언트가 서버의 SYN을 확인합니다. 양쪽 모두 &quot;내가 보낸 것이 도착하고, 상대가 보낸 것이 나에게 온다&quot;는 것을 확인했습니다. 연결이 맺어졌습니다.</li>
+<li>3-way handshake의 첫 번째 메시지입니다. 클라이언트가 &quot;연결하고 싶다&quot;는 SYN을 보냅니다. 자신이 쓸 시작 번호(100)를 알립니다.</li>
+<li>두 번째 메시지입니다. 서버가 &quot;받았다(ACK), 나도 연결하겠다(SYN)&quot;고 답합니다. ack=101은 &quot;100번까지 받았으니 다음은 101번을 달라&quot;는 뜻입니다.</li>
+<li>세 번째 메시지입니다. 클라이언트가 서버의 SYN을 확인합니다. 양쪽 모두 &quot;내가 보낸 것이 도착하고, 상대가 보낸 것이 나에게 온다&quot;는 것을 확인했습니다. 연결이 맺어졌습니다.</li>
 <li>데이터를 조각내어 번호를 붙여 보냅니다.</li>
 <li>서버가 &quot;106번까지 받았다, 다음은 107번&quot;이라고 확인합니다.</li>
 <li>두 번째 조각을 보냅니다.</li>
@@ -162,6 +162,6 @@ socket.close();                                // 연결 종료</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

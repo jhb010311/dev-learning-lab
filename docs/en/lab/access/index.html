@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -91,7 +91,7 @@ public class SavingAccount extends Account {
 }
 </pre>
 <h2>Assumptions of this model</h2>
-<p>The 24 combinations were actually compiled on JDK 21 on this PC from source files split into the packages bank and app, and whether compilation succeeded and the error messages were checked against the results (this lab looks at the result of compilation, not the result of execution). The &quot;Reason for the decision&quot; column and the order of the checks are an explanation that restates the access rules of the Java Language Specification, and they do not mean that the compiler actually checks in this order. When the same access modifiers were put on a method instead of a field and compiled, success and error were exactly the same for the 24 combinations (the wording of the error messages differs in part). Not covered: access modifiers on the class itself, constructors, static members, nested classes, and modules (module-info). The &quot;only through its own type&quot; condition of protected applies to members that are not static. The error messages are the first line of the English javac message.</p>
+<p>The 24 combinations were actually compiled on JDK 21 in our test environment from source files split into the packages bank and app, and whether compilation succeeded and the error messages were checked against the results (this lab looks at the result of compilation, not the result of execution). The &quot;Reason for the decision&quot; column and the order of the checks are an explanation that restates the access rules of the Java Language Specification, and they do not mean that the compiler actually checks in this order. When the same access modifiers were put on a method instead of a field and compiled, success and error were exactly the same for the 24 combinations (the wording of the error messages differs in part). Not covered: access modifiers on the class itself, constructors, static members, nested classes, and modules (module-info). The &quot;only through its own type&quot; condition of protected applies to members that are not static. The error messages are the first line of the English javac message.</p>
 <p>Previous lab: <a href="../../lab/absint/">Interfaces and abstract classes</a> · Next lab: <a href="../../lab/inner/">Inner classes and anonymous classes</a></p>
   </div>
 
@@ -179,6 +179,6 @@ public class SavingAccount extends Account {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

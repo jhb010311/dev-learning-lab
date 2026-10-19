@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=72da4748ce">
+<link rel="stylesheet" href="../../app.css?v=0c0668d820">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   setTimeout(() =&gt; conn.resume(), 500);
 }).listen(9000, '127.0.0.1');</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a case in which &quot;AB&quot;, &quot;CD&quot;, and &quot;EF&quot; are sent at 0.05-second intervals and the receiving program reads after all three have arrived. Six of the eight combinations were actually run with the net and dgram modules on 127.0.0.1 of the PC used to write this lab (Windows, Node.js 24) and checked against the model (each combination was run five times, with the same result every time). The loss and the reordering of UDP were created by placing a relay program between the sender and the receiver that drops or delays datagrams, and it was confirmed that the UDP sockets at both ends do not correct this. The two combinations in which TCP has a loss or a reordering could not be created on this PC and were not run; following the TCP specification (RFC 9293, sequence numbers in section 3.4, and acknowledgments and retransmission in section 3.8), the lab states that &quot;what the program reads is the same as when nothing went wrong.&quot; That all 6 bytes came out in a single read with TCP is the result seen on this PC, and what the specification guarantees is only the order and the content of the bytes. How many reads the data is divided into varies with the circumstances. That UDP delivers in units of datagrams and does not guarantee arrival is stated in RFC 768 and in RFC 1122 section 4.1. The UDP header has no number that shows order (RFC 768), and the IP below it does not keep order either (RFC 791 section 1.2). The operating system sometimes reports with an ICMP message that no receiving program exists, but in this run nothing came back as a result of send or as an error event. The case in which data is discarded because the buffer of the operating system is full is not covered.</p>
+<p>This is a case in which &quot;AB&quot;, &quot;CD&quot;, and &quot;EF&quot; are sent at 0.05-second intervals and the receiving program reads after all three have arrived. Six of the eight combinations were actually run with the net and dgram modules on 127.0.0.1 in our test run (Windows, Node.js 24) and checked against the model (each combination was run five times, with the same result every time). The loss and the reordering of UDP were created by placing a relay program between the sender and the receiver that drops or delays datagrams, and it was confirmed that the UDP sockets at both ends do not correct this. The two combinations in which TCP has a loss or a reordering could not be created in our test environment and were not run; following the TCP specification (RFC 9293, sequence numbers in section 3.4, and acknowledgments and retransmission in section 3.8), the lab states that &quot;what the program reads is the same as when nothing went wrong.&quot; That all 6 bytes came out in a single read with TCP is the result seen in our test run, and what the specification guarantees is only the order and the content of the bytes. How many reads the data is divided into varies with the circumstances. That UDP delivers in units of datagrams and does not guarantee arrival is stated in RFC 768 and in RFC 1122 section 4.1. The UDP header has no number that shows order (RFC 768), and the IP below it does not keep order either (RFC 791 section 1.2). The operating system sometimes reports with an ICMP message that no receiving program exists, but in this run nothing came back as a result of send or as an error event. The case in which data is discarded because the buffer of the operating system is full is not covered.</p>
 <p>Previous lab: <a href="../../lab/tcp/">TCP connections and retransmission</a> · Next lab: <a href="../../lab/congestion/">Flow control and congestion control</a></p>
   </div>
 
@@ -174,6 +174,6 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=72da4748ce"></script>
+<script src="../../app.js?v=0c0668d820"></script>
 </body>
 </html>

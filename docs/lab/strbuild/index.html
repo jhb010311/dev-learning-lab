@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -77,7 +77,7 @@ System.out.println(s);
 System.out.println(first);
 System.out.println(s == first);   // 같은 객체인가</pre>
 <h2>이 모형의 전제</h2>
-<p>열여덟 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 출력을 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. &quot;새 객체가 만들어졌다&quot;는 것은 == 비교로 직전 객체와 다른 객체임을 확인한 것입니다. 실행 중에 실제로 몇 개의 객체가 메모리에 만들어지는지는 JVM의 최적화에 따라 달라질 수 있어 단정하지 않았습니다. 여기서 고른 메서드와 값은 모두 내용이 달라지는 경우입니다. 내용이 달라지지 않는 호출(예: 바꿀 글자가 없는 replace)에서는 String이 새 객체를 만들지 않고 자기 자신을 돌려주기도 합니다. StringBuilder가 안에서 글자를 담는 공간을 어떻게 늘리는지는 이 모형에서 다루지 않습니다.</p>
+<p>열여덟 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 출력을 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. &quot;새 객체가 만들어졌다&quot;는 것은 == 비교로 직전 객체와 다른 객체임을 확인한 것입니다. 실행 중에 실제로 몇 개의 객체가 메모리에 만들어지는지는 JVM의 최적화에 따라 달라질 수 있어 단정하지 않았습니다. 여기서 고른 메서드와 값은 모두 내용이 달라지는 경우입니다. 내용이 달라지지 않는 호출(예: 바꿀 글자가 없는 replace)에서는 String이 새 객체를 만들지 않고 자기 자신을 돌려주기도 합니다. StringBuilder가 안에서 글자를 담는 공간을 어떻게 늘리는지는 이 모형에서 다루지 않습니다.</p>
 <p>앞 실습: <a href="../../lab/eqhash/">equals와 hashCode</a> · 다음 실습: <a href="../../lab/datetime/">날짜와 시간</a></p>
   </div>
 
@@ -165,6 +165,6 @@ System.out.println(s == first);   // 같은 객체인가</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -66,5 +66,5 @@ Lab.register({
     }), 'Results of trying the 6 things with each kind');
     H.title(v, 'Compiler and run result'); v.appendChild(H.el('pre', 'code', s.out || '(in progress)'));
   },
-  assume: 'For all 12 combinations, source code with the same structure as the code on the screen was actually compiled and run on JDK 21 on this PC, and the model was checked against the results (whether compilation succeeded and the error messages). Features from later versions, such as private methods and static methods in interfaces and sealed types, are not covered.',
+  assume: 'For all 12 combinations, source code with the same structure as the code on the screen was actually compiled and run on JDK 21 in our test environment, and the model was checked against the results (whether compilation succeeded and the error messages). Features from later versions, such as private methods and static methods in interfaces and sealed types, are not covered.',
 });

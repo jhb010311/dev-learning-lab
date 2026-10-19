@@ -49,7 +49,7 @@ Lab.register({
     }
     var prim = c.kind === 'int' && c.ib === 'prim';
     push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + J(B, '을', '를') + ' 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
-    push('a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
+    push(c.kind === 'str' ? 'a.equals(b): String의 equals는 두 문자열의 글자가 차례대로 모두 같은지 비교합니다. 둘 다 hello이므로 true입니다.' : prim ? 'a.equals(b): equals는 객체를 받으므로 int b가 Integer로 자동 변환(오토박싱)되어 넘어갑니다. Integer의 equals는 두 객체가 나타내는 숫자가 같은지 비교하고, 둘 다 ' + c.iv + '이므로 true입니다.' : 'a.equals(b): Integer의 equals는 b도 Integer인지 확인하고, 두 객체가 나타내는 숫자가 같은지 비교합니다. 둘 다 ' + c.iv + '이므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
     if (c.kind === 'str') { sum.push(same ? '두 변수가 String Pool의 같은 객체를 가리켜서 ==도 true가 나왔습니다. 하지만 이것은 만드는 방법에 따라 달라지는 우연에 가깝습니다.' : '내용은 같지만 서로 다른 객체라서 ==는 false입니다.'); sum.push('문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.'); }
     else { sum.push(prim ? 'Integer와 int를 ==로 비교하면 언박싱되어 값 비교가 됩니다. 단, Integer가 null이면 언박싱하다가 NullPointerException이 납니다.' : c.iv === '127' ? 'Integer.valueOf는 -128부터 127까지의 객체를 캐시해 두고 재사용합니다. 그래서 이 범위에서는 ==가 true로 나옵니다.' : '128은 캐시 범위를 벗어나 매번 새 객체가 만들어집니다. 테스트에서는 작은 수만 써서 통과하다가, 운영에서 ID가 커지면 비교가 틀어지는 버그의 원인입니다.'); sum.push('래퍼 타입(Integer, Long)끼리의 값 비교는 equals로 합니다.'); }
     return { events: ev, summary: sum, row: [String(same), 'true', prim ? '(기본형과 비교)' : same ? '같은 객체' : '다른 객체'] };
@@ -79,5 +79,5 @@ Lab.register({
     P.box('c2', 344, 236, 320, 34, { cls: res(s.cmp.equals), title: 'a.equals(b)  (내용이 같은가)', right: s.cmp.equals || '?' });
     P.note(str ? '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. String Pool은 실제로는 힙 안에 있지만 구분하려고 따로 그렸습니다.' : '화살표는 변수가 가리키는 객체입니다. 두 화살표가 같은 객체에 닿으면 ==가 true입니다. 기본형 int 변수는 객체를 가리키지 않고 값을 직접 담습니다.');
   },
-  assume: '모든 조합의 == 결과는 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. Integer 캐시 범위 -128 ~ 127은 자바 언어 명세가 보장하는 최소 범위이며, JVM 옵션으로 상한을 늘릴 수 있습니다. String Pool의 위치는 JDK 7부터 힙 안이지만, 그림에서는 구분을 위해 따로 표시했습니다.',
+  assume: '모든 조합의 == 결과는 검증 실행(JDK 21)에서 같은 코드를 실행한 결과와 대조했습니다. Integer 캐시 범위 -128 ~ 127은 자바 언어 명세가 보장하는 최소 범위이며, JVM 옵션으로 상한을 늘릴 수 있습니다. String Pool의 위치는 JDK 7부터 힙 안이지만, 그림에서는 구분을 위해 따로 표시했습니다.',
 });

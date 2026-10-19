@@ -80,7 +80,7 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: c.s, ver: 0, st: [], orders: 0, hot: -1, waits: 0, retries: 0 }, n = c.n, w = (648 - (n - 1) * 8) / n, over = s.orders > c.s;
     var two = function (x) { if (P.fit(x, w - 6) === x) return [x, ' ']; var m = x.lastIndexOf(' ', Math.ceil(x.length / 2) + 2); return m > 0 ? [x.slice(0, m), x.slice(m + 1)] : [x, ' ']; };
     P.size(680, 300);
-    P.box('row', 200, 16, 280, 60, { cls: s.stock < 0 ? 'bad' : 'wait', title: '재고 (DB의 한 행)', sub: '남은 수량 ' + s.stock + (c.how === 'opt' ? ' · 버전 ' + s.ver : '') });
+    P.box('row', 200, 16, 280, 60, { cls: s.stock < 0 ? 'bad' : 'plain', title: '재고 (DB의 한 행)', sub: '남은 수량 ' + s.stock + (c.how === 'opt' ? ' · 버전 ' + s.ver : '') });
     for (var i = 0; i < n; i++) {
       var x = s.st[i] || '도착 전';
       P.box('rq' + i, 16 + i * (w + 8), 140, w, 72, { cls: x === '주문 성공' ? 'good' : x.indexOf('대기') >= 0 ? 'wait' : x.indexOf('실패') >= 0 ? 'bad' : i === s.hot ? 'hot now' : 'plain', title: '요청 ' + (i + 1), sub: two(x), center: true });

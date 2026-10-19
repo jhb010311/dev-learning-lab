@@ -1,7 +1,7 @@
 Lab.register({
   id: 'test_basic', nav: '테스트 코드', cat: '기초개념', mode: 'step', basic: true, deep: ['testing', 'cicd'],
   title: '테스트 코드는 무엇이고, 통과와 실패는 누가 정하는가',
-  intro: '테스트 코드는 "이 메서드에 이것을 넣으면 이것이 나와야 한다"를 코드로 적어 둔 것입니다. 이 실습의 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준 값을 기대한 값 5와 견줍니다. 두 값이 다르면 그 줄에서 오류가 납니다. adds() 위의 @Test는 "이 메서드가 테스트"라는 표시입니다. 이 코드를 실행하는 것은 우리가 아니라 테스트 도구 JUnit입니다. JUnit이 @Test가 붙은 메서드를 찾아 부르고, 오류 없이 끝나면 통과, assertEquals가 낸 오류로 끝나면 실패로 셉니다. 이 실습은 add를 틀리게 고치거나, 기대한 값을 틀리게 적거나, @Test를 지워 가며 같은 코드를 실제 JUnit으로 실행해, 찾은 테스트 수와 통과와 실패 판정, 실패 메시지가 어떻게 달라지는지 봅니다. (화면의 코드는 import 줄을 줄였습니다.)',
+  intro: '테스트 코드는 "이 메서드에 이것을 넣으면 이것이 나와야 한다"를 코드로 적어 둔 것입니다. 이 실습에서 예시로 만든 CalcTest 클래스가 그 예입니다. 그 안의 adds() 메서드가 역시 예시로 만든 Calc 클래스의 add(2, 3)을 부르고, assertEquals(5, ...)가 add가 돌려준 값을 기대한 값 5와 견줍니다. 두 값이 다르면 그 줄에서 오류가 납니다. adds() 위의 @Test는 "이 메서드가 테스트"라는 표시입니다. 이 코드를 실행하는 것은 우리가 아니라 테스트 도구 JUnit입니다. JUnit이 @Test가 붙은 메서드를 찾아 부르고, 오류 없이 끝나면 통과, assertEquals가 낸 오류로 끝나면 실패로 셉니다. 이 실습은 add를 틀리게 고치거나, 기대한 값을 틀리게 적거나, @Test를 지워 가며 같은 코드를 실제 JUnit으로 실행해, 찾은 테스트 수와 통과와 실패 판정, 실패 메시지가 어떻게 달라지는지 봅니다. (화면의 코드는 import 줄을 줄였습니다.)',
   terms: ['테스트 코드', 'JUnit', '@Test', 'assertEquals'],
   controls: [
     { id: 'impl', label: 'add 메서드가 돌려주는 식', type: 'select', value: 'plus', options: [['plus', 'return a + b;  (더한다)'], ['minus', 'return a - b;  (실수로 뺀다)']] },
@@ -50,9 +50,8 @@ Lab.register({
         st.hot = 'ju'; st.phase = 'judge'; st.passed = 1; st.verdict = 'pass';
         push('JUnit이 adds()가 오류 없이 끝난 것을 보고 통과로 셉니다. 통과인지는 사람이 출력을 눈으로 읽어서가 아니라 JUnit이 판정했습니다.', 'good');
       } else {
-        st.msg = msg;
         push('assertEquals(' + E + ', ...)가 두 값을 견줍니다. 기대한 값은 ' + E + ', 실제 값은 ' + A + '입니다. 두 값이 다르므로 assertEquals가 AssertionFailedError라는 오류를 던지고, adds()는 이 줄에서 오류로 끝납니다.', 'bad');
-        st.hot = 'ju'; st.phase = 'judge'; st.failed = 1; st.verdict = 'fail';
+        st.hot = 'ju'; st.phase = 'judge'; st.failed = 1; st.verdict = 'fail'; st.msg = msg;
         push('JUnit이 adds()가 오류로 끝난 것을 보고 실패로 세고, 오류의 메시지 "' + msg + '"를 기록합니다. 실패인지는 사람이 출력을 읽어서가 아니라 JUnit이 판정했습니다.', 'bad');
       }
       st.phase = 'end'; st.verdict = eq ? 'pass' : 'fail';

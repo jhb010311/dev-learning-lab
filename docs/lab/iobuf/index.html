@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 버퍼로 감싸고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.</li>
+<li><b>처음 설정으로</b> — 버퍼를 거쳐 쓰고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.</li>
 <li><b>close로 닫으면</b> — 버퍼에 모인 9바이트가 한 번에 내려가 파일에 쓰입니다.</li>
 <li><b>버퍼 없이 쓰면</b> — write 9번이 그대로 아래로 9번 내려갑니다.</li>
 <li><b>버퍼가 4바이트라면</b> — 가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.</li>
@@ -56,7 +56,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>new FileOutputStream(&quot;out.txt&quot;): 파일을 쓰기용으로 엽니다. 그 위에 write 호출을 세는 CountingOutputStream을 씌웠습니다. 그 위에 다시 8192바이트짜리 버퍼를 가진 BufferedOutputStream을 씌웠으므로, out.write는 버퍼를 거쳐서 내려갑니다.</li>
+<li>new FileOutputStream(&quot;out.txt&quot;): 파일을 쓰기용으로 엽니다. write 호출을 세는 CountingOutputStream(예시로 만든 클래스)이 이 파일 스트림을 참조로 갖고, 받은 write를 그쪽으로 넘깁니다. 그리고 8192바이트짜리 버퍼를 가진 BufferedOutputStream이 CountingOutputStream을 참조로 가지므로, out.write는 버퍼를 거쳐서 내려갑니다.</li>
 <li>&quot;가&quot;의 3바이트(EA B0 80)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 3바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
 <li>&quot;나&quot;의 3바이트(EB 82 98)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 6바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
 <li>&quot;다&quot;의 3바이트(EB 8B A4)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 9바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
@@ -69,7 +69,7 @@
 <li>BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class CountingOutputStream extends OutputStream {       // 아래로 내려온 write 호출을 세는 스트림
+<pre>class CountingOutputStream extends OutputStream {       // 예시로 만든 클래스. 아래로 내려온 write 호출을 센다
     private final OutputStream out;
     int calls = 0;
     boolean closed = false;
@@ -81,7 +81,7 @@
 
 byte[] data = &quot;가나다&quot;.getBytes(StandardCharsets.UTF_8);    // 9바이트
 CountingOutputStream counting = new CountingOutputStream(new FileOutputStream(&quot;out.txt&quot;));
-OutputStream out = new BufferedOutputStream(counting);     // 버퍼로 감싼다
+OutputStream out = new BufferedOutputStream(counting);     // 버퍼를 가진 스트림
 for (byte b : data) out.write(b);                           // 한 바이트씩 9번
 
 System.out.println(counting.calls);                          // 아래로 내려간 write 횟수
@@ -94,7 +94,7 @@ try (Reader in = new InputStreamReader(new FileInputStream(&quot;out.txt&quot;),
 }
 System.out.println(sb);</pre>
 <h2>이 모형의 전제</h2>
-<p>마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 PC에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 &quot;파일&quot;은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.</p>
+<p>마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 JDK 21에서 실제로 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 JDK에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 &quot;파일&quot;은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/classload/">클래스 로딩과 초기화</a> · 다음 실습: <a href="../../lab/serial/">직렬화</a></p>
   </div>
 
@@ -182,6 +182,6 @@ System.out.println(sb);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f7b45f20ef">
+<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,7 @@
 <pre>git switch main
 git merge feature</pre>
 <h2>이 모형의 전제</h2>
-<p>커밋 다섯 개짜리 작은 저장소 예시입니다. 충돌은 한 파일의 한 곳에서만 난다고 가정했습니다. 각 명령의 동작은 Git 공식 문서(git-merge, git-rebase)의 설명을 따랐습니다. 팀에 따라 병합 방식(merge commit, squash, rebase)을 정해 두고 쓰며, 어느 쪽이 옳다기보다 이력을 어떤 모양으로 남길지의 선택입니다. 이 PC의 git 2.55로 임시 저장소를 만들어 확인했습니다. merge는 부모가 둘인 병합 커밋을 만들고 기존 커밋의 해시를 유지했으며, main에 새 커밋이 없을 때는 fast-forward였습니다. rebase 뒤에는 D와 E의 해시가 바뀌고 병합 커밋 없이 한 줄이 됐으며, 이미 올린 브랜치는 일반 push가 거부되고 강제 push가 필요했습니다. squash 커밋은 부모가 하나였고 git은 feature가 합쳐졌다고 인식하지 않았습니다. 충돌 표시도 화면의 모양 그대로였습니다.</p>
+<p>커밋 다섯 개짜리 작은 저장소 예시입니다. 충돌은 한 파일의 한 곳에서만 난다고 가정했습니다. 각 명령의 동작은 Git 공식 문서(git-merge, git-rebase)의 설명을 따랐습니다. 팀에 따라 병합 방식(merge commit, squash, rebase)을 정해 두고 쓰며, 어느 쪽이 옳다기보다 이력을 어떤 모양으로 남길지의 선택입니다. 검증 환경의 git 2.55로 임시 저장소를 만들어 확인했습니다. merge는 부모가 둘인 병합 커밋을 만들고 기존 커밋의 해시를 유지했으며, main에 새 커밋이 없을 때는 fast-forward였습니다. rebase 뒤에는 D와 E의 해시가 바뀌고 병합 커밋 없이 한 줄이 됐으며, 이미 올린 브랜치는 일반 push가 거부되고 강제 push가 필요했습니다. squash 커밋은 부모가 하나였고 git은 feature가 합쳐졌다고 인식하지 않았습니다. 충돌 표시도 화면의 모양 그대로였습니다.</p>
 <p>앞 실습: <a href="../../lab/trace/">분산 추적</a></p>
   </div>
 
@@ -156,6 +156,6 @@ git merge feature</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f7b45f20ef"></script>
+<script src="../../app.js?v=dc8f4e9612"></script>
 </body>
 </html>
