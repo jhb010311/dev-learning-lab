@@ -62,7 +62,7 @@ Lab.register({
     var count, end;
     if (!loop) {
       st.done = '200 OK'; msg('s', 'c', '200 OK', 'Final response', 'good');
-      push('The server for /orders responds with 200 OK. ' + (nx.toGet ? 'What it received is a GET, so it returns the list of orders. The body sent in the first request never reached this server.' : nx.body ? 'It receives the ' + c.m + ' request and the body as they are and handles them.' : 'It returns the list of orders.') + ' Only this last response is passed to the code that sent the request.', nx.toGet && c.code !== '303' ? '' : 'good');
+      push('The server for /orders responds with 200 OK. ' + (nx.toGet ? 'What it received is a GET, so it returns the list of orders. The body sent in the first request never reached the handler for /orders (the second request did not carry it).' : nx.body ? 'It receives the ' + c.m + ' request and the body as they are and handles them.' : 'It returns the list of orders.') + ' Only this last response is passed to the code that sent the request.', nx.toGet && c.code !== '303' ? '' : 'good');
       count = '2'; end = '200 OK';
     } else {
       var back = nx.m + ' /order' + (nx.body ? ' + body' : '');

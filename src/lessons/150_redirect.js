@@ -62,7 +62,7 @@ Lab.register({
     var count, end;
     if (!loop) {
       st.done = '200 OK'; msg('s', 'c', '200 OK', '최종 응답', 'good');
-      push('/orders의 서버가 200 OK로 응답합니다. ' + (nx.toGet ? '받은 것이 GET이므로 주문 목록을 돌려줍니다. 처음에 보낸 본문은 이 서버에 오지 않았습니다.' : nx.body ? c.m + ' 요청과 본문을 그대로 받아 처리합니다.' : '주문 목록을 돌려줍니다.') + ' 요청을 보낸 코드에는 이 마지막 응답만 전달됩니다.', nx.toGet && c.code !== '303' ? '' : 'good');
+      push('/orders의 서버가 200 OK로 응답합니다. ' + (nx.toGet ? '받은 것이 GET이므로 주문 목록을 돌려줍니다. 처음에 보낸 본문은 /orders를 처리하는 쪽에 오지 않았습니다(두 번째 요청에 실리지 않았습니다).' : nx.body ? c.m + ' 요청과 본문을 그대로 받아 처리합니다.' : '주문 목록을 돌려줍니다.') + ' 요청을 보낸 코드에는 이 마지막 응답만 전달됩니다.', nx.toGet && c.code !== '303' ? '' : 'good');
       count = '2번'; end = '200 OK';
     } else {
       var back = nx.m + ' /order' + (nx.body ? ' + 본문' : '');

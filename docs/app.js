@@ -5748,7 +5748,7 @@ Lab.register({
     return a.concat(b);
   },
   code: function (c) {
-    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
+    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    public Long getId() { return id; }\n    public String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    public Member getMember() { return member; }\n}\n' : '');
     return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 영속성 컨텍스트를 닫는다' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: '지연 로딩 연관 객체', find: 'em.find', findref: 'find 뒤 getReference', reffind: 'getReference 뒤 find' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() 비교', closed: '닫은 뒤 getName()' }[c.use]; },
@@ -5860,7 +5860,7 @@ Lab.register({
     P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '예외' : '결과', right: s.err || s.out || '아직 없음' });
     P.note('파란 프록시는 식별자만 알고 있는 빈 상태, 노란 프록시는 진짜 Member와 연결된(초기화된) 상태입니다. 가운데 화살표는 이번 단계에서 DB로 조회 SQL이 나갔다는 표시입니다. 프록시는 초기화된 뒤에도 진짜 객체로 바뀌지 않고, 받은 호출을 진짜 객체에게 넘겨 줍니다.');
   },
-  assume: '스무 가지 조합(얻는 방법 다섯, 하는 일 넷)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, m이 프록시인지, 회원 테이블 조회가 언제 몇 번 나갔는지, 마지막 줄의 값이나 예외가 화면과 일치하는 것을 확인했습니다. 엔티티의 필드에 @Id를 붙이고 게터를 둔 보통의 매핑, 하나의 영속성 컨텍스트 기준입니다. 프록시의 클래스 이름은 이 환경에서 Member$HibernateProxy였고, 버전에 따라 뒤에 꼬리표가 더 붙기도 합니다. 같은 환경에서 다음도 확인했습니다. 게터를 거치지 않고 프록시의 필드를 직접 읽으면(m.name) 초기화되지 않고 null이 나옵니다. DB에 없는 식별자로 getReference를 하면 그때는 예외가 없고, 값을 처음 읽을 때 조회가 나간 뒤 예외(ObjectNotFoundException)가 납니다. 영속성 컨텍스트를 닫은 뒤에도 프록시의 getId()는 값을 돌려줍니다. 스프링 부트의 웹 요청에서는 OSIV 기본 설정 때문에 응답이 끝날 때까지 영속성 컨텍스트가 열려 있어 이 예외가 늦게 드러날 수 있는데, 그 부분은 실행으로 확인하지 않았습니다. 바이트코드 강화(enhancement)를 쓰는 환경에서는 프록시 대신 다른 방식으로 지연 로딩이 될 수 있다고 문서에 나와 있으나, 이것도 실행해 보지는 않았습니다.',
+  assume: '스무 가지 조합(얻는 방법 다섯, 하는 일 넷)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, m이 프록시인지, 회원 테이블 조회가 언제 몇 번 나갔는지, 마지막 줄의 값이나 예외가 화면과 일치하는 것을 확인했습니다. 엔티티의 필드에 @Id를 붙이고 public 게터를 둔 보통의 매핑, 하나의 영속성 컨텍스트 기준입니다. 같은 코드에서 게터의 public만 빼고 실행하면 getId()를 불러도 프록시가 초기화되어 SELECT가 한 번 나갔습니다. 프록시의 클래스 이름은 이 환경에서 Member$HibernateProxy였고, 버전에 따라 뒤에 꼬리표가 더 붙기도 합니다. 같은 환경에서 다음도 확인했습니다. 게터를 거치지 않고 프록시의 필드를 직접 읽으면(m.name) 초기화되지 않고 null이 나옵니다. DB에 없는 식별자로 getReference를 하면 그때는 예외가 없고, 값을 처음 읽을 때 조회가 나간 뒤 예외(ObjectNotFoundException)가 납니다. 영속성 컨텍스트를 닫은 뒤에도 프록시의 getId()는 값을 돌려줍니다. 스프링 부트의 웹 요청에서는 OSIV 기본 설정 때문에 응답이 끝날 때까지 영속성 컨텍스트가 열려 있어 이 예외가 늦게 드러날 수 있는데, 그 부분은 실행으로 확인하지 않았습니다. 바이트코드 강화(enhancement)를 쓰는 환경에서는 프록시 대신 다른 방식으로 지연 로딩이 될 수 있다고 문서에 나와 있으나, 이것도 실행해 보지는 않았습니다.',
 });
 
 Lab.register({
@@ -9777,7 +9777,7 @@ Lab.register({
     var count, end;
     if (!loop) {
       st.done = '200 OK'; msg('s', 'c', '200 OK', '최종 응답', 'good');
-      push('/orders의 서버가 200 OK로 응답합니다. ' + (nx.toGet ? '받은 것이 GET이므로 주문 목록을 돌려줍니다. 처음에 보낸 본문은 이 서버에 오지 않았습니다.' : nx.body ? c.m + ' 요청과 본문을 그대로 받아 처리합니다.' : '주문 목록을 돌려줍니다.') + ' 요청을 보낸 코드에는 이 마지막 응답만 전달됩니다.', nx.toGet && c.code !== '303' ? '' : 'good');
+      push('/orders의 서버가 200 OK로 응답합니다. ' + (nx.toGet ? '받은 것이 GET이므로 주문 목록을 돌려줍니다. 처음에 보낸 본문은 /orders를 처리하는 쪽에 오지 않았습니다(두 번째 요청에 실리지 않았습니다).' : nx.body ? c.m + ' 요청과 본문을 그대로 받아 처리합니다.' : '주문 목록을 돌려줍니다.') + ' 요청을 보낸 코드에는 이 마지막 응답만 전달됩니다.', nx.toGet && c.code !== '303' ? '' : 'good');
       count = '2번'; end = '200 OK';
     } else {
       var back = nx.m + ' /order' + (nx.body ? ' + 본문' : '');
@@ -16856,6 +16856,8 @@ Lab.register({
     var text = owner === 'srv' ? '안녕하세요' : !owner ? '없음' : '없음 (글이 오기를 기다리는 중)';
     var again = !c.second ? '(없음)' : c.server ? '열지 못함: 이미 다른 프로그램이 쓰는 포트' : '열림';
     st.r1 = conn; st.r2 = text; st.r3 = again;
+    // 마지막 단계 그림에 결과가 보이게 한다(이전에는 모든 단계의 그림이 결과를 "아직"으로 보였다)
+    if (ev.length) { var lastSnap = ev[ev.length - 1].snap; lastSnap.r1 = conn; lastSnap.r2 = text; lastSnap.r3 = again; }
     // 요약
     var secLine = c.second && c.server ? ' 또 다른 프로그램이 8080번 포트를 또 열려던 일은 이 연결과 상관없이 실패했습니다.' : c.second ? ' 또 다른 프로그램이 8080번 포트를 열었지만 클라이언트가 연결한 것은 9090번이어서 거절됩니다.' : '';
     if (c.server && same && !c.second) {

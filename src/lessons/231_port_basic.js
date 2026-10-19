@@ -85,6 +85,8 @@ Lab.register({
     var text = owner === 'srv' ? '안녕하세요' : !owner ? '없음' : '없음 (글이 오기를 기다리는 중)';
     var again = !c.second ? '(없음)' : c.server ? '열지 못함: 이미 다른 프로그램이 쓰는 포트' : '열림';
     st.r1 = conn; st.r2 = text; st.r3 = again;
+    // 마지막 단계 그림에 결과가 보이게 한다(이전에는 모든 단계의 그림이 결과를 "아직"으로 보였다)
+    if (ev.length) { var lastSnap = ev[ev.length - 1].snap; lastSnap.r1 = conn; lastSnap.r2 = text; lastSnap.r3 = again; }
     // 요약
     var secLine = c.second && c.server ? ' 또 다른 프로그램이 8080번 포트를 또 열려던 일은 이 연결과 상관없이 실패했습니다.' : c.second ? ' 또 다른 프로그램이 8080번 포트를 열었지만 클라이언트가 연결한 것은 9090번이어서 거절됩니다.' : '';
     if (c.server && same && !c.second) {

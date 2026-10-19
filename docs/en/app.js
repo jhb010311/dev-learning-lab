@@ -5680,7 +5680,7 @@ Lab.register({
     return a.concat(b);
   },
   code: function (c) {
-    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    Long getId() { return id; }\n    String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    Member getMember() { return member; }\n}\n' : '');
+    var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    public Long getId() { return id; }\n    public String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    public Member getMember() { return member; }\n}\n' : '');
     return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // closes the persistence context' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: 'Lazily fetched association', find: 'em.find', findref: 'getReference after find', reffind: 'find after getReference' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() comparison', closed: 'getName() after closing' }[c.use]; },
@@ -5792,7 +5792,7 @@ Lab.register({
     P.box('res', 16, 262, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Exception' : 'Result', right: s.err || s.out || 'None yet' });
     P.note('A blue proxy is empty and knows only the identifier. A yellow proxy is connected to the real Member (initialized). The arrow in the middle means that a query SQL was sent to the DB in this step. Even after it is initialized, a proxy does not turn into the real object; it passes the calls it receives on to the real object.');
   },
-  assume: 'All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity\'s field and getters are provided, and on a single persistence context. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.',
+  assume: 'All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity\'s field and public getters are provided, and on a single persistence context. With the same code but the getters not public, calling getId() also initialized the proxy and sent one SELECT. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.',
 });
 
 Lab.register({
@@ -9709,7 +9709,7 @@ Lab.register({
     var count, end;
     if (!loop) {
       st.done = '200 OK'; msg('s', 'c', '200 OK', 'Final response', 'good');
-      push('The server for /orders responds with 200 OK. ' + (nx.toGet ? 'What it received is a GET, so it returns the list of orders. The body sent in the first request never reached this server.' : nx.body ? 'It receives the ' + c.m + ' request and the body as they are and handles them.' : 'It returns the list of orders.') + ' Only this last response is passed to the code that sent the request.', nx.toGet && c.code !== '303' ? '' : 'good');
+      push('The server for /orders responds with 200 OK. ' + (nx.toGet ? 'What it received is a GET, so it returns the list of orders. The body sent in the first request never reached the handler for /orders (the second request did not carry it).' : nx.body ? 'It receives the ' + c.m + ' request and the body as they are and handles them.' : 'It returns the list of orders.') + ' Only this last response is passed to the code that sent the request.', nx.toGet && c.code !== '303' ? '' : 'good');
       count = '2'; end = '200 OK';
     } else {
       var back = nx.m + ' /order' + (nx.body ? ' + body' : '');
@@ -16788,6 +16788,8 @@ Lab.register({
     var text = owner === 'srv' ? 'Hello' : !owner ? 'None' : 'None (waiting for text to arrive)';
     var again = !c.second ? '(none)' : c.server ? 'Could not open: another program already uses the port' : 'Opened';
     st.r1 = conn; st.r2 = text; st.r3 = again;
+    // Show the results in the last step's picture (before this, every step showed them as not yet known)
+    if (ev.length) { var lastSnap = ev[ev.length - 1].snap; lastSnap.r1 = conn; lastSnap.r2 = text; lastSnap.r3 = again; }
     // Summary
     var secLine = c.second && c.server ? ' The attempt of another program to open port 8080 again failed, regardless of this connection.' : c.second ? ' Another program opened port 8080, but the client connected to port 9090, so the connection is refused.' : '';
     if (c.server && same && !c.second) {

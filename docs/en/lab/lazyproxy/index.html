@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
+<link rel="stylesheet" href="../../app.css?v=72da4748ce">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,15 +71,15 @@
 class Member {
     @Id Long id;
     String name;
-    Long getId() { return id; }
-    String getName() { return name; }
+    public Long getId() { return id; }
+    public String getName() { return name; }
 }
 
 // The DB has member 1 &quot;Alice&quot;
 Member m = em.getReference(Member.class, 1L);
 String name = m.getName();</pre>
 <h2>Assumptions of this model</h2>
-<p>All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity's field and getters are provided, and on a single persistence context. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.</p>
+<p>All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity's field and public getters are provided, and on a single persistence context. With the same code but the getters not public, calling getId() also initialized the proxy and sent one SELECT. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.</p>
 <p>Previous lab: <a href="../../lab/cascade/">Cascade and orphan removal</a> · Next lab: <a href="../../lab/nplus1/">N+1</a></p>
   </div>
 
@@ -167,6 +167,6 @@ String name = m.getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0d74d64e87"></script>
+<script src="../../app.js?v=72da4748ce"></script>
 </body>
 </html>

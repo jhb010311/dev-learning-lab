@@ -85,6 +85,8 @@ Lab.register({
     var text = owner === 'srv' ? 'Hello' : !owner ? 'None' : 'None (waiting for text to arrive)';
     var again = !c.second ? '(none)' : c.server ? 'Could not open: another program already uses the port' : 'Opened';
     st.r1 = conn; st.r2 = text; st.r3 = again;
+    // Show the results in the last step's picture (before this, every step showed them as not yet known)
+    if (ev.length) { var lastSnap = ev[ev.length - 1].snap; lastSnap.r1 = conn; lastSnap.r2 = text; lastSnap.r3 = again; }
     // Summary
     var secLine = c.second && c.server ? ' The attempt of another program to open port 8080 again failed, regardless of this connection.' : c.second ? ' Another program opened port 8080, but the client connected to port 9090, so the connection is refused.' : '';
     if (c.server && same && !c.second) {

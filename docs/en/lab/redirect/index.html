@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0d74d64e87">
+<link rel="stylesheet" href="../../app.css?v=72da4748ce">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 <li>The server responds with 302 Found. The Location header of the response holds the next address to request, /orders. A 302 response is a temporary redirect. It means &quot;go to /orders just this time&quot;, so the client must still send the next request to the original address, /order, first.</li>
 <li>The client reads Location and builds the next request. The standard (RFC 9110) allows changing POST to GET on a 301 or 302. It is not required, but fetch and curl really do change it to GET and drop the body.</li>
 <li>The client sends the request GET /orders (no body). The user did not ask for this second request. The client sends it by itself after reading Location. The body of the first request is not carried in this request.</li>
-<li>The server for /orders responds with 200 OK. What it received is a GET, so it returns the list of orders. The body sent in the first request never reached this server. Only this last response is passed to the code that sent the request.</li>
+<li>The server for /orders responds with 200 OK. What it received is a GET, so it returns the list of orders. The body sent in the first request never reached the handler for /orders (the second request did not carry it). Only this last response is passed to the code that sent the request.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -175,6 +175,6 @@ await fetch('http://shop.example/order', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0d74d64e87"></script>
+<script src="../../app.js?v=72da4748ce"></script>
 </body>
 </html>
