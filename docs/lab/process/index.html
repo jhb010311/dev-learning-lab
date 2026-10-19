@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
+<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,27 +57,31 @@
 <ol>
 <li>프로그램을 실행해 프로세스 1개를 만듭니다. 운영체제가 이 프로세스에 메모리를 내주고, counter 변수는 그 안에 하나 있습니다. 그 안에서 스레드 3개를 만듭니다. 스레드는 실행 흐름(스택)만 각자 가지고, 프로세스의 메모리는 함께 씁니다.</li>
 <li>스레드 3개가 각자 작업을 하나씩 맡아 동시에 시작합니다. 서로 기다리지 않습니다.</li>
-<li>남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 3입니다. 변수 하나를 여럿이 함께 쓰는 것이므로, 동시에 건드릴 때의 문제는 따로 막아야 합니다(다음 개념인 경쟁 상태).</li>
+<li>남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 3입니다. 변수 하나를 여럿이 함께 쓰므로, 올리는 줄에 synchronized를 걸어 한 번에 한 스레드만 올리게 했습니다. 이것이 없으면 두 스레드가 같은 값을 읽고 덮어써서 올린 횟수보다 작은 값이 나올 수 있습니다(다음 개념인 경쟁 상태).</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
 <li>스레드는 같은 프로세스의 메모리를 함께 씁니다. 만들기 가볍고 데이터를 주고받기 쉽지만, 같은 데이터를 동시에 건드리는 문제가 생기고, 프로세스가 죽으면 모든 스레드가 함께 죽습니다. 웹 서버(톰캣)가 요청마다 스레드를 쓰는 것이 이 방식입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>static int counter = 0;                 // 프로세스의 메모리에 있는 변수
+<pre>public class Main {                         // Main, work는 예시로 만든 이름
+    static int counter = 0;                 // 프로세스의 메모리에 있는 변수
 
-static void work(int id) {
-    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업
-    counter++;
-}
+    static void work(int id) {
+        try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업
+        synchronized (Main.class) { counter++; }   // 한 번에 한 스레드만 올린다
+    }
 
-// 같은 프로세스 안에 스레드 3개
-for (int i = 1; i &lt;= 3; i++) {
-    int id = i;
-    new Thread(() -&gt; work(id)).start();
+    public static void main(String[] args) throws Exception {
+        // 같은 프로세스 안에 스레드 3개
+        for (int i = 1; i &lt;= 3; i++) {
+            int id = i;
+            new Thread(() -&gt; work(id)).start();
+        }
+    }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸고, 스레드들은 같은 counter를 3까지 올린 반면 프로세스 3개는 각자 1이었습니다. 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다).</p>
+<p>아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸습니다. counter++에 synchronized를 건 코드로 스레드 3개를 30번 실행하면 같은 counter가 매번 3이었고, 프로세스 3개는 각자 1이었습니다. synchronized를 빼고 같은 실행을 30번 하면 3은 7번뿐이고 1이 21번, 2가 2번 나왔습니다. 세 스레드가 거의 같은 때 깨어나 같은 값을 읽고 덮어쓰기 때문입니다(경쟁 상태). 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다). 프로세스 3개 코드는 java 명령을 PATH에서 찾을 수 있고 Main.class가 있는 폴더에서 실행할 때 동작합니다(다른 폴더라면 -cp로 클래스 경로를 넘겨야 합니다). 처음 프로세스는 작업 프로세스를 기다리지 않고 먼저 끝나지만, 작업 프로세스는 그와 상관없이 계속 실행되어 결과는 같았습니다. 각 프로세스의 counter 값은 검증용 코드에서 waitFor()로 끝나기를 기다리고 출력을 받아 확인했습니다.</p>
 <p>앞 실습: <a href="../../lab/parstream/">병렬 스트림과 공용 풀</a> · 다음 실습: <a href="../../lab/thread/">스레드의 생성과 상태</a></p>
   </div>
 
@@ -165,6 +169,6 @@ for (int i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=dc8f4e9612"></script>
+<script src="../../app.js?v=e62205d6b3"></script>
 </body>
 </html>

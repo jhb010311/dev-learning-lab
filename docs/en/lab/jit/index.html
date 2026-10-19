@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,25 +46,25 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The first batch takes 5.8ms, and the batches after it take about 1.4ms.</li>
-<li><b>With JIT turned off</b> — It never gets faster. About 29ms per batch.</li>
+<li><b>Default settings</b> — The first batch takes 5.3ms, and the batches after it take about 1.4ms.</li>
+<li><b>With JIT turned off</b> — It never gets faster. About 28ms per batch.</li>
 <li><b>With a warmup in advance</b> — It is fast from the first user request.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>The Java compiler (javac) turns source code into bytecode, not machine code. When the program starts, the interpreter of the JVM interprets and runs this bytecode one instruction at a time. The bytecode runs on any CPU, but this is much slower than running machine code directly.</li>
-<li>Batch #1: 5.8ms. At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch ran as interpreted execution until the compiled code was ready (the compilation itself runs on another thread).</li>
-<li>Batch #2: 1.7ms. The code has started to run as compiled machine code. It is 3 to 4 times faster than the first batch. Using the information it gathered while running (such as which branches are taken often), the JVM optimizes the code once more, this time more heavily.</li>
+<li>Batch #1: 5.3ms. At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch ran as interpreted execution until the compiled code was ready (the compilation itself runs on another thread).</li>
+<li>Batch #2: 1.5ms. The code has started to run as compiled machine code. It is 3 to 4 times faster than the first batch. Using the information it gathered while running (such as which branches are taken often), the JVM optimizes the code once more, this time more heavily.</li>
 <li>Batch #3: 1.4ms.</li>
-<li>Batch #4: 1.7ms.</li>
-<li>Batch #5: 1.5ms.</li>
+<li>Batch #4: 1.4ms.</li>
+<li>Batch #5: 1.4ms.</li>
 <li>Batch #6: 1.4ms.</li>
-<li>Batch #7: 1.5ms.</li>
+<li>Batch #7: 1.4ms.</li>
 <li>Batch #8: 1.4ms.</li>
 <li>Batch #9: 1.4ms.</li>
 <li>Batch #10: 1.4ms.</li>
-<li>Batch #11: 1.6ms.</li>
-<li>Batch #12: 1.7ms.</li>
+<li>Batch #11: 1.4ms.</li>
+<li>Batch #12: 1.4ms.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -72,21 +72,27 @@
 <li>Right after a deployment, the code has not been JIT-compiled yet, and on top of that, classes are still being loaded, the connection pool is still being filled, and the caches are empty, so the first requests are especially slow. This is also why traffic is moved to a new server a little at a time and not all at once. When you measure performance, too, discard the first period and look at the values after the code is fully warmed up.</li>
 </ul>
 <h2>Code</h2>
-<pre>static long work(int n) {                  // the method that was measured
-    long s = 0;
-    for (int i = 0; i &lt; n; i++) s += (i * 31L) ^ (s &gt;&gt;&gt; 3);
-    return s;
-}
+<pre>public class JitWarmup {                       // a class made up for this example
+    static long work(int n) {                  // the method that was measured (a name made up for this example)
+        long s = 0;
+        for (int i = 0; i &lt; n; i++) s += (i * 31L) ^ (s &gt;&gt;&gt; 3);
+        return s;
+    }
 
-for (int batch = 1; batch &lt;= 12; batch++) {
-    long t = System.nanoTime();
-    for (int k = 0; k &lt; 2000; k++) work(1000);          // one batch = 2,000 calls
-    print((System.nanoTime() - t) / 1000 + &quot; microseconds&quot;);
+    public static void main(String[] args) {
+        long sink = 0;                         // uses the results so that the calculation is not removed
+        for (int batch = 1; batch &lt;= 12; batch++) {
+            long t = System.nanoTime();
+            for (int k = 0; k &lt; 2000; k++) sink += work(1000);   // one batch = 2,000 calls
+            System.out.println(&quot;Batch &quot; + batch + &quot;: &quot; + (System.nanoTime() - t) / 1000 + &quot; microseconds&quot;);
+        }
+        System.out.println(sink);
+    }
 }
 
 // Run: java JitWarmup.java</pre>
 <h2>Assumptions of this model</h2>
-<p>The numbers are values measured by actually running the code above on JDK 21 in our test environment (the first of two runs with the default settings, and one run with -Xint). The values of &quot;Warmed up in advance&quot; are the default-settings measurement with the first batch removed and the rest moved up, and the last value (1.4ms) is not a measurement but a similar value added at the end. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.</p>
+<p>The numbers were measured by running the code above on JDK 21 in our test environment five times in each of the three ways, and the values shown are from the first run of each. In all five runs, with the default settings the first batch took 5.1 to 5.4ms and the batches after it 1.4 to 1.7ms; when warmed up in advance, the first batch took 1.4 to 1.9ms; and with -Xint each batch took 23 to 36ms. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.</p>
 <p>Previous lab: <a href="../../lab/gc/">GC and memory leaks</a> · Next lab: <a href="../../lab/classload/">Class loading and initialization</a></p>
   </div>
 
@@ -174,6 +180,6 @@ for (int batch = 1; batch &lt;= 12; batch++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

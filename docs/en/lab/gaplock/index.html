@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,8 +58,8 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The coupon table has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).</li>
-<li>Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.</li>
+<li>The coupon table, made up for this example, has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).</li>
+<li>Transaction A queries ids 20 through 30 using FOR UPDATE. InnoDB reads the primary key index from 20 through 30 in order and locks as it reads. On row 30 it sets a next-key lock. A next-key lock combines a lock on a row with a lock on the gap right before that row, so row 30 and the gap (20~30) are locked together. On row 20 it sets a record lock, which locks only that row. It was searching the primary key for &quot;20 or more&quot; and found a row exactly equal to 20, so no value inside the queried range can go into the gap before it (10~20), and that gap is not locked.</li>
 <li>Transaction B tries to insert the row with id = 25. An INSERT checks whether the gap where the new row would go is locked.</li>
 <li>The place where id 25 goes is the gap (20~30), and A has locked that gap. The INSERT of B waits until A commits or rolls back. If it waits too long, it fails with a lock wait timeout error.</li>
 <li>When A commits, its locks are released, and only then does the INSERT of B that was waiting run.</li>
@@ -168,6 +168,6 @@ INSERT INTO coupon (id) VALUES (25);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,9 +54,9 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The balance of account 1 is 1000. This value is in the data file on disk, and the same value is also loaded in memory (the buffer pool).</li>
-<li>The UPDATE starts. First, the value before the change, 1000, is recorded in the undo log. It is used when the change has to be undone, and when another transaction has to read the value from before the commit (MVCC).</li>
+<li>The UPDATE starts. First, the value before the change, 1000, is recorded in the undo log. It is used when the change has to be undone, and when another transaction has to read the value from before the change, an earlier version (MVCC).</li>
 <li>The data held in memory is changed to 500. The data file on disk is still 1000. Changing the data file right away every time would require writes to many places on the disk, which is slow, so the changes are written later in a batch.</li>
-<li>What was changed, and how, is recorded in the redo log. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.</li>
+<li>What was changed, and how, is recorded as redo log. It is first written to the log buffer in memory, and written to the redo log file on disk later. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.</li>
 <li>COMMIT: The redo log is written to disk for certain (fsync). Only after this is done does the server reply &quot;commit succeeded&quot; to the user. Even at this point the data file is still 1000. What is written to disk at commit time is only the log.</li>
 <li>The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received &quot;success&quot;.</li>
 <li>The server starts again. Recovery reads the redo log on disk from the last checkpoint.</li>
@@ -73,7 +73,7 @@ UPDATE account SET balance = 500 WHERE id = 1;   -- it was 1000
 COMMIT;
 -- (the server goes down right after the commit reply)</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a simplified version of the structure of MySQL InnoDB. Details are left out, such as the fact that changes to the undo log are themselves protected by the redo log, and the log buffer and the several stages of writing to disk. Writing the redo log to disk at every commit is the behavior of the default setting (innodb_flush_log_at_trx_commit=1). These results were not confirmed by causing failures in a real database; the lab restates what the MySQL documentation explains.</p>
+<p>This is a simplified version of the structure of MySQL InnoDB. Details are left out, such as the fact that changes to the undo log are themselves protected by the redo log, and the several stages of writing to disk (such as the operating system cache). The redo log buffer is shown separately in the diagram. Writing the redo log to disk at every commit is the behavior of the default setting (innodb_flush_log_at_trx_commit=1). These results were not confirmed by causing failures in a real database; the lab restates what the MySQL documentation explains.</p>
 <p>Previous lab: <a href="../../lab/dbdeadlock/">Deadlocks in the database</a> · Next lab: <a href="../../lab/bufferpool/">Buffer pool and pages</a></p>
   </div>
 
@@ -161,6 +161,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

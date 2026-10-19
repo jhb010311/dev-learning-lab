@@ -14306,7 +14306,7 @@ Lab.register({
 Lab.register({
   id: 'thread_basic', nav: 'Threads', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['thread'],
   title: 'What is a thread, and what does start() do?',
-  intro: 'A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -> work()). The () -> work() in the parentheses is code that says "call work()" and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)',
+  intro: 'A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -> work()). work() is a method made for this example; it prints the name of the thread that runs it. The () -> work() in the parentheses is code that says "call work()" and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)',
   terms: ['Processes and threads', 'Main thread and thread names', 'start() and run()', 'join()'],
   controls: [
     { id: 'how', label: 'The line that starts the thread', type: 'select', value: 'start', options: [['start', 'Call t.start()'], ['run', 'Call t.run()'], ['none', 'Call neither']] },
@@ -14322,11 +14322,11 @@ Lab.register({
   // The first look of each box in the diagram. mt, m2, and ml are on the main thread side, and x0 and x1 are on the new thread side
   bx0: function (c) {
     return {
-      mt: { cls: 'ghost', title: 'Thread t', sub: ['Not run yet'] },
-      m2: { cls: 'ghost', title: 'Thread t2', sub: [c.two ? 'Not run yet' : 'No more threads created'] },
+      mt: { cls: 'ghost', title: 'Lines that use t', sub: ['Not run yet'] },
+      m2: { cls: 'ghost', title: c.two ? 'Lines that use t2' : 'No t2', sub: [c.two ? 'Not run yet' : 'No second Thread object'] },
       ml: { cls: 'ghost', title: 'Last line', sub: ['Not run yet'] },
-      x0: { cls: 'ghost', title: 'New thread', sub: ['Does not exist yet'] },
-      x1: { cls: 'ghost', title: 'New thread', sub: ['Does not exist yet'] },
+      x0: { cls: 'ghost', title: 'Not yet', sub: ['Made by start()'] },
+      x1: { cls: 'ghost', title: 'Not yet', sub: ['Made by start()'] },
     };
   },
   code: function (c) {
@@ -14361,7 +14361,7 @@ Lab.register({
       var who = 'the new thread (' + nm + ')';
 
       // 2. Create the Thread object
-      st.hot = mid; bx(mid, 'hot now', 'Thread ' + v, ['new Thread(…): object only', 'Name: ' + nm + ' (automatic)']);
+      st.hot = mid; bx(mid, 'hot now', null, ['new Thread(…): object only', 'Object name: ' + nm + ' (auto)']);
       st.checks.push(['Thread ' + v + ' = new Thread(…)', { v: 'Object only, name ' + nm, cls: '' }]);
       push(first
         ? 'The line Thread t = new Thread(() -> work()); new Thread(…) creates a Thread object. The () -> work() in the parentheses is the code to hand to the new flow, and it means "call work()". No name was given, so Java automatically gives the name Thread-0. Only the object exists, and there is no new flow yet. The only flow is the main thread, and the handed code has not run yet.'
@@ -14447,13 +14447,14 @@ Lab.register({
     if (s.out.length) H.table(v, ['Output'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }), 'Standard output');
     H.counters(v, [[s.started, 'Threads newly started'], [s.out.length, 'Lines printed']]);
   },
-  // Diagram: two vertical columns (three if there are two threads). The left one is the main thread, and the right ones are the new threads (Thread-0, Thread-1). In each column the Thread objects t and t2 and the last line are stacked as boxes, and you see which code runs on which line. With start, an arrow goes across from main to the new thread, and with run or none, the new thread column is empty. Below are boxes that count the threads that ran work and the newly started threads.
+  // Diagram: two vertical columns (three if there are two threads). The left one is the main thread, and the right ones are the new threads (Thread-0, Thread-1). On the main side, the lines that use t, the lines that use t2, and the last line are stacked as boxes (they are lines that main runs, not Thread objects), a new thread column gets its name only after start() starts that thread, and you see which code runs on which line. With start, an arrow goes across from main to the new thread, and with run or none, the new thread column is empty. Below are boxes that count the threads that ran work and the newly started threads.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, bx = s ? s.bx : sim.bx0, a = s ? s.a : {};
     P.size(680, 356);
     P.region('lm', 14, 8, 250, 252, 'Main thread');
-    P.region('l0', 280, 8, 190, 252, 'New thread Thread-0');
-    if (c.two) P.region('l1', 486, 8, 180, 252, 'New thread Thread-1');
+    var started = s ? s.started : 0;
+    P.region('l0', 280, 8, 190, 252, started >= 1 ? 'New thread Thread-0' : 'No new thread');
+    if (c.two) P.region('l1', 486, 8, 180, 252, started >= 2 ? 'New thread Thread-1' : 'No new thread');
     function B(id, x, y, w) { var o = bx[id]; P.box(id, x, y, w, 64, { cls: o.cls, title: o.title, sub: o.sub }); }
     B('mt', 22, 34, 234); B('m2', 22, 106, 234); B('ml', 22, 178, 234);
     B('x0', 288, 34, 174);
@@ -25396,7 +25397,7 @@ Lab.register({
     { t: 'It cannot take requests for a while', q: 'What if the application cannot take requests for a while because the database connection is lost?', d: 'The readiness probe fails, so only the requests are cut off. The container is not restarted.', v: { what: 'notready' } },
   ],
   code: function (c) {
-    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # changed from 3 to 5' : '3                 # desired state: always 3') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # if it fails, restart the container\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # if it fails, only exclude it from request targets\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
+    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # changed from 3 to 5' : '3                 # desired state: 3 Pods') + '\n  selector:\n    matchLabels: { app: shop }\n  template:\n    metadata:\n      labels: { app: shop }\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # if it fails, restart the container\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # if it fails, only exclude it from request targets\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
   },
   label: function (c) { return { kill: 'One Pod dies', node: 'One node dies', scale: 'Replicas 3 → 5', hang: 'Application hangs', notready: 'Cannot take requests for a while' }[c.what]; },
   columns: ['What Kubernetes did', 'What a person did', 'Pods after recovery'],
@@ -25448,11 +25449,11 @@ Lab.register({
   },
   // Diagram: the Deployment (desired state) and the Service on top, three nodes and their Pods below. The arrows from the Service point to the Pods that receive requests.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, alive = s.pods.filter(function (p) { return p.st === 'Running'; }).length, to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, exist = s.pods.filter(function (p) { return p.st !== 'Dead'; }).length, notOk = s.pods.some(function (p) { return p.st !== 'Dead' && p.st !== 'Running'; }), to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
     P.size(680, 330);
     P.box('dep', 16, 16, 300, 44, { cls: 'plain', title: 'Deployment (desired state)', right: 'Pods: ' + s.want });
     P.box('svc', 364, 16, 300, 44, { cls: 'wait', title: 'Service (divides requests)', right: 'To ' + to });
-    P.text('cmp', 16, 84, 'Pods actually running: ' + alive + (alive < s.want ? '. Fewer than desired' : '. Same as desired'), { cls: alive < s.want ? 'bad' : 'good' });
+    P.text('cmp', 16, 84, 'Pods that exist now: ' + exist + (exist < s.want ? ', fewer than desired' : ', same as desired') + (to < exist ? ' · of these, receiving requests: ' + to : ''), { cls: exist < s.want ? 'bad' : notOk ? '' : 'good' });
     ['Node 1', 'Node 2', 'Node 3'].forEach(function (name, i) {
       var x = 16 + i * 222, k = 0;
       P.region('node' + i, x, 100, 204, 214, name + (nodeDown && i === 1 ? ' (shut down)' : ''));
@@ -25484,7 +25485,7 @@ Lab.register({
     { t: 'When the inside of the payment service is slow', q: 'What if the slow span is the processing inside the payment service?', d: 'The time of the payment service minus the time of its external call is long.', v: { slow: 'pay', prop: true } },
   ],
   code: function (c) {
-    return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# Header added automatically when services call each other (W3C Trace Context)\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#               └─ trace id (same for the whole request)      └─ span id (differs for each span)\n\n# Put the trace ID into the log pattern (taken from the MDC)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// No tracing configured\n// Each service writes only its own log\n\nlog.info("Order processing started orderId={}", orderId);';
+    return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# Header added automatically when services call each other (W3C Trace Context)\n# Format: version-trace-id-parent-id-trace-flags\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#   trace-id (4bf9…4736): the same for the whole request\n#   parent-id (00f0…02b7): the id of the sender\'s span; it becomes the parent of the receiver\'s span\n\n# Put the trace ID into the log pattern (taken from the MDC)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// No tracing configured\n// Each service writes only its own log\n\nlog.info("Order processing started orderId={}", orderId);';
   },
   label: function (c) { return 'Slow span: ' + { none: 'None', db: 'Order DB', pay: 'Inside the payment service', pg: 'External payment provider' }[c.slow] + (c.prop ? '' : ' · No trace ID'); },
   columns: ['Total response time', 'Longest span', 'How to find the cause'],
@@ -25500,7 +25501,7 @@ Lab.register({
     push(c.prop ? 'When the gateway calls the order service, it puts the trace ID and its own span ID into the HTTP headers. The order service picks up the same trace ID and records its own processing as a new span (its parent is the gateway\'s span).' : 'The order service receives and handles the request. It has no way to know which request from whom this is part of.', '', 2);
     push('The order service queries the database (' + d.db + 'ms).' + (c.prop ? ' This query is recorded as a span too.' : ''), d.db > 500 ? 'bad' : '', 3);
     push('The order service calls the payment service.' + (c.prop ? ' The trace ID is passed in the headers again. Each time a log is written, the trace ID held in the MDC is printed with it automatically.' : ' The payment service\'s log has no clue that connects it to the order service.'), '', 4);
-    push('The payment service calls the external payment provider API (' + d.pg + 'ms). When the response comes back, the spans close in reverse order: the payment service, the order service, and the gateway. Total: ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
+    push('The payment service calls the external payment provider API (' + d.pg + 'ms). ' + (c.prop ? 'When the response comes back, the spans close in reverse order: the external payment provider API, the payment service, the order service, and the gateway.' : 'The response goes back in reverse order: the payment service, the order service, and the gateway.') + ' Total: ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
     if (c.prop) push('When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. ' + (c.slow === 'none' ? 'Every span is short.' : 'The span with the longest self time (its inner calls excluded) is "' + spans[mi][0] + '". You can see right away where it is slow.'), 'good', 6);
     else push('The logs are in the three services separately. Hundreds of requests are mixed together at the same time, so you have to guess which logs belong to this request from the time and the order number. You also have to calculate the time per span yourself.', 'bad', 6);
     sum.push(c.prop ? 'A trace ID is a number attached to a whole request, and a span is one part of it (the processing of one service, one query, or one external call). Each span records its parent span, so the call relationships can be rebuilt as a tree.' : 'When services are split up, the traces of one request are scattered in many places. Passing a common ID in the headers and printing it in every log is the starting point of distributed tracing.');
@@ -25512,16 +25513,18 @@ Lab.register({
     H.table(v, ['Service', 'Trace ID in the log', 'Log message'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), 'Logs written by each service');  },
   // Diagram: the spans that one request passed through, drawn as bars in time order. The length of a bar is the time that the span took.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
+    var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2], sps = sim.spans;
+    // Step at which each span closes: the DB query at step 3, the rest at step 5 when the response comes back. Before it closes, a span is drawn as a dashed bar as long as the time so far
+    var ends = [5, 5, 3, 5, 5], now = [0, sps[0][3], sps[2][1], sps[2][1] + sps[2][2], sps[3][1], total][Math.min(n, 5)];
     P.size(680, 260);
     P.region('tr', 16, 16, 648, 228, c.prop ? 'Tracing screen: spans tied together by the same trace ID' : 'Trace IDs differ per service (or are missing), so logs cannot be linked');
     sim.spans.forEach(function (sp, i) {
-      var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
+      var y = 50 + i * 36, on = i < n, closed = n >= ends[i], slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });
-      if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * sp[2] / total), 24, { cls: slow ? 'bad' : 'wait' }); P.text('ms' + i, 652, y + 17, on ? sp[2] + 'ms (own ' + sp[3] + 'ms)' : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
+      if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * (closed ? sp[2] : now - sp[1]) / total), 24, { cls: slow ? 'bad' : closed ? 'wait' : 'ghost' }); P.text('ms' + i, 652, y + 17, on ? (closed ? sp[2] + 'ms (own ' + sp[3] + 'ms)' : 'In progress') : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
       else if (on) P.box('id' + i, 170, y, 240, 24, { cls: 'bad', sub: 'Trace ID ' + sim.ids[i], mono: true, center: true });
     });
-    P.note(c.prop ? 'The position of a bar is its start time, and its length is the time it took. An inner span is included in the time of the outer span. The red bar is the span that actually spent the time, and the span with a large "own" time is the cause.' : 'There is no trace ID, so you cannot tell whether these logs belong to the same request. You cannot line the spans up in one view, so it is also hard to find where it is slow.');
+    P.note(c.prop ? 'The position of a bar is its start time, and its length is the time it took. An inner span is included in the time of the outer span. A dashed bar is a span that has not finished yet, and its time is known only when it finishes. The red bar is the span that actually spent the time, and the span with a large "own" time is the cause.' : 'There is no trace ID, so you cannot tell whether these logs belong to the same request. You cannot line the spans up in one view, so it is also hard to find where it is slow.');
   },
   assume: 'This is a simple structure in which four services are called in turn, and the times are example values. The trace ID, the span, and the way they are propagated in headers follow the explanations in the W3C Trace Context standard and the documentation of OpenTelemetry and Micrometer Tracing. In practice, not every request is recorded in many cases, and only a sample is collected.',
 });
@@ -25556,10 +25559,10 @@ Lab.register({
     if (RR && (c.q === 'miss' || c.q === 'range')) gaps = [[20, 30]];
     var blocked = gaps.some(function (g) { return ins > g[0] && ins < g[1]; });
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
-    push('The coupon table has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
+    push('The coupon table, made up for this example, has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
     if (c.q === 'hit') push('Transaction A queries the row with id = 20 using FOR UPDATE. The primary key finds exactly one row, so the lock is placed on that row only (a record lock). It is guaranteed that this is the only row that will ever match the condition, so there is no need to lock a gap.', '', 1);
     else if (c.q === 'miss') push('Transaction A queries id = 25 using FOR UPDATE. There is no such row. ' + (RR ? 'Because there is no row to lock, InnoDB locks the gap between 20 and 30, where 25 would go (a gap lock). This is to make sure that what does not exist now still does not exist until my transaction ends.' : 'At READ COMMITTED, the gap is not locked. There is no row to lock either, so no lock is taken at all.'), '', 1);
-    else push('Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. ' + (RR ? 'It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.' : 'At READ COMMITTED, the gap is not locked, only the rows that were found.'), '', 1);
+    else push('Transaction A queries ids 20 through 30 using FOR UPDATE. ' + (RR ? 'InnoDB reads the primary key index from 20 through 30 in order and locks as it reads. On row 30 it sets a next-key lock. A next-key lock combines a lock on a row with a lock on the gap right before that row, so row 30 and the gap (20~30) are locked together. On row 20 it sets a record lock, which locks only that row. It was searching the primary key for "20 or more" and found a row exactly equal to 20, so no value inside the queried range can go into the gap before it (10~20), and that gap is not locked.' : 'It locks rows 20 and 30, which match the condition. At READ COMMITTED, the gap is not locked, only the rows that were found (record locks).'), '', 1);
     push('Transaction B tries to insert the row with id = ' + ins + '. An INSERT checks whether the gap where the new row would go is locked.', '', 2);
     if (blocked) push('The place where id ' + ins + ' goes is the gap (20~30), and A has locked that gap. The INSERT of B waits until A commits or rolls back. If it waits too long, it fails with a lock wait timeout error.', 'bad', 3);
     else push('The place where id ' + ins + ' goes is not locked. The INSERT of B runs right away.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' If A runs the query with the same condition again, the row with id 25, which did not exist at first, appears (a phantom read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
@@ -25569,7 +25572,9 @@ Lab.register({
     if (c.q === 'miss' && RR) sum.push('This often causes trouble in an "insert if it does not exist" pattern. If two transactions each query a row that does not exist with FOR UPDATE, both get a gap lock on the same gap (gap locks do not block each other). If both then try to INSERT, each is blocked by the gap lock of the other, and a deadlock occurs.');
     if (c.q === 'hit') sum.push('When a unique index finds exactly one existing row, only a record lock is placed. To keep the range of locks narrow, it is important that the condition uses an index precisely. If it cannot use an index, a much wider range is locked.');
     if (!RR) sum.push('At READ COMMITTED, queries do not use gap locks, so INSERTs are blocked less often and deadlocks also decrease. In return, phantom reads are allowed.' + (phantom ? ' In this run, a new row actually slipped in.' : ''));
-    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, row: [rec.length ? rec.join(', ') : 'None', gaps.length ? '(20~30)' : 'None', blocked ? 'Waits until A finishes' : 'Runs right away', phantom ? 'Yes (phantom occurs)' : blocked ? 'No' : c.q === 'hit' || ins === 45 ? 'Outside the queried range' : 'No'] };
+    // The kinds of locks A holds (the same as recorded in performance_schema.data_locks)
+    var locks = c.q === 'hit' ? 'Row 20: record lock' : c.q === 'miss' ? (RR ? 'Gap (20~30): gap lock' : 'Nothing locked') : RR ? 'Row 20: record lock · row 30: next-key lock' : 'Rows 20, 30: record locks';
+    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, locks: locks, row: [rec.length ? rec.join(', ') : 'None', gaps.length ? '(20~30)' : 'None', blocked ? 'Waits until A finishes' : 'Runs right away', phantom ? 'Yes (phantom occurs)' : blocked ? 'No' : c.q === 'hit' || ins === 45 ? 'Outside the queried range' : 'No'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, items = [], ids = [10, 20, 30, 40];
@@ -25584,7 +25589,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, ids = [10, 20, 30, 40], x = 16, target = ins < 30 ? 2 : 4, waiting = sim.blocked && st === 3, done = st >= 3 && !waiting;
     P.size(680, 300);
-    P.box('txa', 16, 16, 440, 46, { cls: st >= 1 ? 'hot' : 'plain', title: 'Transaction A', sub: st >= 4 ? 'Committed. Locks released' : st >= 1 ? 'SELECT ... FOR UPDATE executed, not committed yet' : 'Not started' });
+    P.box('txa', 16, 16, 440, 58, { cls: st >= 1 ? 'hot' : 'plain', title: 'Transaction A', sub: st >= 4 ? 'Committed. Locks released' : st >= 1 ? ['SELECT ... FOR UPDATE executed, not committed yet', sim.locks] : 'Not started' });
     P.text('ixl', 16, 112, 'id index (smaller values on the left)', { cls: 'mut' });
     for (var k = 0; k <= 4; k++) {
       var lo = k ? ids[k - 1] : 0, gLocked = st >= 1 && st < 4 && sim.gaps.some(function (g) { return g[0] === lo; }), here = k === target && st >= 2;
@@ -25620,33 +25625,34 @@ Lab.register({
   label: function (c) { return { commit: 'A normal commit', rollback: 'Rollback', crashAfter: 'Failure right after the commit', crashBefore: 'Failure before the commit' }[c.what]; },
   columns: ['Final balance', 'Used to undo', 'Used to reapply', 'Property guaranteed'],
   simulate: function (c) {
-    var ev = [], sum = [], S = { mem: '1000', file: '1000', redo: '(empty)', undo: '(empty)', tx: 'Not started' }, W = c.what, fin, usedU = 'Not used', usedR = 'Not used', prop;
-    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
+    var ev = [], sum = [], S = { mem: '1000', logbuf: '(empty)', file: '1000', redo: '(empty)', undo: '(empty)', tx: 'Not started', flow: '' }, W = c.what, fin, usedU = 'Not used', usedR = 'Not used', prop;
+    // flow: the copying that happens at that step (commit: log buffer → redo log on disk, replay: redo log → memory). It is shown as an arrow only at that step
+    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); S.flow = ''; }
     push('The balance of account 1 is 1000. This value is in the data file on disk, and the same value is also loaded in memory (the buffer pool).', '');
-    S.tx = 'In progress'; S.undo = 'Earlier value of account 1 = 1000'; push('The UPDATE starts. First, the value before the change, 1000, is recorded in the undo log. It is used when the change has to be undone, and when another transaction has to read the value from before the commit (MVCC).', '');
+    S.tx = 'In progress'; S.undo = 'Earlier value of account 1 = 1000'; push('The UPDATE starts. First, the value before the change, 1000, is recorded in the undo log. It is used when the change has to be undone, and when another transaction has to read the value from before the change, an earlier version (MVCC).', '');
     S.mem = '500 (not written to disk yet)'; push('The data held in memory is changed to 500. The data file on disk is still 1000. Changing the data file right away every time would require writes to many places on the disk, which is slow, so the changes are written later in a batch.', '');
-    S.redo = '"Account 1 = 500" (in the log buffer in memory)'; push('What was changed, and how, is recorded in the redo log. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.', '');
+    S.logbuf = '"Account 1 = 500"'; push('What was changed, and how, is recorded as redo log. It is first written to the log buffer in memory, and written to the redo log file on disk later. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.', '');
     if (W === 'rollback') {
       S.mem = '1000'; S.tx = 'Rolled back'; S.undo = '(to be cleaned up after use)'; usedU = 'Undo log'; fin = '1000'; prop = 'Atomicity';
       push('ROLLBACK: The data in memory is returned to the earlier value, 1000, which was kept in the undo log. Everything the transaction did is canceled.', 'good');
       sum.push('A rollback is done with the undo log. The undo log supports "all applied or all canceled" (atomicity).');
     } else if (W === 'crashBefore') {
-      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; S.mem = '(lost)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
-      S.mem = '(restarting)'; S.tx = 'Aborted'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no record that they committed.', '');
+      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; S.mem = '(lost)'; S.logbuf = '(lost)'; S.tx = 'Stopped before commit (server down)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
+      S.mem = '(restarting)'; S.logbuf = '(empty)'; S.tx = 'Not committed (found by recovery)'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no record that they committed.', '');
       S.mem = '1000'; S.tx = 'Rolled back (during recovery)'; usedU = 'Undo log'; usedR = 'Redo log (at the start of recovery)'; fin = '1000'; prop = 'Atomicity';
       push('The changes of the transaction that was not committed are undone using the undo log. The balance is 1000. The user never received a "commit succeeded" reply, so this result is correct.', 'good');
       sum.push('Changes that were not committed do not remain after a failure. Recovery undoes them with the undo log.');
     } else {
-      S.redo = '"Account 1 = 500" + committed note (on disk)'; S.tx = 'Committed';
+      S.redo = '"Account 1 = 500" + committed note (on disk)'; S.logbuf = '(written to disk)'; S.tx = 'Committed'; S.flow = 'commit';
       push('COMMIT: The redo log is written to disk for certain (fsync). Only after this is done does the server reply "commit succeeded" to the user. Even at this point the data file is still 1000. What is written to disk at commit time is only the log.', 'good');
       if (W === 'commit') {
         S.file = '500'; S.mem = '500'; usedR = 'Not used (no failure occurred)'; fin = '500'; prop = 'Durability';
         push('A while later, a background task writes the changed data in memory to the data file (flushing). Now the data file also holds 500. After that, the corresponding redo log is no longer needed.', '');
         sum.push('The speed of a commit is set by the speed of writing the log to disk. Reflecting the changes in the data file is done later, in batches.');
       } else {
-        S.mem = '(lost)'; push('The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received "success".', 'bad');
-        S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the last checkpoint.', '');
-        S.mem = '500'; S.file = '500'; usedR = 'Redo log'; fin = '500'; prop = 'Durability';
+        S.mem = '(lost)'; S.logbuf = '(lost)'; push('The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received "success".', 'bad');
+        S.mem = '(restarting)'; S.logbuf = '(empty)'; push('The server starts again. Recovery reads the redo log on disk from the last checkpoint.', '');
+        S.mem = '500'; S.file = '500'; S.flow = 'replay'; usedR = 'Redo log'; fin = '500'; prop = 'Durability';
         push('The redo log has "account 1 set to 500" and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.', 'good');
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
       }
@@ -25659,26 +25665,29 @@ Lab.register({
     if (!s) { H.text(v, 'Press Run to start.'); return; }
     H.table(v, ['Location', 'Content'], [
       { cells: ['Memory (buffer pool)', { v: s.mem, cls: s.mem.indexOf('500') === 0 ? 'hot' : s.mem.indexOf('lost') >= 0 ? 'bad' : '' }] },
+      { cells: ['Memory: redo log buffer', { v: s.logbuf, cls: s.logbuf.indexOf('lost') >= 0 ? 'bad' : '' }] },
       { cells: ['Disk: data file', { v: s.file, cls: s.file === '500' ? 'good' : '' }] },
-      { cells: ['Redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
+      { cells: ['Disk: redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo log', s.undo] },
     ], 'Where the balance of account 1 is stored');
   },
   // Diagram: The top is memory, which is lost when the server goes down, and the bottom is the disk, which stays. How far the change has been recorded decides the difference between a commit and recovery.
   draw: function (P, sim, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : { mem: '1000', file: '1000', redo: 'empty', undo: 'empty', tx: 'Not started' }, gone = s.mem.indexOf('lost') >= 0, redoOk = s.redo.indexOf('committed note (') >= 0;
+    var last = shown[shown.length - 1], s = last ? last.snap : { mem: '1000', logbuf: '(empty)', file: '1000', redo: '(empty)', undo: '(empty)', tx: 'Not started', flow: '' }, gone = s.mem.indexOf('lost') >= 0, redoOk = s.redo.indexOf('committed note (') >= 0;
     P.size(680, 322);
-    P.box('tx', 16, 16, 648, 36, { cls: s.tx.indexOf('Commit') >= 0 ? 'good' : s.tx.indexOf('Rolled back') >= 0 ? 'bad' : 'plain', title: 'Transaction state', right: s.tx });
+    P.box('tx', 16, 16, 648, 36, { cls: s.tx === 'Committed' ? 'good' : /Rolled back|Stopped|Not committed/.test(s.tx) ? 'bad' : 'plain', title: 'Transaction state', right: s.tx });
     P.region('ram', 16, 66, 648, 84, 'Memory: lost when the server goes down');
-    P.box('mem', 28, 100, 624, 38, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: 'Balance loaded in the buffer pool', right: s.mem });
+    P.box('mem', 28, 98, 300, 42, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: 'Balance loaded in the buffer pool', sub: s.mem });
+    P.box('logbuf', 340, 98, 312, 42, { cls: s.logbuf.indexOf('lost') >= 0 ? 'bad' : s.logbuf.indexOf('"') === 0 ? 'hot' : 'plain', title: 'Redo log buffer', sub: s.logbuf });
     P.region('disk', 16, 164, 648, 142, 'Log and data files (what is written to disk is kept even when the server goes down)');
     P.box('redo', 28, 198, 624, 30, { cls: redoOk ? 'good' : 'plain', title: 'Redo log', right: s.redo });
     P.box('undo', 28, 232, 624, 30, { cls: 'plain', title: 'Undo log', right: s.undo });
     P.box('file', 28, 266, 624, 30, { cls: s.file === '500' ? 'good' : 'plain', title: 'Data file', right: s.file });
-    if (redoOk && !gone) P.arrow('wr', 'mem:b:0.15', 'redo:t:0.15', { cls: 'good' });
+    if (s.flow === 'commit') P.arrow('wr', 'logbuf:b:0.5', 'redo:t:0.8', { cls: 'good' });
+    if (s.flow === 'replay') P.arrow('rp', 'redo:t:0.2', 'mem:b:0.4', { cls: 'good' });
     P.note('A commit does not mean "written to the data file". It means "recorded in the redo log". Even if the value in memory is lost, it can be rebuilt as long as the redo log remains, and changes that were not committed are undone with the earlier values in the undo log.');
   },
-  assume: 'This is a simplified version of the structure of MySQL InnoDB. Details are left out, such as the fact that changes to the undo log are themselves protected by the redo log, and the log buffer and the several stages of writing to disk. Writing the redo log to disk at every commit is the behavior of the default setting (innodb_flush_log_at_trx_commit=1). These results were not confirmed by causing failures in a real database; the lab restates what the MySQL documentation explains.',
+  assume: 'This is a simplified version of the structure of MySQL InnoDB. Details are left out, such as the fact that changes to the undo log are themselves protected by the redo log, and the several stages of writing to disk (such as the operating system cache). The redo log buffer is shown separately in the diagram. Writing the redo log to disk at every commit is the behavior of the default setting (innodb_flush_log_at_trx_commit=1). These results were not confirmed by causing failures in a real database; the lab restates what the MySQL documentation explains.',
 });
 
 Lab.register({
@@ -25711,7 +25720,7 @@ Lab.register({
     function dist(n, perN) { var d = []; for (var k = 0; k < n; k++) d.push(0); orders.forEach(function (o) { d[place(o, n, perN)]++; }); return d; }
     var d1 = dist(N, per), mx = Math.max.apply(null, d1), mn = Math.min.apply(null, d1);
     function push(s, k, d, extra) { ev.push({ s: s, k: k, snap: { d: d, extra: extra || '' } }); }
-    push('Divide ' + TOTAL + ' orders among ' + N + ' shards. ' + (c.how === 'range' ? 'The order numbers are cut into ranges of ' + per + ' and assigned to the shards.' : 'The remainder of the member number of the order divided by the number of shards (' + N + ') is the shard number. The orders of the same member always end up on the same shard.'), '', d1.map(function () { return 0; }));
+    push('Divide ' + TOTAL + ' orders among ' + N + ' shards. ' + (c.how === 'range' ? 'The order numbers are cut into ranges of ' + per + ' and assigned to the shards.' : 'The remainder of the member number of the order divided by the number of shards (' + N + ') is the shard number. The orders of the same member always end up on the same shard. The hash rule in this lab is the simplest form, which uses the member number itself as the hash value. In practice, the remainder is often taken from the value you get by passing the key to a hash function, and string keys are turned into numbers that way too.'), '', d1.map(function () { return 0; }));
     push('Distribution result. Largest shard: ' + mx + ' orders. Smallest shard: ' + mn + ' orders.' + (c.how === 'hot' ? ' Member 7 has one third of all the orders, so they are piled onto shard ' + (7 % N) + ', where that member belongs. Hashing spreads keys evenly, but it does not help when one key has a lot of data attached.' : c.how === 'range' ? ' It is even now, but that is based on past data.' : ' The member numbers are spread evenly, so the number of orders per shard is similar.'), mx >= mn * 2 ? 'bad' : 'good', d1);
     var newTo = c.how === 'range' ? 'Last shard only' : 'Spread over all shards by member';
     push(c.how === 'range' ? 'New order numbers keep getting larger, so all new orders go to the last shard, shard ' + (N - 1) + '. The write load piles up on a single shard (a bottleneck), and the other shards sit idle.' : 'New orders are scattered over several shards depending on the member number of the member who ordered. The write load is spread out.', c.how === 'range' ? 'bad' : 'good', d1, c.how === 'range' ? 'New order → shard ' + (N - 1) : 'New order → multiple shards');
@@ -25758,19 +25767,19 @@ Lab.register({
   intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.',
   terms: ['Redis', 'Cache', 'Atomicity and CAS (compare-and-swap)', 'Event loop'], ranks: ['nosql', 'cache'],
   controls: [
-    { id: 'slow', label: 'Command that cuts in partway', type: 'select', value: 'keys', options: [['none', 'None (fast commands only)'], ['keys', 'KEYS user:* (scans all 1 million keys)'], ['scan', 'Scanning in pieces with SCAN (1,000 at a time)'], ['big', 'Reading a whole list of 500,000 elements (LRANGE 0 -1)']] },
+    { id: 'slow', label: 'Command that cuts in partway', type: 'select', value: 'keys', options: [['none', 'None (fast commands only)'], ['keys', 'KEYS user:* (scans all 1 million keys)'], ['scan', 'Scanning in pieces with SCAN (COUNT 1000)'], ['big', 'Reading a whole list of 500,000 elements (LRANGE 0 -1)']] },
     { id: 'incr', label: 'Two clients send INCR to the same key at the same time', type: 'check', value: false },
   ],
   presets: [
     { t: 'Default settings', q: 'What happens to the other clients when a KEYS user:* command cuts in partway?', d: 'One KEYS command stops the other clients for 0.5s each.', v: { slow: 'keys', incr: false } },
     { t: 'With fast commands only', q: 'What if only fast commands run and no other command cuts in?', d: 'Every command finishes within 1ms.', v: { slow: 'none', incr: false } },
-    { t: 'Switching to SCAN', q: 'What if you scan with SCAN, 1,000 keys at a time, instead of KEYS?', d: 'It runs in small pieces, so other commands can cut in between them.', v: { slow: 'scan', incr: false } },
+    { t: 'Switching to SCAN', q: 'What if you scan in small pieces with SCAN (COUNT 1000) instead of KEYS?', d: 'It runs in small pieces, so other commands can cut in between them.', v: { slow: 'scan', incr: false } },
     { t: 'Reading a large collection whole', q: 'What if you read a whole list of 500,000 elements with LRANGE 0 -1 instead of KEYS?', d: 'Even without KEYS, the same thing happens when a value is large.', v: { slow: 'big', incr: false } },
     { t: 'INCR at the same time', q: 'What if no command cuts in and two clients send INCR to the same key at the same time?', d: 'The commands run one at a time, so no increment is lost.', v: { slow: 'none', incr: true } },
   ],
   code: function (c) {
-    var s = { none: '', keys: '\n// Admin script\nSet<String> keys = redis.keys("user:*");          // scans all the keys at once', scan: '\n// Admin script\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // in pieces of 1,000\n    cur.forEachRemaining(this::handle);\n}', big: '\n// Batch job\nList<String> all = redis.opsForList().range("events", 0, -1);   // all 500,000' }[c.slow];
-    return '// Services A and B: ordinary cache lookups\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// Services A and B at the same time\nredis.opsForValue().increment("view:1");           // reading + adding + writing is a single command\n' : '') + s;
+    var s = { none: '', keys: '\n// Admin script\nSet<String> keys = redis.keys("user:*");          // scans all the keys at once', scan: '\n// Admin script\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // scans in small pieces; count(1000) is a hint for how much to scan at a time\n    cur.forEachRemaining(this::handle);            // handle is a method made up for this example\n}', big: '\n// Batch job\nList<String> all = redis.opsForList().range("events", 0, -1);   // all 500,000' }[c.slow];
+    return '// Only the parts needed are kept. redis is the StringRedisTemplate from Spring\n\n// Services A and B: ordinary cache lookups\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// Services A and B at the same time\nredis.opsForValue().increment("view:1");           // reading + adding + writing is a single command\n' : '') + s;
   },
   label: function (c) { return { none: 'Fast commands only', keys: 'With KEYS', scan: 'With SCAN', big: 'With a large list query' }[c.slow] + (c.incr ? ' · concurrent INCR' : ''); },
   columns: ['Longest wait of a command', 'Total processing time', 'Time the other clients were stalled'],
@@ -25783,9 +25792,9 @@ Lab.register({
     if (c.slow === 'big') add('Batch', 'LRANGE events 0 -1', 300, 0.2);
     if (c.slow === 'scan') add('Admin', 'SCAN 0 MATCH user:* COUNT 1000', 0.5, 0.2);
     add('Service A', 'GET product:3', 0.1, 1); add('Service B', 'SET cart:9 ...', 0.1, 1);
-    if (c.slow === 'scan') add('Admin', 'SCAN 1000 ... (next batch)', 0.5, 1.2);
+    if (c.slow === 'scan') add('Admin', 'SCAN <returned cursor> ... (next batch)', 0.5, 1.2);
     add('Service A', 'GET product:4', 0.1, 2);
-    if (c.slow === 'scan') add('Admin', 'SCAN 2000 ... (next batch, then repeats)', 0.5, 2.2);
+    if (c.slow === 'scan') add('Admin', 'SCAN <returned cursor> ... (until the cursor is 0)', 0.5, 2.2);
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice(), val: val } }); }
     var f = function (x) { return (Math.round(x * 10) / 10) + 'ms'; };
     push('Redis receives the commands of several clients, puts them in a single line, and one thread runs them one by one from the front. The next command starts only after the current one has finished.', '');
@@ -25797,7 +25806,7 @@ Lab.register({
       push(x.who + ' ' + x.cmd + ': ' + (wait > 1 ? 'After waiting ' + f(wait) + ' for the preceding command to finish, it ran for ' : 'It ran for ') + f(x.dur) + '.' + (x.dur > 10 ? ' While this command runs, Redis cannot process any other command.' : '') + note, x.dur > 10 || wait > 1 ? 'bad' : '');
     });
     if (c.slow === 'keys' || c.slow === 'big') sum.push('A lookup that usually finishes in 0.1ms waited ' + f(stall) + '. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.');
-    if (c.slow === 'scan') sum.push('SCAN does not walk through everything at once, but runs in small pieces. Each run is short, so other commands can cut in between. Walking through everything takes longer, but it does not stop the other clients.');
+    if (c.slow === 'scan') sum.push('SCAN does not walk through everything at once, but runs in small pieces. Each run is short, so other commands can cut in between. Walking through everything takes longer, but it does not stop the other clients. COUNT 1000 is only a hint for how much to scan at a time, not the number of keys returned. With MATCH, only the keys that pass the filter come back, so one call can return fewer keys than that, or none at all. You pass the cursor from the reply to the next SCAN, and the scan is finished when the cursor comes back as 0.');
     if (c.slow === 'none') sum.push('Each command finishes very quickly in memory, so even one thread handles tens of thousands of commands per second or more. Having a single thread, with no lock contention and no switching cost, is another reason it is fast.');
     if (c.incr) sum.push('Even when two clients send INCR at the same time, they run one after the other inside Redis, so the value went up by exactly 2. If the application does "read with GET, add, and write with SET," another client can cut in between, but finishing in a single command is safe. When you need to group several commands, use a Lua script or a transaction (MULTI).');
     return { events: ev, summary: sum, row: [f(maxWait), f(t), stall ? f(stall) : 'None'] };
@@ -25817,7 +25826,7 @@ Lab.register({
     if (sim.c.incr) P.box('val', 16, 128 + Math.max(1, n) * 32, 648, 34, { cls: 'plain', title: 'Value of view:1 (10 at first)', right: String(s.val) });
     P.note('A red row is a command that took long, a yellow row is a command that was delayed because it was waiting for such a command to finish, and a bold border marks the command that just ran.');
   },
-  assume: 'The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN walked through in pieces of 1,000, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.',
+  assume: 'The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN (COUNT 1000) walked through in pieces, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.',
 });
 
 Lab.register({
@@ -25877,18 +25886,18 @@ Lab.register({
     { id: 'mode', label: 'How the code is run', type: 'select', value: 'jit', options: [['jit', 'Default settings (interpreted, then JIT-compiled)'], ['int', 'JIT turned off (-Xint, interpreted only)'], ['warm', 'Called in advance before requests arrive (warmup)']] },
   ],
   presets: [
-    { t: 'Default settings', q: 'Why are the first requests right after a deployment slow with the default settings (interpreted, then JIT-compiled)?', d: 'The first batch takes 5.8ms, and the batches after it take about 1.4ms.', v: { mode: 'jit' } },
-    { t: 'With JIT turned off', q: 'What if you turn JIT off (-Xint, interpreted only)?', d: 'It never gets faster. About 29ms per batch.', v: { mode: 'int' } },
+    { t: 'Default settings', q: 'Why are the first requests right after a deployment slow with the default settings (interpreted, then JIT-compiled)?', d: 'The first batch takes 5.3ms, and the batches after it take about 1.4ms.', v: { mode: 'jit' } },
+    { t: 'With JIT turned off', q: 'What if you turn JIT off (-Xint, interpreted only)?', d: 'It never gets faster. About 28ms per batch.', v: { mode: 'int' } },
     { t: 'With a warmup in advance', q: 'What if you call the code in advance before requests arrive (warmup)?', d: 'It is fast from the first user request.', v: { mode: 'warm' } },
   ],
-  DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
+  DATA: { jit: [5349, 1460, 1370, 1371, 1372, 1393, 1371, 1375, 1372, 1380, 1393, 1381], int: [25484, 25396, 29668, 30099, 27911, 29874, 33272, 27138, 26748, 29504, 26585, 27520], warm: [1379, 1573, 1714, 1627, 1423, 1452, 1395, 1443, 1464, 1374, 1377, 1390] },
   code: function (c) {
-    return 'static long work(int n) {                  // the method that was measured\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// right after startup, before requests arrive\nfor (int k = 0; k < 2000; k++) work(1000);   // call it in advance so that JIT compilation gets under way\nreadiness.set(true);                        // only then report "ready"\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // one batch = 2,000 calls\n    print((System.nanoTime() - t) / 1000 + " microseconds");\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
+    return 'public class JitWarmup {                       // a class made up for this example\n    static long work(int n) {                  // the method that was measured (a name made up for this example)\n        long s = 0;\n        for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n        return s;\n    }\n\n    public static void main(String[] args) {\n        long sink = 0;                         // uses the results so that the calculation is not removed\n' + (c.mode === 'warm' ? '        // right after startup, before requests arrive: call it in advance so that JIT compilation gets under way\n        for (int k = 0; k < 2000; k++) sink += work(1000);\n        // a real server would report "ready" (readiness) here\n\n' : '') + '        for (int batch = 1; batch <= 12; batch++) {\n            long t = System.nanoTime();\n            for (int k = 0; k < 2000; k++) sink += work(1000);   // one batch = 2,000 calls\n            System.out.println("Batch " + batch + ": " + (System.nanoTime() - t) / 1000 + " microseconds");\n        }\n        System.out.println(sink);\n    }\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
   },
   label: function (c) { return { jit: 'Default settings', int: 'JIT off (-Xint)', warm: 'Warmed up in advance' }[c.mode]; },
   columns: ['First batch', 'Last batch', 'Slowest batch ÷ fastest batch'],
   simulate: function (c) {
-    var D = c.mode === 'int' ? this.DATA.int : c.mode === 'warm' ? this.DATA.jit.slice(1).concat([1377]) : this.DATA.jit, ev = [], sum = [], f = function (us) { return (Math.round(us / 100) / 10) + 'ms'; };
+    var D = c.mode === 'int' ? this.DATA.int : c.mode === 'warm' ? this.DATA.warm : this.DATA.jit, ev = [], sum = [], f = function (us) { return (Math.round(us / 100) / 10) + 'ms'; };
     function push(s, k, n) { ev.push({ s: s, k: k, snap: { n: n } }); }
     push('The Java compiler (javac) turns source code into bytecode, not machine code. When the program starts, the interpreter of the JVM interprets and runs this bytecode one instruction at a time. The bytecode runs on any CPU, but this is much slower than running machine code directly.', '', 0);
     if (c.mode === 'warm') push('Before requests arrive, work() was called 2,000 times in advance. During these calls the JVM judges this method to be "code that runs often" and compiles it to machine code. Users do not experience this slow period.', 'good', 0);
@@ -25903,7 +25912,7 @@ Lab.register({
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
     if (c.mode === 'jit') sum.push('The code is the same, but its speed at the start and later is different. The JVM does not compile all the code in advance. It picks only the parts that actually run often and compiles them while the program is running (just-in-time). Because it optimizes based on information from the actual execution, once the code is fully warmed up it runs at a speed close to that of a language compiled in advance.');
-    if (c.mode === 'int') sum.push('With interpretation only and no JIT, the code is about 20 times slower (about 29ms) than after compilation (about 1.4ms). The real performance of Java comes from the JIT compiler.');
+    if (c.mode === 'int') sum.push('With interpretation only and no JIT, the code is about 20 times slower (about 28ms) than after compilation (about 1.4ms). The real performance of Java comes from the JIT compiler.');
     if (c.mode === 'warm') sum.push('A warmup means going through the slow period in advance, before user requests arrive. You apply it by calling the main APIs internally a few times right after a deployment, or by sending the ready signal (readiness) only after the warmup.');
     sum.push('Right after a deployment, the code has not been JIT-compiled yet, and on top of that, classes are still being loaded, the connection pool is still being filled, and the caches are empty, so the first requests are especially slow. This is also why traffic is moved to a new server a little at a time and not all at once. When you measure performance, too, discard the first period and look at the values after the code is fully warmed up.');
     return { events: ev, summary: sum, D: D, row: [f(D[0]), f(D[11]), (Math.round(mx / mn * 10) / 10) + '×'] };
@@ -25913,7 +25922,7 @@ Lab.register({
     H.title(v, 'Time taken per batch (one batch = 2,000 calls, bars are scaled to 37ms)'); var ln = H.lanes(v);
     D.forEach(function (us, i) { if (i < n) H.lane(ln, '#' + (i + 1), (Math.round(us / 100) / 10) + 'ms', us > 20000 ? 'bad' : us > 3000 ? 'hot' : 'good', Math.max(0.01, us / mx)); else H.lane(ln, '#' + (i + 1), '', 'none'); });
   },
-  assume: 'The numbers are values measured by actually running the code above on JDK 21 in our test environment (the first of two runs with the default settings, and one run with -Xint). The values of "Warmed up in advance" are the default-settings measurement with the first batch removed and the rest moved up, and the last value (1.4ms) is not a measurement but a similar value added at the end. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
+  assume: 'The numbers were measured by running the code above on JDK 21 in our test environment five times in each of the three ways, and the values shown are from the first run of each. In all five runs, with the default settings the first batch took 5.1 to 5.4ms and the batches after it 1.4 to 1.7ms; when warmed up in advance, the first batch took 1.4 to 1.9ms; and with -Xint each batch took 23 to 36ms. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
 });
 
 Lab.register({
@@ -25987,7 +25996,7 @@ Lab.register({
     if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
-    if (+c.stage < 3) r.push('        - id: legacy                   # everything else goes to the existing server\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
+    if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? 'everything goes to the existing server' : 'everything else goes to the existing server') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
     return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# Common filters: token validation, request logging, rate limiting';
   },
   label: function (c) { return ['Before migration', 'Orders migrated' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), 'Orders and payments migrated', 'Everything migrated'][+c.stage] + (c.auth ? ' · includes requests with no token' : ''); },
@@ -26005,7 +26014,7 @@ Lab.register({
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? 'Based on the ratio setting, this request goes to the new service.' : 'Based on the ratio setting, this request still goes to the existing server.'; }
       to = moved ? { orders: 'Order service (new)', payments: 'Payment service (new)', members: 'Member service (new)' }[r[1]] : 'Existing server (monolith)';
       if (moved) neu++; else old++;
-      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : '/**', { v: to, cls: moved ? 'good' : '' }] });
+      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : r[1] === 'orders' && st === 1 && ratio < 100 ? '/orders/** (order-legacy)' : '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
@@ -26061,7 +26070,7 @@ Lab.register({
   columns: ['Response', 'When the servlet object was created', 'Objects created', 'init', 'Request handling calls', 'Response produced by'],
   simulate: function (c) {
     var plain = c.kind === 'plain', S = plain ? 'HelloServlet' : 'DispatcherServlet', ev = [], sum = [];
-    var st = { made: 0, init: 0, svc: 0, destroy: 0, obj: 'none yet', thread: '', reqText: '', reqObj: '', respText: '', who: 'before server startup' };
+    var st = { made: 0, init: 0, svc: 0, destroy: 0, obj: 'none yet', thread: '', reqText: '', reqObj: '', respText: '', sent: false, who: 'before server startup' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var line = { get: 'GET /hello?name=Alice HTTP/1.1', post: 'POST /hello HTTP/1.1', none: 'GET /nothing HTTP/1.1' }[c.req], path = c.req === 'none' ? '/nothing' : '/hello', method = c.req === 'post' ? 'POST' : 'GET';
     var mapped = plain ? c.req !== 'none' : true, handled = c.req === 'get' || (c.req === 'post' && c.impl === 'both'), status, body, maker, whenMade = 'not created';
@@ -26081,11 +26090,11 @@ Lab.register({
       if (c.startup) initOnly('at server startup');
     }
     for (var i = 1; i <= c.n; i++) {
-      st.reqText = line + '\nHost: localhost:8080' + (c.req === 'post' ? '\nContent-Type: application/x-www-form-urlencoded\n\nname=Alice' : ''); st.respText = ''; st.reqObj = ''; st.thread = '';
+      st.reqText = line + '\nHost: localhost:8080' + (c.req === 'post' ? '\nContent-Type: application/x-www-form-urlencoded\n\nname=Alice' : ''); st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = '';
       push('Request #' + i + ': The browser connects to the server and sends an HTTP request. What it sends is a few lines of text, like the ones shown on the screen.', '');
-      st.thread = 'http-nio-8080-exec-' + i; st.reqObj = 'HttpServletRequest (method ' + method + ', path ' + path + (c.req === 'get' ? ', parameter name=Alice' : c.req === 'post' ? ', body name=Alice' : '') + ') + an empty HttpServletResponse';
-      push('Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.', '');
-      if (!mapped) { st.respText = 'HTTP/1.1 ' + status; push('Tomcat looks in the table for a servlet mapped to the path /nothing. There is none. The default servlet of Tomcat produces the 404 response. The HelloServlet that we wrote is not called.', 'bad'); continue; }
+      st.thread = 'a pool thread'; st.reqObj = 'HttpServletRequest (method ' + method + ', path ' + path + (c.req === 'get' ? ', parameter name=Alice' : c.req === 'post' ? ', body name=Alice' : '') + ') + an empty HttpServletResponse';
+      push('Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.' + (i === 1 ? ' Tomcat names its threads like http-nio-8080-exec-1.' : ' Which thread is assigned is not fixed, so the thread that handled the previous request may be assigned again.'), '');
+      if (!mapped) { st.respText = 'HTTP/1.1 ' + status; st.sent = true; push('Tomcat looks in the table for a servlet mapped to the path /nothing. There is none. The default servlet of Tomcat produces the 404 response and sends it to the browser. The HelloServlet that we wrote is not called.', 'bad'); continue; }
       push('Tomcat looks in the table for the servlet mapped to the path ' + path + '. ' + (plain ? 'It is HelloServlet.' : 'The DispatcherServlet registered at "/" handles all paths.'), '');
       if (plain && !st.made) create('at the first request'); else if (!plain && !st.init) initOnly('at the first request'); else if (i > 1 || c.startup) push('The ' + S + ' object already exists. Tomcat does not create a new one and uses that object again. It does not call init() again either.', 'good');
       st.svc++; st.who = S;
@@ -26099,10 +26108,10 @@ Lab.register({
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet looks for a controller method that handles /hello. There is a @GetMapping("/hello"), but there is none for POST. It sets the status of the response to 405.', 'bad'); errorDispatch(); }
         else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet finds the controller method that matches ' + method + ' /hello and calls it. ' + (method === 'GET' ? 'It reads the values from request and passes them as arguments, and it' : 'It') + ' writes the value that the method returns to response. DispatcherServlet does the work that we did ourselves when we wrote the servlet directly.', 'good'); }
       }
-      st.who = 'Tomcat (servlet container)';
+      st.who = 'Tomcat (servlet container)'; st.sent = true;
       push('The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The ' + S + ' object stays as it is and waits for the next request.', '');
     }
-    if (st.made) { st.destroy++; st.obj = 'gone'; st.reqText = ''; st.respText = ''; st.reqObj = ''; st.thread = ''; push('The server shuts down. Tomcat calls destroy() of ' + S + ' once and then discards the object. This is the chance to clean up the resources that were opened.', ''); }
+    if (st.made) { st.destroy++; st.obj = 'gone'; st.reqText = ''; st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = ''; push('The server shuts down. Tomcat calls destroy() of ' + S + ' once and then discards the object. This is the chance to clean up the resources that were opened.', ''); }
     sum.push('A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that "reads from the request and writes to the response".');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('The number of requests was ' + c.n + ', but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).');
     if (!c.startup && st.made) sum.push(plain ? 'When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.' : 'In Spring Boot, the DispatcherServlet object itself is created when the server starts, but init() happens while the first request is being handled, so only the first request is slow. When you set spring.mvc.servlet.load-on-startup, the servlet is initialized in advance at server startup.');
@@ -26115,17 +26124,17 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start from the point where the server starts.'); return; }
     var ln = H.lanes(v);
-    H.lane(ln, 'Tomcat', s.thread ? 'thread ' + s.thread + ' assigned · ' + (s.who.indexOf('Tomcat') === 0 ? 'Tomcat is working' : 'handed to the servlet') : s.who === 'before server startup' ? 'not started' : 'waiting for a request', s.who.indexOf('Tomcat') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
+    H.lane(ln, 'Tomcat', s.thread ? s.thread + ' assigned · ' + (s.who.indexOf('Tomcat') === 0 ? 'Tomcat is working' : 'handed to the servlet') : s.who === 'before server startup' ? 'not started' : 'waiting for a request', s.who.indexOf('Tomcat') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
     if (s.reqText) { H.title(v, 'What the browser sent (the HTTP request, as raw text)'); v.appendChild(H.el('pre', 'code', s.reqText)); }
     if (s.reqObj) { H.title(v, 'Java objects that Tomcat creates and passes to the servlet'); H.text(v, s.reqObj); }
-    if (s.respText) { H.title(v, 'What goes back to the browser (the HTTP response, as raw text)'); v.appendChild(H.el('pre', 'code', s.respText)); }
+    if (s.respText) { H.title(v, s.sent ? 'What goes back to the browser (the HTTP response, as raw text)' : 'The HTTP response to send (not sent to the browser yet)'); v.appendChild(H.el('pre', 'code', s.respText)); }
   },
   // Diagram: the browser, Tomcat, and inside Tomcat the thread and the servlet object. There is only one servlet object, and for each request a thread runs it.
   draw: function (P, sim, shown) {
     var c = sim.c, spring = c.kind === 'spring', name = spring ? 'DispatcherServlet' : 'HelloServlet', last = shown[shown.length - 1], s = last ? last.snap : { made: 0, init: 0, svc: 0, destroy: 0, obj: 'none yet', thread: '', reqText: '', respText: '', who: 'before server startup' };
     var none = s.obj === 'none yet' || s.obj === 'gone', inServlet = s.who === name, inCtl = s.who === 'HelloController';
     P.size(680, 310);
-    P.box('br', 16, 96, 130, 56, { cls: s.reqText ? 'wait' : 'plain', title: 'Browser', sub: s.respText ? 'got response' : s.reqText ? 'sent request' : 'idle' });
+    P.box('br', 16, 96, 130, 56, { cls: s.reqText ? 'wait' : 'plain', title: 'Browser', sub: s.sent ? 'got response' : s.reqText ? 'sent request' : 'idle' });
     P.region('tc', 186, 16, 478, 226, 'Tomcat (servlet container)' + (s.who === 'before server startup' ? ': not started' : ''));
     P.box('th', 202, 54, 210, 46, { cls: s.thread ? 'hot' : 'ghost', title: 'Thread for the request', sub: s.thread ? '' + s.thread : 'waiting for a request' });
     P.box('sv', 202, 150, 210, 76, { cls: none ? 'ghost' : inServlet ? 'hot now' : 'good', title: name + ' object', sub: [s.obj, 'init: ' + s.init + ', service: ' + s.svc + '', inServlet ? 'running now' : ' '] });
@@ -26133,7 +26142,7 @@ Lab.register({
     if (s.reqText) P.arrow('rq', 'br:r:0.3', 'th:l', { label: 'request' });
     if (s.thread && !none && (inServlet || inCtl || s.respText)) P.arrow('run', 'th:b', 'sv:t', { cls: 'hot', label: 'calls service()' });
     if (spring && inCtl) P.arrow('ctl', 'sv:r', 'ct:l', { cls: 'hot' });
-    if (s.respText) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'response' });
+    if (s.sent) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'response' });
     [['Objects created', s.made], ['init()', s.init], ['service()', s.svc], ['destroy()', s.destroy]].forEach(function (x, i) { P.box('cnt' + i, 16 + i * 164, 258, 156, 34, { cls: x[1] ? 'wait' : 'ghost', title: x[0], right: x[1] + '' }); });
     P.note('The numbers at the bottom are the call counts so far.');
   },
@@ -26158,10 +26167,10 @@ Lab.register({
     { t: 'The same error, in separate processes', q: 'What if you run 3 processes (1 thread each) and task 2 calls System.exit?', d: 'Only that process dies, and the others are unharmed.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';
-    if (c.how === 'single') return body + '// one thread (main), one task after another\nfor (int i = 1; i <= 3; i++) work(i);';
-    if (c.how === 'multi') return body + '// 3 threads in the same process\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
-    return body + '// 3 processes: the same program is run separately each time\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
+    var body = 'public class Main {                         // Main and work are names made up for this example\n    static int counter = 0;                 // a variable in the memory of the process\n\n    static void work(int id) {\n        try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '        if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '        if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '        synchronized (Main.class) { counter++; }   // only one thread at a time increments it\n    }\n\n    public static void main(String[] args) throws Exception {\n', end = '    }\n}';
+    if (c.how === 'single') return body + '        // one thread (main), one task after another\n        for (int i = 1; i <= 3; i++) work(i);\n' + end;
+    if (c.how === 'multi') return body + '        // 3 threads in the same process\n        for (int i = 1; i <= 3; i++) {\n            int id = i;\n            new Thread(() -> work(id)).start();\n        }\n' + end;
+    return body + '        if (args.length > 0) { work(Integer.parseInt(args[0])); return; }   // a newly started process: one task\n        // 3 processes: the same program is run separately each time\n        for (int i = 1; i <= 3; i++) {\n            new ProcessBuilder("java", "Main", String.valueOf(i)).start();\n        }\n' + end;
   },
   label: function (c) { return { single: '1 thread', multi: '3 threads', proc: '3 processes' }[c.how] + ' · task 2: ' + { none: 'normal', ex: 'exception', kill: 'error that kills the process' }[c.fail]; },
   columns: ['Tasks finished', 'Time taken', 'Value of counter', 'How far the problem in task 2 spread'],
@@ -26170,7 +26179,7 @@ Lab.register({
     var P = H === 'proc' ? [1, 2, 3].map(function (i) { return { p: 'Process ' + i, mem: 0, th: [{ id: i, st: 'Waiting to start' }], alive: true }; }) : [{ p: 'Process 1', mem: 0, th: (H === 'single' ? [{ id: 0, st: 'Waiting to start', name: 'main thread' }] : [1, 2, 3].map(function (i) { return { id: i, st: 'Waiting to start' }; })), alive: true }];
     function snap() { return JSON.parse(JSON.stringify(P)); }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
-    push(H === 'proc' ? 'The same program is run three times, which creates 3 processes. The operating system gives each process its own separate memory. Each process also gets its own counter variable, so there are three in all.' : 'The program is run, which creates 1 process. The operating system gives this process memory, and there is one counter variable in it.' + (H === 'multi' ? ' Inside the process, 3 threads are created. Each thread has only its own flow of execution (its stack), and the threads share the memory of the process.' : ' The only thread is main.'), '');
+    push(H === 'proc' ? 'The Main process that was started first runs the same program three more times, which creates 3 processes that do the work. The operating system gives each process its own separate memory. Each process also gets its own counter variable, so the three working processes have three in all. The Main process that was started first also has a counter (0), but it does no work, so it is left out of the diagram.' : 'The program is run, which creates 1 process. The operating system gives this process memory, and there is one counter variable in it.' + (H === 'multi' ? ' Inside the process, 3 threads are created. Each thread has only its own flow of execution (its stack), and the threads share the memory of the process.' : ' The only thread is main.'), '');
     if (H === 'single') {
       var th = P[0].th[0], stopped = false;
       for (var i = 1; i <= 3; i++) {
@@ -26188,7 +26197,7 @@ Lab.register({
       else {
         if (F === 'ex') { P[0].th[1].st = 'Terminated: exception'; spread = 'Thread 2 only'; push('An uncaught exception is thrown in thread 2. Only that thread ends. The process and the other threads stay alive.', 'bad'); }
         P[0].th.forEach(function (t) { if (t.st.indexOf('running') >= 0) { P[0].mem++; done++; t.st = 'Task ' + t.id + ' finished'; } });
-        push('The remaining threads finish their tasks and increment the same counter. counter is ' + P[0].mem + '. Several threads share one variable, so the problems of touching it at the same time must be prevented separately (the next concept, race conditions).', 'good'); time = '0.3 seconds'; cnt = String(P[0].mem);
+        push('The remaining threads finish their tasks and increment the same counter. counter is ' + P[0].mem + '. Several threads share one variable, so the line that increments it uses synchronized, which lets only one thread at a time increment it. Without it, two threads can read the same value and overwrite each other, and the result can be smaller than the number of increments (the next concept, race conditions).', 'good'); time = '0.3 seconds'; cnt = String(P[0].mem);
       }
     }
     if (H === 'proc') {
@@ -26229,7 +26238,7 @@ Lab.register({
     });
     P.note('Each dashed box is one process. An arrow means that the thread uses the memory of that process, and the threads in one process share the same memory (counter).');
   },
-  assume: 'The 9 combinations were checked by actually running them on JDK 21 in our test environment. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).',
+  assume: 'The 9 combinations were checked by actually running them on JDK 21 in our test environment. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds. Running the code with synchronized on counter++ 30 times with 3 threads gave 3 in the shared counter every time, whereas the 3 processes each had 1. Running it 30 times without synchronized gave 3 in only 7 runs, 1 in 21 runs, and 2 in 2 runs, because the three threads wake up at almost the same moment, read the same value, and overwrite each other (a race condition). An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time). The 3-process code works when the java command can be found on the PATH and it is run in the folder that contains Main.class (from another folder, you must pass the class path with -cp). The first process ends without waiting for the working processes, but they keep running regardless, and the results were the same. The counter value of each process was checked in a separate verification program that waited for each process to finish with waitFor() and read its output.',
 });
 
 Lab.register({

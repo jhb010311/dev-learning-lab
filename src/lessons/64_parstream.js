@@ -22,7 +22,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], ms = { none: 217, block: 862, own: 218 }[c.a], S = { pool: ['쉬는 중', '쉬는 중', '쉬는 중'], b: '시작 전', own: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
-    push('공용 풀(ForkJoinPool.commonPool)에는 일꾼 스레드가 3개 있습니다. 기본 크기는 "CPU 코어 수 - 1"이고, 병렬 스트림을 호출한 스레드 자신도 일을 거듭니다. JVM 안의 모든 병렬 스트림이 이 풀 하나를 함께 씁니다.', '');
+    push('공용 풀(ForkJoinPool.commonPool)에는 일꾼 스레드가 3개 있습니다. 기본 크기는 "CPU 코어 수 - 1"이고, 병렬 스트림을 호출한 스레드 자신도 일을 나눠 맡습니다. JVM 안의 모든 병렬 스트림이 이 풀 하나를 함께 씁니다.', '');
     if (c.a === 'block') { S.pool = ['A의 API 응답 대기 (2초)', 'A의 API 응답 대기 (2초)', 'A의 API 응답 대기 (2초)']; push('요청 A가 병렬 스트림 안에서 외부 API를 호출합니다. 공용 풀의 일꾼 3개가 모두 A의 작업을 하나씩 집어 들고, 응답을 기다리며 2초씩 멈춰 있습니다. 계산을 하는 것이 아니라 그냥 기다리는 중인데도 스레드는 묶여 있습니다.', 'bad'); }
     if (c.a === 'own') { S.own = '전용 풀 스레드 8개: A의 API 응답 대기'; push('요청 A는 외부 API 호출을 자기가 만든 전용 스레드 풀에서 실행합니다. 공용 풀은 건드리지 않습니다.', 'good'); }
     S.b = '병렬 스트림 시작 (작업 8개)'; push('요청 B가 0.1초짜리 작업 8개를 parallelStream()으로 실행합니다. 작업을 쪼개 공용 풀에 맡깁니다.', '');

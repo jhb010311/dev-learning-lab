@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
+<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,25 +46,25 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 첫 묶음은 5.8ms, 그다음부터는 1.4ms 안팎입니다.</li>
-<li><b>JIT를 끄면</b> — 끝까지 빨라지지 않습니다. 묶음마다 약 29ms.</li>
+<li><b>처음 설정으로</b> — 첫 묶음은 5.3ms, 그다음부터는 1.4ms 안팎입니다.</li>
+<li><b>JIT를 끄면</b> — 끝까지 빨라지지 않습니다. 묶음마다 약 28ms.</li>
 <li><b>미리 워밍업하면</b> — 사용자의 첫 요청부터 빠릅니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>자바 컴파일러(javac)는 소스를 기계어가 아니라 바이트코드로 바꿉니다. 프로그램이 시작되면 JVM의 인터프리터가 이 바이트코드를 한 명령씩 해석해 실행합니다. 어떤 CPU에서든 돌아가지만, 기계어를 직접 실행하는 것보다 훨씬 느립니다.</li>
-<li>1번째 묶음: 5.8ms. 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음은 컴파일된 코드가 준비되기 전까지 해석 실행으로 돌았습니다(컴파일은 다른 스레드에서 진행).</li>
-<li>2번째 묶음: 1.7ms. 컴파일된 기계어로 실행되기 시작했습니다. 첫 묶음보다 3~4배 빠릅니다. JVM은 실행하면서 모은 정보(어느 분기가 자주 타는지 등)로 한 번 더 강하게 최적화합니다.</li>
+<li>1번째 묶음: 5.3ms. 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음은 컴파일된 코드가 준비되기 전까지 해석 실행으로 돌았습니다(컴파일은 다른 스레드에서 진행).</li>
+<li>2번째 묶음: 1.5ms. 컴파일된 기계어로 실행되기 시작했습니다. 첫 묶음보다 3~4배 빠릅니다. JVM은 실행하면서 모은 정보(어느 분기가 자주 타는지 등)로 한 번 더 강하게 최적화합니다.</li>
 <li>3번째 묶음: 1.4ms.</li>
-<li>4번째 묶음: 1.7ms.</li>
-<li>5번째 묶음: 1.5ms.</li>
+<li>4번째 묶음: 1.4ms.</li>
+<li>5번째 묶음: 1.4ms.</li>
 <li>6번째 묶음: 1.4ms.</li>
-<li>7번째 묶음: 1.5ms.</li>
+<li>7번째 묶음: 1.4ms.</li>
 <li>8번째 묶음: 1.4ms.</li>
 <li>9번째 묶음: 1.4ms.</li>
 <li>10번째 묶음: 1.4ms.</li>
-<li>11번째 묶음: 1.6ms.</li>
-<li>12번째 묶음: 1.7ms.</li>
+<li>11번째 묶음: 1.4ms.</li>
+<li>12번째 묶음: 1.4ms.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -72,21 +72,27 @@
 <li>배포 직후에는 JIT 컴파일 전인 데다 클래스 로딩, 커넥션 풀 채우기, 캐시가 비어 있는 것까지 겹쳐 첫 요청들이 유독 느립니다. 새 서버에 트래픽을 한꺼번에 넘기지 않고 조금씩 늘리는 이유이기도 합니다. 성능을 잴 때도 처음 구간은 버리고 충분히 달궈진 뒤의 값을 봅니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>static long work(int n) {                  // 측정한 메서드
-    long s = 0;
-    for (int i = 0; i &lt; n; i++) s += (i * 31L) ^ (s &gt;&gt;&gt; 3);
-    return s;
-}
+<pre>public class JitWarmup {                       // 예시로 만든 클래스
+    static long work(int n) {                  // 측정한 메서드(예시로 만든 이름)
+        long s = 0;
+        for (int i = 0; i &lt; n; i++) s += (i * 31L) ^ (s &gt;&gt;&gt; 3);
+        return s;
+    }
 
-for (int batch = 1; batch &lt;= 12; batch++) {
-    long t = System.nanoTime();
-    for (int k = 0; k &lt; 2000; k++) work(1000);          // 묶음 하나 = 2,000번 호출
-    print((System.nanoTime() - t) / 1000 + &quot;마이크로초&quot;);
+    public static void main(String[] args) {
+        long sink = 0;                         // 결과를 써서 계산이 지워지지 않게 한다
+        for (int batch = 1; batch &lt;= 12; batch++) {
+            long t = System.nanoTime();
+            for (int k = 0; k &lt; 2000; k++) sink += work(1000);   // 묶음 하나 = 2,000번 호출
+            System.out.println(batch + &quot;번째 묶음: &quot; + (System.nanoTime() - t) / 1000 + &quot;마이크로초&quot;);
+        }
+        System.out.println(sink);
+    }
 }
 
 // 실행: java JitWarmup.java</pre>
 <h2>이 모형의 전제</h2>
-<p>숫자는 검증 환경의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). &quot;미리 워밍업&quot;의 값은 기본 설정 측정값에서 첫 묶음을 빼고 이어 붙인 것이고, 마지막 값 하나(1.4ms)는 측정값이 아니라 비슷한 값을 덧붙인 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.</p>
+<p>숫자는 검증 환경의 JDK 21에서 위 코드를 세 가지 방식으로 각각 다섯 번 실행해 잰 값 가운데 첫 번째 실행의 값입니다. 다섯 번 모두에서 기본 설정의 첫 묶음은 5.1~5.4ms, 그 뒤 묶음은 1.4~1.7ms였고, 미리 워밍업한 경우의 첫 묶음은 1.4~1.9ms, -Xint는 묶음마다 23~36ms였습니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.</p>
 <p>앞 실습: <a href="../../lab/gc/">GC와 메모리 누수</a> · 다음 실습: <a href="../../lab/classload/">클래스 로딩과 초기화</a></p>
   </div>
 
@@ -174,6 +180,6 @@ for (int batch = 1; batch &lt;= 12; batch++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=dc8f4e9612"></script>
+<script src="../../app.js?v=e62205d6b3"></script>
 </body>
 </html>

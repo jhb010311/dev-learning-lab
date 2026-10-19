@@ -14,7 +14,7 @@ Lab.register({
     { t: 'It cannot take requests for a while', q: 'What if the application cannot take requests for a while because the database connection is lost?', d: 'The readiness probe fails, so only the requests are cut off. The container is not restarted.', v: { what: 'notready' } },
   ],
   code: function (c) {
-    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # changed from 3 to 5' : '3                 # desired state: always 3') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # if it fails, restart the container\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # if it fails, only exclude it from request targets\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
+    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # changed from 3 to 5' : '3                 # desired state: 3 Pods') + '\n  selector:\n    matchLabels: { app: shop }\n  template:\n    metadata:\n      labels: { app: shop }\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # if it fails, restart the container\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # if it fails, only exclude it from request targets\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
   },
   label: function (c) { return { kill: 'One Pod dies', node: 'One node dies', scale: 'Replicas 3 → 5', hang: 'Application hangs', notready: 'Cannot take requests for a while' }[c.what]; },
   columns: ['What Kubernetes did', 'What a person did', 'Pods after recovery'],
@@ -66,11 +66,11 @@ Lab.register({
   },
   // Diagram: the Deployment (desired state) and the Service on top, three nodes and their Pods below. The arrows from the Service point to the Pods that receive requests.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, alive = s.pods.filter(function (p) { return p.st === 'Running'; }).length, to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, exist = s.pods.filter(function (p) { return p.st !== 'Dead'; }).length, notOk = s.pods.some(function (p) { return p.st !== 'Dead' && p.st !== 'Running'; }), to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
     P.size(680, 330);
     P.box('dep', 16, 16, 300, 44, { cls: 'plain', title: 'Deployment (desired state)', right: 'Pods: ' + s.want });
     P.box('svc', 364, 16, 300, 44, { cls: 'wait', title: 'Service (divides requests)', right: 'To ' + to });
-    P.text('cmp', 16, 84, 'Pods actually running: ' + alive + (alive < s.want ? '. Fewer than desired' : '. Same as desired'), { cls: alive < s.want ? 'bad' : 'good' });
+    P.text('cmp', 16, 84, 'Pods that exist now: ' + exist + (exist < s.want ? ', fewer than desired' : ', same as desired') + (to < exist ? ' · of these, receiving requests: ' + to : ''), { cls: exist < s.want ? 'bad' : notOk ? '' : 'good' });
     ['Node 1', 'Node 2', 'Node 3'].forEach(function (name, i) {
       var x = 16 + i * 222, k = 0;
       P.region('node' + i, x, 100, 204, 214, name + (nodeDown && i === 1 ? ' (shut down)' : ''));

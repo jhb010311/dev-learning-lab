@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,27 +57,31 @@
 <ol>
 <li>The program is run, which creates 1 process. The operating system gives this process memory, and there is one counter variable in it. Inside the process, 3 threads are created. Each thread has only its own flow of execution (its stack), and the threads share the memory of the process.</li>
 <li>The 3 threads each take one task and start at the same time. They do not wait for one another.</li>
-<li>The remaining threads finish their tasks and increment the same counter. counter is 3. Several threads share one variable, so the problems of touching it at the same time must be prevented separately (the next concept, race conditions).</li>
+<li>The remaining threads finish their tasks and increment the same counter. counter is 3. Several threads share one variable, so the line that increments it uses synchronized, which lets only one thread at a time increment it. Without it, two threads can read the same value and overwrite each other, and the result can be smaller than the number of increments (the next concept, race conditions).</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>Threads share the memory of the same process. They are lightweight to create and can exchange data easily, but touching the same data at the same time causes problems, and when the process dies, all the threads die with it. A web server (Tomcat) that uses a thread for each request works this way.</li>
 </ul>
 <h2>Code</h2>
-<pre>static int counter = 0;                 // a variable in the memory of the process
+<pre>public class Main {                         // Main and work are names made up for this example
+    static int counter = 0;                 // a variable in the memory of the process
 
-static void work(int id) {
-    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds
-    counter++;
-}
+    static void work(int id) {
+        try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds
+        synchronized (Main.class) { counter++; }   // only one thread at a time increments it
+    }
 
-// 3 threads in the same process
-for (int i = 1; i &lt;= 3; i++) {
-    int id = i;
-    new Thread(() -&gt; work(id)).start();
+    public static void main(String[] args) throws Exception {
+        // 3 threads in the same process
+        for (int i = 1; i &lt;= 3; i++) {
+            int id = i;
+            new Thread(() -&gt; work(id)).start();
+        }
+    }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The 9 combinations were checked by actually running them on JDK 21 in our test environment. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).</p>
+<p>The 9 combinations were checked by actually running them on JDK 21 in our test environment. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds. Running the code with synchronized on counter++ 30 times with 3 threads gave 3 in the shared counter every time, whereas the 3 processes each had 1. Running it 30 times without synchronized gave 3 in only 7 runs, 1 in 21 runs, and 2 in 2 runs, because the three threads wake up at almost the same moment, read the same value, and overwrite each other (a race condition). An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time). The 3-process code works when the java command can be found on the PATH and it is run in the folder that contains Main.class (from another folder, you must pass the class path with -cp). The first process ends without waiting for the working processes, but they keep running regardless, and the results were the same. The counter value of each process was checked in a separate verification program that waited for each process to finish with waitFor() and read its output.</p>
 <p>Previous lab: <a href="../../lab/parstream/">Parallel streams and the common pool</a> · Next lab: <a href="../../lab/thread/">Creating threads and thread states</a></p>
   </div>
 
@@ -165,6 +169,6 @@ for (int i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

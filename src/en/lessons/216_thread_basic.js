@@ -1,7 +1,7 @@
 Lab.register({
   id: 'thread_basic', nav: 'Threads', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['thread'],
   title: 'What is a thread, and what does start() do?',
-  intro: 'A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -> work()). The () -> work() in the parentheses is code that says "call work()" and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)',
+  intro: 'A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -> work()). work() is a method made for this example; it prints the name of the thread that runs it. The () -> work() in the parentheses is code that says "call work()" and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)',
   terms: ['Processes and threads', 'Main thread and thread names', 'start() and run()', 'join()'],
   controls: [
     { id: 'how', label: 'The line that starts the thread', type: 'select', value: 'start', options: [['start', 'Call t.start()'], ['run', 'Call t.run()'], ['none', 'Call neither']] },
@@ -17,11 +17,11 @@ Lab.register({
   // The first look of each box in the diagram. mt, m2, and ml are on the main thread side, and x0 and x1 are on the new thread side
   bx0: function (c) {
     return {
-      mt: { cls: 'ghost', title: 'Thread t', sub: ['Not run yet'] },
-      m2: { cls: 'ghost', title: 'Thread t2', sub: [c.two ? 'Not run yet' : 'No more threads created'] },
+      mt: { cls: 'ghost', title: 'Lines that use t', sub: ['Not run yet'] },
+      m2: { cls: 'ghost', title: c.two ? 'Lines that use t2' : 'No t2', sub: [c.two ? 'Not run yet' : 'No second Thread object'] },
       ml: { cls: 'ghost', title: 'Last line', sub: ['Not run yet'] },
-      x0: { cls: 'ghost', title: 'New thread', sub: ['Does not exist yet'] },
-      x1: { cls: 'ghost', title: 'New thread', sub: ['Does not exist yet'] },
+      x0: { cls: 'ghost', title: 'Not yet', sub: ['Made by start()'] },
+      x1: { cls: 'ghost', title: 'Not yet', sub: ['Made by start()'] },
     };
   },
   code: function (c) {
@@ -56,7 +56,7 @@ Lab.register({
       var who = 'the new thread (' + nm + ')';
 
       // 2. Create the Thread object
-      st.hot = mid; bx(mid, 'hot now', 'Thread ' + v, ['new Thread(…): object only', 'Name: ' + nm + ' (automatic)']);
+      st.hot = mid; bx(mid, 'hot now', null, ['new Thread(…): object only', 'Object name: ' + nm + ' (auto)']);
       st.checks.push(['Thread ' + v + ' = new Thread(…)', { v: 'Object only, name ' + nm, cls: '' }]);
       push(first
         ? 'The line Thread t = new Thread(() -> work()); new Thread(…) creates a Thread object. The () -> work() in the parentheses is the code to hand to the new flow, and it means "call work()". No name was given, so Java automatically gives the name Thread-0. Only the object exists, and there is no new flow yet. The only flow is the main thread, and the handed code has not run yet.'
@@ -142,13 +142,14 @@ Lab.register({
     if (s.out.length) H.table(v, ['Output'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }), 'Standard output');
     H.counters(v, [[s.started, 'Threads newly started'], [s.out.length, 'Lines printed']]);
   },
-  // Diagram: two vertical columns (three if there are two threads). The left one is the main thread, and the right ones are the new threads (Thread-0, Thread-1). In each column the Thread objects t and t2 and the last line are stacked as boxes, and you see which code runs on which line. With start, an arrow goes across from main to the new thread, and with run or none, the new thread column is empty. Below are boxes that count the threads that ran work and the newly started threads.
+  // Diagram: two vertical columns (three if there are two threads). The left one is the main thread, and the right ones are the new threads (Thread-0, Thread-1). On the main side, the lines that use t, the lines that use t2, and the last line are stacked as boxes (they are lines that main runs, not Thread objects), a new thread column gets its name only after start() starts that thread, and you see which code runs on which line. With start, an arrow goes across from main to the new thread, and with run or none, the new thread column is empty. Below are boxes that count the threads that ran work and the newly started threads.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, bx = s ? s.bx : sim.bx0, a = s ? s.a : {};
     P.size(680, 356);
     P.region('lm', 14, 8, 250, 252, 'Main thread');
-    P.region('l0', 280, 8, 190, 252, 'New thread Thread-0');
-    if (c.two) P.region('l1', 486, 8, 180, 252, 'New thread Thread-1');
+    var started = s ? s.started : 0;
+    P.region('l0', 280, 8, 190, 252, started >= 1 ? 'New thread Thread-0' : 'No new thread');
+    if (c.two) P.region('l1', 486, 8, 180, 252, started >= 2 ? 'New thread Thread-1' : 'No new thread');
     function B(id, x, y, w) { var o = bx[id]; P.box(id, x, y, w, 64, { cls: o.cls, title: o.title, sub: o.sub }); }
     B('mt', 22, 34, 234); B('m2', 22, 106, 234); B('ml', 22, 178, 234);
     B('x0', 288, 34, 174);

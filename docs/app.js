@@ -14374,7 +14374,7 @@ Lab.register({
 Lab.register({
   id: 'thread_basic', nav: '스레드', cat: '기초개념', mode: 'step', basic: true, deep: ['thread'],
   title: '스레드는 무엇이고, start()는 무엇을 하는가',
-  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -> work())입니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
+  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -> work())입니다. work()는 이 예제에서 만든 메서드로, 자기를 실행한 스레드의 이름을 출력합니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
   terms: ['프로세스와 스레드', 'main 스레드와 스레드의 이름', 'start()와 run()', 'join()'],
   controls: [
     { id: 'how', label: 'start를 부르는 줄', type: 'select', value: 'start', options: [['start', 't.start()를 부른다'], ['run', 't.run()을 부른다'], ['none', '부르지 않는다']] },
@@ -14390,11 +14390,11 @@ Lab.register({
   // 그림에서 상자마다의 처음 모양. mt, m2, ml은 main 스레드 쪽, x0, x1은 새 스레드 쪽
   bx0: function (c) {
     return {
-      mt: { cls: 'ghost', title: 'Thread t', sub: ['실행 전'] },
-      m2: { cls: 'ghost', title: 'Thread t2', sub: [c.two ? '실행 전' : '스레드를 더 만들지 않음'] },
+      mt: { cls: 'ghost', title: 't를 다루는 줄', sub: ['실행 전'] },
+      m2: { cls: 'ghost', title: c.two ? 't2를 다루는 줄' : 't2 없음', sub: [c.two ? '실행 전' : 'Thread 객체를 더 만들지 않음'] },
       ml: { cls: 'ghost', title: '마지막 줄', sub: ['실행 전'] },
-      x0: { cls: 'ghost', title: '새 스레드', sub: ['아직 없음'] },
-      x1: { cls: 'ghost', title: '새 스레드', sub: ['아직 없음'] },
+      x0: { cls: 'ghost', title: '아직 없음', sub: ['start()를 부를 때 생김'] },
+      x1: { cls: 'ghost', title: '아직 없음', sub: ['start()를 부를 때 생김'] },
     };
   },
   code: function (c) {
@@ -14429,7 +14429,7 @@ Lab.register({
       var who = '새 스레드(' + nm + ')';
 
       // 2. Thread 객체를 만든다
-      st.hot = mid; bx(mid, 'hot now', 'Thread ' + v, ['new Thread(…): 객체만 생김', '이름: ' + nm + ' (자동)']);
+      st.hot = mid; bx(mid, 'hot now', null, ['new Thread(…): 객체만 생김', '객체의 이름: ' + nm + ' (자동)']);
       st.checks.push(['Thread ' + v + ' = new Thread(…)', { v: '객체만 생김, 이름 ' + nm, cls: '' }]);
       push(first
         ? 'Thread t = new Thread(() -> work()); 줄: new Thread(…)가 Thread 객체를 만듭니다. 괄호 안의 () -> work()는 새 흐름에게 맡길 코드로, "work()를 부르라"는 뜻입니다. 이름을 따로 주지 않았으므로 자바가 Thread-0이라는 이름을 자동으로 붙입니다. 객체가 생겼을 뿐 새 흐름은 아직 없습니다. 흐름은 main 스레드 하나이고, 맡긴 코드는 아직 실행되지 않았습니다.'
@@ -14515,13 +14515,14 @@ Lab.register({
     if (s.out.length) H.table(v, ['출력'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }), '표준 출력');
     H.counters(v, [[s.started, '새로 시작된 스레드'], [s.out.length, '출력된 줄']]);
   },
-  // 그림: 세로 줄 두 개(둘이면 세 개). 왼쪽은 main 스레드, 오른쪽은 새 스레드(Thread-0, Thread-1). 줄마다 Thread 객체 t, t2와 마지막 줄을 상자로 쌓고, 어느 줄에서 어떤 코드가 실행되는지 보인다. start이면 main에서 새 스레드로 화살표가 건너가고, run이나 none이면 새 스레드 줄이 비어 있다. 아래에 work를 실행한 스레드와 새로 시작된 스레드를 세는 칸.
+  // 그림: 세로 줄 두 개(둘이면 세 개). 왼쪽은 main 스레드, 오른쪽은 새 스레드(Thread-0, Thread-1). main 쪽에는 t를 다루는 줄, t2를 다루는 줄, 마지막 줄을 상자로 쌓고(Thread 객체가 아니라 main이 실행하는 줄이다), 새 스레드 쪽은 start()로 스레드가 시작된 뒤에만 그 이름을 붙이며, 어느 줄에서 어떤 코드가 실행되는지 보인다. start이면 main에서 새 스레드로 화살표가 건너가고, run이나 none이면 새 스레드 줄이 비어 있다. 아래에 work를 실행한 스레드와 새로 시작된 스레드를 세는 칸.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, bx = s ? s.bx : sim.bx0, a = s ? s.a : {};
     P.size(680, 356);
     P.region('lm', 14, 8, 250, 252, 'main 스레드');
-    P.region('l0', 280, 8, 190, 252, '새 스레드 Thread-0');
-    if (c.two) P.region('l1', 486, 8, 180, 252, '새 스레드 Thread-1');
+    var started = s ? s.started : 0;
+    P.region('l0', 280, 8, 190, 252, started >= 1 ? '새 스레드 Thread-0' : '새 스레드 없음');
+    if (c.two) P.region('l1', 486, 8, 180, 252, started >= 2 ? '새 스레드 Thread-1' : '새 스레드 없음');
     function B(id, x, y, w) { var o = bx[id]; P.box(id, x, y, w, 64, { cls: o.cls, title: o.title, sub: o.sub }); }
     B('mt', 22, 34, 234); B('m2', 22, 106, 234); B('ml', 22, 178, 234);
     B('x0', 288, 34, 174);
@@ -25464,7 +25465,7 @@ Lab.register({
     { t: '잠시 요청을 못 받는 상태라면', q: '애플리케이션이 DB 연결이 끊겨 잠시 요청을 받을 수 없으면', d: 'readiness 검사가 실패해 요청만 끊습니다. 재시작하지 않습니다.', v: { what: 'notready' } },
   ],
   code: function (c) {
-    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # 3에서 5로 수정' : '3                 # 원하는 상태: 항상 3개') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # 실패하면 컨테이너 재시작\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # 실패하면 요청 대상에서만 제외\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
+    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # 3에서 5로 수정' : '3                 # 원하는 상태: Pod 3개') + '\n  selector:\n    matchLabels: { app: shop }\n  template:\n    metadata:\n      labels: { app: shop }\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # 실패하면 컨테이너 재시작\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # 실패하면 요청 대상에서만 제외\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
   },
   label: function (c) { return { kill: 'Pod 하나 죽음', node: '노드 한 대 죽음', scale: '복제본 3 → 5', hang: '애플리케이션 멈춤', notready: '잠시 요청 불가' }[c.what]; },
   columns: ['쿠버네티스가 한 일', '사람이 한 일', '복구 후 Pod 수'],
@@ -25516,11 +25517,11 @@ Lab.register({
   },
   // 그림: 위에 Deployment(원하는 상태)와 Service, 아래에 노드 세 대와 그 위의 Pod. Service의 화살표는 요청이 가는 Pod.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, alive = s.pods.filter(function (p) { return p.st === '실행 중'; }).length, to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, exist = s.pods.filter(function (p) { return p.st !== '죽음'; }).length, notOk = s.pods.some(function (p) { return p.st !== '죽음' && p.st !== '실행 중'; }), to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
     P.size(680, 330);
     P.box('dep', 16, 16, 300, 44, { cls: 'plain', title: 'Deployment (원하는 상태)', right: 'Pod ' + s.want + '개' });
     P.box('svc', 364, 16, 300, 44, { cls: 'wait', title: 'Service (요청을 나눠 보냄)', right: to + '곳으로' });
-    P.text('cmp', 16, 84, '실제로 실행 중인 Pod ' + alive + '개' + (alive < s.want ? '. 원하는 수보다 모자람' : '. 원하는 수와 같음'), { cls: alive < s.want ? 'bad' : 'good' });
+    P.text('cmp', 16, 84, '지금 있는 Pod ' + exist + '개, 원하는 수' + (exist < s.want ? '보다 모자람' : '와 같음') + (to < exist ? ' · 그중 요청을 받는 Pod ' + to + '개' : ''), { cls: exist < s.want ? 'bad' : notOk ? '' : 'good' });
     ['노드 1', '노드 2', '노드 3'].forEach(function (name, i) {
       var x = 16 + i * 222, k = 0;
       P.region('node' + i, x, 100, 204, 214, name + (nodeDown && i === 1 ? ' (꺼짐)' : ''));
@@ -25552,7 +25553,7 @@ Lab.register({
     { t: '결제 서비스 내부가 느릴 때', q: '느린 구간을 결제 서비스 내부 처리로 바꾸면', d: '결제 서비스의 시간에서 외부 호출 시간을 뺀 부분이 깁니다.', v: { slow: 'pay', prop: true } },
   ],
   code: function (c) {
-    return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# 서비스끼리 호출할 때 자동으로 붙는 헤더 (W3C Trace Context)\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#               └─ trace id (요청 전체에서 동일)      └─ span id (구간마다 다름)\n\n# 로그 패턴에 추적 번호를 넣는다 (MDC에서 꺼냄)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// 추적 설정 없음\n// 각 서비스는 자기 로그만 남긴다\n\nlog.info("주문 처리 시작 orderId={}", orderId);';
+    return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# 서비스끼리 호출할 때 자동으로 붙는 헤더 (W3C Trace Context)\n# 형식: 버전-trace-id-parent-id-trace-flags\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#   trace-id (4bf9…4736): 요청 전체에서 같음\n#   parent-id (00f0…02b7): 이 요청을 보낸 쪽 스팬의 id. 받는 쪽 스팬의 부모가 됨\n\n# 로그 패턴에 추적 번호를 넣는다 (MDC에서 꺼냄)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// 추적 설정 없음\n// 각 서비스는 자기 로그만 남긴다\n\nlog.info("주문 처리 시작 orderId={}", orderId);';
   },
   label: function (c) { return '느린 구간: ' + { none: '없음', db: '주문 DB', pay: '결제 서비스 내부', pg: '외부 결제사' }[c.slow] + (c.prop ? '' : ' · 추적 번호 없음'); },
   columns: ['전체 응답 시간', '가장 오래 걸린 구간', '원인을 찾는 방법'],
@@ -25568,7 +25569,7 @@ Lab.register({
     push(c.prop ? '게이트웨이가 주문 서비스를 호출할 때 HTTP 헤더에 Trace ID와 자기 스팬 ID를 실어 보냅니다. 주문 서비스는 같은 Trace ID를 이어받고, 자신의 구간을 새 스팬으로 기록합니다(부모는 게이트웨이의 스팬).' : '주문 서비스가 요청을 받아 처리합니다. 누가 보낸 어떤 요청의 일부인지는 알지 못합니다.', '', 2);
     push('주문 서비스가 DB를 조회합니다(' + d.db + 'ms).' + (c.prop ? ' 이 쿼리도 하나의 스팬으로 기록됩니다.' : ''), d.db > 500 ? 'bad' : '', 3);
     push('주문 서비스가 결제 서비스를 호출합니다.' + (c.prop ? ' 이번에도 헤더로 Trace ID가 전달됩니다. 로그를 남길 때마다 MDC에 들어 있는 Trace ID가 자동으로 함께 찍힙니다.' : ' 결제 서비스의 로그에는 주문 서비스와 이어 줄 단서가 없습니다.'), '', 4);
-    push('결제 서비스가 외부 결제사 API를 호출합니다(' + d.pg + 'ms). 응답이 돌아오면 거꾸로 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다. 전체 ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
+    push('결제 서비스가 외부 결제사 API를 호출합니다(' + d.pg + 'ms). ' + (c.prop ? '응답이 돌아오면 거꾸로 외부 결제사 API, 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다.' : '응답이 거꾸로 결제 서비스, 주문 서비스, 게이트웨이 순으로 돌아갑니다.') + ' 전체 ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
     if (c.prop) push('추적 시스템(Zipkin, Tempo 등)에서 Trace ID 하나로 조회하면 다섯 구간이 시간 축 위에 계단 모양으로 그려집니다. ' + (c.slow === 'none' ? '모든 구간이 짧습니다.' : '안쪽 호출을 뺀 자체 시간이 가장 긴 구간은 "' + spans[mi][0] + '"입니다. 어디가 느린지 바로 보입니다.'), 'good', 6);
     else push('로그는 세 서비스에 각각 남아 있습니다. 같은 시각에 수백 건의 요청이 섞여 있어서, 이 요청의 로그가 어느 것인지 시각과 주문 번호로 짐작해 맞춰 봐야 합니다. 구간별 소요 시간도 직접 계산해야 합니다.', 'bad', 6);
     sum.push(c.prop ? 'Trace ID는 요청 하나 전체에 붙는 번호이고, 스팬은 그 안의 한 구간(서비스 하나의 처리, 쿼리 하나, 외부 호출 하나)입니다. 스팬마다 부모 스팬을 기록하므로 호출 관계가 트리로 복원됩니다.' : '서비스가 나뉘면 요청 하나의 흔적도 여러 곳에 흩어집니다. 공통 번호를 헤더로 전달하고 모든 로그에 찍는 것이 분산 추적의 출발점입니다.');
@@ -25580,16 +25581,18 @@ Lab.register({
     H.table(v, ['서비스', '로그의 추적 번호', '로그 내용'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), '각 서비스에 남은 로그');  },
   // 그림: 요청 하나가 거친 구간을 시간 순서의 막대로 그린다. 막대의 길이가 그 구간이 차지한 시간이다.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
+    var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2], sps = sim.spans;
+    // 구간(스팬)이 닫히는 단계: DB 조회는 3단계, 나머지는 응답이 돌아오는 5단계. 닫히기 전에는 지금까지 흐른 시간만큼 점선 막대로 그린다
+    var ends = [5, 5, 3, 5, 5], now = [0, sps[0][3], sps[2][1], sps[2][1] + sps[2][2], sps[3][1], total][Math.min(n, 5)];
     P.size(680, 260);
     P.region('tr', 16, 16, 648, 228, c.prop ? '추적 화면: 같은 Trace ID로 묶인 구간들' : '서비스마다 추적 번호가 달라(또는 없어) 이을 수 없음');
     sim.spans.forEach(function (sp, i) {
-      var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
+      var y = 50 + i * 36, on = i < n, closed = n >= ends[i], slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });
-      if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * sp[2] / total), 24, { cls: slow ? 'bad' : 'wait' }); P.text('ms' + i, 652, y + 17, on ? sp[2] + 'ms (자체 ' + sp[3] + 'ms)' : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
+      if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * (closed ? sp[2] : now - sp[1]) / total), 24, { cls: slow ? 'bad' : closed ? 'wait' : 'ghost' }); P.text('ms' + i, 652, y + 17, on ? (closed ? sp[2] + 'ms (자체 ' + sp[3] + 'ms)' : '진행 중') : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
       else if (on) P.box('id' + i, 170, y, 240, 24, { cls: 'bad', sub: '추적 번호 ' + sim.ids[i], mono: true, center: true });
     });
-    P.note(c.prop ? '막대의 위치가 시작 시각, 길이가 걸린 시간입니다. 안쪽 구간은 바깥 구간의 시간에 포함됩니다. 빨간 막대가 실제로 시간을 쓴 구간이며, "자체" 시간이 큰 곳이 원인입니다.' : '추적 번호가 없어서 이 로그들이 같은 요청의 것인지 알 수 없습니다. 구간을 한 줄로 이어 볼 수 없으므로 어디가 느린지도 찾기 어렵습니다.');
+    P.note(c.prop ? '막대의 위치가 시작 시각, 길이가 걸린 시간입니다. 안쪽 구간은 바깥 구간의 시간에 포함됩니다. 점선 막대는 아직 끝나지 않은 구간이고, 걸린 시간은 구간이 끝나야 정해집니다. 빨간 막대가 실제로 시간을 쓴 구간이며, "자체" 시간이 큰 곳이 원인입니다.' : '추적 번호가 없어서 이 로그들이 같은 요청의 것인지 알 수 없습니다. 구간을 한 줄로 이어 볼 수 없으므로 어디가 느린지도 찾기 어렵습니다.');
   },
   assume: '서비스 네 개를 차례로 호출하는 단순한 구조이고 시간은 예시 값입니다. Trace ID와 스팬, 헤더로 전파하는 방식은 W3C Trace Context 표준과 OpenTelemetry, Micrometer Tracing 문서의 설명을 따랐습니다. 실제로는 모든 요청을 기록하지 않고 일부만 표본으로 수집하는 경우가 많습니다.',
 });
@@ -25624,10 +25627,10 @@ Lab.register({
     if (RR && (c.q === 'miss' || c.q === 'range')) gaps = [[20, 30]];
     var blocked = gaps.some(function (g) { return ins > g[0] && ins < g[1]; });
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
-    push('coupon 테이블에는 id가 10, 20, 30, 40인 행과 그보다 한참 큰 id의 행들이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.', '', 0);
+    push('예시로 만든 coupon 테이블에는 id가 10, 20, 30, 40인 행과 그보다 한참 큰 id의 행들이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.', '', 0);
     if (c.q === 'hit') push('트랜잭션 A가 id = 20인 행을 FOR UPDATE로 조회합니다. 기본 키로 정확히 한 행을 찾았으므로 그 행에만 락을 겁니다(레코드 락). 조건에 맞는 행은 앞으로도 이것 하나뿐이라는 것이 보장되므로 빈 구간을 잠글 필요가 없습니다.', '', 1);
     else if (c.q === 'miss') push('트랜잭션 A가 id = 25를 FOR UPDATE로 조회합니다. 그런 행은 없습니다. ' + (RR ? '잠글 행이 없으므로, 대신 25가 들어갈 자리인 20과 30 사이의 빈 구간을 잠급니다(갭 락). "지금 없는 것이 내 트랜잭션이 끝날 때까지 계속 없도록" 지키기 위해서입니다.' : 'READ COMMITTED에서는 빈 구간을 잠그지 않습니다. 잠글 행도 없으므로 아무 락도 걸리지 않습니다.'), '', 1);
-    else push('트랜잭션 A가 id 20부터 30까지를 FOR UPDATE로 조회합니다. 조건에 맞는 행 20과 30에 락을 겁니다. ' + (RR ? '그리고 그 사이의 빈 구간 (20~30)도 함께 잠급니다. 행에 건 락과 그 앞 구간에 건 락을 합쳐 넥스트 키 락이라고 부릅니다.' : 'READ COMMITTED에서는 빈 구간은 잠그지 않고 찾은 행만 잠급니다.'), '', 1);
+    else push('트랜잭션 A가 id 20부터 30까지를 FOR UPDATE로 조회합니다. ' + (RR ? 'InnoDB는 기본 키 인덱스에서 20부터 30까지를 차례로 읽으며 잠급니다. 행 30에는 넥스트 키 락을 겁니다. 넥스트 키 락은 행에 건 락과 그 행 바로 앞의 빈 구간에 건 락을 합친 것이어서, 행 30과 빈 구간 (20~30)이 함께 잠깁니다. 행 20에는 그 행만 잠그는 레코드 락을 겁니다. 기본 키로 "20 이상"을 찾다가 20과 정확히 같은 행을 만났으므로, 그 앞 구간 (10~20)에는 조회 범위 안의 값이 들어올 수 없어 잠그지 않습니다.' : '조건에 맞는 행 20과 30에 락을 겁니다. READ COMMITTED에서는 빈 구간은 잠그지 않고 찾은 행만 잠급니다(레코드 락).'), '', 1);
     push('트랜잭션 B가 id = ' + ins + '인 행을 넣으려 합니다. INSERT는 새 행이 들어갈 자리의 빈 구간이 잠겨 있는지 확인합니다.', '', 2);
     if (blocked) push('id ' + ins + '가 들어갈 자리는 (20~30) 구간이고, A가 이 구간을 잠그고 있습니다. B의 INSERT는 A가 커밋하거나 롤백할 때까지 기다립니다. 너무 오래 기다리면 락 대기 시간 초과 오류가 납니다.', 'bad', 3);
     else push('id ' + ins + '가 들어갈 자리는 잠겨 있지 않습니다. B의 INSERT는 바로 실행됩니다.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' A가 같은 조건으로 다시 조회하면, 처음에는 없던 id 25인 행이 나타납니다(Phantom Read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
@@ -25637,7 +25640,9 @@ Lab.register({
     if (c.q === 'miss' && RR) sum.push('"없으면 INSERT" 패턴에서 자주 문제가 됩니다. 두 트랜잭션이 각각 없는 행을 FOR UPDATE로 조회하면 둘 다 같은 구간에 갭 락을 얻습니다(갭 락끼리는 서로 막지 않습니다). 그런 뒤 둘 다 INSERT하려 하면 서로의 갭 락에 막혀 교착 상태가 됩니다.');
     if (c.q === 'hit') sum.push('유니크 인덱스로 존재하는 한 행을 정확히 찾으면 레코드 락만 걸립니다. 락의 범위를 좁히려면 조건이 인덱스를 정확히 타는지가 중요합니다. 인덱스를 타지 못하면 훨씬 넓은 범위가 잠깁니다.');
     if (!RR) sum.push('READ COMMITTED에서는 조회에 갭 락을 쓰지 않아 INSERT가 덜 막히고 교착 상태도 줄어듭니다. 대신 Phantom Read를 허용합니다.' + (phantom ? ' 이번 실행에서 실제로 새 행이 끼어들었습니다.' : ''));
-    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, row: [rec.length ? rec.join(', ') : '없음', gaps.length ? '(20~30)' : '없음', blocked ? 'A가 끝날 때까지 대기' : '바로 실행', phantom ? '예 (Phantom 발생)' : blocked ? '아니오' : c.q === 'hit' || ins === 45 ? '조회 범위 밖' : '아니오'] };
+    // A가 잡은 락의 종류 (performance_schema.data_locks에 기록된 것과 같게)
+    var locks = c.q === 'hit' ? '행 20: 레코드 락' : c.q === 'miss' ? (RR ? '빈 구간 (20~30): 갭 락' : '잠근 것 없음') : RR ? '행 20: 레코드 락 · 행 30: 넥스트 키 락' : '행 20, 30: 레코드 락';
+    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, locks: locks, row: [rec.length ? rec.join(', ') : '없음', gaps.length ? '(20~30)' : '없음', blocked ? 'A가 끝날 때까지 대기' : '바로 실행', phantom ? '예 (Phantom 발생)' : blocked ? '아니오' : c.q === 'hit' || ins === 45 ? '조회 범위 밖' : '아니오'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, items = [], ids = [10, 20, 30, 40];
@@ -25652,7 +25657,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, ids = [10, 20, 30, 40], x = 16, target = ins < 30 ? 2 : 4, waiting = sim.blocked && st === 3, done = st >= 3 && !waiting;
     P.size(680, 300);
-    P.box('txa', 16, 16, 440, 46, { cls: st >= 1 ? 'hot' : 'plain', title: '트랜잭션 A', sub: st >= 4 ? '커밋함. 락이 풀림' : st >= 1 ? 'SELECT ... FOR UPDATE 실행, 아직 커밋 전' : '시작 전' });
+    P.box('txa', 16, 16, 440, 58, { cls: st >= 1 ? 'hot' : 'plain', title: '트랜잭션 A', sub: st >= 4 ? '커밋함. 락이 풀림' : st >= 1 ? ['SELECT ... FOR UPDATE 실행, 아직 커밋 전', sim.locks] : '시작 전' });
     P.text('ixl', 16, 112, 'id 인덱스 (왼쪽이 작은 값)', { cls: 'mut' });
     for (var k = 0; k <= 4; k++) {
       var lo = k ? ids[k - 1] : 0, gLocked = st >= 1 && st < 4 && sim.gaps.some(function (g) { return g[0] === lo; }), here = k === target && st >= 2;
@@ -25688,33 +25693,34 @@ Lab.register({
   label: function (c) { return { commit: '정상 커밋', rollback: '롤백', crashAfter: '커밋 직후 장애', crashBefore: '커밋 전 장애' }[c.what]; },
   columns: ['최종 잔액', '되돌리는 데 쓴 것', '다시 적용하는 데 쓴 것', '보장된 성질'],
   simulate: function (c) {
-    var ev = [], sum = [], S = { mem: '1000', file: '1000', redo: '(비어 있음)', undo: '(비어 있음)', tx: '진행 전' }, W = c.what, fin, usedU = '쓰지 않음', usedR = '쓰지 않음', prop;
-    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
+    var ev = [], sum = [], S = { mem: '1000', logbuf: '(비어 있음)', file: '1000', redo: '(비어 있음)', undo: '(비어 있음)', tx: '진행 전', flow: '' }, W = c.what, fin, usedU = '쓰지 않음', usedR = '쓰지 않음', prop;
+    // flow: 그 단계에서 일어나는 옮겨 쓰기 (commit: 로그 버퍼 → 디스크의 Redo 로그, replay: Redo 로그 → 메모리). 그 단계에만 화살표로 보인다
+    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); S.flow = ''; }
     push('계좌 1의 잔액은 1000입니다. 이 값은 디스크의 데이터 파일에 있고, 메모리(버퍼 풀)에도 같은 값이 올라와 있습니다.', '');
-    S.tx = '진행 중'; S.undo = '계좌 1의 이전 값 = 1000'; push('UPDATE가 시작됩니다. 먼저 바꾸기 전의 값 1000을 Undo 로그에 기록합니다. 되돌려야 할 때와, 다른 트랜잭션이 커밋 전 값을 읽어야 할 때(MVCC) 쓰입니다.', '');
+    S.tx = '진행 중'; S.undo = '계좌 1의 이전 값 = 1000'; push('UPDATE가 시작됩니다. 먼저 바꾸기 전의 값 1000을 Undo 로그에 기록합니다. 되돌려야 할 때와, 다른 트랜잭션이 바뀌기 전 값(이전 버전)을 읽어야 할 때(MVCC) 쓰입니다.', '');
     S.mem = '500 (아직 디스크에 안 씀)'; push('메모리에 올라와 있는 데이터를 500으로 바꿉니다. 디스크의 데이터 파일은 여전히 1000입니다. 데이터 파일을 매번 바로 고치면 디스크 이곳저곳에 써야 해서 느리기 때문에, 나중에 모아서 씁니다.', '');
-    S.redo = '"계좌 1을 500으로" (메모리의 로그 버퍼)'; push('무엇을 어떻게 바꿨는지를 Redo 로그에 기록합니다. 로그는 파일 끝에 이어 붙이기만 하면 되어서 데이터 파일을 고치는 것보다 훨씬 빠릅니다.', '');
+    S.logbuf = '"계좌 1을 500으로"'; push('무엇을 어떻게 바꿨는지를 Redo 로그로 남깁니다. 먼저 메모리의 로그 버퍼에 적고, 디스크의 Redo 로그 파일에는 나중에 써 넣습니다. 로그는 파일 끝에 이어 붙이기만 하면 되어서 데이터 파일을 고치는 것보다 훨씬 빠릅니다.', '');
     if (W === 'rollback') {
       S.mem = '1000'; S.tx = '롤백됨'; S.undo = '(사용 후 정리 대상)'; usedU = 'Undo 로그'; fin = '1000'; prop = '원자성';
       push('ROLLBACK: Undo 로그에 남겨 둔 이전 값 1000으로 메모리의 데이터를 되돌립니다. 트랜잭션이 한 일이 전부 취소됩니다.', 'good');
       sum.push('롤백은 Undo 로그로 합니다. "전부 반영되거나 전부 취소된다"(원자성)를 Undo 로그가 받쳐 줍니다.');
     } else if (W === 'crashBefore') {
-      S.redo = '"계좌 1을 500으로" (일부가 디스크에 써졌을 수 있음, 커밋 표시 없음)'; S.mem = '(사라짐)'; push('커밋하기 전에 서버가 꺼졌습니다. 메모리의 내용은 모두 사라집니다. 디스크에는 데이터 파일(1000), 그리고 디스크까지 써진 로그만 남습니다.', 'bad');
-      S.mem = '(재시작 중)'; S.tx = '중단됨'; push('서버가 다시 시작됩니다. 복구 과정이 Redo 로그를 읽어 디스크에 남은 변경을 다시 적용한 뒤, 커밋 표시가 없는 트랜잭션을 찾아냅니다.', '');
+      S.redo = '"계좌 1을 500으로" (일부가 디스크에 써졌을 수 있음, 커밋 표시 없음)'; S.mem = '(사라짐)'; S.logbuf = '(사라짐)'; S.tx = '커밋 전에 멈춤 (서버 꺼짐)'; push('커밋하기 전에 서버가 꺼졌습니다. 메모리의 내용은 모두 사라집니다. 디스크에는 데이터 파일(1000), 그리고 디스크까지 써진 로그만 남습니다.', 'bad');
+      S.mem = '(재시작 중)'; S.logbuf = '(비어 있음)'; S.tx = '커밋되지 않음 (복구가 찾아냄)'; push('서버가 다시 시작됩니다. 복구 과정이 Redo 로그를 읽어 디스크에 남은 변경을 다시 적용한 뒤, 커밋 표시가 없는 트랜잭션을 찾아냅니다.', '');
       S.mem = '1000'; S.tx = '롤백됨 (복구 과정에서)'; usedU = 'Undo 로그'; usedR = 'Redo 로그 (복구 시작 단계)'; fin = '1000'; prop = '원자성';
       push('커밋되지 않은 트랜잭션의 변경은 Undo 로그를 이용해 되돌립니다. 잔액은 1000입니다. 사용자는 커밋 성공 응답을 받은 적이 없으므로 이 결과가 맞습니다.', 'good');
       sum.push('커밋되지 않은 변경은 장애 뒤에 남지 않습니다. 복구 과정이 Undo 로그로 되돌립니다.');
     } else {
-      S.redo = '"계좌 1을 500으로" + 커밋 표시 (디스크에 기록 완료)'; S.tx = '커밋됨';
+      S.redo = '"계좌 1을 500으로" + 커밋 표시 (디스크에 기록 완료)'; S.logbuf = '(디스크에 써 넣음)'; S.tx = '커밋됨'; S.flow = 'commit';
       push('COMMIT: Redo 로그를 디스크에 확실히 써 넣습니다(fsync). 이것이 끝나야 사용자에게 "커밋 성공"을 응답합니다. 이 시점에도 데이터 파일은 1000 그대로입니다. 커밋할 때 디스크에 쓰는 것은 로그뿐입니다.', 'good');
       if (W === 'commit') {
         S.file = '500'; S.mem = '500'; usedR = '쓰지 않음 (장애가 없었음)'; fin = '500'; prop = '지속성';
         push('얼마 뒤 백그라운드 작업이 메모리의 바뀐 데이터를 데이터 파일에 옮겨 씁니다(플러시). 이제 데이터 파일도 500입니다. 그 뒤에는 해당 Redo 로그가 더 필요 없어집니다.', '');
         sum.push('커밋의 속도는 로그를 디스크에 쓰는 속도로 정해집니다. 데이터 파일 반영은 나중에 모아서 합니다.');
       } else {
-        S.mem = '(사라짐)'; push('커밋 응답 직후, 데이터 파일에 옮겨 쓰기 전에 서버가 꺼졌습니다. 메모리의 500은 사라졌고 데이터 파일에는 1000이 남아 있습니다. 사용자는 이미 "성공"을 받았습니다.', 'bad');
-        S.mem = '(재시작 중)'; push('서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 마지막 체크포인트부터 읽습니다.', '');
-        S.mem = '500'; S.file = '500'; usedR = 'Redo 로그'; fin = '500'; prop = '지속성';
+        S.mem = '(사라짐)'; S.logbuf = '(사라짐)'; push('커밋 응답 직후, 데이터 파일에 옮겨 쓰기 전에 서버가 꺼졌습니다. 메모리의 500은 사라졌고 데이터 파일에는 1000이 남아 있습니다. 사용자는 이미 "성공"을 받았습니다.', 'bad');
+        S.mem = '(재시작 중)'; S.logbuf = '(비어 있음)'; push('서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 마지막 체크포인트부터 읽습니다.', '');
+        S.mem = '500'; S.file = '500'; S.flow = 'replay'; usedR = 'Redo 로그'; fin = '500'; prop = '지속성';
         push('Redo 로그에 "계좌 1을 500으로"와 커밋 표시가 있습니다. 이 변경을 다시 적용합니다. 잔액은 500으로 복구됩니다. 커밋된 데이터는 잃지 않았습니다.', 'good');
         sum.push('커밋된 변경은 데이터 파일에 아직 쓰이지 않았더라도 Redo 로그에서 복구됩니다. "커밋된 것은 장애가 나도 남는다"(지속성)를 Redo 로그가 받쳐 줍니다.');
       }
@@ -25727,26 +25733,29 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 시작합니다.'); return; }
     H.table(v, ['위치', '내용'], [
       { cells: ['메모리 (버퍼 풀)', { v: s.mem, cls: s.mem.indexOf('500') === 0 ? 'hot' : s.mem.indexOf('사라') >= 0 ? 'bad' : '' }] },
+      { cells: ['메모리: Redo 로그 버퍼', { v: s.logbuf, cls: s.logbuf.indexOf('사라') >= 0 ? 'bad' : '' }] },
       { cells: ['디스크: 데이터 파일', { v: s.file, cls: s.file === '500' ? 'good' : '' }] },
-      { cells: ['Redo 로그', { v: s.redo, cls: s.redo.indexOf('커밋 표시 (') >= 0 ? 'good' : '' }] },
+      { cells: ['디스크: Redo 로그', { v: s.redo, cls: s.redo.indexOf('커밋 표시 (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo 로그', s.undo] },
     ], '계좌 1의 잔액이 저장된 곳');
   },
   // 그림: 위는 꺼지면 사라지는 메모리, 아래는 남는 디스크. 변경이 어디까지 기록됐는지가 커밋과 복구를 가른다.
   draw: function (P, sim, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : { mem: '1000', file: '1000', redo: '비어 있음', undo: '비어 있음', tx: '시작 전' }, gone = s.mem.indexOf('사라') >= 0, redoOk = s.redo.indexOf('커밋 표시 (') >= 0;
+    var last = shown[shown.length - 1], s = last ? last.snap : { mem: '1000', logbuf: '(비어 있음)', file: '1000', redo: '(비어 있음)', undo: '(비어 있음)', tx: '진행 전', flow: '' }, gone = s.mem.indexOf('사라') >= 0, redoOk = s.redo.indexOf('커밋 표시 (') >= 0;
     P.size(680, 322);
-    P.box('tx', 16, 16, 648, 36, { cls: s.tx.indexOf('커밋') >= 0 ? 'good' : s.tx.indexOf('롤백') >= 0 ? 'bad' : 'plain', title: '트랜잭션 상태', right: s.tx });
+    P.box('tx', 16, 16, 648, 36, { cls: s.tx === '커밋됨' ? 'good' : /롤백|멈춤|않음/.test(s.tx) ? 'bad' : 'plain', title: '트랜잭션 상태', right: s.tx });
     P.region('ram', 16, 66, 648, 84, '메모리: 서버가 꺼지면 사라짐');
-    P.box('mem', 28, 100, 624, 38, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: '버퍼 풀에 올라온 잔액', right: s.mem });
+    P.box('mem', 28, 98, 300, 42, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: '버퍼 풀에 올라온 잔액', sub: s.mem });
+    P.box('logbuf', 340, 98, 312, 42, { cls: s.logbuf.indexOf('사라') >= 0 ? 'bad' : s.logbuf.indexOf('"') === 0 ? 'hot' : 'plain', title: 'Redo 로그 버퍼', sub: s.logbuf });
     P.region('disk', 16, 164, 648, 142, '로그와 데이터 파일 (디스크에 써진 것은 서버가 꺼져도 남음)');
     P.box('redo', 28, 198, 624, 30, { cls: redoOk ? 'good' : 'plain', title: 'Redo 로그', right: s.redo });
     P.box('undo', 28, 232, 624, 30, { cls: 'plain', title: 'Undo 로그', right: s.undo });
     P.box('file', 28, 266, 624, 30, { cls: s.file === '500' ? 'good' : 'plain', title: '데이터 파일', right: s.file });
-    if (redoOk && !gone) P.arrow('wr', 'mem:b:0.15', 'redo:t:0.15', { cls: 'good' });
+    if (s.flow === 'commit') P.arrow('wr', 'logbuf:b:0.5', 'redo:t:0.8', { cls: 'good' });
+    if (s.flow === 'replay') P.arrow('rp', 'redo:t:0.2', 'mem:b:0.4', { cls: 'good' });
     P.note('커밋은 "데이터 파일에 썼다"가 아니라 "Redo 로그에 기록했다"는 뜻입니다. 메모리의 값이 사라져도 Redo 로그가 남아 있으면 다시 만들어 낼 수 있고, 커밋되지 않은 변경은 Undo 로그의 이전 값으로 되돌립니다.');
   },
-  assume: 'MySQL InnoDB의 구조를 단순화했습니다. Undo 로그의 변경 자체도 Redo 로그로 보호된다는 점, 로그 버퍼와 여러 단계의 디스크 쓰기 같은 세부는 생략했습니다. 커밋 때마다 Redo 로그를 디스크에 쓰는 것은 기본 설정(innodb_flush_log_at_trx_commit=1)의 동작입니다. 실제 DB에 장애를 일으켜 확인한 결과가 아니라 MySQL 공식 문서의 설명을 옮긴 것입니다.',
+  assume: 'MySQL InnoDB의 구조를 단순화했습니다. Undo 로그의 변경 자체도 Redo 로그로 보호된다는 점, Redo 로그 버퍼는 그림에 따로 두었지만, 디스크에 쓰는 여러 단계(운영체제의 캐시 등) 같은 세부는 생략했습니다. 커밋 때마다 Redo 로그를 디스크에 쓰는 것은 기본 설정(innodb_flush_log_at_trx_commit=1)의 동작입니다. 실제 DB에 장애를 일으켜 확인한 결과가 아니라 MySQL 공식 문서의 설명을 옮긴 것입니다.',
 });
 
 Lab.register({
@@ -25779,7 +25788,7 @@ Lab.register({
     function dist(n, perN) { var d = []; for (var k = 0; k < n; k++) d.push(0); orders.forEach(function (o) { d[place(o, n, perN)]++; }); return d; }
     var d1 = dist(N, per), mx = Math.max.apply(null, d1), mn = Math.min.apply(null, d1);
     function push(s, k, d, extra) { ev.push({ s: s, k: k, snap: { d: d, extra: extra || '' } }); }
-    push('주문 ' + TOTAL + '건을 샤드 ' + N + '개에 나눠 담습니다. ' + (c.how === 'range' ? '주문 번호 ' + per + '개씩 구간을 잘라 샤드에 배정합니다.' : '주문의 회원 번호를 샤드 수(' + N + ')로 나눈 나머지가 샤드 번호입니다. 같은 회원의 주문은 항상 같은 샤드에 모입니다.'), '', d1.map(function () { return 0; }));
+    push('주문 ' + TOTAL + '건을 샤드 ' + N + '개에 나눠 담습니다. ' + (c.how === 'range' ? '주문 번호 ' + per + '개씩 구간을 잘라 샤드에 배정합니다.' : '주문의 회원 번호를 샤드 수(' + N + ')로 나눈 나머지가 샤드 번호입니다. 같은 회원의 주문은 항상 같은 샤드에 모입니다. 이 실습의 해시 방식은 회원 번호를 그대로 해시 값으로 쓰는 가장 단순한 형태입니다. 실제로는 키를 해시 함수에 넣어 얻은 값으로 나머지를 구하는 경우가 많고, 문자열 키도 그렇게 숫자로 바꿉니다.'), '', d1.map(function () { return 0; }));
     push('분배 결과입니다. 가장 많은 샤드는 ' + mx + '건, 가장 적은 샤드는 ' + mn + '건입니다.' + (c.how === 'hot' ? ' 회원 7번의 주문이 전체의 3분의 1이라서, 그 회원이 속한 샤드 ' + (7 % N) + '번에 몰렸습니다. 해시는 키를 고르게 나누지만, 키 하나에 딸린 데이터가 많으면 소용이 없습니다.' : c.how === 'range' ? ' 지금은 고르지만 이것은 과거 데이터 기준입니다.' : ' 회원 번호가 고르게 퍼져 있어 샤드별 건수가 비슷합니다.'), mx >= mn * 2 ? 'bad' : 'good', d1);
     var newTo = c.how === 'range' ? '마지막 샤드 한 곳' : '회원에 따라 모든 샤드에 분산';
     push(c.how === 'range' ? '새 주문은 번호가 계속 커지므로 전부 마지막 샤드 ' + (N - 1) + '번으로 들어갑니다. 쓰기 부하가 샤드 하나에 몰리고(핫스팟), 나머지 샤드는 한가합니다.' : '새 주문은 주문한 회원의 번호에 따라 여러 샤드로 흩어집니다. 쓰기 부하가 분산됩니다.', c.how === 'range' ? 'bad' : 'good', d1, c.how === 'range' ? '새 주문 → 샤드 ' + (N - 1) : '새 주문 → 여러 샤드');
@@ -25826,19 +25835,19 @@ Lab.register({
   intro: 'Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다.',
   terms: ['Redis', '캐시', '원자성(Atomicity)과 CAS', '이벤트 루프'], ranks: ['nosql', 'cache'],
   controls: [
-    { id: 'slow', label: '중간에 끼어드는 명령', type: 'select', value: 'keys', options: [['none', '없음 (빠른 명령만)'], ['keys', 'KEYS user:* (키 100만 개를 전부 훑음)'], ['scan', 'SCAN으로 나눠서 훑음 (한 번에 1,000개씩)'], ['big', '원소 50만 개짜리 리스트 통째로 조회 (LRANGE 0 -1)']] },
+    { id: 'slow', label: '중간에 끼어드는 명령', type: 'select', value: 'keys', options: [['none', '없음 (빠른 명령만)'], ['keys', 'KEYS user:* (키 100만 개를 전부 훑음)'], ['scan', 'SCAN으로 나눠서 훑음 (COUNT 1000)'], ['big', '원소 50만 개짜리 리스트 통째로 조회 (LRANGE 0 -1)']] },
     { id: 'incr', label: '두 클라이언트가 같은 키에 동시에 INCR을 보낸다', type: 'check', value: false },
   ],
   presets: [
     { t: '처음 설정으로', q: '중간에 KEYS user:* 명령이 끼어들면 다른 클라이언트는 어떻게 되나', d: 'KEYS 한 번에 다른 클라이언트들이 0.5초씩 멈춥니다.', v: { slow: 'keys', incr: false } },
     { t: '빠른 명령만 있을 때', q: '끼어드는 명령 없이 빠른 명령만 있으면', d: '모든 명령이 1ms 안에 끝납니다.', v: { slow: 'none', incr: false } },
-    { t: 'SCAN으로 바꾸면', q: 'KEYS 대신 SCAN으로 한 번에 1,000개씩 나눠서 훑으면', d: '조금씩 나눠 실행해서 사이사이에 다른 명령이 끼어들 수 있습니다.', v: { slow: 'scan', incr: false } },
+    { t: 'SCAN으로 바꾸면', q: 'KEYS 대신 SCAN으로 조금씩(COUNT 1000) 나눠서 훑으면', d: '조금씩 나눠 실행해서 사이사이에 다른 명령이 끼어들 수 있습니다.', v: { slow: 'scan', incr: false } },
     { t: '큰 컬렉션을 통째로 읽으면', q: 'KEYS 대신 원소 50만 개짜리 리스트를 LRANGE 0 -1로 통째로 조회하면', d: 'KEYS가 아니어도 값이 크면 같은 일이 생깁니다.', v: { slow: 'big', incr: false } },
     { t: '동시에 INCR', q: '끼어드는 명령 없이 두 클라이언트가 같은 키에 동시에 INCR을 보내면', d: '한 줄로 실행되므로 증가가 사라지지 않습니다.', v: { slow: 'none', incr: true } },
   ],
   code: function (c) {
-    var s = { none: '', keys: '\n// 관리자 스크립트\nSet<String> keys = redis.keys("user:*");          // 전체 키를 한 번에 훑는다', scan: '\n// 관리자 스크립트\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // 1,000개씩 끊어서\n    cur.forEachRemaining(this::handle);\n}', big: '\n// 배치 작업\nList<String> all = redis.opsForList().range("events", 0, -1);   // 50만 개 전부' }[c.slow];
-    return '// 서비스 A, B: 평범한 캐시 조회\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// 서비스 A, B가 동시에\nredis.opsForValue().increment("view:1");           // 읽기+더하기+쓰기가 명령 하나\n' : '') + s;
+    var s = { none: '', keys: '\n// 관리자 스크립트\nSet<String> keys = redis.keys("user:*");          // 전체 키를 한 번에 훑는다', scan: '\n// 관리자 스크립트\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // 조금씩 나눠 훑는다. count(1000)은 한 번에 훑을 양의 힌트\n    cur.forEachRemaining(this::handle);            // handle은 예시로 만든 메서드\n}', big: '\n// 배치 작업\nList<String> all = redis.opsForList().range("events", 0, -1);   // 50만 개 전부' }[c.slow];
+    return '// 필요한 부분만 남김. redis는 스프링의 StringRedisTemplate\n\n// 서비스 A, B: 평범한 캐시 조회\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// 서비스 A, B가 동시에\nredis.opsForValue().increment("view:1");           // 읽기+더하기+쓰기가 명령 하나\n' : '') + s;
   },
   label: function (c) { return { none: '빠른 명령만', keys: 'KEYS 포함', scan: 'SCAN 포함', big: '큰 리스트 조회 포함' }[c.slow] + (c.incr ? ' · 동시 INCR' : ''); },
   columns: ['가장 오래 기다린 명령', '전체 처리 시간', '다른 클라이언트가 멈춘 시간'],
@@ -25851,9 +25860,9 @@ Lab.register({
     if (c.slow === 'big') add('배치', 'LRANGE events 0 -1', 300, 0.2);
     if (c.slow === 'scan') add('관리자', 'SCAN 0 MATCH user:* COUNT 1000', 0.5, 0.2);
     add('서비스 A', 'GET product:3', 0.1, 1); add('서비스 B', 'SET cart:9 ...', 0.1, 1);
-    if (c.slow === 'scan') add('관리자', 'SCAN 1000 ... (다음 묶음)', 0.5, 1.2);
+    if (c.slow === 'scan') add('관리자', 'SCAN <받은 커서> ... (다음 묶음)', 0.5, 1.2);
     add('서비스 A', 'GET product:4', 0.1, 2);
-    if (c.slow === 'scan') add('관리자', 'SCAN 2000 ... (다음 묶음, 이후 반복)', 0.5, 2.2);
+    if (c.slow === 'scan') add('관리자', 'SCAN <받은 커서> ... (커서 0이 올 때까지 반복)', 0.5, 2.2);
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice(), val: val } }); }
     var f = function (x) { return (Math.round(x * 10) / 10) + 'ms'; };
     push('Redis는 여러 클라이언트의 명령을 받아 한 줄로 세운 뒤, 스레드 하나가 앞에서부터 하나씩 실행합니다. 명령 하나가 끝나야 다음 명령을 시작합니다.', '');
@@ -25865,7 +25874,7 @@ Lab.register({
       push(x.who + '의 ' + x.cmd + ': ' + (wait > 1 ? '앞의 명령이 끝나기를 ' + f(wait) + ' 기다린 뒤 ' : '') + f(x.dur) + ' 동안 실행됐습니다.' + (x.dur > 10 ? ' 이 명령이 실행되는 동안 Redis는 다른 어떤 명령도 처리하지 못합니다.' : '') + note, x.dur > 10 || wait > 1 ? 'bad' : '');
     });
     if (c.slow === 'keys' || c.slow === 'big') sum.push('평소 0.1ms에 끝나던 조회가 ' + f(stall) + '를 기다렸습니다. Redis에 연결된 모든 서비스가 동시에 느려지고, 타임아웃이 걸려 있으면 캐시 조회가 줄줄이 실패합니다. 운영 중인 Redis에서 KEYS, 큰 컬렉션 통째 조회, 큰 키 삭제(DEL) 같은 명령을 피해야 하는 이유입니다.');
-    if (c.slow === 'scan') sum.push('SCAN은 전체를 한 번에 훑지 않고 조금씩 나눠 실행합니다. 한 번의 실행이 짧아서 그 사이에 다른 명령이 끼어들 수 있습니다. 전체를 다 훑는 데는 더 오래 걸리지만 다른 클라이언트를 멈추게 하지 않습니다.');
+    if (c.slow === 'scan') sum.push('SCAN은 전체를 한 번에 훑지 않고 조금씩 나눠 실행합니다. 한 번의 실행이 짧아서 그 사이에 다른 명령이 끼어들 수 있습니다. 전체를 다 훑는 데는 더 오래 걸리지만 다른 클라이언트를 멈추게 하지 않습니다. COUNT 1000은 한 번에 훑을 양의 힌트일 뿐 돌려줄 키 수가 아닙니다. MATCH를 함께 쓰면 거르고 남은 키만 돌아오므로 한 번에 받는 키가 그보다 적거나 0개일 수도 있습니다. 응답의 커서를 다음 SCAN에 넘기고, 커서가 0으로 돌아오면 끝입니다.');
     if (c.slow === 'none') sum.push('명령 하나하나가 메모리에서 아주 빠르게 끝나기 때문에, 스레드 하나로도 초당 수만 건 이상을 처리합니다. 스레드가 하나라서 락 경쟁과 교대 비용이 없는 것도 빠른 이유입니다.');
     if (c.incr) sum.push('두 클라이언트가 동시에 INCR을 보내도 Redis 안에서는 차례로 실행되므로 값이 정확히 2 올랐습니다. 애플리케이션에서 "GET으로 읽고, 더해서, SET으로 쓰기"를 하면 그 사이에 다른 클라이언트가 끼어들 수 있지만, 명령 하나로 끝내면 안전합니다. 여러 명령을 묶어야 하면 Lua 스크립트나 트랜잭션(MULTI)을 씁니다.');
     return { events: ev, summary: sum, row: [f(maxWait), f(t), stall ? f(stall) : '없음'] };
@@ -25885,7 +25894,7 @@ Lab.register({
     if (sim.c.incr) P.box('val', 16, 128 + Math.max(1, n) * 32, 648, 34, { cls: 'plain', title: 'view:1의 값 (처음 10)', right: String(s.val) });
     P.note('빨간 줄은 오래 걸린 명령, 노란 줄은 그 명령이 끝나기를 기다리느라 늦어진 명령, 굵은 테두리는 방금 실행된 명령입니다.');
   },
-  assume: '명령의 실행 시간(GET 0.1ms, KEYS 500ms, 큰 리스트 조회 300ms, SCAN 한 번 0.5ms)은 크기의 차이를 보이기 위한 예시입니다. Redis가 명령을 한 스레드에서 차례로 실행한다는 점과 KEYS 대신 SCAN을 쓰라는 권고는 Redis 공식 문서를 따랐습니다. Redis 6부터 네트워크 입출력에는 여러 스레드를 쓸 수 있지만 명령 실행은 여전히 한 스레드입니다. 원리는 실제 Redis 8.10.2에서 확인했습니다(키 100만 개, 원소 50만 개짜리 리스트). KEYS가 도는 동안 다른 클라이언트의 GET이 최대 186ms, 큰 리스트 조회 동안 22ms를 기다렸고(평소에는 3ms 이하), SCAN으로 1,000개씩 나눠 훑는 동안에는 1.5ms를 넘지 않았습니다. 두 클라이언트가 같은 키에 20,000번씩 동시에 보낸 INCR의 최종 값은 정확히 40,000이었습니다. 화면의 시간 값은 이 측정값이 아니라 예시이며, 실제 시간은 데이터 크기와 장비에 따라 달라집니다.',
+  assume: '명령의 실행 시간(GET 0.1ms, KEYS 500ms, 큰 리스트 조회 300ms, SCAN 한 번 0.5ms)은 크기의 차이를 보이기 위한 예시입니다. Redis가 명령을 한 스레드에서 차례로 실행한다는 점과 KEYS 대신 SCAN을 쓰라는 권고는 Redis 공식 문서를 따랐습니다. Redis 6부터 네트워크 입출력에는 여러 스레드를 쓸 수 있지만 명령 실행은 여전히 한 스레드입니다. 원리는 실제 Redis 8.10.2에서 확인했습니다(키 100만 개, 원소 50만 개짜리 리스트). KEYS가 도는 동안 다른 클라이언트의 GET이 최대 186ms, 큰 리스트 조회 동안 22ms를 기다렸고(평소에는 3ms 이하), SCAN(COUNT 1000)으로 나눠 훑는 동안에는 1.5ms를 넘지 않았습니다. 두 클라이언트가 같은 키에 20,000번씩 동시에 보낸 INCR의 최종 값은 정확히 40,000이었습니다. 화면의 시간 값은 이 측정값이 아니라 예시이며, 실제 시간은 데이터 크기와 장비에 따라 달라집니다.',
 });
 
 Lab.register({
@@ -25912,7 +25921,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], ms = { none: 217, block: 862, own: 218 }[c.a], S = { pool: ['쉬는 중', '쉬는 중', '쉬는 중'], b: '시작 전', own: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
-    push('공용 풀(ForkJoinPool.commonPool)에는 일꾼 스레드가 3개 있습니다. 기본 크기는 "CPU 코어 수 - 1"이고, 병렬 스트림을 호출한 스레드 자신도 일을 거듭니다. JVM 안의 모든 병렬 스트림이 이 풀 하나를 함께 씁니다.', '');
+    push('공용 풀(ForkJoinPool.commonPool)에는 일꾼 스레드가 3개 있습니다. 기본 크기는 "CPU 코어 수 - 1"이고, 병렬 스트림을 호출한 스레드 자신도 일을 나눠 맡습니다. JVM 안의 모든 병렬 스트림이 이 풀 하나를 함께 씁니다.', '');
     if (c.a === 'block') { S.pool = ['A의 API 응답 대기 (2초)', 'A의 API 응답 대기 (2초)', 'A의 API 응답 대기 (2초)']; push('요청 A가 병렬 스트림 안에서 외부 API를 호출합니다. 공용 풀의 일꾼 3개가 모두 A의 작업을 하나씩 집어 들고, 응답을 기다리며 2초씩 멈춰 있습니다. 계산을 하는 것이 아니라 그냥 기다리는 중인데도 스레드는 묶여 있습니다.', 'bad'); }
     if (c.a === 'own') { S.own = '전용 풀 스레드 8개: A의 API 응답 대기'; push('요청 A는 외부 API 호출을 자기가 만든 전용 스레드 풀에서 실행합니다. 공용 풀은 건드리지 않습니다.', 'good'); }
     S.b = '병렬 스트림 시작 (작업 8개)'; push('요청 B가 0.1초짜리 작업 8개를 parallelStream()으로 실행합니다. 작업을 쪼개 공용 풀에 맡깁니다.', '');
@@ -25945,18 +25954,18 @@ Lab.register({
     { id: 'mode', label: '실행 방식', type: 'select', value: 'jit', options: [['jit', '기본 설정 (해석하다가 JIT 컴파일)'], ['int', 'JIT를 끔 (-Xint, 계속 해석만)'], ['warm', '요청을 받기 전에 미리 호출해 둠 (워밍업)']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '해석하다가 JIT 컴파일하는 기본 설정으로 배포한 직후의 첫 요청들은 왜 느리나', d: '첫 묶음은 5.8ms, 그다음부터는 1.4ms 안팎입니다.', v: { mode: 'jit' } },
-    { t: 'JIT를 끄면', q: '-Xint로 JIT를 끄고 계속 해석만 하면', d: '끝까지 빨라지지 않습니다. 묶음마다 약 29ms.', v: { mode: 'int' } },
+    { t: '처음 설정으로', q: '해석하다가 JIT 컴파일하는 기본 설정으로 배포한 직후의 첫 요청들은 왜 느리나', d: '첫 묶음은 5.3ms, 그다음부터는 1.4ms 안팎입니다.', v: { mode: 'jit' } },
+    { t: 'JIT를 끄면', q: '-Xint로 JIT를 끄고 계속 해석만 하면', d: '끝까지 빨라지지 않습니다. 묶음마다 약 28ms.', v: { mode: 'int' } },
     { t: '미리 워밍업하면', q: '요청을 받기 전에 미리 호출해 워밍업해 두면', d: '사용자의 첫 요청부터 빠릅니다.', v: { mode: 'warm' } },
   ],
-  DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
+  DATA: { jit: [5349, 1460, 1370, 1371, 1372, 1393, 1371, 1375, 1372, 1380, 1393, 1381], int: [25484, 25396, 29668, 30099, 27911, 29874, 33272, 27138, 26748, 29504, 26585, 27520], warm: [1379, 1573, 1714, 1627, 1423, 1452, 1395, 1443, 1464, 1374, 1377, 1390] },
   code: function (c) {
-    return 'static long work(int n) {                  // 측정한 메서드\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// 기동 직후, 요청을 받기 전에\nfor (int k = 0; k < 2000; k++) work(1000);   // 미리 호출해 JIT 컴파일이 진행되도록 해 둔다\nreadiness.set(true);                        // 그 뒤에 "준비 완료"를 알린다\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // 묶음 하나 = 2,000번 호출\n    print((System.nanoTime() - t) / 1000 + "마이크로초");\n}\n\n// 실행: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
+    return 'public class JitWarmup {                       // 예시로 만든 클래스\n    static long work(int n) {                  // 측정한 메서드(예시로 만든 이름)\n        long s = 0;\n        for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n        return s;\n    }\n\n    public static void main(String[] args) {\n        long sink = 0;                         // 결과를 써서 계산이 지워지지 않게 한다\n' + (c.mode === 'warm' ? '        // 기동 직후, 요청을 받기 전에 미리 호출해 JIT 컴파일이 진행되도록 해 둔다\n        for (int k = 0; k < 2000; k++) sink += work(1000);\n        // 실제 서버라면 여기서 "준비 완료"(readiness)를 알린다\n\n' : '') + '        for (int batch = 1; batch <= 12; batch++) {\n            long t = System.nanoTime();\n            for (int k = 0; k < 2000; k++) sink += work(1000);   // 묶음 하나 = 2,000번 호출\n            System.out.println(batch + "번째 묶음: " + (System.nanoTime() - t) / 1000 + "마이크로초");\n        }\n        System.out.println(sink);\n    }\n}\n\n// 실행: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
   },
   label: function (c) { return { jit: '기본 설정', int: 'JIT 끔 (-Xint)', warm: '미리 워밍업' }[c.mode]; },
   columns: ['첫 묶음', '마지막 묶음', '가장 느린 묶음 ÷ 가장 빠른 묶음'],
   simulate: function (c) {
-    var D = c.mode === 'int' ? this.DATA.int : c.mode === 'warm' ? this.DATA.jit.slice(1).concat([1377]) : this.DATA.jit, ev = [], sum = [], f = function (us) { return (Math.round(us / 100) / 10) + 'ms'; };
+    var D = c.mode === 'int' ? this.DATA.int : c.mode === 'warm' ? this.DATA.warm : this.DATA.jit, ev = [], sum = [], f = function (us) { return (Math.round(us / 100) / 10) + 'ms'; };
     function push(s, k, n) { ev.push({ s: s, k: k, snap: { n: n } }); }
     push('자바 컴파일러(javac)는 소스를 기계어가 아니라 바이트코드로 바꿉니다. 프로그램이 시작되면 JVM의 인터프리터가 이 바이트코드를 한 명령씩 해석해 실행합니다. 어떤 CPU에서든 돌아가지만, 기계어를 직접 실행하는 것보다 훨씬 느립니다.', '', 0);
     if (c.mode === 'warm') push('요청을 받기 전에 work()를 2,000번 미리 호출했습니다. 이때 JVM이 이 메서드를 "자주 실행되는 코드"로 판단해 기계어로 컴파일해 둡니다. 이 느린 구간은 사용자가 겪지 않습니다.', 'good', 0);
@@ -25971,7 +25980,7 @@ Lab.register({
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
     if (c.mode === 'jit') sum.push('같은 코드인데 처음과 나중의 속도가 다릅니다. JVM은 모든 코드를 미리 컴파일하지 않고, 실제로 자주 실행되는 부분만 골라 실행 중에 컴파일합니다(Just-In-Time). 실행 정보를 보고 최적화하므로 충분히 달궈진 뒤에는 미리 컴파일한 언어에 가까운 속도가 납니다.');
-    if (c.mode === 'int') sum.push('JIT 없이 해석만 하면 컴파일된 뒤(약 1.4ms)보다 20배가량 느립니다(약 29ms). 자바의 실제 성능은 JIT 컴파일러에서 나옵니다.');
+    if (c.mode === 'int') sum.push('JIT 없이 해석만 하면 컴파일된 뒤(약 1.4ms)보다 20배가량 느립니다(약 28ms). 자바의 실제 성능은 JIT 컴파일러에서 나옵니다.');
     if (c.mode === 'warm') sum.push('워밍업은 느린 구간을 사용자 요청이 오기 전에 미리 치르는 것입니다. 배포 직후 주요 API를 내부에서 몇 번 호출하거나, 준비 완료 신호(readiness)를 워밍업 뒤에 보내는 식으로 적용합니다.');
     sum.push('배포 직후에는 JIT 컴파일 전인 데다 클래스 로딩, 커넥션 풀 채우기, 캐시가 비어 있는 것까지 겹쳐 첫 요청들이 유독 느립니다. 새 서버에 트래픽을 한꺼번에 넘기지 않고 조금씩 늘리는 이유이기도 합니다. 성능을 잴 때도 처음 구간은 버리고 충분히 달궈진 뒤의 값을 봅니다.');
     return { events: ev, summary: sum, D: D, row: [f(D[0]), f(D[11]), (Math.round(mx / mn * 10) / 10) + '배'] };
@@ -25981,7 +25990,7 @@ Lab.register({
     H.title(v, '묶음별 소요 시간 (묶음 하나 = 2,000번 호출, 막대는 37ms 기준)'); var ln = H.lanes(v);
     D.forEach(function (us, i) { if (i < n) H.lane(ln, (i + 1) + '번째', (Math.round(us / 100) / 10) + 'ms', us > 20000 ? 'bad' : us > 3000 ? 'hot' : 'good', Math.max(0.01, us / mx)); else H.lane(ln, (i + 1) + '번째', '', 'none'); });
   },
-  assume: '숫자는 검증 환경의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). "미리 워밍업"의 값은 기본 설정 측정값에서 첫 묶음을 빼고 이어 붙인 것이고, 마지막 값 하나(1.4ms)는 측정값이 아니라 비슷한 값을 덧붙인 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.',
+  assume: '숫자는 검증 환경의 JDK 21에서 위 코드를 세 가지 방식으로 각각 다섯 번 실행해 잰 값 가운데 첫 번째 실행의 값입니다. 다섯 번 모두에서 기본 설정의 첫 묶음은 5.1~5.4ms, 그 뒤 묶음은 1.4~1.7ms였고, 미리 워밍업한 경우의 첫 묶음은 1.4~1.9ms, -Xint는 묶음마다 23~36ms였습니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.',
 });
 
 Lab.register({
@@ -26055,7 +26064,7 @@ Lab.register({
     if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # 나머지는 기존 서버로' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
-    if (+c.stage < 3) r.push('        - id: legacy                   # 나머지는 전부 기존 서버로\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
+    if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? '전부 기존 서버로' : '나머지는 전부 기존 서버로') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
     return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# 공통 필터: 토큰 검증, 요청 로그, 요청 수 제한';
   },
   label: function (c) { return ['전환 전', '주문만 이전' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), '주문·결제 이전', '전부 이전'][+c.stage] + (c.auth ? ' · 토큰 없는 요청 포함' : ''); },
@@ -26073,7 +26082,7 @@ Lab.register({
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? ' 비율 설정에 따라 이 요청은 새 서비스로 갑니다.' : ' 비율 설정에 따라 이 요청은 아직 기존 서버로 갑니다.'; }
       to = moved ? { orders: '주문 서비스 (새)', payments: '결제 서비스 (새)', members: '회원 서비스 (새)' }[r[1]] : '기존 서버 (모놀리스)';
       if (moved) neu++; else old++;
-      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : '/**', { v: to, cls: moved ? 'good' : '' }] });
+      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : r[1] === 'orders' && st === 1 && ratio < 100 ? '/orders/** (order-legacy)' : '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': 경로가 /' + r[1] + '로 시작합니다. ' + (why || (moved ? '이 경로는 새 서비스로 넘기도록 설정돼 있습니다.' : '따로 지정된 경로가 아니므로 기존 서버로 갑니다.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('아직 아무것도 옮기지 않았습니다. 게이트웨이를 먼저 세워 두는 것이 전환의 첫 단계입니다. 이후에는 설정만 바꿔 경로를 하나씩 넘길 수 있습니다.');
@@ -26129,7 +26138,7 @@ Lab.register({
   columns: ['응답', '서블릿 객체가 만들어진 때', '객체 생성', 'init', '요청 처리 호출', '응답을 만든 곳'],
   simulate: function (c) {
     var plain = c.kind === 'plain', S = plain ? 'HelloServlet' : 'DispatcherServlet', ev = [], sum = [];
-    var st = { made: 0, init: 0, svc: 0, destroy: 0, obj: '아직 없음', thread: '', reqText: '', reqObj: '', respText: '', who: '서버 시작 전' };
+    var st = { made: 0, init: 0, svc: 0, destroy: 0, obj: '아직 없음', thread: '', reqText: '', reqObj: '', respText: '', sent: false, who: '서버 시작 전' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var line = { get: 'GET /hello?name=철수 HTTP/1.1', post: 'POST /hello HTTP/1.1', none: 'GET /nothing HTTP/1.1' }[c.req], path = c.req === 'none' ? '/nothing' : '/hello', method = c.req === 'post' ? 'POST' : 'GET';
     var mapped = plain ? c.req !== 'none' : true, handled = c.req === 'get' || (c.req === 'post' && c.impl === 'both'), status, body, maker, whenMade = '만들어지지 않음';
@@ -26149,11 +26158,11 @@ Lab.register({
       if (c.startup) initOnly('서버 시작 시');
     }
     for (var i = 1; i <= c.n; i++) {
-      st.reqText = line + '\nHost: localhost:8080' + (c.req === 'post' ? '\nContent-Type: application/x-www-form-urlencoded\n\nname=철수' : ''); st.respText = ''; st.reqObj = ''; st.thread = '';
+      st.reqText = line + '\nHost: localhost:8080' + (c.req === 'post' ? '\nContent-Type: application/x-www-form-urlencoded\n\nname=철수' : ''); st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = '';
       push(i + '번째 요청: 브라우저가 서버에 연결해 HTTP 요청을 보냅니다. 보내는 내용은 화면에 보이는 것 같은 글자 몇 줄입니다.', '');
-      st.thread = 'http-nio-8080-exec-' + i; st.reqObj = 'HttpServletRequest (메서드 ' + method + ', 경로 ' + path + (c.req === 'get' ? ', 파라미터 name=철수' : c.req === 'post' ? ', 본문 name=철수' : '') + ') + 빈 HttpServletResponse';
-      push('톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.', '');
-      if (!mapped) { st.respText = 'HTTP/1.1 ' + status; push('톰캣이 주소 /nothing을 맡은 서블릿을 표에서 찾습니다. 없습니다. 톰캣의 기본 서블릿이 404 응답을 만듭니다. 우리가 만든 HelloServlet은 호출되지 않았습니다.', 'bad'); continue; }
+      st.thread = '풀의 스레드 하나'; st.reqObj = 'HttpServletRequest (메서드 ' + method + ', 경로 ' + path + (c.req === 'get' ? ', 파라미터 name=철수' : c.req === 'post' ? ', 본문 name=철수' : '') + ') + 빈 HttpServletResponse';
+      push('톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.' + (i === 1 ? ' 톰캣의 스레드 이름은 http-nio-8080-exec-1처럼 붙습니다.' : ' 어느 스레드가 배정될지는 정해져 있지 않아, 앞 요청을 맡았던 스레드가 다시 배정될 수도 있습니다.'), '');
+      if (!mapped) { st.respText = 'HTTP/1.1 ' + status; st.sent = true; push('톰캣이 주소 /nothing을 맡은 서블릿을 표에서 찾습니다. 없습니다. 톰캣의 기본 서블릿이 404 응답을 만들어 브라우저에 보냅니다. 우리가 만든 HelloServlet은 호출되지 않았습니다.', 'bad'); continue; }
       push('톰캣이 주소 ' + path + ' 담당 서블릿을 표에서 찾습니다. ' + (plain ? 'HelloServlet입니다.' : '"/"에 등록된 DispatcherServlet이 모든 주소를 맡고 있습니다.'), '');
       if (plain && !st.made) create('첫 요청 때'); else if (!plain && !st.init) initOnly('첫 요청 때'); else if (i > 1 || c.startup) push('이미 만들어 둔 ' + S + ' 객체가 있습니다. 새로 만들지 않고 그 객체를 다시 씁니다. init()도 다시 부르지 않습니다.', 'good');
       st.svc++; st.who = S;
@@ -26167,10 +26176,10 @@ Lab.register({
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet이 /hello를 처리할 컨트롤러 메서드를 찾습니다. @GetMapping("/hello")는 있지만 POST용은 없습니다. 응답의 상태를 405로 정합니다.', 'bad'); errorDispatch(); }
         else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet이 ' + method + ' /hello에 맞는 컨트롤러 메서드를 찾아 호출합니다. ' + (method === 'GET' ? 'request에서 값을 꺼내 파라미터로 넘겨 주고, ' : '') + '메서드가 돌려준 값을 response에 써 줍니다. 서블릿을 직접 쓸 때 우리가 하던 일을 DispatcherServlet이 대신합니다.', 'good'); }
       }
-      st.who = '톰캣 (서블릿 컨테이너)';
+      st.who = '톰캣 (서블릿 컨테이너)'; st.sent = true;
       push('서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. ' + S + ' 객체는 그대로 남아 다음 요청을 기다립니다.', '');
     }
-    if (st.made) { st.destroy++; st.obj = '없어짐'; st.reqText = ''; st.respText = ''; st.reqObj = ''; st.thread = ''; push('서버를 내립니다. 톰캣이 ' + S + '의 destroy()를 한 번 호출한 뒤 객체를 버립니다. 열어 둔 자원을 정리할 기회입니다.', ''); }
+    if (st.made) { st.destroy++; st.obj = '없어짐'; st.reqText = ''; st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = ''; push('서버를 내립니다. 톰캣이 ' + S + '의 destroy()를 한 번 호출한 뒤 객체를 버립니다. 열어 둔 자원을 정리할 기회입니다.', ''); }
     sum.push('서블릿은 HTTP 요청 하나를 받아 응답을 만드는 자바 클래스이고, 서블릿 컨테이너(톰캣)는 그 서블릿을 만들고 부르고 없애는 프로그램입니다. 연결을 받고, HTTP 글자를 객체로 바꾸고, 스레드를 배정하는 일은 컨테이너가 하므로 개발자는 "요청에서 꺼내 응답에 쓰는" 코드만 작성합니다.');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('요청이 ' + c.n + '번 왔지만 서블릿 객체는 하나뿐이었습니다. 요청마다 새로 만드는 것은 request와 response 객체입니다. 서블릿 객체 하나를 여러 스레드가 동시에 쓰므로, 서블릿의 필드에 요청별 값을 저장하면 안 됩니다(스프링의 싱글톤 빈과 같은 이유).');
     if (!c.startup && st.made) sum.push(plain ? '미리 만들어 두지 않으면 객체 생성과 init()이 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. 준비 작업이 무겁다면 서버 시작 때 미리 만들어 둡니다.' : '스프링 부트에서는 DispatcherServlet 객체 자체는 서버가 뜰 때 만들어지지만, init()은 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. spring.mvc.servlet.load-on-startup을 설정하면 서버 시작 때 미리 초기화합니다.');
@@ -26183,25 +26192,25 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 서버가 뜨는 것부터 시작합니다.'); return; }
     var ln = H.lanes(v);
-    H.lane(ln, '톰캣', s.thread ? '스레드 ' + s.thread + ' 배정 · ' + (s.who.indexOf('톰캣') === 0 ? '톰캣이 일하는 중' : '서블릿에 넘김') : s.who === '서버 시작 전' ? '시작 전' : '요청을 기다리는 중', s.who.indexOf('톰캣') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
+    H.lane(ln, '톰캣', s.thread ? s.thread + ' 배정 · ' + (s.who.indexOf('톰캣') === 0 ? '톰캣이 일하는 중' : '서블릿에 넘김') : s.who === '서버 시작 전' ? '시작 전' : '요청을 기다리는 중', s.who.indexOf('톰캣') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
     if (s.reqText) { H.title(v, '브라우저가 보낸 것 (HTTP 요청, 글자 그대로)'); v.appendChild(H.el('pre', 'code', s.reqText)); }
     if (s.reqObj) { H.title(v, '톰캣이 만들어 서블릿에 넘기는 자바 객체'); H.text(v, s.reqObj); }
-    if (s.respText) { H.title(v, '브라우저에 돌아가는 것 (HTTP 응답, 글자 그대로)'); v.appendChild(H.el('pre', 'code', s.respText)); }
+    if (s.respText) { H.title(v, s.sent ? '브라우저에 돌아가는 것 (HTTP 응답, 글자 그대로)' : '보낼 HTTP 응답 (아직 브라우저에 보내기 전)'); v.appendChild(H.el('pre', 'code', s.respText)); }
   },
   // 그림: 브라우저, 톰캣, 그 안의 스레드와 서블릿 객체. 서블릿 객체는 하나뿐이고 요청마다 스레드가 그것을 실행한다.
   draw: function (P, sim, shown) {
     var c = sim.c, spring = c.kind === 'spring', name = spring ? 'DispatcherServlet' : 'HelloServlet', last = shown[shown.length - 1], s = last ? last.snap : { made: 0, init: 0, svc: 0, destroy: 0, obj: '아직 없음', thread: '', reqText: '', respText: '', who: '서버 시작 전' };
     var none = s.obj === '아직 없음' || s.obj === '없어짐', inServlet = s.who === name, inCtl = s.who === 'HelloController';
     P.size(680, 310);
-    P.box('br', 16, 96, 130, 56, { cls: s.reqText ? 'wait' : 'plain', title: '브라우저', sub: s.respText ? '응답을 받음' : s.reqText ? '요청을 보냄' : '대기' });
+    P.box('br', 16, 96, 130, 56, { cls: s.reqText ? 'wait' : 'plain', title: '브라우저', sub: s.sent ? '응답을 받음' : s.reqText ? '요청을 보냄' : '대기' });
     P.region('tc', 186, 16, 478, 226, '톰캣 (서블릿 컨테이너)' + (s.who === '서버 시작 전' ? ': 시작 전' : ''));
-    P.box('th', 202, 54, 210, 46, { cls: s.thread ? 'hot' : 'ghost', title: '요청을 맡은 스레드', sub: s.thread ? '스레드 ' + s.thread : '요청을 기다리는 중' });
+    P.box('th', 202, 54, 210, 46, { cls: s.thread ? 'hot' : 'ghost', title: '요청을 맡은 스레드', sub: s.thread ? s.thread : '요청을 기다리는 중' });
     P.box('sv', 202, 150, 210, 76, { cls: none ? 'ghost' : inServlet ? 'hot now' : 'good', title: name + ' 객체', sub: [s.obj, 'init ' + s.init + '번, service ' + s.svc + '번', inServlet ? '지금 실행 중' : ' '] });
     if (spring) P.box('ct', 440, 150, 212, 76, { cls: inCtl ? 'hot now' : 'plain', title: 'HelloController', sub: ['스프링 빈', inCtl ? '메서드 실행 중' : '대기'] });
     if (s.reqText) P.arrow('rq', 'br:r:0.3', 'th:l', { label: 'HTTP 요청' });
     if (s.thread && !none && (inServlet || inCtl || s.respText)) P.arrow('run', 'th:b', 'sv:t', { cls: 'hot', label: 'service() 호출' });
     if (spring && inCtl) P.arrow('ctl', 'sv:r', 'ct:l', { cls: 'hot' });
-    if (s.respText) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'HTTP 응답' });
+    if (s.sent) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'HTTP 응답' });
     [['객체 생성', s.made], ['init()', s.init], ['service()', s.svc], ['destroy()', s.destroy]].forEach(function (x, i) { P.box('cnt' + i, 16 + i * 164, 258, 156, 34, { cls: x[1] ? 'wait' : 'ghost', title: x[0], right: x[1] + '번' }); });
     P.note('맨 아래 숫자는 지금까지의 호출 횟수입니다.');
   },
@@ -26226,10 +26235,10 @@ Lab.register({
     { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개를 각각 스레드 1개로 실행하고 작업 2에서 System.exit을 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';
-    if (c.how === 'single') return body + '// 스레드 하나(main)가 차례로\nfor (int i = 1; i <= 3; i++) work(i);';
-    if (c.how === 'multi') return body + '// 같은 프로세스 안에 스레드 3개\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
-    return body + '// 프로세스 3개: 같은 프로그램을 따로따로 실행\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
+    var body = 'public class Main {                         // Main, work는 예시로 만든 이름\n    static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\n    static void work(int id) {\n        try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '        if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '        if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '        synchronized (Main.class) { counter++; }   // 한 번에 한 스레드만 올린다\n    }\n\n    public static void main(String[] args) throws Exception {\n', end = '    }\n}';
+    if (c.how === 'single') return body + '        // 스레드 하나(main)가 차례로\n        for (int i = 1; i <= 3; i++) work(i);\n' + end;
+    if (c.how === 'multi') return body + '        // 같은 프로세스 안에 스레드 3개\n        for (int i = 1; i <= 3; i++) {\n            int id = i;\n            new Thread(() -> work(id)).start();\n        }\n' + end;
+    return body + '        if (args.length > 0) { work(Integer.parseInt(args[0])); return; }   // 새로 뜬 프로세스: 작업 하나\n        // 프로세스 3개: 같은 프로그램을 따로따로 실행\n        for (int i = 1; i <= 3; i++) {\n            new ProcessBuilder("java", "Main", String.valueOf(i)).start();\n        }\n' + end;
   },
   label: function (c) { return { single: '스레드 1개', multi: '스레드 3개', proc: '프로세스 3개' }[c.how] + ' · 작업 2 ' + { none: '정상', ex: '예외', kill: '프로세스 종료 오류' }[c.fail]; },
   columns: ['끝난 작업', '걸린 시간', 'counter 값', '작업 2의 문제가 번진 범위'],
@@ -26238,7 +26247,7 @@ Lab.register({
     var P = H === 'proc' ? [1, 2, 3].map(function (i) { return { p: '프로세스 ' + i, mem: 0, th: [{ id: i, st: '대기' }], alive: true }; }) : [{ p: '프로세스 1', mem: 0, th: (H === 'single' ? [{ id: 0, st: '대기', name: 'main 스레드' }] : [1, 2, 3].map(function (i) { return { id: i, st: '대기' }; })), alive: true }];
     function snap() { return JSON.parse(JSON.stringify(P)); }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
-    push(H === 'proc' ? '같은 프로그램을 세 번 실행해 프로세스 3개를 만듭니다. 운영체제는 프로세스마다 메모리를 따로 내줍니다. counter 변수도 프로세스마다 하나씩, 모두 세 개가 생깁니다.' : '프로그램을 실행해 프로세스 1개를 만듭니다. 운영체제가 이 프로세스에 메모리를 내주고, counter 변수는 그 안에 하나 있습니다.' + (H === 'multi' ? ' 그 안에서 스레드 3개를 만듭니다. 스레드는 실행 흐름(스택)만 각자 가지고, 프로세스의 메모리는 함께 씁니다.' : ' 스레드는 main 하나뿐입니다.'), '');
+    push(H === 'proc' ? '처음 실행한 Main 프로세스가 같은 프로그램을 세 번 더 실행해, 작업할 프로세스 3개를 만듭니다. 운영체제는 프로세스마다 메모리를 따로 내줍니다. counter 변수도 프로세스마다 하나씩 생겨 작업하는 세 프로세스에 모두 세 개가 있습니다. 처음 실행한 Main 프로세스에도 counter(0)가 있지만 작업을 하지 않으므로 그림에서는 뺐습니다.' : '프로그램을 실행해 프로세스 1개를 만듭니다. 운영체제가 이 프로세스에 메모리를 내주고, counter 변수는 그 안에 하나 있습니다.' + (H === 'multi' ? ' 그 안에서 스레드 3개를 만듭니다. 스레드는 실행 흐름(스택)만 각자 가지고, 프로세스의 메모리는 함께 씁니다.' : ' 스레드는 main 하나뿐입니다.'), '');
     if (H === 'single') {
       var th = P[0].th[0], stopped = false;
       for (var i = 1; i <= 3; i++) {
@@ -26256,7 +26265,7 @@ Lab.register({
       else {
         if (F === 'ex') { P[0].th[1].st = '예외로 종료'; spread = '스레드 2 하나'; push('스레드 2에서 잡지 않은 예외가 발생했습니다. 그 스레드만 끝납니다. 프로세스와 다른 스레드는 그대로 살아 있습니다.', 'bad'); }
         P[0].th.forEach(function (t) { if (t.st.indexOf('실행 중') >= 0) { P[0].mem++; done++; t.st = '작업 ' + t.id + ' 완료'; } });
-        push('남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 ' + P[0].mem + '입니다. 변수 하나를 여럿이 함께 쓰는 것이므로, 동시에 건드릴 때의 문제는 따로 막아야 합니다(다음 개념인 경쟁 상태).', 'good'); time = '0.3초'; cnt = String(P[0].mem);
+        push('남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 ' + P[0].mem + '입니다. 변수 하나를 여럿이 함께 쓰므로, 올리는 줄에 synchronized를 걸어 한 번에 한 스레드만 올리게 했습니다. 이것이 없으면 두 스레드가 같은 값을 읽고 덮어써서 올린 횟수보다 작은 값이 나올 수 있습니다(다음 개념인 경쟁 상태).', 'good'); time = '0.3초'; cnt = String(P[0].mem);
       }
     }
     if (H === 'proc') {
@@ -26297,7 +26306,7 @@ Lab.register({
     });
     P.note('점선 상자 하나가 프로세스입니다. 화살표는 스레드가 그 프로세스의 메모리를 쓴다는 뜻이며, 한 프로세스 안의 스레드들은 같은 메모리(counter)를 함께 씁니다.');
   },
-  assume: '아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸고, 스레드들은 같은 counter를 3까지 올린 반면 프로세스 3개는 각자 1이었습니다. 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다).',
+  assume: '아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸습니다. counter++에 synchronized를 건 코드로 스레드 3개를 30번 실행하면 같은 counter가 매번 3이었고, 프로세스 3개는 각자 1이었습니다. synchronized를 빼고 같은 실행을 30번 하면 3은 7번뿐이고 1이 21번, 2가 2번 나왔습니다. 세 스레드가 거의 같은 때 깨어나 같은 값을 읽고 덮어쓰기 때문입니다(경쟁 상태). 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다). 프로세스 3개 코드는 java 명령을 PATH에서 찾을 수 있고 Main.class가 있는 폴더에서 실행할 때 동작합니다(다른 폴더라면 -cp로 클래스 경로를 넘겨야 합니다). 처음 프로세스는 작업 프로세스를 기다리지 않고 먼저 끝나지만, 작업 프로세스는 그와 상관없이 계속 실행되어 결과는 같았습니다. 각 프로세스의 counter 값은 검증용 코드에서 waitFor()로 끝나기를 기다리고 출력을 받아 확인했습니다.',
 });
 
 Lab.register({

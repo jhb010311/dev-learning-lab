@@ -1,7 +1,7 @@
 Lab.register({
   id: 'thread_basic', nav: '스레드', cat: '기초개념', mode: 'step', basic: true, deep: ['thread'],
   title: '스레드는 무엇이고, start()는 무엇을 하는가',
-  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -> work())입니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
+  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -> work())입니다. work()는 이 예제에서 만든 메서드로, 자기를 실행한 스레드의 이름을 출력합니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
   terms: ['프로세스와 스레드', 'main 스레드와 스레드의 이름', 'start()와 run()', 'join()'],
   controls: [
     { id: 'how', label: 'start를 부르는 줄', type: 'select', value: 'start', options: [['start', 't.start()를 부른다'], ['run', 't.run()을 부른다'], ['none', '부르지 않는다']] },
@@ -17,11 +17,11 @@ Lab.register({
   // 그림에서 상자마다의 처음 모양. mt, m2, ml은 main 스레드 쪽, x0, x1은 새 스레드 쪽
   bx0: function (c) {
     return {
-      mt: { cls: 'ghost', title: 'Thread t', sub: ['실행 전'] },
-      m2: { cls: 'ghost', title: 'Thread t2', sub: [c.two ? '실행 전' : '스레드를 더 만들지 않음'] },
+      mt: { cls: 'ghost', title: 't를 다루는 줄', sub: ['실행 전'] },
+      m2: { cls: 'ghost', title: c.two ? 't2를 다루는 줄' : 't2 없음', sub: [c.two ? '실행 전' : 'Thread 객체를 더 만들지 않음'] },
       ml: { cls: 'ghost', title: '마지막 줄', sub: ['실행 전'] },
-      x0: { cls: 'ghost', title: '새 스레드', sub: ['아직 없음'] },
-      x1: { cls: 'ghost', title: '새 스레드', sub: ['아직 없음'] },
+      x0: { cls: 'ghost', title: '아직 없음', sub: ['start()를 부를 때 생김'] },
+      x1: { cls: 'ghost', title: '아직 없음', sub: ['start()를 부를 때 생김'] },
     };
   },
   code: function (c) {
@@ -56,7 +56,7 @@ Lab.register({
       var who = '새 스레드(' + nm + ')';
 
       // 2. Thread 객체를 만든다
-      st.hot = mid; bx(mid, 'hot now', 'Thread ' + v, ['new Thread(…): 객체만 생김', '이름: ' + nm + ' (자동)']);
+      st.hot = mid; bx(mid, 'hot now', null, ['new Thread(…): 객체만 생김', '객체의 이름: ' + nm + ' (자동)']);
       st.checks.push(['Thread ' + v + ' = new Thread(…)', { v: '객체만 생김, 이름 ' + nm, cls: '' }]);
       push(first
         ? 'Thread t = new Thread(() -> work()); 줄: new Thread(…)가 Thread 객체를 만듭니다. 괄호 안의 () -> work()는 새 흐름에게 맡길 코드로, "work()를 부르라"는 뜻입니다. 이름을 따로 주지 않았으므로 자바가 Thread-0이라는 이름을 자동으로 붙입니다. 객체가 생겼을 뿐 새 흐름은 아직 없습니다. 흐름은 main 스레드 하나이고, 맡긴 코드는 아직 실행되지 않았습니다.'
@@ -142,13 +142,14 @@ Lab.register({
     if (s.out.length) H.table(v, ['출력'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }), '표준 출력');
     H.counters(v, [[s.started, '새로 시작된 스레드'], [s.out.length, '출력된 줄']]);
   },
-  // 그림: 세로 줄 두 개(둘이면 세 개). 왼쪽은 main 스레드, 오른쪽은 새 스레드(Thread-0, Thread-1). 줄마다 Thread 객체 t, t2와 마지막 줄을 상자로 쌓고, 어느 줄에서 어떤 코드가 실행되는지 보인다. start이면 main에서 새 스레드로 화살표가 건너가고, run이나 none이면 새 스레드 줄이 비어 있다. 아래에 work를 실행한 스레드와 새로 시작된 스레드를 세는 칸.
+  // 그림: 세로 줄 두 개(둘이면 세 개). 왼쪽은 main 스레드, 오른쪽은 새 스레드(Thread-0, Thread-1). main 쪽에는 t를 다루는 줄, t2를 다루는 줄, 마지막 줄을 상자로 쌓고(Thread 객체가 아니라 main이 실행하는 줄이다), 새 스레드 쪽은 start()로 스레드가 시작된 뒤에만 그 이름을 붙이며, 어느 줄에서 어떤 코드가 실행되는지 보인다. start이면 main에서 새 스레드로 화살표가 건너가고, run이나 none이면 새 스레드 줄이 비어 있다. 아래에 work를 실행한 스레드와 새로 시작된 스레드를 세는 칸.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, bx = s ? s.bx : sim.bx0, a = s ? s.a : {};
     P.size(680, 356);
     P.region('lm', 14, 8, 250, 252, 'main 스레드');
-    P.region('l0', 280, 8, 190, 252, '새 스레드 Thread-0');
-    if (c.two) P.region('l1', 486, 8, 180, 252, '새 스레드 Thread-1');
+    var started = s ? s.started : 0;
+    P.region('l0', 280, 8, 190, 252, started >= 1 ? '새 스레드 Thread-0' : '새 스레드 없음');
+    if (c.two) P.region('l1', 486, 8, 180, 252, started >= 2 ? '새 스레드 Thread-1' : '새 스레드 없음');
     function B(id, x, y, w) { var o = bx[id]; P.box(id, x, y, w, 64, { cls: o.cls, title: o.title, sub: o.sub }); }
     B('mt', 22, 34, 234); B('m2', 22, 106, 234); B('ml', 22, 178, 234);
     B('x0', 288, 34, 174);

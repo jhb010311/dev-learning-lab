@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Threads</h1>
 <p><b>What is a thread, and what does start() do?</b></p>
-<p>A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -&gt; work()). The () -&gt; work() in the parentheses is code that says &quot;call work()&quot; and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)</p>
+<p>A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -&gt; work()). work() is a method made for this example; it prints the name of the thread that runs it. The () -&gt; work() in the parentheses is code that says &quot;call work()&quot; and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)</p>
 <p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21, ran each 20 times as a child java process, and checked the output and the number of newly started threads</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -173,6 +173,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

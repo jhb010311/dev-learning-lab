@@ -16,10 +16,10 @@ Lab.register({
     { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개를 각각 스레드 1개로 실행하고 작업 2에서 System.exit을 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';
-    if (c.how === 'single') return body + '// 스레드 하나(main)가 차례로\nfor (int i = 1; i <= 3; i++) work(i);';
-    if (c.how === 'multi') return body + '// 같은 프로세스 안에 스레드 3개\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
-    return body + '// 프로세스 3개: 같은 프로그램을 따로따로 실행\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
+    var body = 'public class Main {                         // Main, work는 예시로 만든 이름\n    static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\n    static void work(int id) {\n        try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '        if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '        if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '        synchronized (Main.class) { counter++; }   // 한 번에 한 스레드만 올린다\n    }\n\n    public static void main(String[] args) throws Exception {\n', end = '    }\n}';
+    if (c.how === 'single') return body + '        // 스레드 하나(main)가 차례로\n        for (int i = 1; i <= 3; i++) work(i);\n' + end;
+    if (c.how === 'multi') return body + '        // 같은 프로세스 안에 스레드 3개\n        for (int i = 1; i <= 3; i++) {\n            int id = i;\n            new Thread(() -> work(id)).start();\n        }\n' + end;
+    return body + '        if (args.length > 0) { work(Integer.parseInt(args[0])); return; }   // 새로 뜬 프로세스: 작업 하나\n        // 프로세스 3개: 같은 프로그램을 따로따로 실행\n        for (int i = 1; i <= 3; i++) {\n            new ProcessBuilder("java", "Main", String.valueOf(i)).start();\n        }\n' + end;
   },
   label: function (c) { return { single: '스레드 1개', multi: '스레드 3개', proc: '프로세스 3개' }[c.how] + ' · 작업 2 ' + { none: '정상', ex: '예외', kill: '프로세스 종료 오류' }[c.fail]; },
   columns: ['끝난 작업', '걸린 시간', 'counter 값', '작업 2의 문제가 번진 범위'],
@@ -28,7 +28,7 @@ Lab.register({
     var P = H === 'proc' ? [1, 2, 3].map(function (i) { return { p: '프로세스 ' + i, mem: 0, th: [{ id: i, st: '대기' }], alive: true }; }) : [{ p: '프로세스 1', mem: 0, th: (H === 'single' ? [{ id: 0, st: '대기', name: 'main 스레드' }] : [1, 2, 3].map(function (i) { return { id: i, st: '대기' }; })), alive: true }];
     function snap() { return JSON.parse(JSON.stringify(P)); }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
-    push(H === 'proc' ? '같은 프로그램을 세 번 실행해 프로세스 3개를 만듭니다. 운영체제는 프로세스마다 메모리를 따로 내줍니다. counter 변수도 프로세스마다 하나씩, 모두 세 개가 생깁니다.' : '프로그램을 실행해 프로세스 1개를 만듭니다. 운영체제가 이 프로세스에 메모리를 내주고, counter 변수는 그 안에 하나 있습니다.' + (H === 'multi' ? ' 그 안에서 스레드 3개를 만듭니다. 스레드는 실행 흐름(스택)만 각자 가지고, 프로세스의 메모리는 함께 씁니다.' : ' 스레드는 main 하나뿐입니다.'), '');
+    push(H === 'proc' ? '처음 실행한 Main 프로세스가 같은 프로그램을 세 번 더 실행해, 작업할 프로세스 3개를 만듭니다. 운영체제는 프로세스마다 메모리를 따로 내줍니다. counter 변수도 프로세스마다 하나씩 생겨 작업하는 세 프로세스에 모두 세 개가 있습니다. 처음 실행한 Main 프로세스에도 counter(0)가 있지만 작업을 하지 않으므로 그림에서는 뺐습니다.' : '프로그램을 실행해 프로세스 1개를 만듭니다. 운영체제가 이 프로세스에 메모리를 내주고, counter 변수는 그 안에 하나 있습니다.' + (H === 'multi' ? ' 그 안에서 스레드 3개를 만듭니다. 스레드는 실행 흐름(스택)만 각자 가지고, 프로세스의 메모리는 함께 씁니다.' : ' 스레드는 main 하나뿐입니다.'), '');
     if (H === 'single') {
       var th = P[0].th[0], stopped = false;
       for (var i = 1; i <= 3; i++) {
@@ -46,7 +46,7 @@ Lab.register({
       else {
         if (F === 'ex') { P[0].th[1].st = '예외로 종료'; spread = '스레드 2 하나'; push('스레드 2에서 잡지 않은 예외가 발생했습니다. 그 스레드만 끝납니다. 프로세스와 다른 스레드는 그대로 살아 있습니다.', 'bad'); }
         P[0].th.forEach(function (t) { if (t.st.indexOf('실행 중') >= 0) { P[0].mem++; done++; t.st = '작업 ' + t.id + ' 완료'; } });
-        push('남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 ' + P[0].mem + '입니다. 변수 하나를 여럿이 함께 쓰는 것이므로, 동시에 건드릴 때의 문제는 따로 막아야 합니다(다음 개념인 경쟁 상태).', 'good'); time = '0.3초'; cnt = String(P[0].mem);
+        push('남은 스레드들이 작업을 끝내고 같은 counter를 올립니다. counter는 ' + P[0].mem + '입니다. 변수 하나를 여럿이 함께 쓰므로, 올리는 줄에 synchronized를 걸어 한 번에 한 스레드만 올리게 했습니다. 이것이 없으면 두 스레드가 같은 값을 읽고 덮어써서 올린 횟수보다 작은 값이 나올 수 있습니다(다음 개념인 경쟁 상태).', 'good'); time = '0.3초'; cnt = String(P[0].mem);
       }
     }
     if (H === 'proc') {
@@ -87,5 +87,5 @@ Lab.register({
     });
     P.note('점선 상자 하나가 프로세스입니다. 화살표는 스레드가 그 프로세스의 메모리를 쓴다는 뜻이며, 한 프로세스 안의 스레드들은 같은 메모리(counter)를 함께 씁니다.');
   },
-  assume: '아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸고, 스레드들은 같은 counter를 3까지 올린 반면 프로세스 3개는 각자 1이었습니다. 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다).',
+  assume: '아홉 가지 조합을 검증 환경의 JDK 21에서 실제로 실행해 확인했습니다. 스레드 3개는 0.3초, 스레드 1개는 0.9초가 걸렸습니다. counter++에 synchronized를 건 코드로 스레드 3개를 30번 실행하면 같은 counter가 매번 3이었고, 프로세스 3개는 각자 1이었습니다. synchronized를 빼고 같은 실행을 30번 하면 3은 7번뿐이고 1이 21번, 2가 2번 나왔습니다. 세 스레드가 거의 같은 때 깨어나 같은 값을 읽고 덮어쓰기 때문입니다(경쟁 상태). 예외는 해당 스레드만 끝냈고, System.exit는 같은 프로세스의 모든 스레드를 끝냈으며, 프로세스가 따로일 때는 죽은 프로세스 외에는 정상 종료했습니다. 프로세스를 만드는 데 드는 시간과 메모리는 화면에 넣지 않았습니다(실제로는 JVM을 새로 띄우는 만큼 훨씬 큽니다). 프로세스 3개 코드는 java 명령을 PATH에서 찾을 수 있고 Main.class가 있는 폴더에서 실행할 때 동작합니다(다른 폴더라면 -cp로 클래스 경로를 넘겨야 합니다). 처음 프로세스는 작업 프로세스를 기다리지 않고 먼저 끝나지만, 작업 프로세스는 그와 상관없이 계속 실행되어 결과는 같았습니다. 각 프로세스의 counter 값은 검증용 코드에서 waitFor()로 끝나기를 기다리고 출력을 받아 확인했습니다.',
 });

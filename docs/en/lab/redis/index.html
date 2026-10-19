@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,13 +67,15 @@
 <li>A lookup that usually finishes in 0.1ms waited 499.3ms. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Services A and B: ordinary cache lookups
+<pre>// Only the parts needed are kept. redis is the StringRedisTemplate from Spring
+
+// Services A and B: ordinary cache lookups
 String v = redis.opsForValue().get(&quot;product:1&quot;);   // 0.1ms
 
 // Admin script
 Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all the keys at once</pre>
 <h2>Assumptions of this model</h2>
-<p>The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN walked through in pieces of 1,000, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.</p>
+<p>The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN (COUNT 1000) walked through in pieces, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.</p>
 <p>Previous lab: <a href="../../lab/partition/">Partitioning</a> · Next lab: <a href="../../lab/nosql/">NoSQL and the document model</a></p>
   </div>
 
@@ -161,6 +163,6 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all t
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

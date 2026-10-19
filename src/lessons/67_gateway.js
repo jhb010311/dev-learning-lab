@@ -20,7 +20,7 @@ Lab.register({
     if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # 나머지는 기존 서버로' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
-    if (+c.stage < 3) r.push('        - id: legacy                   # 나머지는 전부 기존 서버로\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
+    if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? '전부 기존 서버로' : '나머지는 전부 기존 서버로') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
     return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# 공통 필터: 토큰 검증, 요청 로그, 요청 수 제한';
   },
   label: function (c) { return ['전환 전', '주문만 이전' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), '주문·결제 이전', '전부 이전'][+c.stage] + (c.auth ? ' · 토큰 없는 요청 포함' : ''); },
@@ -38,7 +38,7 @@ Lab.register({
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? ' 비율 설정에 따라 이 요청은 새 서비스로 갑니다.' : ' 비율 설정에 따라 이 요청은 아직 기존 서버로 갑니다.'; }
       to = moved ? { orders: '주문 서비스 (새)', payments: '결제 서비스 (새)', members: '회원 서비스 (새)' }[r[1]] : '기존 서버 (모놀리스)';
       if (moved) neu++; else old++;
-      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : '/**', { v: to, cls: moved ? 'good' : '' }] });
+      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : r[1] === 'orders' && st === 1 && ratio < 100 ? '/orders/** (order-legacy)' : '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': 경로가 /' + r[1] + '로 시작합니다. ' + (why || (moved ? '이 경로는 새 서비스로 넘기도록 설정돼 있습니다.' : '따로 지정된 경로가 아니므로 기존 서버로 갑니다.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('아직 아무것도 옮기지 않았습니다. 게이트웨이를 먼저 세워 두는 것이 전환의 첫 단계입니다. 이후에는 설정만 바꿔 경로를 하나씩 넘길 수 있습니다.');

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
+<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,13 +67,15 @@
 <li>평소 0.1ms에 끝나던 조회가 499.3ms를 기다렸습니다. Redis에 연결된 모든 서비스가 동시에 느려지고, 타임아웃이 걸려 있으면 캐시 조회가 줄줄이 실패합니다. 운영 중인 Redis에서 KEYS, 큰 컬렉션 통째 조회, 큰 키 삭제(DEL) 같은 명령을 피해야 하는 이유입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 서비스 A, B: 평범한 캐시 조회
+<pre>// 필요한 부분만 남김. redis는 스프링의 StringRedisTemplate
+
+// 서비스 A, B: 평범한 캐시 조회
 String v = redis.opsForValue().get(&quot;product:1&quot;);   // 0.1ms
 
 // 관리자 스크립트
 Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // 전체 키를 한 번에 훑는다</pre>
 <h2>이 모형의 전제</h2>
-<p>명령의 실행 시간(GET 0.1ms, KEYS 500ms, 큰 리스트 조회 300ms, SCAN 한 번 0.5ms)은 크기의 차이를 보이기 위한 예시입니다. Redis가 명령을 한 스레드에서 차례로 실행한다는 점과 KEYS 대신 SCAN을 쓰라는 권고는 Redis 공식 문서를 따랐습니다. Redis 6부터 네트워크 입출력에는 여러 스레드를 쓸 수 있지만 명령 실행은 여전히 한 스레드입니다. 원리는 실제 Redis 8.10.2에서 확인했습니다(키 100만 개, 원소 50만 개짜리 리스트). KEYS가 도는 동안 다른 클라이언트의 GET이 최대 186ms, 큰 리스트 조회 동안 22ms를 기다렸고(평소에는 3ms 이하), SCAN으로 1,000개씩 나눠 훑는 동안에는 1.5ms를 넘지 않았습니다. 두 클라이언트가 같은 키에 20,000번씩 동시에 보낸 INCR의 최종 값은 정확히 40,000이었습니다. 화면의 시간 값은 이 측정값이 아니라 예시이며, 실제 시간은 데이터 크기와 장비에 따라 달라집니다.</p>
+<p>명령의 실행 시간(GET 0.1ms, KEYS 500ms, 큰 리스트 조회 300ms, SCAN 한 번 0.5ms)은 크기의 차이를 보이기 위한 예시입니다. Redis가 명령을 한 스레드에서 차례로 실행한다는 점과 KEYS 대신 SCAN을 쓰라는 권고는 Redis 공식 문서를 따랐습니다. Redis 6부터 네트워크 입출력에는 여러 스레드를 쓸 수 있지만 명령 실행은 여전히 한 스레드입니다. 원리는 실제 Redis 8.10.2에서 확인했습니다(키 100만 개, 원소 50만 개짜리 리스트). KEYS가 도는 동안 다른 클라이언트의 GET이 최대 186ms, 큰 리스트 조회 동안 22ms를 기다렸고(평소에는 3ms 이하), SCAN(COUNT 1000)으로 나눠 훑는 동안에는 1.5ms를 넘지 않았습니다. 두 클라이언트가 같은 키에 20,000번씩 동시에 보낸 INCR의 최종 값은 정확히 40,000이었습니다. 화면의 시간 값은 이 측정값이 아니라 예시이며, 실제 시간은 데이터 크기와 장비에 따라 달라집니다.</p>
 <p>앞 실습: <a href="../../lab/partition/">파티셔닝</a> · 다음 실습: <a href="../../lab/nosql/">NoSQL과 문서 모델</a></p>
   </div>
 
@@ -161,6 +163,6 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // 전체 키�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=dc8f4e9612"></script>
+<script src="../../app.js?v=e62205d6b3"></script>
 </body>
 </html>

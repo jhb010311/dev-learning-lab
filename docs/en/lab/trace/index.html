@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>When the gateway calls the order service, it puts the trace ID and its own span ID into the HTTP headers. The order service picks up the same trace ID and records its own processing as a new span (its parent is the gateway's span).</li>
 <li>The order service queries the database (30ms). This query is recorded as a span too.</li>
 <li>The order service calls the payment service. The trace ID is passed in the headers again. Each time a log is written, the trace ID held in the MDC is printed with it automatically.</li>
-<li>The payment service calls the external payment provider API (2000ms). When the response comes back, the spans close in reverse order: the payment service, the order service, and the gateway. Total: 2095ms.</li>
+<li>The payment service calls the external payment provider API (2000ms). When the response comes back, the spans close in reverse order: the external payment provider API, the payment service, the order service, and the gateway. Total: 2095ms.</li>
 <li>When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. The span with the longest self time (its inner calls excluded) is &quot;Payment provider API&quot;. You can see right away where it is slow.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -72,8 +72,10 @@
 implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 
 # Header added automatically when services call each other (W3C Trace Context)
+# Format: version-trace-id-parent-id-trace-flags
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
-#               └─ trace id (same for the whole request)      └─ span id (differs for each span)
+#   trace-id (4bf9…4736): the same for the whole request
+#   parent-id (00f0…02b7): the id of the sender's span; it becomes the parent of the receiver's span
 
 # Put the trace ID into the log pattern (taken from the MDC)
 logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
@@ -166,6 +168,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

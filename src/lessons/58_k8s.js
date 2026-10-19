@@ -14,7 +14,7 @@ Lab.register({
     { t: '잠시 요청을 못 받는 상태라면', q: '애플리케이션이 DB 연결이 끊겨 잠시 요청을 받을 수 없으면', d: 'readiness 검사가 실패해 요청만 끊습니다. 재시작하지 않습니다.', v: { what: 'notready' } },
   ],
   code: function (c) {
-    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # 3에서 5로 수정' : '3                 # 원하는 상태: 항상 3개') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # 실패하면 컨테이너 재시작\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # 실패하면 요청 대상에서만 제외\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
+    return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # 3에서 5로 수정' : '3                 # 원하는 상태: Pod 3개') + '\n  selector:\n    matchLabels: { app: shop }\n  template:\n    metadata:\n      labels: { app: shop }\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # 실패하면 컨테이너 재시작\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # 실패하면 요청 대상에서만 제외\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';
   },
   label: function (c) { return { kill: 'Pod 하나 죽음', node: '노드 한 대 죽음', scale: '복제본 3 → 5', hang: '애플리케이션 멈춤', notready: '잠시 요청 불가' }[c.what]; },
   columns: ['쿠버네티스가 한 일', '사람이 한 일', '복구 후 Pod 수'],
@@ -66,11 +66,11 @@ Lab.register({
   },
   // 그림: 위에 Deployment(원하는 상태)와 Service, 아래에 노드 세 대와 그 위의 Pod. Service의 화살표는 요청이 가는 Pod.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, alive = s.pods.filter(function (p) { return p.st === '실행 중'; }).length, to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { want: 3, pods: [] }, exist = s.pods.filter(function (p) { return p.st !== '죽음'; }).length, notOk = s.pods.some(function (p) { return p.st !== '죽음' && p.st !== '실행 중'; }), to = s.pods.filter(function (p) { return p.svc; }).length, nodeDown = c.what === 'node' && shown.length >= 2;
     P.size(680, 330);
     P.box('dep', 16, 16, 300, 44, { cls: 'plain', title: 'Deployment (원하는 상태)', right: 'Pod ' + s.want + '개' });
     P.box('svc', 364, 16, 300, 44, { cls: 'wait', title: 'Service (요청을 나눠 보냄)', right: to + '곳으로' });
-    P.text('cmp', 16, 84, '실제로 실행 중인 Pod ' + alive + '개' + (alive < s.want ? '. 원하는 수보다 모자람' : '. 원하는 수와 같음'), { cls: alive < s.want ? 'bad' : 'good' });
+    P.text('cmp', 16, 84, '지금 있는 Pod ' + exist + '개, 원하는 수' + (exist < s.want ? '보다 모자람' : '와 같음') + (to < exist ? ' · 그중 요청을 받는 Pod ' + to + '개' : ''), { cls: exist < s.want ? 'bad' : notOk ? '' : 'good' });
     ['노드 1', '노드 2', '노드 3'].forEach(function (name, i) {
       var x = 16 + i * 222, k = 0;
       P.region('node' + i, x, 100, 204, 214, name + (nodeDown && i === 1 ? ' (꺼짐)' : ''));

@@ -20,7 +20,7 @@ Lab.register({
     if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
-    if (+c.stage < 3) r.push('        - id: legacy                   # everything else goes to the existing server\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
+    if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? 'everything goes to the existing server' : 'everything else goes to the existing server') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
     return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# Common filters: token validation, request logging, rate limiting';
   },
   label: function (c) { return ['Before migration', 'Orders migrated' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), 'Orders and payments migrated', 'Everything migrated'][+c.stage] + (c.auth ? ' · includes requests with no token' : ''); },
@@ -38,7 +38,7 @@ Lab.register({
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? 'Based on the ratio setting, this request goes to the new service.' : 'Based on the ratio setting, this request still goes to the existing server.'; }
       to = moved ? { orders: 'Order service (new)', payments: 'Payment service (new)', members: 'Member service (new)' }[r[1]] : 'Existing server (monolith)';
       if (moved) neu++; else old++;
-      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : '/**', { v: to, cls: moved ? 'good' : '' }] });
+      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : r[1] === 'orders' && st === 1 && ratio < 100 ? '/orders/** (order-legacy)' : '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');

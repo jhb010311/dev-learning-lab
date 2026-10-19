@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
+<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>게이트웨이가 주문 서비스를 호출할 때 HTTP 헤더에 Trace ID와 자기 스팬 ID를 실어 보냅니다. 주문 서비스는 같은 Trace ID를 이어받고, 자신의 구간을 새 스팬으로 기록합니다(부모는 게이트웨이의 스팬).</li>
 <li>주문 서비스가 DB를 조회합니다(30ms). 이 쿼리도 하나의 스팬으로 기록됩니다.</li>
 <li>주문 서비스가 결제 서비스를 호출합니다. 이번에도 헤더로 Trace ID가 전달됩니다. 로그를 남길 때마다 MDC에 들어 있는 Trace ID가 자동으로 함께 찍힙니다.</li>
-<li>결제 서비스가 외부 결제사 API를 호출합니다(2000ms). 응답이 돌아오면 거꾸로 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다. 전체 2095ms.</li>
+<li>결제 서비스가 외부 결제사 API를 호출합니다(2000ms). 응답이 돌아오면 거꾸로 외부 결제사 API, 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다. 전체 2095ms.</li>
 <li>추적 시스템(Zipkin, Tempo 등)에서 Trace ID 하나로 조회하면 다섯 구간이 시간 축 위에 계단 모양으로 그려집니다. 안쪽 호출을 뺀 자체 시간이 가장 긴 구간은 &quot;외부 결제사 API&quot;입니다. 어디가 느린지 바로 보입니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -72,8 +72,10 @@
 implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 
 # 서비스끼리 호출할 때 자동으로 붙는 헤더 (W3C Trace Context)
+# 형식: 버전-trace-id-parent-id-trace-flags
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
-#               └─ trace id (요청 전체에서 동일)      └─ span id (구간마다 다름)
+#   trace-id (4bf9…4736): 요청 전체에서 같음
+#   parent-id (00f0…02b7): 이 요청을 보낸 쪽 스팬의 id. 받는 쪽 스팬의 부모가 됨
 
 # 로그 패턴에 추적 번호를 넣는다 (MDC에서 꺼냄)
 logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
@@ -166,6 +168,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=dc8f4e9612"></script>
+<script src="../../app.js?v=e62205d6b3"></script>
 </body>
 </html>

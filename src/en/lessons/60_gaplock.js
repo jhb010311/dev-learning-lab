@@ -28,10 +28,10 @@ Lab.register({
     if (RR && (c.q === 'miss' || c.q === 'range')) gaps = [[20, 30]];
     var blocked = gaps.some(function (g) { return ins > g[0] && ins < g[1]; });
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
-    push('The coupon table has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
+    push('The coupon table, made up for this example, has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
     if (c.q === 'hit') push('Transaction A queries the row with id = 20 using FOR UPDATE. The primary key finds exactly one row, so the lock is placed on that row only (a record lock). It is guaranteed that this is the only row that will ever match the condition, so there is no need to lock a gap.', '', 1);
     else if (c.q === 'miss') push('Transaction A queries id = 25 using FOR UPDATE. There is no such row. ' + (RR ? 'Because there is no row to lock, InnoDB locks the gap between 20 and 30, where 25 would go (a gap lock). This is to make sure that what does not exist now still does not exist until my transaction ends.' : 'At READ COMMITTED, the gap is not locked. There is no row to lock either, so no lock is taken at all.'), '', 1);
-    else push('Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. ' + (RR ? 'It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.' : 'At READ COMMITTED, the gap is not locked, only the rows that were found.'), '', 1);
+    else push('Transaction A queries ids 20 through 30 using FOR UPDATE. ' + (RR ? 'InnoDB reads the primary key index from 20 through 30 in order and locks as it reads. On row 30 it sets a next-key lock. A next-key lock combines a lock on a row with a lock on the gap right before that row, so row 30 and the gap (20~30) are locked together. On row 20 it sets a record lock, which locks only that row. It was searching the primary key for "20 or more" and found a row exactly equal to 20, so no value inside the queried range can go into the gap before it (10~20), and that gap is not locked.' : 'It locks rows 20 and 30, which match the condition. At READ COMMITTED, the gap is not locked, only the rows that were found (record locks).'), '', 1);
     push('Transaction B tries to insert the row with id = ' + ins + '. An INSERT checks whether the gap where the new row would go is locked.', '', 2);
     if (blocked) push('The place where id ' + ins + ' goes is the gap (20~30), and A has locked that gap. The INSERT of B waits until A commits or rolls back. If it waits too long, it fails with a lock wait timeout error.', 'bad', 3);
     else push('The place where id ' + ins + ' goes is not locked. The INSERT of B runs right away.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' If A runs the query with the same condition again, the row with id 25, which did not exist at first, appears (a phantom read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
@@ -41,7 +41,9 @@ Lab.register({
     if (c.q === 'miss' && RR) sum.push('This often causes trouble in an "insert if it does not exist" pattern. If two transactions each query a row that does not exist with FOR UPDATE, both get a gap lock on the same gap (gap locks do not block each other). If both then try to INSERT, each is blocked by the gap lock of the other, and a deadlock occurs.');
     if (c.q === 'hit') sum.push('When a unique index finds exactly one existing row, only a record lock is placed. To keep the range of locks narrow, it is important that the condition uses an index precisely. If it cannot use an index, a much wider range is locked.');
     if (!RR) sum.push('At READ COMMITTED, queries do not use gap locks, so INSERTs are blocked less often and deadlocks also decrease. In return, phantom reads are allowed.' + (phantom ? ' In this run, a new row actually slipped in.' : ''));
-    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, row: [rec.length ? rec.join(', ') : 'None', gaps.length ? '(20~30)' : 'None', blocked ? 'Waits until A finishes' : 'Runs right away', phantom ? 'Yes (phantom occurs)' : blocked ? 'No' : c.q === 'hit' || ins === 45 ? 'Outside the queried range' : 'No'] };
+    // The kinds of locks A holds (the same as recorded in performance_schema.data_locks)
+    var locks = c.q === 'hit' ? 'Row 20: record lock' : c.q === 'miss' ? (RR ? 'Gap (20~30): gap lock' : 'Nothing locked') : RR ? 'Row 20: record lock · row 30: next-key lock' : 'Rows 20, 30: record locks';
+    return { events: ev, summary: sum, rec: rec, gaps: gaps, blocked: blocked, locks: locks, row: [rec.length ? rec.join(', ') : 'None', gaps.length ? '(20~30)' : 'None', blocked ? 'Waits until A finishes' : 'Runs right away', phantom ? 'Yes (phantom occurs)' : blocked ? 'No' : c.q === 'hit' || ins === 45 ? 'Outside the queried range' : 'No'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, items = [], ids = [10, 20, 30, 40];
@@ -56,7 +58,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], st = last ? last.snap.stage : -1, ins = +c.ins, ids = [10, 20, 30, 40], x = 16, target = ins < 30 ? 2 : 4, waiting = sim.blocked && st === 3, done = st >= 3 && !waiting;
     P.size(680, 300);
-    P.box('txa', 16, 16, 440, 46, { cls: st >= 1 ? 'hot' : 'plain', title: 'Transaction A', sub: st >= 4 ? 'Committed. Locks released' : st >= 1 ? 'SELECT ... FOR UPDATE executed, not committed yet' : 'Not started' });
+    P.box('txa', 16, 16, 440, 58, { cls: st >= 1 ? 'hot' : 'plain', title: 'Transaction A', sub: st >= 4 ? 'Committed. Locks released' : st >= 1 ? ['SELECT ... FOR UPDATE executed, not committed yet', sim.locks] : 'Not started' });
     P.text('ixl', 16, 112, 'id index (smaller values on the left)', { cls: 'mut' });
     for (var k = 0; k <= 4; k++) {
       var lo = k ? ids[k - 1] : 0, gLocked = st >= 1 && st < 4 && sim.gaps.some(function (g) { return g[0] === lo; }), here = k === target && st >= 2;

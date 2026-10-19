@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <ol>
 <li>The server starts. Tomcat listens for connections on port 8080 and builds a table of &quot;which servlet handles which path&quot;. It registers HelloServlet, which is annotated with @WebServlet(&quot;/hello&quot;), as the servlet for /hello. The servlet object has not been created yet.</li>
 <li>Request #1: The browser connects to the server and sends an HTTP request. What it sends is a few lines of text, like the ones shown on the screen.</li>
-<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.</li>
+<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object. Tomcat names its threads like http-nio-8080-exec-1.</li>
 <li>Tomcat looks in the table for the servlet mapped to the path /hello. It is HelloServlet.</li>
 <li>Tomcat creates the HelloServlet object at the first request. The developer does not create it with new. The container does. This one object is used until the server shuts down.</li>
 <li>HelloServlet.init() is called once. This is where the servlet does the setup it needs before it receives requests.</li>
@@ -68,7 +68,7 @@
 <li>doGet() runs the code that we wrote. It reads name from request and writes the status and the body to response.</li>
 <li>The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The HelloServlet object stays as it is and waits for the next request.</li>
 <li>Request #2: The browser connects to the server and sends an HTTP request. What it sends is a few lines of text, like the ones shown on the screen.</li>
-<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.</li>
+<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object. Which thread is assigned is not fixed, so the thread that handled the previous request may be assigned again.</li>
 <li>Tomcat looks in the table for the servlet mapped to the path /hello. It is HelloServlet.</li>
 <li>The HelloServlet object already exists. Tomcat does not create a new one and uses that object again. It does not call init() again either.</li>
 <li>Tomcat calls service(request, response) of HelloServlet. service() looks at the HTTP method of the request and calls doGet().</li>
@@ -191,6 +191,6 @@ public class HelloServlet extends HttpServlet {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>

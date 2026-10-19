@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=dc8f4e9612">
+<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <ol>
 <li>서버가 뜹니다. 톰캣이 포트 8080에서 연결을 기다리고, &quot;어느 주소는 어느 서블릿이 맡는다&quot;는 표를 만듭니다. @WebServlet(&quot;/hello&quot;)가 붙은 HelloServlet을 /hello 담당으로 등록합니다. 서블릿 객체는 아직 만들지 않았습니다.</li>
 <li>1번째 요청: 브라우저가 서버에 연결해 HTTP 요청을 보냅니다. 보내는 내용은 화면에 보이는 것 같은 글자 몇 줄입니다.</li>
-<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.</li>
+<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다. 톰캣의 스레드 이름은 http-nio-8080-exec-1처럼 붙습니다.</li>
 <li>톰캣이 주소 /hello 담당 서블릿을 표에서 찾습니다. HelloServlet입니다.</li>
 <li>첫 요청 때: 톰캣이 HelloServlet 객체를 만듭니다. 개발자가 new로 만드는 것이 아니라 컨테이너가 만듭니다. 이 객체 하나를 서버가 내려갈 때까지 계속 씁니다.</li>
 <li>HelloServlet의 init()을 한 번 호출합니다. 요청을 받기 전에 필요한 준비를 여기서 합니다.</li>
@@ -68,7 +68,7 @@
 <li>doGet() 안의 우리 코드가 실행됩니다. request에서 name을 꺼내고, response에 상태와 본문을 씁니다.</li>
 <li>서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. HelloServlet 객체는 그대로 남아 다음 요청을 기다립니다.</li>
 <li>2번째 요청: 브라우저가 서버에 연결해 HTTP 요청을 보냅니다. 보내는 내용은 화면에 보이는 것 같은 글자 몇 줄입니다.</li>
-<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.</li>
+<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다. 어느 스레드가 배정될지는 정해져 있지 않아, 앞 요청을 맡았던 스레드가 다시 배정될 수도 있습니다.</li>
 <li>톰캣이 주소 /hello 담당 서블릿을 표에서 찾습니다. HelloServlet입니다.</li>
 <li>이미 만들어 둔 HelloServlet 객체가 있습니다. 새로 만들지 않고 그 객체를 다시 씁니다. init()도 다시 부르지 않습니다.</li>
 <li>톰캣이 HelloServlet의 service(request, response)를 호출합니다. service()는 요청의 HTTP 메서드를 보고 doGet()을 부릅니다.</li>
@@ -191,6 +191,6 @@ public class HelloServlet extends HttpServlet {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=dc8f4e9612"></script>
+<script src="../../app.js?v=e62205d6b3"></script>
 </body>
 </html>

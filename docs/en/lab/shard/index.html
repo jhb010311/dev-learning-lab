@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0c0668d820">
+<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -52,7 +52,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>Divide 120 orders among 4 shards. The remainder of the member number of the order divided by the number of shards (4) is the shard number. The orders of the same member always end up on the same shard.</li>
+<li>Divide 120 orders among 4 shards. The remainder of the member number of the order divided by the number of shards (4) is the shard number. The orders of the same member always end up on the same shard. The hash rule in this lab is the simplest form, which uses the member number itself as the hash value. In practice, the remainder is often taken from the value you get by passing the key to a hash function, and string keys are turned into numbers that way too.</li>
 <li>Distribution result. Largest shard: 30 orders. Smallest shard: 30 orders. The member numbers are spread evenly, so the number of orders per shard is similar.</li>
 <li>New orders are scattered over several shards depending on the member number of the member who ordered. The write load is spread out.</li>
 <li>&quot;Orders of member 7&quot; query: 7 % 4 = 3. Only that shard needs to be looked at. Conversely, a query that finds orders without a member number, such as &quot;all orders from yesterday&quot;, has to query every shard.</li>
@@ -159,6 +159,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0c0668d820"></script>
+<script src="../../app.js?v=9f4c93bdfb"></script>
 </body>
 </html>
