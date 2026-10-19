@@ -15,6 +15,9 @@ Lab.register({
     { t: '토큰 버킷에 고른 요청', q: '토큰 버킷으로 바꾸고 요청이 고르게 초당 8건 들어오면', d: '채워지는 속도만큼 꾸준히 통과합니다.', v: { algo: 'bucket', pat: 'even' } },
   ],
   code: function (c) {
+    return '// 메서드 안의 줄만 보임 (선언과 import는 생략. tooManyRequests는 예시로 만든 메서드)\n' + this.codeBody(c);
+  },
+  codeBody: function (c) {
     if (c.algo === 'fixed') return '// 고정 윈도: 키 = 사용자 + 현재 초\nString key = "rate:" + userId + ":" + (now / 1000);\nlong count = redis.incr(key);            // 이번 초의 요청 수 +1\nif (count == 1) redis.expire(key, 1);    // 1초 뒤 사라짐\nif (count > 5) return tooManyRequests(); // 429';
     if (c.algo === 'sliding') return '// 슬라이딩 윈도: 최근 1초 안의 요청 시각을 모두 기록\nString key = "rate:" + userId;\nredis.zremrangeByScore(key, 0, now - 1000);   // 1초보다 오래된 기록 삭제\nif (redis.zcard(key) >= 5) return tooManyRequests();   // 429\nredis.zadd(key, now, requestId);';
     return '// 토큰 버킷: 용량 5, 초당 5개 보충\nBucket bucket = Bucket.builder()\n    .addLimit(limit -> limit.capacity(5)\n        .refillGreedy(5, Duration.ofSeconds(1)))\n    .build();\n\nif (!bucket.tryConsume(1)) return tooManyRequests();   // 토큰이 없으면 429';

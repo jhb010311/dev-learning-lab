@@ -48,7 +48,7 @@ Lab.register({
   stmt: function (c) { var p = this.pick(c); return p.T + ' r = ' + this.txt(p.e); },
   code: function (c) {
     var p = this.pick(c), line = p.T + ' r = ' + this.txt(p.e) + ';', pad = function (x) { return x + new Array(Math.max(2, 33 - x.length)).join(' ') + '// '; };
-    return (p.big ? pad('int big = 2147483647;') + 'int가 담을 수 있는 가장 큰 값\n' : '') + pad(line) + p.note + '\n\nSystem.out.println(r);';
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n' + (p.big ? pad('int big = 2147483647;') + 'int가 담을 수 있는 가장 큰 값\n' : '') + pad(line) + p.note + '\n\nSystem.out.println(r);';
   },
   label: function (c) { return { ints: '정수 계산', conv: '형변환', str: '문자열과 +' }[c.topic] + ' · ' + this.stmt(c); },
   columns: ['오른쪽 식의 타입', '변수 r의 타입', '출력 또는 오류'],

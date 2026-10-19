@@ -37,8 +37,8 @@ Lab.register({
     return { steps: steps, found: lk.indexOf(target) >= 0, count: 3, leaf: leaf, branch: r };
   },
   code: function (c) {
-    if (c.how === 'scan') return '// 정렬돼 있지 않으면 앞에서부터 전부 확인하는 수밖에 없다\nfor (int i = 0; i < rows.length; i++) {\n    if (rows[i] == target) return i;\n}\nreturn -1;                              // 끝까지 봐야 "없다"를 안다\n\n-- DB에서는 인덱스가 없는 컬럼으로 찾는 것과 같다 (풀 테이블 스캔)\nSELECT * FROM orders WHERE amount = ' + c.target + ';';
-    if (c.how === 'binary') return '// 정렬된 배열: 가운데를 보고 절반을 버린다\nint lo = 0, hi = sorted.length - 1;\nwhile (lo <= hi) {\n    int mid = (lo + hi) >>> 1;\n    if (sorted[mid] == target) return mid;\n    if (sorted[mid] < target) lo = mid + 1;   // 왼쪽 절반을 버림\n    else hi = mid - 1;                        // 오른쪽 절반을 버림\n}\nreturn -1;\n\n// 자바: Arrays.binarySearch(sorted, target)';
+    if (c.how === 'scan') return '// 메서드 본문만 보임 (메서드 선언과 매개변수 rows, target의 선언은 생략)\n// 정렬 안 된 배열: 앞에서부터 하나씩 확인한다\nfor (int i = 0; i < rows.length; i++) {\n    if (rows[i] == target) return i;\n}\nreturn -1;                              // 끝까지 봐야 "없다"를 안다\n\n-- DB에서는 인덱스가 없는 컬럼으로 찾는 것과 같다 (풀 테이블 스캔)\nSELECT * FROM orders WHERE amount = ' + c.target + ';';
+    if (c.how === 'binary') return '// 메서드 본문만 보임 (메서드 선언과 매개변수 sorted, target의 선언은 생략)\n// 정렬된 배열: 가운데를 보고 절반을 버린다\nint lo = 0, hi = sorted.length - 1;\nwhile (lo <= hi) {\n    int mid = (lo + hi) >>> 1;\n    if (sorted[mid] == target) return mid;\n    if (sorted[mid] < target) lo = mid + 1;   // 왼쪽 절반을 버림\n    else hi = mid - 1;                        // 오른쪽 절반을 버림\n}\nreturn -1;\n\n// 자바: Arrays.binarySearch(sorted, target)';
     return '-- 인덱스를 만들면 DB가 B-트리를 만들어 둔다\nCREATE INDEX idx_amount ON orders (amount);\n\nSELECT * FROM orders WHERE amount = ' + c.target + ';\n\n-- 뿌리 노드를 읽어 어느 가지로 갈지 정하고\n-- 가지 노드를 읽어 어느 잎으로 갈지 정하고\n-- 잎 노드에서 값을 찾는다\n-- 노드 하나는 디스크의 한 페이지(InnoDB 기본 16KB)';
   },
   label: function (c) { return { scan: '하나씩', binary: '이진 탐색', btree: 'B-트리' }[c.how] + ' · ' + c.target + ' 찾기'; },

@@ -12,10 +12,11 @@ Lab.register({
     { t: 'A를 전용 풀로 옮기면', q: 'A의 같은 작업을 전용 스레드 풀에서 실행하면', d: 'B가 다시 빨라집니다.', v: { a: 'own' } },
   ],
   code: function (c) {
+    var H = '// 메서드 안의 줄만 보임 (클래스·메서드 선언, import, 예시로 만든 orders·items·deliveryApi·resize의 선언은 생략)\n';
     var b = '// 요청 B: 0.1초짜리 작업 8개\nitems.parallelStream().forEach(this::resize);';
-    if (c.a === 'none') return b;
-    if (c.a === 'block') return '// 요청 A: 외부 API를 병렬 스트림 안에서 호출 (건당 2초)\norders.parallelStream()\n      .forEach(o -> deliveryApi.track(o));      // 공용 풀의 스레드가 2초씩 묶인다\n\n' + b;
-    return '// 요청 A: 전용 풀에서 실행\nExecutorService io = Executors.newFixedThreadPool(8);\nvar futures = orders.stream()\n      .map(o -> CompletableFuture.runAsync(() -> deliveryApi.track(o), io))\n      .toList();\nfutures.forEach(CompletableFuture::join);\n\n' + b;
+    if (c.a === 'none') return H + b;
+    if (c.a === 'block') return H + '// 요청 A: 외부 API를 병렬 스트림 안에서 호출 (건당 2초)\norders.parallelStream()\n      .forEach(o -> deliveryApi.track(o));      // 공용 풀의 스레드가 2초씩 묶인다\n\n' + b;
+    return H + '// 요청 A: 전용 풀에서 실행\nExecutorService io = Executors.newFixedThreadPool(8);\nvar futures = orders.stream()\n      .map(o -> CompletableFuture.runAsync(() -> deliveryApi.track(o), io))\n      .toList();\nfutures.forEach(CompletableFuture::join);\n\n' + b;
   },
   label: function (c) { return { none: 'B만 실행', block: 'A가 공용 풀에서 블로킹 호출', own: 'A는 전용 풀 사용' }[c.a]; },
   columns: ['B의 소요 시간 (실측)', 'B가 쓸 수 있었던 스레드', 'A가 쓴 풀'],

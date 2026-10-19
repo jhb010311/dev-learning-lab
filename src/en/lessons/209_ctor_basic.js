@@ -92,24 +92,24 @@ Lab.register({
         st.hot = ['nw', 'ct']; st.phase = 'ctor';
         if (c.ctor) {
           st.param = vals[i];
-          push(head ? 'Next, Java runs the Card constructor. Nothing in the code we wrote has a line that calls the constructor. It is new that makes it run. The ' + val + ' that you passed is put into the parameter owner.' : 'new Card(' + val + ') runs the constructor this time too. ' + val + ' is put into the parameter owner.', '');
+          push(head ? 'Next, Java runs the Card constructor. Nothing in the code we wrote has a line that calls the constructor. It is new that makes it run. The parameter owner refers to the ' + val + ' that you passed.' : 'new Card(' + val + ') runs the constructor this time too. The parameter owner refers to ' + val + '.', '');
           st.hot = ['ct']; st.outs.push('constructor ran'); st.runs++;
           push(head ? 'System.out.println("constructor ran") inside the constructor runs, and "constructor ran" is printed. This line is there so that you can see the constructor run every time new is used.' : 'System.out.println("constructor ran") runs again, and "constructor ran" is printed. The constructor runs once every time new is used.', 'good');
           st.hot = ['ct', 'o' + i]; st.phase = 'fill'; st.objs[i].owner = vals[i];
-          push(head ? 'this.owner = owner runs. this is the object that is being created right now. The ' + val + ' held in the parameter owner is copied into the field owner of that object. The field and the parameter have the same name, so this.owner (the field) and owner (the parameter) tell them apart. When the constructor ends, the variable a refers to this object.' : 'this.owner = owner runs. This time the second object is this, and ' + val + ' is copied into the owner of that object. The owner of the first object is still "' + vals[0] + '".', '');
+          push(head ? 'this.owner = owner runs. this is the object that is being created right now. Now the field owner of that object also refers to the ' + val + ' that the parameter owner refers to. The field and the parameter have the same name, so this.owner (the field) and owner (the parameter) tell them apart. When the constructor ends, the variable a refers to this object.' : 'this.owner = owner runs. This time the second object is this, and now the owner of that object refers to ' + val + '. The owner of the first object is still "' + vals[0] + '".', '');
           st.param = '';
         } else {
           push(head ? 'Next, Java runs a constructor. We wrote no constructor, so the Card() that the compiler added runs. This constructor puts no value into owner, so the owner of the object stays empty. The line that prints "constructor ran" is inside the constructor we would have written, and that constructor does not exist, so nothing is printed this time. So the "constructor ran" printed box stays at 0 times. It is not that no constructor ran; the Card() that ran has no line that prints.' : 'new runs the Card() that the compiler added this time too. The owner of the second object stays empty as well.', '');
         }
         st.hot = ['o' + i]; st.phase = 'print'; st.outs.push(c.ctor ? vals[i] : 'null');
-        push('System.out.println(' + v + '.owner) runs. ' + (c.ctor ? 'The "' + vals[i] + '" held in the owner of the object that ' + v + ' refers to is printed.' : 'No value was ever put into owner, so null is printed.'), 'good');
+        push('System.out.println(' + v + '.owner) runs. ' + (c.ctor ? 'It reads the field owner of the object that ' + v + ' refers to, and "' + vals[i] + '" is printed.' : 'No value was ever put into owner, so null is printed.'), 'good');
       });
       st.hot = []; st.phase = '';
     }
 
     // Summary: the first line is the answer to this setting (question)
     if (ok && c.ctor && !two) {
-      sum.push('A constructor is a block of code that you write inside a class, with the same name as the class and no return type. It differs from an ordinary method in that we do not call it by name. When new Card("Alice") ran, Java created a new object, then the constructor ran and copied the "Alice" it received as a parameter into the owner of the new object.');
+      sum.push('A constructor is a block of code that you write inside a class, with the same name as the class and no return type. It differs from an ordinary method in that we do not call it by name. When new Card("Alice") ran, Java created a new object, then the constructor ran and made the owner of the new object refer to the "Alice" it received as a parameter.');
       sum.push('Nothing in the code we wrote had a line that calls the constructor. It is new that made it run. Whether a constructor fits the value you passed was not checked at run time. The compiler checked it while compiling.');
     } else if (ok && c.ctor) {
       sum.push('new Card(...) ran twice, so the constructor ran twice. The output has two lines of "constructor ran". The constructor runs once every time an object is created.');

@@ -44,7 +44,7 @@ Lab.register({
     s += '    String label() {\n        return label;\n    }\n';
     if (code) s += '\n    static Status fromCode(String code) {\n        for (Status s : values()) {\n            if (s.code.equals(code)) return s;\n        }\n        throw new IllegalArgumentException("Unknown code: " + code);\n    }\n';
     s += '}\n\n';
-    s += '// The value of ' + c.saved + (c.store === 'ordinal' ? '.ordinal()' : c.store === 'name' ? '.name()' : '.code') + ', saved under the old declaration (order: ORDERED, PAID, SHIPPED)\n';
+    s += '// The value of ' + c.saved + (c.store === 'ordinal' ? '.ordinal()' : c.store === 'name' ? '.name()' : '.code') + ', saved under the old declaration (order: ORDERED, PAID, SHIPPED); from here on, lines inside main (class and main declaration omitted)\n';
     if (c.store === 'ordinal') s += 'int saved = ' + f.value + ';\nStatus s = Status.values()[saved];\n';
     if (c.store === 'name') s += 'String saved = "' + f.value + '";\nStatus s = Status.valueOf(saved);\n';
     if (c.store === 'code') s += 'String saved = "' + f.value + '";\nStatus s = Status.fromCode(saved);\n';

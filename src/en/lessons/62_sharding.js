@@ -16,8 +16,8 @@ Lab.register({
     { t: 'Adding a shard with ranges', q: 'What if the rule for dividing is range by order number range and you add one more shard?', d: 'The existing data stays where it is, and the new shard receives only the new range.', v: { n: 4, how: 'range', grow: true } },
   ],
   code: function (c) {
-    if (c.how === 'range') return '// The shard is chosen by the order number range\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // Orders 1-' + Math.ceil(120 / c.n) + ' go to shard 0, the next ones go to shard 1 …\n}';
-    return '// The shard is chosen by the remainder of the member number divided by the number of shards\nint shardOf(long memberId) {\n    return (int) (memberId % ' + c.n + ');\n}\n\n// The same calculation finds the shard when querying\nDataSource ds = shards.get(shardOf(memberId));';
+    if (c.how === 'range') return '// Only the class body is shown (class declaration and imports omitted)\n// The shard is chosen by the order number range\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // Orders 1-' + Math.ceil(120 / c.n) + ' go to shard 0, the next ones go to shard 1 …\n}';
+    return '// Only the class body is shown (class declaration, List<DataSource> shards field, and imports omitted)\n// The shard is chosen by the remainder of the member number divided by the number of shards\nint shardOf(long memberId) {\n    return (int) (memberId % ' + c.n + ');\n}\n\n// The same calculation finds the shard when querying\nDataSource dataSourceOf(long memberId) {\n    return shards.get(shardOf(memberId));\n}';
   },
   label: function (c) { return c.n + ' shards · ' + { hash: 'hash (member number)', range: 'range (order number)', hot: 'hash + member with many orders' }[c.how] + (c.grow ? ' · shard added' : ''); },
   columns: ['Largest shard / smallest shard', 'Where new orders go', 'Data to move when a shard is added', 'Query for the orders of one member'],

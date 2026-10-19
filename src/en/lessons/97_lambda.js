@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lambda', nav: 'Lambda expressions and functional interfaces', cat: 'Java language', mode: 'step',
   title: 'When does the code in a lambda expression run?',
-  intro: 'A lambda expression is syntax that lets you store "an action to run later" in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
+  intro: 'A lambda expression is syntax that turns "an action to run later" into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [
     { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
@@ -46,13 +46,13 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     var decl = F.type + ' ' + F.v + ' = ';
     st.made = true;
-    push(form === 'anon' ? decl + 'new ' + F.type + '() { ... }: This creates an object of a class with no name that implements the ' + F.type.replace(/<.*/, '') + ' interface and stores it in the variable ' + F.v + '. The code written inside ' + F.m + ' does not run yet. Nothing is printed.'
-      : form === 'lambda' ? decl + F.lam + ': This creates an object that holds the action written to the right of the arrow token (->) and stores it in the variable ' + F.v + '. The ' + F.body + ' method is not called yet. Nothing is printed.'
-      : decl + 'Demo::' + F.body + ': This creates an object that refers to the ' + F.body + ' method and stores it in the variable ' + F.v + '. The method is not called. The code only refers to it, as if to say "use this method". Nothing is printed.', '');
+    push(form === 'anon' ? decl + 'new ' + F.type + '() { ... }: This creates an object of a class with no name that implements the ' + F.type.replace(/<.*/, '') + ' interface, and the variable ' + F.v + ' refers to that object. The code written inside ' + F.m + ' does not run yet. Nothing is printed.'
+      : form === 'lambda' ? decl + F.lam + ': This creates an object that can run the action written to the right of the arrow token (->), and the variable ' + F.v + ' refers to that object. The ' + F.body + ' method is not called yet. Nothing is printed.'
+      : decl + 'Demo::' + F.body + ': This creates an object that refers to the ' + F.body + ' method, and the variable ' + F.v + ' refers to that object. The method is not called. The code only refers to it, as if to say "use this method". Nothing is printed.', '');
     st.out.push('after creation');
     push('System.out.println("after creation"): "after creation" is printed. Execution has already passed the line that creates the action, but "body runs" has not been printed even once.', '');
     st.passed = true;
-    push('run(' + F.v + '): The action held in the variable ' + F.v + ' is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.', '');
+    push('run(' + F.v + '): The action object that the variable ' + F.v + ' refers to is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.', '');
     st.out.push('run starts');
     push('System.out.println("run starts"): Execution enters run, and "run starts" is printed.', '');
     for (var i = 0; i < n; i++) {

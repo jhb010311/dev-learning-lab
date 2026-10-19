@@ -32,7 +32,7 @@ for (const q of ['ok', 'table', 'col', 'field']) {
   }
   if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + q + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
   // 화면의 코드 = Probe가 컴파일해 실행한 소스(엔티티 + 조회하는 쪽)
-  const want = lesson.code.call(lesson, c).split('\n').join('\\n');
+  const want = lesson.code.call(lesson, c).replace(/^(\/\/ 조회하는 쪽): 메서드 안의 줄만 보임 [^\n]*$/m, '$1').split('\n').join('\\n');   // 화면 주석 끝의 "줄만 보임 (…생략)"은 Probe 소스에 없으므로 빼고 비교
   if (f.code !== want) { good = false; console.log('화면의 코드가 Probe가 실행한 소스와 다름: ' + q + '\n   화면 ' + want + '\n   실행 ' + f.code); }
   const JP = lesson.code.call(lesson, c).split('\n').find(l => l.startsWith('String jpql')), want1 = JP;
   const checks = {

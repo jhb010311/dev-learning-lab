@@ -48,7 +48,7 @@ Lab.register({
   stmt: function (c) { var p = this.pick(c); return p.T + ' r = ' + this.txt(p.e); },
   code: function (c) {
     var p = this.pick(c), line = p.T + ' r = ' + this.txt(p.e) + ';', pad = function (x) { return x + new Array(Math.max(2, 33 - x.length)).join(' ') + '// '; };
-    return (p.big ? pad('int big = 2147483647;') + 'the largest value an int can hold\n' : '') + pad(line) + p.note + '\n\nSystem.out.println(r);';
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n' + (p.big ? pad('int big = 2147483647;') + 'the largest value an int can hold\n' : '') + pad(line) + p.note + '\n\nSystem.out.println(r);';
   },
   label: function (c) { return { ints: 'Integer calculation', conv: 'Type conversion', str: 'Strings and +' }[c.topic] + ' · ' + this.stmt(c); },
   columns: ['Type of the right-hand expression', 'Type of the variable r', 'Output or error'],

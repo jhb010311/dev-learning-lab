@@ -17,8 +17,8 @@ Lab.register({
     { t: '짧은 장애', q: '실패율 임계치를 80%로 올리고 결제 서비스 장애가 5초만 이어지면', d: '장애 5초에 임계치 80%. 실패율이 임계치에 닿지 않아 서킷이 열리지 않습니다.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
-    if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}';
-    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # 최근 10번의 결과로 판단\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # 실패율이 이 값 이상이면 차단\n  waitDurationInOpenState: ' + c.wait + 's          # 차단 유지 시간\n  permittedNumberOfCallsInHalfOpenState: 3\n\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // 호출이 실패하거나 차단됐을 때 대신 실행\n}';
+    if (!c.use) return '// 클래스 본문만 보임 (클래스 선언·import와 예시로 만든 Order·PaymentResult·paymentClient의 선언은 생략)\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}';
+    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # 최근 10번의 결과로 판단\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # 실패율이 이 값 이상이면 차단\n  waitDurationInOpenState: ' + c.wait + 's          # 차단 유지 시간\n  permittedNumberOfCallsInHalfOpenState: 3\n\n// 클래스 본문만 보임 (클래스 선언·import와 예시로 만든 Order·PaymentResult·paymentClient의 선언은 생략)\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // 호출이 실패하거나 차단됐을 때 대신 실행\n}';
   },
   label: function (c) { return (c.use ? '사용 · 임계치 ' + c.th + '% · 차단 ' + c.wait + '초' : '서킷 브레이커 없음') + ' · 장애 ' + c.dur + '초'; },
   columns: ['성공', '실패 (3초씩 기다림)', '차단 (즉시 대체 응답)', '기다리는 데 쓴 시간', '상태 전환'],

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Optional: Why does the default-value code in orElse run even when a value is present? · Dev Learning Lab</title>
-<meta name="description" content="An Optional is a container that expresses that a value may or may not be present. Depending on how you create it (of, ofNullable, empty) and how you get t…">
+<meta name="description" content="An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/optional/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/optional/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/optional/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Optional: Why does the default-value code in orElse run even when a value is present? · Dev Learning Lab">
-<meta property="og:description" content="An Optional is a container that expresses that a value may or may not be present. Depending on how you create it (of, ofNullable, empty) and how you get t…">
+<meta property="og:description" content="An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/optional/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,14 +31,14 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>Optional</h1>
 <p><b>Why does the default-value code in orElse run even when a value is present?</b></p>
-<p>An Optional is a container that expresses that a value may or may not be present. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.</p>
+<p>An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional is empty. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.</p>
 <p>Checked against real execution · All 24 combinations were run on JDK 21, and the output and the exceptions were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Optional</dt>
 <dd>This container class expresses in the type that a value may or may not be present. When a method returns it in place of null, the caller is guided to handle the case where there is no value. It is used mainly as a method return type.</dd>
 <dt>orElse and orElseGet</dt>
-<dd>These are the two methods that set the default value to use in its place when an Optional is empty. orElse(value) takes the default value itself as its argument, and orElseGet(function) takes a function (a lambda expression) that produces the default value. Java evaluates the arguments before it calls a method, so if you write orElse(makeDefault()), makeDefault() runs even when the Optional contains a value. orElseGet runs the function that it was given only when the Optional is empty. So use orElseGet when creating the default value takes time or when other work, such as saving or logging, happens along with it.</dd>
+<dd>These are the two methods that set the default value to use in its place when an Optional is empty. orElse(value) takes the default value itself as its argument, and orElseGet(function) takes a function (a lambda expression) that produces the default value. Java evaluates the arguments before it calls a method, so if you write orElse(makeDefault()), makeDefault() runs even when the Optional has a value. orElseGet runs the function that it was given only when the Optional is empty. So use orElseGet when creating the default value takes time or when other work, such as saving or logging, happens along with it.</dd>
 <dt>NullPointerException</dt>
 <dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. Whether a value is null depends on the values at run time, so the compiler cannot catch it in advance and it shows up only when the code runs (it is an unchecked exception, so handling is not forced either). This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
 <dt>Lazy evaluation</dt>
@@ -59,8 +59,8 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>String name = &quot;kim&quot;: name refers to the string &quot;kim&quot;.</li>
-<li>Optional.ofNullable(name): name is not null, so this creates an Optional that contains the value &quot;kim&quot;.</li>
-<li>System.out.println(opt): This prints one line, Optional[kim]. The value it contains is inside the square brackets.</li>
+<li>Optional.ofNullable(name): name is not null, so this creates an Optional that refers to the value &quot;kim&quot;.</li>
+<li>System.out.println(opt): This prints one line, Optional[kim]. The value that opt refers to is shown inside the square brackets.</li>
 <li>makeDefault(): Before orElse is called, the argument in the parentheses is evaluated first, because Java works out the values to pass before it calls a method. Whether or not opt has a value, makeDefault() runs, &quot;makeDefault ran&quot; is printed, and &quot;guest&quot; is created.</li>
 <li>opt.orElse(&quot;guest&quot;): A value is present, so orElse returns &quot;kim&quot;. The &quot;guest&quot; that was just created is not used and is discarded.</li>
 <li>System.out.println(result): This prints one line, kim.</li>
@@ -177,6 +177,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

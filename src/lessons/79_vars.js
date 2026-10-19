@@ -25,6 +25,7 @@ Lab.register({
     var actNote = { prim: '칸에 든 값을 바꾼다', field: '가리키는 객체의 내용을 바꾼다', copy: '복사해 둔 객체의 내용을 바꾼다', renew: '칸에 다른 객체의 참조를 넣는다', str: '새 String 객체가 만들어진다' }[W];
     var cls = T === 'Point' ? 'class Point {\n    int x;\n    Point(int x) { this.x = x; }\n}\n\n' : '';
     var src = W === 'copy' ? 'new Point(a.x)' : 'a', srcNote = W === 'copy' ? '새 객체를 만들어 내용을 옮긴다' : W === 'prim' ? 'a에 든 값이 복사된다' : 'a에 든 참조가 복사된다';
+    cls = '// ' + (T === 'Point' ? '예시로 만든 Point 클래스와 ' : '') + (call ? 'change·main 메서드만 보임 (두 메서드를 둔 클래스의 선언은 생략)' : 'main 메서드 안의 줄만 보임 (' + (T === 'Point' ? 'main을 둔 클래스와 main 선언은 생략)' : '클래스·main 선언은 생략)')) + '\n' + cls;
     if (!call) return cls + T + ' a = ' + init + ';\n' + cm(T + ' b = ' + src + ';', srcNote) + '\n' + cm(act, actNote) + '\n\nSystem.out.println(' + rd('b') + ');\nSystem.out.println(' + rd('a') + ');';
     return cls + 'static ' + (ret ? T : 'void') + ' change(' + T + ' p) {\n' + cm('    ' + act, actNote) + '\n    System.out.println(' + rd('p') + ');\n' + (ret ? '    return p;\n' : '') + '}\n\npublic static void main(String[] args) {\n    ' + T + ' a = ' + init + ';\n' + cm('    ' + (ret ? 'a = ' : '') + 'change(' + src + ');', W === 'copy' ? '새 객체를 만들어 넘긴다' : srcNote.replace('복사된다', 'p로 복사된다')) + '\n    System.out.println(' + rd('a') + ');\n}';
   },
@@ -122,5 +123,5 @@ Lab.register({
     P.box('r2', 344, 232, 320, 36, { cls: s.out2 === '?' ? 'ghost' : s.out2 === s.out1 && c.what === 'field' && c.how !== 'ret' ? 'bad' : 'plain', title: 'a에서 읽은 값', right: s.out2 });
     P.note(c.what === 'prim' ? '기본형 변수의 칸에는 값이 그대로 들어 있습니다. 복사하면 값이 하나 더 생기고, 두 칸은 서로 이어져 있지 않습니다.' : '화살표는 칸에 든 참조가 가리키는 객체로 이어집니다. 두 화살표가 한 객체에 닿아 있으면, 한쪽에서 바꾼 내용이 다른 쪽에서도 보입니다.');
   },
-  assume: '열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. "참조"는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 문자열 "hi"는 실제로는 String Pool에 있는 객체인데, 여기서는 힙의 객체 하나로만 그렸습니다. 메서드에 넘길 때 생기는 호출 프레임은 "스택과 힙" 실습에서, ==와 equals의 차이는 "==와 equals" 실습에서 다룹니다.',
+  assume: '열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. "참조"는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 검증에 쓴 JDK 21(HotSpot JVM)에서는 문자열 리터럴 "hi"의 String 객체도 힙에 있습니다. JVM은 같은 리터럴을 String Pool(문자열 상수 풀)에 등록해 두고 함께 쓰는데, 이 그림에는 그 등록을 따로 그리지 않았습니다. 메서드에 넘길 때 생기는 호출 프레임은 "스택과 힙" 실습에서, ==와 equals의 차이는 "==와 equals" 실습에서 다룹니다.',
 });

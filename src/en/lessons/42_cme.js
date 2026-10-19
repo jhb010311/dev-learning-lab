@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var decl = 'List<Integer> list = new ' + (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + '<>(List.of(1, 2, 2, 3, 4));\n\n';
-    return decl + { foreach: 'for (Integer x : list) {\n    if (x == 2) list.remove(x);          // modifies the list directly during iteration\n}', indexfwd: 'for (int i = 0; i < list.size(); i++) {\n    if (list.get(i) == 2) list.remove(i);\n}', indexback: 'for (int i = list.size() - 1; i >= 0; i--) {\n    if (list.get(i) == 2) list.remove(i);\n}', iterator: 'for (Iterator<Integer> it = list.iterator(); it.hasNext(); ) {\n    if (it.next() == 2) it.remove();     // removes through the iterator\n}', removeIf: 'list.removeIf(x -> x == 2);' }[c.how];
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n' + decl + { foreach: 'for (Integer x : list) {\n    if (x == 2) list.remove(x);          // modifies the list directly during iteration\n}', indexfwd: 'for (int i = 0; i < list.size(); i++) {\n    if (list.get(i) == 2) list.remove(i);\n}', indexback: 'for (int i = list.size() - 1; i >= 0; i--) {\n    if (list.get(i) == 2) list.remove(i);\n}', iterator: 'for (Iterator<Integer> it = list.iterator(); it.hasNext(); ) {\n    if (it.next() == 2) it.remove();     // removes through the iterator\n}', removeIf: 'list.removeIf(x -> x == 2);' }[c.how];
   },
   label: function (c) { return (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + ' · ' + { foreach: 'enhanced for', indexfwd: 'index front→back', indexback: 'index back→front', iterator: 'Iterator.remove', removeIf: 'removeIf' }[c.how]; },
   columns: ['Resulting list', 'Exception', 'All 2s removed?'],

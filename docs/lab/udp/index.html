@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,8 @@
 <li>TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// Node.js (net 모듈): TCP
+<pre>// Node.js (net 모듈): TCP (모듈을 불러오는 import 줄은 생략)
+const sleep = ms =&gt; new Promise(r =&gt; setTimeout(r, ms));   // 예시로 만든 함수: ms밀리초 동안 기다린다
 const socket = net.connect(9000, '127.0.0.1');   // 먼저 연결을 맺는다
 socket.on('connect', async () =&gt; {               // 연결된 뒤에야 보낼 수 있다
   socket.write('AB');  await sleep(50);           // 0.05초 간격으로 세 번
@@ -174,6 +175,6 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

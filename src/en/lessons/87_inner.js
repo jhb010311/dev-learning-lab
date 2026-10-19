@@ -1,7 +1,7 @@
 Lab.register({
   id: 'inner', nav: 'Inner classes and anonymous classes', cat: 'Java language', mode: 'step',
   title: 'How is a class declared inside a class connected to the outer object?',
-  intro: 'You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that created it, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.',
+  intro: 'You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen when it was created, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.',
   terms: ['Inner classes and nested classes', 'Anonymous class', 'Effectively final', 'Lambda expression', 'static'],
   controls: [
     { id: 'kind', label: 'What to create inside', type: 'select', value: 'inner', options: [['inner', 'Inner class (no static)'], ['nested', 'static nested class'], ['anon', 'Anonymous class'], ['lambda', 'Lambda expression']] },
@@ -56,8 +56,8 @@ Lab.register({
     if (member && c.use === 'alone' && !nested) {
       push('The compiler reads the Outer class: Inner has no static. An object of an inner class without static is always created in association with one particular Outer object.');
       st.cmp = 'err';
-      push('new Outer.Inner(): This is a compile-time error. main is a static method, so there is no Outer object at this point, and the code does not specify one either. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.', 'bad');
-      fail('an enclosing instance that contains Outer.Inner is required', 'It means that there must be an outer object that contains Outer.Inner.');
+      push('new Outer.Inner(): This is a compile-time error. This line is in the Main class, outside the Outer class, so there is no Outer object to use as the outer object, and the code does not specify one either, as o.new Inner() would. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.', 'bad');
+      fail('an enclosing instance that contains Outer.Inner is required', 'It means that there must be an outer object (an enclosing instance) for the Outer.Inner object to refer to.');
       sum.push('An object of an inner class without static is created so that it holds a reference to an outer object. So the outer object must exist first, and when you have an outer object o, you create the inner object with o.new Inner().');
       sum.push('If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class.');
     } else if (member && c.use === 'field' && nested) {
@@ -72,7 +72,7 @@ Lab.register({
       st.o = 'A';
       push('Outer o = new Outer(): The outer object is created. The value of its name field is "A".');
       st.inn = true; st.ref = true;
-      push('o.new Inner(): The inner object is created with o as its outer object. The inner object gets a hidden field that holds a reference to o, the outer object that created it.');
+      push('o.new Inner(): The inner object is created with o as its outer object. The inner object gets a hidden field that holds a reference to the outer object o.');
       st.o = 'B';
       push('o.name = "B": The field of the outer object is changed to "B". Nothing is done to the inner object.');
       st.out.push('B'); rel = 'The inner object refers to the outer object o';
@@ -155,7 +155,7 @@ Lab.register({
     P.box('c1', 16, y, 200, 36, { cls: s.cmp === '?' ? 'ghost' : bad ? 'bad' : 'good', title: 'Compilation', right: s.cmp === '?' ? '?' : bad ? 'Error' : 'Success' });
     P.box('c2', 224, y, 440, 36, { cls: bad ? 'ghost' : s.out.length ? 'good' : 'ghost', title: 'Output', right: bad ? 'not run' : s.out.length ? s.out.join(' / ') : 'none yet' });
     if (bad && sim.err && shown.length >= 3) P.text('em', 16, y + 62, sim.err, { cls: 'bad' });
-    P.note(member ? 'An object of an inner class without static refers to the outer object that created it. An object of a static nested class is not connected to an outer object.' : 'An anonymous class and a lambda expression keep a copy of the value of a local variable. A local variable disappears when the method ends, but the copied value remains. What this refers to is different for the two.');
+    P.note(member ? 'An object of an inner class without static refers to the outer object chosen when it was created. An object of a static nested class is not connected to an outer object.' : 'An anonymous class and a lambda expression keep a copy of the value of a local variable. A local variable disappears when the method ends, but the copied value remains. What this refers to is different for the two.');
   },
   assume: 'The code of the 24 combinations (10 distinct cases when the hidden settings are excluded) was compiled and run as it is on JDK 21 in our test environment, and whether compilation succeeded, the error messages, and the output were checked against the results. That an object of an inner class refers to the outer object, and that a static nested class has no such reference, was confirmed by looking at the hidden field with reflection. That an object of an anonymous class and a lambda expression keep a copy of the value of a local variable (the reference, for an array) was also confirmed through hidden fields on this JDK. However, the form in which a lambda expression keeps the value can differ depending on the JVM implementation. The wording of the error messages is that of javac in JDK 21 and can differ slightly by version. javac in JDK 21 does not create the hidden reference field when the class inside does not use the outer object at all (the anonymous class in this lab is such a case). Even so, the rule that an outer object is required to create an inner class without static is the same.',
 });

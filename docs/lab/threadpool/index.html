@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>ThreadPoolExecutor의 동작 순서</dt>
 <dd>자바의 스레드 풀 구현은 작업이 들어오면 다음 순서로 처리한다. 실행 중인 스레드가 corePoolSize보다 적으면 새 스레드를 만든다. 그 이상이면 작업을 큐에 넣는다. 큐가 가득 차면 maximumPoolSize까지 스레드를 더 만든다. 그것도 넘으면 작업을 거부한다. 크기가 정해진 큐일 때는 큐가 가득 찬 뒤에야 스레드가 늘어나며(무제한 큐면 늘지 않는다) 이 점이 직관과 다르다.</dd>
 <dt>톰캣의 스레드 모델</dt>
-<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한되고, 모든 스레드가 사용 중이면 새 요청은 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
+<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한된다. 쉬는 스레드가 없으면 자바 기본 ThreadPoolExecutor와 달리 최대 수까지 스레드를 먼저 늘리고, 모든 스레드가 사용 중일 때 새 요청이 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
 <dt>블로킹과 논블로킹</dt>
 <dd>블로킹은 호출한 작업이 끝날 때까지 호출한 스레드가 멈춰서 다른 일을 하지 못하는 것이다. 논블로킹은 작업이 끝나지 않았어도 호출이 바로 반환되어 스레드가 다른 일을 할 수 있는 것이다. 일반적인 JDBC 호출은 DB 응답이 올 때까지 스레드가 멈추는 블로킹 호출이다.</dd>
 </dl>
@@ -77,7 +77,8 @@
 <li>거절을 없애려면 스레드를 늘리거나, 대기 줄을 늘리거나(대신 기다리는 시간이 길어짐), 요청 처리 시간을 줄여야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>ExecutorService pool = new ThreadPoolExecutor(
+<pre>// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 handle()의 선언은 생략)
+ExecutorService pool = new ThreadPoolExecutor(
     2,                        // 기본 스레드 수
     4,                        // 최대 스레드 수
     60, TimeUnit.SECONDS,
@@ -88,7 +89,7 @@ for (int i = 1; i &lt;= 10; i++) {
     Thread.sleep(200);            // 0.2초마다 도착
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다.</p>
+<p>요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다. 톰캣이 요청 처리에 쓰는 스레드 풀은 이 순서와 다릅니다. 쉬는 스레드가 없으면 대기 줄에 세우기 전에 최대 스레드 수까지 스레드를 먼저 늘립니다.</p>
 <p>앞 실습: <a href="../../lab/deadlock/">교착 상태</a> · 다음 실습: <a href="../../lab/ctx/">스레드 수와 컨텍스트 스위칭</a></p>
   </div>
 
@@ -176,6 +177,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

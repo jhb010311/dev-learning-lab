@@ -15,6 +15,9 @@ Lab.register({
     { t: 'bcrypt cost 14', q: 'What if you store passwords with bcrypt and change the cost to 14?', d: 'Attacks get slower, but verifying a login gets slower too.', v: { how: 'bcrypt', cost: '14' } },
   ],
   code: function (c) {
+    return '// Only lines inside a method are shown (declarations and imports omitted; member and rawPassword are example variables)\n' + this.codeBody(c);
+  },
+  codeBody: function (c) {
     if (c.how === 'plain') return '// Store the input as it is\nmember.setPassword(rawPassword);';
     if (c.how === 'sha') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] hash = md.digest(rawPassword.getBytes(UTF_8));\nmember.setPassword(HexFormat.of().formatHex(hash));';
     if (c.how === 'salt') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nString salt = randomString(6);                  // a different random value for each member (randomString is an example method)\nbyte[] hash = md.digest((salt + rawPassword).getBytes(UTF_8));\nmember.setSalt(salt);                            // the salt is not hidden; store it too\nmember.setPassword(HexFormat.of().formatHex(hash));';

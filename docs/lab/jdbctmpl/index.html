@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,7 +69,8 @@
 <li>close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// member 테이블 (id는 기본 키, name은 NOT NULL)
+<pre>// 예시로 만든 저장소 클래스의 메서드만 보임 (클래스 선언, dataSource 필드, import는 생략)
+// member 테이블 (id는 기본 키, name은 NOT NULL)
 //   (1, kim, 서울), (2, lee, 부산), (3, park, 서울)
 // 호출: memberRepository.insert(1L, &quot;choi&quot;, &quot;대전&quot;);
 
@@ -174,6 +175,6 @@ public int insert(Long id, String name, String city) throws SQLException {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

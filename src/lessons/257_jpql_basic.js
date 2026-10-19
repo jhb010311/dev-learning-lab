@@ -22,7 +22,7 @@ Lab.register({
     var j = { ok: 'select m from Member m where m.age >= 20', table: 'select m from member_tbl m where m.age >= 20', col: "select m from Member m where m.user_name = 'kim'", field: "select m from Member m where m.name = 'kim'" }[c.q];
     return ['@Entity', '// 테이블: Member 클래스 하나가 member_tbl 테이블 하나와 짝이 된다', '@Table(name = "member_tbl")', 'public class Member {', '    @Id', '    private Long id;', '',
       '    // 열: name 필드는 user_name 열과 짝이 된다', '    @Column(name = "user_name")', '    private String name;', '', '    private int age;', '}', '',
-      '// 조회하는 쪽', '// JPQL: JPA가 읽는 쿼리 글', 'String jpql = "' + j + '";', 'TypedQuery<Member> query = em.createQuery(jpql, Member.class);', 'List<Member> list = query.getResultList();'].join('\n');
+      '// 조회하는 쪽: 메서드 안의 줄만 보임 (em 선언, 클래스·메서드 선언과 import는 생략)', '// JPQL: JPA가 읽는 쿼리 글', 'String jpql = "' + j + '";', 'TypedQuery<Member> query = em.createQuery(jpql, Member.class);', 'List<Member> list = query.getResultList();'].join('\n');
   },
   label: function (c) { return { ok: 'Member, m.age (엔티티와 필드 이름)', table: 'member_tbl (테이블 이름)', col: 'm.user_name (열 이름)', field: 'm.name (필드 이름)' }[c.q]; },
   columns: ['DB에 나간 SQL', '돌아온 것', '오류'],

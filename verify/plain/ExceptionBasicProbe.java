@@ -29,7 +29,7 @@ public class ExceptionBasicProbe {
             + "        int a = 10;\n"
             + "        int b = " + (b.equals("zero") ? "0" : "2") + ";\n");
         if (tc) {
-            s.append("        // try: 문제가 날 수 있는 코드를 감싼다\n"
+            s.append("        // try 블록: 문제가 날 수 있는 코드를 여기에 쓴다\n"
                 + "        try {\n"
                 + "            System.out.println(a / b);\n"
                 + "        // catch: 예외가 나면 여기로 건너온다\n"

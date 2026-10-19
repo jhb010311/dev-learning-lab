@@ -23,8 +23,8 @@ Lab.register({
     return ['Member m = em.find(Member.class, 1L);', 'm.setName("김영수");', 'List<Member> list = em.createQuery(', '    "select m from Member m where m.name = \'김영수\'", Member.class)', '    .getResultList();'];
   },
   code: function (c) {
-    var tx = c.sc !== 'update' || c.tx, head = c.sc === 'persist' ? '@Entity class Member {\n    @Id @GeneratedValue(strategy = GenerationType.' + c.gen + ')\n    Long id;\n    String name;\n}\n\n' : '';
-    return head + (tx ? '@Transactional\n' : '') + 'public void run() {\n' + this.lines(c).map(function (l) { return '    ' + l; }).join('\n') + '\n}' + (tx ? '   // 메서드가 끝나면 커밋' : '   // 트랜잭션 없이 끝남');
+    var tx = c.sc !== 'update' || c.tx, head = c.sc === 'persist' ? '@Entity class Member {\n    @Id @GeneratedValue(strategy = GenerationType.' + c.gen + ')\n    Long id;\n    String name;   // 생성자는 생략\n}\n\n' : '';
+    return head + '// 클래스 본문의 메서드만 보임 (클래스 선언, 필드 선언, import는 생략)\n' + (tx ? '@Transactional\n' : '') + 'public void run() {\n' + this.lines(c).map(function (l) { return '    ' + l; }).join('\n') + '\n}' + (tx ? '   // 메서드가 끝나면 커밋' : '   // 트랜잭션 없이 끝남');
   },
   label: function (c) { return { find2: '두 번 조회', update: '이름 변경' + (c.tx ? '' : ' · @Transactional 없음'), persist: '3명 저장 · ' + c.gen, jpql: '변경 뒤 JPQL' }[c.sc]; },
   columns: ['DB로 나간 SQL', '쓰기 SQL이 나간 시점', 'DB에 반영된 결과'],

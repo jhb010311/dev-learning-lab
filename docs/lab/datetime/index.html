@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,7 +69,8 @@
 <li>그래서 달을 여러 번 나눠 더하면 결과가 달라질 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>LocalDate d = LocalDate.of(2024, 1, 31);
+<pre>// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)
+LocalDate d = LocalDate.of(2024, 1, 31);
 LocalDate first = d;                 // 처음 객체를 기억해 둔다
 
 d = d.plusMonths(1);
@@ -166,6 +167,6 @@ System.out.println(d == first);      // 같은 객체인가</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

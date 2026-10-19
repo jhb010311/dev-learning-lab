@@ -22,7 +22,7 @@ Lab.register({
   ],
   code: function (c) {
     var q = c.unb ? 'new LinkedBlockingQueue<>());      // unbounded queue' : c.cap === 0 ? 'new SynchronousQueue<>());         // holds no waiting requests' : 'new ArrayBlockingQueue<>(' + c.cap + '));     // queue capacity ' + c.cap + '';
-    return 'ExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // core pool size\n    ' + c.max + ',                        // maximum pool size\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    pool.execute(() -> handle());   // each request takes ' + Lab.fmt(c.work) + 's\n' +
+    return '// Only the lines inside main are shown (class, main declaration, imports, and the declaration of the example method handle() omitted)\nExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // core pool size\n    ' + c.max + ',                        // maximum pool size\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    pool.execute(() -> handle());   // each request takes ' + Lab.fmt(c.work) + 's\n' +
       (c.gap > 0 ? '    Thread.sleep(' + Math.round(c.gap * 1000) + ');            // a request arrives every ' + Lab.fmt(c.gap) + 's\n' : '') + '}';
   },
   label: function (c) { return 'Core ' + c.core + ' / max ' + c.max + ' / queue ' + (c.unb ? 'unbounded' : c.cap) + ' · requests: ' + c.n + ' · ' + Lab.fmt(c.work) + 's · interval ' + Lab.fmt(c.gap) + 's'; },
@@ -66,7 +66,7 @@ Lab.register({
     var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
-      if (!th || th.created > t + 1e-9) { rows.push(['Thread ' + (i + 1), i < c.core ? 'not created yet (core thread)' : 'not created yet (created only when the queue is full)', 'none']); continue; }
+      if (!th || th.created > t + 1e-9) { rows.push(['Thread ' + (i + 1), i < c.core ? 'not created yet (core thread)' : c.unb ? 'not created (an unbounded queue never fills up)' : 'not created yet (created only when the queue is full)', 'none']); continue; }
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
       if (cur) { rows.push(['Thread ' + (i + 1), 'handling request ' + cur.id + ' · ' + H.fmt(cur.end - t) + 's left', '', (t - cur.start) / c.work]); }
       else rows.push(['Thread ' + (i + 1), 'idle', '']);
@@ -94,11 +94,11 @@ Lab.register({
     if (!rj.length) P.text('norj', 161, 262, 'None', { cls: 'mut', anchor: 'middle' });
     for (var i = 0; i < slots; i++) {
       var x = sim.threads[i], y = 50 + i * 28, made = x && x.created <= t + 1e-9, cur = made ? x.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0] : null;
-      P.box('th' + i, 358, y, 294, 24, { cls: !made ? 'ghost' : cur ? 'hot' : 'plain', title: 'Thread ' + (i + 1), right: !made ? (i < c.core ? 'not created yet' : 'only if the queue is full') : cur ? '' : 'idle' });
+      P.box('th' + i, 358, y, 294, 24, { cls: !made ? 'ghost' : cur ? 'hot' : 'plain', title: 'Thread ' + (i + 1), right: !made ? (i < c.core ? 'not created yet' : c.unb ? 'never (unbounded queue)' : 'only if the queue is full') : cur ? '' : 'idle' });
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: 'Request ' + cur.id + '', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, 'Completed: ' + doneN + '', { cls: 'good' });
     P.note('The blue boxes with numbers are requests.');
   },
-  assume: 'While a request is being handled, one thread is tied up for the whole handling time (a request that waits for a slow database or external API). The model assumes that adding threads costs nothing. In reality each thread uses memory, and when more threads want the CPU than there are cores, the cost of switching between them grows. The order in which threads are assigned (core threads → queue → threads up to the maximum → rejection) is the same as the actual rule of the Java ThreadPoolExecutor, and it was checked against real execution.',
+  assume: 'While a request is being handled, one thread is tied up for the whole handling time (a request that waits for a slow database or external API). The model assumes that adding threads costs nothing. In reality each thread uses memory, and when more threads want the CPU than there are cores, the cost of switching between them grows. The order in which threads are assigned (core threads → queue → threads up to the maximum → rejection) is the same as the actual rule of the Java ThreadPoolExecutor, and it was checked against real execution. The thread pool that Tomcat uses for handling requests follows a different order: when no thread is idle, it adds threads up to the maximum before putting requests in the queue.',
 });

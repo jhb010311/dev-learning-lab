@@ -17,11 +17,11 @@ Lab.register({
   ],
   code: function (c) {
     var r = [];
-    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # 나머지는 기존 서버로' : ''));
+    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order-group, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order-group, ' + (100 - c.ratio) + '        # 나머지는 기존 서버로' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
     if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? '전부 기존 서버로' : '나머지는 전부 기존 서버로') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
-    return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# 공통 필터: 토큰 검증, 요청 로그, 요청 수 제한';
+    return '# Spring Cloud Gateway 4.3(Spring Cloud 2025.0) 이후의 속성 이름 (그 전 버전은 spring.cloud.gateway.routes)\nspring.cloud.gateway.server.webflux:\n  routes:\n' + r.join('\n') + '\n\n# 공통 필터: 토큰 검증, 요청 로그, 요청 수 제한';
   },
   label: function (c) { return ['전환 전', '주문만 이전' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), '주문·결제 이전', '전부 이전'][+c.stage] + (c.auth ? ' · 토큰 없는 요청 포함' : ''); },
   columns: ['기존 서버로 간 요청', '새 서비스로 간 요청', '게이트웨이에서 거절', '기존 서버 종료 가능'],

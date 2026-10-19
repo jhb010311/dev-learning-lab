@@ -38,7 +38,7 @@ Lab.register({
     var order = '\n    int order(int price) {\n        return price - discountPolicy.discount(price);\n    }\n}';
     if (f.isNew) {
       out.push('class OrderService {\n    private final DiscountPolicy discountPolicy = new ' + f.cls + '();   // creates it and chooses it itself\n' + order);
-      out.push('// Where it is used\nOrderService orderService = new OrderService();\nint pay = orderService.order(20000);');
+      out.push('// Where it is used (only the lines inside main are shown; class and main declarations omitted)\nOrderService orderService = new OrderService();\nint pay = orderService.order(20000);');
       return out.join('\n\n');
     }
     if (c.how === 'bean') {
@@ -49,7 +49,7 @@ Lab.register({
       out.push(cfg + '\n}');
     }
     out.push('@Component\nclass OrderService {\n    private final DiscountPolicy discountPolicy;\n\n    OrderService(' + (c.reg === 'qualifier' ? '@Qualifier("' + f.bean + '") ' : '') + 'DiscountPolicy discountPolicy) {   // the container passes it in\n        this.discountPolicy = discountPolicy;\n    }\n' + order);
-    out.push('// Where it is used: retrieved from the container\nOrderService orderService = context.getBean(OrderService.class);\nint pay = orderService.order(20000);');
+    out.push('// Where it is used (lines inside main): retrieved from the container. The line that creates context, class and main declarations, and imports are omitted\nOrderService orderService = context.getBean(OrderService.class);\nint pay = orderService.order(20000);');
     return out.join('\n\n');
   },
   label: function (c) {

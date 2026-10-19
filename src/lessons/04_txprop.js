@@ -22,7 +22,7 @@ Lab.register({
   code: function (c) {
     var chk = c.ex !== 'none' && c.type === 'chk', rf = chk && c.rf, E = chk ? 'IOException' : 'IllegalStateException', ct = c.ex === 'inner' && c.catch;
     var call = ct ? '        try {\n            logService.saveLog();\n        } catch (Exception e) {\n            // 로그 저장 실패는 넘어간다\n        }\n' : '        logService.saveLog();\n';
-    return '@Service class OrderService {\n    @Transactional' + (rf ? '(rollbackFor = Exception.class)' : '') + '\n    public void placeOrder()' + (chk && !ct ? ' throws IOException' : chk && c.ex === 'outer' ? ' throws IOException' : '') + ' {\n        orderDao.insert(order);            // 주문 저장\n' + call +
+    return '// 예시로 만든 두 클래스. 필요한 부분만 남김 (import와 orderDao·logService·logDao·order·log의 선언은 생략)\n@Service class OrderService {\n    @Transactional' + (rf ? '(rollbackFor = Exception.class)' : '') + '\n    public void placeOrder()' + (chk && !ct ? ' throws IOException' : chk && c.ex === 'outer' ? ' throws IOException' : '') + ' {\n        orderDao.insert(order);            // 주문 저장\n' + call +
       (c.ex === 'outer' ? '        throw new ' + E + '();\n' : '') + '    }\n}\n\n@Service class LogService {\n    @Transactional(propagation = Propagation.' + c.prop + (rf ? ',\n                   rollbackFor = Exception.class' : '') + ')\n    public void saveLog()' + (chk && c.ex === 'inner' ? ' throws IOException' : '') + ' {\n        logDao.insert(log);                // 로그 저장\n' +
       (c.ex === 'inner' ? '        throw new ' + E + '();\n' : '') + '    }\n}';
   },

@@ -15,7 +15,7 @@ Lab.register({
     { t: '20%가 10초', q: '느린 요청이 20%이고 하나가 10초 걸리면', d: '평균이 2초를 넘었지만, 그런 응답을 받은 사용자는 한 명도 없습니다.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
-    return '// Micrometer: 응답 시간의 백분위를 함께 기록\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
+    return '// Micrometer: 응답 시간의 백분위를 함께 기록 (메서드 안의 줄만 보임. 선언과 import는 생략)\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
   },
   label: function (c) { return c.ratio === '0' ? '느린 요청 없음' : '느린 요청 ' + c.ratio + '% · ' + c.slow + '초'; },
   columns: ['평균', 'p50 (중앙값)', 'p95', 'p99', '최댓값'],

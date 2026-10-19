@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: 'Default settings', q: 'After you make a second commit on the feature branch and return to main, what happens to the commits and branches, and what does memo.txt show?', d: 'When you commit on feature, only the feature label moves to the new commit, and when you return to main, the folder changes to the state of the commit main points to (v1).', v: { commit2: true, back: 'main' } },
     { t: 'Not going back to main', q: 'What if you remove the git switch main line?', d: 'You stay on feature, so memo.txt in the folder is the state of the second commit (v2). main stays at commit 1.', v: { commit2: true, back: 'stay' } },
-    { t: 'Moving to main without a second commit', q: 'What if you remove the git commit -am "Second commit" line?', d: 'The edited memo.txt comes along to main without being in any commit. Both branches point to the same commit 1.', v: { commit2: false, back: 'main' } },
+    { t: 'Moving to main without a second commit', q: 'What if you remove the git commit -am "Second commit" line?', d: 'The edited memo.txt comes along to main without being recorded in any commit. Both branches point to the same commit 1.', v: { commit2: false, back: 'main' } },
     { t: 'Removing both', q: 'What if you remove both the git commit -am "Second commit" line and the git switch main line?', d: 'There is only 1 commit, and both branches point to the same commit 1. The edited v2 is only in the folder.', v: { commit2: false, back: 'stay' } },
   ],
   // The lines run in this setting (comment lines are not run). The Probe checks the state against what it measured in real Git after each line.
@@ -49,17 +49,17 @@ Lab.register({
     push('git add memo.txt: this stages the current state of memo.txt (v1) to go into the next commit. It is not a commit yet. Git reports that this file is staged for the commit (A).', '');
     // 4: first commit
     st.count = 1; st.main = 'Commit 1'; st.status = '(clean)'; st.mainFile = 'v1';
-    push('git commit -m "First commit": this saves what you staged as a commit. Commit 1 was made, and it holds the state of memo.txt at this moment (v1). It is the very first commit, with no commit before it. A label that points to one commit like this is called a branch, and the main branch now points to commit 1. The file in the folder and the state in the commit are the same, so there is no unsaved change.', 'good');
+    push('git commit -m "First commit": this saves what you staged as a commit. Commit 1 was made, and it records the state of memo.txt at this moment (v1). It is the very first commit, with no commit before it. A label that points to one commit like this is called a branch, and the main branch now points to commit 1. The file in the folder and the state in the commit are the same, so there is no unsaved change.', 'good');
     // 5: git switch -c feature
     st.cur = 'feature'; st.feature = 'Commit 1'; st.featFile = 'v1';
     push('git switch -c feature: this creates a new label named feature that points to commit 1, where you are now, and moves the branch you are on to feature. You made a branch, but the commits did not increase and there is still 1. A branch is not a copy of commits. It only points to one commit, so main and feature both point to the same commit 1.', 'good');
     // 6: echo v2
     st.file = 'v2'; st.status = ' M memo.txt';
-    push('echo v2 > memo.txt: this changes the inside of memo.txt in the folder to v2. Only the file in the folder changed, and memo.txt inside commit 1 is still v1. Git reports it as a change that was edited but not committed (M). This v2 is not in any commit yet.', '');
+    push('echo v2 > memo.txt: this changes the inside of memo.txt in the folder to v2. Only the file in the folder changed, and memo.txt as recorded in commit 1 is still v1. Git reports it as a change that was edited but not committed (M). This v2 is not in any commit yet.', '');
     // 7: second commit
     if (c2) {
       st.count = 2; st.feature = 'Commit 2'; st.status = '(clean)'; st.featFile = 'v2';
-      push('git commit -am "Second commit": this stages the changed memo.txt (-a) and saves it as commit 2. Commit 2 points to the commit right before it, commit 1, and it holds the state of memo.txt at this moment (v2). The label of the branch you are on, feature, moved to commit 2. The main label did not move, so it still points to commit 1, and memo.txt inside commit 1 is still v1.', 'good');
+      push('git commit -am "Second commit": this stages the changed memo.txt (-a) and saves it as commit 2. Commit 2 points to the commit right before it, commit 1, and it records the state of memo.txt at this moment (v2). The label of the branch you are on, feature, moved to commit 2. The main label did not move, so it still points to commit 1, and memo.txt as recorded in commit 1 is still v1.', 'good');
     }
     // 8: git switch main
     if (home) {
@@ -72,10 +72,10 @@ Lab.register({
       }
     }
     // 9: cat
-    if (c2 && home) push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v1. You edited it to v2 on feature and committed it, but that state is inside commit 2, and the folder now shows the state of commit 1, which main points to.', 'good');
+    if (c2 && home) push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v1. You edited it to v2 on feature and committed it, but that state is recorded in commit 2, and the folder now shows the state of commit 1, which main points to.', 'good');
     else if (c2) push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v2. You did not go back to main, so you are still on feature, and the file in the folder is the state of commit 2, which feature points to. main stays at commit 1.', 'good');
-    else if (home) push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v2. Even though you are on main, memo.txt inside commit 1, which main points to, is v1. v2 is an uncommitted change, so it is in no commit and only in the folder.', 'bad');
-    else push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v2. You are still on feature, and memo.txt inside commit 1, which feature points to, is v1. v2 is an uncommitted change, so it is in no commit and only in the folder.', 'bad');
+    else if (home) push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v2. Even though you are on main, memo.txt as recorded in commit 1, which main points to, is v1. v2 is an uncommitted change, so it is recorded in no commit and exists only in the folder.', 'bad');
+    else push('cat memo.txt: this shows memo.txt in the folder on the screen. It is v2. You are still on feature, and memo.txt as recorded in commit 1, which feature points to, is v1. v2 is an uncommitted change, so it is recorded in no commit and exists only in the folder.', 'bad');
     // Summary
     if (c2 && home) {
       sum.push('A commit stores the whole state of the files at one moment, and it points to the commit right before it. A branch (main, feature) is not a copy of commits but a label that points to one commit. When you commit on feature, only the feature label moves to commit 2 and main stays at commit 1, so when you return to main, memo.txt is v1.');
@@ -84,8 +84,8 @@ Lab.register({
       sum.push('Without the line that goes back to main, you stay on feature, so memo.txt is v2. The file in the folder is the state of commit 2, which the branch you are on points to.');
       sum.push('Even when you committed on feature, the main label did not move. When you commit on a branch, only the label of the branch you are on moves to the new commit.');
     } else if (home) {
-      sum.push('Even when you moved to main without making a second commit, Git did not stop you, and memo.txt shows v2. v2 is in no commit and only in the folder, and main and feature point to the same commit 1.');
-      sum.push('An uncommitted change is not inside any commit, so as in this case it follows you around the folder even when you move between branches. It is saved under the label of one branch only when you commit.');
+      sum.push('Even when you moved to main without making a second commit, Git did not stop you, and memo.txt shows v2. v2 is recorded in no commit and exists only in the folder, and main and feature point to the same commit 1.');
+      sum.push('An uncommitted change is not recorded in any commit, so as in this case it follows you around the folder even when you move between branches. It is saved under the label of one branch only when you commit.');
     } else {
       sum.push('With neither the second commit nor the line that goes back to main, there is only 1 commit, and main and feature point to the same commit 1. memo.txt in the folder is v2, but it is in no commit.');
       sum.push('If you make a branch and do not commit, you only get one more label and the commits do not increase. Just editing a file does not change where a label points.');

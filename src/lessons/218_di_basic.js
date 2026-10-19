@@ -121,7 +121,7 @@ Lab.register({
     if (s.out.length || s.exc) H.table(v, ['실행 결과'], s.out.map(function (o) { return { cls: '', cells: [{ v: o, cls: 'good' }] }; }).concat(s.exc ? [{ cls: '', cells: [{ v: s.exc === 'fail' ? '스프링이 시작하다 실패함: PayService 빈이 없음' : 'NullPointerException으로 멈춤', cls: 'bad' }] }] : []), '출력');
     H.counters(v, [[s.made, '만들어진 PayService 객체']]);
   },
-  // 그림: 왼쪽 "스프링이 보관하는 곳" 안에 PayService 빈과 OrderService 빈, 오른쪽에 main과 영역 밖의 직접 만든 객체. OrderService의 payService 칸에서 PayService로 가는 화살표는 스프링이 넣어 준 때만 초록이고, 직접 만든 객체로 가면 영역 밖으로 나가며, 비어 있으면 화살표가 없다. 아래에 만들어진 PayService 객체 수.
+  // 그림: 왼쪽 "스프링이 보관하는 곳" 안에 PayService 빈과 OrderService 빈, 오른쪽에 main과 영역 밖의 직접 만든 객체. OrderService의 payService 필드에서 PayService로 가는 화살표는 스프링이 넣어 준 때만 초록이고, 직접 만든 객체로 가면 영역 밖으로 나가며, 비어 있으면 화살표가 없다. 아래에 만들어진 PayService 객체 수.
   draw: function (P, sim, shown) {
     var c = sim.c, ft = sim.ft, last = shown[shown.length - 1], s = last ? last.snap : null, ph = s ? s.phase : '';
     P.size(680, 232);
@@ -129,10 +129,10 @@ Lab.register({
     // PayService 빈
     var psSub = !s || !s.scanned ? [' '] : !c.dep ? ['@Component 없음', '스프링이 모름'] : s.ps ? ['객체 1개'] : ['아직 만들지 않음'];
     P.box('ps', 28, 52, 168, 30 + psSub.length * 19, { cls: s && s.ps ? ((ph === 'makePay' || (ph === 'pay' && s.field === 'bean')) ? 'good now' : 'good') : 'ghost', title: 'PayService 빈', sub: psSub });
-    // OrderService 빈: 상태와 payService 칸
+    // OrderService 빈: 상태와 payService 필드
     var st0 = !s ? ' ' : { '': s.need ? '만드는 중' : s.scanned ? '아직 만들지 않음' : ' ', making: '만드는 중', made: '객체 1개', fail: '만들지 못함' }[s.os];
     var osCls = !s || !s.scanned ? 'ghost' : s.os === 'fail' || ph === 'npe' ? 'bad' : ph === 'makeOrder' || ph === 'need' || ph === 'getBean' || ph === 'newPay' ? 'hot now' : s.os === 'made' ? 'good' : 'plain';
-    P.box('os', 256, 52, 196, 87, { cls: osCls, title: 'OrderService 빈', sub: [st0, 'payService 칸', s && s.field ? ft[s.field] : '-'] });
+    P.box('os', 256, 52, 196, 87, { cls: osCls, title: 'OrderService 빈', sub: [st0, 'payService 필드', s && s.field ? ft[s.field] : '-'] });
     // main과 직접 만든 객체
     P.box('mn', 510, 16, 156, 68, { cls: !s ? 'plain' : (s.exc === 'fail' || ph === 'npe') ? 'bad' : (ph === 'getBean' || ph === 'pay') ? 'hot now' : 'wait', title: 'main', sub: [s && s.line ? s.line : '대기'] });
     P.box('px', 510, 104, 156, 68, { cls: s && s.ext ? (ph === 'pay' ? 'hot now' : 'hot') : 'ghost', title: '직접 만든 객체', sub: [s && s.ext ? 'PayService 1개' : '없음'] });

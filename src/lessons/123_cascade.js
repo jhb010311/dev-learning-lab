@@ -23,7 +23,7 @@ Lab.register({
     var run = c.act === 'persist' ? 'Post post = new Post("공지");\npost.addComment("첫째 댓글");\npost.addComment("둘째 댓글");\nem.persist(post);                      // 게시글만 persist한다'
       : c.act === 'remove' ? '// DB에는 게시글 1과 그 댓글 둘이 이미 있다\nPost post = em.find(Post.class, 1L);\nem.remove(post);                       // 게시글만 remove한다'
       : '// DB에는 게시글 1과 그 댓글 둘이 이미 있다\nPost post = em.find(Post.class, 1L);\npost.getComments().remove(0);          // 목록에서 첫째 댓글을 뺀다';
-    return ent + '// 트랜잭션 안에서 실행\n' + run + '\n// 메서드가 끝나면 커밋';
+    return ent + '// 트랜잭션 안에서 실행 (import, 메서드 선언, EntityManager em의 선언은 생략)\n' + run + '\n// 메서드가 끝나면 커밋';
   },
   label: function (c) { return { persist: '게시글만 persist', remove: '게시글 remove', orphan: '목록에서 댓글 빼기' }[c.act] + ' · cascade ' + (c.cas === 'none' ? '없음' : c.cas) + (c.orphan ? ' · orphanRemoval' : ''); },
   columns: ['조회 SQL', '쓰기 SQL', '예외', '끝난 뒤 DB에 남은 행'],

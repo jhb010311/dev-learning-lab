@@ -29,8 +29,9 @@ Lab.register({
     return L;
   },
   code: function (c) {
+    var H = '// 메서드 안의 줄만 보임 (클래스·메서드 선언, import, 예시로 만든 Member 엔티티와 emf의 선언은 생략)\n';
     var head = c.src === 'form' ? '// 화면에서 받은 값으로 만든 객체. city는 받지 않았다\n' : '// 앞선 요청에서 조회해 둔 객체\nEntityManager em1 = emf.createEntityManager();\n';
-    return head + this.lines(c).map(function (l) { return (l.pre ? '\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n' : '') + l.code.replace(';  ', ';\n'); }).join('\n');
+    return H + head + this.lines(c).map(function (l) { return (l.pre ? '\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n' : '') + l.code.replace(';  ', ';\n'); }).join('\n');
   },
   label: function (c) { return (c.src === 'form' ? '화면 값으로 new' : '조회해 둔 객체') + ' · ' + { merge: 'merge', none: '아무것도 안 함', dirty: '변경 감지' }[c.how] + (c.how === 'merge' && c.after !== 'none' ? ' · 그 뒤 ' + (c.after === 'arg' ? 'm' : 'r') + '의 city 변경' : ''); },
   columns: ['em.contains(m)', '영속 상태인 객체', '이 트랜잭션에서 나간 SQL', 'DB에 남은 값 (name · city)'],
@@ -108,8 +109,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { m: null, mState: '', r: null, rName: '', snap: null, sent: [], db: { name: '김철수', city: '서울' }, cm: '?', cr: '?', flow: '', dbCls: '' };
     function show(x) { return x === null ? 'null' : x; }
     P.size(680, 310);
-    P.region('out', 16, 16, 200, 150, '영속성 컨텍스트 밖');
-    P.region('pc', 240, 16, 200, 150, '영속성 컨텍스트');
+    P.region('out', 16, 16, 200, 150, 'em이 관리하지 않는 객체');
+    P.region('pc', 240, 16, 200, 150, 'em의 영속성 컨텍스트');
     P.region('db', 464, 16, 200, 150, 'DB의 member 테이블');
     P.box('m', 34, 52, 164, 74, s.m ? { cls: s.mState === '준영속' ? 'hot' : 'good', title: 'm (' + s.mState + ')', sub: ['name: ' + show(s.m.name), 'city: ' + show(s.m.city)] } : { cls: 'ghost', title: 'm', sub: '아직 없음' });
     P.box('r', 258, 52, 164, 74, s.r ? { cls: s.r.city === null ? 'bad' : 'good', title: s.rName + ' (영속)', sub: ['name: ' + show(s.r.name), 'city: ' + show(s.r.city)] } : { cls: 'ghost', title: '영속 엔티티', sub: '없음' });

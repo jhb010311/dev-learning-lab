@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -75,7 +75,8 @@
 <li>You did not write in the code the work of creating a new list, taking values out one at a time, and storing them. nums is still [1, 2, 3, 4, 5, 6]. What happens when you leave out the line that collects is covered in the in-depth lab &quot;Lazy evaluation in streams&quot;.</li>
 </ul>
 <h2>Code</h2>
-<pre>List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6);
+<pre>// Only the lines inside main are shown (class, main declaration, and imports omitted)
+List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6);
 // Stream: create a flow that passes the values of nums along one at a time
 List&lt;Integer&gt; result = nums.stream()
     // Filter: let only the even values pass
@@ -175,6 +176,6 @@ System.out.println(nums);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

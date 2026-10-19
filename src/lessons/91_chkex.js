@@ -119,7 +119,7 @@ Lab.register({
       } else {
         if (h === 'wrap') {
           st.exc = 'RuntimeException (원인: ' + T + ')';
-          push('read의 catch 블록이 예외를 잡아 throw new RuntimeException(e)을 실행합니다: 원래 예외를 원인(cause)으로 담은 새 언체크 예외가 던져집니다. 예외의 종류만 바뀌었을 뿐, 문제가 해결된 것은 아닙니다.', 'bad');
+          push('read의 catch 블록이 예외를 잡아 throw new RuntimeException(e)을 실행합니다: 원래 예외를 원인(cause)으로 가리키는 새 언체크 예외가 던져집니다. 예외의 종류만 바뀌었을 뿐, 문제가 해결된 것은 아닙니다.', 'bad');
           crashed = 'java.lang.RuntimeException: ' + full + ': 파일 없음';
         } else crashed = full + ': 파일 없음';
         st.at = 'main';

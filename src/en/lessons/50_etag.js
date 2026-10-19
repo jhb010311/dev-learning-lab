@@ -18,7 +18,7 @@ Lab.register({
   ],
   code: function (c) {
     var h = { nostore: 'CacheControl.noStore()', max: 'CacheControl.maxAge(60, TimeUnit.SECONDS)', nocache: 'CacheControl.noCache()' }[c.cc];
-    return '@GetMapping("/products/{id}")\nResponseEntity<Product> get(@PathVariable long id) {\n    Product p = productService.find(id);\n    return ResponseEntity.ok()\n        .cacheControl(' + h + ')\n' + (c.cc === 'nostore' ? '' : '        .eTag("\\"v' + '" + p.getVersion() + "\\"")     // a tag for the version of the content\n') + '        .body(p);\n}\n\n// If the If-None-Match of the request equals the current ETag,\n// Spring responds with 304 Not Modified and no body';
+    return '// Only the method inside the controller class is shown (class declaration, the productService field, the example Product class, and imports omitted)\n@GetMapping("/products/{id}")\nResponseEntity<Product> get(@PathVariable long id) {\n    Product p = productService.find(id);\n    return ResponseEntity.ok()\n        .cacheControl(' + h + ')\n' + (c.cc === 'nostore' ? '' : '        .eTag("\\"v' + '" + p.getVersion() + "\\"")     // a tag for the version of the content\n') + '        .body(p);\n}\n\n// If the If-None-Match of the request equals the current ETag,\n// Spring responds with 304 Not Modified and no body';
   },
   label: function (c) { return { nostore: 'no-store', max: 'max-age=60 · ' + c.when + 's later', nocache: 'no-cache' }[c.cc] + (c.chg ? ' · content changed' : ' · content unchanged'); },
   columns: ['Request sent to the server the second time', 'Response', 'Body transferred', 'What appeared on screen'],

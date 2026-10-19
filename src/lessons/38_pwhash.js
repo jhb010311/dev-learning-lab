@@ -15,6 +15,9 @@ Lab.register({
     { t: 'bcrypt cost 14', q: 'bcrypt로 저장하고 cost를 14로 바꾸면', d: '공격은 더 느려지지만 로그인 검증도 느려집니다.', v: { how: 'bcrypt', cost: '14' } },
   ],
   code: function (c) {
+    return '// 메서드 안의 줄만 보임 (선언과 import는 생략. member·rawPassword는 예시로 만든 변수)\n' + this.codeBody(c);
+  },
+  codeBody: function (c) {
     if (c.how === 'plain') return '// 입력을 그대로 저장\nmember.setPassword(rawPassword);';
     if (c.how === 'sha') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] hash = md.digest(rawPassword.getBytes(UTF_8));\nmember.setPassword(HexFormat.of().formatHex(hash));';
     if (c.how === 'salt') return 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nString salt = randomString(6);                  // 회원마다 다른 임의의 값 (randomString은 예시로 만든 메서드)\nbyte[] hash = md.digest((salt + rawPassword).getBytes(UTF_8));\nmember.setSalt(salt);                            // 솔트는 숨기지 않고 함께 저장\nmember.setPassword(HexFormat.of().formatHex(hash));';

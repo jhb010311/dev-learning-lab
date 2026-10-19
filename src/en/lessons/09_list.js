@@ -19,10 +19,11 @@ Lab.register({
   ],
   idx: function (c) { return c.pos === 'front' ? 0 : c.pos === 'mid' ? c.n >> 1 : c.op === 'add' ? c.n : c.n - 1; },
   code: function (c) {
+    var H = '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n';
     var T = c.ds === 'array' ? 'ArrayList' : 'LinkedList', i = this.idx(c);
-    if (c.op === 'append') return 'List<Integer> list = new ' + T + '<>();   // empty list\nfor (int x = 1; x <= ' + c.n + '; x++) {\n    list.add(x);                     // append to the end\n}';
+    if (c.op === 'append') return H + 'List<Integer> list = new ' + T + '<>();   // empty list\nfor (int x = 1; x <= ' + c.n + '; x++) {\n    list.add(x);                     // append to the end\n}';
     var call = c.op === 'get' ? 'list.get(' + i + ');' : c.op === 'add' ? 'list.add(' + i + ', 99);' : 'list.remove(' + i + ');';
-    return 'List<Integer> list = new ' + T + '<>();\n// ... the list now holds ' + c.n + ' elements (values 1 to ' + c.n + ', indexes 0 to ' + (c.n - 1) + ')\n\n' + call + '        // ' + { front: 'beginning', mid: 'middle', back: 'end' }[c.pos];
+    return H + 'List<Integer> list = new ' + T + '<>();\n// ... the list now holds ' + c.n + ' elements (values 1 to ' + c.n + ', indexes 0 to ' + (c.n - 1) + ')\n\n' + call + '        // ' + { front: 'beginning', mid: 'middle', back: 'end' }[c.pos];
   },
   label: function (c) { return (c.ds === 'array' ? 'ArrayList' : 'LinkedList') + ' · ' + (c.op === 'append' ? 'repeated append' : { get: 'get', add: 'insert', remove: 'remove' }[c.op] + ' ' + { front: 'at the beginning', mid: 'in the middle', back: 'at the end' }[c.pos]) + ' · ' + c.n + ' elements'; },
   columns: ['Nodes traversed', 'Elements shifted or copied', 'Time complexity'],

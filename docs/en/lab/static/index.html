@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,14 +80,18 @@
     }
 }
 
-Counter a = new Counter();
-Counter b = new Counter();
-a.hit();
-a.hit();
-b.hit();
-System.out.println(a.count + &quot; &quot; + b.count);</pre>
+public class Main {
+    public static void main(String[] args) {
+        Counter a = new Counter();
+        Counter b = new Counter();
+        a.hit();
+        a.hit();
+        b.hit();
+        System.out.println(a.count + &quot; &quot; + b.count);
+    }
+}</pre>
 <h2>Assumptions of this model</h2>
-<p>All 30 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, and the output were checked against the results. It was also confirmed by execution that the &quot;static method that receives an object as an argument&quot;, which the summary gives as a fix, compiles and runs, and that the object is not used when a static field is read through an object variable (no exception is thrown even when it is read through a variable that is null). Simplifications: the &quot;class&quot; area in the diagram lumps together the place where the JVM keeps class information, and exactly where in memory a static field is placed depends on the JVM implementation. The exact moment when the class is made ready (when an object is first created or a static member is first used) is reduced to the single step &quot;Execution starts&quot;. Code that uses a static field through an object variable, as in a.count, compiles but is not recommended, and it is included here to show that the field is shared. The error message is the first line of the English message from javac.</p>
+<p>All 30 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, and the output were checked against the results. It was also confirmed by execution that the &quot;static method that receives an object as an argument&quot;, which the summary gives as a fix, compiles and runs, and that the object is not used when a static field is read through an object variable (no exception is thrown even when it is read through a variable that is null). Simplifications: the &quot;class&quot; area in the diagram lumps together the place where the JVM keeps class information, and exactly where in memory a static field is placed depends on the JVM implementation. The class exists once because a single class loader loads it in this lab; if different class loaders load the same class separately, each gets its own static field. The exact moment when the class is made ready (when an object is first created or a static member is first used) is reduced to the single step &quot;Execution starts&quot;. Code that uses a static field through an object variable, as in a.count, compiles but is not recommended, and it is included here to show that the field is shared. The error message is the first line of the English message from javac.</p>
 <p>Previous lab: <a href="../../lab/ctor/">Classes, objects, and constructors</a> · Next lab: <a href="../../lab/inherit/">Inheritance and overriding</a></p>
   </div>
 
@@ -175,6 +179,6 @@ System.out.println(a.count + &quot; &quot; + b.count);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

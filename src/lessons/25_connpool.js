@@ -18,7 +18,7 @@ Lab.register({
     { t: '쿼리 자체가 느리면', q: 'DB 작업에 2초가 걸리고 외부 API 호출이 없는 상태에서 OSIV를 끄면', d: 'OSIV를 꺼도 DB 작업 2초 동안은 커넥션을 씁니다.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
   ],
   code: function (c) {
-    return '# application.yml\nspring.datasource.hikari.maximum-pool-size: ' + c.pool + '\nspring.datasource.hikari.connection-timeout: 5000   # 5초 기다리다 실패\nspring.jpa.open-in-view: ' + c.osiv + '\n\n// 컨트롤러\nOrderDto get(long id) {\n    Order order = orderService.find(id);       // @Transactional, DB 작업 ' + c.q + '초\n' + (c.ext !== '0' ? '    Delivery d = deliveryApi.track(order);     // 외부 API ' + c.ext + '초 (DB 안 씀)\n' : '') + '    return OrderDto.of(order' + (c.ext !== '0' ? ', d' : '') + ');\n}';
+    return '# application.yml\nspring.datasource.hikari.maximum-pool-size: ' + c.pool + '\nspring.datasource.hikari.connection-timeout: 5000   # 5초 기다리다 실패\nspring.jpa.open-in-view: ' + c.osiv + '\n\n// 컨트롤러 메서드 (클래스 선언·import와 예시로 만든 타입·필드의 선언은 생략)\nOrderDto get(long id) {\n    Order order = orderService.find(id);       // @Transactional, DB 작업 ' + c.q + '초\n' + (c.ext !== '0' ? '    Delivery d = deliveryApi.track(order);     // 외부 API ' + c.ext + '초 (DB 안 씀)\n' : '') + '    return OrderDto.of(order' + (c.ext !== '0' ? ', d' : '') + ');\n}';
   },
   label: function (c) { return '풀 ' + c.pool + '개 · 요청 ' + c.n + '건 · DB ' + c.q + '초 + 외부 ' + c.ext + '초 · OSIV ' + (c.osiv ? '켜짐' : '꺼짐'); },
   columns: ['성공', '커넥션 대기 시간 초과', '평균 대기', '가장 긴 대기', '커넥션 1개를 쥐는 시간'],

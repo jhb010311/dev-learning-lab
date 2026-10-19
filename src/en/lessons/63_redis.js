@@ -16,7 +16,7 @@ Lab.register({
   ],
   code: function (c) {
     var s = { none: '', keys: '\n// Admin script\nSet<String> keys = redis.keys("user:*");          // scans all the keys at once', scan: '\n// Admin script\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // scans in small pieces; count(1000) is a hint for how much to scan at a time\n    cur.forEachRemaining(this::handle);            // handle is a method made up for this example\n}', big: '\n// Batch job\nList<String> all = redis.opsForList().range("events", 0, -1);   // all 500,000' }[c.slow];
-    return '// Only the parts needed are kept. redis is the StringRedisTemplate from Spring\n\n// Services A and B: ordinary cache lookups\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// Services A and B at the same time\nredis.opsForValue().increment("view:1");           // reading + adding + writing is a single command\n' : '') + s;
+    return '// Only the needed parts are kept. redis is the StringRedisTemplate from Spring\n\n// Services A and B: ordinary cache lookups\nString v = redis.opsForValue().get("product:1");   // 0.1ms\n' + (c.incr ? '\n// Services A and B at the same time\nredis.opsForValue().increment("view:1");           // reading + adding + writing is a single command\n' : '') + s;
   },
   label: function (c) { return { none: 'Fast commands only', keys: 'With KEYS', scan: 'With SCAN', big: 'With a large list query' }[c.slow] + (c.incr ? ' · concurrent INCR' : ''); },
   columns: ['Longest wait of a command', 'Total processing time', 'Time the other clients were stalled'],

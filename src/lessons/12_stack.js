@@ -17,7 +17,7 @@ Lab.register({
     { t: '호출마다 객체 생성', q: '호출할 때마다 객체를 하나씩 만들면', d: '객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.', v: { n: 4, base: true, limit: 8, obj: true } },
   ],
   code: function (c) {
-    return 'static long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // 객체는 힙에, 변수 buf는 스택에\n' : '') + (c.base ? '    if (n <= 1) return 1;             // 종료 조건\n' : '    // 종료 조건 없음\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';
+    return '// 클래스 본문만 보임 (클래스 선언은 생략)\nstatic long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // 객체는 힙에, 변수 buf는 스택에\n' : '') + (c.base ? '    if (n <= 1) return 1;             // 종료 조건\n' : '    // 종료 조건 없음\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';
   },
   label: function (c) { return 'factorial(' + c.n + ') · 종료 조건 ' + (c.base ? '있음' : '없음') + ' · 스택 ' + c.limit + '개' + (c.obj ? ' · 객체 생성' : ''); },
   columns: ['결과', '가장 깊었던 스택', '만든 객체', '끝난 뒤 가리키는 곳 없는 객체'],

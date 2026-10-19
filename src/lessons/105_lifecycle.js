@@ -46,7 +46,7 @@ Lab.register({
     var out = [s];
     if (k.bean) out.push('@Configuration\nclass AppConfig {\n    @Bean(initMethod = "init", destroyMethod = "close")\n' + (proto ? '    @Scope("prototype")\n' : '') + (field ? '    PriceCache priceCache() {\n        return new PriceCache();\n    }\n' : '    PriceCache priceCache(PriceRepository repository) {\n        return new PriceCache(repository);\n    }\n') + '}');
     out.push('@Component\nclass PriceRepository {\n    Map<String, Integer> findAll() {\n        return new HashMap<>(Map.of("사과", 1000));\n    }\n}');
-    out.push('// 쓰는 곳\nPriceCache priceCache = context.getBean(PriceCache.class);\nint price = priceCache.price("사과");\ncontext.close();                              // 컨테이너를 닫는다');
+    out.push('// 쓰는 곳: 메서드 안의 줄만 보임 (메서드 선언과 context를 얻는 코드는 생략)\nPriceCache priceCache = context.getBean(PriceCache.class);\nint price = priceCache.price("사과");\ncontext.close();                              // 컨테이너를 닫는다');
     return out.join('\n\n');
   },
   label: function (c) { return (c.inj === 'field' ? '필드 주입' : '생성자 주입') + ' · ' + { ctor: '생성자에서 초기화', anno: '@PostConstruct', iface: 'InitializingBean', method: 'initMethod', all: '콜백 세 가지' }[c.cb] + (c.scope === 'prototype' ? ' · 프로토타입' : ''); },

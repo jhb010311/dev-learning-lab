@@ -16,7 +16,7 @@ Lab.register({
     { t: 'setAttribute를 지우면', q: 'login에서 session.setAttribute를 지우면', d: '세션 칸과 쿠키는 만들어지지만 칸이 비어 있어 서버는 누구인지 모릅니다.', v: { save: false, second: 'same' } },
   ],
   code: function (c) {
-    var out = ['@PostMapping("/login")', 'public String login(HttpSession session) {'];
+    var out = ['// 컨트롤러 클래스 본문만 보임 (@RestController 클래스 선언과 import는 생략)', '@PostMapping("/login")', 'public String login(HttpSession session) {'];
     if (c.save) out.push('    // 서버의 세션 저장소에 "이 세션의 사용자는 kim"이라고 적어 둔다', '    session.setAttribute("user", "kim");');
     out.push('    return "로그인됨";', '}', '', '@GetMapping("/me")', 'public String me(HttpSession session) {', '    // 요청에 실려 온 세션 번호로 저장소의 칸을 찾아 읽는다', '    Object user = session.getAttribute("user");', '    return user == null ? "누구인지 모름" : "안녕하세요, " + user;', '}');
     return out.join('\n');

@@ -18,8 +18,11 @@ Lab.register({
     { t: 'A long TTL', q: 'What if you change the cache TTL to 30s or more (never expires)?', d: 'The database is queried only when the cache is first filled. But a change in the source goes unnoticed for a long time.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
   ],
   code: function (c) {
-    if (c.ttl === '0') return 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // queries the database every time (' + c.dbt + 's)\n}';
-    return 'public Product getProduct(long id) {\n    String key = "product:" + id;\n    Product cached = redis.get(key);\n    if (cached != null) return cached;          // cache hit\n\n' + (c.lock && c.ttl !== '0' ? '    if (!lock.tryLock(key)) {                   // if another request is already querying\n        return waitAndReadCache(key);           // wait for its result\n    }\n' : '') + '    Product p = productRepository.findById(id); // database query (' + c.dbt + 's)\n    redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + 's\n    return p;\n}';
+    var head = '// Only one method is shown (class and field declarations, imports, and the example types and methods are omitted)\n';
+    if (c.ttl === '0') return head + 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // queries the database every time (' + c.dbt + 's)\n}';
+    var top = head + 'public Product getProduct(long id) {\n    String key = "product:" + id;\n    Product cached = redis.get(key);\n    if (cached != null) return cached;          // cache hit\n\n';
+    if (c.lock) return top + '    if (!lock.tryLock(key)) {                   // if another request is already querying\n        return waitAndReadCache(key);           // wait for its result\n    }\n    try {\n        cached = redis.get(key);                // another request may have filled it while we got the lock\n        if (cached != null) return cached;\n        Product p = productRepository.findById(id); // database query (' + c.dbt + 's)\n        redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + 's\n        return p;\n    } finally {\n        lock.unlock(key);                       // release the lock\n    }\n}';
+    return top + '    Product p = productRepository.findById(id); // database query (' + c.dbt + 's)\n    redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + 's\n    return p;\n}';
   },
   label: function (c) { return (c.ttl === '0' ? 'No cache' : 'TTL ' + c.ttl + 's') + ' · ' + c.rps + ' requests/s · DB query ' + c.dbt + 's' + (c.lock && c.ttl !== '0' ? ' · lock' : ''); },
   columns: ['Requests', 'Cache hit rate', 'Database queries', 'Peak simultaneous database queries', 'Average response time'],

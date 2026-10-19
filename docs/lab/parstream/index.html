@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,8 @@
 <li>병렬 스트림은 CPU를 쓰는 계산을 큰 데이터에 적용할 때만 이득입니다. 공용 풀의 크기가 코어 수에 맞춰져 있는 것도 그 용도이기 때문입니다. 원소가 적거나, 작업이 가볍거나, 기다림이 섞여 있으면 순차 스트림보다 느려질 수 있습니다. 웹 서버의 요청 처리 코드에서는 대부분 쓸 이유가 없습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 요청 A: 외부 API를 병렬 스트림 안에서 호출 (건당 2초)
+<pre>// 메서드 안의 줄만 보임 (클래스·메서드 선언, import, 예시로 만든 orders·items·deliveryApi·resize의 선언은 생략)
+// 요청 A: 외부 API를 병렬 스트림 안에서 호출 (건당 2초)
 orders.parallelStream()
       .forEach(o -&gt; deliveryApi.track(o));      // 공용 풀의 스레드가 2초씩 묶인다
 
@@ -159,6 +160,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

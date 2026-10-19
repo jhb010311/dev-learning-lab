@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -74,13 +74,17 @@
     public String toString() { return customer + &quot;:&quot; + price; }   // 짧게 출력하려고
 }
 
-List&lt;Order&gt; orders = List.of(
-    new Order(&quot;kim&quot;, 300), new Order(&quot;han&quot;, 100), new Order(&quot;kim&quot;, 200),
-    new Order(&quot;choi&quot;, 400), new Order(&quot;han&quot;, 500));
+public class Main {
+    public static void main(String[] args) {
+        List&lt;Order&gt; orders = List.of(
+            new Order(&quot;kim&quot;, 300), new Order(&quot;han&quot;, 100), new Order(&quot;kim&quot;, 200),
+            new Order(&quot;choi&quot;, 400), new Order(&quot;han&quot;, 500));
 
-Map&lt;String, Integer&gt; result = orders.stream()
-    .collect(Collectors.toMap(Order::customer, Order::price));
-System.out.println(result);</pre>
+        Map&lt;String, Integer&gt; result = orders.stream()
+            .collect(Collectors.toMap(Order::customer, Order::price));
+        System.out.println(result);
+    }
+}</pre>
 <h2>이 모형의 전제</h2>
 <p>스물네 가지 조합의 출력과 예외(종류와 메시지)를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. 결과의 타입은 그 타입으로 선언한 코드가 실제로 컴파일되는지로 확인했고, counting()의 결과를 Map&lt;String, Integer&gt;로 받으면 컴파일되지 않는 것도 확인했습니다. groupingBy와 toMap이 돌려주는 Map은 순서를 보장하지 않습니다(JDK 21에서는 HashMap). 이 실습은 Map을 키의 사전 순서로 정리해 보여 주며, 여기에 쓴 고객 이름들은 JDK 21의 실제 출력 순서도 그와 같았습니다. 다른 이름을 쓰면 실제 출력 순서는 달라질 수 있습니다. 예외 메시지의 글귀는 JDK 버전에 따라 다를 수 있습니다. 스트림은 원소를 하나씩 차례로 처리하는 경우(병렬이 아닌 스트림)만 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/stream/">스트림 지연 평가</a> · 다음 실습: <a href="../../lab/parstream/">병렬 스트림과 공용 풀</a></p>
@@ -170,6 +174,6 @@ System.out.println(result);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

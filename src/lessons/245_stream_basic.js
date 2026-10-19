@@ -19,7 +19,7 @@ Lab.register({
   nums: [1, 2, 3, 4, 5, 6],
   // 화면의 코드. 스트림은 한 줄이 한 단계, for 문은 새 리스트와 반복, if, add가 같은 일을 한다
   code: function (c) {
-    var o = ['List<Integer> nums = List.of(1, 2, 3, 4, 5, 6);'];
+    var o = ['// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)', 'List<Integer> nums = List.of(1, 2, 3, 4, 5, 6);'];
     if (c.style === 'stream') {
       o.push('// 스트림: nums의 값을 하나씩 흘려보내는 흐름을 만든다', 'List<Integer> result = nums.stream()');
       if (c.filter) o.push('    // 거르기: 짝수인 값만 통과시킨다', '    .filter(n -> n % 2 == 0)');

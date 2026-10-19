@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Generics: What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from? · Dev Learning Lab</title>
-<meta name="description" content="Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a valu…">
+<meta name="description" content="Generics are the syntax for writing &quot;what type the elements of this list are&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects co…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Generics: What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from? · Dev Learning Lab">
-<meta property="og:description" content="Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a valu…">
+<meta property="og:description" content="Generics are the syntax for writing &quot;what type the elements of this list are&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects co…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Generics</h1>
 <p><b>What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</b></p>
-<p>Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.</p>
+<p>Generics are the syntax for writing &quot;what type the elements of this list are&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.</p>
 <p>Checked against real execution · All 20 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -56,11 +56,11 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>List&lt;Integer&gt; ints is created, and 1 and 2 are added: &lt;Integer&gt; is a type argument that says &quot;this list holds only Integer&quot;. The compiler reads this type argument and checks the code that adds values to ints and gets values from it.</li>
+<li>List&lt;Integer&gt; ints is created, and 1 and 2 are added: &lt;Integer&gt; is a type argument that says &quot;only Integer values go into this list&quot;. The compiler reads this type argument and checks the code that adds values to ints and gets values from it.</li>
 <li>List list = ints is checked: The same list is now also referred to by the variable list, which is declared without a type argument (&lt;...&gt;). A generic type used this way, without type arguments, is called a raw type. It is a form that was kept so that code from the time before generics can still be used, so the assignment compiles. In return, the compiler cannot check what is added to list.</li>
 <li>list.add(&quot;three&quot;) is checked: list is a raw type, so the compiler cannot check the type of the value that is added. It gives only a warning, not an error (&quot;unchecked call to add(E) as a member of the raw type List&quot;). This code adds a String to a list of Integer, and yet it compiles.</li>
 <li>Compilation succeeded: A warning does not stop compilation. The program now runs.</li>
-<li>list.add(&quot;three&quot;) runs: The list object at run time does not remember that it is meant for Integer. Nothing is checked when a value is added, so the String value (three) goes in as it is. list and ints are the same object, so a String has gone into ints, which is meant to hold only Integer.</li>
+<li>list.add(&quot;three&quot;) runs: The list object at run time does not remember that it is meant for Integer. Nothing is checked when a value is added, so the String value (three) goes in as it is. list and ints are the same object, so ints, whose elements are meant to be only Integer, now has a String element.</li>
 <li>System.out.println(ints) runs: It prints the contents of the list. The output is [1, 2, three]. Printing does not care what type the elements are, so nothing happens yet.</li>
 <li>ints.getClass() == strs.getClass() runs: It prints true. At run time, a List&lt;Integer&gt; and a List&lt;String&gt; are objects of the very same ArrayList class. &lt;Integer&gt; and &lt;String&gt; are used only for the checks at compile time and do not remain in the code that runs (type erasure).</li>
 <li>Integer last = ints.get(ints.size() - 1) runs: A ClassCastException is thrown. ints is a List&lt;Integer&gt;, so the compiler inserted a cast on this line that &quot;converts the value taken out to an Integer&quot;. But the value that actually comes out is a String. The failure happens not on the line that added the wrong value but much later, on the line that takes it out, so the cause is hard to find.</li>
@@ -71,7 +71,8 @@
 <li>The true in the output shows type erasure. A list at run time does not remember its element type, so all the protection that generics give happens at compile time. If you bypass that check with a raw type, nothing is left to stop the mistake.</li>
 </ul>
 <h2>Code</h2>
-<pre>List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
+<pre>// Only the lines inside main are shown (class, main declaration, and imports omitted)
+List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
 ints.add(1);
 ints.add(2);
 
@@ -172,6 +173,6 @@ System.out.println(&quot;last value: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

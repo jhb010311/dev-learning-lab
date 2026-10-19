@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -73,7 +73,8 @@
 <li>거절할 때는 429 상태 코드와 함께 언제 다시 시도하면 되는지(Retry-After 헤더)를 알려 주는 것이 좋습니다. 서버가 여러 대면 카운터를 Redis 같은 공용 저장소에 둬야 제한이 서버 수만큼 늘어나지 않습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 고정 윈도: 키 = 사용자 + 현재 초
+<pre>// 메서드 안의 줄만 보임 (선언과 import는 생략. tooManyRequests는 예시로 만든 메서드)
+// 고정 윈도: 키 = 사용자 + 현재 초
 String key = &quot;rate:&quot; + userId + &quot;:&quot; + (now / 1000);
 long count = redis.incr(key);            // 이번 초의 요청 수 +1
 if (count == 1) redis.expire(key, 1);    // 1초 뒤 사라짐
@@ -167,6 +168,6 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

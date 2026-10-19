@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,8 @@
 <li>When it saved, JPA took the id out of the kim object and put it in member_id, and when it read, it used that number to make a Member object and had the member field point to it. So you get the name of the member by following the objects, as in o.getMember().getName().</li>
 </ul>
 <h2>Code</h2>
-<pre>@Entity
+<pre>// Only the needed parts are kept (the Member entity, Order's constructors and getters, em setup, and imports omitted)
+@Entity
 @Table(name = &quot;orders&quot;)
 public class Order {
     @Id
@@ -171,6 +172,6 @@ System.out.println(o.getMember().getName());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

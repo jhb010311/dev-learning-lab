@@ -18,9 +18,10 @@ Lab.register({
   ],
   CALLS: [['상품 정보', 0.3], ['재고', 0.5], ['리뷰', 0.8], ['추천 상품', 1.6], ['쿠폰', 0.4]],
   code: function (c) {
+    var H = '// 메서드 안의 줄만 보임 (클래스·메서드 선언, import, 예시로 만든 productApi·ProductPage 등의 선언은 생략)\n';
     var names = ['product', 'stock', 'reviews', 'recommend', 'coupons'].slice(0, c.n), api = ['productApi.get(id)', 'stockApi.get(id)', 'reviewApi.list(id)', 'recommendApi.list(id)', 'couponApi.list(id)'];
-    if (c.how === 'seq') return names.map(function (nm, i) { return 'var ' + nm + ' = ' + api[i] + ';'; }).join('\n') + '\n\nreturn new ProductPage(' + names.join(', ') + ');';
-    return 'ExecutorService pool = Executors.newFixedThreadPool(' + c.pool + ');\n\n' + names.map(function (nm, i) { return 'var ' + nm + 'F = CompletableFuture.supplyAsync(() -> ' + api[i] + ', pool)' + (c.to ? '\n        .completeOnTimeout(defaultValue(), 1, TimeUnit.SECONDS)' : '') + ';'; }).join('\n') + '\n\nCompletableFuture.allOf(' + names.map(function (nm) { return nm + 'F'; }).join(', ') + ').join();   // 전부 끝날 때까지 대기\nreturn new ProductPage(' + names.map(function (nm) { return nm + 'F.join()'; }).join(', ') + ');';
+    if (c.how === 'seq') return H + names.map(function (nm, i) { return 'var ' + nm + ' = ' + api[i] + ';'; }).join('\n') + '\n\nreturn new ProductPage(' + names.join(', ') + ');';
+    return H + 'ExecutorService pool = Executors.newFixedThreadPool(' + c.pool + ');\n\n' + names.map(function (nm, i) { return 'var ' + nm + 'F = CompletableFuture.supplyAsync(() -> ' + api[i] + ', pool)' + (c.to ? '\n        .completeOnTimeout(defaultValue(), 1, TimeUnit.SECONDS)' : '') + ';'; }).join('\n') + '\n\nCompletableFuture.allOf(' + names.map(function (nm) { return nm + 'F'; }).join(', ') + ').join();   // 전부 끝날 때까지 대기\nreturn new ProductPage(' + names.map(function (nm) { return nm + 'F.join()'; }).join(', ') + ');';
   },
   label: function (c) { return (c.how === 'seq' ? '순차' : '병렬 (스레드 ' + c.pool + '개)') + ' · ' + c.n + '개 호출' + (c.to ? ' · 제한 1초' : ''); },
   columns: ['전체 응답 시간', '호출 시간의 합', '가장 느린 호출', '기본값으로 대신한 호출'],

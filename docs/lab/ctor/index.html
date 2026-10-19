@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>클래스, 객체, 생성자</h1>
 <p><b>new를 하면 어떤 순서로 무슨 일이 일어나나</b></p>
-<p>클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않기도 합니다.</p>
+<p>클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않기도 합니다(Order는 이 실습에서 예시로 만든 클래스입니다).</p>
 <p>실행으로 대조 · JDK 21에서 열여섯 가지 조합을 컴파일하고 실행해 컴파일 결과, 실행 순서, 출력을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,7 @@
 <li>Order(int extra) 본문의 qty = qty + extra: 초기화가 끝난 뒤에야 생성자 본문이 실행됩니다. 지금 qty인 20에 extra 1을 더해 qty가 21이 됩니다.</li>
 <li>Order(int extra) 본문의 memo = &quot;추가 &quot; + extra: null이던 memo에 &quot;추가 1&quot;이 들어갑니다.</li>
 <li>Order()의 나머지 본문 memo = &quot;기본&quot;: this(1)로 부른 생성자가 끝나 Order()로 돌아왔습니다. memo가 &quot;추가 1&quot;에서 &quot;기본&quot;으로 바뀝니다. 초기화식과 블록은 다시 실행되지 않습니다.</li>
-<li>Order o = new Order(): 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 변수 o가 그 참조를 담습니다.</li>
+<li>Order o = new Order(): 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 이제 변수 o가 그 객체를 가리킵니다.</li>
 <li>System.out.println(o.qty + &quot;, &quot; + o.memo): o가 가리키는 객체의 qty와 memo를 읽어 출력합니다. 출력은 21, 기본입니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -94,8 +94,12 @@
     }
 }
 
-Order o = new Order();
-System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
+public class Main {
+    public static void main(String[] args) {
+        Order o = new Order();
+        System.out.println(o.qty + &quot;, &quot; + o.memo);
+    }
+}</pre>
 <h2>이 모형의 전제</h2>
 <p>열여섯 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 초기화식과 블록과 생성자 본문이 실행된 순서, 출력을 대조했습니다. 실행된 순서는 같은 코드에 기록하는 줄만 끼워 넣어 확인했고, 필드가 초기화식보다 먼저 기본값(0, null)으로 채워져 있다는 것도 실행으로 확인했습니다. 단순화한 점: 모든 생성자는 본문보다 먼저 부모 클래스(여기서는 Object)의 생성자를 부르는데, 이 단계는 그림에서 뺐습니다(&quot;상속과 오버라이딩&quot; 실습에서 다룹니다). 초기화 블록은 실무에서 자주 쓰지는 않으며, 순서를 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다. this(...)를 생성자의 첫 문장으로만 쓸 수 있다는 것은 JDK 21 기준이며 검증할 때 컴파일로 확인했습니다. 더 새로운 JDK에서는 this(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 검증할 때는 확인하지 못했습니다.</p>
 <p>앞 실습: <a href="../../lab/array/">배열</a> · 다음 실습: <a href="../../lab/static/">static과 인스턴스</a></p>
@@ -185,6 +189,6 @@ System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

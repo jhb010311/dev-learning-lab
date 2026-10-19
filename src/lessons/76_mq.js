@@ -17,8 +17,9 @@ Lab.register({
     { t: '메일이 아주 느릴 때', q: '메시지 큐에 넣고 바로 응답하는데 연달아 들어오는 주문이 5건이고 메일 한 통을 보내는 데 3초가 걸리면', d: '3초짜리 작업. 두 방식의 주문 응답 시간을 비교해 보세요.', v: { how: 'queue', n: 5, work: '3000', state: 'ok' } },
   ],
   code: function (c) {
-    if (c.how === 'direct') return '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    mailClient.sendConfirm(order);                 // 메일 서버를 직접 호출하고 기다린다\n    return OrderDto.of(order);                     // 메일이 끝나야 응답\n}';
-    return '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    queue.send("order-created", order.getId());    // 메시지만 넣고 기다리지 않는다\n    return OrderDto.of(order);                     // 바로 응답\n}\n\n// 메일 서버 쪽: 큐에서 하나씩 꺼내 처리한다\n@RabbitListener(queues = "order-created")\nvoid onOrder(long orderId) {\n    mailSender.sendConfirm(orderId);\n}';
+    var H = '// 메서드만 보임 (클래스 선언, import, 예시로 만든 Order·OrderDto·orderService 등의 선언은 생략)\n';
+    if (c.how === 'direct') return H + '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    mailClient.sendConfirm(order);                 // 메일 서버를 직접 호출하고 기다린다\n    return OrderDto.of(order);                     // 메일이 끝나야 응답\n}';
+    return H + '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    queue.send("order-created", order.getId());    // 메시지만 넣고 기다리지 않는다\n    return OrderDto.of(order);                     // 바로 응답\n}\n\n// 메일 서버 쪽: 큐에서 하나씩 꺼내 처리한다\n@RabbitListener(queues = "order-created")\nvoid onOrder(long orderId) {\n    mailSender.sendConfirm(orderId);\n}';
   },
   label: function (c) { return (c.how === 'direct' ? '직접 호출' : '메시지 큐') + ' · ' + c.n + '건 · 메일 ' + (+c.work / 1000) + '초 · ' + (c.state === 'ok' ? '정상' : '메일 서버 죽음'); },
   columns: ['주문 성공', '주문 한 건의 응답 시간', '보낸 메일', '큐에 가장 많이 쌓인 수'],

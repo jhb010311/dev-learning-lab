@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,8 @@
 <li>A queue suits work that does not need a result in the response and can be a little late. Email, notifications, and aggregating statistics are typical examples. Work where you need the result before you can go on, such as payment approval, is done with a direct call.</li>
 </ul>
 <h2>Code</h2>
-<pre>@PostMapping(&quot;/orders&quot;)
+<pre>// Only the methods are shown (class declarations, imports, and the example Order, OrderDto, orderService, etc. omitted)
+@PostMapping(&quot;/orders&quot;)
 OrderDto order(@RequestBody OrderRequest req) {
     Order order = orderService.save(req);          // 0.05s
     mailClient.sendConfirm(order);                 // calls the email server directly and waits
@@ -162,6 +163,6 @@ OrderDto order(@RequestBody OrderRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -11,7 +11,8 @@ const cfg = k => { const [mod, from] = k.split('|'); return { mod, from }; };
 let ok = 0, okSrc = 0, okM = 0;
 for (const ln of lines) {
   const [k, v] = ln.split(' => '), [comp, errCount, msg] = v.split('|');
-  const row = lesson.simulate(cfg(k)).row, model = [row[0], row[2]], real = [comp, msg === '-' ? '없음' : msg];
+  // 프로브는 컴파일러 API의 getMessage라 클래스 이름을 bank.Account로 적는다. 명령줄 javac 21은 같은 오류를 "in Account"로 찍으므로(직접 확인) 화면은 그쪽을 따르고, 여기서 맞춰 비교한다.
+  const row = lesson.simulate(cfg(k)).row, model = [row[0], row[2]], real = [comp, msg === '-' ? '없음' : msg.replace(/\bbank\.Account\b/g, 'Account')];
   if (JSON.stringify(model) === JSON.stringify(real) && errCount === (comp === '성공' ? '0' : '1')) ok++; else console.log('다름: ' + k + '  모형 ' + model.join(' | ') + '  실제 ' + real.join(' | '));
 }
 for (const ln of srcs) {

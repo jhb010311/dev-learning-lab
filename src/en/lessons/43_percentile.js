@@ -15,7 +15,7 @@ Lab.register({
     { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average goes above 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
-    return '// Micrometer: also record percentiles of the response time\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
+    return '// Micrometer: also record percentiles of the response time (only lines inside a method are shown; declarations and imports omitted)\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
   },
   label: function (c) { return c.ratio === '0' ? 'No slow requests' : 'Slow requests: ' + c.ratio + '% · ' + c.slow + 's'; },
   columns: ['Average', 'p50 (median)', 'p95', 'p99', 'Maximum'],

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,8 @@
 <li>Replication is usually asynchronous, so there is a time lag between the source and the replica. Given time they become the same, but before that they can differ (eventual consistency). Ways to handle this are to read the data a user has just written from the source, or, on the screen right after a write, to use the value received in the response as it is.</li>
 </ul>
 <h2>Code</h2>
-<pre>// A case where the data sources are set up separately so that readOnly transactions go to the replica and everything else goes to the source
+<pre>// Only the service class body is shown (class declaration, memberRepository field, the example Member entity, and imports omitted)
+// A case where the data sources are set up separately so that readOnly transactions go to the replica and everything else goes to the source
 @Transactional
 public void changeNickname(long id, String name) {     // -&gt; source
     memberRepository.findById(id).orElseThrow().setNickname(name);
@@ -164,6 +165,6 @@ public Member getMember(long id) {                      // -&gt; replica
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

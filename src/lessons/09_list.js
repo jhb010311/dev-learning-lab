@@ -19,10 +19,11 @@ Lab.register({
   ],
   idx: function (c) { return c.pos === 'front' ? 0 : c.pos === 'mid' ? c.n >> 1 : c.op === 'add' ? c.n : c.n - 1; },
   code: function (c) {
+    var H = '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n';
     var T = c.ds === 'array' ? 'ArrayList' : 'LinkedList', i = this.idx(c);
-    if (c.op === 'append') return 'List<Integer> list = new ' + T + '<>();   // 빈 리스트\nfor (int x = 1; x <= ' + c.n + '; x++) {\n    list.add(x);                     // 맨 뒤에 추가\n}';
+    if (c.op === 'append') return H + 'List<Integer> list = new ' + T + '<>();   // 빈 리스트\nfor (int x = 1; x <= ' + c.n + '; x++) {\n    list.add(x);                     // 맨 뒤에 추가\n}';
     var call = c.op === 'get' ? 'list.get(' + i + ');' : c.op === 'add' ? 'list.add(' + i + ', 99);' : 'list.remove(' + i + ');';
-    return 'List<Integer> list = new ' + T + '<>();\n// ... 원소 ' + c.n + '개(값 1 ~ ' + c.n + ')가 들어 있는 상태 (인덱스 0 ~ ' + (c.n - 1) + ')\n\n' + call + '        // ' + { front: '맨 앞', mid: '가운데', back: '맨 뒤' }[c.pos];
+    return H + 'List<Integer> list = new ' + T + '<>();\n// ... 원소 ' + c.n + '개(값 1 ~ ' + c.n + ')가 들어 있는 상태 (인덱스 0 ~ ' + (c.n - 1) + ')\n\n' + call + '        // ' + { front: '맨 앞', mid: '가운데', back: '맨 뒤' }[c.pos];
   },
   label: function (c) { return (c.ds === 'array' ? 'ArrayList' : 'LinkedList') + ' · ' + (c.op === 'append' ? '연속 추가' : { get: '조회', add: '삽입', remove: '삭제' }[c.op] + ' ' + { front: '맨 앞', mid: '가운데', back: '맨 뒤' }[c.pos]) + ' · ' + c.n + '개'; },
   columns: ['따라간 노드', '옮기거나 복사한 원소', '시간 복잡도'],

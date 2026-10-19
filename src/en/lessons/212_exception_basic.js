@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exception_basic', nav: 'Exceptions', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['exflow'],
   title: 'What is an exception, and what does try-catch do?',
-  intro: 'An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. try { } wraps code that might fail. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.',
+  intro: 'An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. You write the code that might fail between the braces of try { }. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.',
   terms: ['Exception and Error', 'try-catch', 'Throwing an exception (throw)', 'NullPointerException'],
   controls: [
     { id: 'tc', label: 'Wrap in try-catch', type: 'check', value: true },
@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var o = ['public class Main {', '    public static void main(String[] args) {', '        int a = 10;', '        int b = ' + (c.b === 'zero' ? '0' : '2') + ';'];
-    if (c.tc) o.push('        // try: wrap code that might fail', '        try {', '            System.out.println(a / b);', '        // catch: if an exception occurs, execution jumps here', '        } catch (' + (c.kind === 'arith' ? 'ArithmeticException' : 'NullPointerException') + ' e) {', '            System.out.println("Cannot divide by zero");', '        }');
+    if (c.tc) o.push('        // try block: write the code that might fail here', '        try {', '            System.out.println(a / b);', '        // catch: if an exception occurs, execution jumps here', '        } catch (' + (c.kind === 'arith' ? 'ArithmeticException' : 'NullPointerException') + ' e) {', '            System.out.println("Cannot divide by zero");', '        }');
     else o.push('        System.out.println(a / b);');
     o.push('        System.out.println("Done");', '    }', '}');
     return o.join('\n');

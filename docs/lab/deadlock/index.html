@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,8 @@
 <li>교착 상태는 네 조건이 모두 맞을 때 생깁니다: 한 번에 하나만 쓸 수 있는 자원, 가진 채로 다른 것을 기다림, 남의 것을 뺏을 수 없음, 기다림이 고리를 이룸. 이 중 하나만 깨면 됩니다. 락 순서 통일은 고리를 깹니다. tryLock은 끝없이 기다리지 않게 해서, 제한 시간이 지나면 포기하고 쥐고 있던 락을 내려놓게 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>void transfer(Account from, Account to, long amount) {
+<pre>// 클래스 본문만 보임 (클래스 선언, import, 예시로 만든 Account 클래스의 선언은 생략)
+void transfer(Account from, Account to, long amount) {
     synchronized (from) {                 // 보내는 계좌부터 잠근다
         synchronized (to) {
             from.withdraw(amount);
@@ -164,6 +165,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

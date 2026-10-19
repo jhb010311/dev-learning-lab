@@ -32,13 +32,13 @@ Lab.register({
   },
   code: function (c) {
     var T = this.token(c), V = this.V;
-    var head = '// 요청 헤더  Authorization: Bearer <토큰>\n// 토큰  ' + T.part[0] + '\n//       .' + T.part[1] + '\n//       .' + (T.part[2] || '(비어 있음)') + '\n// 지금  now = ' + V.now[c.time] + '   (exp = ' + V.exp + ')\n\n';
+    var head = '// 서버 클래스 안의 메서드만 보임 (클래스 선언, serverKey 필드, import는 생략)\n// 요청 헤더  Authorization: Bearer <토큰>\n// 토큰  ' + T.part[0] + '\n//       .' + T.part[1] + '\n//       .' + (T.part[2] || '(비어 있음)') + '\n// 지금  now = ' + V.now[c.time] + '   (exp = ' + V.exp + ')\n\n';
     var open = 'Claims verify(String token, long now) throws Exception {\n    String[] part = token.split("\\\\.", -1);                 // 머리말 . 내용 . 서명\n    if (part.length != 3) throw new BadTokenException("형식 오류");\n    Base64.Decoder dec = Base64.getUrlDecoder();\n    String header  = new String(dec.decode(part[0]), UTF_8);   // 키 없이 풀린다\n    String payload = new String(dec.decode(part[1]), UTF_8);   // 키 없이 풀린다\n\n';
     var sig = function (pad) { return pad + '// 2. 서명: 앞의 두 부분으로 서버가 직접 다시 계산해 비교한다\n' + pad + 'Mac mac = Mac.getInstance("HmacSHA256");\n' + pad + 'mac.init(new SecretKeySpec(serverKey, "HmacSHA256"));  // 서버만 아는 키\n' + pad + 'byte[] expected = mac.doFinal((part[0] + "." + part[1]).getBytes(US_ASCII));\n' + pad + 'if (!MessageDigest.isEqual(expected, dec.decode(part[2])))\n' + pad + '    throw new BadTokenException("서명 불일치");\n'; };
     var alg = c.policy === 'fixed'
       ? '    // 1. 알고리즘: 서버가 정해 둔 HS256만 받는다\n    if (!"HS256".equals(field(header, "alg")))\n        throw new BadTokenException("허용하지 않는 알고리즘");\n\n' + sig('    ')
       : '    // 1. 알고리즘: 토큰의 머리말에 적힌 대로 따른다 (위험한 방식)\n    String alg = field(header, "alg");\n    if (alg.equals("HS256")) {\n' + sig('        ') + '    } else if (alg.equals("none")) {\n        // "서명이 없는 토큰"으로 보고 서명 확인을 건너뛴다\n    } else {\n        throw new BadTokenException("허용하지 않는 알고리즘");\n    }\n';
-    var tail = '\n    // 3. 만료: 지금이 exp보다 앞이어야 한다\n    if (now >= Long.parseLong(field(payload, "exp")))\n        throw new BadTokenException("만료됨");\n    return new Claims(field(payload, "sub"), field(payload, "role"));   // 여기까지 와야 내용을 믿는다\n}\n\n// Claims, BadTokenException, field(json, 이름)은 이 예제에서 만든 클래스와 메서드다.\n// field는 JSON에서 값 하나를 꺼내는 도우미다.\n// 원리를 보이려고 직접 적은 코드다. 실제 서비스에서는 검증된 JWT 라이브러리를 쓴다.';
+    var tail = '\n    // 3. 만료: 지금이 exp보다 앞이어야 한다\n    if (now >= Long.parseLong(field(payload, "exp")))\n        throw new BadTokenException("만료됨");\n    return new Claims(field(payload, "sub"), field(payload, "role"));   // 여기까지 와야 내용을 믿는다\n}\n\n// Claims, BadTokenException, field(json, 이름)은 이 예제에서 만든 클래스와 메서드다(선언은 생략).\n// field는 JSON에서 값 하나를 꺼내는 도우미다.\n// 원리를 보이려고 직접 적은 코드다. 실제 서비스에서는 검증된 JWT 라이브러리를 쓴다.';
     return head + open + alg + tail;
   },
   label: function (c) { return { ok: '발급한 그대로', payload: '내용을 고침', otherkey: '다른 키로 서명', none: 'alg none' }[c.tok] + ' · ' + (c.time === 'before' ? '만료 전' : '만료 뒤') + ' · ' + (c.policy === 'fixed' ? '서버가 alg 지정' : '토큰의 alg를 따름'); },

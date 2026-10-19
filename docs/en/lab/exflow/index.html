@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,8 @@
 <li>The finally block runs in every case: normal completion, a return, or an exception (except when System.exit() ends the JVM). That is why releasing locks and cleaning up resources are placed in the finally block.</li>
 </ul>
 <h2>Code</h2>
-<pre>int run() {
+<pre>// Only the run method inside the class is shown (class declaration and the declarations of fail and print omitted)
+int run() {
     try {
         print(&quot;try start&quot;);
         if (fail) throw new IllegalArgumentException();  // fail is true
@@ -165,6 +166,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

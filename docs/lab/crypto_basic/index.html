@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,10 +55,10 @@
 <ol>
 <li>SecretKey key = newKey(); 줄을 실행합니다. 예시로 만든 도우미 메서드 newKey()가 열쇠를 하나 만들고, 변수 key가 그 열쇠를 가리킵니다. 열쇠는 글자를 암호화할 때와 풀 때 계산에 함께 넣는 값입니다.</li>
 <li>String sent = encrypt(&quot;카드번호 1234&quot;, key); 줄에서 보내는 쪽이 글자 &quot;카드번호 1234&quot;와 열쇠 key를 encrypt에 넣습니다. encrypt는 글자를 열쇠와 함께 계산해서 다른 값으로 바꿉니다.</li>
-<li>계산이 끝나고 알아볼 수 없는 값이 나와 sent에 담깁니다. 이 실습에서는 ih/DXie50GTx…로 시작하는 60자의 글자가 나왔습니다. 이 값에서는 &quot;카드번호 1234&quot;를 읽을 수 없습니다. 같은 글자를 같은 열쇠로 다시 암호화하면 다른 값이 나오므로, 이 값은 한 예입니다.</li>
+<li>계산이 끝나고 알아볼 수 없는 값이 나오고, 변수 sent가 그 값을 가리킵니다. 이 실습에서는 ih/DXie50GTx…로 시작하는 60자의 글자가 나왔습니다. 이 값에서는 &quot;카드번호 1234&quot;를 읽을 수 없습니다. 같은 글자를 같은 열쇠로 다시 암호화하면 다른 값이 나오므로, 이 값은 한 예입니다.</li>
 <li>sent의 값이 중간(네트워크나 저장소)을 지나 받는 쪽으로 갑니다. 중간에서 보이는 것은 이 값뿐입니다. 글자와 열쇠는 중간으로 보내지 않았으므로 보이지 않습니다.</li>
 <li>String read = decrypt(sent, key); 줄에서 받는 쪽이 받은 값 sent와 같은 열쇠 key를 decrypt에 넣습니다. decrypt는 암호화의 반대 계산인 복호화를 합니다.</li>
-<li>복호화 계산 결과로 원래 글자 &quot;카드번호 1234&quot;가 나와 read에 담깁니다. 암호화할 때 쓴 열쇠와 같은 열쇠를 넣었기 때문입니다.</li>
+<li>복호화 계산 결과로 원래 글자 &quot;카드번호 1234&quot;가 나오고, 변수 read가 그 글자를 가리킵니다. 암호화할 때 쓴 열쇠와 같은 열쇠를 넣었기 때문입니다.</li>
 <li>System.out.println(sent)가 알아볼 수 없는 값 60자 전체를 출력하고, System.out.println(read)가 카드번호 1234를 출력합니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -67,7 +67,8 @@
 <li>해시는 누구도 원래 글자로 되돌리지 못하게 하는 것이고, 암호화는 열쇠를 가진 쪽만 되돌리게 하는 것입니다. 그래서 값을 지키는 것이 아니라 열쇠를 지켜야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>SecretKey key = newKey();                       // 열쇠를 하나 만든다
+<pre>// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 도우미 메서드 newKey·encrypt·decrypt는 생략)
+SecretKey key = newKey();                       // 열쇠를 하나 만든다
 
 // 보내는 쪽: 글자를 열쇠로 암호화한다
 String sent = encrypt(&quot;카드번호 1234&quot;, key);
@@ -166,6 +167,6 @@ System.out.println(read);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

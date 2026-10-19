@@ -18,7 +18,7 @@ Lab.register({
     { t: 'When a 404 or 500 comes back', q: 'What if the server responds with 404 right away and a 3-second read timeout is set?', d: 'The response arrived, but in the calling code it shows up as an exception.', v: { server: 'e404', ct: true, rt: true } },
   ],
   code: function (c) {
-    return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\nSimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
       + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout\n' : '// no connect timeout is set (waits until the operating system gives up)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // read timeout\n' : '// no read timeout is set (waits with no limit)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // this thread waits here until the result comes back\n} catch (HttpClientErrorException e) {      // 4xx response\n} catch (HttpServerErrorException e) {      // 5xx response\n} catch (ResourceAccessException e) {       // connection failure, timeout\n}';

@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var decl = 'List<Integer> list = new ' + (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + '<>(List.of(1, 2, 2, 3, 4));\n\n';
-    return decl + { foreach: 'for (Integer x : list) {\n    if (x == 2) list.remove(x);          // 순회 중에 리스트를 직접 수정\n}', indexfwd: 'for (int i = 0; i < list.size(); i++) {\n    if (list.get(i) == 2) list.remove(i);\n}', indexback: 'for (int i = list.size() - 1; i >= 0; i--) {\n    if (list.get(i) == 2) list.remove(i);\n}', iterator: 'for (Iterator<Integer> it = list.iterator(); it.hasNext(); ) {\n    if (it.next() == 2) it.remove();     // 반복자를 통해 삭제\n}', removeIf: 'list.removeIf(x -> x == 2);' }[c.how];
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n' + decl + { foreach: 'for (Integer x : list) {\n    if (x == 2) list.remove(x);          // 순회 중에 리스트를 직접 수정\n}', indexfwd: 'for (int i = 0; i < list.size(); i++) {\n    if (list.get(i) == 2) list.remove(i);\n}', indexback: 'for (int i = list.size() - 1; i >= 0; i--) {\n    if (list.get(i) == 2) list.remove(i);\n}', iterator: 'for (Iterator<Integer> it = list.iterator(); it.hasNext(); ) {\n    if (it.next() == 2) it.remove();     // 반복자를 통해 삭제\n}', removeIf: 'list.removeIf(x -> x == 2);' }[c.how];
   },
   label: function (c) { return (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + ' · ' + { foreach: '향상된 for문', indexfwd: '인덱스 앞→뒤', indexback: '인덱스 뒤→앞', iterator: 'Iterator.remove', removeIf: 'removeIf' }[c.how]; },
   columns: ['결과 리스트', '예외', '2가 모두 지워졌나'],

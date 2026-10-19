@@ -18,9 +18,10 @@ Lab.register({
   ],
   CALLS: [['Product details', 0.3], ['Stock', 0.5], ['Reviews', 0.8], ['Recommendations', 1.6], ['Coupons', 0.4]],
   code: function (c) {
+    var H = '// Only the lines inside the method are shown (class, method declaration, imports, and the example productApi, ProductPage, etc. omitted)\n';
     var names = ['product', 'stock', 'reviews', 'recommend', 'coupons'].slice(0, c.n), api = ['productApi.get(id)', 'stockApi.get(id)', 'reviewApi.list(id)', 'recommendApi.list(id)', 'couponApi.list(id)'];
-    if (c.how === 'seq') return names.map(function (nm, i) { return 'var ' + nm + ' = ' + api[i] + ';'; }).join('\n') + '\n\nreturn new ProductPage(' + names.join(', ') + ');';
-    return 'ExecutorService pool = Executors.newFixedThreadPool(' + c.pool + ');\n\n' + names.map(function (nm, i) { return 'var ' + nm + 'F = CompletableFuture.supplyAsync(() -> ' + api[i] + ', pool)' + (c.to ? '\n        .completeOnTimeout(defaultValue(), 1, TimeUnit.SECONDS)' : '') + ';'; }).join('\n') + '\n\nCompletableFuture.allOf(' + names.map(function (nm) { return nm + 'F'; }).join(', ') + ').join();   // wait until all of them complete\nreturn new ProductPage(' + names.map(function (nm) { return nm + 'F.join()'; }).join(', ') + ');';
+    if (c.how === 'seq') return H + names.map(function (nm, i) { return 'var ' + nm + ' = ' + api[i] + ';'; }).join('\n') + '\n\nreturn new ProductPage(' + names.join(', ') + ');';
+    return H + 'ExecutorService pool = Executors.newFixedThreadPool(' + c.pool + ');\n\n' + names.map(function (nm, i) { return 'var ' + nm + 'F = CompletableFuture.supplyAsync(() -> ' + api[i] + ', pool)' + (c.to ? '\n        .completeOnTimeout(defaultValue(), 1, TimeUnit.SECONDS)' : '') + ';'; }).join('\n') + '\n\nCompletableFuture.allOf(' + names.map(function (nm) { return nm + 'F'; }).join(', ') + ').join();   // wait until all of them complete\nreturn new ProductPage(' + names.map(function (nm) { return nm + 'F.join()'; }).join(', ') + ');';
   },
   label: function (c) { return (c.how === 'seq' ? 'Sequential' : 'Parallel (threads: ' + c.pool + ')') + ' · ' + c.n + ' calls' + (c.to ? ' · 1s timeout' : ''); },
   columns: ['Total response time', 'Sum of the call times', 'Slowest call', 'Calls replaced by a default value'],

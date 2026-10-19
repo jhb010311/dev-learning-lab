@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    public Long getId() { return id; }\n    public String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    public Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // closes the persistence context' : l; }).join('\n');
+    return ent + '\n// Below, only the lines inside a method are shown (the method declaration and the code that gets em omitted)\n// The DB has member 1 "Alice"' + (c.how === 'lazy' ? ' and order 1 of that member' : '') + '\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // closes the persistence context' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: 'Lazily fetched association', find: 'em.find', findref: 'getReference after find', reffind: 'find after getReference' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() comparison', closed: 'getName() after closing' }[c.use]; },
   columns: ['What m is', 'Queries on the member table', 'Result of the last line'],

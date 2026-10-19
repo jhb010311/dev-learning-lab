@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'feature 브랜치에서 둘째 커밋을 한 뒤 main으로 돌아오면, 커밋과 브랜치는 어떻게 되고 memo.txt에는 무엇이 보이나', d: 'feature에서 커밋하면 feature 이름표만 새 커밋으로 가고, main으로 돌아오면 폴더가 main의 커밋 모습(v1)으로 바뀝니다.', v: { commit2: true, back: 'main' } },
     { t: 'main으로 돌아가지 않으면', q: 'git switch main 줄을 지우면', d: 'feature에 그대로 있어서 폴더의 memo.txt는 둘째 커밋의 모습(v2)입니다. main은 커밋 1에 그대로 있습니다.', v: { commit2: true, back: 'stay' } },
-    { t: '둘째 커밋을 하지 않고 main으로 옮기면', q: 'git commit -am "둘째 커밋" 줄을 지우면', d: '고친 memo.txt가 어느 커밋에도 들어 있지 않은 채 main으로 따라옵니다. 두 브랜치는 같은 커밋 1을 가리킵니다.', v: { commit2: false, back: 'main' } },
+    { t: '둘째 커밋을 하지 않고 main으로 옮기면', q: 'git commit -am "둘째 커밋" 줄을 지우면', d: '고친 memo.txt가 어느 커밋에도 기록되지 않은 채 main으로 따라옵니다. 두 브랜치는 같은 커밋 1을 가리킵니다.', v: { commit2: false, back: 'main' } },
     { t: '둘 다 지우면', q: 'git commit -am "둘째 커밋" 줄과 git switch main 줄을 둘 다 지우면', d: '커밋은 1개뿐이고 두 브랜치는 같은 커밋 1을 가리킵니다. 고친 v2는 폴더에만 있습니다.', v: { commit2: false, back: 'stay' } },
   ],
   // 이 설정에서 실제로 실행하는 줄들(# 설명 줄은 실행하지 않는다). 상태는 Probe가 줄마다 실제 Git에서 잰 것과 대조한다.
@@ -49,17 +49,17 @@ Lab.register({
     push('git add memo.txt: memo.txt의 지금 모습(v1)을 다음 커밋에 넣을 것으로 올려 둡니다. 아직 커밋은 아닙니다. Git이 이 파일을 커밋에 넣을 것으로 알려 줍니다(A).', '');
     // 4: first commit
     st.count = 1; st.main = '커밋 1'; st.status = '(깨끗함)'; st.mainFile = 'v1';
-    push('git commit -m "첫 커밋": 올려 둔 것을 커밋으로 저장합니다. 커밋 1이 만들어졌고, 그 안에는 이 순간의 memo.txt 모습(v1)이 들어 있습니다. 앞에 다른 커밋이 없는 맨 처음 커밋입니다. 이렇게 커밋 하나를 가리키는 이름표를 브랜치라고 하는데, main 브랜치가 커밋 1을 가리키게 되었습니다. 폴더의 파일과 커밋의 모습이 같아서, 저장하지 않은 변경은 없습니다.', 'good');
+    push('git commit -m "첫 커밋": 올려 둔 것을 커밋으로 저장합니다. 커밋 1이 만들어졌고, 커밋 1은 이 순간의 memo.txt 모습(v1)을 기록해 둡니다. 앞에 다른 커밋이 없는 맨 처음 커밋입니다. 이렇게 커밋 하나를 가리키는 이름표를 브랜치라고 하는데, main 브랜치가 커밋 1을 가리키게 되었습니다. 폴더의 파일과 커밋의 모습이 같아서, 저장하지 않은 변경은 없습니다.', 'good');
     // 5: git switch -c feature
     st.cur = 'feature'; st.feature = '커밋 1'; st.featFile = 'v1';
     push('git switch -c feature: feature라는 새 이름표를 만들어 지금 있는 커밋 1을 가리키게 하고, 지금 있는 브랜치를 feature로 옮깁니다. 브랜치를 만들었는데 커밋은 늘지 않고 1개 그대로입니다. 브랜치는 커밋을 복사해 둔 것이 아니라 커밋 하나를 가리킬 뿐이라서, main과 feature가 같은 커밋 1을 함께 가리킵니다.', 'good');
     // 6: echo v2
     st.file = 'v2'; st.status = ' M memo.txt';
-    push('echo v2 > memo.txt: 폴더의 memo.txt 안을 v2로 바꿉니다. 폴더의 파일만 바뀌었고 커밋 1 안의 memo.txt는 그대로 v1입니다. Git은 고쳤지만 커밋하지 않은 변경(M)으로 알려 줍니다. 이 v2는 아직 어느 커밋에도 들어 있지 않습니다.', '');
+    push('echo v2 > memo.txt: 폴더의 memo.txt 안을 v2로 바꿉니다. 폴더의 파일만 바뀌었고 커밋 1에 기록된 memo.txt는 그대로 v1입니다. Git은 고쳤지만 커밋하지 않은 변경(M)으로 알려 줍니다. 이 v2는 아직 어느 커밋에도 들어 있지 않습니다.', '');
     // 7: second commit
     if (c2) {
       st.count = 2; st.feature = '커밋 2'; st.status = '(깨끗함)'; st.featFile = 'v2';
-      push('git commit -am "둘째 커밋": 바뀐 memo.txt를 올려서(-a) 커밋 2로 저장합니다. 커밋 2는 바로 앞 커밋인 커밋 1을 가리키고, 그 안에는 이 순간의 memo.txt 모습(v2)이 들어 있습니다. 지금 있는 브랜치인 feature 이름표가 커밋 2로 옮겨 갔습니다. main 이름표는 움직이지 않아서 커밋 1을 가리킨 채이고, 커밋 1 안의 memo.txt도 v1 그대로입니다.', 'good');
+      push('git commit -am "둘째 커밋": 바뀐 memo.txt를 올려서(-a) 커밋 2로 저장합니다. 커밋 2는 바로 앞 커밋인 커밋 1을 가리키고, 이 순간의 memo.txt 모습(v2)을 기록해 둡니다. 지금 있는 브랜치인 feature 이름표가 커밋 2로 옮겨 갔습니다. main 이름표는 움직이지 않아서 커밋 1을 가리킨 채이고, 커밋 1에 기록된 memo.txt도 v1 그대로입니다.', 'good');
     }
     // 8: git switch main
     if (home) {
@@ -72,10 +72,10 @@ Lab.register({
       }
     }
     // 9: cat
-    if (c2 && home) push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v1입니다. feature에서 v2로 고쳐 커밋했지만 그 모습은 커밋 2 안에 있고, 지금 폴더에는 main이 가리키는 커밋 1의 모습이 나와 있습니다.', 'good');
+    if (c2 && home) push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v1입니다. feature에서 v2로 고쳐 커밋했지만 그 모습은 커밋 2에 기록되어 있고, 지금 폴더에는 main이 가리키는 커밋 1의 모습이 나와 있습니다.', 'good');
     else if (c2) push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v2입니다. main으로 돌아가지 않아서 지금도 feature에 있고, 폴더의 파일은 feature가 가리키는 커밋 2의 모습입니다. main은 커밋 1을 가리킨 채 그대로입니다.', 'good');
-    else if (home) push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v2입니다. main에 있는데도 main이 가리키는 커밋 1 안의 memo.txt는 v1입니다. v2는 커밋하지 않은 변경이라 어느 커밋에도 들어 있지 않고 폴더에만 있습니다.', 'bad');
-    else push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v2입니다. feature에 그대로 있고 feature가 가리키는 커밋 1 안의 memo.txt는 v1입니다. v2는 커밋하지 않은 변경이라 어느 커밋에도 들어 있지 않고 폴더에만 있습니다.', 'bad');
+    else if (home) push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v2입니다. main에 있는데도 main이 가리키는 커밋 1에 기록된 memo.txt는 v1입니다. v2는 커밋하지 않은 변경이라 어느 커밋에도 기록되지 않고 폴더에만 있습니다.', 'bad');
+    else push('cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v2입니다. feature에 그대로 있고 feature가 가리키는 커밋 1에 기록된 memo.txt는 v1입니다. v2는 커밋하지 않은 변경이라 어느 커밋에도 기록되지 않고 폴더에만 있습니다.', 'bad');
     // 요약
     if (c2 && home) {
       sum.push('커밋은 그 시점의 파일 전체 모습을 저장한 것이고 바로 앞 커밋을 가리킵니다. 브랜치(main, feature)는 커밋을 복사해 둔 것이 아니라 커밋 하나를 가리키는 이름표입니다. feature에서 커밋하면 feature 이름표만 커밋 2로 옮겨 가고 main은 커밋 1에 그대로 있어서, main으로 돌아오면 memo.txt는 v1입니다.');
@@ -84,8 +84,8 @@ Lab.register({
       sum.push('main으로 돌아가는 줄이 없으면 feature에 그대로 있어서 memo.txt는 v2입니다. 폴더의 파일은 지금 있는 브랜치가 가리키는 커밋 2의 모습입니다.');
       sum.push('feature에서 커밋해도 main 이름표는 움직이지 않았습니다. 브랜치에서 커밋하면 지금 있는 브랜치의 이름표만 새 커밋으로 옮겨 갑니다.');
     } else if (home) {
-      sum.push('둘째 커밋을 하지 않고 main으로 옮겨도 Git은 막지 않았고, memo.txt는 v2로 보입니다. v2는 어느 커밋에도 들어 있지 않고 폴더에만 있으며, main과 feature는 같은 커밋 1을 가리킵니다.');
-      sum.push('커밋하지 않은 변경은 커밋 안에 없어서, 이 경우처럼 브랜치를 옮겨도 폴더에 그대로 따라다닙니다. 커밋해야 비로소 한 브랜치의 이름표 아래에 저장됩니다.');
+      sum.push('둘째 커밋을 하지 않고 main으로 옮겨도 Git은 막지 않았고, memo.txt는 v2로 보입니다. v2는 어느 커밋에도 기록되지 않고 폴더에만 있으며, main과 feature는 같은 커밋 1을 가리킵니다.');
+      sum.push('커밋하지 않은 변경은 어느 커밋에도 기록되지 않아서, 이 경우처럼 브랜치를 옮겨도 폴더에 그대로 따라다닙니다. 커밋해야 비로소 한 브랜치의 이름표 아래에 저장됩니다.');
     } else {
       sum.push('둘째 커밋도 main으로 돌아가는 줄도 없으면, 커밋은 1개뿐이고 main과 feature는 같은 커밋 1을 가리킵니다. 폴더의 memo.txt는 v2이지만 이것은 어느 커밋에도 들어 있지 않습니다.');
       sum.push('브랜치를 만들어도 커밋하지 않으면 이름표만 하나 더 생길 뿐 커밋은 늘지 않습니다. 파일을 고친 것만으로는 이름표가 가리키는 곳이 바뀌지 않습니다.');
@@ -131,5 +131,5 @@ Lab.register({
     P.box('n1', 14, 262, 322, 36, { cls: s && s.cur !== '(없음)' ? 'wait' : 'ghost', title: '지금 있는 브랜치', right: s ? s.cur : '아직' });
     P.box('n2', 344, 262, 322, 36, { cls: n ? 'good' : 'ghost', title: '만들어진 커밋', right: n + '개' });
   },
-  assume: 'git 2.55.0(Windows)로 실제 실행해 대조했습니다. 네 가지 조합을 모두, 조합마다 새 빈 폴더에서 화면의 코드(# 설명 줄은 실행하지 않음)를 한 줄씩 그대로 실행했습니다. git 명령은 git.exe에 인자 그대로 주었고(사용자 이름과 메일은 그 명령에만 -c로 주고 전역 설정은 읽지 않게 함), echo와 cat은 Git Bash가 실행했습니다. 줄마다 실행한 직후에 지금 있는 브랜치, main과 feature 브랜치가 가리키는 커밋, 만들어진 커밋 수, 폴더의 memo.txt, git status --short, 각 브랜치의 커밋 안에 든 memo.txt를 재서 화면 단계의 상태와 대조했고, 화면의 코드가 실행한 글과 같은 글인지도 조합마다 확인했습니다. 커밋 번호(해시)는 실행마다 달라지므로 만들어진 차례대로 커밋 1, 커밋 2로 적었습니다. 처음 브랜치를 main으로 하려고 git init -b main을 썼습니다. 이 실습의 둘째 커밋 줄이 없는 조합에서는 main과 feature가 같은 커밋 1을 가리켜, 커밋하지 않은 변경이 막히지 않고 main으로 따라왔습니다. 이것은 두 브랜치의 memo.txt가 같기 때문이며, 화면 조합 밖에서 따로 확인한 결과 두 브랜치의 memo.txt가 서로 다를 때(main은 v1, feature는 v2인 상태에서 main에서 memo.txt를 v3로 고치고 feature로 옮기려 할 때)는 Git이 옮기기를 막고 "Your local changes to the following files would be overwritten by checkout"이라는 오류를 냈습니다. 이 막힘은 화면 조합에 넣지 않았고, 이 Git 버전에서 본 동작입니다. 새 저장소의 .git/HEAD 파일은 지금 있는 브랜치 이름을("ref: refs/heads/main" 꼴) 적고, 브랜치 파일(.git/refs/heads/main 등)은 커밋 번호 하나만 적은 41바이트 파일임을 확인했습니다. 문서로 확인한 것은 Pro Git 2판 3.1절 Branches in a Nutshell(커밋은 스냅숏을 가리키고 부모를 가리킴, 브랜치는 커밋을 가리키는 가벼운 움직이는 포인터이자 SHA-1 40자를 담은 단순한 파일, HEAD는 지금 있는 브랜치를 가리키는 포인터, 브랜치를 바꾸면 작업 폴더의 파일이 바뀌고 깔끔하게 할 수 없으면 옮기지 못함), git-switch 문서(깨끗하지 않은 작업 폴더로도 옮길 수 있고 변경을 잃게 되면 중단함, -c는 새 브랜치를 만들고 옮김), git-commit 문서(-a는 이미 아는 파일의 변경을 자동으로 올림, -m은 메시지, 새 커밋은 HEAD의 자식이고 브랜치가 그 커밋을 가리키도록 갱신됨), git-init 문서(-b는 처음 브랜치의 이름)입니다. 커밋 하나가 "그 시점의 파일 전체 모습"이라는 설명은 문서의 스냅숏 서술을 쉽게 푼 것으로, 커밋 1과 커밋 2의 memo.txt 내용을 git show로 직접 확인했습니다(파일이 하나뿐인 저장소라서 전체 모습과 한 파일이 같습니다). 병합(merge, rebase), 원격 저장소, 충돌, 커밋 안에 파일이 어떤 형식으로 저장되는지(객체)는 다루지 않았습니다. 같은 주제의 세부 동작은 "세부 동작 실습: merge와 rebase"에서 다룹니다.',
+  assume: 'git 2.55.0(Windows)로 실제 실행해 대조했습니다. 네 가지 조합을 모두, 조합마다 새 빈 폴더에서 화면의 코드(# 설명 줄은 실행하지 않음)를 한 줄씩 그대로 실행했습니다. git 명령은 git.exe에 인자 그대로 주었고(사용자 이름과 메일은 그 명령에만 -c로 주고 전역 설정은 읽지 않게 함), echo와 cat은 Git Bash가 실행했습니다. 줄마다 실행한 직후에 지금 있는 브랜치, main과 feature 브랜치가 가리키는 커밋, 만들어진 커밋 수, 폴더의 memo.txt, git status --short, 각 브랜치의 커밋에 기록된 memo.txt를 재서 화면 단계의 상태와 대조했고, 화면의 코드가 실행한 글과 같은 글인지도 조합마다 확인했습니다. 커밋 번호(해시)는 실행마다 달라지므로 만들어진 차례대로 커밋 1, 커밋 2로 적었습니다. 처음 브랜치를 main으로 하려고 git init -b main을 썼습니다. 이 실습의 둘째 커밋 줄이 없는 조합에서는 main과 feature가 같은 커밋 1을 가리켜, 커밋하지 않은 변경이 막히지 않고 main으로 따라왔습니다. 이것은 두 브랜치의 memo.txt가 같기 때문이며, 화면 조합 밖에서 따로 확인한 결과 두 브랜치의 memo.txt가 서로 다를 때(main은 v1, feature는 v2인 상태에서 main에서 memo.txt를 v3로 고치고 feature로 옮기려 할 때)는 Git이 옮기기를 막고 "Your local changes to the following files would be overwritten by checkout"이라는 오류를 냈습니다. 이 막힘은 화면 조합에 넣지 않았고, 이 Git 버전에서 본 동작입니다. 새 저장소의 .git/HEAD 파일은 지금 있는 브랜치 이름을("ref: refs/heads/main" 꼴) 적고, 브랜치 파일(.git/refs/heads/main 등)은 커밋 번호 하나만 적은 41바이트 파일임을 확인했습니다. 문서로 확인한 것은 Pro Git 2판 3.1절 Branches in a Nutshell(커밋은 스냅숏을 가리키고 부모를 가리킴, 브랜치는 커밋을 가리키는 가벼운 움직이는 포인터이자 SHA-1 40자를 담은 단순한 파일, HEAD는 지금 있는 브랜치를 가리키는 포인터, 브랜치를 바꾸면 작업 폴더의 파일이 바뀌고 깔끔하게 할 수 없으면 옮기지 못함), git-switch 문서(깨끗하지 않은 작업 폴더로도 옮길 수 있고 변경을 잃게 되면 중단함, -c는 새 브랜치를 만들고 옮김), git-commit 문서(-a는 이미 아는 파일의 변경을 자동으로 올림, -m은 메시지, 새 커밋은 HEAD의 자식이고 브랜치가 그 커밋을 가리키도록 갱신됨), git-init 문서(-b는 처음 브랜치의 이름)입니다. 커밋 하나가 "그 시점의 파일 전체 모습"이라는 설명은 문서의 스냅숏 서술을 쉽게 푼 것으로, 커밋 1과 커밋 2의 memo.txt 내용을 git show로 직접 확인했습니다(파일이 하나뿐인 저장소라서 전체 모습과 한 파일이 같습니다). 병합(merge, rebase), 원격 저장소, 충돌, 커밋이 파일을 어떤 형식으로 저장하는지(객체)는 다루지 않았습니다. 같은 주제의 세부 동작은 "세부 동작 실습: merge와 rebase"에서 다룹니다.',
 });

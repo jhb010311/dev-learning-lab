@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,7 +69,8 @@
 <li>BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class CountingOutputStream extends OutputStream {       // 예시로 만든 클래스. 아래로 내려온 write 호출을 센다
+<pre>// 예시 클래스 아래는 main 메서드 안의 줄 (바깥 클래스·main 선언과 import는 생략)
+class CountingOutputStream extends OutputStream {       // 예시로 만든 클래스. 아래로 내려온 write 호출을 센다
     private final OutputStream out;
     int calls = 0;
     boolean closed = false;
@@ -182,6 +183,6 @@ System.out.println(sb);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

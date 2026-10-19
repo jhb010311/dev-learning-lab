@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실</title>
-<meta name="description" content="람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
+<meta name="description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실">
-<meta property="og:description" content="람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
+<meta property="og:description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>람다와 함수형 인터페이스</h1>
 <p><b>람다에 적은 코드는 언제 실행되나</b></p>
-<p>람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.</p>
+<p>람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -56,9 +56,9 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): 화살표(-&gt;) 오른쪽에 적은 동작을 담은 객체를 만들어 변수 f에 담습니다. length 메서드는 아직 불리지 않습니다. 아무것도 출력되지 않습니다.</li>
+<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): 화살표(-&gt;) 오른쪽에 적은 동작을 실행할 수 있는 객체를 만들고, 변수 f가 그 객체를 가리키게 합니다. length 메서드는 아직 불리지 않습니다. 아무것도 출력되지 않습니다.</li>
 <li>System.out.println(&quot;만든 뒤&quot;): &quot;만든 뒤&quot;가 출력됩니다. 동작을 만든 줄을 이미 지났지만 &quot;본문 실행&quot;은 아직 한 번도 출력되지 않았습니다.</li>
-<li>run(f): 변수 f에 담긴 동작을 run 메서드에 넘깁니다. 숫자나 문자열을 넘기듯이 동작을 넘기는 것입니다. 넘기는 것만으로는 실행되지 않습니다.</li>
+<li>run(f): 변수 f가 가리키는 동작 객체를 run 메서드에 넘깁니다. 숫자나 문자열을 넘기듯이 동작을 넘기는 것입니다. 넘기는 것만으로는 실행되지 않습니다.</li>
 <li>System.out.println(&quot;run 시작&quot;): run 안으로 들어와 &quot;run 시작&quot;이 출력됩니다.</li>
 <li>f.apply(&quot;hello&quot;): 여기서 비로소 동작이 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hello)&quot;가 출력됩니다. 돌려받은 5가 &quot;결과 5&quot;로 출력됩니다.</li>
 <li>f.apply(&quot;hi&quot;): 같은 동작이 한 번 더 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hi)&quot;가 출력됩니다. 돌려받은 2가 &quot;결과 2&quot;로 출력됩니다.</li>
@@ -179,6 +179,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

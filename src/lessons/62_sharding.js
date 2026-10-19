@@ -16,8 +16,8 @@ Lab.register({
     { t: '범위 방식에서 샤드 추가', q: '주문 번호 구간별로 나누고 샤드를 하나 더 늘리면', d: '기존 데이터는 그대로 두고 새 구간만 받습니다.', v: { n: 4, how: 'range', grow: true } },
   ],
   code: function (c) {
-    if (c.how === 'range') return '// 주문 번호 구간으로 샤드를 정한다\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // 1~' + Math.ceil(120 / c.n) + '번은 샤드 0, 그다음은 샤드 1 …\n}';
-    return '// 회원 번호를 샤드 수로 나눈 나머지로 샤드를 정한다\nint shardOf(long memberId) {\n    return (int) (memberId % ' + c.n + ');\n}\n\n// 조회할 때도 같은 계산으로 샤드를 찾는다\nDataSource ds = shards.get(shardOf(memberId));';
+    if (c.how === 'range') return '// 클래스 본문만 보임 (클래스 선언과 import는 생략)\n// 주문 번호 구간으로 샤드를 정한다\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // 1~' + Math.ceil(120 / c.n) + '번은 샤드 0, 그다음은 샤드 1 …\n}';
+    return '// 클래스 본문만 보임 (클래스 선언, List<DataSource> shards 필드, import는 생략)\n// 회원 번호를 샤드 수로 나눈 나머지로 샤드를 정한다\nint shardOf(long memberId) {\n    return (int) (memberId % ' + c.n + ');\n}\n\n// 조회할 때도 같은 계산으로 샤드를 찾는다\nDataSource dataSourceOf(long memberId) {\n    return shards.get(shardOf(memberId));\n}';
   },
   label: function (c) { return '샤드 ' + c.n + '개 · ' + { hash: '해시(회원 번호)', range: '범위(주문 번호)', hot: '해시 + 주문 많은 회원' }[c.how] + (c.grow ? ' · 샤드 추가' : ''); },
   columns: ['가장 큰 샤드 / 가장 작은 샤드', '새 주문이 들어가는 곳', '샤드 추가 시 옮길 데이터', '회원 한 명의 주문 조회'],

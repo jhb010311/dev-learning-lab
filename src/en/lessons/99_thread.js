@@ -37,7 +37,7 @@ Lab.register({
     if (W === 'lock') s += '}                                           // main releases lock here\n';
     s += 't.join();                                   // waits until t terminates\nSystem.out.println(t.getState());';
     if (c.call === 'twice') s += '\n\nt.start();                                  // tries to start the terminated thread again';
-    return s;
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n' + s;
   },
   label: function (c) { return { start: 'start()', run: 'run() called directly', twice: 'start() twice' }[c.call] + ' · ' + { quick: 'task that ends right away', sleep: 'sleep', join: 'join', lock: 'waits for lock' }[c.work] + (c.intr ? ' · interrupt' : ''); },
   columns: ['Thread that ran the task', 'State of t seen partway', 'Result of interrupt', 'State of t after join', 'start() again'],

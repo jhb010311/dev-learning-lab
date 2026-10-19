@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <ol>
 <li>em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is the entity name (the class name unless you set another one), and p.comments is a field name of Post. Hibernate translates this into SQL that queries the posts and comments tables.</li>
 <li>getResultList(): The SQL is sent. It joins the comments table, but the select clause has only the post columns. The comments are used only in the join condition. Post 1 has 3 comments, so it takes 3 rows, and post 2 takes 2 rows, so the database returns 5 rows in all.</li>
-<li>5 rows are converted to Post objects. The same post appears in several rows, but Hibernate holds it only once, so the result list has 2 posts. The comments list is still empty (not loaded) because the comment columns were not read.</li>
+<li>5 rows are converted to Post objects. The same post appears in several rows, but Hibernate makes one Post object for each post and filters out the duplicates from the result list, so the result list has 2 posts. The comments list is still empty (not loaded) because the comment columns were not read.</li>
 <li>Loop, post 1: The moment p.getComments().size() is called, a separate comment query is sent to fill in the empty list.</li>
 <li>Loop, post 2: The moment p.getComments().size() is called, a separate comment query is sent to fill in the empty list.</li>
 </ol>
@@ -105,6 +105,7 @@ class Attachment {     // an attachment
     Post post;
 }
 
+// From here on, the lines inside a method (class and method declarations, the code that creates em, and imports omitted)
 // DB: post 1 &quot;Notice&quot; has 3 comments, post 2 &quot;Question&quot; has 2 comments
 List&lt;Post&gt; posts = em.createQuery(
         &quot;select p from Post p join p.comments c order by p.id&quot;,
@@ -115,7 +116,7 @@ for (Post p : posts) {
     p.getComments().size();        // use the comments of each post
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>With 3 comments on post 1 and 2 comments on post 2, all 12 combinations (6 JPQL queries, each with and without pagination) were run on real Hibernate 7.4.5 and an H2 database, and the size and order of the result list, the number of rows the database returned, whether the SQL contains the comment columns and a row limit and where, the number of follow-up queries, and the warnings and exceptions were confirmed to match the screen. The SQL on the screen is shortened to be easy to read. The row limit is written as limit 1, but the statement actually sent on H2 was offset ? rows fetch first ? rows only, and it differs by database. The result for this topic differs by version. Cutting in the database with a subquery when you add pagination to a fetch join, and holding the same entity only once in the result of a plain join, are results of running 7.4.5. The statements &quot;older versions always cut in memory&quot; and &quot;up to Hibernate 5, distinct was needed&quot; follow the documentation, and they were not verified by running an older version. The comparison was done with the application freshly started for each combination (a new SessionFactory was created). This is because, in the same environment, when the same fetch join JPQL was first run without pagination and then run with pagination in the same SessionFactory, the SQL without a row limit was reused, and the whole result came back. Also, when a where condition was placed on the fetch-joined comments and pagination was applied, an SQL syntax error occurred in this environment. Code that uses a collection fetch join together with pagination needs its actual SQL checked on the version you use. A plain join and a join fetch are inner joins, so posts without comments drop out of the result, but the data of this lab has no such post.</p>
+<p>With 3 comments on post 1 and 2 comments on post 2, all 12 combinations (6 JPQL queries, each with and without pagination) were run on real Hibernate 7.4.5 and an H2 database, and the size and order of the result list, the number of rows the database returned, whether the SQL contains the comment columns and a row limit and where, the number of follow-up queries, and the warnings and exceptions were confirmed to match the screen. The SQL on the screen is shortened to be easy to read. The row limit is written as limit 1, but the statement actually sent on H2 was offset ? rows fetch first ? rows only, and it differs by database. The result for this topic differs by version. Cutting in the database with a subquery when you add pagination to a fetch join, and the same entity appearing only once in the result list of a plain join, are results of running 7.4.5. The statements &quot;older versions always cut in memory&quot; and &quot;up to Hibernate 5, distinct was needed&quot; follow the documentation, and they were not verified by running an older version. The comparison was done with the application freshly started for each combination (a new SessionFactory was created). This is because, in the same environment, when the same fetch join JPQL was first run without pagination and then run with pagination in the same SessionFactory, the SQL without a row limit was reused, and the whole result came back. Also, when a where condition was placed on the fetch-joined comments and pagination was applied, an SQL syntax error occurred in this environment. Code that uses a collection fetch join together with pagination needs its actual SQL checked on the version you use. A plain join and a join fetch are inner joins, so posts without comments drop out of the result, but the data of this lab has no such post.</p>
 <p>Previous lab: <a href="../../lab/nplus1/">N+1</a> · Next lab: <a href="../../lab/bulk/">Bulk update and delete operations</a></p>
   </div>
 
@@ -203,6 +204,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ Lab.register({
     { t: 'Removing setAttribute', q: 'What if you remove session.setAttribute from login?', d: 'The session slot and the cookie are created, but the slot is empty, so the server does not know who it is.', v: { save: false, second: 'same' } },
   ],
   code: function (c) {
-    var out = ['@PostMapping("/login")', 'public String login(HttpSession session) {'];
+    var out = ['// Only the controller class body is shown (@RestController class declaration and imports omitted)', '@PostMapping("/login")', 'public String login(HttpSession session) {'];
     if (c.save) out.push('    // Write "the user of this session is kim" in the server\'s session store', '    session.setAttribute("user", "kim");');
     out.push('    return "Logged in";', '}', '', '@GetMapping("/me")', 'public String me(HttpSession session) {', '    // Use the session ID in the request to find the slot in the store and read it', '    Object user = session.getAttribute("user");', '    return user == null ? "Unknown user" : "Hello, " + user;', '}');
     return out.join('\n');

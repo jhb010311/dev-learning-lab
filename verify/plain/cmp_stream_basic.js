@@ -6,6 +6,8 @@
 const fs = require('fs'), path = require('path');
 const { load, combos } = require('../model_rows.js');
 const lesson = load('stream_basic');
+// 화면 코드 맨 위의 줄임 표시 머리 줄("// main 메서드 안의 줄만 보임 …")은 Probe 소스에 없으므로 빼고 비교한다
+const shownBody = c => lesson.code(c).replace(/^\/\/ main 메서드 안의 줄만 보임[^\n]*\n/, '');
 const lines = fs.readFileSync(path.join(__dirname, 'StreamBasicProbe.out.txt'), 'utf8').split(/\r?\n/).filter(Boolean);
 console.log(lines[0]);
 let ok = 0, total = 0;
@@ -28,10 +30,10 @@ for (const ln of lines.slice(1)) {
   if (!m) probs.push('Main.java가 예상한 틀이 아님');
   else {
     const inner = m[1].split('\n').map(l => l.startsWith('        ') ? l.slice(8) : l).join('\n').trimEnd();
-    if (inner !== lesson.code(c)) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
+    if (inner !== shownBody(c)) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
   }
   const body = fs.readFileSync(path.join(dir, 'body.txt'), 'utf8').replace(/\r\n/g, '\n').trimEnd();
-  if (body !== lesson.code(c)) probs.push('화면의 코드와 body.txt가 다름');
+  if (body !== shownBody(c)) probs.push('화면의 코드와 body.txt가 다름');
   // 호출 순서 (코드에 기록하는 줄을 더해 실행한 것)
   const real_t = trace[k], model_t = '[' + sim.trace.join(', ') + ']';
   if (real_t !== model_t) probs.push('호출 순서 모형 ' + model_t + ' 실제 ' + real_t);

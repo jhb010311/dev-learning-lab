@@ -37,7 +37,7 @@ Lab.register({
     var call = function (i) { return m ? 'map.put(' + self.lit(D[i]) + ', ' + (i + 1) + ')' : 'set.add(' + self.lit(D[i]) + ')'; };
     var head = c.data === 'obj' ? 'record Task(int id) { }                    // Comparable을 구현하지 않았다\n\n' : '';
     var decl = m ? 'Map<' + n.el + ', Integer> map = new ' + n.cls + '<>();' : 'Set<' + n.el + '> set = new ' + n.cls + '<>();';
-    return head + decl + '\n' + call(0) + ';\n' + call(1) + ';\n' + call(2) + ';\nSystem.out.println(' + call(3) + ');   // ' + (m ? '이미 넣은 키로 또 넣는다' : '이미 넣은 값을 또 넣는다') + '\n' + call(4) + ';\n\nSystem.out.println(' + n.v + ');                   // 처음부터 차례로 꺼내 출력\nSystem.out.println(' + n.v + '.size());';
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n' + head + decl + '\n' + call(0) + ';\n' + call(1) + ';\n' + call(2) + ';\nSystem.out.println(' + call(3) + ');   // ' + (m ? '이미 넣은 키로 또 넣는다' : '이미 넣은 값을 또 넣는다') + '\n' + call(4) + ';\n\nSystem.out.println(' + n.v + ');                   // 처음부터 차례로 꺼내 출력\nSystem.out.println(' + n.v + '.size());';
   },
   label: function (c) { return this.names(c).cls + ' · ' + { words: '문자열', small: '작은 정수', big: '정수', 'null': 'null 섞임', obj: 'Task 객체' }[c.data]; },
   columns: ['출력', '크기', '이미 넣은 것을 또 넣으면', '예외'],

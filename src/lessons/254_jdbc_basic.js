@@ -17,7 +17,7 @@ Lab.register({
   ],
   // 화면의 코드와 대조 프로그램(verify/spring/src/JdbcBasicProbe.java)이 같은 글을 컴파일해 실행한다. 대조 스크립트가 글자까지 비교한다.
   code: function (c) {
-    var l = ['// member 테이블에는 (id 1, name kim) 한 행이 들어 있다', '// 연결: 주소가 가리키는 DB와 연결을 맺는다', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// 도구: 이 연결로 SQL을 보내는 객체', 'Statement st = conn.createStatement();'];
+    var l = ['// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)', '// member 테이블에는 (id 1, name kim) 한 행이 들어 있다', '// 연결: 주소가 가리키는 DB와 연결을 맺는다', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// 도구: 이 연결로 SQL을 보내는 객체', 'Statement st = conn.createStatement();'];
     if (c.conn === 'closed') l.push('// 닫기: DB와의 연결을 끊는다', 'conn.close();');
     l.push('// 보내기: SQL 글자를 DB에 보내고, 결과를 받는다', 'ResultSet rs = st.executeQuery("' + this.sqlText(c) + '");', '// 읽기: 다음 행으로 옮긴다. 행이 있으면 true', 'boolean found = rs.next();', 'System.out.println(found);', 'System.out.println(rs.getString("name"));');
     return l.join('\n');

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>제네릭: List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나 · 개발 학습 실습실</title>
-<meta name="description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExcepti…">
+<meta name="description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트의 원소가 어떤 타입인지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExc…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="제네릭: List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나 · 개발 학습 실습실">
-<meta property="og:description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExcepti…">
+<meta property="og:description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트의 원소가 어떤 타입인지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExc…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
 <h1>제네릭</h1>
 <p><b>List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나</b></p>
-<p>제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.</p>
+<p>제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트의 원소가 어떤 타입인지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.</p>
 <p>실행으로 대조 · JDK 21에서 스무 가지 조합을 실제로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -56,11 +56,11 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>List&lt;Integer&gt; ints를 만들고 1과 2를 넣습니다: &lt;Integer&gt;는 &quot;이 리스트에는 Integer만 담는다&quot;는 표시입니다. 컴파일러는 이 표시를 보고 ints에 넣고 꺼내는 코드를 검사합니다.</li>
+<li>List&lt;Integer&gt; ints를 만들고 1과 2를 넣습니다: &lt;Integer&gt;는 &quot;이 리스트에는 Integer만 넣는다&quot;는 표시입니다. 컴파일러는 이 표시를 보고 ints에 넣고 꺼내는 코드를 검사합니다.</li>
 <li>List list = ints 검사: 같은 리스트를 &lt;...&gt; 표시 없이 선언한 변수 list로도 가리키게 합니다. 이렇게 제네릭 없이 쓰는 것을 로 타입이라고 합니다. 제네릭이 없던 시절의 코드와 함께 쓸 수 있도록 남겨 둔 방식이어서 대입은 컴파일됩니다. 그 대신 컴파일러는 list에 무엇을 넣는지 검사하지 못합니다.</li>
 <li>list.add(&quot;삼&quot;) 검사: list가 로 타입이라 컴파일러는 넣는 값의 타입을 확인할 수 없습니다. 오류가 아니라 경고만 냅니다(&quot;unchecked call to add(E) as a member of the raw type List&quot;). Integer 리스트에 String을 넣는 코드인데도 컴파일됩니다.</li>
 <li>컴파일에 성공했습니다: 경고는 컴파일을 막지 않습니다. 이제 프로그램을 실행합니다.</li>
-<li>list.add(&quot;삼&quot;) 실행: 실행 중의 리스트 객체는 자기가 Integer용이라는 것을 기억하지 않습니다. 넣을 때는 아무 검사도 하지 않으므로 String 값(삼)이 그대로 들어갑니다. list와 ints는 같은 객체이므로, Integer만 담기로 한 ints 안에 String이 들어간 것입니다.</li>
+<li>list.add(&quot;삼&quot;) 실행: 실행 중의 리스트 객체는 자기가 Integer용이라는 것을 기억하지 않습니다. 넣을 때는 아무 검사도 하지 않으므로 String 값(삼)이 그대로 들어갑니다. list와 ints는 같은 객체이므로, 원소를 Integer로만 정한 ints에 String 원소가 생긴 것입니다.</li>
 <li>System.out.println(ints) 실행: 리스트의 내용을 출력합니다. 출력은 [1, 2, 삼]입니다. 출력만 할 때는 원소가 무슨 타입인지 따지지 않으므로 아직 아무 일도 일어나지 않습니다.</li>
 <li>ints.getClass() == strs.getClass() 실행: true를 출력합니다. List&lt;Integer&gt;와 List&lt;String&gt;은 실행 중에는 똑같은 ArrayList 클래스의 객체입니다. &lt;Integer&gt;와 &lt;String&gt;은 컴파일할 때의 검사에만 쓰이고 실행 코드에는 남지 않습니다(타입 소거).</li>
 <li>Integer last = ints.get(ints.size() - 1) 실행: ClassCastException이 납니다. ints는 List&lt;Integer&gt;이므로 컴파일러가 이 줄에 &quot;꺼낸 값을 Integer로 바꾸는&quot; 형 변환을 넣어 두었습니다. 그런데 실제로 나온 값은 String입니다. 잘못 넣은 줄이 아니라 한참 뒤 꺼내는 줄에서 터지므로 원인을 찾기 어렵습니다.</li>
@@ -71,7 +71,8 @@
 <li>출력 가운데 true가 타입 소거를 보여 줍니다. 실행 중의 리스트는 원소 타입을 기억하지 않으므로, 제네릭의 보호는 전부 컴파일할 때 이루어집니다. 로 타입으로 그 검사를 피하면 막아 줄 것이 없습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
+<pre>// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)
+List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
 ints.add(1);
 ints.add(2);
 
@@ -172,6 +173,6 @@ System.out.println(&quot;마지막 값: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,8 @@
 <li>update나 save를 호출하지 않았는데 UPDATE가 나갔습니다. 영속성 컨텍스트가 관리하는 엔티티는 값만 바꾸면, 커밋 시점에 스냅샷과 비교해 SQL을 만들어 줍니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@Transactional
+<pre>// 클래스 본문의 메서드만 보임 (클래스 선언, 필드 선언, import는 생략)
+@Transactional
 public void run() {
     Member m = memberRepository.findById(1L).orElseThrow();
     m.setName(&quot;김영수&quot;);
@@ -162,6 +163,6 @@ public void run() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

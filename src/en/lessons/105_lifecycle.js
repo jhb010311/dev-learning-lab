@@ -46,7 +46,7 @@ Lab.register({
     var out = [s];
     if (k.bean) out.push('@Configuration\nclass AppConfig {\n    @Bean(initMethod = "init", destroyMethod = "close")\n' + (proto ? '    @Scope("prototype")\n' : '') + (field ? '    PriceCache priceCache() {\n        return new PriceCache();\n    }\n' : '    PriceCache priceCache(PriceRepository repository) {\n        return new PriceCache(repository);\n    }\n') + '}');
     out.push('@Component\nclass PriceRepository {\n    Map<String, Integer> findAll() {\n        return new HashMap<>(Map.of("apple", 1000));\n    }\n}');
-    out.push('// Where it is used\nPriceCache priceCache = context.getBean(PriceCache.class);\nint price = priceCache.price("apple");\ncontext.close();                              // closes the container');
+    out.push('// Where it is used: only the lines inside a method are shown (the method declaration and the code that gets context omitted)\nPriceCache priceCache = context.getBean(PriceCache.class);\nint price = priceCache.price("apple");\ncontext.close();                              // closes the container');
     return out.join('\n\n');
   },
   label: function (c) { return (c.inj === 'field' ? 'Field injection' : 'Constructor injection') + ' · ' + { ctor: 'initialized in the constructor', anno: '@PostConstruct', iface: 'InitializingBean', method: 'initMethod', all: 'three kinds of callbacks' }[c.cb] + (c.scope === 'prototype' ? ' · prototype' : ''); },

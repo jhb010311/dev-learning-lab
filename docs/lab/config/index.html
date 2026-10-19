@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,8 @@
 <li>이 순서 덕분에 같은 빌드 결과물(jar, 이미지)을 고치지 않고 환경마다 다른 값으로 실행할 수 있습니다. DB 주소나 비밀번호처럼 환경마다 다르거나 코드 저장소에 넣으면 안 되는 값은 환경 변수나 실행 시 주입으로 넘깁니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@Value(&quot;${app.timeout:1000}&quot;)          // 어디에도 없으면 1000
+<pre>// 클래스 본문만 보임 (클래스 선언과 import는 생략)
+@Value(&quot;${app.timeout:1000}&quot;)          // 어디에도 없으면 1000
 private int timeout;
 
 # application.yml
@@ -165,6 +166,6 @@ java -jar app.jar --spring.profiles.active=prod</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

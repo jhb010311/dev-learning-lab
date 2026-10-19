@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>RestClient</dt>
 <dd>This is the client that Spring provides for calling the HTTP API of another server. You build a request by chaining methods, as in client.get().uri(url).retrieve().body(type), and a message converter converts the response body to an object and returns it. It is synchronous, which means that the calling thread waits until the response arrives, and it is the successor to RestTemplate, which has been in use for a long time. A 4xx response is turned into an HttpClientErrorException, a 5xx response into an HttpServerErrorException, and a connection failure or a timeout into a ResourceAccessException, and that exception is thrown. The actual communication is done by a request factory, and timeouts are also set on the request factory.</dd>
 <dt>Tomcat's threading model</dt>
-<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default), and when all threads are in use, new requests wait. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
+<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default). Unlike the standard Java ThreadPoolExecutor, when no thread is idle it adds threads up to the maximum first, and new requests wait only when all of them are in use. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
 <dt>Three-way handshake</dt>
 <dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
 <dt>HTTP status codes</dt>
@@ -70,7 +70,8 @@
 <li>If you do not set a read timeout, the wait has no limit. When the payment server slows down, the threads of the order server stay occupied for that long, and when many requests come in at once, all the threads in the thread pool become occupied and the order server itself can no longer respond. The connect timeout alone does not protect against a slow response. The two timeouts measure different intervals, so you must set both.</li>
 </ul>
 <h2>Code</h2>
-<pre>SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+<pre>// Only the lines inside main are shown (class, main declaration, and imports omitted)
+SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout
 // no read timeout is set (waits with no limit)
 
@@ -176,6 +177,6 @@ try {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

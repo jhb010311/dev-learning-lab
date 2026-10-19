@@ -17,7 +17,7 @@ Lab.register({
   ],
   DATA: [5, 2, 8, 1, 9, 4],
   code: function (c) {
-    return 'List.of(5, 2, 8, 1, 9, 4).stream()\n    .filter(x -> x > 3)          // 3보다 큰 것만\n' + (c.sorted ? '    .sorted()                    // 오름차순 정렬\n' : '') + '    .map(x -> x * 10)            // 10배\n' + (c.limit ? '    .limit(2)                    // 2개까지만\n' : '') + (c.term === 'toList' ? '    .toList();' : c.term === 'findFirst' ? '    .findFirst();' : '    ;                            // 최종 연산 없음');
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\nList.of(5, 2, 8, 1, 9, 4).stream()\n    .filter(x -> x > 3)          // 3보다 큰 것만\n' + (c.sorted ? '    .sorted()                    // 오름차순 정렬\n' : '') + '    .map(x -> x * 10)            // 10배\n' + (c.limit ? '    .limit(2)                    // 2개까지만\n' : '') + (c.term === 'toList' ? '    .toList();' : c.term === 'findFirst' ? '    .findFirst();' : '    ;                            // 최종 연산 없음');
   },
   label: function (c) { return 'filter' + (c.sorted ? ' → sorted' : '') + ' → map' + (c.limit ? ' → limit(2)' : '') + ' → ' + (c.term === 'none' ? '(최종 연산 없음)' : c.term + '()'); },
   columns: ['filter 실행', 'map 실행', '결과'],

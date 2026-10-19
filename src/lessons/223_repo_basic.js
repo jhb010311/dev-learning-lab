@@ -1,7 +1,7 @@
 Lab.register({
   id: 'repo_basic', nav: '리포지토리', cat: '기초개념', mode: 'step', basic: true, deep: ['datajpa'],
   title: '리포지토리는 무엇이고, 구현은 누가 만드는가',
-  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면(MemberRepository와 Member는 이 예제에서 지은 이름이고, JpaRepository는 스프링 데이터 JPA가 주는 인터페이스입니다), 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository의 부모 인터페이스인 CrudRepository에 선언된 메서드이고, MemberRepository는 그것을 JpaRepository를 거쳐 물려받습니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
+  intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면(MemberRepository와 Member는 이 예제에서 지은 이름이고, JpaRepository는 스프링 데이터 JPA가 주는 인터페이스입니다), 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 CrudRepository에 선언된 메서드이고(JpaRepository는 ListCrudRepository를 거쳐 CrudRepository를 물려받습니다), MemberRepository는 그것을 JpaRepository를 거쳐 물려받습니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
   terms: ['리포지토리', 'JpaRepository', '쿼리 메서드', 'JPA, Hibernate, Spring Data JPA'],
   controls: [
     { id: 'ext', label: 'MemberRepository 선언에 extends JpaRepository<Member, Long>을 쓴다', type: 'check', value: true },
@@ -48,7 +48,7 @@ Lab.register({
       st.phase = 'compile'; st.hot = 'if';
       push('컴파일러가 MemberRepository.java를 읽습니다. interface MemberRepository 선언에 extends가 없으므로 아무것도 물려받지 않는 평범한 인터페이스입니다. 이 인터페이스가 가진 메서드는 ' + (none ? '하나도 없습니다(안이 비어 있습니다).' : f.decl + ' 하나뿐입니다.'), '');
       st.phase = 'fail'; st.errs = 1; st.errText = 'MemberRepository에 save 메서드가 없음';
-      push('컴파일러가 쓰는 쪽의 memberRepository.save(new Member(1L, "김철수")) 줄을 확인합니다. MemberRepository에는 save 메서드가 없습니다. save는 JpaRepository가 부모 인터페이스(CrudRepository)에서 물려받은 메서드인데, 이 인터페이스는 JpaRepository를 물려받지 않았기 때문입니다. 이 줄에서 오류가 납니다(javac: cannot find symbol, method save(Member)).', 'bad');
+      push('컴파일러가 쓰는 쪽의 memberRepository.save(new Member(1L, "김철수")) 줄을 확인합니다. MemberRepository에는 save 메서드가 없습니다. save는 JpaRepository가 ListCrudRepository를 거쳐 CrudRepository에서 물려받은 메서드인데, 이 인터페이스는 JpaRepository를 물려받지 않았기 때문입니다. 이 줄에서 오류가 납니다(javac: cannot find symbol, method save(Member)).', 'bad');
       if (none) {
         st.errs = 2;
         push('다음 줄 System.out.println(memberRepository.count())도 확인합니다. count도 JpaRepository가 CrudRepository에서 물려받은 메서드라 이 인터페이스에는 없어서, 같은 종류의 오류가 한 번 더 납니다(javac: cannot find symbol, method count()). javac가 알린 오류는 모두 2개입니다.', 'bad');

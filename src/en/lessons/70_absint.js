@@ -21,13 +21,14 @@ Lab.register({
   },
   code: function (c) {
     var I = c.kind === 'iface', T = I ? 'Payable' : 'Payment', ext = I ? 'implements Payable' : 'extends Payment', pub = I ? 'public ' : '';
+    var M = function (s) { return 'class Main {\n    public static void main(String[] args) {\n' + s.split('\n').map(function (x) { return '        ' + x; }).join('\n') + '\n    }\n}'; };
     var use = {
-      new: T + ' p = new ' + T + '();',
-      impl: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { System.out.println("Card.pay"); }\n}\n\n' + T + ' p = new Card();     // the type is ' + T + ', the actual object is a Card\np.pay();',
+      new: M(T + ' p = new ' + T + '();'),
+      impl: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { System.out.println("Card.pay"); }\n}\n\n' + M(T + ' p = new Card();     // the type is ' + T + ', the actual object is a Card\np.pay();'),
       missing: 'class Card ' + ext + ' {\n    // pay() is not implemented\n}',
       multi: I ? 'interface Refundable { void refund(); }\n\nclass Card implements Payable, Refundable {\n    public void pay() { }\n    public void refund() { }\n}' : 'abstract class Logger { abstract void log(); }\n\nclass Card extends Payment, Logger {     // extends two classes\n    void pay() { }\n    void log() { }\n}',
-      state: I ? '// Try putting a field and a constructor in an interface\ninterface Payable {\n    int amount;                              // field with no value\n    Payable() { }                            // constructor\n    void pay();\n}' : 'class Card extends Payment {\n    void pay() {\n        amount += 50;                        // uses the inherited field\n        System.out.println("amount=" + amount);\n    }\n}\n\nnew Card().pay();',
-      default: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { }\n    // name() is not implemented\n}\n\nSystem.out.println(new Card().name());',
+      state: I ? '// Try putting a field and a constructor in an interface\ninterface Payable {\n    int amount;                              // field with no value\n    Payable() { }                            // constructor\n    void pay();\n}' : 'class Card extends Payment {\n    void pay() {\n        amount += 50;                        // uses the inherited field\n        System.out.println("amount=" + amount);\n    }\n}\n\n' + M('new Card().pay();'),
+      default: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { }\n    // name() is not implemented\n}\n\n' + M('System.out.println(new Card().name());'),
     }[c.what];
     return (c.what === 'state' && I ? '' : this.SRC[c.kind] + '\n\n') + use;
   },
@@ -44,7 +45,7 @@ Lab.register({
     if (W === 'impl') { push('The Card class ' + (I ? 'implements ' : 'extends ') + T + '. It fills in the body of pay(), which was empty.', '', 2); out = 'Card.pay' + (I ? '' : ' (the inherited amount = 100 is available)'); push('A variable of type ' + T + ' is made to refer to a Card object, and pay() is called. The type of the variable is ' + T + ', but the method that runs is pay() of Card. The calling code does not need to know the concrete class.', 'good', 3); sum.push('When you separate the contract (the type) from the implementation (the class), you can swap in a different implementation without changing the code that uses it. Dependency injection in Spring and the Strategy pattern both rely on this structure.'); }
     if (W === 'missing') { out = 'Compile-time error: Card is not abstract and does not override abstract method pay() in ' + T; push('Card says that it ' + (I ? 'implements ' : 'extends ') + T + ' but does not fill in pay(). A method required by the contract is missing, so the compiler rejects the class.', 'bad', 2); sum.push('An abstract method is "a blank that the implementing class must fill in". If a class does not fill it in, that class must also be abstract, and then you cannot create an object of that class either.'); }
     if (W === 'multi') {
-      if (I) { push('Card implements two interfaces, Payable and Refundable, at once. An interface has no state, so combining several of them causes no field conflict (if the same default method appears in more than one, you must decide it yourself).', '', 2); out = 'Compiled successfully. A Card is both a Payable and a Refundable'; push('The code compiles. A Card object can be assigned to a variable of type Payable and also to a variable of type Refundable.', 'good', 3); }
+      if (I) { push('Card implements two interfaces, Payable and Refundable, at once. An interface has no state, so combining several of them causes no field conflict (if the same default method appears in more than one, you must decide it yourself).', '', 2); out = 'Compiled successfully. A Card is both a Payable and a Refundable'; push('The code compiles. A variable of type Payable and a variable of type Refundable can both refer to a Card object.', 'good', 3); }
       else { out = "Compile-time error: '{' expected (only one class can follow extends)"; push('Card tries to extend two abstract classes, Payment and Logger, at once. In Java, a class can extend only one class. If both superclasses had a field or a method implementation with the same name, there would be no way to decide which one to inherit.', 'bad', 2); }
       sum.push('A class can extend only one class (extends), but it can implement several interfaces (implements). To give a class several abilities of the form "can do something", use interfaces.');
     }
@@ -60,8 +61,9 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stage: 0, out: '' }, W = sim.c.what, me = this;
+    var done = s.stage >= (me.ok(sim.c.kind, W) ? 3 : 2);   // the result of the row being tried appears at the last step
     H.table(v, ['What to try', 'Interface', 'Abstract class'], [['new', 'Create an object directly with new'], ['impl', 'Use it through a class that implements (extends) it'], ['missing', 'Leave an abstract method unimplemented'], ['multi', 'Inherit from two at once'], ['state', 'Declare a field (state) and a constructor'], ['default', 'Inherit a method that has a body']].map(function (r) {
-      var on = r[0] === W, cell = function (kind) { var o = me.ok(kind, r[0]), mine = on && sim.c.kind === kind; return { v: (o ? 'Allowed' : 'Compile-time error') + (mine ? ' ← now' : ''), cls: mine ? (o ? 'good' : 'bad') : '' }; };
+      var on = r[0] === W, cell = function (kind) { var o = me.ok(kind, r[0]), mine = on && sim.c.kind === kind; if (on && !done) return { v: mine ? '? ← now' : '?', cls: '' }; return { v: (o ? 'Allowed' : 'Compile-time error') + (mine ? ' ← now' : ''), cls: mine ? (o ? 'good' : 'bad') : '' }; };
       return { cells: [{ v: r[1], cls: on ? 'hot' : '' }, cell('iface'), cell('abs')] };
     }), 'Results of trying the 6 things with each kind');
     H.title(v, 'Compiler and run result'); v.appendChild(H.el('pre', 'code', s.out || '(in progress)'));

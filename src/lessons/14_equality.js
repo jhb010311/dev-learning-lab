@@ -19,11 +19,12 @@ Lab.register({
     { t: 'Integer와 int 비교', q: 'Integer 128인데 두 번째 변수의 타입을 int로 바꾸면', d: '한쪽이 기본형이면 값으로 비교합니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
   ],
   code: function (c) {
+    var H = '// main 메서드 안의 줄만 보임 (클래스와 main 선언은 생략)\n';
     if (c.kind === 'str') {
       var b = { lit: 'String b = "hello";', new: 'String b = new String("hello");', intern: 'String b = new String("hello").intern();', const: 'String b = "hel" + "lo";            // 컴파일할 때 "hello"로 합쳐짐', concat: 'String part = "hel";\nString b = part + "lo";             // 실행 중에 결합' }[c.sb];
-      return 'String a = "hello";\n' + b + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
+      return H + 'String a = "hello";\n' + b + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
     }
-    return 'Integer a = ' + c.iv + ';                 // Integer.valueOf(' + c.iv + ')\n' + (c.ib === 'box' ? 'Integer b = ' + c.iv + ';' : 'int b = ' + c.iv + ';') + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
+    return H + 'Integer a = ' + c.iv + ';                 // Integer.valueOf(' + c.iv + ')\n' + (c.ib === 'box' ? 'Integer b = ' + c.iv + ';' : 'int b = ' + c.iv + ';') + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
   },
   label: function (c) { return c.kind === 'str' ? 'String · "hello"와 ' + { lit: '"hello"', new: 'new String', intern: 'intern()', const: '"hel" + "lo"', concat: 'part + "lo"' }[c.sb] : 'Integer ' + c.iv + '과 ' + (c.ib === 'box' ? 'Integer ' : 'int ') + c.iv; },
   columns: ['a == b', 'a.equals(b)', '같은 객체인가'],

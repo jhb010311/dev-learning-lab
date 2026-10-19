@@ -22,8 +22,8 @@ Lab.register({
     var two = c.shape === '2', T = c.type, AT = T + (two ? '[][]' : '[]'), pr = two ? 'Arrays.deepToString' : 'Arrays.toString';
     var pad = function (x) { return x + new Array(Math.max(2, 41 - x.length)).join(' ') + '// '; };
     var cp = c.copy === 'ref' ? 'a' : c.copy === 'clone' ? 'a.clone()' : 'Arrays.copyOf(a, a.length)';
-    return 'import java.util.Arrays;\n\n' +
-      pad(AT + ' a = new ' + T + (two ? '[2][3]' : '[3]') + ';') + (two ? 'two arrays of length 3, and an array that holds the two' : '3 elements, filled with the default value') + '\n' +
+    return 'import java.util.Arrays;\n\n// Below are the lines inside main (class and main declaration omitted)\n' +
+      pad(AT + ' a = new ' + T + (two ? '[2][3]' : '[3]') + ';') + (two ? 'two arrays of length 3, and an array that refers to the two' : '3 elements, filled with the default value') + '\n' +
       pad(AT + ' b = ' + cp + ';') + (c.copy === 'ref' ? 'only the reference is copied' : two ? 'only the outer array is newly created' : 'creates a new array and copies the values') + '\n\n' +
       'System.out.println(a == b);\n' + (two ? 'System.out.println(a[0] == b[0]);\n' : '') +
       pad((two ? 'b[0][' : 'b[') + c.idx + '] = ' + this.lit(c) + ';') + (two ? 'stores in row 0 at index ' : 'stores at index ') + c.idx + '\n' +
@@ -46,7 +46,7 @@ Lab.register({
     if (!two) { st.a = mk(T + '[]', fill(3)); push(AT + ' a = new ' + T + '[3]: An array of 3 ' + T + ' elements placed side by side is created on the heap. The elements are numbered 0, 1, 2 from the front (the index). No value has been stored yet, but every element is filled with the default value (' + defWord + '). The variable a holds a reference to this array.'); }
     else {
       st.a = mk(T + '[][]', []); var r0 = mk(T + '[]', fill(3)), r1 = mk(T + '[]', fill(3)); arr(st.a).cells = [{ ref: r0 }, { ref: r1 }];
-      push(AT + ' a = new ' + T + '[2][3]: Three arrays in all are created. They are 2 ' + T + ' arrays of length 3 (the rows) and an outer array of length 2 whose elements hold references to those two. A two-dimensional array is not a single table but "an array whose elements hold arrays". The variable a holds a reference to the outer array. Every element of the rows has the default value (' + defWord + ').');
+      push(AT + ' a = new ' + T + '[2][3]: Three arrays in all are created. They are 2 ' + T + ' arrays of length 3 (the rows) and an outer array of length 2 whose elements hold references to those two. A two-dimensional array is not a single table but "an array whose elements hold references to other arrays". The variable a holds a reference to the outer array. Every element of the rows has the default value (' + defWord + ').');
     }
     // 2. The second variable
     var shallow = two && c.copy !== 'ref';

@@ -17,11 +17,11 @@ Lab.register({
   ],
   code: function (c) {
     var r = [];
-    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
+    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order-group, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order-group, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
     if (+c.stage < 3) r.push('        - id: legacy                   # ' + (c.stage === '0' ? 'everything goes to the existing server' : 'everything else goes to the existing server') + '\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
-    return '# Spring Cloud Gateway\nspring.cloud.gateway:\n  routes:\n' + r.join('\n') + '\n\n# Common filters: token validation, request logging, rate limiting';
+    return '# Property names of Spring Cloud Gateway 4.3 (Spring Cloud 2025.0) and later (earlier versions use spring.cloud.gateway.routes)\nspring.cloud.gateway.server.webflux:\n  routes:\n' + r.join('\n') + '\n\n# Common filters: token validation, request logging, rate limiting';
   },
   label: function (c) { return ['Before migration', 'Orders migrated' + (c.ratio !== '100' ? ' (' + c.ratio + '%)' : ''), 'Orders and payments migrated', 'Everything migrated'][+c.stage] + (c.auth ? ' · includes requests with no token' : ''); },
   columns: ['Requests to the existing server', 'Requests to the new service', 'Rejected at the gateway', 'Existing server can be shut down'],

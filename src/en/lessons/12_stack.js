@@ -17,7 +17,7 @@ Lab.register({
     { t: 'An object created on each call', q: 'What if each call creates one object?', d: 'The objects are created on the heap, and once a frame is removed, nothing refers to its object anymore.', v: { n: 4, base: true, limit: 8, obj: true } },
   ],
   code: function (c) {
-    return 'static long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // the object is on the heap, the variable buf is on the stack\n' : '') + (c.base ? '    if (n <= 1) return 1;             // base case\n' : '    // no base case\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';
+    return '// Only the class body is shown (class declaration omitted)\nstatic long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // the object is on the heap, the variable buf is on the stack\n' : '') + (c.base ? '    if (n <= 1) return 1;             // base case\n' : '    // no base case\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';
   },
   label: function (c) { return 'factorial(' + c.n + ') · base case: ' + (c.base ? 'yes' : 'no') + ' · stack: ' + c.limit + ' frames' + (c.obj ? ' · creates objects' : ''); },
   columns: ['Result', 'Deepest stack', 'Objects created', 'Unreferenced objects at the end'],

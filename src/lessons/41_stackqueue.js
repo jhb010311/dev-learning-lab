@@ -15,10 +15,10 @@ Lab.register({
   ],
   INPUTS: { mixed: [5, 2, 8, 1, 9], asc: [1, 2, 5, 8, 9], desc: [9, 8, 5, 2, 1] },
   code: function (c) {
-    var a = this.INPUTS[c.inp].join(', ');
-    if (c.ds === 'stack') return 'Deque<Integer> stack = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) stack.push(x);\n\nwhile (!stack.isEmpty()) System.out.print(stack.pop() + " ");';
-    if (c.ds === 'queue') return 'Queue<Integer> queue = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) queue.offer(x);\n\nwhile (!queue.isEmpty()) System.out.print(queue.poll() + " ");';
-    return 'PriorityQueue<Integer> pq = new PriorityQueue<>();   // 작은 값이 먼저\nfor (int x : List.of(' + a + ')) pq.offer(x);\n\nwhile (!pq.isEmpty()) System.out.print(pq.poll() + " ");';
+    var a = this.INPUTS[c.inp].join(', '), h = '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n';
+    if (c.ds === 'stack') return h + 'Deque<Integer> stack = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) stack.push(x);\n\nwhile (!stack.isEmpty()) System.out.print(stack.pop() + " ");';
+    if (c.ds === 'queue') return h + 'Queue<Integer> queue = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) queue.offer(x);\n\nwhile (!queue.isEmpty()) System.out.print(queue.poll() + " ");';
+    return h + 'PriorityQueue<Integer> pq = new PriorityQueue<>();   // 작은 값이 먼저\nfor (int x : List.of(' + a + ')) pq.offer(x);\n\nwhile (!pq.isEmpty()) System.out.print(pq.poll() + " ");';
   },
   label: function (c) { return { stack: '스택', queue: '큐', pq: '우선순위 큐' }[c.ds] + ' · ' + this.INPUTS[c.inp].join(', '); },
   columns: ['꺼낸 순서', '넣기 한 번', '꺼내기 한 번'],

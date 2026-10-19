@@ -1,7 +1,7 @@
 Lab.register({
   id: 'generic', nav: '제네릭', cat: '자바 언어', mode: 'step',
   title: 'List<Integer>의 <Integer>는 무엇을 막아 주나',
-  intro: '제네릭은 List<Integer>처럼 "이 리스트에 무엇을 담는지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.',
+  intro: '제네릭은 List<Integer>처럼 "이 리스트의 원소가 어떤 타입인지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.',
   terms: ['제네릭', '로 타입(raw type)', '타입 소거', '와일드카드(? extends와 ? super)'],
   controls: [
     { id: 'decl', label: '변수 list의 선언 (ints와 같은 리스트를 가리킴)', type: 'select', value: 'raw', options: [['raw', 'List (제네릭 없이, 로 타입)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -19,7 +19,7 @@ Lab.register({
   declLine: function (c) { return { raw: 'List list = ints;', int: 'List<Integer> list = ints;', num: 'List<Number> list = ints;', ext: 'List<? extends Number> list = ints;', sup: 'List<? super Integer> list = ints;' }[c.decl]; },
   opLine: function (c) { return { addInt: 'list.add(3);', addDbl: 'list.add(3.5);', addStr: 'list.add("삼");', get: 'Number n = list.get(0);' }[c.op]; },
   code: function (c) {
-    return 'List<Integer> ints = new ArrayList<>();\nints.add(1);\nints.add(2);\n\n' + this.declLine(c) + '\n' + this.opLine(c) + '\n' + (c.op === 'get' ? 'System.out.println("꺼낸 값: " + n);\n' : '') + '\nSystem.out.println(ints);\nList<String> strs = new ArrayList<>();\nSystem.out.println(ints.getClass() == strs.getClass());\nInteger last = ints.get(ints.size() - 1);\nSystem.out.println("마지막 값: " + last);';
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\nList<Integer> ints = new ArrayList<>();\nints.add(1);\nints.add(2);\n\n' + this.declLine(c) + '\n' + this.opLine(c) + '\n' + (c.op === 'get' ? 'System.out.println("꺼낸 값: " + n);\n' : '') + '\nSystem.out.println(ints);\nList<String> strs = new ArrayList<>();\nSystem.out.println(ints.getClass() == strs.getClass());\nInteger last = ints.get(ints.size() - 1);\nSystem.out.println("마지막 값: " + last);';
   },
   label: function (c) { return { raw: 'List', int: 'List<Integer>', num: 'List<Number>', ext: 'List<? extends Number>', sup: 'List<? super Integer>' }[c.decl] + ' · ' + { addInt: 'add(3)', addDbl: 'add(3.5)', addStr: 'add("삼")', get: 'get(0)' }[c.op]; },
   columns: ['컴파일', '오류가 난 줄', '출력', '끝난 모습'],
@@ -44,12 +44,12 @@ Lab.register({
     var shown = j.val.replace(/"/g, '');   // 리스트 안에 들어간 모습: 3, 3.5, 삼
 
     // ── 컴파일 단계
-    push('List<Integer> ints를 만들고 1과 2를 넣습니다: <Integer>는 "이 리스트에는 Integer만 담는다"는 표시입니다. 컴파일러는 이 표시를 보고 ints에 넣고 꺼내는 코드를 검사합니다.');
+    push('List<Integer> ints를 만들고 1과 2를 넣습니다: <Integer>는 "이 리스트에는 Integer만 넣는다"는 표시입니다. 컴파일러는 이 표시를 보고 ints에 넣고 꺼내는 코드를 검사합니다.');
     if (d === 'raw') { st.link = 'ok'; push('List list = ints 검사: 같은 리스트를 <...> 표시 없이 선언한 변수 list로도 가리키게 합니다. 이렇게 제네릭 없이 쓰는 것을 로 타입이라고 합니다. 제네릭이 없던 시절의 코드와 함께 쓸 수 있도록 남겨 둔 방식이어서 대입은 컴파일됩니다. 그 대신 컴파일러는 list에 무엇을 넣는지 검사하지 못합니다.'); }
     if (d === 'int') { st.link = 'ok'; push('List<Integer> list = ints 검사: 선언한 타입이 같으므로 대입됩니다. list와 ints는 같은 리스트 객체를 가리킵니다.'); }
-    if (d === 'num') { st.link = 'err'; st.comp = '오류'; push('List<Number> list = ints 검사: 컴파일 오류입니다. Integer는 Number의 하위 타입이지만, List<Integer>는 List<Number>의 하위 타입이 아닙니다. 컴파일러는 "' + j.declMsg + '"라고 알립니다. 이 대입이 허용된다면 list.add(3.5)로 실수(Double)를 넣을 수 있게 되고, 그 값은 Integer만 담기로 한 ints 안에 들어가 버리기 때문입니다.', 'bad'); }
+    if (d === 'num') { st.link = 'err'; st.comp = '오류'; push('List<Number> list = ints 검사: 컴파일 오류입니다. Integer는 Number의 하위 타입이지만, List<Integer>는 List<Number>의 하위 타입이 아닙니다. 컴파일러는 "' + j.declMsg + '"라고 알립니다. 이 대입이 허용된다면 list.add(3.5)로 실수(Double)를 넣을 수 있게 되고, 그 값이 원소를 Integer로만 정한 ints의 원소가 되어 버리기 때문입니다.', 'bad'); }
     if (d === 'ext') { st.link = 'ok'; push('List<? extends Number> list = ints 검사: ? extends Number는 "Number이거나 그 하위 타입인 어떤 타입"이라는 뜻입니다. List<Integer>도 List<Double>도 이 변수에 대입할 수 있으므로 통과합니다. 그래서 컴파일러는 list의 원소가 Number의 한 종류라는 것만 알고, 정확히 무엇인지는 모르는 것으로 다룹니다.'); }
-    if (d === 'sup') { st.link = 'ok'; push('List<? super Integer> list = ints 검사: ? super Integer는 "Integer이거나 그 상위 타입(Number, Object)인 어떤 타입"이라는 뜻입니다. List<Integer>도 List<Number>도 List<Object>도 대입할 수 있으므로 통과합니다. 그래서 컴파일러는 이 리스트에 Integer를 담을 수 있다는 것만 압니다.'); }
+    if (d === 'sup') { st.link = 'ok'; push('List<? super Integer> list = ints 검사: ? super Integer는 "Integer이거나 그 상위 타입(Number, Object)인 어떤 타입"이라는 뜻입니다. List<Integer>도 List<Number>도 List<Object>도 대입할 수 있으므로 통과합니다. 그래서 컴파일러는 이 리스트에 Integer를 넣을 수 있다는 것만 압니다.'); }
 
     st.chk = j.res === 'err' ? '오류' : j.res === 'warn' ? '경고' : '통과';
     var CAP = ' CAP#1은 컴파일러가 "?에 해당하는, 무엇인지 모르는 타입"에 붙인 이름입니다.';
@@ -64,7 +64,7 @@ Lab.register({
       if (d === 'sup' && o !== 'addInt') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' 실제 리스트가 List<Integer>일 수 있으므로 ' + j.box + '을 넣게 둘 수 없습니다. ? super Integer 리스트에 넣을 수 있는 것은 Integer입니다.', 'good'); }
     } else {
       if (d === 'raw') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '"). 로 타입에서 꺼낸 값은 무엇인지 모르므로 Object로만 취급합니다. Number로 쓰려면 (Number) list.get(0)처럼 형 변환을 직접 적어야 하고, 그 변환이 맞는지는 실행해 봐야 압니다.', 'bad'); }
-      if (d === 'int') push(opCode + ' 검사: list에서 꺼낸 값은 Integer이고, Integer는 Number의 하위 타입이므로 Number 변수에 담을 수 있습니다. 통과합니다. 형 변환을 적을 필요도 없습니다.', 'good');
+      if (d === 'int') push(opCode + ' 검사: list에서 꺼낸 값은 Integer이고, Integer는 Number의 하위 타입이므로 Number 변수에 대입할 수 있습니다. 통과합니다. 형 변환을 적을 필요도 없습니다.', 'good');
       if (d === 'num') push(opCode + ' 검사: list가 List<Number>라면 이 줄에는 문제가 없습니다. 오류는 앞 줄 한 곳입니다.');
       if (d === 'ext') push(opCode + ' 검사: 통과합니다. 실제 원소 타입이 무엇이든 Number의 하위 타입이므로, 꺼낸 값을 Number로 받는 것은 언제나 안전합니다.', 'good');
       if (d === 'sup') { st.comp = '오류'; push(opCode + ' 검사: 컴파일 오류입니다("' + j.msg + '").' + CAP + ' 실제 리스트가 List<Object>일 수도 있으므로 꺼낸 값이 Number라는 보장이 없습니다. ? super로 선언한 리스트에서 꺼낸 값은 Object로만 받을 수 있습니다.', 'bad'); }
@@ -75,7 +75,7 @@ Lab.register({
     if (errLines.length) {
       st.comp = '오류'; st.end = '실행 못 함';
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. 잘못될 수 있는 코드가 실행되기 전에 걸러졌습니다.', 'bad');
-      if (d === 'num') sum.push('List<Integer>를 List<Number> 변수에 대입할 수 없습니다. 원소끼리는 상위·하위 관계여도, 그것을 담는 리스트끼리는 아무 관계가 없습니다. 허용된다면 그 변수로 Double을 넣어 Integer 리스트를 망가뜨릴 수 있기 때문입니다. 여러 종류의 숫자 리스트를 받고 싶을 때는 List<? extends Number>를 씁니다.');
+      if (d === 'num') sum.push('List<Integer>를 List<Number> 변수에 대입할 수 없습니다. 원소끼리는 상위·하위 관계여도, 그것을 원소로 갖는 리스트끼리는 아무 관계가 없습니다. 허용된다면 그 변수로 Double을 넣어 Integer 리스트를 망가뜨릴 수 있기 때문입니다. 여러 종류의 숫자 리스트를 받고 싶을 때는 List<? extends Number>를 씁니다.');
       if (d === 'int') sum.push('제네릭을 쓰면 잘못된 타입을 넣는 코드가 컴파일 오류가 됩니다. 로 타입(List)으로 바꿔 같은 코드를 실행해 보면, 같은 실수가 실행 중의 예외로 늦게 드러나는 것을 볼 수 있습니다.');
       if (d === 'ext') sum.push('? extends Number로 선언한 리스트는 "꺼내서 Number로 쓰기"만 됩니다. 실제 원소 타입을 모르므로 넣는 것은 막습니다. 값을 읽기만 하는 매개변수에 씁니다(예: 합계를 구하는 메서드).');
       if (d === 'sup' && o !== 'get') sum.push('? super Integer로 선언한 리스트에는 Integer를 넣을 수 있고, 그 밖의 타입은 넣을 수 없습니다.');
@@ -90,10 +90,10 @@ Lab.register({
     var bad = o === 'addDbl' || o === 'addStr', content;
     if (o === 'get') {
       st.out.push('꺼낸 값: 1'); content = '[1, 2]';
-      push('Number n = list.get(0) 실행: 첫 번째 원소 1을 꺼내 n에 담고 "꺼낸 값: 1"을 출력합니다.', '');
+      push('Number n = list.get(0) 실행: 첫 번째 원소 1을 꺼내 n에 대입하고 "꺼낸 값: 1"을 출력합니다.', '');
     } else {
       st.added = shown; st.addedType = j.box; content = '[1, 2, ' + shown + ']';
-      push(opCode + ' 실행: ' + (d === 'raw' ? '실행 중의 리스트 객체는 자기가 Integer용이라는 것을 기억하지 않습니다. 넣을 때는 아무 검사도 하지 않으므로 ' + j.box + ' 값(' + shown + ')이 그대로 들어갑니다.' + (bad ? ' list와 ints는 같은 객체이므로, Integer만 담기로 한 ints 안에 ' + j.box + '이 들어간 것입니다.' : '') : '세 번째 원소로 3이 들어갑니다. list와 ints는 같은 객체이므로 ints에서도 보입니다.'), bad ? 'bad' : '');
+      push(opCode + ' 실행: ' + (d === 'raw' ? '실행 중의 리스트 객체는 자기가 Integer용이라는 것을 기억하지 않습니다. 넣을 때는 아무 검사도 하지 않으므로 ' + j.box + ' 값(' + shown + ')이 그대로 들어갑니다.' + (bad ? ' list와 ints는 같은 객체이므로, 원소를 Integer로만 정한 ints에 ' + j.box + ' 원소가 생긴 것입니다.' : '') : '세 번째 원소로 3이 들어갑니다. list와 ints는 같은 객체이므로 ints에서도 보입니다.'), bad ? 'bad' : '');
     }
     st.out.push(content);
     push('System.out.println(ints) 실행: 리스트의 내용을 출력합니다. 출력은 ' + content + '입니다.' + (bad ? ' 출력만 할 때는 원소가 무슨 타입인지 따지지 않으므로 아직 아무 일도 일어나지 않습니다.' : ''), '');

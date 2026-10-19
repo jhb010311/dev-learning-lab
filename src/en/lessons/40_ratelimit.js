@@ -15,6 +15,9 @@ Lab.register({
     { t: 'Even requests with a token bucket', q: 'What if you switch to a token bucket and requests arrive evenly, 8 per second?', d: 'Requests keep passing at the speed at which tokens are refilled.', v: { algo: 'bucket', pat: 'even' } },
   ],
   code: function (c) {
+    return '// Only lines inside a method are shown (declarations and imports omitted; tooManyRequests is an example method)\n' + this.codeBody(c);
+  },
+  codeBody: function (c) {
     if (c.algo === 'fixed') return '// Fixed window: key = user + the current second\nString key = "rate:" + userId + ":" + (now / 1000);\nlong count = redis.incr(key);            // add 1 to the request count of this second\nif (count == 1) redis.expire(key, 1);    // disappears after 1 second\nif (count > 5) return tooManyRequests(); // 429';
     if (c.algo === 'sliding') return '// Sliding window: record the time of every request in the last 1 second\nString key = "rate:" + userId;\nredis.zremrangeByScore(key, 0, now - 1000);   // delete records older than 1 second\nif (redis.zcard(key) >= 5) return tooManyRequests();   // 429\nredis.zadd(key, now, requestId);';
     return '// Token bucket: capacity 5, refilled at 5 per second\nBucket bucket = Bucket.builder()\n    .addLimit(limit -> limit.capacity(5)\n        .refillGreedy(5, Duration.ofSeconds(1)))\n    .build();\n\nif (!bucket.tryConsume(1)) return tooManyRequests();   // 429 if there is no token';

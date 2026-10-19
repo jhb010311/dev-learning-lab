@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,13 +56,13 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>Account A has 5,000 won, and account B has 1,000 won. The total is 6,000 won. 1,000 won is transferred from A to B.</li>
-<li>Withdrawal: A is changed to 4,000 won. There is no transaction grouping several statements, so this single statement is made permanent (committed) as soon as it finishes. It cannot be undone.</li>
+<li>Withdrawal: A is changed to 4,000 won. There is no transaction grouping several statements, so this single statement is made permanent (committed) as soon as it finishes. It cannot be undone. At this moment, the total that is permanent in the DB is 5,000 won. The 1,000 won taken out of A is not anywhere yet.</li>
 <li>An error occurred in the application, so the deposit statement could not run. The withdrawal is already permanent. 1,000 won was taken out of A but did not go into B. 1,000 won has disappeared.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>Several statements must be &quot;all or nothing&quot;, but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).</li>
-<li>The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on a runtime exception (on a checked exception, COMMIT by default), on your behalf.</li>
+<li>The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring starts a transaction at the start of the method, commits when it ends normally, and rolls back on a runtime exception (on a checked exception, it commits by default), on your behalf. To start the transaction, Spring does not send START TRANSACTION; it turns off auto-commit on the JDBC connection (setAutoCommit(false)).</li>
 </ul>
 <h2>Code</h2>
 <pre>-- Autocommit: each statement is made permanent as soon as it finishes
@@ -158,6 +158,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

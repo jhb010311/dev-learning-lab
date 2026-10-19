@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>상속과 오버라이딩: 자식 객체를 만들 때 부모 생성자는 언제 실행되나 · 개발 학습 실습실</title>
-<meta name="description" content="자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모…">
+<meta name="description" content="new로 만든 자식 클래스의 객체는 하나이고, 그 객체가 부모에게서 물려받은 필드와 자식이 선언한 필드를 함께 가집니다. 부모 객체가 따로 생기지 않습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="상속과 오버라이딩: 자식 객체를 만들 때 부모 생성자는 언제 실행되나 · 개발 학습 실습실">
-<meta property="og:description" content="자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모…">
+<meta property="og:description" content="new로 만든 자식 클래스의 객체는 하나이고, 그 객체가 부모에게서 물려받은 필드와 자식이 선언한 필드를 함께 가집니다. 부모 객체가 따로 생기지 않습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>상속과 오버라이딩</h1>
 <p><b>자식 객체를 만들 때 부모 생성자는 언제 실행되나</b></p>
-<p>자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모 생성자가 오버라이딩된 메서드를 부르면 아직 비어 있는 자식 필드가 보입니다.</p>
+<p>new로 만든 자식 클래스의 객체는 하나이고, 그 객체가 부모에게서 물려받은 필드와 자식이 선언한 필드를 함께 가집니다. 부모 객체가 따로 생기지 않습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모 생성자가 오버라이딩된 메서드를 부르면 아직 비어 있는 자식 필드가 보입니다.</p>
 <p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 컴파일하고 실행해 컴파일 결과와 출력을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -58,7 +58,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>컴파일: Dog() 생성자의 첫 줄을 봅니다. super(&quot;바둑이&quot;)는 문자열 하나를 받는 부모 생성자 Animal(String name)을 부르겠다는 뜻입니다. Animal에 이 생성자가 있으므로 컴파일됩니다.</li>
-<li>new Dog() 실행: 힙에 Dog 객체 하나의 자리를 잡습니다. 이 객체 안에는 Animal에게서 물려받은 name과 Dog가 선언한 sound가 함께 들어 있고, 둘 다 기본값 null로 채워집니다.</li>
+<li>new Dog() 실행: 힙에 Dog 객체 하나의 자리를 잡습니다. 이 객체는 Animal에게서 물려받은 필드 name과 Dog가 선언한 필드 sound를 함께 가지며, 둘 다 기본값 null로 채워집니다.</li>
 <li>Dog() 생성자의 첫 줄 super(&quot;바둑이&quot;): Dog의 필드 초기화식과 생성자 본문을 실행하기 전에 부모 생성자인 Animal(String name) 쪽으로 먼저 넘어갑니다. 물려받은 부분이 먼저 준비되어야 자식이 그것을 쓸 수 있기 때문입니다.</li>
 <li>Animal(String name) 본문의 this.name = name: 넘겨받은 &quot;바둑이&quot;가 name에 들어갑니다. sound는 아직 null입니다.</li>
 <li>System.out.println(&quot;Animal(String) 실행&quot;): 부모 생성자의 본문이 실행 중입니다. Dog() 생성자의 본문은 아직 한 줄도 실행되지 않았습니다.</li>
@@ -66,8 +66,8 @@
 <li>Dog의 describe() 안의 println(&quot;sound=&quot; + sound): Dog의 필드 초기화식 sound = &quot;멍멍&quot;은 부모 생성자가 끝난 뒤에야 실행됩니다. 지금 sound는 기본값 null이어서 출력은 sound=null입니다.</li>
 <li>Dog의 필드 초기화식 String sound = &quot;멍멍&quot;: 부모 생성자가 끝나 Dog()로 돌아왔습니다. 이제야 Dog의 필드 초기화식이 실행되어 sound에 &quot;멍멍&quot;이 들어갑니다.</li>
 <li>System.out.println(&quot;Dog() 실행&quot;): Dog() 생성자의 본문이 실행됩니다. 자식 생성자의 본문이 가장 마지막입니다.</li>
-<li>Dog d = new Dog(): 생성자가 모두 끝났습니다. 완성된 객체의 참조가 변수 d에 담깁니다.</li>
-<li>d.describe()로 부른 Dog의 describe() 안의 println(&quot;sound=&quot; + sound): 객체가 다 만들어진 뒤이므로 sound에는 &quot;멍멍&quot;이 들어 있습니다. 출력은 sound=멍멍입니다.</li>
+<li>Dog d = new Dog(): 생성자가 모두 끝났습니다. 이제 변수 d가 완성된 객체를 가리킵니다.</li>
+<li>d.describe()로 부른 Dog의 describe() 안의 println(&quot;sound=&quot; + sound): 객체가 다 만들어진 뒤이므로 sound의 값은 &quot;멍멍&quot;입니다. 출력은 sound=멍멍입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -105,6 +105,7 @@ class Dog extends Animal {
     }
 }
 
+// 여기부터 main 메서드 안의 줄 (main을 둘러싼 클래스 선언은 생략)
 Dog d = new Dog();
 d.describe();</pre>
 <h2>이 모형의 전제</h2>
@@ -196,6 +197,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

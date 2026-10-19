@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];
     var body = { none: '        count++;                    // read -> add -> write', volatile: '        count++;                    // still three steps with volatile', sync: '        synchronized (lock) {       // only one thread at a time\n            count++;\n        }', atomic: '        count.incrementAndGet();    // inside: read -> CAS, retry on failure' }[c.sync];
-    return decl + '\n\nRunnable task = () -> {\n    for (int i = 0; i < ' + c.loops + '; i++) {\n' + body + '\n    }\n};\n\n// ' + c.threads + ' threads run the same task at the same time\nfor (int t = 0; t < ' + c.threads + '; t++) {\n    new Thread(task).start();\n}';
+    return '// Only the field declarations and the lines inside main are shown (class, main declaration, and imports omitted)\n' + decl + '\n\nRunnable task = () -> {\n    for (int i = 0; i < ' + c.loops + '; i++) {\n' + body + '\n    }\n};\n\n// ' + c.threads + ' threads run the same task at the same time\nfor (int t = 0; t < ' + c.threads + '; t++) {\n    new Thread(task).start();\n}';
   },
   label: function (c) { return { none: 'No synchronization', volatile: 'volatile', sync: 'synchronized', atomic: 'AtomicInteger' }[c.sync] + ' · ' + c.threads + ' threads × ' + c.loops + ' · ' + { alt: 'alternating', rand: 'random (pattern #' + c.seed + ')', seq: 'one after another' }[c.order]; },
   columns: ['Expected value', 'Final value', 'Lost increments', 'Waits and retries'],

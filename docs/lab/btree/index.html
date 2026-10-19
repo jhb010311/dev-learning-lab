@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,8 @@
 <li>세 방식의 차이는 &quot;정렬해 두었는가&quot;와 &quot;한 번에 얼마나 많이 버리는가&quot;입니다. DB 인덱스는 값을 정렬해 B-트리로 저장해 두는 것이고, 그 대가로 넣고 고칠 때마다 트리도 함께 고쳐야 합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 정렬돼 있지 않으면 앞에서부터 전부 확인하는 수밖에 없다
+<pre>// 메서드 본문만 보임 (메서드 선언과 매개변수 rows, target의 선언은 생략)
+// 정렬 안 된 배열: 앞에서부터 하나씩 확인한다
 for (int i = 0; i &lt; rows.length; i++) {
     if (rows[i] == target) return i;
 }
@@ -168,6 +169,6 @@ SELECT * FROM orders WHERE amount = 230;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

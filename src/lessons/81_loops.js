@@ -20,16 +20,17 @@ Lab.register({
   ],
   words: ['하나', '둘', '셋', '그 외'],
   code: function (c) {
+    var H = '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n';
     if (c.stmt === 'for' || c.stmt === 'while') {
       var pad = function (x) { return x + new Array(Math.max(2, 36 - x.length)).join(' ') + '// '; };
       var cond = 'i ' + (c.cmp === 'le' ? '<=' : '<') + ' 3', j = c.jump === 'break' ? pad('    if (i == 1) break;') + '반복문을 끝낸다\n' : c.jump === 'cont' ? pad('    if (i == 1) continue;') + '이번 회차의 남은 줄을 건너뛴다\n' : '';
-      if (c.stmt === 'for') return pad('for (int i = 0; ' + cond + '; i++) {') + '초기화; 조건; 증감\n' + j + '    System.out.println(i);\n}\nSystem.out.println("끝");';
-      return 'int i = 0;\n' + pad('while (' + cond + ') {') + '조건이 true인 동안 되풀이\n' + j + '    System.out.println(i);\n    i++;\n}\nSystem.out.println("끝");';
+      if (c.stmt === 'for') return H + pad('for (int i = 0; ' + cond + '; i++) {') + '초기화; 조건; 증감\n' + j + '    System.out.println(i);\n}\nSystem.out.println("끝");';
+      return H + 'int i = 0;\n' + pad('while (' + cond + ') {') + '조건이 true인 동안 되풀이\n' + j + '    System.out.println(i);\n    i++;\n}\nSystem.out.println("끝");';
     }
     var w = this.words, head = 'int n = ' + c.val + ';\nswitch (n) {\n', tail = '}\nSystem.out.println("끝");';
-    if (c.stmt === 'swa') return head + '    case 1 -> System.out.println("' + w[0] + '");\n    case 2 -> System.out.println("' + w[1] + '");\n    case 3 -> System.out.println("' + w[2] + '");\n    default -> System.out.println("' + w[3] + '");\n' + tail;
+    if (c.stmt === 'swa') return H + head + '    case 1 -> System.out.println("' + w[0] + '");\n    case 2 -> System.out.println("' + w[1] + '");\n    case 3 -> System.out.println("' + w[2] + '");\n    default -> System.out.println("' + w[3] + '");\n' + tail;
     var br = c.stmt === 'swc' ? '        break;\n' : '';
-    return head + '    case 1:\n        System.out.println("' + w[0] + '");\n' + br + '    case 2:\n        System.out.println("' + w[1] + '");\n' + br + '    case 3:\n        System.out.println("' + w[2] + '");\n' + br + '    default:\n        System.out.println("' + w[3] + '");\n' + tail;
+    return H + head + '    case 1:\n        System.out.println("' + w[0] + '");\n' + br + '    case 2:\n        System.out.println("' + w[1] + '");\n' + br + '    case 3:\n        System.out.println("' + w[2] + '");\n' + br + '    default:\n        System.out.println("' + w[3] + '");\n' + tail;
   },
   label: function (c) {
     if (c.stmt === 'for' || c.stmt === 'while') return c.stmt + ' · i ' + (c.cmp === 'le' ? '<=' : '<') + ' 3' + (c.jump === 'break' ? ' · i가 1일 때 break' : c.jump === 'cont' ? ' · i가 1일 때 continue' : '');

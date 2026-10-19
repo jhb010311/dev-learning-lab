@@ -16,7 +16,7 @@ Lab.register({
   ],
   // The code on the screen and the code that the checking program (verify/spring/src/PcBasicProbe.java) ran are the same text (the checking script compares them character by character).
   code: function (c) {
-    var l = ['em.getTransaction().begin();'];
+    var l = ['// Only lines inside a method are shown (declarations, em setup, the Member entity, and imports omitted)', 'em.getTransaction().begin();'];
     if (c.how === 'new') l.push('Member m = new Member(1L, "Alice");');
     else {
       l.push('// find: the entity read from the database goes into the persistence context', 'Member m = em.find(Member.class, 1L);');

@@ -18,7 +18,7 @@ Lab.register({
     { t: '404나 500이 오면', q: '읽기 타임아웃 3초를 정한 채 서버가 곧바로 404로 응답하면', d: '응답은 왔지만 호출한 코드에서는 예외로 나타납니다.', v: { server: 'e404', ct: true, rt: true } },
   ],
   code: function (c) {
-    return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\nSimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'
       + (c.ct ? 'factory.setConnectTimeout(Duration.ofSeconds(2));   // 연결 타임아웃\n' : '// 연결 타임아웃을 정하지 않음 (운영체제가 포기할 때까지 기다림)\n')
       + (c.rt ? 'factory.setReadTimeout(Duration.ofSeconds(3));      // 읽기 타임아웃\n' : '// 읽기 타임아웃을 정하지 않음 (제한 없이 기다림)\n')
       + '\nRestClient client = RestClient.builder()\n        .requestFactory(factory)\n        .build();\n\ntry {\n    String body = client.get()\n            .uri("http://pay-server/payments/1")\n            .retrieve()\n            .body(String.class);            // 결과가 올 때까지 이 스레드는 여기서 기다린다\n} catch (HttpClientErrorException e) {      // 4xx 응답\n} catch (HttpServerErrorException e) {      // 5xx 응답\n} catch (ResourceAccessException e) {       // 연결 실패, 타임아웃\n}';

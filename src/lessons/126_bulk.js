@@ -20,7 +20,7 @@ Lab.register({
   ],
   code: function (c) {
     var sel = 'em.createQuery("select i from Item i order by i.id", Item.class).getResultList()';
-    var s = '@Entity\nclass Item {\n    @Id Long id;\n    String name;\n    int price;\n    int getPrice() { return price; }\n    void setPrice(int price) { this.price = price; }\n}\n\n// 트랜잭션 안. DB에는 상품 ' + c.n + '개 (상품 1은 1000원, 상품 2는 2000원, …)\nList<Item> items = ' + sel + ';\nItem first = items.get(0);                 // 상품 1\n';
+    var s = '@Entity\nclass Item {\n    @Id Long id;\n    String name;\n    int price;\n    int getPrice() { return price; }\n    void setPrice(int price) { this.price = price; }\n}\n\n// 여기부터는 트랜잭션 안의 메서드 본문 (메서드와 필드 em의 선언, import는 생략)\n// DB에는 상품 ' + c.n + '개 (상품 1은 1000원, 상품 2는 2000원, …)\nList<Item> items = ' + sel + ';\nItem first = items.get(0);                 // 상품 1\n';
     if (c.dirty) s += 'first.setPrice(5000);                      // 아직 SQL은 나가지 않는다\n';
     s += '\n';
     if (c.op === 'update') s += 'int count = em.createQuery("update Item i set i.price = i.price + 500")\n        .executeUpdate();                  // 벌크 UPDATE\n';

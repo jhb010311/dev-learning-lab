@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>이벤트 루프</dt>
 <dd>소수의 스레드가 여러 연결에서 발생하는 입출력 이벤트를 감지해 차례로 처리하는 구조다. 연결마다 스레드를 두지 않으므로 하나의 스레드가 많은 연결을 담당한다. 이 스레드에서 오래 걸리는 작업이나 블로킹 호출을 하면 그 스레드가 맡은 모든 연결의 처리가 멈춘다.</dd>
 <dt>톰캣의 스레드 모델</dt>
-<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한되고, 모든 스레드가 사용 중이면 새 요청은 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
+<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한된다. 쉬는 스레드가 없으면 자바 기본 ThreadPoolExecutor와 달리 최대 수까지 스레드를 먼저 늘리고, 모든 스레드가 사용 중일 때 새 요청이 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -69,7 +69,8 @@
 <li>블로킹 방식에서는 동시에 처리할 수 있는 요청 수가 스레드 수를 넘지 못합니다. 기다리는 시간이 길수록 스레드가 오래 묶입니다. 코드가 단순하고 디버깅이 쉬워서 널리 쓰입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 스프링 MVC: 요청마다 스레드 하나가 끝까지 맡는다
+<pre>// 컨트롤러 메서드만 보임 (클래스·필드 선언, import, 예시로 만든 타입의 선언은 생략)
+// 스프링 MVC: 요청마다 스레드 하나가 끝까지 맡는다
 // server.tomcat.threads.max=4
 @GetMapping(&quot;/orders/{id}&quot;)
 OrderDto get(@PathVariable long id) {
@@ -166,6 +167,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

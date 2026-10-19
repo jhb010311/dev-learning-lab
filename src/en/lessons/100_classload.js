@@ -33,7 +33,7 @@ Lab.register({
     var member = { smethod: '    static void hello() { }\n', sfield: '    static int count = 0;\n', const: '    static final int MAX = 10;                        // a constant whose value is fixed at compile time\n', finalrt: '    static final int SIZE = Integer.parseInt("10");   // the value is known only at run time\n' }[c.use] || '';
     var note = f.member && f.owner !== f.T ? '                // ' + { smethod: 'hello', sfield: 'count', const: 'MAX', finalrt: 'SIZE' }[c.use] + ' is declared in Parent' : '';
     return 'class Parent {\n' + (f.owner === 'Parent' ? member : '') + '    static { System.out.println("Parent init"); }    // static initializer\n}\n\nclass Child extends Parent {\n' + (f.member && f.owner === 'Child' ? member : '') + '    static { System.out.println("Child init"); }\n}\n\n'
-      + 'System.out.println("main starts");\n' + f.stmt[0] + note + '\nSystem.out.println("first use done");\n' + f.stmt[1] + '\nSystem.out.println("second use done");';
+      + 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("main starts");\n        ' + f.stmt[0] + note + '\n        System.out.println("first use done");\n        ' + f.stmt[1] + '\n        System.out.println("second use done");\n    }\n}';
   },
   label: function (c) { var f = this.facts(c); return f.T + ' · ' + { new: 'new', smethod: 'static method', sfield: 'static field', const: 'constant', finalrt: 'non-constant static final', array: 'array', classlit: '.class' }[c.use] + (f.member && c.cls === 'child' ? (f.owner === 'Parent' ? ' (declared in Parent)' : ' (declared in Child)') : ''); },
   columns: ['Static initializer of Parent', 'Static initializer of Child', 'Classes loaded', 'Order of the output'],

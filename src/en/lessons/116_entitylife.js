@@ -27,7 +27,7 @@ Lab.register({
     return before ? [mk, set, mid, con, commit] : [mk, mid, set, con, commit];
   },
   code: function (c) {
-    return 'EntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n\n' + this.lines(c).map(function (l) { return l.code; }).join('\n');
+    return '// Only the lines inside a method are shown (class and method declarations, the code that creates emf, the example Member entity, and imports omitted)\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n\n' + this.lines(c).map(function (l) { return l.code; }).join('\n');
   },
   label: function (c) { return { new: 'new only', persist: 'persist', find: 'find', detach: 'detach', clear: 'clear', close: 'close after commit', remove: 'remove' }[c.st] + (['persist', 'detach', 'clear', 'close'].indexOf(c.st) >= 0 ? ' · name changed ' + (c.when === 'before' ? 'just before' : 'after') : ''); },
   columns: ['em.contains(m)', 'SQL sent to the DB', 'When the write SQL was sent', 'Value left in the DB'],

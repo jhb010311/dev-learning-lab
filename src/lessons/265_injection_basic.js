@@ -19,7 +19,7 @@ Lab.register({
   // 화면의 코드와 대조 프로그램(verify/spring/src/InjectionBasicProbe.java)이 같은 글을 컴파일해 실행한다. 대조 스크립트가 글자까지 비교한다.
   inp: { kim: 'kim', or: '\' OR \'1\'=\'1', oneil: 'O\'Neil' },
   code: function (c) {
-    var l = ['// member 테이블에는 세 행(name: kim, lee, O\'Neil)이 들어 있다', '// 연결: 주소가 가리키는 DB와 연결을 맺는다', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// 입력: 사용자가 입력창에 쓴 글이라고 하자', 'String input = "' + this.inp[c.input] + '";'];
+    var l = ['// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)', '// member 테이블에는 세 행(name: kim, lee, O\'Neil)이 들어 있다', '// 연결: 주소가 가리키는 DB와 연결을 맺는다', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// 입력: 사용자가 입력창에 쓴 글이라고 하자', 'String input = "' + this.inp[c.input] + '";'];
     if (c.how === 'bind') l.push('// SQL: 값이 들어갈 자리를 ?로 비워 둔다', 'String sql = "SELECT name FROM member WHERE name = ?";', '// 보내기: SQL 글자와 값을 따로 넘긴다', 'PreparedStatement ps = conn.prepareStatement(sql);', 'ps.setString(1, input);', 'ResultSet rs = ps.executeQuery();');
     else l.push('// SQL: input의 글자를 SQL 글자 사이에 그대로 이어 붙인다', 'String sql = "SELECT name FROM member WHERE name = \'" + input + "\'";', '// 보내기: 이어 붙여 완성한 SQL 글자를 통째로 보낸다', 'Statement st = conn.createStatement();', 'ResultSet rs = st.executeQuery(sql);');
     l.push('// 읽기: 돌아온 행마다 name을 출력한다', 'while (rs.next()) {', '    System.out.println(rs.getString("name"));', '}');

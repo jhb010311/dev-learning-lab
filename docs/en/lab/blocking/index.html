@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>Event loop</dt>
 <dd>This is a structure in which a small number of threads detect the I/O events that occur on many connections and process them in turn. There is no thread per connection, so one thread takes care of many connections. If you run a long task or a blocking call on such a thread, processing stops for every connection that the thread is responsible for.</dd>
 <dt>Tomcat's threading model</dt>
-<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default), and when all threads are in use, new requests wait. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
+<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default). Unlike the standard Java ThreadPoolExecutor, when no thread is idle it adds threads up to the maximum first, and new requests wait only when all of them are in use. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -69,7 +69,8 @@
 <li>In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why this style is widely used.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Spring MVC: one thread handles each request from start to finish
+<pre>// Only the controller method is shown (class and field declarations, imports, and the example types' declarations are omitted)
+// Spring MVC: one thread handles each request from start to finish
 // server.tomcat.threads.max=4
 @GetMapping(&quot;/orders/{id}&quot;)
 OrderDto get(@PathVariable long id) {
@@ -166,6 +167,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -64,7 +64,7 @@ Lab.register({
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet looks for a controller method that handles /hello. There is a @GetMapping("/hello"), but there is none for POST. It sets the status of the response to 405.', 'bad'); errorDispatch(); }
         else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet finds the controller method that matches ' + method + ' /hello and calls it. ' + (method === 'GET' ? 'It reads the values from request and passes them as arguments, and it' : 'It') + ' writes the value that the method returns to response. DispatcherServlet does the work that we did ourselves when we wrote the servlet directly.', 'good'); }
       }
-      st.who = 'Tomcat (servlet container)'; st.sent = true;
+      st.who = 'Tomcat (servlet container)'; st.sent = true; st.thread = '';
       push('The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The ' + S + ' object stays as it is and waits for the next request.', '');
     }
     if (st.made) { st.destroy++; st.obj = 'gone'; st.reqText = ''; st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = ''; push('The server shuts down. Tomcat calls destroy() of ' + S + ' once and then discards the object. This is the chance to clean up the resources that were opened.', ''); }

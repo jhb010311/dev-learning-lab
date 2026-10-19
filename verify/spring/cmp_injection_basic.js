@@ -36,7 +36,8 @@ for (const ln of lines.slice(1)) {
   if (JSON.stringify(sim.outcome.names) !== JSON.stringify(names) || sim.outcome.err !== !!kind) probs.push('모형의 결과 ' + JSON.stringify(sim.outcome) + ' 실제 ' + f.out + ' / ' + kind);
   // 화면의 코드 = Probe가 컴파일한 소스
   const src = fs.readFileSync(path.join(__dirname, '..', 'out', 'injection_basic', how + '-' + input, 'Main.java'), 'utf8').replace(/\r\n/g, '\n');
-  if (src !== wrap(lesson.code.call(lesson, c))) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
+  // 화면 맨 위의 생략을 밝히는 주석 한 줄은 Probe 소스에 없으므로 빼고 비교
+  if (src !== wrap(lesson.code.call(lesson, c).replace(/^\/\/ [^\n]*생략[^\n]*\n/, ''))) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
   // DB가 받은 SQL: 모형의 sqlText와 실제
   if (f.recv !== lesson.sqlText(c)) probs.push('sqlText 모형 ' + lesson.sqlText(c) + ' 실제 ' + f.recv);
   // 판정의 근거: 오류가 아니면 실행 기록에 그 SELECT가 한 번, 오류면 기록 없이 파서(토크나이저)에서 나고 메시지가 그 SQL을 인용

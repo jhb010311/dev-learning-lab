@@ -38,7 +38,7 @@ Lab.register({
     var order = '\n    int order(int price) {\n        return price - discountPolicy.discount(price);\n    }\n}';
     if (f.isNew) {
       out.push('class OrderService {\n    private final DiscountPolicy discountPolicy = new ' + f.cls + '();   // 직접 만들고, 직접 고른다\n' + order);
-      out.push('// 쓰는 곳\nOrderService orderService = new OrderService();\nint pay = orderService.order(20000);');
+      out.push('// 쓰는 곳 (main 안의 줄만 보임. 클래스·main 선언은 생략)\nOrderService orderService = new OrderService();\nint pay = orderService.order(20000);');
       return out.join('\n\n');
     }
     if (c.how === 'bean') {
@@ -49,7 +49,7 @@ Lab.register({
       out.push(cfg + '\n}');
     }
     out.push('@Component\nclass OrderService {\n    private final DiscountPolicy discountPolicy;\n\n    OrderService(' + (c.reg === 'qualifier' ? '@Qualifier("' + f.bean + '") ' : '') + 'DiscountPolicy discountPolicy) {   // 컨테이너가 넣어 준다\n        this.discountPolicy = discountPolicy;\n    }\n' + order);
-    out.push('// 쓰는 곳: 컨테이너에서 꺼낸다\nOrderService orderService = context.getBean(OrderService.class);\nint pay = orderService.order(20000);');
+    out.push('// 쓰는 곳(main 안의 줄): 컨테이너에서 꺼낸다. context를 만드는 줄, 클래스·main 선언, import는 생략\nOrderService orderService = context.getBean(OrderService.class);\nint pay = orderService.order(20000);');
     return out.join('\n\n');
   },
   label: function (c) {

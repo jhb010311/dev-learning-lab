@@ -35,7 +35,7 @@ for (const ln of lines.slice(1)) {
   if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + k + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
   // 화면의 코드 = Probe가 컴파일한 Order 소스 + 쓰는 쪽
   const want = f.src.replace(/\\n/g, '\n').replace(/\n+$/, '') + '\n\n' + f.save.replace(/\\n/g, '\n');
-  const shown = lesson.code.call(lesson, c);
+  const shown = lesson.code.call(lesson, c).replace(/^\/\/ [^\n]*생략\)\n/, '');   // 맨 위의 "…생략)" 머리 줄은 Probe 소스에 없으니 빼고 견준다
   if (shown !== want) { good = false; console.log('화면의 코드가 Probe가 컴파일한 소스와 다름: ' + k + '\n--- 화면\n' + shown + '\n--- 실행\n' + want); }
   // 단계 문장이 기대는 사실
   const text = sim.events.map(e => e.s).join('\n'), obj = k === 'ref' || k === 'named', S = sim.sql;

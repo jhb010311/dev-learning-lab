@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var b = c.same === 'same' ? 1 : 2;
-    var use = '\n\nOrder a = new Order(1);\nOrder b = new Order(' + b + ');\n\nSystem.out.println(a.equals(b));\nSystem.out.println(a.hashCode() == b.hashCode());\n\nMap<Order, String> map = new HashMap<>();\nmap.put(a, "order details");\nSystem.out.println(map.get(b));\n\nSet<Order> set = new HashSet<>();\nset.add(a);\nset.add(b);\nSystem.out.println(set.size());';
+    var use = '\n\n// From here on, the lines inside main (the enclosing class, main declaration, and imports omitted)\nOrder a = new Order(1);\nOrder b = new Order(' + b + ');\n\nSystem.out.println(a.equals(b));\nSystem.out.println(a.hashCode() == b.hashCode());\n\nMap<Order, String> map = new HashMap<>();\nmap.put(a, "order details");\nSystem.out.println(map.get(b));\n\nSet<Order> set = new HashSet<>();\nset.add(a);\nset.add(b);\nSystem.out.println(set.size());';
     if (c.how === 'record') return 'record Order(int id) { }               // equals and hashCode are generated automatically' + use;
     var eq = '\n    @Override\n    public boolean equals(Object o) {\n        return o instanceof Order other && id == other.id;\n    }\n';
     var hc = c.how === 'const' ? '\n    @Override\n    public int hashCode() {\n        return 42;                       // the same value for every object\n    }\n' : '\n    @Override\n    public int hashCode() {\n        return Objects.hash(id);\n    }\n';

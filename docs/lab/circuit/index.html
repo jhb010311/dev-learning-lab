@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -107,6 +107,7 @@ resilience4j.circuitbreaker.instances.payment:
   waitDurationInOpenState: 5s          # 차단 유지 시간
   permittedNumberOfCallsInHalfOpenState: 3
 
+// 클래스 본문만 보임 (클래스 선언·import와 예시로 만든 Order·PaymentResult·paymentClient의 선언은 생략)
 @CircuitBreaker(name = &quot;payment&quot;, fallbackMethod = &quot;payLater&quot;)
 PaymentResult pay(Order order) {
     return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃
@@ -204,6 +205,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

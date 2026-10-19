@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,8 @@
 <li>With any approach, do not append values to the string directly; leave a placeholder such as :name and put the value in with setParameter. If you append a value entered by a user to the statement as it is, you are exposed to a SQL injection attack.</li>
 </ul>
 <h2>Code</h2>
-<pre>List&lt;Member&gt; search(String name, Integer age) {
+<pre>// Only the methods inside the class and the line that calls search are shown (class declaration, the em field, the example Member entity, and imports omitted)
+List&lt;Member&gt; search(String name, Integer age) {
     String jpql = &quot;select m from Member m where&quot;;
     if (name != null) jpql += &quot; m.name = :name&quot;;
     if (age != null)  jpql += &quot; and m.age &gt;= :age&quot;;
@@ -172,6 +173,6 @@ search(null, 20);   // the name is not entered, the age is 20 or older</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,7 @@
 <li>A lookup that usually finishes in 0.1ms waited 499.3ms. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Only the parts needed are kept. redis is the StringRedisTemplate from Spring
+<pre>// Only the needed parts are kept. redis is the StringRedisTemplate from Spring
 
 // Services A and B: ordinary cache lookups
 String v = redis.opsForValue().get(&quot;product:1&quot;);   // 0.1ms
@@ -163,6 +163,6 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all t
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

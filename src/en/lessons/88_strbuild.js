@@ -4,7 +4,7 @@ Lab.register({
   intro: 'A String is an object whose contents do not change once it has been created. Methods such as concat, replace, and toUpperCase do not modify the original. They create a new string and return it, so if you ignore the return value, it looks as if nothing happened. A StringBuilder, in contrast, modifies the contents of a single object directly. Look at the difference while using == to check whether two variables refer to the same object.',
   terms: ['String immutability', 'Immutable object', 'StringBuilder and StringBuffer', 'Identity and equality'],
   controls: [
-    { id: 'type', label: 'Type that holds the string', type: 'select', value: 'str', options: [['str', 'String'], ['sb', 'StringBuilder']] },
+    { id: 'type', label: 'Type of the variable', type: 'select', value: 'str', options: [['str', 'String'], ['sb', 'StringBuilder']] },
     { id: 'op', label: 'What the code does', type: 'select', value: 'drop', options: [['drop', 'Calls a method and ignores the return value'], ['assign', 'Assigns the return value back to the same variable'], ['loop', 'Concatenates three times in a loop']] },
     { id: 'm', label: 'Method to call', type: 'select', value: 'upper', options: [['concat', 'concat("!")  concatenate to the end'], ['replace', 'replace(\'a\', \'o\')  replace a character'], ['upper', 'toUpperCase()  convert to upper case']], show: function (c) { return c.type === 'str' && c.op !== 'loop'; }, hint: 'With a StringBuilder, you add to the end with append.' },
   ],
@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var sb = c.type === 'sb', T = sb ? 'StringBuilder' : 'String', v = sb ? 'sb' : 's', call = this.call(c);
-    var head = sb ? 'StringBuilder sb = new StringBuilder("java");\nStringBuilder first = sb;          // remember the first object\n' : 'String s = "java";\nString first = s;                 // remember the first object\n';
+    var head = '// Only the lines inside main are shown (class and main declaration omitted)\n' + (sb ? 'StringBuilder sb = new StringBuilder("java");\nStringBuilder first = sb;          // remember the first object\n' : 'String s = "java";\nString first = s;                 // remember the first object\n');
     var tail = '\nSystem.out.println(' + v + ');\nSystem.out.println(first);\nSystem.out.println(' + v + ' == first);   // same object?';
     if (c.op === 'loop') return head + 'int changed = 0;                  // how many times ' + v + ' came to refer to a different object\n\nfor (int i = 1; i <= 3; i++) {\n    ' + T + ' before = ' + v + ';\n    ' + (sb ? 'sb.append(i);' : 's = s + i;') + '\n    if (' + v + ' != before) changed++;\n}\n' + tail + '\nSystem.out.println(changed);';
     return head + '\n' + (c.op === 'drop' ? call.src + ';                 // the return value is ignored' : v + ' = ' + call.src + ';             // stores the return value in ' + v + ' again') + '\n' + tail;

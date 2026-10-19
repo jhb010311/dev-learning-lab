@@ -22,14 +22,14 @@ Lab.register({
     var s = 'class Counter {\n    ' + (isS ? 'static int count;              // static 필드: 클래스에 하나' : 'int count;                     // 인스턴스 필드: 객체마다 하나') + '\n\n    void hit() {                   // 인스턴스 메서드\n        count++;\n    }\n';
     if (c.extra === 'sm') s += '\n    static int report() {          // static 메서드\n        return count;' + (e ? '              // 컴파일 오류' : '') + '\n    }\n';
     if (c.extra === 'smThis') s += '\n    static int report() {          // static 메서드\n        return this.count;         // 컴파일 오류\n    }\n';
-    s += '}\n\n';
-    if (c.extra === 'cls0') s += 'System.out.println(Counter.count);' + (e ? '   // 컴파일 오류' : '   // 아직 객체가 없다') + '\n';
-    if (c.extra === 'clsHit') s += 'Counter.hit();                        // 컴파일 오류\n';
-    s += 'Counter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\n';
-    for (i = 0; i < nb; i++) s += 'b.hit();\n';
-    s += 'System.out.println(a.count + " " + b.count);';
-    if (c.extra === 'sm' || c.extra === 'smThis') s += '\nSystem.out.println(Counter.report());';
-    return s;
+    s += '}\n\npublic class Main {\n    public static void main(String[] args) {\n';
+    if (c.extra === 'cls0') s += '        System.out.println(Counter.count);' + (e ? '   // 컴파일 오류' : '   // 아직 객체가 없다') + '\n';
+    if (c.extra === 'clsHit') s += '        Counter.hit();                        // 컴파일 오류\n';
+    s += '        Counter a = new Counter();\n        Counter b = new Counter();\n        a.hit();\n        a.hit();\n';
+    for (i = 0; i < nb; i++) s += '        b.hit();\n';
+    s += '        System.out.println(a.count + " " + b.count);';
+    if (c.extra === 'sm' || c.extra === 'smThis') s += '\n        System.out.println(Counter.report());';
+    return s + '\n    }\n}';
   },
   label: function (c) { return (c.decl === 'static' ? 'static int count' : 'int count') + ' · ' + { none: '추가 없음', sm: 'report()에서 count', smThis: 'report()에서 this.count', cls0: '먼저 Counter.count', clsHit: 'Counter.hit()' }[c.extra] + ' · b.hit() ' + c.nb + '번'; },
   columns: ['컴파일', 'a.count와 b.count', '추가한 줄의 출력'],
@@ -103,7 +103,7 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { cls: false, sv: '', a: false, av: '', b: false, bv: '', hot: '', by: '', ab: '', ex: '', err: '', errAt: '' };
     var isS = c.decl === 'static', x = c.extra, hasM = x === 'sm' || x === 'smThis';
     P.size(680, 264);
-    P.region('cl', 16, 16, 300, 168, '클래스 Counter (프로그램에 하나)');
+    P.region('cl', 16, 16, 300, 168, '클래스 Counter (객체 수와 상관없이 하나)');
     P.region('hp', 364, 16, 300, 168, '힙 (객체마다 따로)');
     if (isS) P.box('sf', 30, 52, 272, 46, { cls: s.sv === '' ? 'ghost' : s.hot === 'sf' ? 'hot now' : 'good', title: 'static 필드 count', sub: '모든 객체가 함께 쓰는 하나', right: s.sv === '' ? '' : s.sv });
     else P.box('sf', 30, 52, 272, 46, { cls: s.errAt === 'sf' ? 'bad' : 'ghost', title: 'static 필드 없음', sub: 'count는 객체마다 따로 있음' });
@@ -121,5 +121,5 @@ Lab.register({
     P.box('o2', 344, 204, 320, 38, { cls: s.err ? 'bad' : s.ex ? 'good' : 'ghost', title: exT, right: s.err ? '오류' : x === 'none' ? '' : s.ex || '?' });
     P.note(isS ? 'count 상자가 왼쪽 클래스에 하나만 있습니다. a로 부르든 b로 부르든 hit()은 이 하나를 올리고, a.count와 b.count도 이 하나를 읽습니다.' : 'count가 오른쪽 객체마다 하나씩 있습니다. 메서드의 코드 자체는 클래스에 하나만 있고, 인스턴스 메서드는 불릴 때 대상 객체를 넘겨받습니다.');
   },
-  assume: '서른 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 "객체를 인자로 받는 static 메서드"가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 "클래스" 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 "실행 시작" 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
+  assume: '서른 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 "객체를 인자로 받는 static 메서드"가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 "클래스" 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 하나라는 것은 클래스 로더 하나가 그 클래스를 읽는 이 실습의 경우이며, 서로 다른 클래스 로더가 같은 클래스를 따로 읽으면 static 필드도 따로 생깁니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 "실행 시작" 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });

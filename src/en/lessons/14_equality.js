@@ -19,11 +19,12 @@ Lab.register({
     { t: 'Comparing an Integer with an int', q: 'What if the type is Integer, the value is 128, and the second variable is an int?', d: 'When one side is a primitive type, the values are compared.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
   ],
   code: function (c) {
+    var H = '// Only the lines inside main are shown (class and main declaration omitted)\n';
     if (c.kind === 'str') {
       var b = { lit: 'String b = "hello";', new: 'String b = new String("hello");', intern: 'String b = new String("hello").intern();', const: 'String b = "hel" + "lo";            // combined into "hello" at compile time', concat: 'String part = "hel";\nString b = part + "lo";             // concatenated at run time' }[c.sb];
-      return 'String a = "hello";\n' + b + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
+      return H + 'String a = "hello";\n' + b + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
     }
-    return 'Integer a = ' + c.iv + ';                 // Integer.valueOf(' + c.iv + ')\n' + (c.ib === 'box' ? 'Integer b = ' + c.iv + ';' : 'int b = ' + c.iv + ';') + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
+    return H + 'Integer a = ' + c.iv + ';                 // Integer.valueOf(' + c.iv + ')\n' + (c.ib === 'box' ? 'Integer b = ' + c.iv + ';' : 'int b = ' + c.iv + ';') + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
   },
   label: function (c) { return c.kind === 'str' ? 'String · "hello" and ' + { lit: '"hello"', new: 'new String', intern: 'intern()', const: '"hel" + "lo"', concat: 'part + "lo"' }[c.sb] : 'Integer ' + c.iv + ' and ' + (c.ib === 'box' ? 'Integer ' : 'int ') + c.iv; },
   columns: ['a == b', 'a.equals(b)', 'Same object?'],

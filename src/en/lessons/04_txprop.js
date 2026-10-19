@@ -22,7 +22,7 @@ Lab.register({
   code: function (c) {
     var chk = c.ex !== 'none' && c.type === 'chk', rf = chk && c.rf, E = chk ? 'IOException' : 'IllegalStateException', ct = c.ex === 'inner' && c.catch;
     var call = ct ? '        try {\n            logService.saveLog();\n        } catch (Exception e) {\n            // ignore a failure to save the log\n        }\n' : '        logService.saveLog();\n';
-    return '@Service class OrderService {\n    @Transactional' + (rf ? '(rollbackFor = Exception.class)' : '') + '\n    public void placeOrder()' + (chk && !ct ? ' throws IOException' : chk && c.ex === 'outer' ? ' throws IOException' : '') + ' {\n        orderDao.insert(order);            // save the order\n' + call +
+    return '// Two example classes. Only the needed parts are kept (imports and the declarations of orderDao, logService, logDao, order, and log omitted)\n@Service class OrderService {\n    @Transactional' + (rf ? '(rollbackFor = Exception.class)' : '') + '\n    public void placeOrder()' + (chk && !ct ? ' throws IOException' : chk && c.ex === 'outer' ? ' throws IOException' : '') + ' {\n        orderDao.insert(order);            // save the order\n' + call +
       (c.ex === 'outer' ? '        throw new ' + E + '();\n' : '') + '    }\n}\n\n@Service class LogService {\n    @Transactional(propagation = Propagation.' + c.prop + (rf ? ',\n                   rollbackFor = Exception.class' : '') + ')\n    public void saveLog()' + (chk && c.ex === 'inner' ? ' throws IOException' : '') + ' {\n        logDao.insert(log);                // save the log\n' +
       (c.ex === 'inner' ? '        throw new ' + E + '();\n' : '') + '    }\n}';
   },

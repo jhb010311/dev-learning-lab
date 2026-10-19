@@ -34,7 +34,7 @@ Lab.register({
   code: function (c) {
     var D = this.DATA[c.data], H = this.HOW[c.how], lit = function (x) { return 'new Order("' + x[0] + '", ' + x[1] + ')'; };
     var list = D.length ? 'List<Order> orders = List.of(\n    ' + lit(D[0]) + ', ' + lit(D[1]) + ', ' + lit(D[2]) + ',\n    ' + lit(D[3]) + ', ' + lit(D[4]) + ');' : 'List<Order> orders = List.of();                  // 주문이 하나도 없다';
-    return 'record Order(String customer, int price) {\n    @Override\n    public String toString() { return customer + ":" + price; }   // 짧게 출력하려고\n}\n\n' + list + '\n\n' + H.type + ' result = orders.stream()\n    ' + H.expr + '\nSystem.out.println(result);';
+    return 'record Order(String customer, int price) {\n    @Override\n    public String toString() { return customer + ":" + price; }   // 짧게 출력하려고\n}\n\npublic class Main {\n    public static void main(String[] args) {\n' + (list + '\n\n' + H.type + ' result = orders.stream()\n    ' + H.expr + '\nSystem.out.println(result);').split('\n').map(function (l) { return l ? '        ' + l : l; }).join('\n') + '\n    }\n}';
   },
   label: function (c) { return { toList: 'toList', group: 'groupingBy', count: 'groupingBy + counting', sum: 'groupingBy + summingInt', part: 'partitioningBy', join: 'joining', toMap: 'toMap', toMapMerge: 'toMap + 병합 함수' }[c.how] + ' · ' + { dup: '고객이 겹침', uniq: '고객이 모두 다름', empty: '주문 없음' }[c.data]; },
   columns: ['결과의 타입', '출력', '예외'],

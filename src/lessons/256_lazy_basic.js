@@ -21,6 +21,7 @@ Lab.register({
       '    // 연결: 이 주문이 가리키는 회원을 언제 읽어 올지 정한다',
       '    @ManyToOne(fetch = FetchType.' + (c.fetch === 'lazy' ? 'LAZY' : 'EAGER') + ')',
       '    private Member member;', '', '    public Member getMember() { return member; }', '}', '',
+      '// 조회하는 쪽: 메서드 안의 줄만 보임 (em 선언, 클래스·메서드 선언과 import는 생략)',
       '// DB에는 주문 10과, 그 주문을 한 회원 1(김철수)이 들어 있다',
       'Order order = em.find(Order.class, 10L);'];
     if (c.use) l.push('// 사용: 회원의 값(이름)을 실제로 쓴다', 'String name = order.getMember().getName();');

@@ -27,7 +27,7 @@ for (const ln of lines.slice(1)) {
   // 화면의 코드 = Probe가 컴파일한 소스
   const srcFile = path.join(__dirname, '..', 'out', 'jdbc_basic', conn + '-' + sqlk, 'Main.java');
   const src = fs.readFileSync(srcFile, 'utf8').replace(/\r\n/g, '\n');
-  if (src !== wrap(lesson.code.call(lesson, c))) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
+  if (src !== wrap(lesson.code.call(lesson, c).replace(/^\/\/ main 메서드 안의 줄만 보임[^\n]*\n/, ''))) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
   // 화면의 SQL 글이 코드 안에서 executeQuery에 적힌 글과 같은지
   if (lesson.code.call(lesson, c).indexOf('executeQuery("' + lesson.sqlText(c) + '")') < 0) probs.push('sqlText가 코드와 다름');
   // DB가 받은 SQL 판정의 근거

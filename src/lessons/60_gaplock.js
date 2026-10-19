@@ -50,9 +50,9 @@ Lab.register({
     if (st < 0) { H.text(v, '실행을 누르면 시작합니다.'); return; }
     function gapCell(a, b, label) { var locked = st >= 1 && sim.gaps.some(function (g) { return g[0] === a; }), here = st >= 2 && ins > a && ins < b; return [label + (here ? (st >= 3 ? (sim.blocked ? ' ← ' + ins + ' 대기' : ' ← ' + ins + ' 삽입됨') : ' ← ' + ins + ' 시도') : '') + (locked ? ' [잠김]' : ''), (locked ? 'r' : '') + (here ? ' now' : '')]; }
     items.push(gapCell(-1, 10, '(10 이전)'));
-    ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['행 ' + id + (locked ? ' [잠김]' : ''), locked ? 'b' : 'd']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(40 이후)' : '(' + id + '~' + nx + ')')); });
+    ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['행 ' + id + (locked ? ' [잠김]' : ''), locked ? 'b' : 'q']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(40 이후)' : '(' + id + '~' + nx + ')')); });
     H.title(v, 'id 인덱스 (왼쪽이 작은 값)'); H.slots(v, items, '');
-    H.text(v, '초록은 행, 노랑은 A가 잠근 행, 빨강은 A가 잠근 빈 구간, 점선은 잠기지 않은 빈 구간입니다.');
+    H.text(v, '파랑은 행, 노랑은 A가 잠근 행, 빨강은 A가 잠근 빈 구간, 점선은 잠기지 않은 빈 구간입니다.');
   },
   // 그림: id 인덱스를 수직선처럼 그린다. 행(상자)과 그 사이의 빈 구간(점선)이 번갈아 놓이고, A가 잠근 곳과 B가 넣으려는 곳이 표시된다.
   draw: function (P, sim, shown) {

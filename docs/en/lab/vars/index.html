@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,8 @@
 <li>A variable of a reference type holds a reference, not an object. What is copied is the reference, so the two variables refer to the same single object, and a change made through one is visible through the other.</li>
 </ul>
 <h2>Code</h2>
-<pre>class Point {
+<pre>// The example class Point and the lines inside main are shown (the class that holds main and the main declaration omitted)
+class Point {
     int x;
     Point(int x) { this.x = x; }
 }
@@ -79,7 +80,7 @@ b.x = 99;                           // changes the contents of the object it ref
 System.out.println(b.x);
 System.out.println(a.x);</pre>
 <h2>Assumptions of this model</h2>
-<p>The output of the 15 combinations (the value read from the copy and the value read from a) was checked against the result of running code with the same structure on JDK 21 in our test environment. &quot;Reference&quot; is used here to mean a value that points to where an object is. In Java you cannot take this value out and look at it as a number, and whether it is actually a plain memory address differs from one JVM to another. The picture in which variables are placed on the stack and objects on the heap is the usual explanation for local variables, and when the JIT compiler optimizes the code, an object may not be created on the heap at all, but the result of the program is the same. The string &quot;hi&quot; is actually an object in the string pool, but here it is drawn simply as one object on the heap. The frame that is created when a variable is passed to a method is covered in the &quot;Stack and heap&quot; lab, and the difference between == and equals is covered in the &quot;== and equals&quot; lab.</p>
+<p>The output of the 15 combinations (the value read from the copy and the value read from a) was checked against the result of running code with the same structure on JDK 21 in our test environment. &quot;Reference&quot; is used here to mean a value that points to where an object is. In Java you cannot take this value out and look at it as a number, and whether it is actually a plain memory address differs from one JVM to another. The picture in which variables are placed on the stack and objects on the heap is the usual explanation for local variables, and when the JIT compiler optimizes the code, an object may not be created on the heap at all, but the result of the program is the same. In JDK 21 (the HotSpot JVM) used for the check, the String object for the literal &quot;hi&quot; is also on the heap. The JVM registers the literal in the string pool so that the same literal is shared, but that registration is not drawn here. The frame that is created when a variable is passed to a method is covered in the &quot;Stack and heap&quot; lab, and the difference between == and equals is covered in the &quot;== and equals&quot; lab.</p>
 <p>Next lab: <a href="../../lab/casting/">Operators and type conversion</a></p>
   </div>
 
@@ -167,6 +168,6 @@ System.out.println(a.x);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

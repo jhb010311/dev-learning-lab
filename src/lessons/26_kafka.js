@@ -20,7 +20,7 @@ Lab.register({
     { t: '처리 도중 컨슈머가 죽으면 (처리 전 커밋)', q: '메시지를 처리하기 전에 오프셋을 커밋하는데 컨슈머 3개 중 하나가 처리 도중 죽으면', d: '이미 커밋된 메시지는 처리되지 않은 채 건너뜁니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
   ],
   code: function (c) {
-    return '// 토픽 orders: 파티션 ' + c.p + '개\n// 컨슈머 그룹 order-service: 컨슈머 ' + c.c + '개\n\nwhile (true) {\n    ConsumerRecords<String, Order> records = consumer.poll(Duration.ofMillis(500));\n' + (c.commit === 'before' ? '    consumer.commitSync();               // 먼저 "여기까지 읽었다"고 기록\n    for (var r : records) {\n        handle(r.value());               // 그다음 처리\n    }\n' : '    for (var r : records) {\n        handle(r.value());               // 먼저 처리\n    }\n    consumer.commitSync();               // 그다음 "여기까지 읽었다"고 기록\n') + '}';
+    return '// 메서드 안의 줄만 보임 (consumer를 만드는 줄, 예시로 만든 Order·handle의 선언, 클래스와 import는 생략)\n// 토픽 orders: 파티션 ' + c.p + '개\n// 컨슈머 그룹 order-service: 컨슈머 ' + c.c + '개\n\nwhile (true) {\n    ConsumerRecords<String, Order> records = consumer.poll(Duration.ofMillis(500));\n' + (c.commit === 'before' ? '    consumer.commitSync();               // 먼저 "여기까지 읽었다"고 기록\n    for (var r : records) {\n        handle(r.value());               // 그다음 처리\n    }\n' : '    for (var r : records) {\n        handle(r.value());               // 먼저 처리\n    }\n    consumer.commitSync();               // 그다음 "여기까지 읽었다"고 기록\n') + '}';
   },
   label: function (c) { return '파티션 ' + c.p + ' · 컨슈머 ' + c.c + ' · 유입 ' + c.r + ' · 처리 ' + c.k + ' · ' + (c.commit === 'after' ? '처리 후 커밋' : '처리 전 커밋') + (c.crash ? ' · 장애' : ''); },
   columns: ['초당 처리량', '10초 뒤 밀린 메시지', '노는 컨슈머', '중복 처리', '유실'],

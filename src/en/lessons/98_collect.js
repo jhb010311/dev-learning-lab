@@ -34,7 +34,7 @@ Lab.register({
   code: function (c) {
     var D = this.DATA[c.data], H = this.HOW[c.how], lit = function (x) { return 'new Order("' + x[0] + '", ' + x[1] + ')'; };
     var list = D.length ? 'List<Order> orders = List.of(\n    ' + lit(D[0]) + ', ' + lit(D[1]) + ', ' + lit(D[2]) + ',\n    ' + lit(D[3]) + ', ' + lit(D[4]) + ');' : 'List<Order> orders = List.of();                  // no orders at all';
-    return 'record Order(String customer, int price) {\n    @Override\n    public String toString() { return customer + ":" + price; }   // to keep the output short\n}\n\n' + list + '\n\n' + H.type + ' result = orders.stream()\n    ' + H.expr + '\nSystem.out.println(result);';
+    return 'record Order(String customer, int price) {\n    @Override\n    public String toString() { return customer + ":" + price; }   // to keep the output short\n}\n\npublic class Main {\n    public static void main(String[] args) {\n' + (list + '\n\n' + H.type + ' result = orders.stream()\n    ' + H.expr + '\nSystem.out.println(result);').split('\n').map(function (l) { return l ? '        ' + l : l; }).join('\n') + '\n    }\n}';
   },
   label: function (c) { return { toList: 'toList', group: 'groupingBy', count: 'groupingBy + counting', sum: 'groupingBy + summingInt', part: 'partitioningBy', join: 'joining', toMap: 'toMap', toMapMerge: 'toMap + merge function' }[c.how] + ' · ' + { dup: 'duplicate customers', uniq: 'all customers different', empty: 'no orders' }[c.data]; },
   columns: ['Type of the result', 'Output', 'Exception'],

@@ -4,7 +4,7 @@ Lab.register({
   intro: 'String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는 객체 하나의 내용을 직접 고쳐 씁니다. 두 변수가 같은 객체를 가리키는지를 ==로 확인하면서 차이를 살펴봅니다.',
   terms: ['String의 불변성', '불변 객체', 'StringBuilder와 StringBuffer', '동일성과 동등성'],
   controls: [
-    { id: 'type', label: '문자열을 담는 타입', type: 'select', value: 'str', options: [['str', 'String'], ['sb', 'StringBuilder']] },
+    { id: 'type', label: '변수의 타입', type: 'select', value: 'str', options: [['str', 'String'], ['sb', 'StringBuilder']] },
     { id: 'op', label: '하는 일', type: 'select', value: 'drop', options: [['drop', '메서드를 부르고, 돌려준 값을 받지 않음'], ['assign', '돌려준 값을 같은 변수에 다시 넣음'], ['loop', '반복문에서 세 번 이어 붙임']] },
     { id: 'm', label: '부르는 메서드', type: 'select', value: 'upper', options: [['concat', 'concat("!")  뒤에 이어 붙이기'], ['replace', 'replace(\'a\', \'o\')  글자 바꾸기'], ['upper', 'toUpperCase()  대문자로']], show: function (c) { return c.type === 'str' && c.op !== 'loop'; }, hint: 'StringBuilder에서는 append로 이어 붙입니다.' },
   ],
@@ -13,7 +13,7 @@ Lab.register({
     { t: '돌려준 값을 받으면', q: '돌려준 값을 같은 변수에 다시 넣으면', d: 's는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.', v: { type: 'str', op: 'assign', m: 'upper' } },
     { t: 'concat도 마찬가지', q: 'toUpperCase() 대신 concat("!") 메서드를 부르면', d: '이어 붙이는 메서드도 원본을 바꾸지 않습니다.', v: { type: 'str', op: 'drop', m: 'concat' } },
     { t: '반복문에서 +로 이어 붙이기', q: '반복문에서 세 번 이어 붙이면', d: '한 번 돌 때마다 s가 새 객체를 가리킵니다.', v: { type: 'str', op: 'loop', m: 'upper' } },
-    { t: 'StringBuilder로 이어 붙이기', q: '문자열을 담는 타입을 StringBuilder로 바꾸고 반복문에서 세 번 이어 붙이면', d: '끝까지 객체 하나를 고쳐 씁니다.', v: { type: 'sb', op: 'loop', m: 'upper' } },
+    { t: 'StringBuilder로 이어 붙이기', q: '변수의 타입을 StringBuilder로 바꾸고 반복문에서 세 번 이어 붙이면', d: '끝까지 객체 하나를 고쳐 씁니다.', v: { type: 'sb', op: 'loop', m: 'upper' } },
     { t: 'StringBuilder의 append', q: 'String 대신 StringBuilder에 메서드를 부르고 돌려준 값을 받지 않으면', d: '돌려준 값을 받지 않아도 내용이 바뀝니다.', v: { type: 'sb', op: 'drop', m: 'upper' } },
   ],
   // 설정에 해당하는 메서드 호출 글자와 그 결과
@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var sb = c.type === 'sb', T = sb ? 'StringBuilder' : 'String', v = sb ? 'sb' : 's', call = this.call(c);
-    var head = sb ? 'StringBuilder sb = new StringBuilder("java");\nStringBuilder first = sb;          // 처음 객체를 기억해 둔다\n' : 'String s = "java";\nString first = s;                 // 처음 객체를 기억해 둔다\n';
+    var head = '// main 메서드 안의 줄만 보임 (클래스·main 선언은 생략)\n' + (sb ? 'StringBuilder sb = new StringBuilder("java");\nStringBuilder first = sb;          // 처음 객체를 기억해 둔다\n' : 'String s = "java";\nString first = s;                 // 처음 객체를 기억해 둔다\n');
     var tail = '\nSystem.out.println(' + v + ');\nSystem.out.println(first);\nSystem.out.println(' + v + ' == first);   // 같은 객체인가';
     if (c.op === 'loop') return head + 'int changed = 0;                  // ' + v + '가 다른 객체를 가리키게 된 횟수\n\nfor (int i = 1; i <= 3; i++) {\n    ' + T + ' before = ' + v + ';\n    ' + (sb ? 'sb.append(i);' : 's = s + i;') + '\n    if (' + v + ' != before) changed++;\n}\n' + tail + '\nSystem.out.println(changed);';
     return head + '\n' + (c.op === 'drop' ? call.src + ';                 // 돌려준 값을 받지 않는다' : v + ' = ' + call.src + ';             // 돌려준 값을 ' + v + '에 다시 넣는다') + '\n' + tail;

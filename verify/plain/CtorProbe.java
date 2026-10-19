@@ -70,7 +70,11 @@ public class CtorProbe {
         return r;
     }
     static Res run(String classes, String mainBody) throws Exception {
-        return compileRun(Map.of("Main", classes + "\npublic class Main {\n    public static void main(String[] args) {\n" + mainBody + "\n    }\n}\n"), "Main");
+        return compileRun(Map.of("Main", source(classes, mainBody)), "Main");
+    }
+    // 실제로 컴파일하는 소스 전체(화면의 코드도 이 모양: Order 클래스 + main을 가진 Main 클래스)
+    static String source(String classes, String mainBody) {
+        return classes + "\npublic class Main {\n    public static void main(String[] args) {\n" + mainBody + "\n    }\n}\n";
     }
 
     // ---- 이 실습의 소스 ----
@@ -97,7 +101,7 @@ public class CtorProbe {
                 for (String first : new String[] { "field", "block" }) {
                     String key = ctors + "|" + call + "|" + first, cls = classes(ctors, first, false), mb = mainBody(call);
                     Res r = run(cls, mb);
-                    System.out.println("SRC " + key + " => " + (cls + "\n" + mb).replace("\n", "\\n"));
+                    System.out.println("SRC " + key + " => " + source(cls, mb).replace("\n", "\\n"));
                     if (!r.ok) { System.out.println(key + " => 오류: " + r.err + "|-|-"); continue; }
                     Res tr = run(classes(ctors, first, true), mb + "\nSystem.out.println(\"TRACE \" + T.sb);");
                     String[] p = tr.stdout.split(" / TRACE ", -1);

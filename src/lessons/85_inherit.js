@@ -1,7 +1,7 @@
 Lab.register({
   id: 'inherit', nav: '상속과 오버라이딩', cat: '자바 언어', mode: 'step',
   title: '자식 객체를 만들 때 부모 생성자는 언제 실행되나',
-  intro: '자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모 생성자가 오버라이딩된 메서드를 부르면 아직 비어 있는 자식 필드가 보입니다.',
+  intro: 'new로 만든 자식 클래스의 객체는 하나이고, 그 객체가 부모에게서 물려받은 필드와 자식이 선언한 필드를 함께 가집니다. 부모 객체가 따로 생기지 않습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모 생성자가 오버라이딩된 메서드를 부르면 아직 비어 있는 자식 필드가 보입니다.',
   terms: ['상속', '오버라이딩', '생성자', 'super', '필드의 기본값'],
   controls: [
     { id: 'pctor', label: '부모 Animal에 적은 생성자', type: 'select', value: 'arg', options: [['noarg', 'Animal() 하나만'], ['arg', 'Animal(String name) 하나만'], ['both', 'Animal()과 Animal(String name)']] },
@@ -24,7 +24,7 @@ Lab.register({
     var animal = 'class Animal {\n    String name;\n\n' + (c.pctor === 'noarg' ? noArg : c.pctor === 'arg' ? withArg : noArg + '\n' + withArg) + '\n    void describe() {\n        System.out.println("name=" + name);\n    }\n}\n';
     var first = c.sup === 'noarg' ? '        super();' + (bad ? '                   // 컴파일 오류: Animal()이 없다' : '                   // 부모의 Animal()을 부른다') + '\n' : c.sup === 'arg' ? '        super("바둑이");' + (bad ? '           // 컴파일 오류: Animal(String)이 없다' : '           // 부모의 Animal(String)을 부른다') + '\n' : '';
     var dog = 'class Dog extends Animal {\n    String sound = "멍멍";\n\n    Dog() {' + (c.sup === 'omit' ? (bad ? '                        // 컴파일 오류: 자동으로 들어간 super()가 부를 Animal()이 없다' : '                        // 첫 줄에 super()가 자동으로 들어간다') : '') + '\n' + first + '        System.out.println("Dog() 실행");\n    }\n\n    @Override\n    void describe() {\n' + (c.sm ? '        super.describe();          // 부모의 describe()를 먼저 실행\n' : '') + '        System.out.println("sound=" + sound);\n    }\n}\n';
-    return animal + '\n' + dog + '\nDog d = new Dog();\nd.describe();';
+    return animal + '\n' + dog + '\n// 여기부터 main 메서드 안의 줄 (main을 둘러싼 클래스 선언은 생략)\nDog d = new Dog();\nd.describe();';
   },
   label: function (c) { return { noarg: 'Animal()', arg: 'Animal(String)', both: '생성자 둘' }[c.pctor] + ' · ' + { omit: 'super 없음', noarg: 'super()', arg: 'super("바둑이")' }[c.sup] + (c.pcall ? ' · 부모 생성자가 describe()' : '') + (c.sm ? ' · super.describe()' : ''); },
   columns: ['컴파일', 'new Dog() 동안의 출력', 'd.describe()의 출력'],
@@ -49,7 +49,7 @@ Lab.register({
     }
     push(e1 + ' Animal에 이 생성자가 있으므로 컴파일됩니다.');
     st.made = true; st.name = 'null'; st.sound = 'null'; st.phase = 'new';
-    push('new Dog() 실행: 힙에 Dog 객체 하나의 자리를 잡습니다. 이 객체 안에는 Animal에게서 물려받은 name과 Dog가 선언한 sound가 함께 들어 있고, 둘 다 기본값 null로 채워집니다.');
+    push('new Dog() 실행: 힙에 Dog 객체 하나의 자리를 잡습니다. 이 객체는 Animal에게서 물려받은 필드 name과 Dog가 선언한 필드 sound를 함께 가지며, 둘 다 기본값 null로 채워집니다.');
     st.stack = ['Dog()']; st.cur = 'cc';
     push('Dog() 생성자의 첫 줄 ' + supTxt + (c.sup === 'omit' ? '(컴파일러가 넣은 것)' : '') + ': Dog의 필드 초기화식과 생성자 본문을 실행하기 전에 부모 생성자인 ' + pName + ' 쪽으로 먼저 넘어갑니다. 물려받은 부분이 먼저 준비되어야 자식이 그것을 쓸 수 있기 때문입니다.');
     st.stack.push(pShort); st.cur = 'pc'; st.name = '"' + nameVal + '"';
@@ -66,7 +66,7 @@ Lab.register({
       }
       var isNull = st.sound === 'null';
       out('sound=' + st.sound.replace(/"/g, ''));
-      push(isNull ? 'Dog의 describe() 안의 println("sound=" + sound): Dog의 필드 초기화식 sound = "멍멍"은 부모 생성자가 끝난 뒤에야 실행됩니다. 지금 sound는 기본값 null이어서 출력은 sound=null입니다.' : pre + 'Dog의 describe() 안의 println("sound=" + sound): 객체가 다 만들어진 뒤이므로 sound에는 "멍멍"이 들어 있습니다. 출력은 sound=멍멍입니다.', isNull ? 'bad' : 'good');
+      push(isNull ? 'Dog의 describe() 안의 println("sound=" + sound): Dog의 필드 초기화식 sound = "멍멍"은 부모 생성자가 끝난 뒤에야 실행됩니다. 지금 sound는 기본값 null이어서 출력은 sound=null입니다.' : pre + 'Dog의 describe() 안의 println("sound=" + sound): 객체가 다 만들어진 뒤이므로 sound의 값은 "멍멍"입니다. 출력은 sound=멍멍입니다.', isNull ? 'bad' : 'good');
       st.stack.pop();
     }
     if (c.pcall) {
@@ -80,7 +80,7 @@ Lab.register({
     did('cf'); st.cur = 'cc'; out('Dog() 실행');
     push('System.out.println("Dog() 실행"): Dog() 생성자의 본문이 실행됩니다. 자식 생성자의 본문이 가장 마지막입니다.');
     st.stack = []; did('cc'); st.cur = ''; st.d = true; st.phase = 'call';
-    push('Dog d = new Dog(): 생성자가 모두 끝났습니다. 완성된 객체의 참조가 변수 d에 담깁니다.');
+    push('Dog d = new Dog(): 생성자가 모두 끝났습니다. 이제 변수 d가 완성된 객체를 가리킵니다.');
     describe(); st.cur = ''; st.stack = [];
     var o1 = st.out1.join(' / '), o2 = st.out2.join(' / ');
     sum.push('실행 순서는 부모 생성자 ' + pName + ' → Dog의 필드 초기화식 → Dog() 생성자의 본문입니다. 자식 생성자가 먼저 시작되지만, 첫 줄에서 부모 생성자로 넘어가 부모 쪽이 먼저 끝납니다.');
@@ -119,8 +119,8 @@ Lab.register({
     else if (c.pctor === 'both') P.box('p2', 258, 100, 174, 40, { cls: 'ghost', title: wantArg ? t0 : tA, sub: '이번에는 불리지 않음' });
     P.box('pd', 258, 150, 174, 40, { cls: s.cur === 'pd' ? 'hot now' : 'plain', title: 'describe()', sub: 'name을 출력' });
     if (s.made) {
-      P.box('fn', 470, 50, 186, 40, { cls: s.name === 'null' ? 'wait' : 'good', title: 'name', sub: 'Animal 부분', right: s.name });
-      P.box('fs', 470, 100, 186, 40, { cls: s.sound === 'null' ? (top.indexOf('describe') >= 0 ? 'bad' : 'wait') : 'good', title: 'sound', sub: 'Dog 부분', right: s.sound });
+      P.box('fn', 470, 50, 186, 40, { cls: s.name === 'null' ? 'wait' : 'good', title: 'name', sub: '물려받은 필드', right: s.name });
+      P.box('fs', 470, 100, 186, 40, { cls: s.sound === 'null' ? (top.indexOf('describe') >= 0 ? 'bad' : 'wait') : 'good', title: 'sound', sub: 'Dog가 선언함', right: s.sound });
     } else {
       P.box('fn', 470, 50, 186, 40, { cls: 'ghost', title: 'name', sub: s.err ? '실행되지 않음' : '아직 객체가 없음' });
       P.box('fs', 470, 100, 186, 40, { cls: 'ghost', title: 'sound', sub: s.err ? '실행되지 않음' : '아직 객체가 없음' });
@@ -132,7 +132,7 @@ Lab.register({
     var o1 = s.out1.join(' / '), o2 = s.out2.join(' / ');
     P.box('o1', 16, 222, 648, 34, { cls: s.err ? 'bad' : !o1 ? 'ghost' : s.out1.indexOf('sound=null') >= 0 ? 'bad' : 'plain', title: s.err ? '컴파일 오류' : 'new Dog() 동안의 출력', right: s.err ? '부를 부모 생성자가 없음' : o1 || '아직 없음' });
     P.box('o2', 16, 264, 648, 34, { cls: s.err ? 'ghost' : o2 ? 'good' : 'ghost', title: 'd.describe()의 출력', right: s.err ? '실행되지 않음' : o2 || '아직 없음' });
-    P.note('객체는 하나이고, 그 안에 부모에게서 물려받은 name과 자식의 sound가 함께 있습니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다.');
+    P.note('객체는 하나이고, 이 객체가 부모에게서 물려받은 필드 name과 자식이 선언한 필드 sound를 함께 가집니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다.');
   },
   assume: '서른여섯 가지 조합을 검증 환경의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 검증할 때는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 "다형성과 메서드 선택" 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });

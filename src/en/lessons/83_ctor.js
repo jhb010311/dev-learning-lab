@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ctor', nav: 'Classes, objects, and constructors', cat: 'Java language', mode: 'step',
   title: 'What happens, and in what order, when you use new?',
-  intro: 'A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field initializers and initializer blocks run in the order in which they are written, and finally the constructor body runs. Depending on which constructors you declare, new Order() may not compile at all.',
+  intro: 'A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field initializers and initializer blocks run in the order in which they are written, and finally the constructor body runs. Depending on which constructors you declare, new Order() may not compile at all (Order is a class made for this lab as an example).',
   terms: ['Classes and objects', 'Constructor', 'Default constructor', 'Default values of fields', 'this'],
   controls: [
     { id: 'ctors', label: 'Constructors declared in the Order class', type: 'select', value: 'chain', options: [['none', 'None'], ['arg', 'Only Order(int extra)'], ['both', 'Order() and Order(int extra)'], ['chain', 'Order() calls Order(int extra) with this(1)']] },
@@ -25,7 +25,7 @@ Lab.register({
     if (c.ctors === 'arg') body += '\n' + argCtor;
     if (c.ctors === 'both' || c.ctors === 'chain') body += '\n' + noArg + '\n' + argCtor;
     var bad = this.bad(c);
-    return 'class Order {\n' + body + '}\n\nOrder o = new Order(' + (c.call === 'arg' ? '3' : '') + ');' + (bad ? '             // compile-time error: no matching constructor' : '') + '\nSystem.out.println(o.qty + ", " + o.memo);';
+    return 'class Order {\n' + body + '}\n\npublic class Main {\n    public static void main(String[] args) {\n        Order o = new Order(' + (c.call === 'arg' ? '3' : '') + ');' + (bad ? '             // compile-time error: no matching constructor' : '') + '\n        System.out.println(o.qty + ", " + o.memo);\n    }\n}';
   },
   label: function (c) { return { none: 'no constructors', arg: 'Order(int) only', both: 'Order(), Order(int)', chain: 'Order() with this(1)' }[c.ctors] + ' · ' + (c.call === 'arg' ? 'new Order(3)' : 'new Order()') + ' · ' + (c.first === 'field' ? 'initializer first' : 'block first'); },
   columns: ['Compilation', 'Order of execution', 'Output (qty, memo)'],
@@ -84,7 +84,7 @@ Lab.register({
       push(chained ? 'memo = "standard", the rest of the body of Order(): The constructor called with this(1) has finished, and control is back in Order(). memo changes from ' + mb + ' to "standard". The initializer and the block do not run again.' : 'memo = "standard" in the body of Order(): A constructor body runs only after initialization has finished. memo, which was null, is set to "standard".');
     }
     st.stack = []; st.cur = ''; st.tgt = ''; st.o = true;
-    push('Order o = ' + callTxt + ': The constructor has finished. new returns a reference to the completed object, and the variable o holds that reference.');
+    push('Order o = ' + callTxt + ': The constructor has finished. new returns a reference to the completed object, and now the variable o refers to that object.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): This reads qty and memo of the object that o refers to and prints them. The output is ' + out + '.', 'good');
     sum.push(c.first === 'field' ? 'The initializer (10) ran first and the block below it (20) ran later, so qty was 20 when the constructor body started.' : 'The block (20) ran first and the initializer below it (10) ran later, so qty was 10 when the constructor body started. Field initializers and initializer blocks run from the top of the class down, so when both of them touch the same field, where you write them changes the result.');

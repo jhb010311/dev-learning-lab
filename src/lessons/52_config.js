@@ -20,7 +20,7 @@ Lab.register({
   SRC: [['cli', '실행 인자 (--app.timeout=9000)', '9000'], ['sys', 'JVM 시스템 프로퍼티 (-Dapp.timeout=8000)', '8000'], ['env', '운영체제 환경 변수 (APP_TIMEOUT=7000)', '7000'], ['prof', 'application-prod.yml (프로파일 전용 파일)', '5000'], ['yml', 'application.yml (기본 파일)', '3000']],
   code: function (c) {
     var run = (c.env ? 'APP_TIMEOUT=7000 ' : '') + 'java ' + (c.sys ? '-Dapp.timeout=8000 ' : '') + '-jar app.jar' + (c.prof ? ' --spring.profiles.active=prod' : '') + (c.cli ? ' --app.timeout=9000' : '');
-    return '@Value("${app.timeout:1000}")          // 어디에도 없으면 1000\nprivate int timeout;\n' + (c.yml ? '\n# application.yml\napp.timeout: 3000\n' : '') + (c.prof ? '\n# application-prod.yml\napp.timeout: 5000\n' : '') + '\n# 실행\n' + run;
+    return '// 클래스 본문만 보임 (클래스 선언과 import는 생략)\n@Value("${app.timeout:1000}")          // 어디에도 없으면 1000\nprivate int timeout;\n' + (c.yml ? '\n# application.yml\napp.timeout: 3000\n' : '') + (c.prof ? '\n# application-prod.yml\napp.timeout: 5000\n' : '') + '\n# 실행\n' + run;
   },
   label: function (c) { var on = this.SRC.filter(function (s) { return c[s[0]]; }).map(function (s) { return s[2]; }); return on.length ? '설정된 값: ' + on.join(', ') : '어디에도 설정 안 함'; },
   columns: ['최종 값', '값을 준 곳', '가려진 값'],

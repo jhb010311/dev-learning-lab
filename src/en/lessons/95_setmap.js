@@ -37,7 +37,7 @@ Lab.register({
     var call = function (i) { return m ? 'map.put(' + self.lit(D[i]) + ', ' + (i + 1) + ')' : 'set.add(' + self.lit(D[i]) + ')'; };
     var head = c.data === 'obj' ? 'record Task(int id) { }                    // does not implement Comparable\n\n' : '';
     var decl = m ? 'Map<' + n.el + ', Integer> map = new ' + n.cls + '<>();' : 'Set<' + n.el + '> set = new ' + n.cls + '<>();';
-    return head + decl + '\n' + call(0) + ';\n' + call(1) + ';\n' + call(2) + ';\nSystem.out.println(' + call(3) + ');   // ' + (m ? 'puts a key that is already present' : 'adds a value that is already present') + '\n' + call(4) + ';\n\nSystem.out.println(' + n.v + ');                   // iterates from the start and prints\nSystem.out.println(' + n.v + '.size());';
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n' + head + decl + '\n' + call(0) + ';\n' + call(1) + ';\n' + call(2) + ';\nSystem.out.println(' + call(3) + ');   // ' + (m ? 'puts a key that is already present' : 'adds a value that is already present') + '\n' + call(4) + ';\n\nSystem.out.println(' + n.v + ');                   // iterates from the start and prints\nSystem.out.println(' + n.v + '.size());';
   },
   label: function (c) { return this.names(c).cls + ' · ' + { words: 'strings', small: 'small integers', big: 'integers', 'null': 'with null', obj: 'Task objects' }[c.data]; },
   columns: ['Output', 'Size', 'Adding a duplicate', 'Exception'],

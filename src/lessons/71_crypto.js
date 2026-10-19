@@ -16,7 +16,8 @@ Lab.register({
     { t: '전자서명: 다른 사람의 키로 서명', q: '전자서명을 쓰는데 다른 키로, 또는 키 없이 시도하면', d: '공개키로 검증하면 가짜임이 드러납니다.', v: { tool: 'sign', act: 'wrong' } },
   ],
   code: function (c) {
-    return {
+    var head = '// 메서드 안의 줄만 보임 (클래스·메서드 선언, import, ' + (c.tool === 'hash' ? 'message 변수를 만드는 줄' : 'message와 키 변수를 만드는 줄') + '은 생략)\n';
+    return head + {
       hash: 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] digest = md.digest(message.getBytes(UTF_8));\n// 키가 없다. 누구나 같은 입력으로 같은 값을 얻는다.',
       sym: 'Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");\ncipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\n// 풀 때도 같은 secretKey\ncipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));',
       asym: 'Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");\ncipher.init(Cipher.ENCRYPT_MODE, publicKey);      // 공개키로 잠그고\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\ncipher.init(Cipher.DECRYPT_MODE, privateKey);     // 개인키로만 연다',

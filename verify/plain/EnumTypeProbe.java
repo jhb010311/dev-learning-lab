@@ -64,7 +64,7 @@ public class EnumTypeProbe {
             default -> "String saved = \"" + savedValue + "\";\nStatus s = Status.fromCode(saved);\n";
         };
         String how = store.equals("ordinal") ? saved + ".ordinal()" : store.equals("name") ? saved + ".name()" : saved + "의 code";
-        String note = "// 예전 선언(ORDERED, PAID, SHIPPED 순서)일 때 " + how + " 값을 저장해 둔 것\n";
+        String note = "// 예전 선언(ORDERED, PAID, SHIPPED 순서)일 때 " + how + " 값을 저장해 둔 것 (여기부터 main 안의 줄, 클래스·main 선언은 생략)\n";
         return note + s + "System.out.println(s + \" (\" + s.label() + \")\");\nSystem.out.println(s == Status." + now + ");";
     }
 

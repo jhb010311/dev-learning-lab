@@ -20,7 +20,7 @@ Lab.register({
   wlen: 60,
   excName: 'javax.crypto.AEADBadTagException',
   code: function (c) {
-    var o = ['SecretKey key = newKey();                       // 열쇠를 하나 만든다', ''];
+    var o = ['// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 도우미 메서드 newKey·encrypt·decrypt는 생략)', 'SecretKey key = newKey();                       // 열쇠를 하나 만든다', ''];
     if (c.enc === 'on') {
       o.push('// 보내는 쪽: 글자를 열쇠로 암호화한다', 'String sent = encrypt("카드번호 1234", key);', '');
       if (c.reader === 'same') o.push('// 받는 쪽: 같은 열쇠로 푼다', 'String read = decrypt(sent, key);');
@@ -51,7 +51,7 @@ Lab.register({
       st.hot = 'en'; st.enc = 'calc';
       push('String sent = encrypt("카드번호 1234", key); 줄에서 보내는 쪽이 글자 "카드번호 1234"와 열쇠 key를 encrypt에 넣습니다. encrypt는 글자를 열쇠와 함께 계산해서 다른 값으로 바꿉니다.', '');
       st.hot = 'en'; st.enc = 'done'; st.mid = 'cipher';
-      push('계산이 끝나고 알아볼 수 없는 값이 나와 sent에 담깁니다. 이 실습에서는 ' + this.head + '…로 시작하는 ' + this.wlen + '자의 글자가 나왔습니다. 이 값에서는 "카드번호 1234"를 읽을 수 없습니다. 같은 글자를 같은 열쇠로 다시 암호화하면 다른 값이 나오므로, 이 값은 한 예입니다.', '');
+      push('계산이 끝나고 알아볼 수 없는 값이 나오고, 변수 sent가 그 값을 가리킵니다. 이 실습에서는 ' + this.head + '…로 시작하는 ' + this.wlen + '자의 글자가 나왔습니다. 이 값에서는 "카드번호 1234"를 읽을 수 없습니다. 같은 글자를 같은 열쇠로 다시 암호화하면 다른 값이 나오므로, 이 값은 한 예입니다.', '');
       st.hot = 'mid'; st.pass = true;
       st.checks.push(['중간에서 보이는 값', { v: mid, cls: 'good' }]);
       push('sent의 값이 중간(네트워크나 저장소)을 지나 받는 쪽으로 갑니다. 중간에서 보이는 것은 이 값뿐입니다. 글자와 열쇠는 중간으로 보내지 않았으므로 보이지 않습니다.', '');
@@ -61,7 +61,7 @@ Lab.register({
         push('String read = decrypt(sent, key); 줄에서 받는 쪽이 받은 값 sent와 같은 열쇠 key를 decrypt에 넣습니다. decrypt는 암호화의 반대 계산인 복호화를 합니다.', '');
         st.dec = 'ok'; st.rd = 'ok'; st.res = '예';
         st.checks.push(['받는 쪽이 읽은 것', { v: PT, cls: 'good' }], ['원래 글자를 되찾음', { v: '예', cls: 'good' }]);
-        push('복호화 계산 결과로 원래 글자 "카드번호 1234"가 나와 read에 담깁니다. 암호화할 때 쓴 열쇠와 같은 열쇠를 넣었기 때문입니다.', 'good');
+        push('복호화 계산 결과로 원래 글자 "카드번호 1234"가 나오고, 변수 read가 그 글자를 가리킵니다. 암호화할 때 쓴 열쇠와 같은 열쇠를 넣었기 때문입니다.', 'good');
         st.hot = '';
         push('System.out.println(sent)가 알아볼 수 없는 값 ' + this.wlen + '자 전체를 출력하고, System.out.println(read)가 카드번호 1234를 출력합니다.', '');
       } else if (rd === 'other') {
@@ -77,19 +77,19 @@ Lab.register({
       } else {
         st.hot = 'rd'; st.rk = 'none'; st.dec = 'raw'; st.rd = 'raw'; st.res = '아니요';
         st.checks.push(['받는 쪽이 읽은 것', { v: mid, cls: 'bad' }], ['원래 글자를 되찾음', { v: '아니요', cls: 'bad' }]);
-        push('String read = sent; 줄에서 받는 쪽이 열쇠 없이 받은 값 sent를 그대로 read에 담습니다. 복호화 계산을 하지 않으므로 값은 알아볼 수 없는 채로 남고, 받는 쪽은 글자를 얻지 못합니다.', 'bad');
+        push('String read = sent; 줄에서 받는 쪽이 열쇠 없이, read가 받은 값(sent가 가리키는 값)을 그대로 가리키게 합니다. 복호화 계산을 하지 않으므로 값은 알아볼 수 없는 채로 남고, 받는 쪽은 글자를 얻지 못합니다.', 'bad');
         st.hot = '';
         push('System.out.println(sent)와 System.out.println(read)가 같은 값 ' + this.wlen + '자를 두 번 출력합니다. 두 줄 모두 "카드번호 1234"가 아닙니다.', '');
       }
     } else {
       st.hot = 'pt'; st.k1 = 'unused';
-      push('String sent = "카드번호 1234"; 줄에서 보내는 쪽이 글자를 encrypt에 넣지 않고 그대로 sent에 담습니다. 계산이 없으므로 열쇠 key는 쓰이지 않습니다.', '');
+      push('String sent = "카드번호 1234"; 줄에서 보내는 쪽이 글자를 encrypt에 넣지 않고, 변수 sent가 그 글자를 그대로 가리키게 합니다. 계산이 없으므로 열쇠 key는 쓰이지 않습니다.', '');
       st.hot = 'mid'; st.pass = true; st.mid = 'plain';
       st.checks.push(['중간에서 보이는 값', { v: PT, cls: 'bad' }]);
       push('sent의 값이 중간(네트워크나 저장소)을 지나 받는 쪽으로 갑니다. 중간에서 보이는 것이 글자 그대로이므로, 중간을 지켜보는 누구나 "카드번호 1234"를 읽을 수 있습니다.', 'bad');
       st.hot = 'rd'; st.dec = 'raw'; st.rd = 'ok'; st.res = '예';
       st.checks.push(['받는 쪽이 읽은 것', { v: PT, cls: '' }], ['원래 글자를 되찾음', { v: '예', cls: '' }]);
-      push('String read = sent; 줄에서 받는 쪽이 받은 것을 그대로 read에 담습니다. 풀 필요가 없어서 열쇠도 계산도 쓰이지 않았고, ' + (rd === 'same' ? '받는 쪽이 같은 열쇠를 가졌더라도 쓸 데가 없습니다.' : rd === 'other' ? '받는 쪽이 다른 열쇠를 가졌더라도 상관없습니다.' : '받는 쪽에 열쇠가 없어도 상관없습니다.'), '');
+      push('String read = sent; 줄에서 받는 쪽이 read가 받은 글자(sent가 가리키는 글자)를 그대로 가리키게 합니다. 풀 필요가 없어서 열쇠도 계산도 쓰이지 않았고, ' + (rd === 'same' ? '받는 쪽이 같은 열쇠를 가졌더라도 쓸 데가 없습니다.' : rd === 'other' ? '받는 쪽이 다른 열쇠를 가졌더라도 상관없습니다.' : '받는 쪽에 열쇠가 없어도 상관없습니다.'), '');
       st.hot = '';
       push('System.out.println(sent)와 System.out.println(read)가 모두 카드번호 1234를 출력합니다.', '');
     }

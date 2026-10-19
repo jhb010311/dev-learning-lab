@@ -20,7 +20,7 @@ Lab.register({
   ],
   code: function (c) {
     var sel = 'em.createQuery("select i from Item i order by i.id", Item.class).getResultList()';
-    var s = '@Entity\nclass Item {\n    @Id Long id;\n    String name;\n    int price;\n    int getPrice() { return price; }\n    void setPrice(int price) { this.price = price; }\n}\n\n// Inside a transaction. The DB has ' + c.n + ' items (item 1 costs 1000, item 2 costs 2000, ...)\nList<Item> items = ' + sel + ';\nItem first = items.get(0);                 // item 1\n';
+    var s = '@Entity\nclass Item {\n    @Id Long id;\n    String name;\n    int price;\n    int getPrice() { return price; }\n    void setPrice(int price) { this.price = price; }\n}\n\n// From here on, the body of a method running in a transaction (the method, the field em, and imports are omitted)\n// The DB has ' + c.n + ' items (item 1 costs 1000, item 2 costs 2000, ...)\nList<Item> items = ' + sel + ';\nItem first = items.get(0);                 // item 1\n';
     if (c.dirty) s += 'first.setPrice(5000);                      // no SQL is sent yet\n';
     s += '\n';
     if (c.op === 'update') s += 'int count = em.createQuery("update Item i set i.price = i.price + 500")\n        .executeUpdate();                  // bulk UPDATE\n';

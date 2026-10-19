@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# 개발자가 자기 PC에서 직접 입력\n./gradlew build -x test      # 급해서 테스트는 건너뜀\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# 누가, 언제, 어떤 코드를 올렸는지 기록이 남지 않는다';
-    return '# .github/workflows/ci.yml (GitHub Actions 예시)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # 매번 깨끗한 환경에서 시작\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # 컴파일 + 테스트. 실패하면 실패 표시(필수 검사면 병합도 막힘)\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # build가 성공해야 실행\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# 배포는 통과한 결과물을 사람이 골라 수동으로 진행');
+    return '# .github/workflows/ci.yml (GitHub Actions 예시)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # 매번 깨끗한 환경에서 시작\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # 컴파일 + 테스트. 실패하면 실패 표시(필수 검사면 병합도 막힘)\n      - if: github.ref == \'refs/heads/main\'   # 포장은 병합되어 main에 올라온 뒤에만\n        run: docker build -t shop/app:${{ github.sha }} .\n      - if: github.ref == \'refs/heads/main\'\n        run: docker push shop/app:${{ github.sha }}\n' + (c.pipe === 'cicd' ? '  deploy:\n    needs: build                       # build가 성공해야 실행\n    if: github.ref == \'refs/heads/main\'\n    runs-on: ubuntu-latest\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: |\n          if ! kubectl rollout status deployment/app --timeout=2m; then\n            kubectl rollout undo deployment/app   # 이전 버전으로 되돌림\n            exit 1                                # 작업을 실패로 끝내 실패 알림이 가게 함\n          fi' : '\n# 배포는 통과한 결과물을 사람이 골라 수동으로 진행');
   },
   label: function (c) { return { manual: '손으로', ci: 'CI', cicd: 'CI/CD' }[c.pipe] + ' · ' + { none: '문제 없음', compile: '컴파일 오류', test: '테스트로 잡히는 버그', env: '내 PC에서만 됨', runtime: '운영에서만 실패' }[c.bug]; },
   columns: ['문제가 발견된 곳', '운영 사용자에게 영향', '사람이 한 일'],
@@ -38,7 +38,7 @@ Lab.register({
       hands.push('빌드');
       if (b === 'compile') { push('빌드', '실패', '사람 (내 PC)', '개발자가 자기 PC에서 빌드합니다. 컴파일 오류로 실패합니다. 결과물(jar)이 나오지 않으므로 여기서 멈춥니다. 이 문제는 손으로 해도 걸러집니다.', 'bad'); }
       else {
-        push('빌드', '성공', '사람 (내 PC)', '개발자가 자기 PC에서 빌드합니다.' + (b === 'env' ? ' 코드가 이 PC의 특정 폴더에 있는 설정 파일을 읽는데, 이 PC에는 그 파일이 있어서 문제없이 됩니다.' : ''), '');
+        push('빌드', '성공', '사람 (내 PC)', '개발자가 자기 PC에서 빌드합니다.' + (b === 'env' ? ' 코드가 특정 폴더에 있는 설정 파일을 읽는데, 개발자의 PC에는 그 파일이 있어서 문제없이 됩니다.' : ''), '');
         push('테스트', '건너뜀', '-', '급해서 테스트를 돌리지 않았습니다. 테스트를 돌릴지 말지가 사람의 기억과 성의에 달려 있습니다.', b === 'test' ? 'bad' : '');
         hands.push('서버에 복사', '재시작');
         push('배포', '완료', '사람', '빌드한 파일을 운영 서버에 복사하고 재시작합니다. 어떤 코드가 올라갔는지는 그 개발자만 압니다.', '');

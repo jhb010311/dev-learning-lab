@@ -15,10 +15,10 @@ Lab.register({
   ],
   INPUTS: { mixed: [5, 2, 8, 1, 9], asc: [1, 2, 5, 8, 9], desc: [9, 8, 5, 2, 1] },
   code: function (c) {
-    var a = this.INPUTS[c.inp].join(', ');
-    if (c.ds === 'stack') return 'Deque<Integer> stack = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) stack.push(x);\n\nwhile (!stack.isEmpty()) System.out.print(stack.pop() + " ");';
-    if (c.ds === 'queue') return 'Queue<Integer> queue = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) queue.offer(x);\n\nwhile (!queue.isEmpty()) System.out.print(queue.poll() + " ");';
-    return 'PriorityQueue<Integer> pq = new PriorityQueue<>();   // smaller values first\nfor (int x : List.of(' + a + ')) pq.offer(x);\n\nwhile (!pq.isEmpty()) System.out.print(pq.poll() + " ");';
+    var a = this.INPUTS[c.inp].join(', '), h = '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n';
+    if (c.ds === 'stack') return h + 'Deque<Integer> stack = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) stack.push(x);\n\nwhile (!stack.isEmpty()) System.out.print(stack.pop() + " ");';
+    if (c.ds === 'queue') return h + 'Queue<Integer> queue = new ArrayDeque<>();\nfor (int x : List.of(' + a + ')) queue.offer(x);\n\nwhile (!queue.isEmpty()) System.out.print(queue.poll() + " ");';
+    return h + 'PriorityQueue<Integer> pq = new PriorityQueue<>();   // smaller values first\nfor (int x : List.of(' + a + ')) pq.offer(x);\n\nwhile (!pq.isEmpty()) System.out.print(pq.poll() + " ");';
   },
   label: function (c) { return { stack: 'Stack', queue: 'Queue', pq: 'Priority queue' }[c.ds] + ' · ' + this.INPUTS[c.inp].join(', '); },
   columns: ['Removal order', 'One insertion', 'One removal'],

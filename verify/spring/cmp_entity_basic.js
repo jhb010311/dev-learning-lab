@@ -26,7 +26,7 @@ for (const ln of lines.slice(1)) {
   let good = true;
   if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + k + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
   // 화면의 코드 = Probe가 컴파일한 Member 소스 + 저장하는 쪽
-  const want = f.src.replace(/\\n/g, '\n').replace(/\n+$/, '') + '\n\n// 저장하는 쪽\n' + f.save.replace(/\\n/g, '\n');
+  const want = f.src.replace(/\\n/g, '\n').replace(/\n+$/, '') + '\n\n// 저장하는 쪽 (메서드 안의 줄만 보임. 그 메서드의 선언, em을 만드는 코드, import는 생략)\n' + f.save.replace(/\\n/g, '\n');
   const shown = lesson.code.call(lesson, c);
   if (shown !== want) { good = false; console.log('화면의 코드가 Probe가 컴파일한 소스와 다름: ' + k + '\n--- 화면\n' + shown + '\n--- 실행\n' + want); }
   // 단계 문장이 기대는 사실

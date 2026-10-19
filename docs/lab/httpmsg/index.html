@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실</title>
-<meta name="description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
+<meta name="description" content="브라우저와 서버가 주고받는 HTTP 메시지는 HTTP/1.1에서는 정해진 모양의 글자입니다(HTTP/2와 HTTP/3은 같은 내용을 이진 형식으로 나눠 보냅니다). 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실">
-<meta property="og:description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
+<meta property="og:description" content="브라우저와 서버가 주고받는 HTTP 메시지는 HTTP/1.1에서는 정해진 모양의 글자입니다(HTTP/2와 HTTP/3은 같은 내용을 이진 형식으로 나눠 보냅니다). 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP 메시지와 상태 코드</h1>
 <p><b>요청과 응답은 이렇게 생긴 글자다</b></p>
-<p>브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.</p>
+<p>브라우저와 서버가 주고받는 HTTP 메시지는 HTTP/1.1에서는 정해진 모양의 글자입니다(HTTP/2와 HTTP/3은 같은 내용을 이진 형식으로 나눠 보냅니다). 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.</p>
 <p>일부만 실행으로 확인 · 메시지 구조는 실제 원문과 대조, 상태 코드는 표준 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -51,7 +51,7 @@
 <li><b>처음 설정으로</b> — 조회 성공. 200과 함께 본문이 옵니다.</li>
 <li><b>새 주문 등록</b> — 201과 함께 새로 만들어진 주소를 알려 줍니다.</li>
 <li><b>잘못된 요청</b> — 400. 보낸 쪽이 고쳐야 합니다.</li>
-<li><b>로그인 안 함 / 권한 없음</b> — 로그인하지 않으면 401, 로그인했지만 권한이 없으면 403이 돌아옵니다.</li>
+<li><b>로그인 안 함</b> — 로그인하지 않으면 401이 돌아옵니다. 로그인했지만 권한이 없을 때의 403은 상황 &quot;남의 주문을 조회&quot;에서 봅니다.</li>
 <li><b>없는 주문</b> — 404. 주소가 가리키는 대상이 없습니다.</li>
 <li><b>서버 오류</b> — 500. 보낸 쪽이 아니라 서버가 고쳐야 합니다.</li>
 </ul>
@@ -66,10 +66,11 @@
 <h3>실행 결과</h3>
 <ul>
 <li>상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 대부분 요청 쪽을 고쳐야 풀립니다(408, 429처럼 잠시 뒤 다시 보내면 되는 경우도 있습니다). 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.</li>
-<li>HTTP 메시지는 시작 줄, 헤더, 빈 줄, 본문의 네 부분입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.</li>
+<li>HTTP/1.1 메시지는 시작 줄, 헤더, 빈 줄, 본문의 네 부분입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@GetMapping(&quot;/orders/{id}&quot;)
+<pre>// 컨트롤러 메서드만 보임 (클래스·필드 선언, import, 예시로 만든 타입의 선언은 생략)
+@GetMapping(&quot;/orders/{id}&quot;)
 OrderDto get(@PathVariable long id) {
     return orderService.find(id);                 // 200 OK + JSON 본문
 }</pre>
@@ -162,6 +163,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

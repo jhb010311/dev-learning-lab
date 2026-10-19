@@ -1,7 +1,7 @@
 Lab.register({
   id: 'optional', nav: 'Optional', cat: 'Java language', mode: 'step',
   title: 'Why does the default-value code in orElse run even when a value is present?',
-  intro: 'An Optional is a container that expresses that a value may or may not be present. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.',
+  intro: 'An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional is empty. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.',
   terms: ['Optional', 'orElse and orElseGet', 'NullPointerException', 'Lazy evaluation', 'Lambda expression'],
   controls: [
     { id: 'val', label: 'Value of name', type: 'select', value: 'kim', options: [['kim', '"kim" (a value is present)'], ['null', 'null (no value)']], show: function (c) { return c.make !== 'empty'; } },
@@ -43,17 +43,17 @@ Lab.register({
       st.opt = 'npe'; st.ex = ex = 'NullPointerException';
       push('Optional.of(name): of is the method to use when the value is certain to be present. When it receives null, it does not create an Optional and throws a NullPointerException on the spot.', 'bad');
       push('The exception stops the program. No Optional was created, so none of the lines below run.' + (useMd ? ' makeDefault() does not run either.' : ''), 'bad');
-      sum.push('Wrapping a value in an Optional does not make null safe by itself. of does not accept null.');
-      sum.push('Wrap a value that may be null with Optional.ofNullable.');
+      sum.push('Using an Optional does not make null safe by itself. of does not accept null.');
+      sum.push('To create an Optional from a value that may be null, use Optional.ofNullable.');
       return { events: ev, summary: sum, ex: ex, out: [], row: ['Exception: NullPointerException', '(not run)', useMd ? 'Did not run' : '(not used)'] };
     }
     st.opt = has ? 'kim' : 'empty';
-    if (c.make === 'of') push('Optional.of(name): name is not null, so this creates an Optional that contains the value "kim".');
-    else if (c.make === 'nullable') push('Optional.ofNullable(name): ' + (has ? 'name is not null, so this creates an Optional that contains the value "kim".' : 'name is null, so this creates an empty Optional. Unlike of, it does not throw an exception.'));
-    else push('Optional.empty(): This returns an empty Optional, one that contains no value.');
+    if (c.make === 'of') push('Optional.of(name): name is not null, so this creates an Optional that refers to the value "kim".');
+    else if (c.make === 'nullable') push('Optional.ofNullable(name): ' + (has ? 'name is not null, so this creates an Optional that refers to the value "kim".' : 'name is null, so this returns an empty Optional. It does not create a new object; it returns the same object that Optional.empty() returns. Unlike of, it does not throw an exception.'));
+    else push('Optional.empty(): This returns an empty Optional, one that has no value.');
     var optStr = has ? 'Optional[kim]' : 'Optional.empty';
     st.out.push(optStr);
-    push('System.out.println(opt): This prints one line, ' + optStr + '. ' + (has ? 'The value it contains is inside the square brackets.' : 'This shows that there is no value.'));
+    push('System.out.println(opt): This prints one line, ' + optStr + '. ' + (has ? 'The value that opt refers to is shown inside the square brackets.' : 'This shows that there is no value.'));
     var res = '', mdRow = '(not used)';
     if (c.take === 'get') {
       if (has) { res = 'kim'; st.res = res; push('opt.get(): A value is present, so get takes out "kim" and returns it.', 'good'); }
@@ -75,9 +75,9 @@ Lab.register({
     } else {
       if (has) {
         st.chain.push('KIM');
-        push('opt.map(s -> s.toUpperCase()): A value is present, so the function is applied to "kim", and map returns a new Optional that contains the result, "KIM".');
+        push('opt.map(s -> s.toUpperCase()): A value is present, so the function is applied to "kim", and map returns a new Optional that refers to the result, "KIM".');
         st.chain.push('Dear KIM');
-        push('.map(s -> "Dear " + s): The Optional from the previous step contains a value, so the function is applied again. The result is an Optional that contains "Dear KIM".');
+        push('.map(s -> "Dear " + s): The Optional from the previous step has a value, so the function is applied again, and map returns a new Optional that refers to "Dear KIM".');
         res = 'Dear KIM'; st.res = res;
         push('.orElse("no name"): A value is present, so orElse takes out "Dear KIM" and returns it.', 'good');
       } else {
@@ -99,7 +99,7 @@ Lab.register({
     } else if (c.take === 'orElseGet') {
       sum.push(has ? 'orElseGet takes not a default value but "code that creates the default value" (a lambda expression). When a value is present, it does not run that code.' : 'The lambda expression runs only when the Optional is empty.');
     } else {
-      sum.push(has ? 'When a value is present, map applies the function and returns the result in a new Optional. That is why you can chain several map calls.' : 'When the Optional is empty, map does not run the function and passes the empty Optional along. You do not have to write if (x != null) in between.');
+      sum.push(has ? 'When a value is present, map applies the function and returns a new Optional that refers to the result. That is why you can chain several map calls.' : 'When the Optional is empty, map does not run the function and passes the empty Optional along. You do not have to write if (x != null) in between.');
       sum.push('You write what to do when there is no value in only one place, the orElse at the end.');
     }
     return { events: ev, summary: sum, ex: ex, out: st.out.slice(), row: [optStr, ex ? 'Exception: NoSuchElementException' : res, mdRow] };
@@ -109,17 +109,17 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     var ln = H.lanes(v);
     if (c.make !== 'empty') H.lane(ln, 'name', s.name || 'not declared yet', s.name ? 'wait' : 'none');
-    H.lane(ln, 'opt', !s.opt ? 'not declared yet' : s.opt === 'npe' ? 'could not be created (NullPointerException)' : s.opt === 'kim' ? 'contains the value "kim"' : 'empty', !s.opt ? 'none' : s.opt === 'npe' ? 'bad' : s.opt === 'kim' ? 'good' : 'hot');
+    H.lane(ln, 'opt', !s.opt ? 'not declared yet' : s.opt === 'npe' ? 'could not be created (NullPointerException)' : s.opt === 'kim' ? 'refers to the value "kim"' : 'empty', !s.opt ? 'none' : s.opt === 'npe' ? 'bad' : s.opt === 'kim' ? 'good' : 'hot');
     if (useMd) H.lane(ln, 'makeDefault()', s.md === 'run' ? 'ran → "guest"' : s.md === 'skip' ? 'did not run' : s.md === 'wait' ? 'passed as a lambda expression (not run yet)' : 'not run yet', s.md === 'run' ? 'hot' : s.md === 'skip' ? 'good' : 'none');
     if (c.take === 'map') s.chain.forEach(function (x, i) { H.lane(ln, 'map (call ' + (i + 1) + ')', x ? 'function ran → "' + x + '"' : 'function skipped (empty)', x ? 'good' : 'wait'); });
     H.lane(ln, 'result', s.res ? '"' + s.res + '"' : s.ex ? 'no value because of the exception' : 'not declared yet', s.res ? 'good' : s.ex ? 'bad' : 'none');
   },
-  // Diagram: from left to right, name → the Optional box → the value taken out. Below the Optional, it shows whether makeDefault(), which creates the default value, has run (or the two map steps).
+  // Diagram: from left to right, name → the Optional object → the value taken out. Below the Optional, it shows whether makeDefault(), which creates the default value, has run (or the two map steps).
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { name: '', opt: '', md: '', chain: [], res: '', ex: '', out: [] }, useMd = c.take === 'orElse' || c.take === 'orElseGet';
     P.size(680, 300);
     P.box('name', 16, 30, 170, 50, c.make === 'empty' ? { cls: 'ghost', title: 'name', sub: 'not used here' } : s.name ? { cls: s.name === 'null' ? 'plain' : 'wait', title: 'name', sub: s.name === 'null' ? 'null (no value)' : '"kim"' } : { cls: 'ghost', title: 'name', sub: 'not declared yet' });
-    P.box('opt', 250, 24, 200, 62, !s.opt ? { cls: 'ghost', title: 'opt : Optional', sub: 'not declared yet' } : s.opt === 'npe' ? { cls: 'bad', title: 'opt : Optional', sub: ['could not be created', 'NullPointerException'] } : s.opt === 'kim' ? { cls: 'good', title: 'opt : Optional', sub: 'contains the value "kim"' } : { cls: 'hot', title: 'opt : Optional', sub: 'empty' });
+    P.box('opt', 250, 24, 200, 62, !s.opt ? { cls: 'ghost', title: 'opt : Optional', sub: 'not declared yet' } : s.opt === 'npe' ? { cls: 'bad', title: 'opt : Optional', sub: ['could not be created', 'NullPointerException'] } : s.opt === 'kim' ? { cls: 'good', title: 'opt : Optional', sub: 'refers to "kim"' } : { cls: 'hot', title: 'opt : Optional', sub: 'empty' });
     if (c.make !== 'empty' && s.opt) P.arrow('mk', 'name:r', 'opt:l', { cls: s.opt === 'npe' ? 'bad' : '', label: c.make === 'of' ? 'of' : 'ofNullable' });
     P.box('res', 500, 30, 164, 50, s.res ? { cls: 'good', title: 'result', sub: '"' + s.res + '"' } : s.ex ? { cls: 'bad', title: 'result', sub: 'no value (exception)' } : { cls: 'ghost', title: 'result', sub: 'not declared yet' });
     var fromDefault = s.res && s.opt === 'empty' && c.take !== 'get';

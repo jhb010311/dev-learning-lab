@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,8 @@
 <li>run()을 직접 부르면 스레드가 늘어나지 않습니다. 부른 스레드가 그 코드를 순서대로 실행할 뿐이라서 동시에 실행되는 것이 없습니다. 새 스레드에서 실행하려면 start()를 부릅니다. start()가 새 스레드를 만들고, 그 스레드가 run()을 실행합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>Runnable task = () -&gt; {
+<pre>// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)
+Runnable task = () -&gt; {
     System.out.println(Thread.currentThread().getName());   // 이 줄을 실행하는 스레드의 이름
     try {
         Thread.sleep(1000);                 // 1초 동안 쉰다
@@ -177,6 +178,6 @@ System.out.println(t.getState());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

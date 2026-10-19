@@ -23,7 +23,7 @@ Lab.register({
   },
   code: function (c) {
     var ent = '@Entity\nclass Member {\n    @Id Long id;\n    String name;\n    public Long getId() { return id; }\n    public String getName() { return name; }\n}\n' + (c.how === 'lazy' ? '\n@Entity\n@Table(name = "orders")\nclass Order {\n    @Id Long id;\n    @ManyToOne(fetch = FetchType.LAZY)\n    Member member;\n    public Member getMember() { return member; }\n}\n' : '');
-    return ent + '\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 영속성 컨텍스트를 닫는다' : l; }).join('\n');
+    return ent + '\n// 아래는 메서드 안의 줄만 보임 (메서드 선언과 em을 얻는 코드는 생략)\n// DB에는 회원 1 "김철수"' + (c.how === 'lazy' ? '와 그 회원의 주문 1이' : '가') + ' 있다\n' + this.lines(c).map(function (l) { return l === 'em.close();' ? 'em.close();                     // 영속성 컨텍스트를 닫는다' : l; }).join('\n');
   },
   label: function (c) { return { ref: 'getReference', lazy: '지연 로딩 연관 객체', find: 'em.find', findref: 'find 뒤 getReference', reffind: 'getReference 뒤 find' }[c.how] + ' · ' + { id: 'getId()', name: 'getName()', cls: 'getClass() 비교', closed: '닫은 뒤 getName()' }[c.use]; },
   columns: ['m의 정체', '회원 테이블 조회', '마지막 줄의 결과'],

@@ -16,7 +16,7 @@ Lab.register({
   ],
   // 화면의 코드와 대조 프로그램(verify/spring/src/PcBasicProbe.java)이 실행한 코드는 같은 글이다(대조 스크립트가 글자까지 비교한다).
   code: function (c) {
-    var l = ['em.getTransaction().begin();'];
+    var l = ['// 메서드 안의 줄만 보임 (선언, em 준비, Member 엔티티, import는 생략)', 'em.getTransaction().begin();'];
     if (c.how === 'new') l.push('Member m = new Member(1L, "김철수");');
     else {
       l.push('// find: DB에서 읽어 온 엔티티가 영속성 컨텍스트에 들어간다', 'Member m = em.find(Member.class, 1L);');

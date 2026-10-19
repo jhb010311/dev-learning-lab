@@ -46,7 +46,7 @@ for (const ln of comboLines) {
   const src = fs.readFileSync(path.join(__dirname, '..', 'out', 'crypto_basic', enc + '-' + reader, 'Main.java'), 'utf8').replace(/\r\n/g, '\n').split('\n');
   const a = src.findIndex(x => x.includes('<<화면의 코드 시작')), b = src.findIndex(x => x.includes('>>화면의 코드 끝'));
   const shown = src.slice(a + 1, b).map(x => x.replace(/^ {8}/, '')).join('\n');
-  if (shown !== lesson.code(c)) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
+  if (shown !== lesson.code(c).replace(/^\/\/ main 메서드 안의 줄만 보임[^\n]*\n/, '')) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
   // 무작위 열쇠와 nonce로 다시 돌린 결과의 종류
   const rl = get('REAL ' + k + ' => ');
   if (!rl) probs.push('REAL 줄 없음');

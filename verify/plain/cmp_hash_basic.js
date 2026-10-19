@@ -82,7 +82,8 @@ for (const ln of lines.filter(l => /^(hash|plain)\|/.test(l))) {
   const a = all.findIndex(x => x.trim() === '// 화면 시작'), b = all.findIndex(x => x.trim() === '// 화면 끝');
   const screen = all.slice(a + 1, b).map(x => x.replace(/^ {8}/, '')).join('\n').trim();
   if (a < 0 || b < 0) probs.push('Main.java에 화면 구간 표시가 없음');
-  else if (screen !== lesson.code(c)) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
+  // 화면 맨 위의 생략을 밝히는 주석 한 줄은 Probe 소스에 없으므로 빼고 비교
+  else if (screen !== lesson.code(c).replace(/^\/\/ [^\n]*생략[^\n]*\n/, '')) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름');
   if (store === 'plain' && /sha256\(/.test(screen)) probs.push('그대로 저장하는 코드에 sha256 호출이 있음');
   if (store === 'hash' && !/sha256\(input\)/.test(screen)) probs.push('해시 저장 코드에 sha256(input)이 없음');
   check('조합 ' + k, probs);

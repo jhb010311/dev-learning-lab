@@ -22,8 +22,8 @@ Lab.register({
     var two = c.shape === '2', T = c.type, AT = T + (two ? '[][]' : '[]'), pr = two ? 'Arrays.deepToString' : 'Arrays.toString';
     var pad = function (x) { return x + new Array(Math.max(2, 41 - x.length)).join(' ') + '// '; };
     var cp = c.copy === 'ref' ? 'a' : c.copy === 'clone' ? 'a.clone()' : 'Arrays.copyOf(a, a.length)';
-    return 'import java.util.Arrays;\n\n' +
-      pad(AT + ' a = new ' + T + (two ? '[2][3]' : '[3]') + ';') + (two ? '길이 3인 배열 2개와, 그 둘을 담은 배열' : '칸 3개. 기본값으로 채워진다') + '\n' +
+    return 'import java.util.Arrays;\n\n// 아래는 main 메서드 안의 줄 (클래스와 main 선언은 생략)\n' +
+      pad(AT + ' a = new ' + T + (two ? '[2][3]' : '[3]') + ';') + (two ? '길이 3인 배열 2개와, 그 둘을 가리키는 배열' : '칸 3개. 기본값으로 채워진다') + '\n' +
       pad(AT + ' b = ' + cp + ';') + (c.copy === 'ref' ? '참조만 복사된다' : two ? '바깥 배열만 새로 만들어진다' : '새 배열을 만들어 값을 복사한다') + '\n\n' +
       'System.out.println(a == b);\n' + (two ? 'System.out.println(a[0] == b[0]);\n' : '') +
       pad((two ? 'b[0][' : 'b[') + c.idx + '] = ' + this.lit(c) + ';') + (two ? '0번 행의 ' : '') + c.idx + '번 칸에 넣는다\n' +
@@ -46,7 +46,7 @@ Lab.register({
     if (!two) { st.a = mk(T + '[]', fill(3)); push(AT + ' a = new ' + T + '[3]: 힙에 ' + T + ' 칸 3개가 나란히 붙은 배열이 만들어집니다. 칸에는 앞에서부터 0, 1, 2라는 번호(인덱스)가 붙습니다. 값을 넣지 않았지만 모든 칸이 기본값으로 채워져 있습니다(' + defWord + '). 변수 a에는 이 배열을 가리키는 참조가 들어갑니다.'); }
     else {
       st.a = mk(T + '[][]', []); var r0 = mk(T + '[]', fill(3)), r1 = mk(T + '[]', fill(3)); arr(st.a).cells = [{ ref: r0 }, { ref: r1 }];
-      push(AT + ' a = new ' + T + '[2][3]: 배열이 모두 세 개 만들어집니다. 길이 3인 ' + T + ' 배열 2개(행)와, 그 둘의 참조를 칸에 담은 길이 2인 바깥 배열입니다. 2차원 배열은 표 한 장이 아니라 "배열을 칸에 담은 배열"입니다. 변수 a에는 바깥 배열의 참조가 들어갑니다. 행의 칸은 모두 기본값입니다(' + defWord + ').');
+      push(AT + ' a = new ' + T + '[2][3]: 배열이 모두 세 개 만들어집니다. 길이 3인 ' + T + ' 배열 2개(행)와, 그 둘의 참조를 칸에 담은 길이 2인 바깥 배열입니다. 2차원 배열은 표 한 장이 아니라 "칸마다 다른 배열의 참조를 가진 배열"입니다. 변수 a에는 바깥 배열의 참조가 들어갑니다. 행의 칸은 모두 기본값입니다(' + defWord + ').');
     }
     // 2. 두 번째 변수
     var shallow = two && c.copy !== 'ref';

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,7 +78,8 @@ class Item {
     void setPrice(int price) { this.price = price; }
 }
 
-// Inside a transaction. The DB has 3 items (item 1 costs 1000, item 2 costs 2000, ...)
+// From here on, the body of a method running in a transaction (the method, the field em, and imports are omitted)
+// The DB has 3 items (item 1 costs 1000, item 2 costs 2000, ...)
 List&lt;Item&gt; items = em.createQuery(&quot;select i from Item i order by i.id&quot;, Item.class).getResultList();
 Item first = items.get(0);                 // item 1
 
@@ -176,6 +177,6 @@ System.out.println(first.getPrice());
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

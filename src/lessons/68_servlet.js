@@ -64,7 +64,7 @@ Lab.register({
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet이 /hello를 처리할 컨트롤러 메서드를 찾습니다. @GetMapping("/hello")는 있지만 POST용은 없습니다. 응답의 상태를 405로 정합니다.', 'bad'); errorDispatch(); }
         else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet이 ' + method + ' /hello에 맞는 컨트롤러 메서드를 찾아 호출합니다. ' + (method === 'GET' ? 'request에서 값을 꺼내 파라미터로 넘겨 주고, ' : '') + '메서드가 돌려준 값을 response에 써 줍니다. 서블릿을 직접 쓸 때 우리가 하던 일을 DispatcherServlet이 대신합니다.', 'good'); }
       }
-      st.who = '톰캣 (서블릿 컨테이너)'; st.sent = true;
+      st.who = '톰캣 (서블릿 컨테이너)'; st.sent = true; st.thread = '';
       push('서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. ' + S + ' 객체는 그대로 남아 다음 요청을 기다립니다.', '');
     }
     if (st.made) { st.destroy++; st.obj = '없어짐'; st.reqText = ''; st.respText = ''; st.sent = false; st.reqObj = ''; st.thread = ''; push('서버를 내립니다. 톰캣이 ' + S + '의 destroy()를 한 번 호출한 뒤 객체를 버립니다. 열어 둔 자원을 정리할 기회입니다.', ''); }

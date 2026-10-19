@@ -23,8 +23,8 @@ Lab.register({
     return ['Member m = em.find(Member.class, 1L);', 'm.setName("Bob");', 'List<Member> list = em.createQuery(', '    "select m from Member m where m.name = \'Bob\'", Member.class)', '    .getResultList();'];
   },
   code: function (c) {
-    var tx = c.sc !== 'update' || c.tx, head = c.sc === 'persist' ? '@Entity class Member {\n    @Id @GeneratedValue(strategy = GenerationType.' + c.gen + ')\n    Long id;\n    String name;\n}\n\n' : '';
-    return head + (tx ? '@Transactional\n' : '') + 'public void run() {\n' + this.lines(c).map(function (l) { return '    ' + l; }).join('\n') + '\n}' + (tx ? '   // the commit happens when the method ends' : '   // ends without a transaction');
+    var tx = c.sc !== 'update' || c.tx, head = c.sc === 'persist' ? '@Entity class Member {\n    @Id @GeneratedValue(strategy = GenerationType.' + c.gen + ')\n    Long id;\n    String name;   // constructors omitted\n}\n\n' : '';
+    return head + '// Only a method in the class body is shown (class declaration, field declarations, and imports omitted)\n' + (tx ? '@Transactional\n' : '') + 'public void run() {\n' + this.lines(c).map(function (l) { return '    ' + l; }).join('\n') + '\n}' + (tx ? '   // the commit happens when the method ends' : '   // ends without a transaction');
   },
   label: function (c) { return { find2: 'Load twice', update: 'Name change' + (c.tx ? '' : ' · no @Transactional'), persist: 'Save 3 members · ' + c.gen, jpql: 'JPQL after a change' }[c.sc]; },
   columns: ['SQL sent to the DB', 'When the write SQL was sent', 'Result in the DB'],

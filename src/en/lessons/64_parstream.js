@@ -12,10 +12,11 @@ Lab.register({
     { t: 'Moving A to a separate pool', q: 'What if the same work of request A runs in a separate thread pool?', d: 'B becomes fast again.', v: { a: 'own' } },
   ],
   code: function (c) {
+    var H = '// Only the lines inside a method are shown (class, method declaration, imports, and the example orders, items, deliveryApi, and resize omitted)\n';
     var b = '// Request B: 8 tasks of 0.1 seconds each\nitems.parallelStream().forEach(this::resize);';
-    if (c.a === 'none') return b;
-    if (c.a === 'block') return '// Request A: calls an external API inside a parallel stream (2 seconds per call)\norders.parallelStream()\n      .forEach(o -> deliveryApi.track(o));      // a thread of the common pool is occupied for 2 seconds each time\n\n' + b;
-    return '// Request A: runs in a separate pool\nExecutorService io = Executors.newFixedThreadPool(8);\nvar futures = orders.stream()\n      .map(o -> CompletableFuture.runAsync(() -> deliveryApi.track(o), io))\n      .toList();\nfutures.forEach(CompletableFuture::join);\n\n' + b;
+    if (c.a === 'none') return H + b;
+    if (c.a === 'block') return H + '// Request A: calls an external API inside a parallel stream (2 seconds per call)\norders.parallelStream()\n      .forEach(o -> deliveryApi.track(o));      // a thread of the common pool is occupied for 2 seconds each time\n\n' + b;
+    return H + '// Request A: runs in a separate pool\nExecutorService io = Executors.newFixedThreadPool(8);\nvar futures = orders.stream()\n      .map(o -> CompletableFuture.runAsync(() -> deliveryApi.track(o), io))\n      .toList();\nfutures.forEach(CompletableFuture::join);\n\n' + b;
   },
   label: function (c) { return { none: 'Only B runs', block: 'A makes blocking calls in the common pool', own: 'A uses a separate pool' }[c.a]; },
   columns: ['Time B took (measured)', 'Threads available to B', 'Pool A used'],

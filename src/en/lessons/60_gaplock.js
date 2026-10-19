@@ -50,9 +50,9 @@ Lab.register({
     if (st < 0) { H.text(v, 'Press Run to start.'); return; }
     function gapCell(a, b, label) { var locked = st >= 1 && sim.gaps.some(function (g) { return g[0] === a; }), here = st >= 2 && ins > a && ins < b; return [label + (here ? (st >= 3 ? (sim.blocked ? ' ← ' + ins + ' waits' : ' ← ' + ins + ' inserted') : ' ← ' + ins + ' tried') : '') + (locked ? ' [locked]' : ''), (locked ? 'r' : '') + (here ? ' now' : '')]; }
     items.push(gapCell(-1, 10, '(before 10)'));
-    ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['Row ' + id + (locked ? ' [locked]' : ''), locked ? 'b' : 'd']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(after 40)' : '(' + id + '~' + nx + ')')); });
+    ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['Row ' + id + (locked ? ' [locked]' : ''), locked ? 'b' : 'q']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(after 40)' : '(' + id + '~' + nx + ')')); });
     H.title(v, 'id index (smaller values on the left)'); H.slots(v, items, '');
-    H.text(v, 'Green is a row, yellow is a row locked by A, red is a gap locked by A, and a dotted line is an unlocked gap.');
+    H.text(v, 'Blue is a row, yellow is a row locked by A, red is a gap locked by A, and a dotted line is an unlocked gap.');
   },
   // Diagram: The id index is drawn like a number line. Rows (boxes) and the gaps between them (dotted) alternate, and the places that A locked and the place that B tries to insert are marked.
   draw: function (P, sim, shown) {

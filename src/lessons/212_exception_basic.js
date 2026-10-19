@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exception_basic', nav: '예외', cat: '기초개념', mode: 'step', basic: true, deep: ['exflow'],
   title: '예외는 무엇이고, try-catch는 무엇을 해 주는가',
-  intro: '예외는 프로그램을 실행하는 중에 계속할 수 없는 일이 생겼을 때 자바가 던지는 객체입니다. 예를 들어 정수를 0으로 나누면 자바가 ArithmeticException이라는 예외를 던지고, 던지는 순간 하던 일을 그 자리에서 멈춥니다. 아무도 잡지 않으면 프로그램은 거기서 끝나고 그 뒤의 줄은 실행되지 않습니다. try { }는 문제가 날 수 있는 코드를 감싸는 것이고, 뒤에 붙인 catch (예외의 종류 e) { }는 그 종류의 예외가 났을 때 실행이 건너와 처리하는 곳입니다. 처리가 끝나면 try-catch 아래의 줄을 계속 실행합니다. 이 실습은 try-catch를 지우고, b의 값을 바꾸고, catch가 잡는 종류를 바꿔 가며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 프로그램이 어떻게 끝나는지를 봅니다.',
+  intro: '예외는 프로그램을 실행하는 중에 계속할 수 없는 일이 생겼을 때 자바가 던지는 객체입니다. 예를 들어 정수를 0으로 나누면 자바가 ArithmeticException이라는 예외를 던지고, 던지는 순간 하던 일을 그 자리에서 멈춥니다. 아무도 잡지 않으면 프로그램은 거기서 끝나고 그 뒤의 줄은 실행되지 않습니다. try { }의 중괄호 안에는 문제가 날 수 있는 코드를 쓰고, 뒤에 붙인 catch (예외의 종류 e) { }는 그 종류의 예외가 났을 때 실행이 건너와 처리하는 곳입니다. 처리가 끝나면 try-catch 아래의 줄을 계속 실행합니다. 이 실습은 try-catch를 지우고, b의 값을 바꾸고, catch가 잡는 종류를 바꿔 가며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 프로그램이 어떻게 끝나는지를 봅니다.',
   terms: ['예외(Exception)와 Error', 'try-catch', '예외를 던진다(throw)', 'NullPointerException'],
   controls: [
     { id: 'tc', label: 'try-catch로 감싼다', type: 'check', value: true },
@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var o = ['public class Main {', '    public static void main(String[] args) {', '        int a = 10;', '        int b = ' + (c.b === 'zero' ? '0' : '2') + ';'];
-    if (c.tc) o.push('        // try: 문제가 날 수 있는 코드를 감싼다', '        try {', '            System.out.println(a / b);', '        // catch: 예외가 나면 여기로 건너온다', '        } catch (' + (c.kind === 'arith' ? 'ArithmeticException' : 'NullPointerException') + ' e) {', '            System.out.println("0으로 나눌 수 없습니다");', '        }');
+    if (c.tc) o.push('        // try 블록: 문제가 날 수 있는 코드를 여기에 쓴다', '        try {', '            System.out.println(a / b);', '        // catch: 예외가 나면 여기로 건너온다', '        } catch (' + (c.kind === 'arith' ? 'ArithmeticException' : 'NullPointerException') + ' e) {', '            System.out.println("0으로 나눌 수 없습니다");', '        }');
     else o.push('        System.out.println(a / b);');
     o.push('        System.out.println("끝");', '    }', '}');
     return o.join('\n');

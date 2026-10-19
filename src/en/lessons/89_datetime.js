@@ -26,9 +26,10 @@ Lab.register({
   },
   ADD: { drop: 'd.plusMonths(1);', month: 'd = d.plusMonths(1);', twice: 'd = d.plusMonths(1).plusMonths(1);', two: 'd = d.plusMonths(2);', days: 'd = d.plusDays(30);' },
   code: function (c) {
-    if (c.topic === 'plus') return 'LocalDate d = LocalDate.of(2024, 1, 31);\nLocalDate first = d;                 // remember the first object\n\n' + this.ADD[c.add] + (c.add === 'drop' ? '                     // the return value is ignored' : '') + '\n\nSystem.out.println(d);\nSystem.out.println(first);\nSystem.out.println(d == first);      // same object?';
-    if (c.topic === 'zone') return 'ZonedDateTime seoul = ZonedDateTime.of(2024, 1, 1, 0, 30, 0, 0, ZoneId.of("Asia/Seoul"));\nInstant moment = seoul.toInstant();          // a single point in time, independent of any time zone\nZonedDateTime there = moment.atZone(ZoneId.of("' + this.Z[c.zone].id + '"));\n\nSystem.out.println(there);\nSystem.out.println(there.toLocalDate());     // the date only\nSystem.out.println(there.toInstant());       // the instant it represents';
-    var head = 'LocalDate a = LocalDate.of(2024, 1, 31);\nLocalDate b = LocalDate.of(2024, 3, 1);\n\n';
+    var H = '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n';
+    if (c.topic === 'plus') return H + 'LocalDate d = LocalDate.of(2024, 1, 31);\nLocalDate first = d;                 // remember the first object\n\n' + this.ADD[c.add] + (c.add === 'drop' ? '                     // the return value is ignored' : '') + '\n\nSystem.out.println(d);\nSystem.out.println(first);\nSystem.out.println(d == first);      // same object?';
+    if (c.topic === 'zone') return H + 'ZonedDateTime seoul = ZonedDateTime.of(2024, 1, 1, 0, 30, 0, 0, ZoneId.of("Asia/Seoul"));\nInstant moment = seoul.toInstant();          // a single point in time, independent of any time zone\nZonedDateTime there = moment.atZone(ZoneId.of("' + this.Z[c.zone].id + '"));\n\nSystem.out.println(there);\nSystem.out.println(there.toLocalDate());     // the date only\nSystem.out.println(there.toInstant());       // the instant it represents';
+    var head = H + 'LocalDate a = LocalDate.of(2024, 1, 31);\nLocalDate b = LocalDate.of(2024, 3, 1);\n\n';
     if (c.gap === 'period') return head + 'Period p = Period.between(a, b);                     // date-based amount: years, months, days\n\nSystem.out.println(p);\nSystem.out.println(p.getDays());                     // the value of the "days" part\nSystem.out.println(ChronoUnit.DAYS.between(a, b));   // total number of days';
     return head + (c.gap === 'duration' ? 'Duration t = Duration.between(a.atStartOfDay(), b.atStartOfDay());   // time-based amount: in seconds' : 'Duration t = Duration.between(a, b);    // only dates are passed') + '\n\nSystem.out.println(t);\nSystem.out.println(t.toHours());\nSystem.out.println(t.toDays());';
   },
@@ -55,8 +56,8 @@ Lab.register({
         st.objs.push('2024-02-29'); st.s = 2;
         push('d = d.plusMonths(1): One month after January 31 should be February 31, but there is no such day. In this case the date is adjusted to the last day of that month. February 2024 has 29 days, so the result is 2024-02-29. d refers to this new object.');
       } else if (c.add === 'twice') {
-        st.objs.push('2024-02-29'); st.s = 2;
-        push('d.plusMonths(1): First, one month is added. February 31 does not exist, so the result is a new object adjusted to the last day of February, 2024-02-29.');
+        st.objs.push('2024-02-29');
+        push('d.plusMonths(1): First, one month is added. February 31 does not exist, so the result is a new object adjusted to the last day of February, 2024-02-29. The assignment to d happens only after the second plusMonths on this line has finished, so d still refers to the original object.');
         st.objs.push('2024-03-29'); st.s = 3;
         push('.plusMonths(1): One more month is added to the February 29 that was just produced. March 29 exists, so the result is 2024-03-29 as it is. The fact that the original date was the 31st is not remembered. d refers to this object.', 'bad');
       } else if (c.add === 'two') {

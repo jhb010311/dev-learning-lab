@@ -25,7 +25,7 @@ Lab.register({
     var s = c.cls === 'field' ? pad('class Address {') + '// Serializable을 구현하지 않았다\n    String city = "Seoul";\n}\n\n' : '';
     s += 'class User' + (ser ? ' implements Serializable' : '') + ' {\n' + (ser && c.chg !== 'auto' ? '    private static final long serialVersionUID = 1L;\n' : '') + '    String name;\n' + decl.replace(/\s+$/, '') + '\n' + (c.cls === 'field' ? '    Address address = new Address();\n' : '')
       + '    User(String name) {\n        this.name = name;\n        System.out.println("생성자 실행");\n    }\n}\n\n';
-    s += 'User u = new User("kim");\n' + P + ' = 50;\ntry (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("user.ser"))) {\n' + pad('    out.writeObject(u);') + '// 객체를 바이트로 바꿔 파일에 쓴다\n}\n' + pad(P + ' = 70;') + '// 저장한 뒤에 값을 바꾼다\n\n';
+    s += '// 여기부터 main 메서드 안의 줄 (Main 클래스·main 선언과 import는 생략)\nUser u = new User("kim");\n' + P + ' = 50;\ntry (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("user.ser"))) {\n' + pad('    out.writeObject(u);') + '// 객체를 바이트로 바꿔 파일에 쓴다\n}\n' + pad(P + ' = 70;') + '// 저장한 뒤에 값을 바꾼다\n\n';
     if (c.chg === 'uid') s += '// ── 여기서 User 클래스를 고쳐 다시 컴파일한다 ──\n//     private static final long serialVersionUID = 2L;\n// 그런 다음 아래 코드로 전에 저장한 파일을 읽는다\n\n';
     if (c.chg === 'auto') s += '// ── 여기서 User 클래스를 고쳐 다시 컴파일한다 ──\n//     String email;          (필드 하나 추가)\n// 그런 다음 아래 코드로 전에 저장한 파일을 읽는다\n\n';
     s += 'try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("user.ser"))) {\n' + pad('    User r = (User) in.readObject();') + '// 파일의 바이트로 객체를 되살린다\n    System.out.println(r.name + " " + ' + (c.fld === 'static' ? 'User.point' : 'r.point') + ');\n}';

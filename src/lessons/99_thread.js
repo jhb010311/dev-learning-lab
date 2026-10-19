@@ -37,7 +37,7 @@ Lab.register({
     if (W === 'lock') s += '}                                           // 여기서 lock을 놓는다\n';
     s += 't.join();                                   // t가 끝날 때까지 기다린다\nSystem.out.println(t.getState());';
     if (c.call === 'twice') s += '\n\nt.start();                                  // 끝난 스레드를 다시 시작해 본다';
-    return s;
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n' + s;
   },
   label: function (c) { return { start: 'start()', run: 'run() 직접 호출', twice: 'start() 두 번' }[c.call] + ' · ' + { quick: '바로 끝나는 작업', sleep: 'sleep', join: 'join', lock: 'lock 기다림' }[c.work] + (c.intr ? ' · interrupt' : ''); },
   columns: ['작업을 실행한 스레드', '중간에 본 t의 상태', 'interrupt의 결과', 'join 뒤 t의 상태', '다시 start()'],

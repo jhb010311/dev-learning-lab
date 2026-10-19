@@ -22,14 +22,14 @@ Lab.register({
     var s = 'class Counter {\n    ' + (isS ? 'static int count;              // static field: one in the class' : 'int count;                     // instance variable: one in each object') + '\n\n    void hit() {                   // instance method\n        count++;\n    }\n';
     if (c.extra === 'sm') s += '\n    static int report() {          // static method\n        return count;' + (e ? '              // compile-time error' : '') + '\n    }\n';
     if (c.extra === 'smThis') s += '\n    static int report() {          // static method\n        return this.count;         // compile-time error\n    }\n';
-    s += '}\n\n';
-    if (c.extra === 'cls0') s += 'System.out.println(Counter.count);' + (e ? '   // compile-time error' : '   // there are no objects yet') + '\n';
-    if (c.extra === 'clsHit') s += 'Counter.hit();                        // compile-time error\n';
-    s += 'Counter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\n';
-    for (i = 0; i < nb; i++) s += 'b.hit();\n';
-    s += 'System.out.println(a.count + " " + b.count);';
-    if (c.extra === 'sm' || c.extra === 'smThis') s += '\nSystem.out.println(Counter.report());';
-    return s;
+    s += '}\n\npublic class Main {\n    public static void main(String[] args) {\n';
+    if (c.extra === 'cls0') s += '        System.out.println(Counter.count);' + (e ? '   // compile-time error' : '   // there are no objects yet') + '\n';
+    if (c.extra === 'clsHit') s += '        Counter.hit();                        // compile-time error\n';
+    s += '        Counter a = new Counter();\n        Counter b = new Counter();\n        a.hit();\n        a.hit();\n';
+    for (i = 0; i < nb; i++) s += '        b.hit();\n';
+    s += '        System.out.println(a.count + " " + b.count);';
+    if (c.extra === 'sm' || c.extra === 'smThis') s += '\n        System.out.println(Counter.report());';
+    return s + '\n    }\n}';
   },
   label: function (c) { return (c.decl === 'static' ? 'static int count' : 'int count') + ' · ' + { none: 'nothing added', sm: 'count in report()', smThis: 'this.count in report()', cls0: 'Counter.count first', clsHit: 'Counter.hit()' }[c.extra] + ' · b.hit() ' + c.nb + '×'; },
   columns: ['Compilation', 'a.count and b.count', 'Output of the added line'],
@@ -103,7 +103,7 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { cls: false, sv: '', a: false, av: '', b: false, bv: '', hot: '', by: '', ab: '', ex: '', err: '', errAt: '' };
     var isS = c.decl === 'static', x = c.extra, hasM = x === 'sm' || x === 'smThis';
     P.size(680, 264);
-    P.region('cl', 16, 16, 300, 168, 'Class Counter (one in the program)');
+    P.region('cl', 16, 16, 300, 168, 'Class Counter (one for all objects)');
     P.region('hp', 364, 16, 300, 168, 'Heap (separate for each object)');
     if (isS) P.box('sf', 30, 52, 272, 46, { cls: s.sv === '' ? 'ghost' : s.hot === 'sf' ? 'hot now' : 'good', title: 'static field count', sub: 'The one that all objects share', right: s.sv === '' ? '' : s.sv });
     else P.box('sf', 30, 52, 272, 46, { cls: s.errAt === 'sf' ? 'bad' : 'ghost', title: 'No static field', sub: 'Each object has its own count' });
@@ -121,5 +121,5 @@ Lab.register({
     P.box('o2', 344, 204, 320, 38, { cls: s.err ? 'bad' : s.ex ? 'good' : 'ghost', title: exT, right: s.err ? 'error' : x === 'none' ? '' : s.ex || '?' });
     P.note(isS ? 'There is only one count box, in the class on the left. Whether it is called on a or on b, hit() increments this one count, and a.count and b.count also read this one count.' : 'There is one count in each object on the right. The code of the method itself exists only once, in the class, and an instance method is passed its target object when it is called.');
   },
-  assume: 'All 30 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, and the output were checked against the results. It was also confirmed by execution that the "static method that receives an object as an argument", which the summary gives as a fix, compiles and runs, and that the object is not used when a static field is read through an object variable (no exception is thrown even when it is read through a variable that is null). Simplifications: the "class" area in the diagram lumps together the place where the JVM keeps class information, and exactly where in memory a static field is placed depends on the JVM implementation. The exact moment when the class is made ready (when an object is first created or a static member is first used) is reduced to the single step "Execution starts". Code that uses a static field through an object variable, as in a.count, compiles but is not recommended, and it is included here to show that the field is shared. The error message is the first line of the English message from javac.',
+  assume: 'All 30 combinations were actually compiled and run with the same code on JDK 21 in our test environment, and the compilation result, the error message, and the output were checked against the results. It was also confirmed by execution that the "static method that receives an object as an argument", which the summary gives as a fix, compiles and runs, and that the object is not used when a static field is read through an object variable (no exception is thrown even when it is read through a variable that is null). Simplifications: the "class" area in the diagram lumps together the place where the JVM keeps class information, and exactly where in memory a static field is placed depends on the JVM implementation. The class exists once because a single class loader loads it in this lab; if different class loaders load the same class separately, each gets its own static field. The exact moment when the class is made ready (when an object is first created or a static member is first used) is reduced to the single step "Execution starts". Code that uses a static field through an object variable, as in a.count, compiles but is not recommended, and it is included here to show that the field is shared. The error message is the first line of the English message from javac.',
 });

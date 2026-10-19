@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var self = c.via === 'self', f = function (id) { return 'productService.' + (self ? 'detail' : 'find') + '(' + id + 'L);'; };
     var calls = [f(1)].concat(c.mid === 'evict' ? ['productService.evict(1L);'] : c.mid === 'put' ? ['productService.rename(1L, "새 키보드");'] : c.mid === 'plain' ? ['productService.renamePlain(1L, "새 키보드");'] : [], [f(c.mid === 'other' ? 2 : 1)]);
-    var s = '// 다른 빈에서 이 순서로 부른다\n' + calls.join('\n') + '\n\n@Service\nclass ProductService {\n    // DB 대신 쓰는 맵\n    private final Map<Long, String> db = new HashMap<>(\n        Map.of(' + (c.data === 'yes' ? '1L, "키보드", ' : '') + '2L, "마우스"));\n    private int findCount;\n\n' +
+    var s = '// 다른 빈의 메서드 안에서 이 순서로 부른다 (그 빈의 클래스·메서드 선언과 import는 생략)\n' + calls.join('\n') + '\n\n@Service\nclass ProductService {\n    // DB 대신 쓰는 맵\n    private final Map<Long, String> db = new HashMap<>(\n        Map.of(' + (c.data === 'yes' ? '1L, "키보드", ' : '') + '2L, "마우스"));\n    private int findCount;\n\n' +
       '    @Cacheable(cacheNames = "product"' + (c.unless ? ',\n               unless = "#result == null"' : '') + ')\n    public String find(Long id) {\n        findCount++;                 // 본문이 실행된 횟수\n        return db.get(id);           // 없으면 null\n    }\n';
     if (c.mid === 'evict') s += '\n    @CacheEvict(cacheNames = "product")\n    public void evict(Long id) { }\n';
     if (c.mid === 'put') s += '\n    @CachePut(cacheNames = "product", key = "#id")\n    public String rename(Long id, String name) {\n        db.put(id, name);\n        return name;                 // 돌려준 값이 캐시에 들어간다\n    }\n';

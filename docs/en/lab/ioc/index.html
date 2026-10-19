@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -95,7 +95,7 @@ class OrderService {
     }
 }
 
-// Where it is used: retrieved from the container
+// Where it is used (lines inside main): retrieved from the container. The line that creates context, class and main declarations, and imports are omitted
 OrderService orderService = context.getBean(OrderService.class);
 int pay = orderService.order(20000);</pre>
 <h2>Assumptions of this model</h2>
@@ -187,6 +187,6 @@ int pay = orderService.order(20000);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

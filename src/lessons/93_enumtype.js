@@ -44,7 +44,7 @@ Lab.register({
     s += '    String label() {\n        return label;\n    }\n';
     if (code) s += '\n    static Status fromCode(String code) {\n        for (Status s : values()) {\n            if (s.code.equals(code)) return s;\n        }\n        throw new IllegalArgumentException("없는 코드: " + code);\n    }\n';
     s += '}\n\n';
-    s += '// 예전 선언(ORDERED, PAID, SHIPPED 순서)일 때 ' + c.saved + (c.store === 'ordinal' ? '.ordinal()' : c.store === 'name' ? '.name()' : '의 code') + ' 값을 저장해 둔 것\n';
+    s += '// 예전 선언(ORDERED, PAID, SHIPPED 순서)일 때 ' + c.saved + (c.store === 'ordinal' ? '.ordinal()' : c.store === 'name' ? '.name()' : '의 code') + ' 값을 저장해 둔 것 (여기부터 main 안의 줄, 클래스·main 선언은 생략)\n';
     if (c.store === 'ordinal') s += 'int saved = ' + f.value + ';\nStatus s = Status.values()[saved];\n';
     if (c.store === 'name') s += 'String saved = "' + f.value + '";\nStatus s = Status.valueOf(saved);\n';
     if (c.store === 'code') s += 'String saved = "' + f.value + '";\nStatus s = Status.fromCode(saved);\n';

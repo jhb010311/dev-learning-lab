@@ -20,7 +20,7 @@ Lab.register({
   ],
   // The code on the screen and the source that the checking program (verify/spring/src/RelationBasicProbe.java) compiled and ran are the same text (the checking script compares them character by character).
   code: function (c) {
-    var l = ['@Entity', '@Table(name = "orders")', 'public class Order {', '    @Id', '    private Long id;'];
+    var l = ['// Only the needed parts are kept (the Member entity, Order\'s constructors and getters, em setup, and imports omitted)', '@Entity', '@Table(name = "orders")', 'public class Order {', '    @Id', '    private Long id;'];
     if (c.how === 'ref' || c.how === 'named') l.push('    // Association: point to the member who placed this order as an object', '    @ManyToOne');
     if (c.how === 'named') l.push('    @JoinColumn(name = "buyer_id")');
     l.push(c.how === 'idonly' ? '    private Long memberId;' : '    private Member member;', '}', '',

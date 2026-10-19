@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,8 @@
 <li>A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.</li>
 </ul>
 <h2>Code</h2>
-<pre>@GetMapping(&quot;/products/{id}&quot;)
+<pre>// Only the method inside the controller class is shown (class declaration, the productService field, the example Product class, and imports omitted)
+@GetMapping(&quot;/products/{id}&quot;)
 ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
     Product p = productService.find(id);
     return ResponseEntity.ok()
@@ -165,6 +166,6 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ for (const ln of body) {
   if (v.startsWith('COMPILE_ERROR')) { console.log('컴파일 오류: ' + k + ' ' + v); continue; }
   v.split('|').forEach(p => { const i = p.indexOf('='); f[p.slice(0, i)] = p.slice(i + 1); });
   if (!f.store1) { console.log('실행 실패: ' + k + ' ' + v.slice(0, 300)); continue; }
-  const c = { save, second }, sim = lesson.simulate(c), want = lesson.code.call(lesson, c);
+  const c = { save, second }, sim = lesson.simulate(c), want = lesson.code.call(lesson, c).replace(/^\/\/ [^\n]*생략\)\n/, '');   // 화면 맨 위의 "클래스 본문만 보임 (… 생략)" 머리 줄은 Probe 소스에 없으므로 빼고 비교
   const cookieText = f.cookie === 'JSESSIONID' ? 'JSESSIONID=(무작위 글자 ' + f.cookieLen + '자)' : '없음';
   const real = [storeText(f.store1), cookieText, f.meBody];
   let good = true;

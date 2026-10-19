@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -107,6 +107,7 @@ resilience4j.circuitbreaker.instances.payment:
   waitDurationInOpenState: 5s          # how long the circuit stays open
   permittedNumberOfCallsInHalfOpenState: 3
 
+// Only the class body is shown (class declaration, imports, and the declarations of Order, PaymentResult, and paymentClient, made up for this example, omitted)
 @CircuitBreaker(name = &quot;payment&quot;, fallbackMethod = &quot;payLater&quot;)
 PaymentResult pay(Order order) {
     return paymentClient.pay(order);     // times out after 3s if there is no response
@@ -204,6 +205,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

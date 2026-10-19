@@ -19,7 +19,7 @@ Lab.register({
   SERVER: ['// 서버 프로그램: 8080번 포트를 열고 연결을 기다린다', 'ServerSocket server = new ServerSocket(8080);', 'Socket fromClient = server.accept();', 'fromClient.getOutputStream().write("안녕하세요".getBytes("UTF-8"));', 'fromClient.close();'],
   SECOND: ['// 또 다른 프로그램: 같은 8080번 포트를 열려고 한다', 'ServerSocket another = new ServerSocket(8080);'],
   code: function (c) {
-    var parts = [];
+    var parts = ['// 프로그램마다 main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)'];
     if (c.server) parts.push(this.SERVER.join('\n'));
     if (c.second) parts.push(this.SECOND.join('\n'));
     parts.push(['// 클라이언트 프로그램: 127.0.0.1(이 컴퓨터)에 연결한다', 'Socket socket = new Socket("127.0.0.1", ' + (c.port === 'same' ? '8080' : '9090') + ');', 'String text = new String(socket.getInputStream().readAllBytes(), "UTF-8");', 'System.out.println(text);'].join('\n'));

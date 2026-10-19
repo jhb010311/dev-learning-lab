@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,13 +63,16 @@
 <li>샤딩은 쓰기와 데이터 양을 나누는 마지막 수단입니다. 그 전에 인덱스와 쿼리 개선, 캐시, 읽기 전용 복제본, 오래된 데이터 분리를 먼저 검토합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 회원 번호를 샤드 수로 나눈 나머지로 샤드를 정한다
+<pre>// 클래스 본문만 보임 (클래스 선언, List&lt;DataSource&gt; shards 필드, import는 생략)
+// 회원 번호를 샤드 수로 나눈 나머지로 샤드를 정한다
 int shardOf(long memberId) {
     return (int) (memberId % 4);
 }
 
 // 조회할 때도 같은 계산으로 샤드를 찾는다
-DataSource ds = shards.get(shardOf(memberId));</pre>
+DataSource dataSourceOf(long memberId) {
+    return shards.get(shardOf(memberId));
+}</pre>
 <h2>이 모형의 전제</h2>
 <p>주문 120건, 회원 40명의 작은 예입니다. 회원 번호는 주문에 고르게 배정했고, &quot;주문 많은 회원&quot; 설정에서는 주문 세 건 중 한 건을 회원 7번의 것으로 두었습니다. 샤드 수가 바뀔 때 이동하는 비율은 이 데이터로 실제 계산한 값입니다. 샤드마다 복제본을 두는 구성이나 샤드 위치를 관리하는 라우터는 생략했습니다. 샤드 수 2~6개에서 하나를 늘릴 때 옮겨야 하는 건수를 자바에서 따로 계산해 화면의 값과 일치하는 것을 확인했습니다.</p>
 <p>앞 실습: <a href="../../lab/replica/">복제 지연과 CAP</a> · 다음 실습: <a href="../../lab/partition/">파티셔닝</a></p>
@@ -159,6 +162,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

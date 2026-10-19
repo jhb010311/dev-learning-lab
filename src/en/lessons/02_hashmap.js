@@ -26,7 +26,7 @@ Lab.register({
     return 'class MemberKey {\n    final int id;\n    MemberKey(int id) { this.id = id; }\n' +
       (eq ? '\n    @Override public boolean equals(Object o) {\n        return o instanceof MemberKey k && k.id == id;\n    }\n' : '\n    // equals not overridden: true only for the same object\n') +
       (hc ? '\n    @Override public int hashCode() {\n        ' + body + '\n    }\n' : '\n    // hashCode not overridden: a different value for each object\n') +
-      '}\n\nint[] ids = {' + ids + '};   // ids to put: ' + c.n + '\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {\n    map.put(new MemberKey(id), "member");\n}\n\n// Create a new object with the same id as the first one that was put\nmap.put(new MemberKey(ids[0]), "updated");\nmap.get(new MemberKey(ids[0]));';
+      '}\n\n// From here on, the lines inside main (the enclosing class, main declaration, and imports omitted)\nint[] ids = {' + ids + '};   // ids to put: ' + c.n + '\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {\n    map.put(new MemberKey(id), "member");\n}\n\n// Create a new object with the same id as the first one that was put\nmap.put(new MemberKey(ids[0]), "updated");\nmap.get(new MemberKey(ids[0]));';
   },
   label: function (c) { var hc = c.eq === 'both' || c.eq === 'hconly'; return { both: 'equals+hashCode', eqonly: 'equals only', hconly: 'hashCode only', none: 'no overrides' }[c.eq] + (hc ? ' · hashCode ' + { good: 'id itself', mod4: 'id % 4', same: 'always 1' }[c.hash] : '') + ' · load factor ' + c.lf + ' · keys: ' + c.n + ''; },
   columns: ['Buckets', 'Resizes', 'Longest bucket', 'Tree buckets', 'put again with the same key', 'get with the same key'],

@@ -18,8 +18,11 @@ Lab.register({
     { t: 'TTL을 길게', q: '캐시 TTL을 30초 이상으로 늘려 만료되지 않게 하면', d: 'DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
   ],
   code: function (c) {
-    if (c.ttl === '0') return 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // 매번 DB 조회 (' + c.dbt + '초)\n}';
-    return 'public Product getProduct(long id) {\n    String key = "product:" + id;\n    Product cached = redis.get(key);\n    if (cached != null) return cached;          // 캐시 적중\n\n' + (c.lock && c.ttl !== '0' ? '    if (!lock.tryLock(key)) {                   // 다른 요청이 조회 중이면\n        return waitAndReadCache(key);           // 그 결과를 기다린다\n    }\n' : '') + '    Product p = productRepository.findById(id); // DB 조회 (' + c.dbt + '초)\n    redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + '초\n    return p;\n}';
+    var head = '// 메서드 하나만 보임 (클래스·필드 선언, import, 예시로 만든 타입과 메서드의 선언은 생략)\n';
+    if (c.ttl === '0') return head + 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // 매번 DB 조회 (' + c.dbt + '초)\n}';
+    var top = head + 'public Product getProduct(long id) {\n    String key = "product:" + id;\n    Product cached = redis.get(key);\n    if (cached != null) return cached;          // 캐시 적중\n\n';
+    if (c.lock) return top + '    if (!lock.tryLock(key)) {                   // 다른 요청이 조회 중이면\n        return waitAndReadCache(key);           // 그 결과를 기다린다\n    }\n    try {\n        cached = redis.get(key);                // 락을 얻는 사이 다른 요청이 채웠을 수 있다\n        if (cached != null) return cached;\n        Product p = productRepository.findById(id); // DB 조회 (' + c.dbt + '초)\n        redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + '초\n        return p;\n    } finally {\n        lock.unlock(key);                       // 락을 푼다\n    }\n}';
+    return top + '    Product p = productRepository.findById(id); // DB 조회 (' + c.dbt + '초)\n    redis.set(key, p, Duration.ofSeconds(' + c.ttl + '));  // TTL ' + c.ttl + '초\n    return p;\n}';
   },
   label: function (c) { return (c.ttl === '0' ? '캐시 없음' : 'TTL ' + c.ttl + '초') + ' · 초당 ' + c.rps + '건 · DB ' + c.dbt + '초' + (c.lock && c.ttl !== '0' ? ' · 락' : ''); },
   columns: ['요청', '캐시 적중률', 'DB 조회', '동시에 몰린 DB 조회', '평균 응답 시간'],

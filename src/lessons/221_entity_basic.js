@@ -24,7 +24,7 @@ Lab.register({
     l.push('    private Long id;', '    private String name;');
     if (c.extra) l.push('    private String email;');
     l.push('', '    protected Member() { }', '', '    public Member(Long id, String name) {', '        this.id = id;', '        this.name = name;', '    }', '}', '',
-      '// 저장하는 쪽', 'em.getTransaction().begin();', 'em.persist(new Member(1L, "김철수"));', 'em.getTransaction().commit();');
+      '// 저장하는 쪽 (메서드 안의 줄만 보임. 그 메서드의 선언, em을 만드는 코드, import는 생략)', 'em.getTransaction().begin();', 'em.persist(new Member(1L, "김철수"));', 'em.getTransaction().commit();');
     return l.join('\n');
   },
   label: function (c) { return (c.ent ? '@Entity 있음' : '@Entity 없음') + ' · ' + (c.idf ? '@Id 있음' : '@Id 없음') + ' · ' + (c.extra ? '필드 id, name, email' : '필드 id, name'); },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'generic', nav: 'Generics', cat: 'Java language', mode: 'step',
   title: 'What does the <Integer> in List<Integer> protect you from?',
-  intro: 'Generics are the syntax for writing "what this list holds" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.',
+  intro: 'Generics are the syntax for writing "what type the elements of this list are" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.',
   terms: ['Generics', 'Raw type', 'Type erasure', 'Wildcard (? extends and ? super)'],
   controls: [
     { id: 'decl', label: 'Declaration of the variable list (it refers to the same list as ints)', type: 'select', value: 'raw', options: [['raw', 'List (no generics, a raw type)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -19,7 +19,7 @@ Lab.register({
   declLine: function (c) { return { raw: 'List list = ints;', int: 'List<Integer> list = ints;', num: 'List<Number> list = ints;', ext: 'List<? extends Number> list = ints;', sup: 'List<? super Integer> list = ints;' }[c.decl]; },
   opLine: function (c) { return { addInt: 'list.add(3);', addDbl: 'list.add(3.5);', addStr: 'list.add("three");', get: 'Number n = list.get(0);' }[c.op]; },
   code: function (c) {
-    return 'List<Integer> ints = new ArrayList<>();\nints.add(1);\nints.add(2);\n\n' + this.declLine(c) + '\n' + this.opLine(c) + '\n' + (c.op === 'get' ? 'System.out.println("value: " + n);\n' : '') + '\nSystem.out.println(ints);\nList<String> strs = new ArrayList<>();\nSystem.out.println(ints.getClass() == strs.getClass());\nInteger last = ints.get(ints.size() - 1);\nSystem.out.println("last value: " + last);';
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\nList<Integer> ints = new ArrayList<>();\nints.add(1);\nints.add(2);\n\n' + this.declLine(c) + '\n' + this.opLine(c) + '\n' + (c.op === 'get' ? 'System.out.println("value: " + n);\n' : '') + '\nSystem.out.println(ints);\nList<String> strs = new ArrayList<>();\nSystem.out.println(ints.getClass() == strs.getClass());\nInteger last = ints.get(ints.size() - 1);\nSystem.out.println("last value: " + last);';
   },
   label: function (c) { return { raw: 'List', int: 'List<Integer>', num: 'List<Number>', ext: 'List<? extends Number>', sup: 'List<? super Integer>' }[c.decl] + ' · ' + { addInt: 'add(3)', addDbl: 'add(3.5)', addStr: 'add("three")', get: 'get(0)' }[c.op]; },
   columns: ['Compilation', 'Line with the error', 'Output', 'How it ended'],
@@ -44,10 +44,10 @@ Lab.register({
     var shown = j.val.replace(/"/g, '');   // how the value looks inside the list: 3, 3.5, three
 
     // ── Compilation phase
-    push('List<Integer> ints is created, and 1 and 2 are added: <Integer> is a type argument that says "this list holds only Integer". The compiler reads this type argument and checks the code that adds values to ints and gets values from it.');
+    push('List<Integer> ints is created, and 1 and 2 are added: <Integer> is a type argument that says "only Integer values go into this list". The compiler reads this type argument and checks the code that adds values to ints and gets values from it.');
     if (d === 'raw') { st.link = 'ok'; push('List list = ints is checked: The same list is now also referred to by the variable list, which is declared without a type argument (<...>). A generic type used this way, without type arguments, is called a raw type. It is a form that was kept so that code from the time before generics can still be used, so the assignment compiles. In return, the compiler cannot check what is added to list.'); }
     if (d === 'int') { st.link = 'ok'; push('List<Integer> list = ints is checked: The declared types are the same, so the assignment is allowed. list and ints refer to the same list object.'); }
-    if (d === 'num') { st.link = 'err'; st.comp = 'Error'; push('List<Number> list = ints is checked: This is a compile-time error. Integer is a subtype of Number, but List<Integer> is not a subtype of List<Number>. The compiler reports "' + j.declMsg + '". If this assignment were allowed, list.add(3.5) could add a floating-point number (Double), and that value would end up inside ints, which is meant to hold only Integer.', 'bad'); }
+    if (d === 'num') { st.link = 'err'; st.comp = 'Error'; push('List<Number> list = ints is checked: This is a compile-time error. Integer is a subtype of Number, but List<Integer> is not a subtype of List<Number>. The compiler reports "' + j.declMsg + '". If this assignment were allowed, list.add(3.5) could add a floating-point number (Double), and that value would become an element of ints, whose elements are meant to be only Integer.', 'bad'); }
     if (d === 'ext') { st.link = 'ok'; push('List<? extends Number> list = ints is checked: ? extends Number means "some type that is Number or a subtype of Number". A List<Integer> and a List<Double> can both be assigned to this variable, so the check passes. As a result, the compiler knows only that the elements of list are some kind of Number, and it treats their exact type as unknown.'); }
     if (d === 'sup') { st.link = 'ok'; push('List<? super Integer> list = ints is checked: ? super Integer means "some type that is Integer or a supertype of Integer (Number, Object)". A List<Integer>, a List<Number>, and a List<Object> can all be assigned, so the check passes. As a result, the compiler knows only that an Integer can be put into this list.'); }
 
@@ -64,7 +64,7 @@ Lab.register({
       if (d === 'sup' && o !== 'addInt') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '").' + CAP + ' The actual list might be a List<Integer>, so adding a ' + j.box + ' cannot be allowed. What you can add to a ? super Integer list is an Integer.', 'good'); }
     } else {
       if (d === 'raw') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '"). There is no telling what a value taken out of a raw type is, so it is treated only as an Object. To use it as a Number, you have to write the cast yourself, as in (Number) list.get(0), and whether that cast is correct is known only when the code runs.', 'bad'); }
-      if (d === 'int') push(opCode + ' is checked: A value taken out of list is an Integer, and Integer is a subtype of Number, so it can be stored in a Number variable. The check passes. There is no need to write a cast either.', 'good');
+      if (d === 'int') push(opCode + ' is checked: A value taken out of list is an Integer, and Integer is a subtype of Number, so it can be assigned to a Number variable. The check passes. There is no need to write a cast either.', 'good');
       if (d === 'num') push(opCode + ' is checked: If list were a List<Number>, there would be nothing wrong with this line. There is one error, on the previous line.');
       if (d === 'ext') push(opCode + ' is checked: The check passes. Whatever the actual element type is, it is a subtype of Number, so receiving the value as a Number is always safe.', 'good');
       if (d === 'sup') { st.comp = 'Error'; push(opCode + ' is checked: This is a compile-time error ("' + j.msg + '").' + CAP + ' The actual list might be a List<Object>, so there is no guarantee that the value taken out is a Number. A value taken out of a list declared with ? super can be received only as an Object.', 'bad'); }
@@ -75,7 +75,7 @@ Lab.register({
     if (errLines.length) {
       st.comp = 'Error'; st.end = 'Cannot run';
       push('Compilation failed: No class file is produced, so the program cannot run. Code that could go wrong was filtered out before it ran.', 'bad');
-      if (d === 'num') sum.push('A List<Integer> cannot be assigned to a List<Number> variable. Even when the element types are subtype and supertype, the lists that hold them are not related at all. If it were allowed, a Double could be added through that variable and break the list of Integer. When you want to accept lists of several kinds of numbers, use List<? extends Number>.');
+      if (d === 'num') sum.push('A List<Integer> cannot be assigned to a List<Number> variable. Even when the element types are subtype and supertype, lists of those element types are not related at all. If it were allowed, a Double could be added through that variable and break the list of Integer. When you want to accept lists of several kinds of numbers, use List<? extends Number>.');
       if (d === 'int') sum.push('With generics, code that adds a value of the wrong type becomes a compile-time error. Change the declaration to the raw type (List) and run the same code, and you can see the same mistake show up late, as an exception at run time.');
       if (d === 'ext') sum.push('A list declared with ? extends Number allows only "getting a value and using it as a Number". The actual element type is unknown, so adding is rejected. Use it for a parameter whose values are only read (for example, a method that computes a sum).');
       if (d === 'sup' && o !== 'get') sum.push('You can add an Integer to a list declared with ? super Integer, and you cannot add any other type.');
@@ -90,10 +90,10 @@ Lab.register({
     var bad = o === 'addDbl' || o === 'addStr', content;
     if (o === 'get') {
       st.out.push('value: 1'); content = '[1, 2]';
-      push('Number n = list.get(0) runs: It takes out the first element, 1, stores it in n, and prints "value: 1".', '');
+      push('Number n = list.get(0) runs: It takes out the first element, 1, assigns it to n, and prints "value: 1".', '');
     } else {
       st.added = shown; st.addedType = j.box; content = '[1, 2, ' + shown + ']';
-      push(opCode + ' runs: ' + (d === 'raw' ? 'The list object at run time does not remember that it is meant for Integer. Nothing is checked when a value is added, so the ' + j.box + ' value (' + shown + ') goes in as it is.' + (bad ? ' list and ints are the same object, so a ' + j.box + ' has gone into ints, which is meant to hold only Integer.' : '') : '3 is added as the third element. list and ints are the same object, so the value is visible through ints too.'), bad ? 'bad' : '');
+      push(opCode + ' runs: ' + (d === 'raw' ? 'The list object at run time does not remember that it is meant for Integer. Nothing is checked when a value is added, so the ' + j.box + ' value (' + shown + ') goes in as it is.' + (bad ? ' list and ints are the same object, so ints, whose elements are meant to be only Integer, now has a ' + j.box + ' element.' : '') : '3 is added as the third element. list and ints are the same object, so the value is visible through ints too.'), bad ? 'bad' : '');
     }
     st.out.push(content);
     push('System.out.println(ints) runs: It prints the contents of the list. The output is ' + content + '.' + (bad ? ' Printing does not care what type the elements are, so nothing happens yet.' : ''), '');

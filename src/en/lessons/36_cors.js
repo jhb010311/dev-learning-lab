@@ -24,7 +24,7 @@ Lab.register({
     if (c.api === 'cross' && c.cred) opt.push("credentials: 'include'");
     var js = '// Script on the page https://shop.example\nfetch(\'' + url + '\'' + (opt.length ? ', {\n    ' + opt.join(',\n    ') + '\n}' : '') + ');';
     if (c.api === 'same') return js;
-    var srv = c.srv === 'none' ? '// Server: no CORS settings' : '// Server (Spring)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.example");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    ...\n}';
+    var srv = c.srv === 'none' ? '// Server: no CORS settings' : '// Server (Spring): only the configuration class body is shown (class declaration and imports omitted)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.example");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    var source = new UrlBasedCorsConfigurationSource();\n    source.registerCorsConfiguration("/**", cfg);   // apply to every path\n    return source;\n}';
     return js + '\n\n' + srv;
   },
   label: function (c) { return (c.api === 'same' ? 'Same origin' : 'Different origin') + ' · ' + { simple: 'Simple GET', json: 'JSON POST', auth: 'Authorization header', del: 'DELETE' }[c.req] + (c.api === 'cross' ? (c.cred ? ' · with cookies' : '') + ' · server ' + { none: 'no settings', star: '* allowed', exact: 'origin specified' }[c.srv] : ''); },

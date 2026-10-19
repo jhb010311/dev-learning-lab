@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Git commit</dt>
-<dd>A Git commit is one save that you leave in the repository. Git does not store the differences of the changed parts. It stores the state of the files at that moment (a snapshot), and the commit points to that state. A commit also points to the commit right before it (its parent). The very first commit has no parent, and a normal commit has one parent. So commits are linked by lines that point to the previous commit (Pro Git section 3.1). git commit makes a new commit from what you staged (with git add), and that commit becomes a child of the commit the branch you are on pointed to, and the branch is updated to point to the new commit (git-commit documentation). A change that you only edited and did not commit is in no commit.</dd>
+<dd>A Git commit is one save that you leave in the repository. Git does not store the differences of the changed parts. It stores the state of the files at that moment (a snapshot), and the commit points to that state. A commit also points to the commit right before it (its parent). The very first commit has no parent, and a normal commit has one parent. So commits are linked by lines that point to the previous commit (Pro Git section 3.1). git commit makes a new commit from what you staged (with git add), and that commit becomes a child of the commit the branch you are on pointed to, and the branch is updated to point to the new commit (git-commit documentation). A change that you only edited and did not commit is not recorded in any commit.</dd>
 <dt>Git branch</dt>
 <dd>A Git branch is a lightweight movable pointer (a label) to one commit. It is not a copy of commits. A branch is a simple file that holds the 40-character SHA-1 checksum of the commit it points to, so it costs little to create and delete (Pro Git section 3.1). When you commit on a branch, only the label of that branch moves to the new commit, and other branches that pointed to the same commit stay as they are. If you only create a branch and do not commit, the commits do not increase.</dd>
 <dt>git switch</dt>
@@ -48,7 +48,7 @@
 <ul>
 <li><b>Default settings</b> — When you commit on feature, only the feature label moves to the new commit, and when you return to main, the folder changes to the state of the commit main points to (v1).</li>
 <li><b>Not going back to main</b> — You stay on feature, so memo.txt in the folder is the state of the second commit (v2). main stays at commit 1.</li>
-<li><b>Moving to main without a second commit</b> — The edited memo.txt comes along to main without being in any commit. Both branches point to the same commit 1.</li>
+<li><b>Moving to main without a second commit</b> — The edited memo.txt comes along to main without being recorded in any commit. Both branches point to the same commit 1.</li>
 <li><b>Removing both</b> — There is only 1 commit, and both branches point to the same commit 1. The edited v2 is only in the folder.</li>
 </ul>
 <h2>Running with the default settings</h2>
@@ -56,12 +56,12 @@
 <li>git init -b main: this makes the folder a Git repository. A folder named .git is created inside the folder, and commits will pile up there from now on. -b main means to name the first branch main, and you will see what a branch is later. There is not a single commit yet, so there is no commit for the name main to point to.</li>
 <li>echo v1 &gt; memo.txt: this creates the file memo.txt in the folder and writes v1 in it. This line is not a Git command. It is a command that writes a file in the folder. Git only reports this file as a new file (??) that has not yet been put in the repository.</li>
 <li>git add memo.txt: this stages the current state of memo.txt (v1) to go into the next commit. It is not a commit yet. Git reports that this file is staged for the commit (A).</li>
-<li>git commit -m &quot;First commit&quot;: this saves what you staged as a commit. Commit 1 was made, and it holds the state of memo.txt at this moment (v1). It is the very first commit, with no commit before it. A label that points to one commit like this is called a branch, and the main branch now points to commit 1. The file in the folder and the state in the commit are the same, so there is no unsaved change.</li>
+<li>git commit -m &quot;First commit&quot;: this saves what you staged as a commit. Commit 1 was made, and it records the state of memo.txt at this moment (v1). It is the very first commit, with no commit before it. A label that points to one commit like this is called a branch, and the main branch now points to commit 1. The file in the folder and the state in the commit are the same, so there is no unsaved change.</li>
 <li>git switch -c feature: this creates a new label named feature that points to commit 1, where you are now, and moves the branch you are on to feature. You made a branch, but the commits did not increase and there is still 1. A branch is not a copy of commits. It only points to one commit, so main and feature both point to the same commit 1.</li>
-<li>echo v2 &gt; memo.txt: this changes the inside of memo.txt in the folder to v2. Only the file in the folder changed, and memo.txt inside commit 1 is still v1. Git reports it as a change that was edited but not committed (M). This v2 is not in any commit yet.</li>
-<li>git commit -am &quot;Second commit&quot;: this stages the changed memo.txt (-a) and saves it as commit 2. Commit 2 points to the commit right before it, commit 1, and it holds the state of memo.txt at this moment (v2). The label of the branch you are on, feature, moved to commit 2. The main label did not move, so it still points to commit 1, and memo.txt inside commit 1 is still v1.</li>
+<li>echo v2 &gt; memo.txt: this changes the inside of memo.txt in the folder to v2. Only the file in the folder changed, and memo.txt as recorded in commit 1 is still v1. Git reports it as a change that was edited but not committed (M). This v2 is not in any commit yet.</li>
+<li>git commit -am &quot;Second commit&quot;: this stages the changed memo.txt (-a) and saves it as commit 2. Commit 2 points to the commit right before it, commit 1, and it records the state of memo.txt at this moment (v2). The label of the branch you are on, feature, moved to commit 2. The main label did not move, so it still points to commit 1, and memo.txt as recorded in commit 1 is still v1.</li>
 <li>git switch main: this moves the branch you are on to main and changes the files in the folder to the state of commit 1, which main points to. So memo.txt in the folder became v1. Commit 2 did not disappear. The feature label still points to it.</li>
-<li>cat memo.txt: this shows memo.txt in the folder on the screen. It is v1. You edited it to v2 on feature and committed it, but that state is inside commit 2, and the folder now shows the state of commit 1, which main points to.</li>
+<li>cat memo.txt: this shows memo.txt in the folder on the screen. It is v1. You edited it to v2 on feature and committed it, but that state is recorded in commit 2, and the folder now shows the state of commit 1, which main points to.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -176,6 +176,6 @@ cat memo.txt</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

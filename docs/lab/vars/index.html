@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,8 @@
 <li>참조형 변수의 칸에는 객체가 아니라 참조가 들어 있습니다. 복사된 것이 참조이므로 두 변수가 같은 객체 하나를 가리키고, 한쪽에서 내용을 바꾸면 다른 쪽에서도 바뀐 내용이 보입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class Point {
+<pre>// 예시로 만든 Point 클래스와 main 메서드 안의 줄만 보임 (main을 둔 클래스와 main 선언은 생략)
+class Point {
     int x;
     Point(int x) { this.x = x; }
 }
@@ -79,7 +80,7 @@ b.x = 99;                           // 가리키는 객체의 내용을 바꾼�
 System.out.println(b.x);
 System.out.println(a.x);</pre>
 <h2>이 모형의 전제</h2>
-<p>열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. &quot;참조&quot;는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 문자열 &quot;hi&quot;는 실제로는 String Pool에 있는 객체인데, 여기서는 힙의 객체 하나로만 그렸습니다. 메서드에 넘길 때 생기는 호출 프레임은 &quot;스택과 힙&quot; 실습에서, ==와 equals의 차이는 &quot;==와 equals&quot; 실습에서 다룹니다.</p>
+<p>열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. &quot;참조&quot;는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 검증에 쓴 JDK 21(HotSpot JVM)에서는 문자열 리터럴 &quot;hi&quot;의 String 객체도 힙에 있습니다. JVM은 같은 리터럴을 String Pool(문자열 상수 풀)에 등록해 두고 함께 쓰는데, 이 그림에는 그 등록을 따로 그리지 않았습니다. 메서드에 넘길 때 생기는 호출 프레임은 &quot;스택과 힙&quot; 실습에서, ==와 equals의 차이는 &quot;==와 equals&quot; 실습에서 다룹니다.</p>
 <p>다음 실습: <a href="../../lab/casting/">연산자와 형변환</a></p>
   </div>
 
@@ -167,6 +168,6 @@ System.out.println(a.x);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

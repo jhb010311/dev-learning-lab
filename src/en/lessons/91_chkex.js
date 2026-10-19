@@ -119,7 +119,7 @@ Lab.register({
       } else {
         if (h === 'wrap') {
           st.exc = 'RuntimeException (cause: ' + T + ')';
-          push('The catch block in read catches the exception and runs throw new RuntimeException(e): A new unchecked exception that holds the original exception as its cause is thrown. Only the kind of exception has changed. The problem has not been solved.', 'bad');
+          push('The catch block in read catches the exception and runs throw new RuntimeException(e): A new unchecked exception that refers to the original exception as its cause is thrown. Only the kind of exception has changed. The problem has not been solved.', 'bad');
           crashed = 'java.lang.RuntimeException: ' + full + ': file not found';
         } else crashed = full + ': file not found';
         st.at = 'main';

@@ -27,7 +27,7 @@ Lab.register({
     return before ? [mk, set, mid, con, commit] : [mk, mid, set, con, commit];
   },
   code: function (c) {
-    return 'EntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n\n' + this.lines(c).map(function (l) { return l.code; }).join('\n');
+    return '// 메서드 안의 줄만 보임 (클래스·메서드 선언, emf를 만드는 코드, 예시로 만든 Member 엔티티, import는 생략)\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n\n' + this.lines(c).map(function (l) { return l.code; }).join('\n');
   },
   label: function (c) { return { new: 'new만', persist: 'persist', find: 'find', detach: 'detach', clear: 'clear', close: '커밋 후 close', remove: 'remove' }[c.st] + (['persist', 'detach', 'clear', 'close'].indexOf(c.st) >= 0 ? ' · 이름은 ' + (c.when === 'before' ? '직전에' : '뒤에') + ' 바꿈' : ''); },
   columns: ['em.contains(m)', 'DB로 나간 SQL', '쓰기 SQL이 나간 때', 'DB에 남은 값'],

@@ -33,7 +33,7 @@ Lab.register({
     var member = { smethod: '    static void hello() { }\n', sfield: '    static int count = 0;\n', const: '    static final int MAX = 10;                        // 컴파일할 때 값이 정해지는 상수\n', finalrt: '    static final int SIZE = Integer.parseInt("10");   // 실행해 봐야 값이 정해진다\n' }[c.use] || '';
     var note = f.member && f.owner !== f.T ? '                // ' + { smethod: 'hello', sfield: 'count', const: 'MAX', finalrt: 'SIZE' }[c.use] + '의 선언은 Parent에 있다' : '';
     return 'class Parent {\n' + (f.owner === 'Parent' ? member : '') + '    static { System.out.println("Parent 초기화"); }    // static 초기화 블록\n}\n\nclass Child extends Parent {\n' + (f.member && f.owner === 'Child' ? member : '') + '    static { System.out.println("Child 초기화"); }\n}\n\n'
-      + 'System.out.println("main 시작");\n' + f.stmt[0] + note + '\nSystem.out.println("첫 번째 사용 끝");\n' + f.stmt[1] + '\nSystem.out.println("두 번째 사용 끝");';
+      + 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        ' + f.stmt[0] + note + '\n        System.out.println("첫 번째 사용 끝");\n        ' + f.stmt[1] + '\n        System.out.println("두 번째 사용 끝");\n    }\n}';
   },
   label: function (c) { var f = this.facts(c); return f.T + ' · ' + { new: 'new', smethod: 'static 메서드', sfield: 'static 필드', const: '상수', finalrt: '상수가 아닌 static final', array: '배열', classlit: '.class' }[c.use] + (f.member && c.cls === 'child' ? (f.owner === 'Parent' ? ' (Parent에 선언)' : ' (Child에 선언)') : ''); },
   columns: ['Parent의 static 블록', 'Child의 static 블록', '읽어 들인 클래스', '출력된 순서'],

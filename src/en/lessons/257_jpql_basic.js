@@ -22,7 +22,7 @@ Lab.register({
     var j = { ok: 'select m from Member m where m.age >= 20', table: 'select m from member_tbl m where m.age >= 20', col: "select m from Member m where m.user_name = 'kim'", field: "select m from Member m where m.name = 'kim'" }[c.q];
     return ['@Entity', '// Table: one Member class is paired with one member_tbl table', '@Table(name = "member_tbl")', 'public class Member {', '    @Id', '    private Long id;', '',
       '    // Column: the name field is paired with the user_name column', '    @Column(name = "user_name")', '    private String name;', '', '    private int age;', '}', '',
-      '// The side that queries', '// JPQL: the query text that JPA reads', 'String jpql = "' + j + '";', 'TypedQuery<Member> query = em.createQuery(jpql, Member.class);', 'List<Member> list = query.getResultList();'].join('\n');
+      '// The side that queries: lines inside a method (em, class, and method declarations and imports omitted)', '// JPQL: the query text that JPA reads', 'String jpql = "' + j + '";', 'TypedQuery<Member> query = em.createQuery(jpql, Member.class);', 'List<Member> list = query.getResultList();'].join('\n');
   },
   label: function (c) { return { ok: 'Member, m.age (entity and field names)', table: 'member_tbl (table name)', col: 'm.user_name (column name)', field: 'm.name (field name)' }[c.q]; },
   columns: ['SQL sent to the database', 'What came back', 'Error'],

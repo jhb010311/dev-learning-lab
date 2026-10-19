@@ -95,7 +95,7 @@ public class StaticProbe {
                 for (int nb = 0; nb <= 2; nb++) {
                     String key = decl + "|" + extra + "|" + nb, cls = classes(decl, extra), mb = mainBody(extra, nb);
                     Res r = run(cls, mb);
-                    System.out.println("SRC " + key + " => " + (cls + "\n" + mb).replace("\n", "\\n"));
+                    System.out.println("SRC " + key + " => " + (cls + "\npublic class Main {\n    public static void main(String[] args) {\n" + mb + "\n    }\n}\n").replace("\n", "\\n"));
                     System.out.println(key + " => " + (r.ok ? "성공" : "오류: " + r.err) + "|" + r.errCount + "|" + (r.ok ? r.stdout : "-"));
                 }
         // 요약에서 말하는 고치는 방법: static 메서드가 객체를 인자로 받아 그 객체의 인스턴스 필드를 읽는 것은 되는가

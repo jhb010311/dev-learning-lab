@@ -20,7 +20,7 @@ Lab.register({
   ],
   // 화면의 코드와 대조 프로그램(verify/spring/src/RelationBasicProbe.java)이 컴파일하고 실행한 소스는 같은 글이다(대조 스크립트가 글자까지 비교한다).
   code: function (c) {
-    var l = ['@Entity', '@Table(name = "orders")', 'public class Order {', '    @Id', '    private Long id;'];
+    var l = ['// 필요한 부분만 남김 (Member 엔티티, Order의 생성자·getter, em 준비, import는 생략)', '@Entity', '@Table(name = "orders")', 'public class Order {', '    @Id', '    private Long id;'];
     if (c.how === 'ref' || c.how === 'named') l.push('    // 연관관계: 이 주문을 한 회원을 객체로 가리킨다', '    @ManyToOne');
     if (c.how === 'named') l.push('    @JoinColumn(name = "buyer_id")');
     l.push(c.how === 'idonly' ? '    private Long memberId;' : '    private Member member;', '}', '',

@@ -25,7 +25,8 @@ for (const c of combos(lesson)) {
   }
   const same = JSON.stringify(sim.row) === JSON.stringify(want) && sim.errLine === wantLine && sim.msg === wantMsg && sim.attr === wantAttr && (comp !== 'OK' || exit === '0');
   if (!same) { good[key] = false; console.log('다름: ' + JSON.stringify(c) + '\n  모형 ' + sim.row.join(' | ') + ' [' + sim.errLine + '] [' + sim.msg + '] [' + sim.attr + ']\n  실제 ' + want.join(' | ') + ' [' + wantLine + '] [' + wantMsg + '] [' + wantAttr + ']'); }
-  if (lesson.code(c) !== src[key]) { codeGood[key] = false; console.log('코드 다름: ' + JSON.stringify(c)); }
+  // 화면 주석 끝에 붙인 "(Main 클래스… 생략)"은 프로브가 감싸 준 부분을 밝히는 글이라 빼고 비교한다
+  if (lesson.code(c).replace(/ \(Main 클래스[^()\n]*생략\)/g, '') !== src[key]) { codeGood[key] = false; console.log('코드 다름: ' + JSON.stringify(c)); }
 }
 const keys = Object.keys(good), x = real['extra|type-on-class'];
 console.log('@Target(TYPE)인 애너테이션을 클래스에 붙이면 컴파일되는가: ' + (x && x[0] === 'OK' ? '예 (글과 같음)' : '아니오 (글과 다름)'));

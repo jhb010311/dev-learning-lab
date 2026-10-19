@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,8 @@
 <li>user=kim is on the server and the cookie has only the ID. Tomcat and the browser attach and send the cookie, and the code we wrote is only two lines that write to and read from the slot.</li>
 </ul>
 <h2>Code</h2>
-<pre>@PostMapping(&quot;/login&quot;)
+<pre>// Only the controller class body is shown (@RestController class declaration and imports omitted)
+@PostMapping(&quot;/login&quot;)
 public String login(HttpSession session) {
     // Write &quot;the user of this session is kim&quot; in the server's session store
     session.setAttribute(&quot;user&quot;, &quot;kim&quot;);
@@ -172,6 +173,6 @@ public String me(HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

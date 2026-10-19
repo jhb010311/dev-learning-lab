@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lambda expressions and functional interfaces: When does the code in a lambda expression run? · Dev Learning Lab</title>
-<meta name="description" content="A lambda expression is syntax that lets you store &quot;an action to run later&quot; in a variable like a value and pass it to another method. The code inside a lam…">
+<meta name="description" content="A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another meth…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Lambda expressions and functional interfaces: When does the code in a lambda expression run? · Dev Learning Lab">
-<meta property="og:description" content="A lambda expression is syntax that lets you store &quot;an action to run later&quot; in a variable like a value and pass it to another method. The code inside a lam…">
+<meta property="og:description" content="A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another meth…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lambda expressions and functional interfaces</h1>
 <p><b>When does the code in a lambda expression run?</b></p>
-<p>A lambda expression is syntax that lets you store &quot;an action to run later&quot; in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.</p>
+<p>A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.</p>
 <p>Checked against real execution · Checked by running 36 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -56,9 +56,9 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): This creates an object that holds the action written to the right of the arrow token (-&gt;) and stores it in the variable f. The length method is not called yet. Nothing is printed.</li>
+<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): This creates an object that can run the action written to the right of the arrow token (-&gt;), and the variable f refers to that object. The length method is not called yet. Nothing is printed.</li>
 <li>System.out.println(&quot;after creation&quot;): &quot;after creation&quot; is printed. Execution has already passed the line that creates the action, but &quot;body runs&quot; has not been printed even once.</li>
-<li>run(f): The action held in the variable f is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.</li>
+<li>run(f): The action object that the variable f refers to is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.</li>
 <li>System.out.println(&quot;run starts&quot;): Execution enters run, and &quot;run starts&quot; is printed.</li>
 <li>f.apply(&quot;hello&quot;): This is where the action finally runs. The length method is called, and &quot;body runs: length(hello)&quot; is printed. The returned value 5 is printed as &quot;result 5&quot;.</li>
 <li>f.apply(&quot;hi&quot;): The same action runs one more time. The length method is called, and &quot;body runs: length(hi)&quot; is printed. The returned value 2 is printed as &quot;result 2&quot;.</li>
@@ -179,6 +179,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

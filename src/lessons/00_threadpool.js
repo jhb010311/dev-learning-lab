@@ -22,7 +22,7 @@ Lab.register({
   ],
   code: function (c) {
     var q = c.unb ? 'new LinkedBlockingQueue<>());      // 대기 큐 무제한' : c.cap === 0 ? 'new SynchronousQueue<>());         // 대기 칸 없음' : 'new ArrayBlockingQueue<>(' + c.cap + '));     // 대기 큐 ' + c.cap + '칸';
-    return 'ExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // 기본 스레드 수\n    ' + c.max + ',                        // 최대 스레드 수\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    pool.execute(() -> handle());   // 요청 하나에 ' + Lab.fmt(c.work) + '초\n' +
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 handle()의 선언은 생략)\nExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // 기본 스레드 수\n    ' + c.max + ',                        // 최대 스레드 수\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    pool.execute(() -> handle());   // 요청 하나에 ' + Lab.fmt(c.work) + '초\n' +
       (c.gap > 0 ? '    Thread.sleep(' + Math.round(c.gap * 1000) + ');            // ' + Lab.fmt(c.gap) + '초마다 도착\n' : '') + '}';
   },
   label: function (c) { return '기본 ' + c.core + ' / 최대 ' + c.max + ' / 큐 ' + (c.unb ? '무제한' : c.cap) + ' · 요청 ' + c.n + '개 · ' + Lab.fmt(c.work) + '초 · 간격 ' + Lab.fmt(c.gap) + '초'; },
@@ -66,7 +66,7 @@ Lab.register({
     var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
-      if (!th || th.created > t + 1e-9) { rows.push(['스레드 ' + (i + 1), i < c.core ? '아직 만들지 않음(기본)' : '아직 만들지 않음(큐가 꽉 차야 만듦)', 'none']); continue; }
+      if (!th || th.created > t + 1e-9) { rows.push(['스레드 ' + (i + 1), i < c.core ? '아직 만들지 않음(기본)' : c.unb ? '만들지 않음(무제한 큐는 꽉 차지 않음)' : '아직 만들지 않음(큐가 꽉 차야 만듦)', 'none']); continue; }
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
       if (cur) { rows.push(['스레드 ' + (i + 1), '요청 ' + cur.id + ' 처리 중 · ' + H.fmt(cur.end - t) + '초 남음', '', (t - cur.start) / c.work]); }
       else rows.push(['스레드 ' + (i + 1), '쉬는 중', '']);
@@ -94,11 +94,11 @@ Lab.register({
     if (!rj.length) P.text('norj', 161, 262, '없음', { cls: 'mut', anchor: 'middle' });
     for (var i = 0; i < slots; i++) {
       var x = sim.threads[i], y = 50 + i * 28, made = x && x.created <= t + 1e-9, cur = made ? x.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0] : null;
-      P.box('th' + i, 358, y, 294, 24, { cls: !made ? 'ghost' : cur ? 'hot' : 'plain', title: '스레드 ' + (i + 1), right: !made ? (i < c.core ? '아직 안 만듦' : '큐가 꽉 차야 만듦') : cur ? '' : '쉬는 중' });
+      P.box('th' + i, 358, y, 294, 24, { cls: !made ? 'ghost' : cur ? 'hot' : 'plain', title: '스레드 ' + (i + 1), right: !made ? (i < c.core ? '아직 안 만듦' : c.unb ? '무제한 큐라 안 만듦' : '큐가 꽉 차야 만듦') : cur ? '' : '쉬는 중' });
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: '요청 ' + cur.id + ' 처리 중', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, '처리 완료 ' + doneN + '개', { cls: 'good' });
     P.note('번호가 적힌 파란 상자가 요청입니다.');
   },
-  assume: '요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다.',
+  assume: '요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다. 톰캣이 요청 처리에 쓰는 스레드 풀은 이 순서와 다릅니다. 쉬는 스레드가 없으면 대기 줄에 세우기 전에 최대 스레드 수까지 스레드를 먼저 늘립니다.',
 });

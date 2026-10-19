@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP messages and status codes: This is what a request and a response look like as text · Dev Learning Lab</title>
-<meta name="description" content="The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first…">
+<meta name="description" content="In HTTP/1.1, the HTTP messages that a browser and a server exchange are text with a fixed shape (HTTP/2 and HTTP/3 send the same content split up in a bin…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="HTTP messages and status codes: This is what a request and a response look like as text · Dev Learning Lab">
-<meta property="og:description" content="The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first…">
+<meta property="og:description" content="In HTTP/1.1, the HTTP messages that a browser and a server exchange are text with a fixed shape (HTTP/2 and HTTP/3 send the same content split up in a bin…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP messages and status codes</h1>
 <p><b>This is what a request and a response look like as text</b></p>
-<p>The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first line, and a response has &quot;how it went&quot; (the status code) on its first line.</p>
+<p>In HTTP/1.1, the HTTP messages that a browser and a server exchange are text with a fixed shape (HTTP/2 and HTTP/3 send the same content split up in a binary format). A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first line, and a response has &quot;how it went&quot; (the status code) on its first line.</p>
 <p>Partly checked against real execution · The message structure was checked against real raw text, and the status codes are based on the standard</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -51,7 +51,7 @@
 <li><b>Default settings</b> — A successful read. The response comes with 200 and a body.</li>
 <li><b>Create a new order</b> — The response is 201, and it tells you the address of the newly created order.</li>
 <li><b>Invalid request</b> — 400. The sender has to fix it.</li>
-<li><b>Not logged in / No permission</b> — Switch back and forth to see the difference between 401 and 403.</li>
+<li><b>Not logged in</b> — Without logging in, you get a 401. For the 403 you get when you are logged in but have no permission, see the situation &quot;Get another user's order&quot;.</li>
 <li><b>Order that does not exist</b> — 404. There is nothing at the address.</li>
 <li><b>Server error</b> — 500. The server has to fix it, not the sender.</li>
 </ul>
@@ -66,10 +66,11 @@
 <h3>Result of this run</h3>
 <ul>
 <li>The first digit of the status code alone tells you how to respond. With 4xx, the request usually has to be fixed (a few, such as 408 and 429, can succeed if you send the same request again after a short while). 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.</li>
-<li>An HTTP message has four parts: the start line, the headers, an empty line, and the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.</li>
+<li>An HTTP/1.1 message has four parts: the start line, the headers, an empty line, and the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.</li>
 </ul>
 <h2>Code</h2>
-<pre>@GetMapping(&quot;/orders/{id}&quot;)
+<pre>// Only the controller method is shown (class and field declarations, imports, and the example types' declarations are omitted)
+@GetMapping(&quot;/orders/{id}&quot;)
 OrderDto get(@PathVariable long id) {
     return orderService.find(id);                 // 200 OK + JSON body
 }</pre>
@@ -162,6 +163,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

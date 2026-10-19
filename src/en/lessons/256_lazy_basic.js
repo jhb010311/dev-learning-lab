@@ -21,6 +21,7 @@ Lab.register({
       '    // Link: decides when to read the member that this order points to',
       '    @ManyToOne(fetch = FetchType.' + (c.fetch === 'lazy' ? 'LAZY' : 'EAGER') + ')',
       '    private Member member;', '', '    public Member getMember() { return member; }', '}', '',
+      '// The side that queries: lines inside a method (em, class, and method declarations and imports omitted)',
       '// The database holds order 10 and member 1 (Alice), who placed that order',
       'Order order = em.find(Order.class, 10L);'];
     if (c.use) l.push('// Use: actually use a value (the name) of the member', 'String name = order.getMember().getName();');

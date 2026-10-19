@@ -42,7 +42,7 @@ for (const ln of lines.slice(2)) {
   // 화면의 코드와 Probe가 컴파일하고 실행한 소스가 같은 글인가
   const dir = path.join(__dirname, '..', 'out', 'port_basic', [server, port, second].join('-')), [p1, p2] = f.ports.split(',');
   const parts = []; if (c.server) parts.push(body(path.join(dir, 'Server.java'))); if (c.second) parts.push(body(path.join(dir, 'Another.java'))); parts.push(body(path.join(dir, 'Client.java')));
-  const shown = lesson.code(c).replace(/8080|9090/g, m => m === '8080' ? p1 : p2);
+  const shown = lesson.code(c).replace(/^\/\/ [^\n]*생략\)\n+/, '').replace(/8080|9090/g, m => m === '8080' ? p1 : p2);
   if (parts.join('\n\n') !== shown) probs.push('화면의 코드와 Probe가 컴파일한 소스가 다름\n--- 소스\n' + parts.join('\n\n') + '\n--- 화면\n' + shown);
   if (!probs.length) ok++; else console.log('다름: ' + k + '\n   ' + probs.join('\n   '));
 }

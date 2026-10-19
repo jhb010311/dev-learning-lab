@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,8 @@
 <li>프레임은 호출할 때 쌓이고 반환할 때 사라집니다. 가장 깊을 때 5개였습니다. 지역 변수는 프레임과 수명이 같아서 따로 정리할 필요가 없습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>static long factorial(int n) {
+<pre>// 클래스 본문만 보임 (클래스 선언은 생략)
+static long factorial(int n) {
     if (n &lt;= 1) return 1;             // 종료 조건
     return n * factorial(n - 1);
 }
@@ -167,6 +168,6 @@ public static void main(String[] args) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

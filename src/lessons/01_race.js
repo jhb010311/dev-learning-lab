@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];
     var body = { none: '        count++;                    // 읽기 -> 더하기 -> 쓰기', volatile: '        count++;                    // volatile이어도 세 단계', sync: '        synchronized (lock) {       // 한 번에 한 스레드만\n            count++;\n        }', atomic: '        count.incrementAndGet();    // 안에서: 읽기 -> CAS, 실패하면 다시' }[c.sync];
-    return decl + '\n\nRunnable task = () -> {\n    for (int i = 0; i < ' + c.loops + '; i++) {\n' + body + '\n    }\n};\n\n// 스레드 ' + c.threads + '개가 같은 task를 동시에 실행\nfor (int t = 0; t < ' + c.threads + '; t++) {\n    new Thread(task).start();\n}';
+    return '// 필드 선언과 main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n' + decl + '\n\nRunnable task = () -> {\n    for (int i = 0; i < ' + c.loops + '; i++) {\n' + body + '\n    }\n};\n\n// 스레드 ' + c.threads + '개가 같은 task를 동시에 실행\nfor (int t = 0; t < ' + c.threads + '; t++) {\n    new Thread(task).start();\n}';
   },
   label: function (c) { return { none: '동기화 없음', volatile: 'volatile', sync: 'synchronized', atomic: 'AtomicInteger' }[c.sync] + ' · 스레드 ' + c.threads + '개 × ' + c.loops + '번 · ' + { alt: '번갈아', rand: '무작위 ' + c.seed + '번', seq: '차례로' }[c.order]; },
   columns: ['기대값', '최종 값', '사라진 증가', '기다림·재시도'],

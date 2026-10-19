@@ -29,8 +29,9 @@ Lab.register({
     return L;
   },
   code: function (c) {
+    var H = '// Only the lines inside a method are shown (class, method declaration, imports, and the example Member entity and emf omitted)\n';
     var head = c.src === 'form' ? '// An object built from the values received from the screen. city was not received\n' : '// An object loaded in an earlier request\nEntityManager em1 = emf.createEntityManager();\n';
-    return head + this.lines(c).map(function (l) { return (l.pre ? '\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n' : '') + l.code.replace(';  ', ';\n'); }).join('\n');
+    return H + head + this.lines(c).map(function (l) { return (l.pre ? '\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\n' : '') + l.code.replace(';  ', ';\n'); }).join('\n');
   },
   label: function (c) { return (c.src === 'form' ? 'new from screen values' : 'loaded object') + ' · ' + { merge: 'merge', none: 'do nothing', dirty: 'dirty checking' }[c.how] + (c.how === 'merge' && c.after !== 'none' ? ' · then change city of ' + (c.after === 'arg' ? 'm' : 'r') : ''); },
   columns: ['em.contains(m)', 'Managed object', 'SQL sent in this transaction', 'Value left in the DB (name · city)'],
@@ -108,8 +109,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { m: null, mState: '', r: null, rName: '', snap: null, sent: [], db: { name: 'Alice', city: 'Seoul' }, cm: '?', cr: '?', flow: '', dbCls: '' };
     function show(x) { return x === null ? 'null' : x; }
     P.size(680, 310);
-    P.region('out', 16, 16, 200, 150, 'Outside the persistence context');
-    P.region('pc', 240, 16, 200, 150, 'Persistence context');
+    P.region('out', 16, 16, 200, 150, 'Not managed by em');
+    P.region('pc', 240, 16, 200, 150, 'Persistence context of em');
     P.region('db', 464, 16, 200, 150, 'member table in the DB');
     P.box('m', 34, 52, 164, 74, s.m ? { cls: s.mState === 'Detached' ? 'hot' : 'good', title: 'm (' + s.mState + ')', sub: ['name: ' + show(s.m.name), 'city: ' + show(s.m.city)] } : { cls: 'ghost', title: 'm', sub: 'None yet' });
     P.box('r', 258, 52, 164, 74, s.r ? { cls: s.r.city === null ? 'bad' : 'good', title: s.rName + ' (managed)', sub: ['name: ' + show(s.r.name), 'city: ' + show(s.r.city)] } : { cls: 'ghost', title: 'Managed entity', sub: 'None' });

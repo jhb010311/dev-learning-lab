@@ -21,13 +21,14 @@ Lab.register({
   },
   code: function (c) {
     var I = c.kind === 'iface', T = I ? 'Payable' : 'Payment', ext = I ? 'implements Payable' : 'extends Payment', pub = I ? 'public ' : '';
+    var M = function (s) { return 'class Main {\n    public static void main(String[] args) {\n' + s.split('\n').map(function (x) { return '        ' + x; }).join('\n') + '\n    }\n}'; };
     var use = {
-      new: T + ' p = new ' + T + '();',
-      impl: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { System.out.println("Card.pay"); }\n}\n\n' + T + ' p = new Card();     // 타입은 ' + T + ', 실제 객체는 Card\np.pay();',
+      new: M(T + ' p = new ' + T + '();'),
+      impl: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { System.out.println("Card.pay"); }\n}\n\n' + M(T + ' p = new Card();     // 타입은 ' + T + ', 실제 객체는 Card\np.pay();'),
       missing: 'class Card ' + ext + ' {\n    // pay()를 구현하지 않음\n}',
       multi: I ? 'interface Refundable { void refund(); }\n\nclass Card implements Payable, Refundable {\n    public void pay() { }\n    public void refund() { }\n}' : 'abstract class Logger { abstract void log(); }\n\nclass Card extends Payment, Logger {     // 두 클래스를 상속\n    void pay() { }\n    void log() { }\n}',
-      state: I ? '// 인터페이스 안에 필드와 생성자를 넣어 본다\ninterface Payable {\n    int amount;                              // 값이 없는 필드\n    Payable() { }                            // 생성자\n    void pay();\n}' : 'class Card extends Payment {\n    void pay() {\n        amount += 50;                        // 물려받은 필드를 사용\n        System.out.println("amount=" + amount);\n    }\n}\n\nnew Card().pay();',
-      default: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { }\n    // name()은 구현하지 않음\n}\n\nSystem.out.println(new Card().name());',
+      state: I ? '// 인터페이스 안에 필드와 생성자를 넣어 본다\ninterface Payable {\n    int amount;                              // 값이 없는 필드\n    Payable() { }                            // 생성자\n    void pay();\n}' : 'class Card extends Payment {\n    void pay() {\n        amount += 50;                        // 물려받은 필드를 사용\n        System.out.println("amount=" + amount);\n    }\n}\n\n' + M('new Card().pay();'),
+      default: 'class Card ' + ext + ' {\n    ' + pub + 'void pay() { }\n    // name()은 구현하지 않음\n}\n\n' + M('System.out.println(new Card().name());'),
     }[c.what];
     return (c.what === 'state' && I ? '' : this.SRC[c.kind] + '\n\n') + use;
   },
@@ -44,7 +45,7 @@ Lab.register({
     if (W === 'impl') { push('Card 클래스가 ' + T + (I ? '을 구현(implements)합니다' : '를 상속(extends)합니다') + '. 비어 있던 pay()의 내용을 채웁니다.', '', 2); out = 'Card.pay' + (I ? '' : ' (물려받은 amount = 100 사용 가능)'); push(T + ' 타입 변수가 Card 객체를 가리키게 하고 pay()를 호출합니다. 변수의 타입은 ' + T + '이지만 실행되는 것은 Card의 pay()입니다. 호출하는 쪽은 구체적인 클래스를 몰라도 됩니다.', 'good', 3); sum.push('약속(타입)과 구현(클래스)을 나누면, 쓰는 쪽 코드를 고치지 않고 구현을 바꿔 끼울 수 있습니다. 스프링의 의존성 주입과 전략 패턴이 모두 이 구조에 기대고 있습니다.'); }
     if (W === 'missing') { out = '컴파일 오류: Card is not abstract and does not override abstract method pay() in ' + T; push('Card가 ' + T + (I ? '을 구현' : '를 상속') + '한다고 해 놓고 pay()를 채우지 않았습니다. 약속한 메서드가 빠졌으므로 컴파일러가 막습니다.', 'bad', 2); sum.push('추상 메서드는 "구현하는 쪽이 반드시 채워야 하는 빈칸"입니다. 채우지 않으려면 그 클래스도 abstract여야 하고, 그러면 그 클래스 역시 객체를 만들 수 없습니다.'); }
     if (W === 'multi') {
-      if (I) { push('Card가 Payable과 Refundable 두 인터페이스를 동시에 구현합니다. 인터페이스는 상태가 없어서 여러 개를 겹쳐도 필드 충돌은 없습니다(같은 default 메서드가 겹치면 직접 정해 줘야 합니다).', '', 2); out = '컴파일 성공. Card는 Payable이기도 하고 Refundable이기도 함'; push('컴파일됩니다. Card 객체는 Payable 타입 변수에도, Refundable 타입 변수에도 담을 수 있습니다.', 'good', 3); }
+      if (I) { push('Card가 Payable과 Refundable 두 인터페이스를 동시에 구현합니다. 인터페이스는 상태가 없어서 여러 개를 겹쳐도 필드 충돌은 없습니다(같은 default 메서드가 겹치면 직접 정해 줘야 합니다).', '', 2); out = '컴파일 성공. Card는 Payable이기도 하고 Refundable이기도 함'; push('컴파일됩니다. Payable 타입 변수도, Refundable 타입 변수도 Card 객체를 가리킬 수 있습니다.', 'good', 3); }
       else { out = "컴파일 오류: '{' expected (extends 뒤에는 클래스 하나만 올 수 있음)"; push('Card가 Payment와 Logger 두 추상 클래스를 동시에 상속하려 합니다. 자바는 클래스를 하나만 상속할 수 있습니다. 두 부모가 같은 이름의 필드나 메서드 구현을 가지고 있으면 어느 것을 물려받을지 정할 수 없기 때문입니다.', 'bad', 2); }
       sum.push('클래스는 하나만 상속(extends)할 수 있고, 인터페이스는 여러 개를 구현(implements)할 수 있습니다. "~을 할 수 있다"는 능력을 여러 개 붙이려면 인터페이스를 씁니다.');
     }
@@ -60,8 +61,9 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stage: 0, out: '' }, W = sim.c.what, me = this;
+    var done = s.stage >= (me.ok(sim.c.kind, W) ? 3 : 2);   // 지금 해 보는 줄의 결과는 마지막 단계에서 보인다
     H.table(v, ['해 보는 일', '인터페이스', '추상 클래스'], [['new', '직접 new로 객체 만들기'], ['impl', '구현(상속)한 클래스로 사용'], ['missing', '추상 메서드를 구현하지 않기'], ['multi', '두 개를 동시에 물려받기'], ['state', '필드(상태)와 생성자 두기'], ['default', '본문이 있는 메서드 물려받기']].map(function (r) {
-      var on = r[0] === W, cell = function (kind) { var o = me.ok(kind, r[0]), mine = on && sim.c.kind === kind; return { v: (o ? '가능' : '컴파일 오류') + (mine ? ' ← 지금' : ''), cls: mine ? (o ? 'good' : 'bad') : '' }; };
+      var on = r[0] === W, cell = function (kind) { var o = me.ok(kind, r[0]), mine = on && sim.c.kind === kind; if (on && !done) return { v: mine ? '? ← 지금' : '?', cls: '' }; return { v: (o ? '가능' : '컴파일 오류') + (mine ? ' ← 지금' : ''), cls: mine ? (o ? 'good' : 'bad') : '' }; };
       return { cells: [{ v: r[1], cls: on ? 'hot' : '' }, cell('iface'), cell('abs')] };
     }), '여섯 가지를 양쪽에서 해 본 결과');
     H.title(v, '컴파일러와 실행 결과'); v.appendChild(H.el('pre', 'code', s.out || '(진행 중)'));

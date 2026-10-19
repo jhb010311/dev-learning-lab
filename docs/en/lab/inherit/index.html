@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inheritance and overriding: When does the superclass constructor run when a subclass object is created? · Dev Learning Lab</title>
-<meta name="description" content="A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the supe…">
+<meta name="description" content="Creating a subclass object with new makes just one object, and that object has both the fields inherited from the superclass and the fields that the subcl…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Inheritance and overriding: When does the superclass constructor run when a subclass object is created? · Dev Learning Lab">
-<meta property="og:description" content="A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the supe…">
+<meta property="og:description" content="Creating a subclass object with new makes just one object, and that object has both the fields inherited from the superclass and the fields that the subcl…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Inheritance and overriding</h1>
 <p><b>When does the superclass constructor run when a subclass object is created?</b></p>
-<p>A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the superclass constructor finishes first, and only then do the field initializers and the constructor body of the subclass run. Because of this order, there are cases in which you must write super(...), and when the superclass constructor calls an overridden method, that method sees subclass fields that are still empty.</p>
+<p>Creating a subclass object with new makes just one object, and that object has both the fields inherited from the superclass and the fields that the subclass declares. No separate superclass object is created. When you use new, the superclass constructor finishes first, and only then do the field initializers and the constructor body of the subclass run. Because of this order, there are cases in which you must write super(...), and when the superclass constructor calls an overridden method, that method sees subclass fields that are still empty.</p>
 <p>Checked against real execution · All 36 combinations were compiled and run on JDK 21, and the compilation result and the output were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -58,7 +58,7 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>Compilation: The compiler looks at the first line of the constructor Dog(). super(&quot;Buddy&quot;) means that the superclass constructor Animal(String name), which takes one string, will be called. Animal has this constructor, so the code compiles.</li>
-<li>new Dog() runs: Memory for one Dog object is allocated on the heap. This object contains both name, inherited from Animal, and sound, declared by Dog, and both are set to their default value, null.</li>
+<li>new Dog() runs: Memory for one Dog object is allocated on the heap. This object has both the field name, inherited from Animal, and the field sound, declared by Dog, and both are set to their default value, null.</li>
 <li>The first line of the constructor Dog(), super(&quot;Buddy&quot;): Before the field initializer and the constructor body of Dog run, control first passes to the superclass constructor, Animal(String name). This is because the inherited part must be ready first for the subclass to be able to use it.</li>
 <li>this.name = name in the body of Animal(String name): The &quot;Buddy&quot; that was passed in is assigned to name. sound is still null.</li>
 <li>System.out.println(&quot;Animal(String) runs&quot;): The body of the superclass constructor is running. Not a single line of the body of the Dog() constructor has run yet.</li>
@@ -66,7 +66,7 @@
 <li>println(&quot;sound=&quot; + sound) inside describe() in Dog: The field initializer of Dog, sound = &quot;Woof&quot;, runs only after the superclass constructor finishes. Right now sound has its default value, null, so the output is sound=null.</li>
 <li>The field initializer of Dog, String sound = &quot;Woof&quot;: The superclass constructor has finished, and control is back in Dog(). Only now does the field initializer of Dog run, and sound is set to &quot;Woof&quot;.</li>
 <li>System.out.println(&quot;Dog() runs&quot;): The body of the Dog() constructor runs. The body of the subclass constructor comes last of all.</li>
-<li>Dog d = new Dog(): All the constructors have finished. The reference to the completed object is stored in the variable d.</li>
+<li>Dog d = new Dog(): All the constructors have finished. The variable d now refers to the completed object.</li>
 <li>Called through d.describe(), println(&quot;sound=&quot; + sound) inside describe() in Dog: The object has been fully created by now, so sound holds &quot;Woof&quot;. The output is sound=Woof.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -105,6 +105,7 @@ class Dog extends Animal {
     }
 }
 
+// From here on, the lines inside main (the enclosing class and main declaration omitted)
 Dog d = new Dog();
 d.describe();</pre>
 <h2>Assumptions of this model</h2>
@@ -196,6 +197,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

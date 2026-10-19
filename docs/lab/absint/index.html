@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 <ol>
 <li>Payable은 인터페이스입니다. &quot;pay()라는 메서드가 있어야 한다&quot;는 약속만 정해 두고, 어떻게 결제할지는 구현하는 클래스가 정합니다.</li>
 <li>Card가 Payable과 Refundable 두 인터페이스를 동시에 구현합니다. 인터페이스는 상태가 없어서 여러 개를 겹쳐도 필드 충돌은 없습니다(같은 default 메서드가 겹치면 직접 정해 줘야 합니다).</li>
-<li>컴파일됩니다. Card 객체는 Payable 타입 변수에도, Refundable 타입 변수에도 담을 수 있습니다.</li>
+<li>컴파일됩니다. Payable 타입 변수도, Refundable 타입 변수도 Card 객체를 가리킬 수 있습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -169,6 +169,6 @@ class Card implements Payable, Refundable {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

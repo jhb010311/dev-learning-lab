@@ -20,16 +20,17 @@ Lab.register({
   ],
   words: ['one', 'two', 'three', 'other'],
   code: function (c) {
+    var H = '// Only the lines inside main are shown (class, main declaration, and imports omitted)\n';
     if (c.stmt === 'for' || c.stmt === 'while') {
       var pad = function (x) { return x + new Array(Math.max(2, 36 - x.length)).join(' ') + '// '; };
       var cond = 'i ' + (c.cmp === 'le' ? '<=' : '<') + ' 3', j = c.jump === 'break' ? pad('    if (i == 1) break;') + 'ends the loop\n' : c.jump === 'cont' ? pad('    if (i == 1) continue;') + 'skips the rest of this iteration\n' : '';
-      if (c.stmt === 'for') return pad('for (int i = 0; ' + cond + '; i++) {') + 'initialization; condition; increment\n' + j + '    System.out.println(i);\n}\nSystem.out.println("done");';
-      return 'int i = 0;\n' + pad('while (' + cond + ') {') + 'repeats while the condition is true\n' + j + '    System.out.println(i);\n    i++;\n}\nSystem.out.println("done");';
+      if (c.stmt === 'for') return H + pad('for (int i = 0; ' + cond + '; i++) {') + 'initialization; condition; increment\n' + j + '    System.out.println(i);\n}\nSystem.out.println("done");';
+      return H + 'int i = 0;\n' + pad('while (' + cond + ') {') + 'repeats while the condition is true\n' + j + '    System.out.println(i);\n    i++;\n}\nSystem.out.println("done");';
     }
     var w = this.words, head = 'int n = ' + c.val + ';\nswitch (n) {\n', tail = '}\nSystem.out.println("done");';
-    if (c.stmt === 'swa') return head + '    case 1 -> System.out.println("' + w[0] + '");\n    case 2 -> System.out.println("' + w[1] + '");\n    case 3 -> System.out.println("' + w[2] + '");\n    default -> System.out.println("' + w[3] + '");\n' + tail;
+    if (c.stmt === 'swa') return H + head + '    case 1 -> System.out.println("' + w[0] + '");\n    case 2 -> System.out.println("' + w[1] + '");\n    case 3 -> System.out.println("' + w[2] + '");\n    default -> System.out.println("' + w[3] + '");\n' + tail;
     var br = c.stmt === 'swc' ? '        break;\n' : '';
-    return head + '    case 1:\n        System.out.println("' + w[0] + '");\n' + br + '    case 2:\n        System.out.println("' + w[1] + '");\n' + br + '    case 3:\n        System.out.println("' + w[2] + '");\n' + br + '    default:\n        System.out.println("' + w[3] + '");\n' + tail;
+    return H + head + '    case 1:\n        System.out.println("' + w[0] + '");\n' + br + '    case 2:\n        System.out.println("' + w[1] + '");\n' + br + '    case 3:\n        System.out.println("' + w[2] + '");\n' + br + '    default:\n        System.out.println("' + w[3] + '");\n' + tail;
   },
   label: function (c) {
     if (c.stmt === 'for' || c.stmt === 'while') return c.stmt + ' · i ' + (c.cmp === 'le' ? '<=' : '<') + ' 3' + (c.jump === 'break' ? ' · break when i is 1' : c.jump === 'cont' ? ' · continue when i is 1' : '');

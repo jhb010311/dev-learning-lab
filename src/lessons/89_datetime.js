@@ -26,9 +26,10 @@ Lab.register({
   },
   ADD: { drop: 'd.plusMonths(1);', month: 'd = d.plusMonths(1);', twice: 'd = d.plusMonths(1).plusMonths(1);', two: 'd = d.plusMonths(2);', days: 'd = d.plusDays(30);' },
   code: function (c) {
-    if (c.topic === 'plus') return 'LocalDate d = LocalDate.of(2024, 1, 31);\nLocalDate first = d;                 // 처음 객체를 기억해 둔다\n\n' + this.ADD[c.add] + (c.add === 'drop' ? '                     // 돌려준 값을 받지 않는다' : '') + '\n\nSystem.out.println(d);\nSystem.out.println(first);\nSystem.out.println(d == first);      // 같은 객체인가';
-    if (c.topic === 'zone') return 'ZonedDateTime seoul = ZonedDateTime.of(2024, 1, 1, 0, 30, 0, 0, ZoneId.of("Asia/Seoul"));\nInstant moment = seoul.toInstant();          // 시간대와 상관없는 한 순간\nZonedDateTime there = moment.atZone(ZoneId.of("' + this.Z[c.zone].id + '"));\n\nSystem.out.println(there);\nSystem.out.println(there.toLocalDate());     // 날짜만\nSystem.out.println(there.toInstant());       // 가리키는 순간';
-    var head = 'LocalDate a = LocalDate.of(2024, 1, 31);\nLocalDate b = LocalDate.of(2024, 3, 1);\n\n';
+    var H = '// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)\n';
+    if (c.topic === 'plus') return H + 'LocalDate d = LocalDate.of(2024, 1, 31);\nLocalDate first = d;                 // 처음 객체를 기억해 둔다\n\n' + this.ADD[c.add] + (c.add === 'drop' ? '                     // 돌려준 값을 받지 않는다' : '') + '\n\nSystem.out.println(d);\nSystem.out.println(first);\nSystem.out.println(d == first);      // 같은 객체인가';
+    if (c.topic === 'zone') return H + 'ZonedDateTime seoul = ZonedDateTime.of(2024, 1, 1, 0, 30, 0, 0, ZoneId.of("Asia/Seoul"));\nInstant moment = seoul.toInstant();          // 시간대와 상관없는 한 순간\nZonedDateTime there = moment.atZone(ZoneId.of("' + this.Z[c.zone].id + '"));\n\nSystem.out.println(there);\nSystem.out.println(there.toLocalDate());     // 날짜만\nSystem.out.println(there.toInstant());       // 가리키는 순간';
+    var head = H + 'LocalDate a = LocalDate.of(2024, 1, 31);\nLocalDate b = LocalDate.of(2024, 3, 1);\n\n';
     if (c.gap === 'period') return head + 'Period p = Period.between(a, b);                     // 날짜 간격: 년, 월, 일\n\nSystem.out.println(p);\nSystem.out.println(p.getDays());                     // "일" 칸의 값\nSystem.out.println(ChronoUnit.DAYS.between(a, b));   // 전체 일수';
     return head + (c.gap === 'duration' ? 'Duration t = Duration.between(a.atStartOfDay(), b.atStartOfDay());   // 시간 간격: 초 단위' : 'Duration t = Duration.between(a, b);    // 날짜만 넘긴다') + '\n\nSystem.out.println(t);\nSystem.out.println(t.toHours());\nSystem.out.println(t.toDays());';
   },
@@ -55,8 +56,8 @@ Lab.register({
         st.objs.push('2024-02-29'); st.s = 2;
         push('d = d.plusMonths(1): 1월 31일의 한 달 뒤는 2월 31일이어야 하지만 그런 날은 없습니다. 이럴 때는 그 달의 마지막 날로 맞춥니다. 2024년 2월은 29일까지 있으므로 2024-02-29입니다. 이 새 객체를 d가 가리킵니다.');
       } else if (c.add === 'twice') {
-        st.objs.push('2024-02-29'); st.s = 2;
-        push('d.plusMonths(1): 먼저 한 달을 더합니다. 2월 31일은 없는 날이므로 2월의 마지막 날인 2024-02-29로 맞춰진 새 객체가 나옵니다.');
+        st.objs.push('2024-02-29');
+        push('d.plusMonths(1): 먼저 한 달을 더합니다. 2월 31일은 없는 날이므로 2월의 마지막 날인 2024-02-29로 맞춰진 새 객체가 나옵니다. d에 대입하는 것은 이 줄의 두 번째 plusMonths까지 끝난 뒤이므로, d는 아직 처음 객체를 가리킵니다.');
         st.objs.push('2024-03-29'); st.s = 3;
         push('.plusMonths(1): 방금 나온 2월 29일에 다시 한 달을 더합니다. 3월 29일은 있는 날이므로 그대로 2024-03-29입니다. 처음 날짜가 31일이었다는 것은 기억하지 않습니다. 이 객체를 d가 가리킵니다.', 'bad');
       } else if (c.add === 'two') {

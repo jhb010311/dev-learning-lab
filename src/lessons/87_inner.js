@@ -1,7 +1,7 @@
 Lab.register({
   id: 'inner', nav: '내부 클래스와 익명 클래스', cat: '자바 언어', mode: 'step',
   title: '클래스 안에 만든 클래스는 바깥 객체와 어떻게 이어져 있나',
-  intro: '클래스 안에 또 클래스를 선언할 수 있습니다. static을 붙이지 않은 내부 클래스의 객체는 자기를 만든 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체 없이는 만들 수 없습니다. 이름 없이 그 자리에서 만드는 익명 클래스와 람다는 주변의 지역 변수를 쓸 수 있지만 그 변수의 값을 바꾸면 컴파일 오류가 나고, 둘 안에서 this가 가리키는 것도 서로 다릅니다.',
+  intro: '클래스 안에 또 클래스를 선언할 수 있습니다. static을 붙이지 않은 내부 클래스의 객체는 만들 때 정한 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체 없이는 만들 수 없습니다. 이름 없이 그 자리에서 만드는 익명 클래스와 람다는 주변의 지역 변수를 쓸 수 있지만 그 변수의 값을 바꾸면 컴파일 오류가 나고, 둘 안에서 this가 가리키는 것도 서로 다릅니다.',
   terms: ['내부 클래스와 중첩 클래스', '익명 클래스', '사실상 final(effectively final)', '람다 표현식', 'static'],
   controls: [
     { id: 'kind', label: '안쪽에 만드는 것', type: 'select', value: 'inner', options: [['inner', '인스턴스 내부 클래스 (static 없음)'], ['nested', 'static 중첩 클래스'], ['anon', '익명 클래스'], ['lambda', '람다']] },
@@ -56,8 +56,8 @@ Lab.register({
     if (member && c.use === 'alone' && !nested) {
       push('컴파일러가 Outer 클래스를 읽습니다: Inner에는 static이 없습니다. static이 없는 내부 클래스의 객체는 반드시 어느 한 Outer 객체에 딸려서 만들어집니다.');
       st.cmp = 'err';
-      push('new Outer.Inner(): 컴파일 오류입니다. main은 static 메서드라서 이 자리에는 Outer 객체가 없고, 코드에서 따로 정해 주지도 않았습니다. 어느 바깥 객체에 딸린 안쪽 객체인지 정할 수 없어 컴파일러가 막습니다.', 'bad');
-      fail('an enclosing instance that contains Outer.Inner is required', 'Outer.Inner를 품을 바깥 객체가 있어야 한다는 뜻입니다.');
+      push('new Outer.Inner(): 컴파일 오류입니다. 이 줄은 Outer 클래스 바깥의 Main 클래스에 있어서 기준으로 삼을 Outer 객체가 없고, o.new Inner()처럼 바깥 객체를 따로 정해 주지도 않았습니다. 어느 바깥 객체에 딸린 안쪽 객체인지 정할 수 없어 컴파일러가 막습니다.', 'bad');
+      fail('an enclosing instance that contains Outer.Inner is required', 'Outer.Inner 객체가 가리킬 바깥 객체(enclosing instance)가 있어야 한다는 뜻입니다.');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖도록 만들어집니다. 그래서 바깥 객체가 먼저 있어야 하고, 바깥 객체 o가 있으면 o.new Inner()로 만듭니다.');
       sum.push('안쪽 클래스가 바깥 객체의 필드나 메서드를 쓰지 않는다면 static을 붙여 중첩 클래스로 만드는 편이 낫습니다.');
     } else if (member && c.use === 'field' && nested) {
@@ -72,7 +72,7 @@ Lab.register({
       st.o = 'A';
       push('Outer o = new Outer(): 바깥 객체를 만듭니다. name 필드의 값은 "A"입니다.');
       st.inn = true; st.ref = true;
-      push('o.new Inner(): o를 바깥 객체로 삼아 안쪽 객체를 만듭니다. 안쪽 객체는 자기를 만든 바깥 객체 o를 가리키는 참조를 숨은 필드로 갖게 됩니다.');
+      push('o.new Inner(): o를 바깥 객체로 삼아 안쪽 객체를 만듭니다. 안쪽 객체는 바깥 객체 o를 가리키는 참조를 숨은 필드로 갖게 됩니다.');
       st.o = 'B';
       push('o.name = "B": 바깥 객체의 필드를 "B"로 바꿉니다. 안쪽 객체에는 아무 일도 하지 않았습니다.');
       st.out.push('B'); rel = '안쪽 객체가 바깥 객체 o를 가리킴';
@@ -155,7 +155,7 @@ Lab.register({
     P.box('c1', 16, y, 200, 36, { cls: s.cmp === '?' ? 'ghost' : bad ? 'bad' : 'good', title: '컴파일', right: s.cmp === '?' ? '?' : bad ? '오류' : '성공' });
     P.box('c2', 224, y, 440, 36, { cls: bad ? 'ghost' : s.out.length ? 'good' : 'ghost', title: '출력', right: bad ? '실행되지 않음' : s.out.length ? s.out.join(' / ') : '아직 없음' });
     if (bad && sim.err && shown.length >= 3) P.text('em', 16, y + 62, sim.err, { cls: 'bad' });
-    P.note(member ? 'static이 없는 내부 클래스의 객체는 자기를 만든 바깥 객체를 가리킵니다. static 중첩 클래스의 객체는 바깥 객체와 이어져 있지 않습니다.' : '익명 클래스와 람다는 지역 변수의 값을 복사해 갖습니다. 지역 변수는 메서드가 끝나면 사라지지만 복사해 둔 값은 남습니다. this가 가리키는 것은 둘이 서로 다릅니다.');
+    P.note(member ? 'static이 없는 내부 클래스의 객체는 만들 때 정한 바깥 객체를 가리킵니다. static 중첩 클래스의 객체는 바깥 객체와 이어져 있지 않습니다.' : '익명 클래스와 람다는 지역 변수의 값을 복사해 갖습니다. 지역 변수는 메서드가 끝나면 사라지지만 복사해 둔 값은 남습니다. this가 가리키는 것은 둘이 서로 다릅니다.');
   },
   assume: '스물네 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 코드를 검증 환경의 JDK 21에서 그대로 컴파일하고 실행해, 컴파일 성공 여부와 오류 메시지, 출력을 대조했습니다. 내부 클래스의 객체가 바깥 객체를 가리킨다는 것과 static 중첩 클래스에는 그런 참조가 없다는 것은 리플렉션으로 숨은 필드를 확인했습니다. 익명 클래스의 객체와 람다가 지역 변수의 값(배열이면 참조)을 복사해 갖고 있다는 것도 이 JDK에서 숨은 필드로 확인했습니다. 다만 람다가 값을 어떤 모양으로 갖고 있는지는 JVM 구현에 따라 다를 수 있습니다. 오류 메시지의 문장은 JDK 21의 javac 기준이며 버전에 따라 조금 다를 수 있습니다. JDK 21의 javac는 안쪽 클래스가 바깥 객체를 전혀 쓰지 않으면 숨은 참조 필드를 만들지 않습니다(이 실습의 익명 클래스가 그 경우입니다). 그래도 static이 없는 내부 클래스를 만들 때 바깥 객체가 필요하다는 규칙은 같습니다.',
 });

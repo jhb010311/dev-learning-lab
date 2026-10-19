@@ -26,7 +26,7 @@ Lab.register({
     return 'class MemberKey {\n    final int id;\n    MemberKey(int id) { this.id = id; }\n' +
       (eq ? '\n    @Override public boolean equals(Object o) {\n        return o instanceof MemberKey k && k.id == id;\n    }\n' : '\n    // equals 재정의 안 함: 같은 객체일 때만 true\n') +
       (hc ? '\n    @Override public int hashCode() {\n        ' + body + '\n    }\n' : '\n    // hashCode 재정의 안 함: 객체마다 다른 값\n') +
-      '}\n\nint[] ids = {' + ids + '};   // 넣을 id ' + c.n + '개\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {\n    map.put(new MemberKey(id), "회원");\n}\n\n// 처음 넣은 것과 같은 id로 새 객체를 만들어서\nmap.put(new MemberKey(ids[0]), "수정");\nmap.get(new MemberKey(ids[0]));';
+      '}\n\n// 여기부터 main 메서드 안의 줄 (main을 둘러싼 클래스 선언과 import는 생략)\nint[] ids = {' + ids + '};   // 넣을 id ' + c.n + '개\nMap<MemberKey, String> map = new HashMap<>(16, ' + c.lf + 'f);\nfor (int id : ids) {\n    map.put(new MemberKey(id), "회원");\n}\n\n// 처음 넣은 것과 같은 id로 새 객체를 만들어서\nmap.put(new MemberKey(ids[0]), "수정");\nmap.get(new MemberKey(ids[0]));';
   },
   label: function (c) { var hc = c.eq === 'both' || c.eq === 'hconly'; return { both: 'equals+hashCode', eqonly: 'equals만', hconly: 'hashCode만', none: '재정의 없음' }[c.eq] + (hc ? ' · hashCode ' + { good: 'id 그대로', mod4: 'id % 4', same: '항상 1' }[c.hash] : '') + ' · 로드 팩터 ' + c.lf + ' · ' + c.n + '개'; },
   columns: ['버킷 수', '늘린 횟수', '가장 긴 버킷', '트리 버킷', '같은 키로 다시 put', '같은 키로 get'],

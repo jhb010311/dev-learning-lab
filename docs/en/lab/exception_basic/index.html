@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Exceptions</h1>
 <p><b>What is an exception, and what does try-catch do?</b></p>
-<p>An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. try { } wraps code that might fail. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.</p>
+<p>An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. You write the code that might fail between the braces of try { }. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.</p>
 <p>Checked against real execution · Eight combinations were compiled with javax.tools on JDK 21 and run as child java processes, and the standard output, standard error, and exit code were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,7 @@
     public static void main(String[] args) {
         int a = 10;
         int b = 0;
-        // try: wrap code that might fail
+        // try block: write the code that might fail here
         try {
             System.out.println(a / b);
         // catch: if an exception occurs, execution jumps here
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

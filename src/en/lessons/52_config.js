@@ -20,7 +20,7 @@ Lab.register({
   SRC: [['cli', 'Command-line argument (--app.timeout=9000)', '9000'], ['sys', 'JVM system property (-Dapp.timeout=8000)', '8000'], ['env', 'OS environment variable (APP_TIMEOUT=7000)', '7000'], ['prof', 'application-prod.yml (profile-specific file)', '5000'], ['yml', 'application.yml (not profile-specific)', '3000']],
   code: function (c) {
     var run = (c.env ? 'APP_TIMEOUT=7000 ' : '') + 'java ' + (c.sys ? '-Dapp.timeout=8000 ' : '') + '-jar app.jar' + (c.prof ? ' --spring.profiles.active=prod' : '') + (c.cli ? ' --app.timeout=9000' : '');
-    return '@Value("${app.timeout:1000}")          // 1000 if not set anywhere\nprivate int timeout;\n' + (c.yml ? '\n# application.yml\napp.timeout: 3000\n' : '') + (c.prof ? '\n# application-prod.yml\napp.timeout: 5000\n' : '') + '\n# Run\n' + run;
+    return '// Only the class body is shown (class declaration and imports omitted)\n@Value("${app.timeout:1000}")          // 1000 if not set anywhere\nprivate int timeout;\n' + (c.yml ? '\n# application.yml\napp.timeout: 3000\n' : '') + (c.prof ? '\n# application-prod.yml\napp.timeout: 5000\n' : '') + '\n# Run\n' + run;
   },
   label: function (c) { var on = this.SRC.filter(function (s) { return c[s[0]]; }).map(function (s) { return s[2]; }); return on.length ? 'Values set: ' + on.join(', ') : 'Not set anywhere'; },
   columns: ['Final value', 'Where the value came from', 'Overridden values'],

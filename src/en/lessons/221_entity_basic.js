@@ -24,7 +24,7 @@ Lab.register({
     l.push('    private Long id;', '    private String name;');
     if (c.extra) l.push('    private String email;');
     l.push('', '    protected Member() { }', '', '    public Member(Long id, String name) {', '        this.id = id;', '        this.name = name;', '    }', '}', '',
-      '// The side that saves', 'em.getTransaction().begin();', 'em.persist(new Member(1L, "Alice"));', 'em.getTransaction().commit();');
+      '// The side that saves (only the lines inside a method are shown; the method declaration, the code that creates em, and imports omitted)', 'em.getTransaction().begin();', 'em.persist(new Member(1L, "Alice"));', 'em.getTransaction().commit();');
     return l.join('\n');
   },
   label: function (c) { return (c.ent ? 'has @Entity' : 'no @Entity') + ' · ' + (c.idf ? 'has @Id' : 'no @Id') + ' · ' + (c.extra ? 'fields id, name, email' : 'fields id, name'); },

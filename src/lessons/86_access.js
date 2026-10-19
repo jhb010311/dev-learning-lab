@@ -35,7 +35,7 @@ Lab.register({
     if (mod === 'package') return false;
     return from === 'subThis' || from === 'subChild';
   },
-  message: function (mod) { return { private: 'balance has private access in bank.Account', package: 'balance is not public in bank.Account; cannot be accessed from outside package', protected: 'balance has protected access in bank.Account' }[mod]; },
+  message: function (mod) { return { private: 'balance has private access in Account', package: 'balance is not public in Account; cannot be accessed from outside package', protected: 'balance has protected access in Account' }[mod]; },
   simulate: function (c) {
     var ev = [], sum = [], mod = c.mod, from = c.from, ok = this.allowed(mod, from), msg = ok ? '' : this.message(mod), sub = from.indexOf('sub') === 0, reason = '';
     var st = { step: '', checks: [], verdict: '', msg: '', reason: '' };
@@ -106,7 +106,7 @@ Lab.register({
   places: [['same', '같은 클래스 Account 안'], ['pkg', '같은 패키지의 Teller'], ['subThis', '다른 패키지의 자식: this'], ['subChild', '다른 패키지의 자식: 자식 타입 변수'], ['subParent', '다른 패키지의 자식: 부모 타입 변수'], ['other', '다른 패키지의 무관한 Report']],
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
-    if (!s) { H.text(v, '실행을 누르면 컴파일러가 따지는 순서대로 한 단계씩 진행합니다.'); return; }
+    if (!s) { H.text(v, '실행을 누르면 접근 규칙을 하나씩 확인하며 한 단계씩 진행합니다.'); return; }
     var ln = H.lanes(v), modT = { private: 'private', package: '접근 제어자 없음 (패키지 전용)', protected: 'protected', public: 'public' }[c.mod];
     H.lane(ln, 'balance의 선언', modT, 'wait');
     H.lane(ln, '읽는 코드', s.step === 'decl' ? '아직 보지 않음' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');

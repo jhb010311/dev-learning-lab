@@ -24,7 +24,7 @@ Lab.register({
     if (c.api === 'cross' && c.cred) opt.push("credentials: 'include'");
     var js = '// https://shop.example 페이지의 스크립트\nfetch(\'' + url + '\'' + (opt.length ? ', {\n    ' + opt.join(',\n    ') + '\n}' : '') + ');';
     if (c.api === 'same') return js;
-    var srv = c.srv === 'none' ? '// 서버: CORS 설정 없음' : '// 서버 (스프링)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.example");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    ...\n}';
+    var srv = c.srv === 'none' ? '// 서버: CORS 설정 없음' : '// 서버 (스프링): 설정 클래스 본문만 보임 (클래스 선언과 import는 생략)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.example");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    var source = new UrlBasedCorsConfigurationSource();\n    source.registerCorsConfiguration("/**", cfg);   // 모든 경로에 적용\n    return source;\n}';
     return js + '\n\n' + srv;
   },
   label: function (c) { return (c.api === 'same' ? '같은 출처' : '다른 출처') + ' · ' + { simple: '단순 GET', json: 'JSON POST', auth: 'Authorization 헤더', del: 'DELETE' }[c.req] + (c.api === 'cross' ? (c.cred ? ' · 쿠키 포함' : '') + ' · 서버 ' + { none: '설정 없음', star: '* 허용', exact: '출처 지정' }[c.srv] : ''); },

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inner classes and anonymous classes: How is a class declared inside a class connected to the outer object? · Dev Learning Lab</title>
-<meta name="description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that cr…">
+<meta name="description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inner/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Inner classes and anonymous classes: How is a class declared inside a class connected to the outer object? · Dev Learning Lab">
-<meta property="og:description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that cr…">
+<meta property="og:description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Inner classes and anonymous classes</h1>
 <p><b>How is a class declared inside a class connected to the outer object?</b></p>
-<p>You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that created it, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.</p>
+<p>You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen when it was created, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.</p>
 <p>Checked against real execution · The code of the 24 combinations was compiled and run as it is on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -59,8 +59,8 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The compiler reads the Outer class: Inner has no static. An object of an inner class without static is always created in association with one particular Outer object.</li>
-<li>new Outer.Inner(): This is a compile-time error. main is a static method, so there is no Outer object at this point, and the code does not specify one either. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.</li>
-<li>Error message: &quot;an enclosing instance that contains Outer.Inner is required&quot;. It means that there must be an outer object that contains Outer.Inner. Compilation failed, so not a single line of the program runs.</li>
+<li>new Outer.Inner(): This is a compile-time error. This line is in the Main class, outside the Outer class, so there is no Outer object to use as the outer object, and the code does not specify one either, as o.new Inner() would. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.</li>
+<li>Error message: &quot;an enclosing instance that contains Outer.Inner is required&quot;. It means that there must be an outer object (an enclosing instance) for the Outer.Inner object to refer to. Compilation failed, so not a single line of the program runs.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -171,6 +171,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -73,7 +73,8 @@
 <li>When you reject a request, it is good to send the 429 status code together with when the client may try again (the Retry-After header). If there are several servers, keep the counter in a shared store such as Redis so that the limit does not grow with the number of servers.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Fixed window: key = user + the current second
+<pre>// Only lines inside a method are shown (declarations and imports omitted; tooManyRequests is an example method)
+// Fixed window: key = user + the current second
 String key = &quot;rate:&quot; + userId + &quot;:&quot; + (now / 1000);
 long count = redis.incr(key);            // add 1 to the request count of this second
 if (count == 1) redis.expire(key, 1);    // disappears after 1 second
@@ -167,6 +168,6 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

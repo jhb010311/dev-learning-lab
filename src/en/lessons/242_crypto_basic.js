@@ -20,7 +20,7 @@ Lab.register({
   wlen: 60,
   excName: 'javax.crypto.AEADBadTagException',
   code: function (c) {
-    var o = ['SecretKey key = newKey();                       // Create one key', ''];
+    var o = ['// Only the lines inside main are shown (class, main declaration, imports, and the example helper methods newKey, encrypt, and decrypt omitted)', 'SecretKey key = newKey();                       // Create one key', ''];
     if (c.enc === 'on') {
       o.push('// Sender: encrypt the text with the key', 'String sent = encrypt("Card number 1234", key);', '');
       if (c.reader === 'same') o.push('// Receiver: decrypt with the same key', 'String read = decrypt(sent, key);');
@@ -51,7 +51,7 @@ Lab.register({
       st.hot = 'en'; st.enc = 'calc';
       push('On the String sent = encrypt("Card number 1234", key); line, the sender puts the text "Card number 1234" and the key into encrypt. encrypt calculates the text together with the key and turns it into a different value.', '');
       st.hot = 'en'; st.enc = 'done'; st.mid = 'cipher';
-      push('The calculation ends, and a value that cannot be read comes out and is put in sent. In this lab, a value that starts with ' + this.head + '… and is ' + this.wlen + ' characters long came out. You cannot read "Card number 1234" from this value. If you encrypt the same text again with the same key, a different value comes out, so this value is one example.', '');
+      push('The calculation ends, a value that cannot be read comes out, and the variable sent refers to that value. In this lab, a value that starts with ' + this.head + '… and is ' + this.wlen + ' characters long came out. You cannot read "Card number 1234" from this value. If you encrypt the same text again with the same key, a different value comes out, so this value is one example.', '');
       st.hot = 'mid'; st.pass = true;
       st.checks.push(['Value visible in the middle', { v: mid, cls: 'good' }]);
       push('The value of sent goes through the middle (a network or storage) to the receiver. This value is all that is visible in the middle. The text and the key were not sent to the middle, so they are not visible.', '');
@@ -61,7 +61,7 @@ Lab.register({
         push('On the String read = decrypt(sent, key); line, the receiver puts the received value sent and the same key into decrypt. decrypt does decryption, the calculation that reverses encryption.', '');
         st.dec = 'ok'; st.rd = 'ok'; st.res = 'Yes';
         st.checks.push(['What the receiver read', { v: PT, cls: 'good' }], ['Original text recovered', { v: 'Yes', cls: 'good' }]);
-        push('The result of the decryption is the original text "Card number 1234", and it is put in read. This is because you put in the same key that was used to encrypt.', 'good');
+        push('The result of the decryption is the original text "Card number 1234", and the variable read refers to it. This is because you put in the same key that was used to encrypt.', 'good');
         st.hot = '';
         push('System.out.println(sent) prints the whole ' + this.wlen + '-character value that cannot be read, and System.out.println(read) prints Card number 1234.', '');
       } else if (rd === 'other') {
@@ -77,19 +77,19 @@ Lab.register({
       } else {
         st.hot = 'rd'; st.rk = 'none'; st.dec = 'raw'; st.rd = 'raw'; st.res = 'No';
         st.checks.push(['What the receiver read', { v: mid, cls: 'bad' }], ['Original text recovered', { v: 'No', cls: 'bad' }]);
-        push('On the String read = sent; line, the receiver puts the received value sent in read as it is, without a key. No decryption calculation is done, so the value stays unreadable, and the receiver does not get the text.', 'bad');
+        push('On the String read = sent; line, the receiver, without a key, makes read refer to the received value (the value sent refers to) as it is. No decryption calculation is done, so the value stays unreadable, and the receiver does not get the text.', 'bad');
         st.hot = '';
         push('System.out.println(sent) and System.out.println(read) print the same ' + this.wlen + '-character value twice. Neither line is "Card number 1234".', '');
       }
     } else {
       st.hot = 'pt'; st.k1 = 'unused';
-      push('On the String sent = "Card number 1234"; line, the sender puts the text in sent as it is, without passing it to encrypt. There is no calculation, so the key is not used.', '');
+      push('On the String sent = "Card number 1234"; line, the sender does not pass the text to encrypt, and the variable sent refers to the text as it is. There is no calculation, so the key is not used.', '');
       st.hot = 'mid'; st.pass = true; st.mid = 'plain';
       st.checks.push(['Value visible in the middle', { v: PT, cls: 'bad' }]);
       push('The value of sent goes through the middle (a network or storage) to the receiver. What is visible in the middle is the text itself, so anyone who watches the middle can read "Card number 1234".', 'bad');
       st.hot = 'rd'; st.dec = 'raw'; st.rd = 'ok'; st.res = 'Yes';
       st.checks.push(['What the receiver read', { v: PT, cls: '' }], ['Original text recovered', { v: 'Yes', cls: '' }]);
-      push('On the String read = sent; line, the receiver puts what was received in read as it is. There is nothing to decrypt, so neither a key nor a calculation was used, and ' + (rd === 'same' ? 'even if the receiver has the same key, there is nothing to use it for.' : rd === 'other' ? 'it does not matter even if the receiver has a different key.' : 'it does not matter that the receiver has no key.'), '');
+      push('On the String read = sent; line, the receiver makes read refer to the received text (the text sent refers to) as it is. There is nothing to decrypt, so neither a key nor a calculation was used, and ' + (rd === 'same' ? 'even if the receiver has the same key, there is nothing to use it for.' : rd === 'other' ? 'it does not matter even if the receiver has a different key.' : 'it does not matter that the receiver has no key.'), '');
       st.hot = '';
       push('System.out.println(sent) and System.out.println(read) both print Card number 1234.', '');
     }

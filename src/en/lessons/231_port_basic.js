@@ -19,7 +19,7 @@ Lab.register({
   SERVER: ['// Server program: open port 8080 and wait for a connection', 'ServerSocket server = new ServerSocket(8080);', 'Socket fromClient = server.accept();', 'fromClient.getOutputStream().write("Hello".getBytes("UTF-8"));', 'fromClient.close();'],
   SECOND: ['// Another program: try to open the same port 8080', 'ServerSocket another = new ServerSocket(8080);'],
   code: function (c) {
-    var parts = [];
+    var parts = ['// For each program, only the lines inside main are shown (class, main declaration, and imports omitted)'];
     if (c.server) parts.push(this.SERVER.join('\n'));
     if (c.second) parts.push(this.SECOND.join('\n'));
     parts.push(['// Client program: connect to 127.0.0.1 (this computer)', 'Socket socket = new Socket("127.0.0.1", ' + (c.port === 'same' ? '8080' : '9090') + ');', 'String text = new String(socket.getInputStream().readAllBytes(), "UTF-8");', 'System.out.println(text);'].join('\n'));

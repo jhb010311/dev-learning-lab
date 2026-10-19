@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,8 @@
 <li>The Java side has no code that runs SQL. SQL is made as text and sent to the database, the database runs it, and Java only receives the returned result as a ResultSet and reads it.</li>
 </ul>
 <h2>Code</h2>
-<pre>// The member table holds one row: (id 1, name kim)
+<pre>// Only the lines inside main are shown (class, main declaration, and imports omitted)
+// The member table holds one row: (id 1, name kim)
 // Connect: make a connection to the database that the URL points to
 Connection conn = DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;);
 // Tool: the object that sends SQL over this connection
@@ -167,6 +168,6 @@ System.out.println(rs.getString(&quot;name&quot;));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

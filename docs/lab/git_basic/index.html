@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e62205d6b3">
+<link rel="stylesheet" href="../../app.css?v=0f660794e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>Git 커밋(commit)</dt>
-<dd>Git의 커밋은 저장소에 남기는 한 번의 저장이다. Git은 변경된 부분의 차이가 아니라 그 시점의 파일 모습(스냅숏)을 저장하고, 커밋은 그 모습을 가리킨다. 커밋은 바로 앞 커밋(부모)도 가리키는데, 맨 처음 커밋은 부모가 없고 보통 커밋은 부모가 하나다. 그래서 커밋들은 앞 커밋을 가리키는 줄로 이어진다(Pro Git 3.1절). git commit은 올려 둔(git add 한) 내용으로 새 커밋을 만들고, 그 커밋은 지금 있는 브랜치가 가리키던 커밋의 자식이 되며 브랜치가 새 커밋을 가리키도록 갱신된다(git-commit 문서). 고치기만 하고 커밋하지 않은 변경은 어느 커밋에도 들어 있지 않다.</dd>
+<dd>Git의 커밋은 저장소에 남기는 한 번의 저장이다. Git은 변경된 부분의 차이가 아니라 그 시점의 파일 모습(스냅숏)을 저장하고, 커밋은 그 모습을 가리킨다. 커밋은 바로 앞 커밋(부모)도 가리키는데, 맨 처음 커밋은 부모가 없고 보통 커밋은 부모가 하나다. 그래서 커밋들은 앞 커밋을 가리키는 줄로 이어진다(Pro Git 3.1절). git commit은 올려 둔(git add 한) 내용으로 새 커밋을 만들고, 그 커밋은 지금 있는 브랜치가 가리키던 커밋의 자식이 되며 브랜치가 새 커밋을 가리키도록 갱신된다(git-commit 문서). 고치기만 하고 커밋하지 않은 변경은 어느 커밋에도 기록되지 않는다.</dd>
 <dt>Git 브랜치(branch)</dt>
 <dd>Git의 브랜치는 커밋 하나를 가리키는 가볍고 움직이는 포인터(이름표)다. 커밋을 복사해 둔 것이 아니다. 브랜치는 가리키는 커밋의 SHA-1 체크섬 40글자를 담은 단순한 파일이라서 만들고 지우는 비용이 작다(Pro Git 3.1절). 브랜치에서 커밋하면 그 브랜치의 이름표만 새 커밋으로 옮겨 가고, 같은 커밋을 가리키던 다른 브랜치는 그대로다. 브랜치를 만들기만 하고 커밋하지 않으면 커밋은 늘지 않는다.</dd>
 <dt>git switch</dt>
@@ -48,7 +48,7 @@
 <ul>
 <li><b>처음 설정으로</b> — feature에서 커밋하면 feature 이름표만 새 커밋으로 가고, main으로 돌아오면 폴더가 main의 커밋 모습(v1)으로 바뀝니다.</li>
 <li><b>main으로 돌아가지 않으면</b> — feature에 그대로 있어서 폴더의 memo.txt는 둘째 커밋의 모습(v2)입니다. main은 커밋 1에 그대로 있습니다.</li>
-<li><b>둘째 커밋을 하지 않고 main으로 옮기면</b> — 고친 memo.txt가 어느 커밋에도 들어 있지 않은 채 main으로 따라옵니다. 두 브랜치는 같은 커밋 1을 가리킵니다.</li>
+<li><b>둘째 커밋을 하지 않고 main으로 옮기면</b> — 고친 memo.txt가 어느 커밋에도 기록되지 않은 채 main으로 따라옵니다. 두 브랜치는 같은 커밋 1을 가리킵니다.</li>
 <li><b>둘 다 지우면</b> — 커밋은 1개뿐이고 두 브랜치는 같은 커밋 1을 가리킵니다. 고친 v2는 폴더에만 있습니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
@@ -56,12 +56,12 @@
 <li>git init -b main: 이 폴더를 Git 저장소로 만듭니다. 폴더 안에 .git이라는 폴더가 생기고, 앞으로 커밋이 여기에 쌓입니다. -b main은 처음 쓸 브랜치의 이름을 main으로 하라는 뜻이고, 브랜치가 무엇인지는 뒤에서 봅니다. 아직 커밋이 하나도 없어서, main이라는 이름이 가리킬 커밋도 없습니다.</li>
 <li>echo v1 &gt; memo.txt: 폴더에 memo.txt 파일을 만들고 안에 v1이라고 씁니다. 이 줄은 Git 명령이 아니라 폴더의 파일을 쓰는 명령입니다. Git은 이 파일을 아직 저장소에 올리지 않은 새 파일(??)로만 알려 줍니다.</li>
 <li>git add memo.txt: memo.txt의 지금 모습(v1)을 다음 커밋에 넣을 것으로 올려 둡니다. 아직 커밋은 아닙니다. Git이 이 파일을 커밋에 넣을 것으로 알려 줍니다(A).</li>
-<li>git commit -m &quot;첫 커밋&quot;: 올려 둔 것을 커밋으로 저장합니다. 커밋 1이 만들어졌고, 그 안에는 이 순간의 memo.txt 모습(v1)이 들어 있습니다. 앞에 다른 커밋이 없는 맨 처음 커밋입니다. 이렇게 커밋 하나를 가리키는 이름표를 브랜치라고 하는데, main 브랜치가 커밋 1을 가리키게 되었습니다. 폴더의 파일과 커밋의 모습이 같아서, 저장하지 않은 변경은 없습니다.</li>
+<li>git commit -m &quot;첫 커밋&quot;: 올려 둔 것을 커밋으로 저장합니다. 커밋 1이 만들어졌고, 커밋 1은 이 순간의 memo.txt 모습(v1)을 기록해 둡니다. 앞에 다른 커밋이 없는 맨 처음 커밋입니다. 이렇게 커밋 하나를 가리키는 이름표를 브랜치라고 하는데, main 브랜치가 커밋 1을 가리키게 되었습니다. 폴더의 파일과 커밋의 모습이 같아서, 저장하지 않은 변경은 없습니다.</li>
 <li>git switch -c feature: feature라는 새 이름표를 만들어 지금 있는 커밋 1을 가리키게 하고, 지금 있는 브랜치를 feature로 옮깁니다. 브랜치를 만들었는데 커밋은 늘지 않고 1개 그대로입니다. 브랜치는 커밋을 복사해 둔 것이 아니라 커밋 하나를 가리킬 뿐이라서, main과 feature가 같은 커밋 1을 함께 가리킵니다.</li>
-<li>echo v2 &gt; memo.txt: 폴더의 memo.txt 안을 v2로 바꿉니다. 폴더의 파일만 바뀌었고 커밋 1 안의 memo.txt는 그대로 v1입니다. Git은 고쳤지만 커밋하지 않은 변경(M)으로 알려 줍니다. 이 v2는 아직 어느 커밋에도 들어 있지 않습니다.</li>
-<li>git commit -am &quot;둘째 커밋&quot;: 바뀐 memo.txt를 올려서(-a) 커밋 2로 저장합니다. 커밋 2는 바로 앞 커밋인 커밋 1을 가리키고, 그 안에는 이 순간의 memo.txt 모습(v2)이 들어 있습니다. 지금 있는 브랜치인 feature 이름표가 커밋 2로 옮겨 갔습니다. main 이름표는 움직이지 않아서 커밋 1을 가리킨 채이고, 커밋 1 안의 memo.txt도 v1 그대로입니다.</li>
+<li>echo v2 &gt; memo.txt: 폴더의 memo.txt 안을 v2로 바꿉니다. 폴더의 파일만 바뀌었고 커밋 1에 기록된 memo.txt는 그대로 v1입니다. Git은 고쳤지만 커밋하지 않은 변경(M)으로 알려 줍니다. 이 v2는 아직 어느 커밋에도 들어 있지 않습니다.</li>
+<li>git commit -am &quot;둘째 커밋&quot;: 바뀐 memo.txt를 올려서(-a) 커밋 2로 저장합니다. 커밋 2는 바로 앞 커밋인 커밋 1을 가리키고, 이 순간의 memo.txt 모습(v2)을 기록해 둡니다. 지금 있는 브랜치인 feature 이름표가 커밋 2로 옮겨 갔습니다. main 이름표는 움직이지 않아서 커밋 1을 가리킨 채이고, 커밋 1에 기록된 memo.txt도 v1 그대로입니다.</li>
 <li>git switch main: 지금 있는 브랜치를 main으로 옮기고, 폴더의 파일을 main이 가리키는 커밋 1의 모습으로 바꿉니다. 그래서 폴더의 memo.txt가 v1이 되었습니다. 커밋 2는 사라지지 않았고, feature 이름표가 그대로 가리키고 있습니다.</li>
-<li>cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v1입니다. feature에서 v2로 고쳐 커밋했지만 그 모습은 커밋 2 안에 있고, 지금 폴더에는 main이 가리키는 커밋 1의 모습이 나와 있습니다.</li>
+<li>cat memo.txt: 폴더의 memo.txt를 화면에 보입니다. v1입니다. feature에서 v2로 고쳐 커밋했지만 그 모습은 커밋 2에 기록되어 있고, 지금 폴더에는 main이 가리키는 커밋 1의 모습이 나와 있습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -88,7 +88,7 @@ git switch main
 # memo.txt의 내용을 화면에 보인다
 cat memo.txt</pre>
 <h2>이 모형의 전제</h2>
-<p>git 2.55.0(Windows)로 실제 실행해 대조했습니다. 네 가지 조합을 모두, 조합마다 새 빈 폴더에서 화면의 코드(# 설명 줄은 실행하지 않음)를 한 줄씩 그대로 실행했습니다. git 명령은 git.exe에 인자 그대로 주었고(사용자 이름과 메일은 그 명령에만 -c로 주고 전역 설정은 읽지 않게 함), echo와 cat은 Git Bash가 실행했습니다. 줄마다 실행한 직후에 지금 있는 브랜치, main과 feature 브랜치가 가리키는 커밋, 만들어진 커밋 수, 폴더의 memo.txt, git status --short, 각 브랜치의 커밋 안에 든 memo.txt를 재서 화면 단계의 상태와 대조했고, 화면의 코드가 실행한 글과 같은 글인지도 조합마다 확인했습니다. 커밋 번호(해시)는 실행마다 달라지므로 만들어진 차례대로 커밋 1, 커밋 2로 적었습니다. 처음 브랜치를 main으로 하려고 git init -b main을 썼습니다. 이 실습의 둘째 커밋 줄이 없는 조합에서는 main과 feature가 같은 커밋 1을 가리켜, 커밋하지 않은 변경이 막히지 않고 main으로 따라왔습니다. 이것은 두 브랜치의 memo.txt가 같기 때문이며, 화면 조합 밖에서 따로 확인한 결과 두 브랜치의 memo.txt가 서로 다를 때(main은 v1, feature는 v2인 상태에서 main에서 memo.txt를 v3로 고치고 feature로 옮기려 할 때)는 Git이 옮기기를 막고 &quot;Your local changes to the following files would be overwritten by checkout&quot;이라는 오류를 냈습니다. 이 막힘은 화면 조합에 넣지 않았고, 이 Git 버전에서 본 동작입니다. 새 저장소의 .git/HEAD 파일은 지금 있는 브랜치 이름을(&quot;ref: refs/heads/main&quot; 꼴) 적고, 브랜치 파일(.git/refs/heads/main 등)은 커밋 번호 하나만 적은 41바이트 파일임을 확인했습니다. 문서로 확인한 것은 Pro Git 2판 3.1절 Branches in a Nutshell(커밋은 스냅숏을 가리키고 부모를 가리킴, 브랜치는 커밋을 가리키는 가벼운 움직이는 포인터이자 SHA-1 40자를 담은 단순한 파일, HEAD는 지금 있는 브랜치를 가리키는 포인터, 브랜치를 바꾸면 작업 폴더의 파일이 바뀌고 깔끔하게 할 수 없으면 옮기지 못함), git-switch 문서(깨끗하지 않은 작업 폴더로도 옮길 수 있고 변경을 잃게 되면 중단함, -c는 새 브랜치를 만들고 옮김), git-commit 문서(-a는 이미 아는 파일의 변경을 자동으로 올림, -m은 메시지, 새 커밋은 HEAD의 자식이고 브랜치가 그 커밋을 가리키도록 갱신됨), git-init 문서(-b는 처음 브랜치의 이름)입니다. 커밋 하나가 &quot;그 시점의 파일 전체 모습&quot;이라는 설명은 문서의 스냅숏 서술을 쉽게 푼 것으로, 커밋 1과 커밋 2의 memo.txt 내용을 git show로 직접 확인했습니다(파일이 하나뿐인 저장소라서 전체 모습과 한 파일이 같습니다). 병합(merge, rebase), 원격 저장소, 충돌, 커밋 안에 파일이 어떤 형식으로 저장되는지(객체)는 다루지 않았습니다. 같은 주제의 세부 동작은 &quot;세부 동작 실습: merge와 rebase&quot;에서 다룹니다.</p>
+<p>git 2.55.0(Windows)로 실제 실행해 대조했습니다. 네 가지 조합을 모두, 조합마다 새 빈 폴더에서 화면의 코드(# 설명 줄은 실행하지 않음)를 한 줄씩 그대로 실행했습니다. git 명령은 git.exe에 인자 그대로 주었고(사용자 이름과 메일은 그 명령에만 -c로 주고 전역 설정은 읽지 않게 함), echo와 cat은 Git Bash가 실행했습니다. 줄마다 실행한 직후에 지금 있는 브랜치, main과 feature 브랜치가 가리키는 커밋, 만들어진 커밋 수, 폴더의 memo.txt, git status --short, 각 브랜치의 커밋에 기록된 memo.txt를 재서 화면 단계의 상태와 대조했고, 화면의 코드가 실행한 글과 같은 글인지도 조합마다 확인했습니다. 커밋 번호(해시)는 실행마다 달라지므로 만들어진 차례대로 커밋 1, 커밋 2로 적었습니다. 처음 브랜치를 main으로 하려고 git init -b main을 썼습니다. 이 실습의 둘째 커밋 줄이 없는 조합에서는 main과 feature가 같은 커밋 1을 가리켜, 커밋하지 않은 변경이 막히지 않고 main으로 따라왔습니다. 이것은 두 브랜치의 memo.txt가 같기 때문이며, 화면 조합 밖에서 따로 확인한 결과 두 브랜치의 memo.txt가 서로 다를 때(main은 v1, feature는 v2인 상태에서 main에서 memo.txt를 v3로 고치고 feature로 옮기려 할 때)는 Git이 옮기기를 막고 &quot;Your local changes to the following files would be overwritten by checkout&quot;이라는 오류를 냈습니다. 이 막힘은 화면 조합에 넣지 않았고, 이 Git 버전에서 본 동작입니다. 새 저장소의 .git/HEAD 파일은 지금 있는 브랜치 이름을(&quot;ref: refs/heads/main&quot; 꼴) 적고, 브랜치 파일(.git/refs/heads/main 등)은 커밋 번호 하나만 적은 41바이트 파일임을 확인했습니다. 문서로 확인한 것은 Pro Git 2판 3.1절 Branches in a Nutshell(커밋은 스냅숏을 가리키고 부모를 가리킴, 브랜치는 커밋을 가리키는 가벼운 움직이는 포인터이자 SHA-1 40자를 담은 단순한 파일, HEAD는 지금 있는 브랜치를 가리키는 포인터, 브랜치를 바꾸면 작업 폴더의 파일이 바뀌고 깔끔하게 할 수 없으면 옮기지 못함), git-switch 문서(깨끗하지 않은 작업 폴더로도 옮길 수 있고 변경을 잃게 되면 중단함, -c는 새 브랜치를 만들고 옮김), git-commit 문서(-a는 이미 아는 파일의 변경을 자동으로 올림, -m은 메시지, 새 커밋은 HEAD의 자식이고 브랜치가 그 커밋을 가리키도록 갱신됨), git-init 문서(-b는 처음 브랜치의 이름)입니다. 커밋 하나가 &quot;그 시점의 파일 전체 모습&quot;이라는 설명은 문서의 스냅숏 서술을 쉽게 푼 것으로, 커밋 1과 커밋 2의 memo.txt 내용을 git show로 직접 확인했습니다(파일이 하나뿐인 저장소라서 전체 모습과 한 파일이 같습니다). 병합(merge, rebase), 원격 저장소, 충돌, 커밋이 파일을 어떤 형식으로 저장하는지(객체)는 다루지 않았습니다. 같은 주제의 세부 동작은 &quot;세부 동작 실습: merge와 rebase&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/deploy_basic/">배포</a></p>
   </div>
 
@@ -176,6 +176,6 @@ cat memo.txt</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e62205d6b3"></script>
+<script src="../../app.js?v=0f660794e7"></script>
 </body>
 </html>

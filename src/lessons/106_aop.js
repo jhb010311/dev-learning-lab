@@ -32,7 +32,7 @@ Lab.register({
     var time = c.second === 'none' ? '' : '@Aspect\n@Component\n' + to + '\nclass TimeAspect {\n    @Around("' + E + '")\n    Object time(ProceedingJoinPoint pjp) throws Throwable {\n        System.out.println("Time 시작");\n        try {\n            return pjp.proceed();\n        } finally {\n            System.out.println("Time 끝");    // 예외가 나도 실행된다\n        }\n    }\n}\n\n';
     var svc = '@Service\nclass OrderService {\n    public String order(String item) {\n' + body('order', '주문 완료') + '    }\n\n    @Audit\n    public String cancel(Long id) {\n' + body('cancel', '취소 완료') + '    }\n}\n\n' +
       '@Service\nclass MemberService {\n    @Audit\n    public String join(String name) {\n' + body('join', '가입 완료') + '    }\n}';
-    return '// 아래 클래스는 모두 shop 패키지에 있다\n// @Audit은 이 예제에서 직접 만든 애너테이션이다 (메서드에 붙이는 표시)\n// 다른 빈에서 부르는 코드: ' + call + '\n\n' + log + time + svc;
+    return '// 아래 클래스는 모두 shop 패키지에 있다\n// @Audit은 이 예제에서 직접 만든 애너테이션이다 (메서드에 붙이는 표시. 그 선언과 import는 생략)\n// 다른 빈에서 부르는 코드: ' + call + '\n\n' + log + time + svc;
   },
   label: function (c) { return { cls: 'OrderService.*(..)', arg: 'shop.*.*(String)', noarg: 'cancel()', ann: '@annotation(Audit)' }[c.pc] + ' · ' + { order: 'order(String)', cancel: 'cancel(Long)', join: 'join(String)' }[c.m] + ' · ' + (c.out === 'ok' ? '정상' : '예외') + ' · ' + { none: 'Log만', log1: 'Log 바깥, Time 안', time1: 'Time 바깥, Log 안' }[c.second]; },
   columns: ['포인트컷이 이 메서드를 고르나', '찍힌 순서', '호출한 쪽이 받는 것'],

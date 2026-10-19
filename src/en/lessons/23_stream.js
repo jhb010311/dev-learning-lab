@@ -17,7 +17,7 @@ Lab.register({
   ],
   DATA: [5, 2, 8, 1, 9, 4],
   code: function (c) {
-    return 'List.of(5, 2, 8, 1, 9, 4).stream()\n    .filter(x -> x > 3)          // only values greater than 3\n' + (c.sorted ? '    .sorted()                    // sort in ascending order\n' : '') + '    .map(x -> x * 10)            // multiply by 10\n' + (c.limit ? '    .limit(2)                    // at most 2 elements\n' : '') + (c.term === 'toList' ? '    .toList();' : c.term === 'findFirst' ? '    .findFirst();' : '    ;                            // no terminal operation');
+    return '// Only the lines inside main are shown (class, main declaration, and imports omitted)\nList.of(5, 2, 8, 1, 9, 4).stream()\n    .filter(x -> x > 3)          // only values greater than 3\n' + (c.sorted ? '    .sorted()                    // sort in ascending order\n' : '') + '    .map(x -> x * 10)            // multiply by 10\n' + (c.limit ? '    .limit(2)                    // at most 2 elements\n' : '') + (c.term === 'toList' ? '    .toList();' : c.term === 'findFirst' ? '    .findFirst();' : '    ;                            // no terminal operation');
   },
   label: function (c) { return 'filter' + (c.sorted ? ' → sorted' : '') + ' → map' + (c.limit ? ' → limit(2)' : '') + ' → ' + (c.term === 'none' ? '(no terminal operation)' : c.term + '()'); },
   columns: ['Times filter ran', 'Times map ran', 'Result'],

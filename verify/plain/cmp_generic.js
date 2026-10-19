@@ -35,7 +35,8 @@ for (const c of combos(lesson)) {
     && (comp !== 'OK' || wantWarn === '' || list(warnLines).join() === lesson.opLine(c));
   if (same) ok++;
   else console.log('다름: ' + key + '\n  모형 ' + sim.row.join(' | ') + ' [' + sim.msgs.join(' ## ') + '] [' + sim.warn + '] [' + sim.crashLine + ']\n  실제 ' + want.join(' | ') + ' [' + wantMsgs.join(' ## ') + '] [' + wantWarn + '] [' + wantAt + ']');
-  if (lesson.code(c) === src[key]) codeOk++; else console.log('코드 다름: ' + key);
+  // 화면 맨 위의 생략을 밝히는 주석 한 줄은 빼고 비교
+  if (lesson.code(c).replace(/^\/\/ [^\n]*\n/, '') === src[key]) codeOk++; else console.log('코드 다름: ' + key);
 }
 console.log('코드 일치 ' + codeOk + ' / ' + n);
 console.log('일치 ' + ok + ' / ' + n);

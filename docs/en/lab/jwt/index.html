@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -72,7 +72,8 @@
 <li>If you change even one character of the contents, the signature the server recalculates changes. The signature matches only these exact contents.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Request header  Authorization: Bearer &lt;token&gt;
+<pre>// Only a method inside the server class is shown (class declaration, serverKey field, and imports omitted)
+// Request header  Authorization: Bearer &lt;token&gt;
 // Token  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 //       .eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ
 //       .5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
@@ -102,7 +103,7 @@ Claims verify(String token, long now) throws Exception {
     return new Claims(field(payload, &quot;sub&quot;), field(payload, &quot;role&quot;));   // the payload is trusted only after reaching this point
 }
 
-// Claims, BadTokenException, and field(json, name) are a class, an exception, and a method made for this example.
+// Claims, BadTokenException, and field(json, name) are a class, an exception, and a method made for this example (their declarations are omitted).
 // field is a helper that pulls one value out of the JSON.
 // This code is written by hand to show the principle. A real service uses a well-tested JWT library.</pre>
 <h2>Assumptions of this model</h2>
@@ -194,6 +195,6 @@ Claims verify(String token, long now) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

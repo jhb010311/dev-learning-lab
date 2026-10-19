@@ -24,12 +24,12 @@ Lab.register({
   parts: function (c) {
     if (c.topic === 'override') {
       return ['class Animal {\n    String sound() {\n        return "...";\n    }\n}\n\nclass Dog extends Animal {\n' + (c.ov ? '    @Override\n' : '') + '    String ' + (c.typo ? 'sount' : 'sound') + '() {\n        return "멍멍";\n    }\n}',
-        '// 여기부터는 main 안의 코드\nAnimal a = new Dog();\nSystem.out.println(a.sound());'];
+        '// 여기부터는 main 안의 코드 (Main 클래스와 main 선언은 생략)\nAnimal a = new Dog();\nSystem.out.println(a.sound());'];
     }
     var decl = (c.ret === 'none' ? '' : '@Retention(RetentionPolicy.' + c.ret + ')\n') + (c.target === 'none' ? '' : '@Target(ElementType.' + c.target + ')\n') + '@interface Timed { }\n\nclass Service {\n    @Timed\n    void work() {\n        System.out.println("work 실행");\n    }\n}';
     var body = c.reader
-      ? '// 여기부터는 main 안의 코드: 애너테이션을 읽는 쪽\nService service = new Service();\nMethod m = Service.class.getDeclaredMethod("work");\nboolean found = m.isAnnotationPresent(Timed.class);\nSystem.out.println("@Timed가 보이는가: " + found);\nif (found) System.out.println("[시간 측정 시작]");\nm.invoke(service);\nif (found) System.out.println("[시간 측정 끝]");'
-      : '// 여기부터는 main 안의 코드: 애너테이션을 읽는 코드가 없음\nService service = new Service();\nservice.work();';
+      ? '// 여기부터는 main 안의 코드: 애너테이션을 읽는 쪽 (Main 클래스·main 선언과 import는 생략)\nService service = new Service();\nMethod m = Service.class.getDeclaredMethod("work");\nboolean found = m.isAnnotationPresent(Timed.class);\nSystem.out.println("@Timed가 보이는가: " + found);\nif (found) System.out.println("[시간 측정 시작]");\nm.invoke(service);\nif (found) System.out.println("[시간 측정 끝]");'
+      : '// 여기부터는 main 안의 코드: 애너테이션을 읽는 코드가 없음 (Main 클래스·main 선언과 import는 생략)\nService service = new Service();\nservice.work();';
     return [decl, body];
   },
   code: function (c) { var p = this.parts(c); return p[0] + '\n\n' + p[1]; },

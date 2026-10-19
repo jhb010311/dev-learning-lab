@@ -19,7 +19,7 @@ Lab.register({
   nums: [1, 2, 3, 4, 5, 6],
   // The code on the screen. In a stream each line is one step; in a for loop the new list, the loop, the if, and the add do the same work
   code: function (c) {
-    var o = ['List<Integer> nums = List.of(1, 2, 3, 4, 5, 6);'];
+    var o = ['// Only the lines inside main are shown (class, main declaration, and imports omitted)', 'List<Integer> nums = List.of(1, 2, 3, 4, 5, 6);'];
     if (c.style === 'stream') {
       o.push('// Stream: create a flow that passes the values of nums along one at a time', 'List<Integer> result = nums.stream()');
       if (c.filter) o.push('    // Filter: let only the even values pass', '    .filter(n -> n % 2 == 0)');

@@ -23,10 +23,10 @@ Lab.register({
     var alive = !!c.give && !(c.life === 'short' && c.later !== 'now') && !(c.life === 'session' && c.later === 'restart');
     return { alive: alive, orders: alive && c.path === '/', shop: alive, other: false, js: alive && !c.http };
   },
-  header: function (c) { return 'Set-Cookie: sid=abc123; Path=' + c.path + (c.life === 'hour' ? '; Max-Age=3600' : c.life === 'short' ? '; Max-Age=3' : '') + (c.http ? '; HttpOnly' : ''); },
+  header: function (c) { return 'Set-Cookie: sid=abc123; Path=' + c.path + (c.life === 'hour' ? '; Max-Age=3600; Expires=(1시간 뒤 시각)' : c.life === 'short' ? '; Max-Age=3; Expires=(3초 뒤 시각)' : '') + (c.http ? '; HttpOnly' : ''); },
   code: function (c) {
-    if (!c.give) return '@PostMapping("/login")\nResponseEntity<Void> login(@RequestBody LoginRequest req) {\n    memberService.check(req.id(), req.password());\n    return ResponseEntity.ok().build();      // 쿠키를 내려 주지 않는다\n}\n\n// 다음 요청에는 로그인했다는 표시가 아무것도 없다';
-    return '@PostMapping("/login")\nResponseEntity<Void> login(@RequestBody LoginRequest req) {\n    Member m = memberService.check(req.id(), req.password());\n    String sid = sessionStore.create(m.getId());        // "abc123" → 회원 7\n\n    ResponseCookie cookie = ResponseCookie.from("sid", sid)\n        .path("' + c.path + '")\n' + (c.life === 'hour' ? '        .maxAge(Duration.ofHours(1))\n' : c.life === 'short' ? '        .maxAge(Duration.ofSeconds(3))\n' : '') + '        .httpOnly(' + c.http + ')\n        .build();\n    return ResponseEntity.ok()\n        .header(HttpHeaders.SET_COOKIE, cookie.toString())\n        .build();\n}\n// 응답 헤더: ' + this.header(c);
+    if (!c.give) return '// 컨트롤러 클래스 본문만 보임 (클래스 선언, import, 예시로 만든 LoginRequest·memberService의 선언은 생략)\n@PostMapping("/login")\nResponseEntity<Void> login(@RequestBody LoginRequest req) {\n    memberService.check(req.id(), req.password());\n    return ResponseEntity.ok().build();      // 쿠키를 내려 주지 않는다\n}\n\n// 다음 요청에는 로그인했다는 표시가 아무것도 없다';
+    return '// 컨트롤러 클래스 본문만 보임 (클래스 선언, import, 예시로 만든 LoginRequest·Member·memberService·sessionStore의 선언은 생략)\n@PostMapping("/login")\nResponseEntity<Void> login(@RequestBody LoginRequest req) {\n    Member m = memberService.check(req.id(), req.password());\n    String sid = sessionStore.create(m.getId());        // "abc123" → 회원 7\n\n    ResponseCookie cookie = ResponseCookie.from("sid", sid)\n        .path("' + c.path + '")\n' + (c.life === 'hour' ? '        .maxAge(Duration.ofHours(1))\n' : c.life === 'short' ? '        .maxAge(Duration.ofSeconds(3))\n' : '') + '        .httpOnly(' + c.http + ')\n        .build();\n    return ResponseEntity.ok()\n        .header(HttpHeaders.SET_COOKIE, cookie.toString())\n        .build();\n}\n// 응답 헤더: ' + this.header(c);
   },
   label: function (c) { return !c.give ? '쿠키 없음' : 'Path=' + c.path + (c.http ? ' · HttpOnly' : '') + ' · ' + { session: '수명 지정 없음', hour: '1시간', short: '3초' }[c.life] + ' · ' + { now: '직후', wait: '10초 뒤', restart: '브라우저 다시 엶' }[c.later]; },
   columns: ['GET /orders', 'GET /shop/cart', '다른 사이트로 가는 요청', '자바스크립트로 읽기'],
@@ -45,7 +45,7 @@ Lab.register({
     }
     var jarText = 'sid=abc123  (Path=' + c.path + (c.http ? ', HttpOnly' : '') + ', ' + { session: '브라우저를 닫으면 삭제', hour: '1시간 뒤 만료', short: '3초 뒤 만료' }[c.life] + ')';
     S.jar = [jarText];
-    push('서버가 응답에 ' + self.header(c) + ' 헤더를 실어 보냅니다. 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 "abc123은 회원 7"이라고 자기 쪽에 적어 둡니다.', '');
+    push('서버가 응답에 ' + self.header(c) + ' 헤더를 실어 보냅니다.' + (c.life === 'session' ? '' : ' Expires는 Max-Age와 같은 만료 시점을 날짜와 시각으로 적은 속성이고, 스프링의 ResponseCookie가 함께 붙입니다.') + ' 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 "abc123은 회원 7"이라고 자기 쪽에 적어 둡니다.', '');
     if (c.later !== 'now') {
       if (!R.alive) S.jar = [];
       push((c.later === 'wait' ? '10초가 지났습니다. ' : '10초 뒤 브라우저를 완전히 닫았다가 다시 열었습니다. ') + (R.alive ? '쿠키는 아직 남아 있습니다.' : c.life === 'short' ? '수명(3초)이 지난 쿠키를 브라우저가 지웠습니다.' : '수명을 지정하지 않은 쿠키(세션 쿠키)는 브라우저를 닫을 때 지워집니다.'), R.alive ? '' : 'bad');

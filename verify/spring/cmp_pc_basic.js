@@ -22,7 +22,7 @@ for (const how of ['find', 'new', 'detach'])
     const real = [f.dbName, f.update + '번', f.select + '번', f.stdout === '' ? '(다시 찾지 않음)' : f.stdout];
     if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + k + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
     // 화면의 코드 = Probe가 실행한 코드
-    const want = lesson.code.call(lesson, c).split('\n').join('\\n');
+    const want = lesson.code.call(lesson, c).replace(/^\/\/ [^\n]*생략\)\n/, '').split('\n').join('\\n');   // 맨 위의 "…생략)" 머리 줄은 Probe 코드에 없으니 빼고 견준다
     if (f.code !== want) { good = false; console.log('화면의 코드가 Probe가 실행한 코드와 다름: ' + k + '\n   화면 ' + want + '\n   실행 ' + f.code); }
     // 단계 문장이 기대는 사실
     const sq = sqlList(f.sqls), ob = obsMap(m.obs);

@@ -37,7 +37,7 @@ for (const fetch of ['lazy', 'eager'])
     const real = [describe(atFind).replace('(orders)', '(orders)').replace(/\(orders 테이블만\)/, '(orders)').replace(/\(member 테이블만\)/, '(member)'), use ? describe(atName) : '(그 줄이 없음)', when];
     if (JSON.stringify(sim.row) !== JSON.stringify(real)) { good = false; console.log('다름: ' + k + '\n   모형 ' + sim.row.join(' | ') + '\n   실제 ' + real.join(' | ')); }
     // 화면의 코드 = Probe가 컴파일한 소스
-    const want = lesson.code.call(lesson, c).split('\n').join('\\n');
+    const want = lesson.code.call(lesson, c).replace(/^\/\/ 조회하는 쪽: 메서드 안의 줄만 보임 [^\n]*\n/m, '').split('\n').join('\\n');   // 화면의 "줄만 보임 (…생략)" 주석 줄은 Probe 소스에 없으므로 빼고 비교
     if (f.code !== want) { good = false; console.log('화면의 코드가 Probe가 실행한 코드와 다름: ' + k + '\n   화면 ' + want + '\n   실행 ' + f.code); }
     // 단계 문장이 기대는 사실
     const ob = obsMap(m.obs), o = stmt => ob[stmt] || '';

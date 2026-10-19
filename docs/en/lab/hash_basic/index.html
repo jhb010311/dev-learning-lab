@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Hashing</h1>
 <p><b>What is a hash, and why do we store passwords as hashes?</b></p>
-<p>A hash function is a calculation that gives a mixed-up value of a fixed length, whatever text you put in. The sha256(&quot;pass1234&quot;) in the code is the line that puts pass1234 into the hash function called SHA-256, and the value that comes out is 64 characters of 0-9 and a-f. A hash function has three properties. If you put in the same text, you always get the same value. If even one character is different, you get a completely different value. And you cannot calculate the original text backwards from the value that came out. So at sign-up, the server stores the hash value, not the password itself, and at login, it hashes the entered text the same way and only checks whether it is the same as the stored value. In this lab, you enter the right password, a password that differs by one character, and the stored value itself, once for a server that hashes and stores the password and once for a server that stores it as it is, and you see what happens to the login. (A real service does not store passwords with SHA-256. It uses a dedicated function. See the explanation below for details.)</p>
+<p>A hash function is a calculation that gives a mixed-up value of a fixed length, whatever text you put in. The sha256(&quot;pass1234&quot;) in the code is the line that puts pass1234 into the hash function called SHA-256 (sha256 is a helper method made for this example), and the value that comes out is 64 characters of 0-9 and a-f. A hash function has three properties. If you put in the same text, you always get the same value. If even one character is different, you get a completely different value. And you cannot calculate the original text backwards from the value that came out. So at sign-up, the server stores the hash value, not the password itself, and at login, it hashes the entered text the same way and only checks whether it is the same as the stored value. In this lab, you enter the right password, a password that differs by one character, and the stored value itself, once for a server that hashes and stores the password and once for a server that stores it as it is, and you see what happens to the login. (A real service does not store passwords with SHA-256. It uses a dedicated function. See the explanation below for details.)</p>
 <p>Checked against real execution · Compiled and ran 6 combinations on JDK 21 with javax.tools and checked against the results. The SHA-256 values were also checked against the standard examples, Node.js, and openssl</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,8 @@
 <li>This lab used SHA-256 as it is to show the properties of a hash. Real password storage uses password-only functions such as BCrypt and Argon2, not SHA-256.</li>
 </ul>
 <h2>Code</h2>
-<pre>// At sign-up: store the hash value, not the password itself
+<pre>// Only the lines inside main are shown (class and main declarations, and the helper method sha256 made for this example, omitted)
+// At sign-up: store the hash value, not the password itself
 String saved = sha256(&quot;pass1234&quot;);
 
 // At login: hash the input the same way and compare it with the stored value
@@ -168,6 +169,6 @@ System.out.println(ok);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

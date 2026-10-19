@@ -24,12 +24,12 @@ Lab.register({
   parts: function (c) {
     if (c.topic === 'override') {
       return ['class Animal {\n    String sound() {\n        return "...";\n    }\n}\n\nclass Dog extends Animal {\n' + (c.ov ? '    @Override\n' : '') + '    String ' + (c.typo ? 'sount' : 'sound') + '() {\n        return "Woof";\n    }\n}',
-        '// From here on, the code is inside main\nAnimal a = new Dog();\nSystem.out.println(a.sound());'];
+        '// From here on, the code is inside main (the Main class and main declaration are omitted)\nAnimal a = new Dog();\nSystem.out.println(a.sound());'];
     }
     var decl = (c.ret === 'none' ? '' : '@Retention(RetentionPolicy.' + c.ret + ')\n') + (c.target === 'none' ? '' : '@Target(ElementType.' + c.target + ')\n') + '@interface Timed { }\n\nclass Service {\n    @Timed\n    void work() {\n        System.out.println("work runs");\n    }\n}';
     var body = c.reader
-      ? '// From here on, the code is inside main: the code that reads the annotation\nService service = new Service();\nMethod m = Service.class.getDeclaredMethod("work");\nboolean found = m.isAnnotationPresent(Timed.class);\nSystem.out.println("@Timed visible: " + found);\nif (found) System.out.println("[timing started]");\nm.invoke(service);\nif (found) System.out.println("[timing finished]");'
-      : '// From here on, the code is inside main: no code reads the annotation\nService service = new Service();\nservice.work();';
+      ? '// From here on, the code is inside main: the code that reads the annotation (the Main class, main declaration, and imports are omitted)\nService service = new Service();\nMethod m = Service.class.getDeclaredMethod("work");\nboolean found = m.isAnnotationPresent(Timed.class);\nSystem.out.println("@Timed visible: " + found);\nif (found) System.out.println("[timing started]");\nm.invoke(service);\nif (found) System.out.println("[timing finished]");'
+      : '// From here on, the code is inside main: no code reads the annotation (the Main class, main declaration, and imports are omitted)\nService service = new Service();\nservice.work();';
     return [decl, body];
   },
   code: function (c) { var p = this.parts(c); return p[0] + '\n\n' + p[1]; },

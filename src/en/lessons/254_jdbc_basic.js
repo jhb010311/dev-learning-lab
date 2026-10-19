@@ -17,7 +17,7 @@ Lab.register({
   ],
   // The code on the screen and the source that the checking program (verify/spring/src/JdbcBasicProbe.java) compiled and ran are the same text. The checking script compares them down to the letter.
   code: function (c) {
-    var l = ['// The member table holds one row: (id 1, name kim)', '// Connect: make a connection to the database that the URL points to', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// Tool: the object that sends SQL over this connection', 'Statement st = conn.createStatement();'];
+    var l = ['// Only the lines inside main are shown (class, main declaration, and imports omitted)', '// The member table holds one row: (id 1, name kim)', '// Connect: make a connection to the database that the URL points to', 'Connection conn = DriverManager.getConnection("jdbc:h2:mem:shop");', '// Tool: the object that sends SQL over this connection', 'Statement st = conn.createStatement();'];
     if (c.conn === 'closed') l.push('// Close: cut the connection to the database', 'conn.close();');
     l.push('// Send: send the SQL text to the database and receive the result', 'ResultSet rs = st.executeQuery("' + this.sqlText(c) + '");', '// Read: move to the next row. true if there is a row', 'boolean found = rs.next();', 'System.out.println(found);', 'System.out.println(rs.getString("name"));');
     return l.join('\n');

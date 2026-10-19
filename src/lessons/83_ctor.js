@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ctor', nav: '클래스, 객체, 생성자', cat: '자바 언어', mode: 'step',
   title: 'new를 하면 어떤 순서로 무슨 일이 일어나나',
-  intro: '클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않기도 합니다.',
+  intro: '클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않기도 합니다(Order는 이 실습에서 예시로 만든 클래스입니다).',
   terms: ['클래스와 객체', '생성자', '기본 생성자', '필드의 기본값', 'this'],
   controls: [
     { id: 'ctors', label: 'Order 클래스에 적은 생성자', type: 'select', value: 'chain', options: [['none', '하나도 적지 않음'], ['arg', 'Order(int extra) 하나만'], ['both', 'Order()와 Order(int extra)'], ['chain', 'Order()가 this(1)로 Order(int extra)를 부름']] },
@@ -25,7 +25,7 @@ Lab.register({
     if (c.ctors === 'arg') body += '\n' + argCtor;
     if (c.ctors === 'both' || c.ctors === 'chain') body += '\n' + noArg + '\n' + argCtor;
     var bad = this.bad(c);
-    return 'class Order {\n' + body + '}\n\nOrder o = new Order(' + (c.call === 'arg' ? '3' : '') + ');' + (bad ? '             // 컴파일 오류: 맞는 생성자가 없다' : '') + '\nSystem.out.println(o.qty + ", " + o.memo);';
+    return 'class Order {\n' + body + '}\n\npublic class Main {\n    public static void main(String[] args) {\n        Order o = new Order(' + (c.call === 'arg' ? '3' : '') + ');' + (bad ? '             // 컴파일 오류: 맞는 생성자가 없다' : '') + '\n        System.out.println(o.qty + ", " + o.memo);\n    }\n}';
   },
   label: function (c) { return { none: '생성자 없음', arg: 'Order(int)만', both: 'Order(), Order(int)', chain: 'Order()가 this(1)' }[c.ctors] + ' · ' + (c.call === 'arg' ? 'new Order(3)' : 'new Order()') + ' · ' + (c.first === 'field' ? '초기화식이 위' : '블록이 위'); },
   columns: ['컴파일', '실행된 순서', '출력 (qty, memo)'],
@@ -84,7 +84,7 @@ Lab.register({
       push(chained ? 'Order()의 나머지 본문 memo = "기본": this(1)로 부른 생성자가 끝나 Order()로 돌아왔습니다. memo가 ' + mb + '에서 "기본"으로 바뀝니다. 초기화식과 블록은 다시 실행되지 않습니다.' : 'Order() 본문의 memo = "기본": 초기화가 끝난 뒤에야 생성자 본문이 실행됩니다. null이던 memo에 "기본"이 들어갑니다.');
     }
     st.stack = []; st.cur = ''; st.tgt = ''; st.o = true;
-    push('Order o = ' + callTxt + ': 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 변수 o가 그 참조를 담습니다.');
+    push('Order o = ' + callTxt + ': 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 이제 변수 o가 그 객체를 가리킵니다.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): o가 가리키는 객체의 qty와 memo를 읽어 출력합니다. 출력은 ' + out + '입니다.', 'good');
     sum.push(c.first === 'field' ? '초기화식(10)이 먼저, 그 아래의 블록(20)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 20이었습니다.' : '블록(20)이 먼저, 그 아래의 초기화식(10)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 10이었습니다. 필드 초기화식과 초기화 블록은 위에 적힌 것부터 실행되므로, 둘이 같은 필드를 건드리면 적는 위치가 결과를 바꿉니다.');

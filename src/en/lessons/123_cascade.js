@@ -23,7 +23,7 @@ Lab.register({
     var run = c.act === 'persist' ? 'Post post = new Post("Notice");\npost.addComment("First comment");\npost.addComment("Second comment");\nem.persist(post);                      // persists only the post'
       : c.act === 'remove' ? '// The DB already has post 1 and its two comments\nPost post = em.find(Post.class, 1L);\nem.remove(post);                       // removes only the post'
       : '// The DB already has post 1 and its two comments\nPost post = em.find(Post.class, 1L);\npost.getComments().remove(0);          // takes the first comment out of the list';
-    return ent + '// Runs inside a transaction\n' + run + '\n// The commit happens when the method ends';
+    return ent + '// Runs inside a transaction (imports, the method declaration, and the declaration of EntityManager em omitted)\n' + run + '\n// The commit happens when the method ends';
   },
   label: function (c) { return { persist: 'Persist only the post', remove: 'Remove the post', orphan: 'Take a comment out of the list' }[c.act] + ' · cascade ' + (c.cas === 'none' ? 'none' : c.cas) + (c.orphan ? ' · orphanRemoval' : ''); },
   columns: ['Read SQL', 'Write SQL', 'Exception', 'Rows left in the DB after it ends'],

@@ -35,7 +35,7 @@ Lab.register({
     if (mod === 'package') return false;
     return from === 'subThis' || from === 'subChild';
   },
-  message: function (mod) { return { private: 'balance has private access in bank.Account', package: 'balance is not public in bank.Account; cannot be accessed from outside package', protected: 'balance has protected access in bank.Account' }[mod]; },
+  message: function (mod) { return { private: 'balance has private access in Account', package: 'balance is not public in Account; cannot be accessed from outside package', protected: 'balance has protected access in Account' }[mod]; },
   simulate: function (c) {
     var ev = [], sum = [], mod = c.mod, from = c.from, ok = this.allowed(mod, from), msg = ok ? '' : this.message(mod), sub = from.indexOf('sub') === 0, reason = '';
     var st = { step: '', checks: [], verdict: '', msg: '', reason: '' };
@@ -106,7 +106,7 @@ Lab.register({
   places: [['same', 'Inside the same class, Account'], ['pkg', 'Teller in the same package'], ['subThis', 'Subclass in another package: this'], ['subChild', 'Subclass in another package: subclass-type variable'], ['subParent', 'Subclass in another package: superclass-type variable'], ['other', 'Unrelated class Report in another package']],
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
-    if (!s) { H.text(v, 'Click Run to go through the checks one step at a time, in the order the compiler considers them.'); return; }
+    if (!s) { H.text(v, 'Click Run to go through the access rules one check at a time.'); return; }
     var ln = H.lanes(v), modT = { private: 'private', package: 'No access modifier (package-private)', protected: 'protected', public: 'public' }[c.mod];
     H.lane(ln, 'Declaration of balance', modT, 'wait');
     H.lane(ln, 'Code that reads it', s.step === 'decl' ? 'not looked at yet' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');

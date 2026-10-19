@@ -16,7 +16,8 @@ Lab.register({
     { t: 'Digital signature: sign with someone else\'s key', q: 'What if you use a Digital signature (sign with the private key, verify with the public key) and try a different key (or no key)?', d: 'Verifying with the public key reveals that it is fake.', v: { tool: 'sign', act: 'wrong' } },
   ],
   code: function (c) {
-    return {
+    var head = '// Only the lines inside a method are shown (class and method declarations, imports, and ' + (c.tool === 'hash' ? 'the line that creates message' : 'the lines that create message and the key variables') + ' omitted)\n';
+    return head + {
       hash: 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] digest = md.digest(message.getBytes(UTF_8));\n// There is no key. Anyone gets the same value from the same input.',
       sym: 'Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");\ncipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\n// To decrypt, use the same secretKey\ncipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));',
       asym: 'Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");\ncipher.init(Cipher.ENCRYPT_MODE, publicKey);      // lock with the public key,\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\ncipher.init(Cipher.DECRYPT_MODE, privateKey);     // only the private key opens it',

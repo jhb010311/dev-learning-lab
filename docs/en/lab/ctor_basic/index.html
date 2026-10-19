@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=9f4c93bdfb">
+<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,14 +58,14 @@
 <li>The compiler checks the line Card a = new Card(&quot;Alice&quot;); in Main. When you create an object with new, Card must have a constructor that fits the value you pass. Here you passed one String value, and Card(String owner) takes one String value, so it fits.</li>
 <li>Compilation succeeds and the Main class file that will run is created. Whether a constructor fits the value you passed is not checked at run time. The compiler checked it just now, while compiling.</li>
 <li>You run it with java Main. main starts, and at the line Card a = new Card(&quot;Alice&quot;); Java meets new and first creates a new Card object. Nothing has been put into the owner of this object yet, so it is empty (null).</li>
-<li>Next, Java runs the Card constructor. Nothing in the code we wrote has a line that calls the constructor. It is new that makes it run. The &quot;Alice&quot; that you passed is put into the parameter owner.</li>
+<li>Next, Java runs the Card constructor. Nothing in the code we wrote has a line that calls the constructor. It is new that makes it run. The parameter owner refers to the &quot;Alice&quot; that you passed.</li>
 <li>System.out.println(&quot;constructor ran&quot;) inside the constructor runs, and &quot;constructor ran&quot; is printed. This line is there so that you can see the constructor run every time new is used.</li>
-<li>this.owner = owner runs. this is the object that is being created right now. The &quot;Alice&quot; held in the parameter owner is copied into the field owner of that object. The field and the parameter have the same name, so this.owner (the field) and owner (the parameter) tell them apart. When the constructor ends, the variable a refers to this object.</li>
-<li>System.out.println(a.owner) runs. The &quot;Alice&quot; held in the owner of the object that a refers to is printed.</li>
+<li>this.owner = owner runs. this is the object that is being created right now. Now the field owner of that object also refers to the &quot;Alice&quot; that the parameter owner refers to. The field and the parameter have the same name, so this.owner (the field) and owner (the parameter) tell them apart. When the constructor ends, the variable a refers to this object.</li>
+<li>System.out.println(a.owner) runs. It reads the field owner of the object that a refers to, and &quot;Alice&quot; is printed.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>A constructor is a block of code that you write inside a class, with the same name as the class and no return type. It differs from an ordinary method in that we do not call it by name. When new Card(&quot;Alice&quot;) ran, Java created a new object, then the constructor ran and copied the &quot;Alice&quot; it received as a parameter into the owner of the new object.</li>
+<li>A constructor is a block of code that you write inside a class, with the same name as the class and no return type. It differs from an ordinary method in that we do not call it by name. When new Card(&quot;Alice&quot;) ran, Java created a new object, then the constructor ran and made the owner of the new object refer to the &quot;Alice&quot; it received as a parameter.</li>
 <li>Nothing in the code we wrote had a line that calls the constructor. It is new that made it run. Whether a constructor fits the value you passed was not checked at run time. The compiler checked it while compiling.</li>
 </ul>
 <h2>Code</h2>
@@ -173,6 +173,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=9f4c93bdfb"></script>
+<script src="../../app.js?v=00f3cd281a"></script>
 </body>
 </html>

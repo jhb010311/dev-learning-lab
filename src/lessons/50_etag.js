@@ -18,7 +18,7 @@ Lab.register({
   ],
   code: function (c) {
     var h = { nostore: 'CacheControl.noStore()', max: 'CacheControl.maxAge(60, TimeUnit.SECONDS)', nocache: 'CacheControl.noCache()' }[c.cc];
-    return '@GetMapping("/products/{id}")\nResponseEntity<Product> get(@PathVariable long id) {\n    Product p = productService.find(id);\n    return ResponseEntity.ok()\n        .cacheControl(' + h + ')\n' + (c.cc === 'nostore' ? '' : '        .eTag("\\"v' + '" + p.getVersion() + "\\"")     // 내용의 버전 표시\n') + '        .body(p);\n}\n\n// 요청의 If-None-Match가 현재 ETag와 같으면\n// 스프링이 본문 없이 304 Not Modified로 응답한다';
+    return '// 컨트롤러 클래스 안의 메서드만 보임 (클래스 선언, productService 필드, 예시로 만든 Product 클래스, import는 생략)\n@GetMapping("/products/{id}")\nResponseEntity<Product> get(@PathVariable long id) {\n    Product p = productService.find(id);\n    return ResponseEntity.ok()\n        .cacheControl(' + h + ')\n' + (c.cc === 'nostore' ? '' : '        .eTag("\\"v' + '" + p.getVersion() + "\\"")     // 내용의 버전 표시\n') + '        .body(p);\n}\n\n// 요청의 If-None-Match가 현재 ETag와 같으면\n// 스프링이 본문 없이 304 Not Modified로 응답한다';
   },
   label: function (c) { return { nostore: 'no-store', max: 'max-age=60 · ' + c.when + '초 뒤', nocache: 'no-cache' }[c.cc] + (c.chg ? ' · 내용 바뀜' : ' · 내용 그대로'); },
   columns: ['두 번째에 서버로 간 요청', '응답', '전송된 본문', '화면에 보인 내용'],
