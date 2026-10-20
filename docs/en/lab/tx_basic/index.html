@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5a1657045c">
+<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,7 +56,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The main of the program calls the order() method of the OrderService object that Spring created. This object is not the class we wrote as it is but an object of another class that Spring made (a proxy), so the call goes through the code of Spring before it reaches the first line of order(). The two tables, orders and payment, have no rows yet.</li>
+<li>The main of the program calls the order() method of the OrderService object that Spring created. Because order() has @Transactional, this object is not the class we wrote as it is but an object of another class that Spring made (a proxy). Spring does not make every bean a proxy; it makes a proxy only for a bean that has work to add like this. So the call goes through the code of Spring before it reaches the first line of order(). The two tables, orders and payment, have no rows yet.</li>
 <li>Before it enters the order() method, Spring starts a transaction. That is because order() has @Transactional above it. From now on, the saves made inside order() belong to one transaction, and they are not final in the database until the transaction ends. The line that starts the transaction is not in the code we wrote.</li>
 <li>jdbc.update saves one row of an order (1, keyboard) to the orders table. This save is inside the transaction, so it is not final yet. If you open a separate connection to the same database and count orders, it has 0 rows.</li>
 <li>With int stock = 0, the condition of the next line, if (stock == 0), is true, so IllegalStateException(&quot;Out of stock&quot;) is thrown. The order() method ends with the exception without running the line that saves the payment.</li>
@@ -182,6 +182,6 @@ public class OrderService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5a1657045c"></script>
+<script src="../../app.js?v=ecc1a00f8f"></script>
 </body>
 </html>

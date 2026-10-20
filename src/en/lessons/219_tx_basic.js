@@ -40,7 +40,7 @@ Lab.register({
 
     // 1. main calls order()
     push('The main of the program calls the order() method of the OrderService object that Spring created. ' + (tx
-      ? 'This object is not the class we wrote as it is but an object of another class that Spring made (a proxy), so the call goes through the code of Spring before it reaches the first line of order().'
+      ? 'Because order() has @Transactional, this object is not the class we wrote as it is but an object of another class that Spring made (a proxy). Spring does not make every bean a proxy; it makes a proxy only for a bean that has work to add like this. So the call goes through the code of Spring before it reaches the first line of order().'
       : 'This object is the OrderService class we wrote, as it is, so the call goes straight into the first line of order().') + ' The two tables, orders and payment, have no rows yet.', '');
 
     // 2. (If there is @Transactional) Spring starts the transaction
