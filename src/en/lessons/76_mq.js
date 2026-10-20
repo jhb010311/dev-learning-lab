@@ -1,6 +1,8 @@
 Lab.register({
   id: 'mq', nav: 'Message queue basics', cat: 'Message queues', mode: 'step',
   title: 'Leave a note instead of calling directly',
+  why: 'If one server calls another server directly and waits until it finishes, the response is delayed as much as the other side is slow, and if the other side is stopped, the request fails too. A message queue puts a place between the two servers where messages are stored, so the sending side responds without waiting for the result, and the receiving side, after stopping and coming back, processes the backed-up messages starting with the oldest.',
+  use: 'It is used to hand off follow-up work that the response does not immediately need, such as sending a confirmation email after an order or creating a thumbnail of an uploaded image, and tools such as RabbitMQ, Kafka, and Amazon SQS do this job. It is also used when several services must each receive and process one event. For work where you must receive the result before going to the next step, such as payment approval, a direct call is kept.',
   intro: 'When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says "send the email" in a queue and respond right away.',
   terms: ['Message queue', 'Synchronous and asynchronous', 'Pub/Sub', 'Message delivery guarantees', 'Eventual consistency'], ranks: ['mq', 'msa'],
   controls: [

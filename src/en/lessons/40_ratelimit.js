@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ratelimit', nav: 'Rate limiting', cat: 'High traffic', mode: 'step',
   title: 'Three meanings of "accept only 5 requests per second"',
+  why: 'If the number of requests is not limited, when requests beyond the processing capacity pile up, threads and DB connections run out, and all requests become slow or fail together. Rate limiting counts requests at the entrance and returns those over the limit with 429 before work starts, so that the requests that were accepted are still processed properly.',
+  use: 'It is used on public APIs to set the number of calls per minute for each API key or user, and in places where repeated attempts must be blocked, such as login or sending verification text messages. When there are several servers, the counts each one has taken do not add up, so counting is done together in a shared store such as Redis or in an API gateway (Spring Cloud Gateway\'s RequestRateLimiter filter provides a token bucket implementation that counts with Redis).',
   intro: 'When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of "5 requests per second" lets different requests through, depending on how you count.',
   terms: ['Rate limiting', 'HTTP status codes', 'API gateway'], ranks: ['traffic', 'msa'],
   controls: [

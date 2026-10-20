@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › DB</p>
 <h1>트랜잭션</h1>
 <p><b>트랜잭션은 무엇을 묶고, COMMIT과 ROLLBACK은 무엇을 하는가</b></p>
+<p><b>왜 생겼나</b> — 두 문장 사이에서 프로그램이 오류로 멈추거나 서버의 전원이 꺼지면, 트랜잭션이 없을 때는 앞 문장의 변경만 DB에 남는다. 그것을 되돌리려면 무엇을 바꿨는지 프로그램이 기억해 두었다가 반대로 고쳐야 하는데, 이미 멈춘 프로그램은 그럴 수도 없다. 트랜잭션은 확정되지 않은 변경을 DB가 스스로 취소하게 해서, 이 뒷수습을 DB가 맡는다.</p>
+<p><b>지금 어디에 쓰나</b> — 포인트를 쓰면서 결제 기록을 남길 때, 주문을 넣으면서 재고를 줄일 때처럼 여러 문장이 함께 성공해야 하는 곳에 쓴다. 스프링으로 만든 자바 프로그램에서는 보통 BEGIN과 COMMIT을 직접 쓰지 않고, 메서드에 @Transactional을 붙여 스프링이 그 앞뒤에서 같은 일을 하게 한다.</p>
 <p>계좌 1에서 300을 빼고 계좌 2에 300을 더하는 일은 UPDATE 두 문장입니다. 하나만 반영되면 돈이 사라지거나 생깁니다. 트랜잭션은 이런 여러 문장을 &quot;모두 반영되거나 모두 없던 일이 되는&quot; 한 묶음으로 만드는 것입니다. 코드에서는 BEGIN이라는 문장으로 묶음을 시작하고, COMMIT이나 ROLLBACK으로 끝냅니다. COMMIT은 묶음에서 한 일을 전부 확정해 다른 연결에서도 보이게 하고, ROLLBACK은 묶음에서 한 일을 전부 취소합니다. 확정하기 전의 변경은 다른 연결에서 보이지 않습니다. (MySQL에서는 BEGIN 대신 START TRANSACTION이라고 쓰는 것이 표준이며 같은 뜻입니다. 이 실습을 대조한 H2는 START TRANSACTION을 받지 않아서 BEGIN으로 적었습니다.) 이 실습은 BEGIN을 지우거나 COMMIT을 ROLLBACK으로 바꾸거나 끝내는 문장을 지워 가며 같은 UPDATE 두 개를 실행하고, 다른 연결에서 읽은 잔액이 어떻게 달라지는지를 봅니다.</p>
 <p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조, 규칙은 MySQL 문서와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>트랜잭션</dt>
 <dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
 <dt>커밋과 롤백</dt>
+<dd><b>지금 어디에 쓰나</b> — 계좌 이체처럼 여러 번 고쳐야 하는 일을 모두 반영하거나 모두 취소할 때 쓴다. DB 도구로 데이터를 손으로 고칠 때도 트랜잭션을 연 뒤 SELECT로 결과를 보고, 맞으면 COMMIT, 틀리면 ROLLBACK을 보낸다.</dd>
 <dd>커밋(commit)은 트랜잭션 안에서 한 데이터 변경을 모두 DB에 확정해 반영하는 것이고, 롤백(rollback)은 그 변경을 모두 취소해 트랜잭션을 시작하기 전 상태로 되돌리는 것이다. 트랜잭션은 끝날 때 둘 중 하나로 끝나며, 이미 커밋한 변경은 롤백으로 되돌릴 수 없다. 스프링에서 @Transactional이 붙은 메서드는 정상으로 끝나면 스프링이 커밋하고, 예외로 끝나면 롤백 규칙을 보고 롤백한다. 기본 규칙에서는 RuntimeException과 Error가 메서드 밖으로 던져지면 롤백하고 체크 예외는 롤백하지 않는다. 트랜잭션이 없으면 JDBC 연결의 기본 설정인 자동 커밋에 따라 저장 문장마다 곧바로 커밋되므로, 뒤에서 예외가 나도 앞의 저장은 롤백할 수 없다.</dd>
 <dt>자동 커밋(autocommit)</dt>
+<dd><b>왜 생겼나</b> — 문장 하나를 실행할 때마다 시작과 COMMIT을 따로 적어야 한다면 번거롭고, COMMIT을 잊으면 바뀐 내용이 확정되지 않은 채 남는다. 자동 커밋은 묶지 않은 문장을 하나씩 바로 확정해서 이 수고를 덜어 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — DB 도구에서 SQL 한 줄을 실행하면 보통 이 방식으로 바로 반영된다. 자바 프로그램이 DB에 처음 연결할 때도 켜져 있고, 스프링은 여러 문장을 한 트랜잭션으로 묶는 동안 이것을 꺼 둔다.</dd>
 <dd>자동 커밋은 트랜잭션을 따로 시작하지 않았을 때 DB가 SQL 문장 하나하나를 실행하자마자 커밋하는 방식이다. MySQL은 새 연결을 자동 커밋을 켠 채로 시작하므로, 문장 하나가 곧 트랜잭션 하나이고 그 결과가 바로 확정되어 다른 연결에서도 보인다. 이렇게 확정된 문장은 ROLLBACK으로 되돌릴 수 없다. 트랜잭션을 시작하면 COMMIT이나 ROLLBACK으로 끝낼 때까지 자동 커밋이 꺼지고, 끝나면 이전 상태로 돌아온다. 자동 커밋을 끈 세션이 마지막 트랜잭션을 확정하지 않고 끝나면 MySQL(InnoDB)은 그 트랜잭션을 롤백한다.</dd>
 <dt>BEGIN, COMMIT, ROLLBACK 문</dt>
+<dd><b>왜 생겼나</b> — 자동 커밋만 있으면 문장마다 바로 확정되어 여러 문장을 하나로 묶을 수 없다. BEGIN과 COMMIT은 묶음의 처음과 끝을 DB에 알려서, 그 사이의 문장을 한꺼번에 확정하거나 ROLLBACK으로 한꺼번에 취소하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — DB 도구에서 데이터를 손으로 고칠 때 BEGIN으로 시작해 SELECT로 결과를 확인하고, 맞으면 COMMIT, 틀렸으면 ROLLBACK한다.</dd>
 <dd>트랜잭션을 시작하고 끝내는 SQL 문장이다. BEGIN은 트랜잭션을 시작하는 문장이고, MySQL에서는 START TRANSACTION과 같은 뜻이다(START TRANSACTION이 표준 SQL 문법이라 권장된다). COMMIT은 지금까지 트랜잭션 안에서 한 변경을 모두 영구히 확정하고, ROLLBACK은 그 변경을 모두 취소한다. 기본 설정에서는 자동 커밋이 켜져 있어, 시작하는 문장이 없으면 COMMIT과 ROLLBACK이 확정하거나 취소할 트랜잭션이 없다. MySQL의 저장 프로그램(프로시저, 트리거 등) 안에서는 BEGIN이 BEGIN ... END 블록의 시작으로 해석되므로 START TRANSACTION을 써야 하고, 시작하는 문장의 문법은 DB마다 조금씩 다르다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +99,10 @@ SELECT * FROM account ORDER BY id;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +176,10 @@ SELECT * FROM account ORDER BY id;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

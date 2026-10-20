@@ -1,6 +1,8 @@
 Lab.register({
   id: 'gateway', nav: 'Gateway and gradual migration', cat: 'Microservices', mode: 'step',
   title: 'Breaking up a huge server piece by piece without stopping it',
+  why: 'If an old, huge server is replaced with a newly built system all at once, you have to wait a long time until the new system is completely built, and a problem that appears on the day of the switch spreads to every feature at the same time. If an API gateway in front decides where each route\'s requests go, you can move features to new services one at a time, and send only the route that has a problem back to the existing server.',
+  use: 'It serves as the entrance to a system split into several services: the web and mobile apps call several services through one address, and requests without a login token are stopped before they reach the internal services. In a migration that moves an existing server to new services bit by bit, it is used to change where each route is sent. In Spring, Spring Cloud Gateway is used, and a reverse proxy such as Nginx is sometimes used to split only the paths.',
   intro: 'You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change.',
   terms: ['API gateway', 'Strangler fig pattern', 'Monolithic architecture and microservice architecture', 'Reverse proxy', 'Rolling, blue-green, and canary deployments'], ranks: ['msa', 'design', 'deploy'],
   controls: [

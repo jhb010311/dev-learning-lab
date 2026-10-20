@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>JPQL</h1>
 <p><b>JPQL은 무엇이고, SQL과 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — SQL을 글자로 직접 쓰면 테이블과 열 이름이 코드 곳곳에 퍼지고, 돌아온 행을 객체로 옮기는 일도 손으로 해야 한다. JPQL은 자바 코드에서 쓰는 엔티티 클래스와 필드 이름으로 조건을 적게 하고, SQL로 바꾸는 일과 결과를 엔티티 객체로 만드는 일은 JPA가 맡는다.</p>
+<p><b>지금 어디에 쓰나</b> — 조건에 맞는 목록 찾기, 정렬, 개수 세기처럼 번호 하나로 한 건을 찾는 것 말고 다른 조회에 쓴다. 스프링 데이터 JPA에서는 리포지토리 메서드 위의 @Query 애너테이션에 JPQL을 적는다. 특정 DB에만 있는 기능이 꼭 필요하면 @Query에 nativeQuery = true를 붙여 SQL을 직접 적는다.</p>
 <p>em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수에 담은 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어 list에 담습니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 화면의 코드째 컴파일해 실행하고, 나간 SQL과 돌아온 객체와 오류가 난 줄을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>JPQL</dt>
 <dd>테이블이 아니라 엔티티와 그 필드를 대상으로 작성하는 JPA의 쿼리 언어다. SQL과 문법이 비슷하며, 실행할 때 JPA 구현체가 사용 중인 데이터베이스에 맞는 SQL로 변환한다. 특정 데이터베이스의 문법에 의존하지 않는다는 장점이 있다.</dd>
 <dt>em.createQuery와 getResultList</dt>
+<dd><b>지금 어디에 쓰나</b> — 이름이나 상태 같은 조건으로 엔티티 여러 개를 찾을 때 쓴다. 결과가 꼭 하나인 조회에는 getSingleResult를 쓰고, 스프링 데이터 JPA에서는 @Query에 JPQL을 적어 같은 일을 한다.</dd>
 <dd>em.createQuery(글, 결과 클래스)는 JPQL로 쓴 글을 JPA에 넘겨 쿼리 객체(TypedQuery)를 만들어 돌려주는 메서드이고, 그 쿼리 객체의 getResultList()는 SELECT 쿼리를 실행해 결과를 목록(List)으로 돌려주는 메서드이다. 글이 잘못되었거나 결과 클래스가 맞지 않으면 createQuery가 IllegalArgumentException을 던진다고 API 문서가 정한다. Hibernate 7.4.5에서 관찰하면 글 속의 엔티티 이름과 필드 이름이 틀린 오류는 getResultList가 아니라 createQuery 줄에서 났고, DB로 SQL이 나가는 것은 getResultList 줄이었다. 반대로 em.find(클래스, 기본 키)는 기본 키 값 하나로 엔티티 하나를 찾는 메서드여서, 조건으로 여러 개를 찾을 때는 쿼리를 쓴다.</dd>
 <dt>엔티티 이름과 필드 이름</dt>
 <dd>JPQL은 테이블과 열이 아니라 엔티티와 그 필드를 대상으로 쓰는 쿼리여서, from 뒤에는 엔티티 이름을, 조건에는 그 엔티티의 필드 이름을 적는다. Jakarta Persistence 명세 4.3.1절은 쿼리 문자열에서 엔티티를 엔티티 이름으로 가리키며 이름은 @Entity의 name이고 정하지 않으면 엔티티 클래스의 비한정 이름(패키지를 뺀 클래스 이름)이 된다고 정한다. Hibernate 안내서는 HQL과 JPQL에서 데이터베이스의 테이블과 열을 직접 가리킬 수 없다고 적는다. 그래서 클래스가 @Table로 member_tbl 테이블에, 필드가 @Column으로 user_name 열에 짝지어져 있어도 JPQL에는 클래스 이름 Member와 필드 이름 name을 쓰고, 테이블 이름이나 열 이름을 적으면 오류가 난다.</dd>
 <dt>@Table</dt>
+<dd><b>왜 생겼나</b> — @Table이 없으면 테이블 이름이 엔티티 이름을 따르므로, 이미 있는 테이블의 이름이 클래스 이름과 다르면 클래스 이름을 테이블에 맞춰 지어야 한다. @Table은 클래스 이름은 그대로 두고 테이블 이름만 따로 정하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — order처럼 SQL 예약어와 겹치는 이름을 피해 orders로 정할 때, 회사가 정한 tbl_ 같은 이름 규칙을 따를 때 쓴다. uniqueConstraints로 여러 열을 묶은 유니크 제약을 함께 적기도 한다.</dd>
 <dd>@Table은 엔티티 클래스 위에 붙여, 그 엔티티가 짝이 되는 테이블(주 테이블)을 정하는 애너테이션이다. name에 테이블 이름을 적고, 적지 않으면 엔티티 이름이 쓰인다고 API 문서가 정하며, @Table 자체를 붙이지 않아도 이 기본값이 적용된다. 이 이름은 SQL에 나가는 테이블 이름일 뿐이어서, JPQL의 from 뒤에는 쓸 수 없고 클래스의 엔티티 이름을 적어야 한다. 필드에 대응하는 열 이름을 정하는 것은 @Column의 name이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -97,6 +102,10 @@ List&lt;Member&gt; list = query.getResultList();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ List&lt;Member&gt; list = query.getResultList();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

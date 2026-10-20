@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Bean creation and injection</h1>
 <p><b>In what order does Spring create objects and wire them together?</b></p>
+<p><b>Why it exists</b> — If an object creates the objects it needs directly with new, then every time you change the implementation or swap in a fake object for a test, you have to change that code, and where each object is created gets scattered around. With Spring's DI, an object only receives what it needs, for example as constructor arguments, and the container creates the actual objects and connects them in one place, so you can change the connections without changing the code that uses them.</p>
+<p><b>Where it's used today</b> — In a Spring application, the connections where a controller receives a service and a service receives a repository are usually made in this way. The Spring documentation recommends constructor injection, which receives required objects through the constructor, and in tests you pass fake objects to the same constructor and check without starting Spring.</p>
 <p>When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends on the injection style, and when two beans need each other (a circular dependency), startup can fail. OrderController, OrderService, PaymentService and OrderRepository in this lab are classes made for this example.</p>
 <p>Checked against real execution · All 12 combinations were started on Spring Boot 4.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>Dependency injection (DI)</dt>
 <dd>This is an approach in which an object does not create the other objects it uses (its dependencies) but receives them from outside. In Spring, the container supplies the dependencies through a constructor, a setter, or a field as it creates a bean. It becomes easier to change the implementing class or to put in a fake object in a test, and the coupling between classes becomes lower.</dd>
 <dt>Constructor injection, setter injection, and field injection</dt>
+<dd><b>Where it's used today</b> — For Spring code you write from scratch, constructor injection is the default, and if there is only one constructor, Spring injects through it even without @Autowired. Lombok's @RequiredArgsConstructor is often used to have the constructor generated.</dd>
 <dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
 <dt>Spring bean</dt>
 <dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
@@ -106,6 +109,10 @@ class OrderRepository {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -179,9 +186,10 @@ class OrderRepository {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

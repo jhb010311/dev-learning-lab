@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>Session hijacking and session fixation</h1>
 <p><b>Whoever knows the session ID is that user</b></p>
+<p><b>Why it exists</b> — Anyone who gets hold of just the session ID can become that user without the password, so you have to block separately the ways an ID can be decided in advance by someone else or taken along the way. Session fixation protection, which changes the session ID to a new value at login, makes an ID that was known in advance useless. The HttpOnly and Secure cookie attributes block the way a script on the page reads the ID and the way the ID is sent over an unencrypted HTTP connection.</p>
+<p><b>Where it's used today</b> — Spring Security changes the session ID when login succeeds, even if you configure nothing (changeSessionId), and the embedded Tomcat of Spring Boot adds HttpOnly to the session cookie. On a production server, you add Secure with server.servlet.session.cookie.secure, clear the session at logout, and keep the session lifetime short to reduce the time during which a leaked ID can be used.</p>
 <p>The server decides &quot;whose request this is&quot; only from the session ID that arrives in the request's cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session.</p>
 <p>Checked against real execution · A Spring Boot 4.1.1 and Spring Security 7.1.1 server was started on 127.0.0.1, and the session ID before and after login and the responses were checked for all 12 combinations</p>
 <h2>Concepts in this lab</h2>
@@ -42,6 +44,8 @@
 <dt>Session fixation</dt>
 <dd>An attack in which the attacker makes the victim's browser use a session ID the attacker already knows, and then waits for the victim to log in with that session. If the session ID is the same before and after login, the ID the attacker knows becomes the ID of the logged-in session at the moment the victim logs in. The defense is for the server to change the session ID to a new value when login succeeds. Spring Security changes the session ID at login even if you configure nothing, and choosing none in the sessionFixation setting turns this protection off.</dd>
 <dt>HttpOnly, Secure, and SameSite</dt>
+<dd><b>Why it exists</b> — A cookie could originally be read by scripts on the page, and it was sent along even over unencrypted HTTP connections and with requests that started from other sites. The server attaches these attributes to each cookie in the Set-Cookie header to choose and block these paths.</dd>
+<dd><b>Where it's used today</b> — It is usual to attach all three to a login session cookie. In Spring Boot, they are attached to the session cookie with the http-only, secure, and same-site settings under server.servlet.session.cookie.</dd>
 <dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks.</dd>
 <dt>Cookie</dt>
 <dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
@@ -111,6 +115,10 @@ String add(@RequestParam String item, HttpSession session) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -184,9 +192,10 @@ String add(@RequestParam String item, HttpSession session) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

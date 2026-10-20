@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
 <h1>CDN</h1>
 <p><b>원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나</b></p>
+<p><b>왜 생겼나</b> — 원본 서버 한 대가 모든 사용자에게 파일을 직접 보내면, 멀리 있는 사용자는 오가는 거리만큼 기다리고 사용자가 몰릴 때는 그 서버와 회선이 부담을 혼자 진다. CDN은 같은 파일을 여러 지역의 서버가 나눠 보내게 해서, 거리 때문에 생기는 지연과 원본으로 몰리는 요청을 함께 줄인다.</p>
+<p><b>지금 어디에 쓰나</b> — 이미지, 동영상, CSS와 JS 파일처럼 모든 사용자가 똑같이 받는 파일을 보내는 데 주로 쓴다. 이런 파일은 이름에 해시나 버전을 붙여 내용이 바뀔 때마다 주소도 바뀌게 하고, 유효 시간은 길게 잡는다. 로그인한 사용자마다 다른 화면이나 자주 바뀌는 API 응답은 보통 사본을 두지 않고 오리진이 직접 답하게 한다.</p>
 <p>CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다.</p>
 <p>일부만 실행으로 확인 · 오리진과 직접 만든 캐싱 서버(엣지 역할)를 127.0.0.1에 띄워 열여섯 가지 조합을 실행해 대조. 실제 CDN 서비스로는 확인하지 않음</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,10 +42,13 @@
 <dt>오리진과 엣지</dt>
 <dd>오리진은 파일의 원본을 가진 서버이고, 엣지는 사용자와 가까운 곳에 놓여 그 사본을 보관했다가 대신 답하는 CDN의 서버다. 사용자의 요청은 먼저 엣지에 도착하며, 엣지에 쓸 수 있는 사본이 있으면 바로 답하고(HIT) 없으면 오리진에서 받아 와 전달하면서 보관한다(MISS). 엣지는 오리진이 응답 헤더로 정해 준 유효 시간 동안에는 오리진에 다시 묻지 않는다. 그래서 응답이 빨라지고 오리진의 부하가 줄지만, 그동안 오리진에서 바뀐 내용은 엣지에 반영되지 않는다.</dd>
 <dt>캐시 키</dt>
+<dd><b>지금 어디에 쓰나</b> — 언어마다 응답이 다른 사이트는 Accept-Language 헤더처럼 언어를 가리키는 값을 캐시 키에 넣어, 다른 언어의 사본이 잘못 나가지 않게 한다. 광고 추적용 utm_source 같은 쿼리 문자열은 캐시 키에서 빼서, 같은 파일의 사본이 갈라지지 않게 한다.</dd>
 <dd>캐시가 보관한 사본을 찾을 때 쓰는 이름표다. HTTP 캐시는 기본적으로 요청 메서드와 주소 전체(호스트, 경로, 쿼리 문자열)를 캐시 키로 쓴다. CDN은 제품과 설정에 따라 캐시 키에 넣는 값이 다르며, 쿼리 문자열을 기본으로는 넣지 않는 CDN도 있다(CloudFront의 기본 캐시 키는 도메인 이름과 경로다). 쿼리 문자열이 캐시 키에 들어가면 같은 파일이라도 쿼리 문자열이 한 글자만 달라도 다른 사본으로 취급되어 원본 서버에 다시 다녀온다. 이 성질을 거꾸로 이용해 파일이 바뀔 때마다 주소의 버전 값을 바꾸면 옛 사본을 지우지 않고도 새 내용을 내보낼 수 있다. 내용과 무관한 쿼리 문자열 때문에 사본이 잘게 나뉘지 않도록, CDN에는 캐시 키에 넣을 값과 뺄 값을 정하는 설정이 있다.</dd>
 <dt>캐시 무효화(Purge)</dt>
+<dd><b>지금 어디에 쓰나</b> — 잘못 올린 이미지나 개인 정보가 실린 파일을 급히 내려야 할 때, 또는 주소를 바꿀 수 없는 index.html 같은 첫 화면 파일을 배포한 직후에 쓴다.</dd>
 <dd>유효 시간이 아직 남은 사본을 캐시에서 강제로 지우는 일이다. 원본을 바꿨는데 CDN의 엣지가 옛 사본을 계속 내보낼 때, 해당 주소의 무효화를 요청하면 다음 요청부터 원본에서 새로 받아 온다. HTTP 표준에 정해진 기능이 아니라 CDN이나 프록시 제품이 저마다 제공하는 기능이며, 주소 하나 단위나 경로 묶음 단위로 지운다. 엣지의 사본만 지울 뿐 사용자의 브라우저가 따로 보관한 사본은 지우지 못한다. 그래서 자주 바뀌는 파일은 무효화에 기대기보다 주소에 버전이나 해시를 넣는 방식을 함께 쓴다.</dd>
 <dt>TTL(Time To Live)</dt>
+<dd><b>지금 어디에 쓰나</b> — Redis에서는 EXPIRE나 SET의 EX 옵션으로 정한다. 캐시 말고도 휴대폰 인증번호, 세션, 분산 락처럼 일정 시간 뒤 저절로 사라져야 하는 값에 쓴다.</dd>
 <dd>데이터가 유효한 시간이다. 캐시에 값을 넣을 때 TTL을 지정하면 그 시간이 지난 뒤 자동으로 삭제된다. 원본과 어긋난 값이 캐시에 무기한 남는 것을 막는 기본적인 안전장치다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -110,6 +115,10 @@ http.createServer(async (req, res) =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +192,10 @@ http.createServer(async (req, res) =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

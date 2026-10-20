@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,22 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 웹 애플리케이션과 성능</p>
 <h1>DTO로 바로 조회하기</h1>
 <p><b>엔티티로 조회해 옮기는 것과 DTO로 바로 조회하는 것은 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 보여 주기만 할 값을 엔티티로 읽으면, 영속성 컨텍스트가 변경 감지를 위해 그 엔티티와 처음 상태를 함께 보관하고, 지연 로딩으로 둔 팀의 이름 하나를 꺼내려 해도 조회가 따로 나간다. JPQL 생성자 표현식은 조인한 테이블의 값까지 SELECT 한 번으로 골라 DTO 객체를 만들고, 그 DTO는 관리 대상이 아니어서 이런 부담이 없다.</p>
+<p><b>지금 어디에 쓰나</b> — 목록 화면이나 통계처럼 읽기만 하고 고치지 않는 조회, 여러 테이블에서 몇 컬럼씩 모아 API 응답으로 내보내는 조회에 쓴다. 스프링 데이터 JPA에서는 @Query에 같은 new 구문을 적거나, 필요한 getter만 둔 인터페이스로 받는 프로젝션을 쓴다. 조회한 뒤 값을 고쳐 저장해야 하면 엔티티로 조회한다.</p>
 <p>화면에 회원의 이름과 나이만 보여 주면 되는데, 엔티티로 조회하면 회원의 모든 컬럼을 읽어 온 뒤 필요한 값만 DTO로 옮기게 됩니다. JPQL의 new를 쓰면 필요한 값만 골라 DTO로 바로 받을 수 있습니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열두 가지 조합을 실행해 SELECT 수, 컬럼 수, 관리 중인 엔티티 수, UPDATE 수를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>DTO</dt>
+<dd><b>왜 생겼나</b> — 값을 하나씩 따로 주고받으면 서버를 오가는 횟수가 늘고, 주는 쪽과 받는 쪽이 값의 개수와 순서를 각자 맞춰야 한다. DTO는 한 번에 주고받을 값을 클래스 하나로 묶어, 한 번에 모아 보내고 양쪽이 그 클래스의 모양만 맞추면 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 컨트롤러가 받는 요청 본문(JSON)과 돌려주는 응답을 DTO 클래스로 만드는 일이 흔하다. 값만 실어 나르면 되므로 자바의 record로 짧게 만들기도 한다.</dd>
 <dd>Data Transfer Object의 줄임말로, 계층 사이나 화면으로 값을 실어 나르기 위해 만든 단순한 객체다. 엔티티와 달리 @Entity가 붙지 않고 테이블과 연결되지 않으므로, 영속성 컨텍스트가 관리하지 않으며 값을 바꿔도 DB에 반영되지 않는다. 화면에 필요한 값만 담아 내보내면, 엔티티의 구조가 바뀌어도 응답의 모양이 함께 바뀌지 않고 내보내면 안 되는 값이 섞여 나가는 일도 막을 수 있다. 엔티티를 조회한 뒤 DTO로 옮겨 담을 수도 있고, 쿼리에서 필요한 값만 골라 DTO로 바로 받을 수도 있다.</dd>
 <dt>JPQL 생성자 표현식</dt>
 <dd>JPQL의 select 절에 new 패키지.클래스(값, 값)처럼 적어, 조회 결과를 엔티티가 아닌 다른 클래스의 객체로 바로 받는 문법이다. SQL의 SELECT 절에는 생성자에 넘긴 값에 해당하는 컬럼만 들어가고, 행마다 그 클래스의 생성자가 불린다. 결과는 엔티티가 아니므로 영속성 컨텍스트가 관리하지 않고, 변경 감지의 대상도 아니다. JPA 표준은 클래스 이름을 패키지까지 포함해 적도록 정하며, 넘기는 값의 개수와 타입이 맞는 생성자가 그 클래스에 있어야 한다.</dd>
 <dt>영속성 컨텍스트</dt>
 <dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다.</dd>
 <dt>변경 감지(Dirty Checking)</dt>
+<dd><b>지금 어디에 쓰나</b> — @Transactional 서비스 메서드에서 엔티티를 조회하고 값만 바꿔 수정을 끝낼 때 쓴다. 트랜잭션 밖에서 바꾼 값이나 준영속 엔티티의 변경은 반영되지 않으므로, 그때는 트랜잭션 안에서 다시 조회한 엔티티를 고친다.</dd>
 <dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 플러시할 때(보통 커밋 직전) JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
 <dt>N+1 문제</dt>
 <dd>목록을 조회하는 쿼리 1번이 실행된 뒤, 조회된 N개의 결과마다 연관 데이터를 가져오는 쿼리가 1번씩 총 N번 더 실행되는 문제다. 데이터가 많아질수록 쿼리 수가 비례해 늘어 성능이 크게 떨어진다. 연관 데이터를 한 번의 쿼리로 함께 가져오거나(fetch join) 여러 건을 묶어 가져오는(배치 조회) 방식으로 해결한다.</dd>
@@ -119,6 +124,10 @@ public List&lt;MemberDto&gt; list() {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -192,9 +201,10 @@ public List&lt;MemberDto&gt; list() {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

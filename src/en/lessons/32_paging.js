@@ -1,6 +1,8 @@
 Lab.register({
   id: 'paging', nav: 'Offset and keyset pagination', cat: 'Database', mode: 'step',
   title: 'Why later pages get slower',
+  why: 'The OFFSET method, which divides by page number, makes the DB read even the rows it skips, so it gets slower toward the later pages of a list with a lot of data, and on screens where the user keeps scrolling down. Keyset (cursor-based) pagination passes the sort key of the last article received as the condition of the next request instead of a page number, and if the sort key has an index, it reduces the number of rows read to the page size, whichever page it is.',
+  use: 'It is used on screens that load continuously as you scroll down, such as feeds, comments, and notifications, and in batch processing that reads a large table in pieces from start to end. Even if new articles come in between pages, the same article does not appear twice. On screens where you must jump to an arbitrary position, such as a bulletin board where you go directly to a desired page number, the OFFSET method is used.',
   intro: 'A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to "right after the last post you saw".',
   terms: ['Offset-based pagination and keyset (cursor-based) pagination', 'Index', 'B-tree index'], ranks: ['tuning', 'index'],
   controls: [

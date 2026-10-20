@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>웹 공격 세 가지</h1>
 <p><b>입력값을 그대로 믿으면 생기는 일</b></p>
+<p><b>왜 생겼나</b> — 사용자 입력을 SQL 문자열이나 HTML에 그대로 이어 붙이면 입력이 값이 아니라 명령이나 스크립트로 해석되고, 쿠키만으로 로그인을 확인하면 다른 사이트에서 일으킨 요청도 본인 요청처럼 처리된다. 파라미터 바인딩과 출력 이스케이프는 입력을 값과 글자로만 다루게 하고, CSRF 토큰은 요청이 그 사이트의 화면에서 나왔는지 확인하며, SameSite 쿠키는 그런 요청에 쿠키가 붙지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — PreparedStatement, MyBatis의 #{} 바인딩, Thymeleaf의 th:text처럼 이스케이프하는 출력, 스프링 시큐리티의 CSRF 보호가 이 방어를 맡는다. MyBatis의 ${}나 th:utext에 사용자 입력을 넣는 곳에서 구멍이 생긴다. 쿠키 대신 Authorization 헤더로 토큰을 보내는 API는 브라우저가 토큰을 자동으로 붙이지 않아 CSRF 보호를 끄기도 한다.</p>
 <p>SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.</p>
 <p>일부만 실행으로 확인 · 세 공격의 일부를 SQLite와 브라우저로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,6 +44,8 @@
 <dt>CSRF(사이트 간 요청 위조)</dt>
 <dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측 불가능한 토큰을 요청에 포함하게 하거나 쿠키의 SameSite 속성으로 막는다.</dd>
 <dt>HttpOnly, Secure, SameSite</dt>
+<dd><b>왜 생겼나</b> — 쿠키는 원래 페이지의 스크립트가 읽을 수 있었고, 암호화되지 않은 HTTP 연결에도, 다른 사이트에서 시작된 요청에도 함께 실려 갔다. 이 속성들은 서버가 Set-Cookie 헤더에 쿠키마다 붙여, 이 길을 골라 막게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 로그인 세션 쿠키에는 셋을 함께 붙이는 것이 보통이다. Spring Boot에서는 server.servlet.session.cookie 아래의 http-only, secure, same-site 설정으로 세션 쿠키에 붙인다.</dd>
 <dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄인다.</dd>
 <dt>쿠키</dt>
 <dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
@@ -84,6 +88,10 @@ ResultSet rs = statement.executeQuery(sql);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ ResultSet rs = statement.executeQuery(sql);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

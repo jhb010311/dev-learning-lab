@@ -1,6 +1,8 @@
 Lab.register({
   id: 'actuator', nav: 'Actuator and health checks', cat: 'Spring', mode: 'step',
   title: 'What does the health check answer when the connection to the payment provider is lost?',
+  why: 'To know whether a server is healthy, you had to search the logs or send a request by hand, and each service made its own address for checking status, so the shape of the answer also differed. Spring Boot Actuator collects the state of components such as the database connection and free disk space by itself and answers at a fixed address and in a fixed format, so a tool outside can ask any service in the same way.',
+  use: 'In Kubernetes, if you set the liveness address as the probe address, the container is restarted when it fails, and if you set the readiness address, requests are not sent to that instance while it fails. A load balancer also uses the health address to sort out a broken server. Details reveal the internal structure, so you do not open them to the outside, or you protect them with authorization.',
   intro: 'Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question "is this server healthy?". The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request.',
   terms: ['Actuator', 'HealthIndicator and the overall health status', 'Health group', 'Health check (liveness, readiness)', 'Exposing Actuator endpoints and controlling access'],
   controls: [

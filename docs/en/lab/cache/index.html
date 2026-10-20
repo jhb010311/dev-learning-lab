@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › High traffic</p>
 <h1>Caching and TTL</h1>
 <p><b>How much does a cache reduce database queries, and when do requests pile up again?</b></p>
+<p><b>Why it exists</b> — If product information is read from the database again each time it is viewed, the database repeats the same work even though the result is the same every time, and when requests increase, the database is the first thing that cannot hold up. A cache keeps a result that has been read once in a memory store for a short time and returns it from there from the next request on, so that fewer requests go to the database.</p>
+<p><b>Where it's used today</b> — Data that is read often and changes rarely, such as a product detail, a popular post list, and common codes, is put in Redis or application memory, and in Spring, storing the result of a method with @Cacheable is a common approach. Values that must always be the latest, such as inventory or balance right before payment, are read from the database without going through the cache.</p>
 <p>One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.</p>
 <p>Conceptual model · A model that shows how the behavior works</p>
 <h2>Concepts in this lab</h2>
@@ -38,14 +40,17 @@
 <dt>Cache</dt>
 <dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
 <dt>Cache-aside pattern</dt>
+<dd><b>Where it's used today</b> — It is used with Redis for data that is read far more often than it is written, such as a product detail or a member profile. Adding Spring's @Cacheable and @CacheEvict makes it work in this order.</dd>
 <dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
 <dt>TTL (time to live)</dt>
+<dd><b>Where it's used today</b> — In Redis, you set it with EXPIRE or the EX option of SET. Besides caches, it is used for values that must disappear by themselves after a set time, such as phone verification codes, sessions, and distributed locks.</dd>
 <dd>The length of time for which data is valid. If you set it when you put a value in a cache, the value is deleted automatically after that time passes. It is a basic safeguard that stops a value that no longer matches the source from staying in the cache forever.</dd>
 <dt>Cache stampede</dt>
 <dd>A situation in which, at the moment a heavily read cache entry expires, many requests that arrive at the same time all fail to find the value in the cache and query the database at once. The sudden load on the database can lead to an outage. It is mitigated by locking so that only one request queries the source, or by spreading out the expiration times.</dd>
 <dt>Redis</dt>
 <dd>A key-value store that keeps data in memory. It provides not only strings but also data structures such as lists, hashes, sets, and sorted sets. It is very fast because it works in memory, and it is used for caches, session stores, distributed locks, leaderboards, rate limiting, and more. It runs commands one after another on a single thread.</dd>
 <dt>Distributed lock</dt>
+<dd><b>Where it's used today</b> — It is used to run a scheduler job that runs on several servers only once, or to put requests that arrive all at once, such as coupon issuing, into a line. In Java, libraries such as Redisson's RLock and ShedLock, for schedulers, are commonly used.</dd>
 <dd>A lock that lets only one process at a time perform a specific task among processes that run on several servers. Java's synchronized is valid only inside one server, so with several servers it is implemented by placing a &quot;lock marker&quot; in a store that all of them access (such as Redis). It is given an expiration time so that it is released even if the side that took it runs into a problem.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +102,10 @@ public Product getProduct(long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ public Product getProduct(long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

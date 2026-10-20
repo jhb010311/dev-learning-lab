@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Row locks</h1>
 <p><b>What happens when two transactions try to change the same row?</b></p>
+<p><b>Why it exists</b> — If two requests change the balance of the same account almost at the same time, one can overwrite the value changed by the other, so that money seems to disappear or increase. A DB row lock makes other transactions that try to change the same row wait until the transaction that changed it first ends, so that a row is changed by only one at a time.</p>
+<p><b>Where it's used today</b> — The DB takes the lock by itself where several requests change the same row, such as reducing stock, subtracting a balance, and reserving a seat. When you need to read a value and then change it based on what you read, the row is sometimes locked from the moment of reading with SELECT ... FOR UPDATE. If a transaction is kept open for a long time, other requests wait one after another, so nothing that takes a long time is done while a lock is held.</p>
 <p>Many connections can work with a database at the same time. When one connection changes a row with UPDATE, the database puts a lock on that row. A lock is a mark that says &quot;I am changing this row, so other connections must not change it.&quot; The SQL we write has no statement for this; the database takes the lock by itself when it receives the UPDATE. The lock is not released until the transaction of that connection ends with COMMIT or ROLLBACK. If another connection tries to change the same row, the database makes that UPDATE wait until the lock is released, and if it waits too long, the database ends it with an error. In this lab you change the row that connection B updates and remove the COMMIT of connection A, run the same SQL, and see when the UPDATE of B runs and what the final balances are.</p>
 <p>Checked against real execution · Ran all 4 combinations on H2 2.4.240 with two connections and checked against the results; the rules were checked against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
 <dt>Shared locks and exclusive locks</dt>
+<dd><b>Why it exists</b> — If there is only one kind of lock, even transactions that only read must wait for each other. When locks are split into shared and exclusive locks, reads proceed together, and turns are enforced only when a write is involved.</dd>
+<dd><b>Where it's used today</b> — In MySQL, SELECT ... FOR SHARE takes a shared lock, and FOR UPDATE, UPDATE, and DELETE take an exclusive lock. You use a shared lock to hold on to rows you read so that they do not change during the transaction, and an exclusive lock for rows you read and will modify soon.</dd>
 <dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
 <dt>Lock wait timeout</dt>
 <dd>A failure of a statement that waited for a lock held by another transaction to be released, up to a set time, and still could not get it. In MySQL InnoDB, when innodb_lock_wait_timeout (default 50 seconds) passes, error 1205 (Lock wait timeout exceeded) is returned. Unlike a deadlock, it can occur even when there is no cycle of mutual waiting, and a common cause is another transaction being kept open for a long time. Under the default settings, only the statement that was waiting is canceled and the transaction stays alive, so the earlier changes and locks remain. That is why, when you get this error, you must roll back yourself and then decide whether to try again.</dd>
@@ -97,6 +101,10 @@ COMMIT;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +178,10 @@ COMMIT;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

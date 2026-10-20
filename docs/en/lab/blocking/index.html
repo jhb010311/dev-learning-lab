@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Blocking, non-blocking, and virtual threads</h1>
 <p><b>What a thread does while it waits</b></p>
+<p><b>Why it exists</b> — A method that attaches one thread to each request holds the thread even while waiting for a DB or an external API, so when concurrent requests exceed the number of threads, later requests wait in line even if the CPU is idle. A non-blocking event loop uses the thread for other requests while waiting, so that few threads can progress many requests, and virtual threads give a similar effect with code written in the blocking style as it is.</p>
+<p><b>Where it's used today</b> — Spring MVC still defaults to the blocking method of using a thread per request, and with a JDK and Spring Boot that support virtual threads, the request-handling threads can be changed to virtual threads by configuration. A non-blocking method such as WebFlux is used for gateways that relay many external calls and for streaming responses, and in this case a blocking call such as JDBC must not be made on an event loop thread.</p>
 <p>Every request spends some time waiting for a response from a database or an external API. Compare three approaches: holding on to the thread during that time (blocking), releasing the thread and continuing when the response arrives (non-blocking), and virtual threads, where you write the code in the blocking style but the operating system thread is released while the code waits.</p>
 <p>Checked against real execution · Checked against values actually measured on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,14 +40,21 @@
 <dt>Blocking and non-blocking</dt>
 <dd>Blocking means that the calling thread is stopped until the called task finishes and cannot do other work. Non-blocking means that the call returns right away even though the task has not finished, so the thread can do other work. A typical JDBC call is a blocking call: the thread is stopped until the DB response arrives.</dd>
 <dt>Synchronous and asynchronous</dt>
+<dd><b>Why it exists</b> — If every call is synchronous, you must wait for even a task that takes long but whose result is not needed right away, such as sending an email, so the response becomes slow. The asynchronous approach hands off the work, moves on to the next thing first, and receives the result later.</dd>
+<dd><b>Where it's used today</b> — A call whose result decides the next step, such as payment approval, is made synchronously, and work that may finish later, such as sending a notification or aggregating statistics, is handled asynchronously with a message queue or @Async.</dd>
 <dd>Synchronous means that the side that requests a task waits until it receives the result and only then moves on. Asynchronous means that the requester starts the task and moves on to the next work without waiting for the result, and the result is delivered later through a callback, a Future, or a similar means.</dd>
 <dt>Virtual thread</dt>
+<dd><b>Where it's used today</b> — In Spring Boot, the single line spring.threads.virtual.enabled=true lets you run request handling and @Async execution on virtual threads. There is no benefit for work that only does CPU computation without waiting.</dd>
 <dd>This is a lightweight thread that became a standard feature in JDK 21. An existing thread is tied one-to-one to an operating system thread, so you cannot create many of them, but this kind is managed by the JVM and takes turns running on a small number of operating system threads. While it waits in most blocking calls, it gives up the operating system thread, so even the existing simple coding style can handle many concurrent requests. However, in JDK 21 through 23, blocking inside synchronized held on to the operating system thread (pinning), and this was resolved in JDK 24.</dd>
 <dt>Spring WebFlux and the reactive stack</dt>
+<dd><b>Where it's used today</b> — It is used for a gateway that gathers results by calling several external APIs at the same time, and for streaming responses in which the server keeps sending events. A regular service that uses a database through JPA is a better fit for Spring MVC, and where there is a lot of waiting, there is also the option of solving it with virtual threads.</dd>
 <dd>This is Spring's non-blocking web framework for handling many concurrent requests with a small number of threads. Unlike Spring MVC, which uses one thread per request, it does not hold a thread while waiting for I/O and continues processing when the data is ready. It pays off only when the whole call path is non-blocking, so it does not fit blocking technologies such as JPA.</dd>
 <dt>Event loop</dt>
+<dd><b>Where it's used today</b> — Netty, the default server of WebFlux, and Node.js and Redis work with this structure. If you must make a blocking call in an event loop, you hand it off to a separate thread, such as Reactor's Schedulers.boundedElastic().</dd>
 <dd>This is a structure in which a small number of threads detect the I/O events that occur on many connections and process them in turn. There is no thread per connection, so one thread takes care of many connections. If you run a long task or a blocking call on such a thread, processing stops for every connection that the thread is responsible for.</dd>
 <dt>Tomcat's threading model</dt>
+<dd><b>Why it exists</b> — If one thread handles a request all the way through, even code that waits for a database response can be written from top to bottom in order, without being split into callbacks. Tomcat takes those threads from a pool created in advance and sets an upper limit on their number, so threads do not grow endlessly even when requests pile up.</dd>
+<dd><b>Where it's used today</b> — A Spring MVC service with slow external calls or many concurrent requests tunes server.tomcat.threads.max together with the size of the database connection pool. When requests seem to be stuck, you look in a thread dump to see at which line a request processing thread such as http-nio-8080-exec-1 is waiting.</dd>
 <dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default). Unlike the standard Java ThreadPoolExecutor, when no thread is idle it adds threads up to the maximum first, and new requests wait only when all of them are in use. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +100,10 @@ OrderDto get(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +177,10 @@ OrderDto get(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

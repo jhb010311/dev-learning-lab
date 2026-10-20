@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lazy_basic', nav: '지연 로딩', cat: '기초개념', mode: 'step', basic: true, deep: ['lazyproxy', 'nplus1'],
   title: '연관된 객체는 언제 DB에서 읽어 오는가',
+  why: '주문을 읽을 때마다 주문한 회원까지 늘 함께 읽으면, 회원 정보를 쓰지 않는 화면에서도 쓸모없는 조인이나 SELECT가 DB에 나간다. JPA의 지연 로딩(FetchType.LAZY)은 회원을 읽는 일을 코드가 회원의 값을 처음 쓰는 때로 미뤄서, 필요한 화면에서만 회원 테이블을 읽게 한다.',
+  use: '주문 목록, 게시글 목록처럼 연관된 객체를 늘 쓰지는 않는 곳에서 쓴다. @ManyToOne은 아무것도 적지 않으면 EAGER로 동작해서, 실무에서는 fetch = FetchType.LAZY를 직접 적어 두는 일이 흔하다. 회원까지 꼭 함께 필요한 화면에서는 JPQL의 fetch join으로 그때만 한 번에 읽는다.',
   intro: '주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)를 가리키고 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.',
   terms: ['지연 로딩과 즉시 로딩', '@ManyToOne', '엔티티 프록시', 'FetchType'],
   controls: [

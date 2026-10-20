@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Tables, rows, and columns</h1>
 <p><b>What does a table look like, and what are rows and columns?</b></p>
+<p><b>Why it exists</b> — If you just write data line by line in a text file, how to divide one line must be decided separately for each file, and the program that reads the file must know that method each time. A table fixes the names and types of columns first and has rows put in to match those columns, so that data always piles up in the same columns. So any program can read and write it with SQL as long as it knows the column names.</p>
+<p><b>Where it's used today</b> — Data that a program must keep for a long time, such as member information, order history, and posts, is stored in tables of a relational database such as MySQL, PostgreSQL, or Oracle. Usually you make one table for each thing to be stored, such as members, orders, and products. For data whose columns are not fixed and whose shapes vary, a database that stores by document, such as MongoDB, is sometimes used.</p>
 <p>A relational database keeps data in tables. CREATE TABLE is the statement that makes a table and decides its columns (the vertical slots). Each column has a name and a type, which decide what it holds, as in &quot;the id column holds an integer and the name column holds text&quot;. INSERT is the statement that puts in one row (a horizontal line, the information of one person), and a row must match the number and the types of the columns. SELECT is the statement that reads the values of chosen columns from the rows. This lab runs the same SQL while you remove CREATE TABLE or change the shape of the second row and the column that is read, and shows which statements the database accepts and which it rejects.</p>
 <p>Checked against real execution · Ran all 16 combinations on H2 2.4.240 and checked against them (the rules were checked against the MySQL documentation)</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Table</dt>
 <dd>A table is the grid in which a relational database holds data. A table has a name, such as member, and the columns it has (the kinds of slots) are decided with CREATE TABLE. Data is stored as rows (lines) that match those columns, and you put in rows with INSERT and read them with SELECT. Before you make a table, you cannot INSERT into it or SELECT from it by that name. One database can have many tables.</dd>
 <dt>Rows and columns</dt>
+<dd><b>Why it exists</b> — If information is written down differently for each item, you do not know what is where, and it is hard to find or compare. Rows and columns fix the names and types of the cells (columns) first and have each piece of information written as one line (row) that fits those cells, so that all the data has the same shape.</dd>
+<dd><b>Where it's used today</b> — It is used to store information that piles up as many items with the same entries, such as members, orders, and posts. With JPA, one entity class is paired with a table, its fields with columns, and one object with one row.</dd>
 <dd>A table in a relational database is made of columns and rows, like a spreadsheet. A column is a kind of cell whose name and type are fixed when the table is created. For example, id and name are the columns of the member table. A row is one line filled with values for those columns, and the information about one member is one row. INSERT adds one row, UPDATE changes every row that matches the WHERE condition, and SELECT reads rows. A column with no value is shown as NULL.</dd>
 <dt>Column data type</dt>
+<dd><b>Why it exists</b> — If any value could go into a column, text such as &quot;twenty years old&quot; could get mixed into an age column, and the program would have to check the values one by one every time it adds or compares sizes. The data type of a column fixes the kind of value for each cell, so that the DB can reject a value that does not fit.</dd>
+<dd><b>Where it's used today</b> — You choose a type that fits the value: INT or BIGINT for an id, VARCHAR for a name, DATE for a sign-up date, and DECIMAL for an amount. On the Java side, it is usual to pair them with types such as int, String, and LocalDate.</dd>
 <dd>The data type of a column is the kind of value that the column can hold. You write it with the name of each column in CREATE TABLE. For example, id INT is an integer column, and name VARCHAR(20) is a column that holds text of variable length up to 20 characters. The MySQL 8.4 documentation divides types into five kinds: numeric, date and time, string, spatial, and JSON. If you try to put in a value that does not match the type, the database usually rejects that INSERT, but how strict it is depends on the database and its settings.</dd>
 <dt>CREATE TABLE, INSERT, SELECT</dt>
+<dd><b>Why it exists</b> — If the commands for making a table and putting in data differed for each DB product, you would have to learn them anew every time you changed DBs. CREATE TABLE, INSERT, and SELECT are statements defined in the SQL standard, so you use them in almost the same form whether it is MySQL or PostgreSQL.</dd>
+<dd><b>Where it's used today</b> — When you first learn a DB or check data directly, you write and run these statements in a program such as MySQL Workbench. In a Spring project, a tool such as JPA may create INSERT and SELECT statements and send them to the DB for you.</dd>
 <dd>These three are SQL statements. SQL is the language that tells a relational database what to do, and each sentence of it is called an SQL statement. CREATE TABLE is the statement that makes a table and decides the names and types of its columns (for example, CREATE TABLE member (id INT, name VARCHAR(20))). INSERT is the statement that puts in one row, and if you do not write the column names separately, the values after VALUES go into the columns in the order in which the columns were written in CREATE TABLE. SELECT is the statement that reads rows, and if you write a column name, as in SELECT name FROM member, it reads only the values of that column, and if you write *, it reads the values of all columns. A statement usually ends with a semicolon (;).</dd>
 </dl>
 <h2>Try these</h2>
@@ -90,6 +98,10 @@ SELECT name FROM member;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +175,10 @@ SELECT name FROM member;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

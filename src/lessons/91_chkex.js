@@ -1,6 +1,8 @@
 Lab.register({
   id: 'chkex', nav: '체크 예외와 언체크 예외', cat: '자바 언어', mode: 'step',
   title: '어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나',
+  why: '메서드가 실패할 수 있다는 사실이 문서에만 적혀 있으면, 부르는 쪽은 파일이 없거나 연결이 끊기는 경우를 잊고 넘어가기 쉽다. 자바의 체크 예외는 그런 실패를 메서드 선언의 throws에 적게 하고, 부르는 쪽이 처리하지 않으면 컴파일러가 알려 준다. 코드를 고쳐야 하는 실수(null 참조, 잘못된 인자)는 언체크 예외로 두어 호출마다 처리를 강요하지 않는다.',
+  use: 'IOException(파일·네트워크 입출력), SQLException(JDBC로 DB 호출)처럼 프로그램 바깥 사정으로 실패하는 표준 API에서 만난다. 스프링의 JdbcTemplate은 SQLException을 언체크 예외인 DataAccessException 계열로 바꿔서, 서비스 코드에 throws가 번지지 않게 한다. 그 자리에서 할 처리가 없으면 원래 예외를 원인(cause)으로 지정해 언체크 예외로 바꿔 던진다.',
   intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다.',
   terms: ['Checked 예외와 Unchecked 예외', '예외(Exception)와 Error', 'throws 선언', '예외 감싸기'],
   controls: [

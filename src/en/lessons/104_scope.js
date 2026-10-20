@@ -1,6 +1,8 @@
 Lab.register({
   id: 'scope', nav: 'Bean scopes', cat: 'Spring', mode: 'step',
   title: 'It is a prototype bean, so why is there only one object?',
+  why: 'If every bean were a single singleton, state that each request must have separately (login user information, values accumulated during one request) would be shared by several requests and the values would get mixed. Bean scope lets you choose a range such as prototype, request, or session for each bean instead of the default singleton, so that an object that holds state is created each time it is used or for each request.',
+  use: 'Beans with no state fields, such as services and repositories, stay as the default singleton. When several beans need to share information for the duration of one request (a request trace number, user information read from the request headers), you use the request scope. For work objects that must start with new state every time, you use prototype. A singleton bean receives such a bean through ObjectProvider or a scoped proxy with proxyMode specified.',
   intro: 'A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Cart, OrderService and OrderController in this lab are classes made for this example.',
   terms: ['Bean scope', 'Spring bean', 'ObjectProvider', 'Scoped proxy', 'Proxy'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 프록시와 로딩</p>
 <h1>N+1</h1>
 <p><b>주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나</b></p>
+<p><b>왜 생겼나</b> — 연관 엔티티를 실제로 쓸 때 가져오는 지연 로딩은 필요 없는 조회를 줄여 주지만, 목록을 돌며 연관 엔티티를 하나씩 건드리면 아직 읽지 않은 연관 엔티티마다 쿼리가 따로 나간다. fetch join은 목록을 읽는 쿼리에 연관 테이블을 조인해 처음부터 같이 읽어 오고, 배치 페치는 아직 읽지 않은 연관 엔티티의 id를 정한 개수만큼 모아 쿼리 한 번으로 가져와서, 쿼리 수가 목록의 건수만큼 늘지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 목록 API처럼 여러 건을 읽고 각 건의 연관 엔티티까지 쓰는 조회에 쓴다. @ManyToOne처럼 한 건에 하나씩 붙는 연관은 fetch join이나 @EntityGraph로 가져오고, @OneToMany 컬렉션을 페이지 단위로 읽을 때는 페이지 나누기가 메모리에서 처리될 수 있는 fetch join 대신 배치 크기 설정(@BatchSize, hibernate.default_batch_fetch_size)을 흔히 쓴다.</p>
 <p>주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 목록을 가져오는 쿼리 1번에 더해, 연관된 데이터를 가져오는 쿼리가 N번 더 나가는 것을 N+1 문제라고 합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 112가지 조합의 SQL 수를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,12 +42,18 @@
 <dt>지연 로딩과 즉시 로딩</dt>
 <dd>연관된 엔티티를 언제 조회할지에 대한 설정이다. 즉시 로딩(EAGER)은 엔티티를 조회할 때 연관된 엔티티도 함께 가져온다. 지연 로딩(LAZY)은 연관된 엔티티 자리에 프록시 객체를 넣어 두고 실제로 그 값을 사용할 때 조회한다. 즉시 로딩은 필요 없는 데이터까지 항상 가져오고 예상하기 어려운 쿼리를 만들기 때문에 지연 로딩을 기본으로 쓰는 것이 권장된다.</dd>
 <dt>fetch join</dt>
+<dd><b>지금 어디에 쓰나</b> — 연관 관계는 지연 로딩으로 두고, 연관 엔티티까지 꼭 함께 써야 하는 조회에만 join fetch를 적은 쿼리를 따로 두는 방식이 흔하다. 그러면 같은 엔티티를 읽어도 연관 데이터가 필요 없는 곳에는 조인이 나가지 않는다.</dd>
 <dd>JPQL에서 엔티티를 조회하면서 연관된 엔티티를 SQL 조인으로 한 번에 함께 가져오게 하는 기능이다. 지연 로딩으로 설정된 연관 관계라도 이 쿼리에서는 즉시 함께 조회되어 N+1 문제를 해결한다. 컬렉션을 여러 개 함께 가져오면 결과 행이 곱으로 늘어나는 점에 주의한다.</dd>
 <dt>@EntityGraph</dt>
+<dd><b>왜 생겼나</b> — fetch join은 JPQL을 직접 써야 해서, findAll()이나 메서드 이름으로 만드는 쿼리 메서드에는 그대로 쓸 수 없었다. @EntityGraph는 함께 읽을 연관 필드 이름만 적게 해서, 이런 메서드도 연관 엔티티를 한 번에 읽게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 리포지토리의 findAll()이나 쿼리 메서드에 붙이고 attributePaths에 연관 필드 이름을 적어, 목록 조회에서 N+1 문제를 막을 때 쓴다.</dd>
 <dd>조회할 때 함께 가져올 연관 관계를 애너테이션으로 지정하는 기능이다. Spring Data JPA의 리포지토리 메서드에 붙이면 JPQL을 직접 쓰지 않고도 fetch join과 같은 효과를 얻는다.</dd>
 <dt>배치 페치(Batch Size)</dt>
-<dd>지연 로딩 대상을 하나씩 조회하지 않고 여러 개를 IN 조건으로 묶어 한 번에 조회하게 하는 설정이다. 예를 들어 크기를 100으로 두면 100개의 연관 데이터를 한 번의 쿼리로 가져와, N번 실행되던 쿼리가 N/100번으로 줄어든다. 컬렉션을 fetch join하면 페이징을 메모리에서 처리하던 Hibernate 7.3 이하에서, 컬렉션 연관 관계를 페이징과 함께 쓸 수 있는 해결책이다(7.4부터는 fetch join과 페이징의 조합도 DB에서 처리된다).</dd>
+<dd><b>왜 생겼나</b> — fetch join은 조인으로 결과 행이 불어나서 컬렉션 연관 관계를 둘 이상 함께 읽기 어렵다. 배치 페치는 조인하지 않고 지연 로딩을 그대로 둔 채 여러 건을 한 쿼리로 모아 읽어서, 결과 행을 불리지 않고 쿼리 수를 줄인다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot에서는 spring.jpa.properties.hibernate.default_batch_fetch_size로 전역으로 켜 두는 경우가 많고, 한 연관 관계에만 줄 때는 @BatchSize를 붙인다.</dd>
+<dd>지연 로딩 대상을 하나씩 조회하지 않고 여러 개를 IN 조건으로 묶어 한 번에 조회하게 하는 설정이다. 예를 들어 크기를 100으로 두면 100개의 연관 데이터를 한 번의 쿼리로 가져와, N번 실행되던 쿼리가 N/100번으로 줄어든다. 컬렉션을 fetch join하고 페이징을 걸면 Hibernate가 메모리에서 페이지를 자르는 경우가 있어서(버전과 정렬 기준에 따라 다르다), 컬렉션 연관 관계를 페이징과 함께 쓸 때 흔히 쓰는 방법이다.</dd>
 <dt>1차 캐시</dt>
+<dd><b>지금 어디에 쓰나</b> — 같은 트랜잭션 안에서 em.find()나 findById()로 같은 id를 다시 찾을 때 따로 설정하지 않아도 동작한다. JPQL이나 쿼리 메서드로 조회하면 이미 관리 중인 엔티티라도 SQL은 DB로 나간다.</dd>
 <dd>영속성 컨텍스트 안에 엔티티를 식별자 기준으로 보관하는 저장소다. 같은 트랜잭션 안에서 같은 식별자로 다시 조회하면 DB에 쿼리를 보내지 않고 보관된 엔티티를 돌려준다. 그 결과 같은 트랜잭션 안에서 같은 식별자의 엔티티는 항상 같은 객체다. 기본적으로 트랜잭션이 끝나면 사라지므로(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다) 애플리케이션 전체의 캐시와는 다르다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -105,6 +113,10 @@ for (Order o : orders) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +190,10 @@ for (Order o : orders) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

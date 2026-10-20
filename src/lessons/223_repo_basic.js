@@ -1,6 +1,8 @@
 Lab.register({
   id: 'repo_basic', nav: '리포지토리', cat: '기초개념', mode: 'step', basic: true, deep: ['datajpa'],
   title: '리포지토리는 무엇이고, 구현은 누가 만드는가',
+  why: '스프링 데이터 JPA 없이 JPA만 쓰면 회원용, 주문용처럼 엔티티마다 저장하고 찾고 지우는 클래스를 따로 만들어, 거의 같은 EntityManager 코드를 엔티티 타입만 바꿔 되풀이해 적어야 한다. 조건으로 찾는 조회도 메서드마다 쿼리 글을 직접 쓴다. 스프링 데이터 JPA의 리포지토리는 이 되풀이되는 부분을 스프링이 채우게 해서, 우리는 메서드의 이름과 모양만 정하면 된다.',
+  use: '스프링 데이터 JPA를 쓰는 프로젝트에서는 엔티티마다 리포지토리 인터페이스를 하나씩 두고, 서비스 클래스가 그것을 주입받아 저장하고 찾는다. 이메일로 회원 찾기, 상태로 주문 찾기처럼 조건이 한두 개인 조회는 메서드 이름 규칙만으로 해결한다. 조건이 길고 복잡한 조회는 @Query로 쿼리를 직접 적거나 Querydsl 같은 도구를 함께 쓴다.',
   intro: '스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository<Member, Long>이라고 선언만 하면(MemberRepository와 Member는 이 예제에서 지은 이름이고, JpaRepository는 스프링 데이터 JPA가 주는 인터페이스입니다), 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 CrudRepository에 선언된 메서드이고(JpaRepository는 ListCrudRepository를 거쳐 CrudRepository를 물려받습니다), MemberRepository는 그것을 JpaRepository를 거쳐 물려받습니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.',
   terms: ['리포지토리', 'JpaRepository', '쿼리 메서드', 'JPA, Hibernate, Spring Data JPA'],
   controls: [

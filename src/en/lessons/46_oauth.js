@@ -1,6 +1,8 @@
 Lab.register({
   id: 'oauth', nav: 'OAuth login flow', cat: 'Authentication', mode: 'step',
   title: 'What is exchanged when you click "Log in with Kakao"',
+  why: 'If a user is asked for their ID and password of another service in order to fetch data from that service, the receiving side gets every permission, more places can leak the password, and the user cannot cut off that access until they change the password. OAuth 2.0 has a token with a defined scope and expiry issued instead of the password, so that access is limited to what the user allowed and that permission alone can be withdrawn later.',
+  use: 'It is used for social login such as "Log in with Kakao" and "Log in with Google", and for integrations that read and write, on a user\'s behalf, data in another service, such as their calendar or drive. In Spring, Spring Security\'s OAuth2 client handles this flow. For login purposes, OpenID Connect, which standardizes identity verification on top of OAuth 2.0, is sometimes used together.',
   intro: 'Social login is a procedure in which our service gets permission to access a user\'s information, with the user\'s consent, without ever receiving the user\'s password. Some things travel through the browser, and others are exchanged directly between servers.',
   terms: ['OAuth 2.0', 'Authentication and authorization', 'Access token and refresh token', 'Cross-site request forgery (CSRF)'], ranks: ['auth', 'websec'],
   controls: [

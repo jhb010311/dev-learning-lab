@@ -1,6 +1,8 @@
 Lab.register({
   id: 'selectorder', nav: 'SELECT가 처리되는 순서', cat: '데이터베이스', mode: 'step',
   title: 'WHERE에서는 왜 별칭과 집계 함수를 쓸 수 없나',
+  why: 'SQL은 SELECT를 맨 앞에 적게 되어 있지만, 무엇을 고를지 정하려면 먼저 FROM으로 행을 모으고 WHERE로 걸러야 한다. 논리적 처리 순서는 각 절이 앞 단계의 결과를 받아 다음 단계로 넘긴다고 보는 기준이며, 문장의 결과와 각 절에서 쓸 수 있는 이름을 이 기준으로 따진다.',
+  use: 'MySQL에서 "Unknown column"이나 "Invalid use of group function" 오류가 났을 때, 그 조건을 WHERE에 둘지 HAVING에 둘지, 서브쿼리로 한 겹 감쌀지 판단하는 데 쓴다. 행 하나하나를 거르는 조건은 WHERE에, 묶은 뒤의 합계나 개수로 거르는 조건은 HAVING에 적는 습관도 이 순서에서 나온다.',
   intro: 'SELECT 문은 적힌 순서가 아니라 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT 순서로 처리된다고 보면 됩니다. 어떤 이름을 쓸 수 있는지는 그 절이 몇 번째로 처리되는지에 달려 있습니다.',
   terms: ['SELECT 문의 논리적 처리 순서', 'GROUP BY, WHERE, HAVING', '컬럼 별칭(AS)', '집계 함수'],
   controls: [

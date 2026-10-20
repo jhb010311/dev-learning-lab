@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 데이터 접근과 트랜잭션</p>
 <h1>커넥션 풀과 OSIV</h1>
 <p><b>쿼리는 금방 끝났는데 커넥션이 모자란 이유</b></p>
+<p><b>왜 생겼나</b> — DB 연결은 맺을 때마다 TCP 연결과 로그인 절차를 거쳐야 하고, DB가 한꺼번에 받아 줄 수 있는 연결 수에도 한도가 있다. 커넥션 풀은 정해 둔 개수의 연결을 미리 열어 두고 요청들이 돌려 가며 쓰게 해서, 연결 준비 시간을 아끼고 요청이 몰려도 DB에 붙는 연결 수가 그 개수를 넘지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트에서는 HikariCP의 maximum-pool-size로 풀 크기를 정하고, 풀 크기에 서버 대수를 곱한 연결 수가 DB 한도를 넘지 않게 맞춘다. DB와 상관없이 오래 걸리는 외부 API 호출이 있으면 spring.jpa.open-in-view=false로 OSIV를 끄고 외부 호출을 트랜잭션 밖으로 빼서, 그동안 연결을 붙잡지 않게 한다.</p>
 <p>요청은 DB 작업을 하고 나서 외부 API를 호출한 뒤 응답합니다. DB 커넥션은 풀에서 빌려 쓰고 돌려줍니다. 커넥션을 언제 돌려주느냐(OSIV 설정)에 따라, 같은 풀 크기로 버틸 수 있는 요청 수가 크게 달라집니다.</p>
 <p>문서·표준 대조 · HikariCP·Hibernate의 기본 동작(수치는 모형)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>커넥션 풀</dt>
 <dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다.</dd>
 <dt>OSIV(Open Session In View)</dt>
+<dd><b>왜 생겼나</b> — 트랜잭션이 끝난 뒤 컨트롤러나 뷰 템플릿에서 지연 로딩 필드를 읽으면 LazyInitializationException이 난다. OSIV는 영속성 컨텍스트를 요청이 끝날 때까지 열어 두어, 화면을 그리면서도 연관 엔티티를 읽게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 서버에서 화면을 그리는 작은 서비스는 켠 채 쓰기도 한다. 요청이 많은 API 서버는 spring.jpa.open-in-view=false로 끄고, 필요한 연관 데이터를 트랜잭션 안에서 DTO로 옮겨 돌려준다.</dd>
 <dd>영속성 컨텍스트를 트랜잭션이 끝난 뒤에도 요청 처리가 끝날 때(응답 작성)까지 유지하는 설정이다. 컨트롤러나 뷰에서도 지연 로딩을 쓸 수 있어 편리하지만, 요청 처리 중 처음 DB에 접근한 뒤로는 응답이 끝날 때까지 DB 커넥션을 계속 붙잡고 있어 요청이 많은 서비스에서는 커넥션이 부족해질 수 있다. Spring Boot에서는 기본으로 켜져 있다.</dd>
 <dt>영속성 컨텍스트</dt>
 <dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다.</dd>
@@ -113,6 +117,10 @@ OrderDto get(long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -186,9 +194,10 @@ OrderDto get(long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

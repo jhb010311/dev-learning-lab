@@ -1,6 +1,8 @@
 Lab.register({
   id: 'httpmsg', nav: 'HTTP messages and status codes', cat: 'HTTP', mode: 'step',
   title: 'This is what a request and a response look like as text',
+  why: 'For a browser, an app, and a server made by different people to communicate, the shape of asking and answering must be fixed in advance. An HTTP message fixes the format of the first line, the headers, and the body, and the meaning of the methods and status codes, so any program can decide in the same way, without reading the body, whether the request succeeded, whether to go to a different address, or whether to try again a little later.',
+  use: 'The status code and headers of the ResponseEntity returned by a Spring controller become the response message as they are. When you design a REST API, you choose the status code that fits the result, such as 201 for creation, 400 for an input error, and 403 for no permission, and when a problem occurs, you find the cause by reading the messages that were actually exchanged in the browser developer tools Network tab or with curl -v.',
   intro: 'In HTTP/1.1, the HTTP messages that a browser and a server exchange are text with a fixed shape (HTTP/2 and HTTP/3 send the same content split up in a binary format). A request has "what" (the address) and "how" (the method) on its first line, and a response has "how it went" (the status code) on its first line.',
   terms: ['HTTP as a stateless protocol', 'HTTP methods', 'HTTP status codes', 'REST', 'URI and URL'], ranks: ['http', 'rest'],
   controls: [

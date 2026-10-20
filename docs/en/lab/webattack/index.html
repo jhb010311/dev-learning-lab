@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Three web attacks</h1>
 <p><b>What happens when you trust input as it is</b></p>
+<p><b>Why it exists</b> — If user input is joined as it is onto an SQL string or HTML, the input is interpreted as a command or script rather than a value, and if login is checked by the cookie alone, a request triggered from another site is processed as if it were the user's own. Parameter binding and output escaping make input be treated only as a value and as text, a CSRF token checks whether a request came from that site's own page, and a SameSite cookie keeps the cookie from being attached to such requests.</p>
+<p><b>Where it's used today</b> — PreparedStatement, MyBatis's #{} binding, escaping output such as Thymeleaf's th:text, and Spring Security's CSRF protection take care of this defense. A hole opens where user input goes into MyBatis's ${} or th:utext. For an API that sends a token in the Authorization header instead of a cookie, the browser does not attach the token automatically, so CSRF protection is sometimes turned off.</p>
 <p>SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user's browser. In the third, a logged-in user's browser is made to send a request on the attacker's behalf.</p>
 <p>Partly checked against real execution · Part of each of the three attacks was checked with SQLite and a browser</p>
 <h2>Concepts in this lab</h2>
@@ -42,6 +44,8 @@
 <dt>Cross-site request forgery (CSRF)</dt>
 <dd>An attack that takes advantage of the fact that a user is logged in: a page made by the attacker causes the user's browser to send an unintended request to the target site. The browser attaches cookies automatically, so the server treats it as a normal request. To block it, require requests to include an unpredictable token issued by the server, or use the SameSite attribute of cookies.</dd>
 <dt>HttpOnly, Secure, and SameSite</dt>
+<dd><b>Why it exists</b> — A cookie could originally be read by scripts on the page, and it was sent along even over unencrypted HTTP connections and with requests that started from other sites. The server attaches these attributes to each cookie in the Set-Cookie header to choose and block these paths.</dd>
+<dd><b>Where it's used today</b> — It is usual to attach all three to a login session cookie. In Spring Boot, they are attached to the session cookie with the http-only, secure, and same-site settings under server.servlet.session.cookie.</dd>
 <dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks.</dd>
 <dt>Cookie</dt>
 <dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
@@ -84,6 +88,10 @@ ResultSet rs = statement.executeQuery(sql);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ ResultSet rs = statement.executeQuery(sql);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

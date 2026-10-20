@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>CORS</h1>
 <p><b>Postman에서는 되는데 브라우저에서만 막히는 이유</b></p>
+<p><b>왜 생겼나</b> — 브라우저의 동일 출처 정책만 있으면, 화면과 API 서버의 스킴·호스트·포트 중 하나만 달라도 페이지의 스크립트가 API 응답을 읽을 수 없다. 그렇다고 정책을 아예 풀면 아무 사이트의 스크립트나 로그인된 사용자의 쿠키를 실어 다른 사이트의 응답을 읽게 된다. CORS는 서버가 어느 출처에 응답을 보여 줘도 되는지 헤더로 밝혀, 허용한 출처에 대해서만 이 제한을 풀게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — React나 Vue 화면과 API 서버의 출처가 다른 구성에서 설정한다. 개발 중에 localhost:3000의 화면이 localhost:8080의 API를 부르는 경우도 포트가 달라 다른 출처다. 스프링에서는 @CrossOrigin이나 WebMvcConfigurer의 addCorsMappings로 허용 출처를 적고, 리버스 프록시로 화면과 API를 같은 출처로 묶으면 CORS 설정이 필요 없다.</p>
 <p>브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다.</p>
 <p>실행으로 대조 · 시험 서버 두 개와 실제 브라우저로 24가지 조합 실행</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>CORS와 동일 출처 정책</dt>
 <dd>동일 출처 정책은 브라우저가 한 출처(스킴, 호스트, 포트의 조합)의 스크립트가 다른 출처의 응답을 읽지 못하게 막는 보안 정책이다. CORS는 서버가 응답 헤더로 특정 출처의 접근을 허용한다고 알려 이 제한을 풀어 주는 방법이다. 브라우저가 적용하는 정책이므로 서버끼리의 호출이나 도구를 이용한 호출에는 해당하지 않는다.</dd>
 <dt>Preflight 요청</dt>
+<dd><b>왜 생겼나</b> — 다른 출처의 페이지가 브라우저로 PUT, DELETE나 Content-Type이 application/json인 요청을 보낼 수 없던 때 만든 서버는 이런 요청을 막을 준비가 없었다. Preflight는 본 요청 전에 서버의 허락부터 받게 해서, CORS를 모르는 서버에는 본 요청이 가지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드와 API의 출처가 다른 SPA에서 JSON을 POST하거나 Authorization 헤더를 붙일 때 생긴다. 서버는 CORS 설정으로 OPTIONS 요청에 허용 응답을 주고, Access-Control-Max-Age로 확인 결과를 캐시하게 해 횟수를 줄인다.</dd>
 <dd>브라우저가 다른 출처로 본 요청을 보내기 전에 OPTIONS 메서드로 먼저 보내는 확인 요청이다. 서버가 해당 출처, 메서드, 헤더를 허용하는지 미리 물어보고, 허용 응답을 받은 경우에만 본 요청을 보낸다. JSON 본문을 보내는 요청이나 커스텀 헤더가 있는 요청 등에서 발생한다.</dd>
 <dt>HTTP 메서드</dt>
 <dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
@@ -84,6 +88,10 @@ fetch('https://api.shop.example/orders', {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ fetch('https://api.shop.example/orders', {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

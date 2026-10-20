@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>HTTP 응답</h1>
 <p><b>HTTP 응답은 어떻게 생긴 글인가</b></p>
+<p><b>왜 생겼나</b> — 응답의 모양이 서버마다 제각각이면, 브라우저는 어디까지가 결과를 알리는 부분이고 어디부터가 내용인지 서버마다 따로 알아내야 한다. HTTP 응답의 정해진 모양은 첫 줄에 결과 번호, 그 아래에 헤더, 빈 줄 뒤에 본문을 두는 순서를 모두가 지키게 해서, 어느 서버가 보낸 답이든 같은 방법으로 읽게 해 준다.</p>
+<p><b>지금 어디에 쓰나</b> — 브라우저가 웹 페이지를 받을 때나 앱이 서버에서 데이터를 받아 올 때, 오는 답은 모두 상태 코드와 헤더를 갖추고 대개 그 뒤에 본문이 온다. 스프링 컨트롤러가 값을 돌려주면 스프링과 톰캣이 상태 코드와 헤더를 붙여 응답을 만든다. 개발할 때는 브라우저 개발자 도구의 네트워크 탭에서 상태 코드와 헤더를 바로 볼 수 있다.</p>
 <p>서버가 요청에 답해 돌려주는 HTTP 응답도 정해진 모양의 글자 몇 줄입니다. 첫 줄(상태 줄)에는 버전과 상태 코드(200, 404 같은 세 자리 숫자)와 짧은 설명을 적습니다. 그 아래에는 &quot;이름: 값&quot; 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄 뒤에 본문(실제 내용)을 붙입니다. 클라이언트(브라우저)는 상태 코드로 요청이 어떻게 됐는지를 알고, Content-Type 헤더로 본문이 어떤 종류의 내용인지를 알고, Content-Length 헤더로 본문이 몇 바이트인지를 압니다. 이 실습은 상태 줄, Content-Type 줄, Content-Length 줄을 하나씩 바꾸거나 지워 가며 그 글자를 그대로 클라이언트에 보내, 클라이언트가 무엇을 읽어 내는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 net 서버가 글자를 그대로 보내고 http 클라이언트가 읽는 열여덟 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,16 @@
 <dt>상태 줄(status line)</dt>
 <dd>상태 줄은 HTTP 응답의 맨 첫 줄로, HTTP 버전, 상태 코드, 짧은 설명을 공백으로 나누어 차례로 적는다. 예를 들어 HTTP/1.1 200 OK는 HTTP/1.1 규칙으로 쓴 글이고, 요청의 결과가 200이며, 사람이 읽는 설명이 OK라는 뜻이다. 상태 코드는 요청이 어떻게 됐는지를 알리는 세 자리 숫자이고, 설명은 사람을 위한 글일 뿐이다(RFC 9112 4절). 클라이언트는 이 줄부터 읽기 때문에, 응답이 상태 줄로 시작하지 않으면 그 글을 HTTP 응답으로 읽지 못한다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 <dt>Content-Type 헤더</dt>
+<dd><b>왜 생겼나</b> — 본문은 바이트일 뿐이어서 종류를 알리지 않으면 받는 쪽이 내용을 보고 짐작해야 하고, 잘못 짐작하면 한글이 깨지거나 엉뚱하게 보인다. Content-Type 헤더는 보내는 쪽이 종류와 인코딩을 직접 알려 주게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링의 REST 컨트롤러가 객체를 돌려주면 JSON 글로 바꾸고 Content-Type을 application/json으로 붙인다. 반대로 서버에 JSON을 보낼 때도 이 헤더를 붙여야 스프링이 본문을 JSON으로 읽는다.</dd>
 <dd>Content-Type은 응답 본문이 어떤 종류의 내용인지를 알리는 헤더로, text/plain; charset=utf-8처럼 적는다. 앞의 text/plain은 꾸밈없는 글자라는 종류(미디어 타입)이고, charset=utf-8은 그 글자를 적은 문자 인코딩이다. 클라이언트는 이 값을 보고 본문을 글로 보여 줄지, 그림이나 다른 형식으로 다룰지를 정한다. RFC 9110 8.3절은 이 헤더가 없으면 받는 쪽이 종류를 application/octet-stream으로 가정하거나 데이터를 살펴 정할 수 있다고 한다.</dd>
 <dt>Content-Length 헤더</dt>
+<dd><b>왜 생겼나</b> — 본문의 길이를 알리는 표시가 없으면 연결을 닫는 것으로 끝을 알려야 해서, 응답 하나마다 연결을 새로 맺어야 한다. Content-Length는 길이를 미리 알려, 연결을 열어 둔 채 다음 요청과 응답을 이어서 주고받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 파일을 내려받을 때 브라우저가 몇 퍼센트 받았는지 보여 주는 데 이 값을 쓴다. 길이를 미리 모르는 응답은 대신 Transfer-Encoding: chunked로 조각마다 길이를 붙여 보낸다.</dd>
 <dd>Content-Length는 응답 본문의 크기를 바이트 수로 알리는 헤더다. 클라이언트는 이 숫자로 헤더 다음에 오는 글자 가운데 어디까지가 본문인지를 정한다(RFC 9112 6.2절). 글자 수가 아니라 바이트 수라서, UTF-8에서 한 글자가 3바이트인 한글은 글자 수의 세 배가 된다. Content-Length도 없고 다른 길이 표시도 없는 응답은, 서버가 연결을 닫기 전까지 받은 바이트를 본문으로 본다(RFC 9112 6.3절). 그래서 이 경우 연결을 닫지 않는 서버는 본문의 끝을 알릴 수 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -87,6 +95,10 @@ Content-Length: 15
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +172,10 @@ Content-Length: 15
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Interfaces and abstract classes</h1>
 <p><b>Neither can be created with new, so how do they differ?</b></p>
+<p><b>Why it exists</b> — If a common parent is an ordinary class, you are forced to write meaningless default content into the parent, and the compiler does not tell you when a child class forgets to override that method. Interfaces and abstract classes can have methods without a body, so a missing implementation is caught as a compile error before running, and the mistake of creating an object from the parent itself is also prevented.</p>
+<p><b>Where it's used today</b> — In Spring, services and repositories are received as interface types and the implementation is chosen through configuration, and Spring Data JPA creates the implementation object for you once you declare only an interface that extends JpaRepository. When several implementations must share the same fields and processing order, an abstract class is used, and Java's AbstractList and Spring's OncePerRequestFilter are examples.</p>
 <p>An interface and an abstract class both define a contract that says &quot;these methods must exist&quot;, and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields).</p>
 <p>Checked against real execution · The 12 combinations were compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Interface</dt>
 <dd>This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance variables, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing.</dd>
 <dt>Abstract class</dt>
+<dd><b>Where it's used today</b> — It is used when a subclass implements only some of the behavior and the parent does the rest. In Java's InputStream, if a subclass implements only read(), which reads one byte, the parent handles the methods that read several bytes by using that read().</dd>
 <dd>This is a class that is declared abstract, so you cannot create an instance of it directly. It can have both abstract methods with no implementation and ordinary methods with an implementation, and it can also have fields (state) and constructors. It is used to gather the state and common logic that several subclasses share, and a class can extend only one class.</dd>
 <dt>Default method</dt>
+<dd><b>Where it's used today</b> — It was used to add methods to standard interfaces that were already widely implemented, such as stream() and removeIf of Collection and getOrDefault of Map. In an interface that you write yourself, it is used to write behavior once that every implementing class would otherwise write in the same way.</dd>
 <dd>This is a feature, available since Java 8, that lets an interface contain a method with an implementation. It was introduced so that adding a new method to an interface does not break the existing implementing classes. If such methods from several interfaces conflict, the implementing class must override the method itself.</dd>
 <dt>Abstraction</dt>
+<dd><b>Why it exists</b> — If the calling side knows the detailed behavior of something and writes its code around it, the calling code must be changed every time those details change. Abstraction limits what the calling side depends on to the declared features, so the details can change while the calling code stays the same.</dd>
+<dd><b>Where it's used today</b> — It is used when you declare a variable with a supertype, as in List&lt;String&gt; list = new ArrayList&lt;&gt;(), and when you handle different database products in the same way through JDBC's Connection and PreparedStatement.</dd>
 <dd>This means hiding the complex details of something and showing only the essential features that are needed. In Java, an interface or an abstract class declares only &quot;what can be done&quot;, and the implementing class decides how to do it. The code that uses it can rely on the declared features alone, without knowing the implementation.</dd>
 <dt>Inheritance</dt>
 <dd>This means defining a new class (the subclass) that receives the fields and methods of an existing class (the superclass). It reuses common code, and the subclass adds or overrides only the parts it needs. A Java class supports single inheritance only, and a change to the superclass affects every subclass, so it is best used only when there is a clear &quot;is-a&quot; relationship.</dd>
@@ -93,6 +99,10 @@ class Card implements Payable, Refundable {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +176,10 @@ class Card implements Payable, Refundable {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

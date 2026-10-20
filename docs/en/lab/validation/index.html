@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Validation</h1>
 <p><b>The field has @NotBlank, so why does an empty value still get in?</b></p>
+<p><b>Why it exists</b> — If you write input checks as if statements, the same condition is scattered over several places in controllers and services, some places are missed when the condition changes, and the shape of the error reported on failure also becomes different each time. Bean Validation lets you write a condition only once, right next to the declaration of its field, and leaves to the validator the work of collecting the violated items and reporting them with the field name and message.</p>
+<p><b>Where it's used today</b> — You use it to check the format that each field of a request body must follow, such as the email format of a sign-up (@Email), the range of a product price (@Min, @Max), and required input items (@NotBlank). When validation fails, the response is often a 400 that tells which field is wrong and why. A condition that can be known only by looking at the database, such as &quot;is this email already registered?&quot;, is usually checked separately in service code.</p>
 <p>Input values come with conditions such as &quot;the name must not be empty&quot;. Bean Validation is a way of writing such conditions above the fields as annotations like @NotBlank, and a condition written this way is called a constraint. However, a constraint does nothing just by being written down. Something has to say &quot;validate this object&quot;, and in Spring MVC, the @Valid on a controller parameter is that signal.</p>
 <p>Checked against real execution · Checked by sending requests for 48 combinations to a Spring Boot 4.1.1 server (Hibernate Validator 9.1.3)</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,20 @@
 <dt>Bean Validation and @Valid</dt>
 <dd>Bean Validation is a Java standard in which conditions such as &quot;this value must not be empty&quot; are written on fields as annotations like @NotBlank and @Min, and a validator takes an object and checks those conditions. A condition written this way is called a constraint, and the standard defines only the contract, while the actual checking is done by an implementation library such as Hibernate Validator. A constraint does not work just by being written down. In Spring MVC, Spring passes the object to the validator only when the controller parameter is annotated with @Valid (or the Spring annotation @Validated). When an object contains another object as a field, that field also needs @Valid for the constraints of the inner object to be checked.</dd>
 <dt>@NotNull, @NotEmpty, and @NotBlank</dt>
+<dd><b>Why it exists</b> — If you set &quot;a value must be present&quot; with only one constraint, then to block an empty string or a value made only of blanks, you would have to add @Size or @Pattern to each field or check separately with an if statement. The three constraints divide the range they block into three levels, so that you pick and attach the right one for each field.</dd>
+<dd><b>Where it's used today</b> — You attach @NotBlank to input that must have text, such as an ID or a name, @NotEmpty to a list field where at least one must be chosen, and @NotNull to a field that must receive a value that is not text, such as a number, a date, or an object.</dd>
 <dd>These are three constraints that express the condition that a value &quot;must be present&quot;, and they differ from one another in what counts as &quot;not present&quot;. @NotNull blocks only null, @NotEmpty blocks null and a value of length 0 (the empty string &quot;&quot;), and @NotBlank additionally blocks a string made only of whitespace (&quot; &quot;). So a string field that has only @NotNull lets an empty string through. @NotBlank is usually used for text that a person types in. @NotBlank is a constraint for strings, so putting it on a numeric field such as an Integer causes an error at validation time.</dd>
 <dt>BindingResult</dt>
+<dd><b>Why it exists</b> — If an exception is thrown every time validation fails, the controller does not run, so it is hard to show the same screen again with the values the user entered kept and error messages attached. BindingResult passes the failure to the controller as a list of errors by field instead of cutting it off with an exception, so that the screen can be redrawn.</dd>
+<dd><b>Where it's used today</b> — You use it in an input form made with a template such as Thymeleaf, to show an error message next to the field that was entered wrongly and show the form again. In an API that exchanges JSON, BindingResult is often not used, and the exception for a validation failure is handled in one place.</dd>
 <dd>BindingResult is an object that collects the errors that occur while the values of a request are put into an object and validated. In a controller method, when a BindingResult parameter is placed immediately after the parameter annotated with @Valid, Spring does not throw an exception even if validation fails. It puts the errors in this object and runs the controller as usual. The controller checks whether there are errors with hasErrors() and decides for itself how to respond. If it does not check, the invalid value is handled as it is, so when you receive a BindingResult, you must check it. Its position also matters: if it is placed anywhere other than immediately after the parameter to validate, an error occurs when the request is handled.</dd>
 <dt>MethodArgumentNotValidException</dt>
+<dd><b>Why it exists</b> — If you check a validation failure with BindingResult in every controller, the same if statement and error response code is repeated everywhere. This exception throws the failure out of the controller so that the validation errors of several controllers are handled in one place in the same form.</dd>
+<dd><b>Where it's used today</b> — In a REST API, you put a method that catches this exception in an @RestControllerAdvice class and make a 400 response body that says which field is wrong and why.</dd>
 <dd>MethodArgumentNotValidException is the exception that Spring MVC throws when the object of a controller parameter annotated with @Valid fails validation. When this exception is thrown, the controller method does not run, and unless the exception is handled separately, Spring responds with 400 Bad Request. The exception contains which field violated which constraint, so you can handle it with an @ExceptionHandler and build the body of the error response yourself. When what fails is not an object but a constraint declared directly on a parameter, such as an @RequestParam parameter, a different exception named HandlerMethodValidationException is thrown. The names of the exceptions have changed across Spring versions, so it is safest to check them in the version you use.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -102,6 +112,10 @@ class ItemController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +189,10 @@ class ItemController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

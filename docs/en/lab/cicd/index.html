@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
 <h1>CI/CD pipelines</h1>
 <p><b>You push code, and a machine checks and deploys it for you</b></p>
+<p><b>Why it exists</b> — If code changed by several people is combined all at once only now and then, conflicts between the changes show up late, and code that works only on a developer's PC can go out to the production server as it is. CI/CD runs the build, tests, and deployment by a fixed procedure in a clean build environment every time code is pushed, so the change that caused a problem is found right after it is pushed.</p>
+<p><b>Where it's used today</b> — When a Pull Request is opened, GitHub Actions or Jenkins runs the build and tests, and the repository is set up so that the change can be merged into the main branch only if they pass. After the merge, the process continues through creating a Docker image and deploying it to a server or Kubernetes, and if applying to production needs a person's confirmation, only the step just before deployment is left as a manual approval.</p>
 <p>Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently.</p>
 <p>Conceptual model · A conceptual model (not checked against real tools)</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Unit tests and integration tests</dt>
 <dd>A unit test verifies the behavior of a single method or class in isolation from other parts. It runs fast and makes the cause of a failure easy to find. An integration test actually connects several components (such as the Spring container and a database) and verifies that they work together. It is closer to reality but slow. The usual approach is to have many unit tests and to keep integration tests focused on the core flows.</dd>
 <dt>Code review and pull requests</dt>
+<dd><b>Why it exists</b> — If everyone pushes changes straight to the base branch, others use that code without knowing what changed, and mistakes show up only after they reach production. A pull request adds a step before merging in which you see the changes on one screen, exchange opinions in comments, and check the automated test results.</dd>
+<dd><b>Where it's used today</b> — On GitHub and GitLab (where it is called a Merge Request), you protect the base branch so that only changes with review approval can be merged, and sometimes a CODEOWNERS file automatically sets who reviews each path. So that reviews do not drag on, split the work so that one pull request is a small change of about one feature.</dd>
 <dd>A pull request (PR) is a request to merge the changes on a working branch into the base branch. Code review is the process in which other developers examine the changes before they are merged. It finds defects early, keeps the code consistent, and shares knowledge within the team.</dd>
 <dt>Health check (liveness, readiness)</dt>
+<dd><b>Why it exists</b> — If you do the check in only one way, the server may be restarted just because the database was briefly slow, or conversely requests keep being sent to a server that cannot take requests. Separating liveness and readiness lets you decide separately whether to restart it and whether to send requests.</dd>
+<dd><b>Where it's used today</b> — Have Kubernetes' livenessProbe and readinessProbe call Spring Boot Actuator's /actuator/health/liveness and /actuator/health/readiness, and for an application that takes a long time to start, add a startupProbe so that it is not restarted while it is starting.</dd>
 <dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
 <dt>Rolling, blue-green, and canary deployments</dt>
 <dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
@@ -87,6 +93,10 @@ ssh prod-server &quot;systemctl restart app&quot;
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +170,10 @@ ssh prod-server &quot;systemctl restart app&quot;
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'sqh', nav: 'Stack, queue, priority queue', cat: 'Data structures', mode: 'step',
   title: 'Insertion order and removal order',
+  why: 'If values are gathered in one list and you find which to take out each time, the rules for taking out are scattered through the code, and finding the smallest value means scanning the whole list every time. Stacks, queues, and priority queues let the data structure decide the order of removal, so that taking out the latest first, the earliest first, or the smallest first is done with one method. A priority queue uses a heap so that it does not re-sort everything when inserting and removing.',
+  use: 'A stack is used for undo history, checking matching parentheses, and depth-first search, and a queue for a waiting list of tasks to process in the order they arrived and for breadth-first search. A priority queue is used to process tasks with the nearest deadline first, to pick the top N, or to find the shortest path (Dijkstra). For a queue that several threads put into and take out of together, a BlockingQueue implementation such as LinkedBlockingQueue is used.',
   intro: 'Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first.',
   terms: ['Stack, queue, deque', 'Heap and priority queue', 'Time complexity (big-O notation)'], ranks: ['ds', 'collection'],
   controls: [

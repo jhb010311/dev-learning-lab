@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Persistence context</h1>
 <p><b>What is a persistence context, and what does it do for you?</b></p>
+<p><b>Why it exists</b> — Without a persistence context, you would have to write separately the code that sends an UPDATE every time an object's value changes. Also, if you read the same row twice in one task, you ask the database twice, and you get two different objects for the same row. A persistence context keeps the entities that were read, paired with their ids, and watches them, so that the same row is handled as one object and changed values are applied by JPA as an UPDATE at commit.</p>
+<p><b>Where it's used today</b> — When you use JPA, it always works along with you without being turned on. In Spring, in a method that has @Transactional, you usually finish an update just by getting a member or an order with find and changing its name or status. When you change many rows at once, you sometimes handle it with one UPDATE statement instead of changing entities one by one.</p>
 <p>A persistence context is the place where the EntityManager (em in the code) holds entity objects and watches them. An entity is a Java object that corresponds to one row in the database, and here it is Member. An entity that you read from the database with em.find goes into the persistence context (an entity passed to em.persist, which you use to save a new entity, goes in too, but this lab does not use it). JPA watches the entities inside it, so if you only change a value, JPA builds an UPDATE statement and sends it when the transaction commits. If you call find again with the same id, it does not go to the database and gives you the object it was holding. On the other hand, an object you create yourself with new, or one you removed with em.detach, is an ordinary Java object that is not in the persistence context, so changing its values does not reach the database. This lab changes how you get the Member and runs the same code (change name to Bob and commit), and shows the name in the database after the commit and the number of UPDATE and SELECT statements that were sent.</p>
 <p>Checked against real execution · Ran all 6 combinations on Hibernate 7.4.5 and H2 2.4.240, and checked against them (the rules were checked against the Jakarta Persistence 3.2 specification)</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>Dirty checking</dt>
+<dd><b>Where it's used today</b> — It is used when you finish an update in a @Transactional service method by loading an entity and only changing its values. A change made outside a transaction, or a change to a detached entity, is not applied, so in that case you modify an entity that you loaded again inside a transaction.</dd>
 <dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 <dt>Detached entity</dt>
 <dd>The state of an entity that the persistence context managed but no longer manages. When you detach an entity with em.detach, empty the persistence context with em.clear, or close it with em.close, the entities that were in it become detached. A detached entity still has its identifier (id) value, but it is like an ordinary Java object, so even if you change its values, no UPDATE is sent and no exception is thrown. An object created with new from the values received from a screen is also treated as detached if it has the id of a row that already exists in the DB. You often meet it in code that modifies an entity after the transaction has ended.</dd>
@@ -85,6 +89,10 @@ em.getTransaction().commit();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +166,10 @@ em.getTransaction().commit();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

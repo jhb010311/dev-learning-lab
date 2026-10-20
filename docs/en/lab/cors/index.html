@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>CORS</h1>
 <p><b>Why a request works in Postman but is blocked only in the browser</b></p>
+<p><b>Why it exists</b> — With only the browser's same-origin policy, if even one of the scheme, host, and port differs between the screen and the API server, the page's script cannot read the API response. Lifting the policy altogether, however, would let any site's script read another site's response with the logged-in user's cookies attached. CORS has the server state in headers which origins may be shown the response, so that this restriction is lifted only for the origins it allows.</p>
+<p><b>Where it's used today</b> — It is configured where the origin of a React or Vue screen differs from that of the API server. During development, a screen at localhost:3000 calling an API at localhost:8080 is also a different origin because the ports differ. In Spring, the allowed origins are written with @CrossOrigin or addCorsMappings of WebMvcConfigurer, and if a reverse proxy puts the screen and the API under the same origin, no CORS configuration is needed.</p>
 <p>By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed.</p>
 <p>Checked against real execution · Ran 24 combinations with two test servers and a real browser</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>CORS and the same-origin policy</dt>
 <dd>The same-origin policy is a browser security policy that stops a script from one origin (the combination of scheme, host, and port) from reading responses from another origin. CORS is a way to relax this restriction: the server uses response headers to say that it allows access from specific origins. The browser applies this policy, so it does not apply to calls between servers or to calls made with tools.</dd>
 <dt>Preflight request</dt>
+<dd><b>Why it exists</b> — Servers built when a page from another origin could not send PUT, DELETE, or requests with a Content-Type of application/json through a browser were not prepared to block such requests. A preflight gets the server's permission before the actual request, so the actual request does not go to a server that does not know about CORS.</dd>
+<dd><b>Where it's used today</b> — It occurs in an SPA whose frontend and API have different origins, when it POSTs JSON or adds an Authorization header. The server answers the OPTIONS request with an allowing response through its CORS configuration, and uses Access-Control-Max-Age to have the result cached and reduce the number of requests.</dd>
 <dd>A check request that the browser sends first, with the OPTIONS method, before it sends the actual request to another origin. It asks the server in advance whether the server allows that origin, method, and headers, and the browser sends the actual request only if it receives a response that allows them. It occurs for requests such as those that send a JSON body or carry custom headers.</dd>
 <dt>HTTP methods</dt>
 <dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
@@ -84,6 +88,10 @@ fetch('https://api.shop.example/orders', {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ fetch('https://api.shop.example/orders', {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'redirect', nav: 'Redirection', cat: 'HTTP', mode: 'step',
   title: 'When a server says "go to another address", how does the next request go out?',
+  why: 'When a page\'s address changes, links and bookmarks that point to the old address get a 404. Also, if the response that handles a form shows the result page right away, refreshing the page can submit the same form again. With redirection, the server only tells the client the new address and leaves the trip to that address to the client, so the old address can stay alive, and handling a form and viewing the result can be split into separate requests.',
+  use: 'It is used to send requests that came in over http to https, to connect an old address to a new one after a site has moved, to send users who have not logged in to the login page, and to move on to a result page after a form is handled. In Spring MVC, when a method of a @Controller returns "redirect:/orders" as the view name, a 302 response is sent. When you only need to hand the request to another handler on the same server, use a forward, which does not go through the client.',
   intro: 'Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client "send the request again to this address". This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept.',
   terms: ['Redirection and the Location header', 'Post-Redirect-Get pattern', 'HTTP status codes', 'HTTP methods', 'Safe methods and idempotent methods'],
   controls: [

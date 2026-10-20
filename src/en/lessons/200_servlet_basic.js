@@ -1,6 +1,8 @@
 Lab.register({
   id: 'servlet_basic', nav: 'Servlets', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['servlet'],
   title: 'Which class is called a servlet?',
+  why: 'To answer a web request in Java, you originally have to write everything yourself: accepting the network connection, reading the incoming text and splitting it into the address and headers, and building and sending the response text. A servlet is the standard Java web way of dividing this work so that a servlet container such as Tomcat handles these tasks, and the developer only writes a method (doGet) that says "when a GET request comes to this address, answer like this."',
+  use: 'These days you rarely write a servlet class yourself, and you use a Spring controller instead. Even so, when Spring Boot runs, it registers one servlet (DispatcherServlet) with Tomcat and has it receive all requests, so you often see the name servlet in error messages and logs.',
   intro: 'A servlet is a Java class declared with class. It differs from an ordinary class in two places. extends HttpServlet is what qualifies the class to receive web requests, and @WebServlet("/hello") registers that a request the browser sends to the path /hello is handed to this class. You remove these two one at a time and send the same request, to see whether Tomcat calls the doGet of this class.',
   terms: ['Servlet class', 'HttpServlet', '@WebServlet', 'Servlet and servlet container'],
   controls: [

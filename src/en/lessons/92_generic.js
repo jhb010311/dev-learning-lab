@@ -1,6 +1,8 @@
 Lab.register({
   id: 'generic', nav: 'Generics', cat: 'Java language', mode: 'step',
   title: 'What does the <Integer> in List<Integer> protect you from?',
+  why: 'Collections without generics handled every element as an Object, so any type could be put in, and every time you took one out, you had to write a cast such as (String) yourself. A mistake of putting in the wrong type showed up only when you ran the program. Generics make you write the element type in the declaration, which moves that check to compile time, and the compiler inserts the cast when an element is taken out.',
+  use: 'They are used by default when you declare collections, as in List<String> and Map<Long, String>. Optional<T>, Spring\'s ResponseEntity<T>, and JpaRepository<T, ID> are also made generic so that they can be reused with only the handled type changed. If a parameter only reads values taken out of it, you use ? extends, and if it only puts values in, you use ? super, so that it accepts more types.',
   intro: 'Generics are the syntax for writing "what type the elements of this list are" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.',
   terms: ['Generics', 'Raw type', 'Type erasure', 'Wildcard (? extends and ? super)'],
   controls: [

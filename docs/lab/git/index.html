@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 협업</p>
 <h1>merge와 rebase</h1>
 <p><b>두 브랜치를 합치는 세 가지 모양</b></p>
+<p><b>왜 생겼나</b> — 여러 사람이 각자 작업한 변경을 파일 복사로 맞추면 누가 무엇을 바꿨는지 잃어버리고 서로의 수정을 덮어쓰게 된다. Git의 merge와 rebase는 두 갈래의 변경을 자동으로 합치고 같은 곳을 고친 부분만 사람에게 묻게 해서, 합친 결과를 커밋 이력으로 남긴다.</p>
+<p><b>지금 어디에 쓰나</b> — GitHub에서 Pull Request를 합칠 때 merge commit, squash, rebase 가운데 하나를 고르며, 팀마다 어느 모양으로 남길지 정해 둔다. 혼자 쓰는 작업 브랜치를 최신 main 위로 올릴 때는 rebase를, 이미 다른 사람과 공유한 브랜치를 합칠 때는 merge를 쓴다. 작업 중의 자잘한 커밋을 남기고 싶지 않으면 squash로 기능 하나를 커밋 하나로 남긴다.</p>
 <p>feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다.</p>
 <p>실행으로 대조 · git 2.55로 임시 저장소를 만들어 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,10 +42,15 @@
 <dt>Git 충돌(Conflict)</dt>
 <dd>두 브랜치가 같은 파일의 같은 부분을 서로 다르게 수정해 Git이 자동으로 합치지 못하는 상황이다. 충돌이 표시된 부분을 확인해 어느 쪽을 반영할지 또는 둘을 어떻게 합칠지 사람이 직접 결정해 수정한 뒤 병합을 마무리한다.</dd>
 <dt>Git의 fetch, pull, push</dt>
+<dd><b>왜 생겼나</b> — SVN 같은 중앙 저장소 방식은 커밋이 곧바로 서버에 올라가서, 네트워크 없이는 커밋할 수 없고 커밋하자마자 다른 사람이 받아 갈 수 있었다. Git은 커밋을 먼저 내 컴퓨터의 저장소에 남기고, fetch·pull·push로 원격 저장소와 주고받을 때를 사람이 정하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 작업을 시작할 때 pull로 팀의 최신 변경을 받고, 작업을 마치면 push로 올린 뒤 Pull Request를 연다. 합치기 전에 차이를 보려면 fetch 뒤에 git log나 git diff로 확인한다.</dd>
 <dd>fetch는 원격 저장소의 새로운 변경 내용을 내려받되 내 작업 브랜치에는 반영하지 않는 것이다. pull은 fetch에 더해 내려받은 변경을 현재 브랜치에 합치는 것까지 수행한다. push는 내 로컬의 커밋을 원격 저장소로 올리는 것이다.</dd>
 <dt>Git Flow와 GitHub Flow</dt>
+<dd><b>왜 생겼나</b> — 브랜치 규칙이 없으면 사람마다 다른 기준으로 브랜치를 만들어, 어느 브랜치가 지금 배포된 것인지, 긴급 수정을 어디서 갈라야 하는지 헷갈린다. Git Flow와 GitHub Flow는 브랜치의 종류와 합치는 방향을 미리 정해 팀이 같은 순서로 일하게 한다.</dd>
 <dd>브랜치를 운영하는 전략이다. Git Flow는 출시용 브랜치와 개발 통합 브랜치를 두고 기능, 출시 준비, 긴급 수정을 각각의 브랜치로 관리하는 방식으로, 정해진 주기로 버전을 출시하는 제품에 맞는다. GitHub Flow는 기준 브랜치 하나에서 짧은 작업 브랜치를 만들어 리뷰 후 합치고 바로 배포하는 단순한 방식으로, 수시로 배포하는 서비스에 맞는다.</dd>
 <dt>코드 리뷰와 Pull Request</dt>
+<dd><b>왜 생겼나</b> — 변경을 각자 기준 브랜치에 바로 올리면 다른 사람은 무엇이 바뀌었는지 모른 채 그 코드를 쓰게 되고, 실수는 운영에 나간 뒤에야 드러난다. Pull Request는 합치기 전에 변경 내용을 한 화면에서 보고, 댓글로 의견을 주고받고, 자동 테스트 결과를 확인하는 단계를 둔다.</dd>
+<dd><b>지금 어디에 쓰나</b> — GitHub, GitLab(Merge Request라고 부른다)에서 기준 브랜치를 보호해 리뷰 승인을 받은 변경만 합치게 하고, CODEOWNERS 파일로 경로마다 리뷰할 사람을 자동으로 정하기도 한다. 리뷰가 늘어지지 않도록 Pull Request 하나는 기능 하나 정도의 작은 변경으로 나눈다.</dd>
 <dd>Pull Request(PR)는 작업한 브랜치의 변경을 기준 브랜치에 합쳐 달라고 요청하는 것이다. 코드 리뷰는 합치기 전에 다른 개발자가 변경 내용을 검토하는 과정으로, 결함을 일찍 발견하고 코드의 일관성을 유지하며 팀 안에서 지식을 공유하는 효과가 있다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -80,6 +87,10 @@ git merge feature</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +164,10 @@ git merge feature</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

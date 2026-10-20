@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
 <h1>Deadlocks in the database</h1>
 <p><b>When two transactions wait for each other, how does the database end it?</b></p>
+<p><b>Why it exists</b> — When two transactions each wait for a row that the other has locked, neither can resolve the wait by itself. Both connections stay stopped until the lock wait timeout runs out, and they also hold up other requests. InnoDB's deadlock detection finds the moment a cycle forms in the waiting relationships, rolls back one transaction that has less to roll back, and returns an error, so that the other transaction can go on right away.</p>
+<p><b>Where it's used today</b> — In places that change several rows in one transaction, such as an account transfer or an inventory decrease, add a retry so that the transaction runs again from the beginning when it receives a deadlock error. In Spring, this error is converted and thrown as an exception of the PessimisticLockingFailureException family. To prevent a cycle from forming at all, lock multiple rows in the same order every time, for example starting with the lower account number.</p>
 <p>Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error.</p>
 <p>Checked against real execution · Ran 10 combinations on MySQL 8.4.11 with two sessions and checked the results against them</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Deadlock</dt>
 <dd>This is a state in which two or more threads (or transactions) can never make progress, because each is waiting for a resource that the other holds. The typical case is that A holds resource 1 and waits for 2 while B holds resource 2 and waits for 1. It can be prevented by always acquiring resources in the same order.</dd>
 <dt>Deadlock detection and the victim</dt>
+<dd><b>Where it's used today</b> — When a deadlock error occurs in MySQL InnoDB, look at the LATEST DETECTED DEADLOCK section of SHOW ENGINE INNODB STATUS to see which lock was being waited for. If a great many connections wait for the same lock, detection is sometimes turned off with innodb_deadlock_detect and left to the lock wait timeout.</dd>
 <dd>A database feature that finds, by itself, a cycle of transactions waiting for each other's locks and forcibly rolls one of them back. When a transaction has to wait for a lock, MySQL InnoDB follows who is waiting for whom and checks whether there is a cycle. If there is one, it chooses a transaction, rolls it back as a whole, and returns error 1213 (Deadlock found). The transaction that is rolled back is called the victim, and InnoDB tries to choose a small transaction that has changed fewer rows. The side that survives proceeds without an error. Everything the victim did has been canceled, so the application must run that transaction again from the start.</dd>
 <dt>Lock wait timeout</dt>
 <dd>A failure of a statement that waited for a lock held by another transaction to be released, up to a set time, and still could not get it. In MySQL InnoDB, when innodb_lock_wait_timeout (default 50 seconds) passes, error 1205 (Lock wait timeout exceeded) is returned. Unlike a deadlock, it can occur even when there is no cycle of mutual waiting, and a common cause is another transaction being kept open for a long time. Under the default settings, only the statement that was waiting is canceled and the transaction stays alive, so the earlier changes and locks remain. That is why, when you get this error, you must roll back yourself and then decide whether to try again.</dd>
 <dt>Shared locks and exclusive locks</dt>
+<dd><b>Why it exists</b> — If there is only one kind of lock, even transactions that only read must wait for each other. When locks are split into shared and exclusive locks, reads proceed together, and turns are enforced only when a write is involved.</dd>
+<dd><b>Where it's used today</b> — In MySQL, SELECT ... FOR SHARE takes a shared lock, and FOR UPDATE, UPDATE, and DELETE take an exclusive lock. You use a shared lock to hold on to rows you read so that they do not change during the transaction, and an exclusive lock for rows you read and will modify soon.</dd>
 <dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
@@ -103,6 +108,10 @@ ROLLBACK;                          -- and stops</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@ ROLLBACK;                          -- and stops</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

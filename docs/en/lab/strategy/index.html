@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Strategy pattern</h1>
 <p><b>What you have to change when one more payment method is added</b></p>
+<p><b>Why it exists</b> — If a feature with several ways of processing is split with if-else, then every time one more way is added, you have to find and change every method that has the branch, and you have to check again the other ways that were already working well. The Strategy pattern separates each way into its own class that implements the same interface, so that adding a new way is done by adding one class.</p>
+<p><b>Where it's used today</b> — It is used where there are several ways to do the same job and more may be added, such as discount policies (fixed amount, percentage), notification channels (email, text message, app push), and file storage locations (local disk, cloud). Passing a sort order to Java as a Comparator has the same structure, and in Spring the implementation classes are registered as beans and injected. If the cases are fixed at two or three, if-else or switch is simpler.</p>
 <p>Each payment method (card, bank transfer, Kakao Pay) is processed in a different way. One way to write this is to branch with if-else. Another is to keep a separate implementation for each payment method and swap the implementations in and out (the Strategy pattern).</p>
 <p>Checked against real execution · Checked with code of the same structure on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Strategy pattern</dt>
 <dd>A pattern that defines an algorithm or behavior that may change as an interface and implements each variant as a separate class, so that it can be swapped at run time. The code that uses it depends only on the interface, so adding a new variant does not require changing the existing code.</dd>
 <dt>Design pattern</dt>
+<dd><b>Where it's used today</b> — They also appear often when you read Spring code. JdbcTemplate follows the Template Method pattern, the way @Transactional works follows the Proxy pattern, and the structure that receives events with @EventListener follows the idea of the Observer pattern.</dd>
 <dd>A proven solution to a problem that comes up repeatedly in software design, given a name and written down. These solutions serve as a shared vocabulary among developers, so a design intention can be communicated briefly. Each one is a means of solving a specific problem, so applying one where it is not needed only adds complexity.</dd>
 <dt>Polymorphism</dt>
 <dd>This is the property that calling the same method through a reference of the same type runs different behavior depending on the kind of the actual object. A variable of a supertype (an interface or a superclass) can hold objects of several subtypes, and which implementation runs is decided at run time (dynamic method lookup). It lets you add a new implementation without changing the calling code.</dd>
 <dt>SOLID</dt>
+<dd><b>Why it exists</b> — SOLID is a set of design criteria for avoiding a structure in which adding or fixing one feature forces you to touch unrelated classes. Each principle has a name, so a judgment such as &quot;this class has too many responsibilities&quot; can be shared in the same words within a team.</dd>
+<dd><b>Where it's used today</b> — It is used as a basis for deciding whether to split a class or introduce an interface in code reviews and refactoring. In Spring, writing a class so that it receives an interface type, not an implementation class, through its constructor is a common example of dependency inversion.</dd>
 <dd>These are five principles of object-oriented design. They are the Single Responsibility Principle (SRP: a class has only one reason to change), the Open-Closed Principle (OCP: extend without modifying existing code), the Liskov Substitution Principle (LSP: a subtype must be able to replace its supertype), the Interface Segregation Principle (ISP: keep interfaces small so that code does not depend on methods it does not use), and the Dependency Inversion Principle (DIP: depend on abstractions, not on concrete classes). The goal is a structure that holds up well under change.</dd>
 <dt>Interface</dt>
 <dd>This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance variables, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing.</dd>
@@ -101,6 +106,10 @@ class PaymentService {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +183,10 @@ class PaymentService {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

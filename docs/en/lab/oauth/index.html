@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>OAuth login flow</h1>
 <p><b>What is exchanged when you click &quot;Log in with Kakao&quot;</b></p>
+<p><b>Why it exists</b> — If a user is asked for their ID and password of another service in order to fetch data from that service, the receiving side gets every permission, more places can leak the password, and the user cannot cut off that access until they change the password. OAuth 2.0 has a token with a defined scope and expiry issued instead of the password, so that access is limited to what the user allowed and that permission alone can be withdrawn later.</p>
+<p><b>Where it's used today</b> — It is used for social login such as &quot;Log in with Kakao&quot; and &quot;Log in with Google&quot;, and for integrations that read and write, on a user's behalf, data in another service, such as their calendar or drive. In Spring, Spring Security's OAuth2 client handles this flow. For login purposes, OpenID Connect, which standardizes identity verification on top of OAuth 2.0, is sometimes used together.</p>
 <p>Social login is a procedure in which our service gets permission to access a user's information, with the user's consent, without ever receiving the user's password. Some things travel through the browser, and others are exchanged directly between servers.</p>
 <p>Checked against documentation and standards · Checked against the OAuth 2.0 standard (RFC 6749)</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>Authentication and authorization</dt>
 <dd>Authentication checks who a user is. Authorization decides whether that verified user has permission to use a specific resource or feature. Authentication happens first, and authorization is decided based on its result. In HTTP status codes, a failed authentication corresponds to 401 and a failed authorization corresponds to 403.</dd>
 <dt>Access token and refresh token</dt>
+<dd><b>Why it exists</b> — When one token keeps a login going, a long lifetime means a stolen token stays usable for a long time, and a short lifetime means the user must log in again often. If you split it into an access token and a refresh token, the token that travels with every API request has a short life, and the login continues through the refresh token.</dd>
+<dd><b>Where it's used today</b> — It is commonly used in mobile apps and SPAs that keep a login with a JWT. The refresh token is often kept in an HttpOnly cookie or in the app's secure storage, and the server also records it and revokes it when the user logs out.</dd>
 <dd>An access token is the token that a client presents when it calls an API. Its lifetime is kept short to reduce the damage if it is stolen. A refresh token is the token used to get a new access token when the access token expires. It has a long lifetime and is stored more securely. The server can revoke a refresh token to stop new access tokens from being issued.</dd>
 <dt>Cross-site request forgery (CSRF)</dt>
 <dd>An attack that takes advantage of the fact that a user is logged in: a page made by the attacker causes the user's browser to send an unintended request to the target site. The browser attaches cookies automatically, so the server treats it as a normal request. To block it, require requests to include an unpredictable token issued by the server, or use the SameSite attribute of cookies.</dd>
@@ -101,6 +105,10 @@ spring.security.oauth2.client:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +182,10 @@ spring.security.oauth2.client:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

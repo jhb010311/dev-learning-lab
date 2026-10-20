@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,15 +31,23 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Origins</h1>
 <p><b>What is an origin, and why does the browser tell different origins apart?</b></p>
+<p><b>Why it exists</b> — One browser has many sites open at once, and the user is logged in to many of them. If there were no rule, a script from any site could send a request to the mail or shopping site where I am logged in and read my information shown in the reply. The same-origin policy keeps a script from reading a response that came from a different origin, which prevents one site's script from taking my information from another site.</p>
+<p><b>Where it's used today</b> — The browser performs this check whenever a script in a web page requests data from another address. If you develop with the page served at localhost:3000 and the Spring server at localhost:8080, the ports differ, so they are different origins, and the server must allow reading through CORS before the page's script can read the response. Requests sent from outside a browser, as when a Java server calls another server, are not subject to this rule.</p>
 <p>An origin is the combination of three parts at the start of an address (URL): the scheme (https or http), the host (the site name), and the port (a number). If any one of the three differs, it is a different origin, and the path and query that come after are not part of the origin. The browser blocks a script running inside a page from reading the response to a request sent to another origin. This rule is the same-origin policy. In this lab, the code box lists the address of the page that is open and the address that the script of that page requests. You change the requested address one part at a time and see whether the browser treats the origin as the same, whether the request arrives at the server, and whether the script reads the response. The code box is not a program but two addresses. The way a server allows reading (CORS) is not covered in this lab.</p>
 <p>Partly checked against real execution · The origins of the five addresses were calculated with Node.js 24.18.0 URL, and whether the response is read and whether the request arrives at the server were checked in our test environment with Chrome (run without a window) and a 127.0.0.1 test server, with differences made in port, host, and scheme. The shop.example addresses on the screen themselves and all the rules of the browser's decisions were not run and were checked against the documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Origin</dt>
+<dd><b>Why it exists</b> — If a site were told apart by name (host) alone, a script running on an http page with the same name, or on a page of a server that differs only in the port, could also read the response of an https page. An origin is the standard that takes the scheme, the host, and the port all into account and treats two places as the same only when all three are the same.</dd>
+<dd><b>Where it's used today</b> — In the CORS settings of Spring, the places that are allowed to read the response are written as origins, as in allowedOrigins(&quot;https://shop.example&quot;). The storage of the browser (localStorage) is also separate for each origin, so a page of another origin cannot read that value.</dd>
 <dd>An origin is the combination of three parts at the start of an address (URL): the scheme, the host, and the port. The origin of https://shop.example/cart has the scheme https, the host shop.example, and the port 443, and it is written as https://shop.example. If an address has no port, the default port of the scheme is used (443 for https, 80 for http), and when an origin is written down, the default port is left out (RFC 6454 sections 4 and 6). Two origins are the same origin only when all three parts are the same, and if even one differs, they are different origins (RFC 6454 section 5). The path and query are not part of the origin, so addresses that differ only in the path are the same origin (MDN).</dd>
 <dt>Scripts in web pages</dt>
+<dd><b>Why it exists</b> — A page without a script has to receive the whole page again from the server even to change just a part of the screen. A script keeps running inside the browser after the page is received, and changes only the needed parts when a button is pressed or when data has come from the server.</dd>
+<dd><b>Where it's used today</b> — It is used where data from the server is received and shown without opening the page anew, such as the suggestion list that appears below when you type a search word, or a list of posts that keeps loading as you scroll down.</dd>
 <dd>A script in a web page is JavaScript code that is put in with the &lt;script&gt; element of an HTML page and that the browser which received the page runs inside that tab (MDN). A script can send an HTTP request to a server with the fetch() function, receive the response, and change the page. When the server responds, fetch() returns a Response object that holds the response, and it fails when something like a network error happens (MDN Using the Fetch API). When the origin of the requested address differs from that of the page, the browser decides whether to give the response to the script.</dd>
 <dt>Scheme and default port</dt>
+<dd><b>Why it exists</b> — From the host name alone, you cannot know which rules to use to talk with that server or which port number to connect to. The scheme fixes both with one name at the very front, so that in common cases you do not need to write the port number separately.</dd>
+<dd><b>Where it's used today</b> — Besides http and https, as in the DB connection address jdbc:mysql://, the very front tells what to connect with. A Spring Boot server uses port 8080 by default, so you write the port, as in http://localhost:8080.</dd>
 <dd>The scheme is the name at the very beginning of a URL, up to the first :, and it tells which rules to talk by for this URL. In http://localhost/hello, http is the scheme, and it begins with a letter (RFC 3986 section 3.1). A scheme can also define a default port (section 3.2.3), so the default port of http is 80, and if the URL does not write a port, the client connects to port 80 (RFC 9110 section 4.2.1). Without a scheme, it cannot be known what symbols such as : and / divide, so according to the URL standard (WHATWG), the text is not read as an address unless there is another address to use as a base. If there is a : as in localhost:8080/hello, localhost may even be read as the scheme.</dd>
 <dt>CORS and the same-origin policy</dt>
 <dd>The same-origin policy is a browser security policy that stops a script from one origin (the combination of scheme, host, and port) from reading responses from another origin. CORS is a way to relax this restriction: the server uses response headers to say that it allows access from specific origins. The browser applies this policy, so it does not apply to calls between servers or to calls made with tools.</dd>
@@ -86,6 +94,10 @@ https://shop.example/api/items</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +171,10 @@ https://shop.example/api/items</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Lazy fetching</h1>
 <p><b>When is an associated object read from the database?</b></p>
+<p><b>Why it exists</b> — If every read of an order also always reads the member who placed it, a useless join or SELECT is sent to the DB even on screens that do not use the member information. JPA's lazy fetching (FetchType.LAZY) postpones reading the member until the code first uses a value of the member, so the member table is read only on the screens that need it.</p>
+<p><b>Where it's used today</b> — It is used where the associated object is not always needed, such as an order list or a post list. @ManyToOne works as EAGER if nothing is written, so in practice it is common to write fetch = FetchType.LAZY explicitly. On a screen where the member is definitely needed too, a JPQL fetch join reads it all at once, only at that time.</p>
 <p>An order (Order) points to the member (Member) who placed it (Order and Member are entity classes written for this lab as examples). In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field refers to a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.</p>
 <p>Checked against real execution · Ran 4 combinations on Hibernate 7.4.5 and H2 2.4.240 and checked the SQL sent on each line against the results, and checked the FetchType rules against the Jakarta Persistence 3.2 API documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Lazy fetching and eager fetching</dt>
 <dd>Settings for when to load an associated entity. Eager fetching (EAGER) loads the associated entities together when the entity is loaded. Lazy fetching (LAZY) puts a proxy object in the place of the associated entity and loads it when its values are actually used. Eager fetching always loads data even when it is not needed and produces queries that are hard to predict, so using lazy fetching as the default is recommended.</dd>
 <dt>@ManyToOne</dt>
+<dd><b>Where it's used today</b> — You put it on the field of the entity on the &quot;many&quot; side, such as a field that points from an order to a member, or from a comment to a post. By default, when you read an order the member is read with it, so it is common to also write fetch = FetchType.LAZY so that it is read only when needed.</dd>
 <dd>@ManyToOne is an annotation that you put on a field to show that &quot;this field points to one other entity, and many of this entity can point to the same one&quot;. A typical case is many orders pointing to one member. The type of the target is found from the type of the field. In tables, the table of the entity that has this field gets a foreign key column that holds the primary key value of the other side, and if you do not set the column name separately, it becomes the name that joins the field name, an underscore, and the name of the other side's primary key column (member_id for a member field of the type Member). If a field of another entity type has no such association mark, Hibernate 7.4.5 cannot find a way to put that field in a column and throws an error while starting.</dd>
 <dt>Entity proxy</dt>
 <dd>A stand-in object that is put in the place of a real entity. Hibernate creates a subclass of the entity class at run time and returns an object of it, and at first it knows only the identifier and the rest of its contents is empty. The moment you first read a value other than the identifier, it queries the DB and reads the real entity; this is called proxy initialization. The result of em.getReference and an association configured for lazy fetching come in as proxies. The class of a proxy is different from the entity class, so use instanceof instead of getClass() when you compare types.</dd>
 <dt>FetchType</dt>
+<dd><b>Why it exists</b> — If the time to read associated data is fixed to one choice, an association that is often used together and an association that is rarely used have to be treated the same way. FetchType lets you write EAGER or LAZY on an association annotation, so that you choose the time to read separately for each association.</dd>
+<dd><b>Where it's used today</b> — @OneToMany and @ManyToMany, which stand for an associated list, are LAZY even if you write nothing, so the places where you write FetchType yourself are usually the @ManyToOne and @OneToOne side, where the default is EAGER.</dd>
 <dd>FetchType is an enum that says when to read associated data, and it has two values, EAGER and LAZY. You write FetchType.LAZY or FetchType.EAGER in the fetch element of an association annotation such as @ManyToOne. EAGER is a requirement that the data must be read at once, and LAZY is a hint that the data may be read when it is first accessed. Because LAZY is a hint, the implementation is also permitted to read data marked LAZY in advance. If you do not write fetch on @ManyToOne, the default is EAGER.</dd>
 </dl>
 <h2>Try these</h2>
@@ -105,6 +110,10 @@ String name = order.getMember().getName();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +187,10 @@ String name = order.getMember().getName();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

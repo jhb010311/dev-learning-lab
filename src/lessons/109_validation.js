@@ -1,6 +1,8 @@
 Lab.register({
   id: 'validation', nav: '검증', cat: '스프링', mode: 'step',
   title: '필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나',
+  why: '입력값 검사를 if 문으로 쓰면 같은 조건이 컨트롤러와 서비스 여러 곳에 흩어지고, 조건을 바꿀 때 빠뜨리는 곳이 생기며, 실패했을 때 알려 주는 오류의 모양도 제각각이 된다. Bean Validation은 조건을 그 필드의 선언 바로 옆에 한 번만 적게 하고, 어긴 항목을 필드 이름과 메시지로 모아 알려 주는 일을 검증기에 맡겼다.',
+  use: '회원 가입의 이메일 형식(@Email), 상품 가격의 범위(@Min, @Max), 필수 입력 항목(@NotBlank)처럼 요청 본문의 필드마다 지켜야 할 형식을 검사하는 데 쓴다. 실패하면 400과 함께 어느 필드가 왜 틀렸는지 알려 주는 응답을 만드는 경우가 많다. "이미 가입한 이메일인가"처럼 DB를 봐야 아는 조건은 대개 서비스 코드에서 따로 검사한다.',
   intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애너테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다.',
   terms: ['Bean Validation과 @Valid', '@NotNull, @NotEmpty, @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP 상태 코드'],
   controls: [

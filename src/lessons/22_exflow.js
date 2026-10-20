@@ -1,6 +1,8 @@
 Lab.register({
   id: 'exflow', nav: '예외와 finally', cat: '자바 언어', mode: 'step',
   title: '예외가 나면 어느 블록이 어떤 순서로 실행되나',
+  why: '자원을 닫는 코드를 정상 흐름 끝에만 두면 예외가 난 경로에서는 그 줄에 닿지 못해 파일이나 DB 연결이 열린 채 남는다. finally는 어느 길로 빠져나가든 지나가는 자리를 주어 정리 코드를 한곳에 모았고, try-with-resources는 finally에서 null 확인과 close() 예외 처리를 겹겹이 쓰던 일을 컴파일러가 대신 하게 했다.',
+  use: 'JDBC의 Connection, PreparedStatement, ResultSet이나 파일·네트워크 스트림을 열 때 try-with-resources를 쓴다. ReentrantLock은 AutoCloseable이 아니어서 finally에서 unlock()을 부른다. JdbcTemplate이나 JPA를 쓰면 연결을 닫는 일을 스프링이 맡으므로 직접 쓸 일은 줄어든다.',
   intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 try를 정상으로 빠져나가든 return이나 예외로 빠져나가든 실행됩니다(System.exit()로 JVM 자체를 끝내면 실행되지 않습니다). return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
   terms: ['finally와 try-with-resources', '예외(Exception)와 Error', 'Checked 예외와 Unchecked 예외'], ranks: ['exception'],
   controls: [

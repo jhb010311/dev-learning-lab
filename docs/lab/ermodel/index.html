@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 관계형 모델과 설계</p>
 <h1>ER 모델링</h1>
 <p><b>개체 사이의 관계를 테이블로 어떻게 옮기나</b></p>
+<p><b>왜 생겼나</b> — 테이블부터 바로 만들면 쉼표로 이어 붙인 태그 컬럼이나 tag1~tag3 같은 컬럼처럼, 당장은 돌아가지만 검색과 추가가 어려운 구조가 나오기 쉽다. ER 모델은 무엇을 저장하고 무엇끼리 몇 대 몇으로 이어지는지를 먼저 정리하게 해서, 관계의 종류에 맞는 외래 키와 연결 테이블을 고를 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 새 서비스의 DB를 설계할 때 회원·주문·상품 같은 개체와 관계를 ERD로 그려 함께 검토하고, 그 그림을 보고 CREATE TABLE이나 JPA 엔티티를 만든다. 기능이 늘 때도 새 개체가 기존 테이블과 어떻게 이어질지 ERD에서 먼저 따져 본다. 이미 있는 DB를 처음 맡았을 때도 ERD부터 보고 테이블 사이의 관계를 파악한다.</p>
 <p>회원과 글(일대다), 글과 태그(다대다), 회원과 프로필(일대일)이라는 세 관계를 테이블로 옮깁니다. 관계마다 흔히 쓰는 설계와, 그럴듯해 보이지만 어긋나는 설계를 나란히 두었습니다. 양쪽에 같은 일(연결된 것 찾기, 하나 더 연결하기)을 시켜 보면 조회 결과가 달라집니다.</p>
 <p>실행으로 대조 · MySQL 8.4.11에서 열네 가지 조합의 SQL을 그대로 실행해 쓰기 문장의 결과, 조회 결과의 모든 행, 끝난 뒤 테이블의 모든 행을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>관계의 종류(일대일, 일대다, 다대다)</dt>
 <dd>두 개체가 서로 몇 개씩 이어질 수 있는지에 따라 관계를 나눈 것이다. 일대다는 회원 한 명이 글을 여러 개 쓰는 것처럼 한쪽 하나에 다른 쪽 여러 개가 이어지는 관계로, &quot;다&quot; 쪽 테이블에 외래 키를 둔다. 다대다는 글 하나에 태그가 여러 개 붙고 태그 하나가 여러 글에 붙는 것처럼 양쪽 모두 여러 개가 이어지는 관계로, 가운데에 연결 테이블을 둔다. 일대일은 양쪽 모두 하나씩만 이어지는 관계로, 외래 키에 유니크 제약을 더해 옮긴다. 한 칸에는 값이 하나만 들어간다는 점이 이 규칙들의 이유이다.</dd>
 <dt>연결 테이블</dt>
+<dd><b>왜 생겼나</b> — 다대다 관계는 어느 한쪽 테이블에 외래 키 한 칸을 두는 것으로는 나타낼 수 없다. 연결 테이블은 연결 하나를 행 하나로 두어, 연결을 더하거나 끊는 일을 INSERT나 DELETE 한 줄로 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 글과 태그, 학생과 수업, 사용자와 역할처럼 양쪽이 여럿씩 이어지는 곳에 쓴다. JPA의 @ManyToMany도 연결 테이블을 쓰지만, 연결에 날짜 같은 값이 붙으면 연결 테이블을 엔티티로 만들어 일대다 관계 둘로 나눈다.</dd>
 <dd>다대다 관계를 테이블로 옮길 때 두 테이블 사이에 두는 테이블이다. 양쪽 테이블의 기본 키를 가리키는 외래 키 두 개를 가지며, 행 하나가 &quot;이 글에 이 태그가 붙어 있다&quot; 같은 연결 하나를 뜻한다. 보통 두 외래 키를 묶어 기본 키로 삼아 같은 연결이 두 번 들어가지 않게 한다. 연결이 늘어도 행만 늘어날 뿐 테이블의 모양은 바뀌지 않는다. 연결한 날짜나 순서처럼 연결 자체에 딸린 값이 생기면 이 테이블에 컬럼으로 추가한다. 교차 테이블, 매핑 테이블이라고도 부른다.</dd>
 <dt>기본 키, 유니크 키, 외래 키</dt>
 <dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
@@ -98,6 +102,10 @@ SELECT id, title
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -171,9 +179,10 @@ SELECT id, title
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

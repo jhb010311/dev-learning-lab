@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>재시도와 멱등성</h1>
 <p><b>응답을 못 받아서 다시 보냈더니</b></p>
+<p><b>왜 생겼나</b> — 응답이 오지 않으면 클라이언트는 요청이 서버에 닿지 못했는지, 처리된 뒤 응답만 사라졌는지 알 수 없어서, 다시 보내면 같은 일이 두 번 처리될 위험이 있다. 멱등성은 몇 번 실행해도 서버 상태가 한 번 실행한 것과 같은 요청을 구분해 두어 그런 요청은 마음 놓고 다시 보내게 하고, 멱등키는 POST처럼 그렇지 않은 요청에서도 서버가 이미 처리한 요청을 알아보게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 결제, 송금, 주문 생성처럼 두 번 처리되면 안 되는 POST API에서 멱등키를 받아 중복을 막고, HTTP 클라이언트나 게이트웨이의 자동 재시도는 보통 GET, PUT, DELETE 같은 멱등한 요청에만 켠다. 수량을 1 늘리는 식의 변경은 &quot;수량을 3으로&quot; 같은 값 지정으로 바꿔 멱등하게 만들기도 한다.</p>
 <p>네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.</p>
 <p>문서·표준 대조 · HTTP 표준(RFC 9110)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,11 @@
 <dt>HTTP 메서드</dt>
 <dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
 <dt>멱등성과 멱등키</dt>
+<dd><b>지금 어디에 쓰나</b> — 결제 승인, 송금, 주문 생성 API에서 클라이언트가 Idempotency-Key 같은 헤더로 키를 보내고, 서버는 그 키를 DB 유니크 키나 Redis에 기록해 같은 키의 요청을 걸러 낸다. 메시지 소비자가 중복을 거를 때도 쓴다.</dd>
 <dd>멱등성은 같은 요청을 여러 번 수행해도 결과가 한 번 수행한 것과 같은 성질이다. 네트워크 문제로 같은 요청이 다시 전송될 수 있으므로, 결제처럼 중복되면 안 되는 작업은 멱등하게 만들어야 한다. 멱등키는 클라이언트가 요청마다 붙이는 고유한 값으로, 서버는 이미 처리한 키의 요청이 다시 오면 다시 처리하지 않고 이전 결과를 돌려준다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -84,6 +89,10 @@ Content-Type: application/json
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +166,10 @@ Content-Type: application/json
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

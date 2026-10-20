@@ -2,7 +2,7 @@
 // 다른 실습 파일은 읽지 않으므로, 여러 실습을 동시에 작업하는 중에도 쓸 수 있다.
 // 검사: 필수 항목, 예시의 설정 이름, 설명 용어가 kb에 있는지, 문제 파일(정답 4개, sim 대조), 검증 수준 파일, 글 규칙,
 //       그리고 모든 설정 조합 실행과 그림 장면(test.js).
-const fs = require('fs'), path = require('path'), cp = require('child_process');
+const fs = require('fs'), path = require('path'), cp = require('child_process'), whyuse = require('./whyuse.js');
 const root = path.join(__dirname, '..'), id = process.argv[2];
 if (!id) { console.log('사용: node tools/check_lesson.js <실습 id>'); process.exit(1); }
 const ldir = path.join(root, 'src', 'lessons');
@@ -13,6 +13,7 @@ const list = []; new Function('Lab', fs.readFileSync(path.join(ldir, file), 'utf
 const l = list[0];
 ['id', 'nav', 'cat', 'mode', 'title', 'intro', 'terms', 'controls', 'presets', 'code', 'label', 'columns', 'simulate', 'render', 'assume'].forEach(k => { if (l[k] === undefined) errs.push('필수 항목 없음: ' + k); });
 if (!['step', 'time'].includes(l.mode)) errs.push('mode는 step 또는 time');
+whyuse.lessonErrors(l).forEach(e => errs.push(e)); // 고르는 항목 why(왜 생겼나), use(지금 어디에 쓰나)
 (l.presets || []).forEach(p => { if (!p.t || !p.d || !p.v) errs.push('예시 형식 오류: ' + p.t); Object.keys(p.v || {}).forEach(k => { if (!l.controls.some(c => c.id === k)) errs.push('예시 "' + p.t + '"의 알 수 없는 설정: ' + k); }); });
 if ((l.presets || []).length < 4) warns.push('예시가 4개보다 적음');
 if (!l.presets || l.presets[0].t !== '처음 설정으로') warns.push('첫 예시의 이름은 "처음 설정으로"로 통일');
@@ -22,7 +23,7 @@ fs.readdirSync(path.join(root, 'kb')).filter(f => /^kb.*\.js$/.test(f)).forEach(
 (l.terms || []).forEach(t => { if (!kb.some(r => r[1] === t)) errs.push('kb에 없는 용어(이름이 정확히 같아야 함): ' + t); });
 if (!(l.terms || []).length) errs.push('terms가 비어 있음');
 const myKb = path.join(root, 'kb', 'kb_' + id + '.js');
-if (fs.existsSync(myKb)) { const rows = require(myKb), all = kb.map(r => r[1]); rows.forEach(r => { if (r.length !== 3 || !r[0] || !r[1] || !r[2]) errs.push('kb_' + id + '.js 형식 오류: ' + r[1]); if (all.filter(n => n === r[1]).length > 1) errs.push('kb에 이미 있는 용어: ' + r[1]); if (r[2].length < 80) warns.push('설명이 너무 짧음: ' + r[1]); }); }
+if (fs.existsSync(myKb)) { const rows = require(myKb), all = kb.map(r => r[1]); rows.forEach(r => { whyuse.kbErrors(r).forEach(e => errs.push('kb_' + id + '.js 형식 오류: ' + r[1] + ' — ' + e)); if (all.filter(n => n === r[1]).length > 1) errs.push('kb에 이미 있는 용어: ' + r[1]); if (r[2].length < 80) warns.push('설명이 너무 짧음: ' + r[1]); }); }
 // 문제
 const qf = path.join(root, 'src', 'quiz_' + id + '.js');
 // 기초개념 실습(basic: true)은 문제 파일이 없어도 된다
@@ -38,7 +39,7 @@ const vf = path.join(root, 'src', 'verify_' + id + '.js');
 if (!fs.existsSync(vf)) errs.push('검증 수준 파일 없음: src/verify_' + id + '.js');
 else { let v = {}; try { new Function('Lab', fs.readFileSync(vf, 'utf8'))({ verify: o => { v = o; } }); } catch (e) { errs.push('검증 수준 파일 오류: ' + e.message); } if (!v[id] || !['run', 'part', 'doc', 'model'].includes(v[id][0]) || !v[id][1]) errs.push('verify_' + id + ".js 형식: Lab.verify({ " + id + ": ['run', '무엇과 어떻게 대조했는지'] })"); }
 // 글 규칙
-const texts = [l.title, l.intro, l.assume].concat((l.presets || []).map(p => p.t + ' ' + p.d), (l.controls || []).map(c => c.label + ' ' + (c.hint || '')));
+const texts = [l.title, l.why, l.use, l.intro, l.assume].concat((l.presets || []).map(p => p.t + ' ' + p.d), (l.controls || []).map(c => c.label + ' ' + (c.hint || '')));
 try { const c0 = {}; l.controls.forEach(d => c0[d.id] = d.value); const sim = l.simulate(c0); sim.events.forEach(e => texts.push(e.s)); texts.push(...sim.summary); } catch (e) { errs.push('기본 설정으로 실행 실패: ' + e.message); }
 texts.forEach(t => { const m = /[가-힣]\((을|를|은|는|이|가|으)\)|\((으)\)로|을\(를\)|은\(는\)|이\(가\)/.exec(t || ''); if (m) warns.push('조사 병기 표현을 풀어 쓸 것: …' + t.slice(Math.max(0, m.index - 12), m.index + 12) + '…'); });
 if (!/실행|대조|확인|문서|명세|모형/.test(l.assume || '')) warns.push('assume에 무엇과 대조했는지(또는 확인하지 못했는지)가 적혀 있지 않음');

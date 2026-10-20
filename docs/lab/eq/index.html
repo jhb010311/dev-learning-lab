@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
 <h1>==와 equals</h1>
 <p><b>같은 값인데 ==는 왜 false가 나오나</b></p>
+<p><b>왜 생겼나</b> — 객체의 같음을 ==처럼 같은 객체인지로만 따지면, 같은 문자열이나 같은 회원 번호를 서로 다른 때에 만들었을 때 같은 것으로 다룰 방법이 없다. equals는 클래스가 &quot;무엇이 같으면 같은 것인가&quot;를 스스로 정하게 하는 메서드이고, String이나 Integer 같은 표준 클래스는 내용으로 비교하도록 이미 재정의되어 있다.</p>
+<p><b>지금 어디에 쓰나</b> — 문자열이나 Long으로 받은 id처럼 객체로 된 값을 비교할 때는 equals를 쓰고, ==는 기본형 값이나 enum, 정말 같은 객체인지를 확인할 때 쓴다. 직접 만든 클래스를 HashMap의 키나 HashSet의 원소로 쓰려면 equals와 hashCode를 함께 재정의하고, null일 수 있는 값은 Objects.equals로 비교한다.</p>
 <p>==는 두 변수가 같은 객체를 가리키는지를, equals는 내용이 같은지를 비교합니다. 문자열과 Integer는 만드는 방법에 따라 같은 객체를 재사용하기도 하고 새로 만들기도 해서, 값이 같아도 ==의 결과가 달라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 모든 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>String Pool(문자열 상수 풀)</dt>
 <dd>JVM이 문자열 리터럴을 저장해 두고 같은 내용의 리터럴이 다시 나오면 기존 객체를 재사용하는 저장소다. 같은 문자열을 여러 번 만들지 않아 메모리를 아낀다. 이런 공유가 가능한 것은 String이 불변이기 때문이다. new String(&quot;a&quot;)처럼 생성하면 풀과 별개의 새 객체가 만들어진다.</dd>
 <dt>박싱과 언박싱</dt>
+<dd><b>왜 생겼나</b> — 자동 박싱이 없던 때는 int를 컬렉션에 넣을 때마다 new Integer(n)으로 객체를 만들고, 꺼낼 때마다 intValue()를 직접 불러야 했다. 자동 박싱·언박싱은 이 변환을 컴파일러가 대신 넣게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — List&lt;Integer&gt;나 Map&lt;String, Integer&gt;에 숫자를 넣고 꺼낼 때 늘 일어난다. 많은 수를 되풀이해 더하는 계산에서는 박싱 비용을 피하려고 int 배열이나 IntStream을 쓴다.</dd>
 <dd>기본형(int 등)을 래퍼 객체(Integer 등)로 바꾸는 것이 박싱, 그 반대가 언박싱이다. 컬렉션은 객체만 담을 수 있어 기본형을 넣으면 자동으로 박싱된다. 객체 생성과 변환 비용이 들고, null인 래퍼를 언박싱하면 NullPointerException이 발생한다.</dd>
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
@@ -86,6 +90,10 @@ System.out.println(a.equals(b));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ System.out.println(a.equals(b));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

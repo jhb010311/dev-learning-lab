@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>흐름 제어와 혼잡 제어</h1>
 <p><b>TCP는 한 번에 얼마나 보낼지를 어떻게 정하나</b></p>
+<p><b>왜 생겼나</b> — 보내는 쪽이 자기 속도대로만 보내면 받는 쪽의 버퍼나 중간 라우터의 대기열이 넘쳐 패킷이 버려지고, 버려진 것을 모두가 다시 보내면서 길이 더 막힌다. TCP의 흐름 제어와 혼잡 제어는 받는 쪽이 알려 준 여유와 유실로 짐작한 네트워크 상태에 맞춰 보내는 양을 스스로 줄이고 늘려, 여러 연결이 같은 길을 나눠 쓰게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 운영체제의 TCP가 알아서 하므로 자바 코드에서 직접 다루지는 않는다. 새 연결로 먼 곳의 서버에 큰 파일을 보낼 때 처음 얼마 동안 속도가 다 나지 않는 것, 패킷 손실이 잦은 무선망에서 전송 속도가 크게 떨어지는 것이 이 동작에서 나온다. 리눅스 서버에서는 커널 설정으로 혼잡 제어 방식(CUBIC, BBR 등)을 바꿀 수 있다.</p>
 <p>TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다.</p>
 <p>개념 모형 · RFC 5681의 규칙을 옮긴 개념 모형. 실제 TCP 실행과는 대조하지 못했고, 같은 규칙을 ACK 하나 단위로 따로 계산한 값과 153가지 설정에서 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,7 @@
 <dt>수신 윈도와 혼잡 윈도</dt>
 <dd>TCP가 한 번에 보낼 수 있는 양을 정하는 두 가지 한도다. 수신 윈도(rwnd)는 받는 쪽이 &quot;지금 이만큼 더 받을 수 있다&quot;고 확인 응답에 실어 알려 주는 값으로, 받는 쪽의 버퍼가 넘치지 않게 한다. 혼잡 윈도(cwnd)는 보내는 쪽이 &quot;네트워크가 이만큼은 감당한다&quot;고 스스로 짐작해 관리하는 값으로, 상대에게 알리지 않는다. 보내는 쪽은 아직 확인받지 못한 데이터가 두 값 가운데 작은 쪽을 넘지 않도록 보낸다. 수신 윈도를 지키는 일이 흐름 제어이고, 혼잡 윈도를 늘리고 줄이는 일이 혼잡 제어다.</dd>
 <dt>느린 시작과 혼잡 회피</dt>
+<dd><b>왜 생겼나</b> — 처음부터 많이 보내면 길이 감당하는지 모르는 채 한꺼번에 몰려 유실이 나고, 처음부터 조금씩만 늘리면 빈 길을 다 쓰기까지 오래 걸린다. 느린 시작과 혼잡 회피는 문턱값 아래에서는 빠르게, 그 위에서는 천천히 늘려 두 문제 사이에서 균형을 잡는다.</dd>
 <dd>TCP가 혼잡 윈도를 늘려 가는 두 단계다. 느린 시작은 혼잡 윈도를 아주 작게 잡고 출발해 확인 응답이 하나 올 때마다 늘리는 단계로, 한 번 왕복할 때마다 윈도가 두 배가 된다. 이름과 달리 늘어나는 속도는 빠르며, 처음부터 많이 보내지 않는다는 뜻에서 느린 시작이라고 부른다. 혼잡 윈도가 문턱값(ssthresh)에 이르면 혼잡 회피로 넘어가 한 번 왕복에 한 조각씩만 늘린다. 유실을 알아채면 네트워크가 막혔다고 보고 문턱값을 낮추고 윈도를 줄이는데, 같은 확인 응답이 세 번 거듭 온 경우에는 절반쯤으로, 타임아웃인 경우에는 한 조각 크기까지 줄인다(연결을 시작할 때의 윈도가 이보다 컸더라도 그렇다). 이 설명은 표준(RFC 5681)의 기본 방식이며, 운영체제가 실제로 쓰는 알고리즘은 늘리고 줄이는 정도가 다를 수 있다.</dd>
 <dt>TCP와 UDP</dt>
 <dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
@@ -105,6 +108,10 @@ function onThreeDuplicateAcks(flight) {   // 같은 ACK가 세 번 = 한 조각�
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +185,10 @@ function onThreeDuplicateAcks(flight) {   // 같은 ACK가 세 번 = 한 조각�
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

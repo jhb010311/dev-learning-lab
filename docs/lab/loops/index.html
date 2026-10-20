@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
 <h1>조건문과 반복문</h1>
 <p><b>반복문은 몇 번 돌고, 어디에서 멈추나</b></p>
+<p><b>왜 생겼나</b> — 같은 일을 열 번, 백 번 하려면 반복문 없이는 같은 줄을 그만큼 복사해 적어야 하고, 리스트 길이나 사용자 입력처럼 실행해 봐야 정해지는 횟수는 아예 적어 둘 수가 없다. 반복문은 되풀이할 코드를 한 번만 적고 횟수는 조건식이 정하게 해서, 데이터 개수가 달라져도 같은 코드로 처리한다.</p>
+<p><b>지금 어디에 쓰나</b> — 목록의 항목을 하나씩 보며 합계를 내거나, 조건에 맞는 첫 항목을 찾으면 break로 멈추거나, 올바른 입력이 올 때까지 다시 묻는 곳에 쓴다. 횟수가 정해져 있으면 for, 언제 끝날지 미리 모르면 while을 주로 쓴다. 컬렉션의 원소를 차례로 볼 때는 번호가 필요 없는 for-each문(for (String s : list))이나 스트림을 쓰기도 한다.</p>
 <p>반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 if처럼 값에 따라 실행할 곳을 고르는 조건문입니다. 값이 일치하는 case로 건너뛰는데, break가 없으면 아래 case까지 이어서 실행됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조 (끝나지 않는 두 조합은 2초 동안 관찰)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>for문과 while문</dt>
 <dd>조건이 true인 동안 같은 코드를 되풀이해 실행하는 반복문이다. while (조건) { 본문 }은 조건을 검사해 true이면 본문을 실행하고 다시 조건으로 돌아가며, 조건이 false가 되면 끝난다. for (초기화; 조건; 증감) { 본문 }은 같은 일을 하되, 반복에 쓰는 변수를 만들고 바꾸는 코드를 한 줄에 모아 적는다. for문의 실행 순서는 초기화(한 번), 조건, 본문, 증감, 다시 조건이다. 0부터 시작해 i &lt; n으로 쓰면 n번, i &lt;= n으로 쓰면 n + 1번 돌기 때문에, 조건의 부등호 하나로 횟수가 한 번 달라진다.</dd>
 <dt>break와 continue</dt>
+<dd><b>왜 생겼나</b> — break가 없으면 반복을 도중에 끝내려고 &quot;다 찾았다&quot;를 표시하는 변수를 따로 두고 조건식에 넣어야 한다. break와 continue는 반복 중 그 자리에서 끝내거나 이번 회차만 건너뛰게 해서, 이런 표시 변수 없이 흐름을 바꾼다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 파일을 줄 단위로 읽으며 빈 줄은 continue로 건너뛰고, 끝을 뜻하는 줄을 만나면 break로 그만 읽는 식으로 쓴다. 이중 반복문에서 바깥 반복까지 한 번에 끝내려면 바깥 반복문 앞에 이름표를 붙이고 break 이름표;로 쓴다.</dd>
 <dd>반복문의 흐름을 중간에 바꾸는 문장이다. break는 자기를 감싼 가장 가까운 반복문이나 switch를 그 자리에서 끝낸다. continue는 반복문을 끝내지 않고 이번 회차의 남은 코드만 건너뛴 뒤 다음 회차로 넘어간다. for문에서 continue를 하면 증감 부분이 실행된 다음 조건 검사로 가지만, while문에서는 곧바로 조건 검사로 간다. 그래서 while문에서 값을 바꾸는 코드가 continue보다 아래에 있으면 끝나지 않는 반복이 될 수 있다.</dd>
 <dt>switch문과 fall-through</dt>
+<dd><b>왜 생겼나</b> — 값 하나를 여러 경우와 비교하려면 if와 else if를 길게 이어 같은 변수를 매번 다시 적어야 한다. switch는 비교할 값을 한 번만 적고 경우마다 case를 늘어놓게 해서, 갈래가 많은 분기를 한눈에 읽게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메뉴 번호, 요일, enum 상수처럼 정해진 몇 가지 값에 따라 할 일이 갈리는 곳에 쓴다. 일부러 두 case가 같은 코드를 이어서 쓰게 할 때가 아니면, break를 빠뜨릴 걱정이 없는 화살표(-&gt;) 형태가 안전하다.</dd>
 <dd>switch는 하나의 값을 여러 case와 비교해, 일치하는 case의 자리로 건너뛰어 실행하는 문장이다. 일치하는 case가 없으면 default로 간다. case 1: 처럼 콜론을 쓰는 형태에서는 break를 만나기 전까지 아래 case의 코드까지 이어서 실행되는데, 이것을 fall-through(흘러내림)라고 한다. break를 빠뜨려도 컴파일 오류가 나지 않아 실수하기 쉽다. Java 14부터 쓸 수 있는 case 1 -&gt; 형태(화살표)는 일치한 case의 코드만 실행하므로 break가 필요 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -94,6 +100,10 @@ System.out.println(&quot;끝&quot;);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +177,10 @@ System.out.println(&quot;끝&quot;);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

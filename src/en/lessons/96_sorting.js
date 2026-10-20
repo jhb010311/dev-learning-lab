@@ -1,6 +1,8 @@
 Lab.register({
   id: 'sorting', nav: 'Sorting and Comparator', cat: 'Data structures', mode: 'step',
   title: 'Who decides the sort order, and why is comparing by subtraction wrong?',
+  why: 'If sorting code is written anew for each element type or sort order, then every time you sort members by age or products by price, you have to write similar sorting code again. Comparable and Comparator are interfaces that separate out only the comparison rule. Sorting methods such as List.sort and Arrays.sort keep a single copy of the sorting procedure and ask only which of two elements comes first, through compareTo or compare, so you can swap in a different rule without changing the sorting code.',
+  use: 'To show a list in order of amount or date, you pass a rule made with Comparator.comparing to list.sort or to sorted of a stream. If there is more than one rule, you chain them with thenComparing, and you make a descending order with reversed. You also pass a Comparator when you give an order to a TreeMap, a TreeSet, or a PriorityQueue.',
   intro: 'Sorting means asking "which of these two comes first?" over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator).',
   terms: ['Comparable and Comparator', 'Stable sort', 'Integer overflow', 'Method reference', 'Lambda expression'],
   controls: [

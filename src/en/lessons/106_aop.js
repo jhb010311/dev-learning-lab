@@ -1,6 +1,8 @@
 Lab.register({
   id: 'aop', nav: 'AOP: advice and pointcuts', cat: 'Spring', mode: 'step',
   title: 'Which methods does advice apply to, and in what order does it run?',
+  why: 'If you put code such as timing execution or recording calls directly into every method, the same lines repeat at the start and end of each body, and to make sure they run even when an exception occurs, you have to write try-finally every time. Spring AOP moves this code out of the methods, and a proxy receives the call and runs it before and after, so you can attach or remove it without changing the original method.',
+  use: '@Transactional, @Cacheable, and method authorization checks (@PreAuthorize), which Spring provides, all work with this proxy structure. Writing an aspect yourself is mostly for work that several services need in the same way, such as recording requests, measuring execution time, and retrying. Work that applies to whole HTTP requests is often handled with a servlet filter or a Spring MVC interceptor instead of AOP.',
   intro: 'When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut.',
   terms: ['Aspect-oriented programming (AOP)', 'Advice', 'Pointcut', 'Aspect and @Order', 'Proxy'],
   controls: [

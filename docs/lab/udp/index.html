@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>TCP와 UDP</h1>
 <p><b>세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나</b></p>
+<p><b>왜 생겼나</b> — TCP는 연결을 맺고, 빠진 조각을 다시 보내고, 순서를 맞추느라 시간이 들며, 한 조각이 늦으면 뒤에 온 데이터까지 그 조각을 기다린다. UDP는 이런 일을 하지 않고 보낸 덩어리를 그대로 한 번에 보내서, 조금 빠져도 지금 데이터가 더 중요한 통신이나 질문 하나에 답 하나로 끝나는 짧은 통신을 적은 지연으로 처리하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 온라인 게임의 위치 정보나 화상 통화처럼 늦게 온 데이터를 기다리느니 버리는 편이 나은 곳에 UDP를 쓴다. HTTP/3도 UDP 위의 QUIC을 쓰는데, 다시 보내기와 순서 맞추기를 운영체제의 TCP 대신 QUIC이 맡아 잃은 조각 하나가 다른 요청까지 붙잡지 않게 한다. TCP로 메시지를 주고받는 프로그램은 메시지 길이를 앞에 적거나 구분 글자를 넣어 경계를 직접 표시한다.</p>
 <p>TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다.</p>
 <p>일부만 실행으로 확인 · Node.js 24의 net, dgram 모듈로 127.0.0.1에서 여덟 가지 조합 가운데 여섯 가지를 실행해 대조. TCP의 유실과 순서 바뀜 두 가지는 RFC 9293 기준</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,10 +42,15 @@
 <dt>바이트 스트림과 데이터그램</dt>
 <dd>데이터를 실어 나르는 두 가지 모양이다. 바이트 스트림은 바이트가 순서대로 끊김 없이 이어지는 흐름으로, TCP가 이 방식이다. 보내는 쪽이 몇 번에 나눠 썼는지는 전달되지 않아서, 세 번에 나눠 보낸 것이 한 번에 읽히거나 한 번에 보낸 것이 여러 번에 나뉘어 읽힐 수 있다. 데이터그램은 한 번에 보낸 덩어리가 그대로 하나의 단위로 전달되는 방식으로, UDP가 이 방식이며 덩어리끼리 합쳐지거나 쪼개져 읽히지 않는다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 길이를 먼저 적거나 구분 글자를 넣어 메시지의 끝을 스스로 표시해야 한다.</dd>
 <dt>소켓</dt>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 소켓을 직접 여는 일은 드물지만, JDBC 드라이버가 DB에 연결하거나 HTTP 클라이언트가 다른 서버를 부를 때 맺는 연결마다 이쪽 끝에 소켓이 하나씩 쓰인다. 커넥션 풀은 이 연결을 닫지 않고 다시 써서, 매번 새로 맺는 시간을 줄인다.</dd>
 <dd>프로그램이 네트워크로 데이터를 주고받을 때 쓰는 통신의 끝점이며, 운영체제가 만들어 프로그램에 건네준다. 프로그램은 소켓에 쓰고 소켓에서 읽기만 하고, 실제로 데이터를 나누어 보내고 받는 일은 운영체제가 맡는다. TCP 연결 하나는 양쪽 끝의 소켓 한 쌍으로 이루어지고, 운영체제는 보내는 IP 주소, 보내는 포트, 받는 IP 주소, 받는 포트의 네 값으로 연결을 구분한다. 그래서 서버는 포트 하나로 여러 클라이언트의 연결을 함께 받을 수 있고, 연결마다 소켓이 하나씩 따로 생긴다. 다 쓴 소켓을 닫지 않으면 운영체제의 자원이 계속 묶인다.</dd>
 <dt>포트</dt>
+<dd><b>왜 생겼나</b> — IP 주소 하나로는 컴퓨터까지만 찾아갈 수 있어서, 번호가 없다면 한 컴퓨터에 들어온 데이터를 어느 프로그램에 줄지 정할 수 없다. 포트 번호 덕분에 한 컴퓨터에서 웹 서버와 DB 서버를 함께 띄워도 연결이 서로 섞이지 않는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트는 8080번, MySQL은 3306번처럼 서버마다 기본 번호가 있고, DB 접속 설정에는 호스트 이름과 함께 이 번호를 적는다. 한 컴퓨터에서 스프링 부트 애플리케이션을 둘 띄울 때는 server.port 설정으로 번호를 나눈다.</dd>
 <dd>한 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지 구분하는 0부터 65535까지의 번호다. IP 주소가 컴퓨터를 가리킨다면 포트는 그 컴퓨터 안의 프로그램을 가리키므로, 접속할 곳은 &quot;IP 주소:포트&quot;로 적는다. 서버 프로그램은 정해 둔 포트에서 연결을 기다리며, 웹 서버의 80번(HTTP)과 443번(HTTPS)처럼 널리 약속된 번호도 있다. 한 포트에서 연결을 기다릴 수 있는 프로그램은 보통 하나뿐이어서, 이미 쓰이는 포트에 서버를 또 띄우면 &quot;주소가 이미 사용 중&quot;이라는 오류가 난다. TCP의 포트와 UDP의 포트는 따로 관리되므로 번호가 같아도 서로 다른 것이다.</dd>
 <dt>3-way handshake</dt>
+<dd><b>왜 생겼나</b> — 연결 확인 없이 바로 데이터를 보내면 상대가 받을 준비가 됐는지, 조각마다 붙일 번호를 어디서부터 셀지 모른 채 보내게 된다. 3-way handshake는 세 번의 주고받기로 양쪽이 서로의 시작 번호를 확인해, 이후 빠진 조각과 순서를 셀 기준을 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 직접 부르지는 않지만, 연결 타임아웃은 이 과정이 끝나기를 기다리는 한도다. 방화벽이 SYN을 조용히 버리면 답이 없어 이 타임아웃까지 기다리고, 상대 포트에서 기다리는 프로그램이 없으면 곧바로 Connection refused가 난다.</dd>
 <dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -99,6 +106,10 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

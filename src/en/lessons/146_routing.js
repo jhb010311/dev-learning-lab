@@ -1,6 +1,8 @@
 Lab.register({
   id: 'routing', nav: 'Switches and routers', cat: 'Networking', mode: 'step',
   title: 'If the destination IP is the server, why is the frame sent to the router\'s MAC address?',
+  why: 'Not every device can be connected directly to every other device in the world, and if received data were sent to every device, the network would overflow with useless data. A switch looks at the MAC address within the same network and passes the frame only to the port where the receiving device is connected, and a router looks at the destination IP address between networks and chooses where to hand it next, so a device needs to know only one default gateway to send anywhere.',
+  use: 'A router at home or in an office does both the switch role and the router role, and the default gateway set on a PC is that router\'s address. When you cannot connect to a server, use traceroute (tracert on Windows) to see up to which router the packet went. This command sends packets with the TTL increased one at a time from 1 and collects the responses returned by the router where the TTL ran out.',
   intro: 'A frame for a device on the same network is sent directly to that device\'s MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1.',
   terms: ['MAC address and ARP', 'Switch and router', 'Default gateway', 'TTL of an IP packet', 'OSI model'],
   controls: [

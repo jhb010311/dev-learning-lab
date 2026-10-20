@@ -1,6 +1,8 @@
 Lab.register({
   id: 'di', nav: 'Bean creation and injection', cat: 'Spring', mode: 'step',
   title: 'In what order does Spring create objects and wire them together?',
+  why: 'If an object creates the objects it needs directly with new, then every time you change the implementation or swap in a fake object for a test, you have to change that code, and where each object is created gets scattered around. With Spring\'s DI, an object only receives what it needs, for example as constructor arguments, and the container creates the actual objects and connects them in one place, so you can change the connections without changing the code that uses them.',
+  use: 'In a Spring application, the connections where a controller receives a service and a service receives a repository are usually made in this way. The Spring documentation recommends constructor injection, which receives required objects through the constructor, and in tests you pass fake objects to the same constructor and check without starting Spring.',
   intro: 'When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends on the injection style, and when two beans need each other (a circular dependency), startup can fail. OrderController, OrderService, PaymentService and OrderRepository in this lab are classes made for this example.',
   terms: ['Inversion of Control (IoC)', 'Dependency injection (DI)', 'Constructor injection, setter injection, and field injection', 'Spring bean', 'Bean lifecycle', 'Circular dependency'], ranks: ['di', 'bean'],
   controls: [

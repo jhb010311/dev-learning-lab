@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Thread pools</h1>
 <p><b>What is a thread pool, and how is it different from creating a thread every time?</b></p>
+<p><b>Why it exists</b> — If a new thread is created with new Thread each time a task comes up, the cost of creating and ending a thread is repeated for every task, and when many tasks arrive at once the number of threads grows without limit and memory can run out. A thread pool creates threads only up to a fixed number, reuses a thread that has finished a task for the next task instead of ending it, and makes tasks beyond that number wait in a queue.</p>
+<p><b>Where it's used today</b> — Tasks that run in the background without making the user wait, such as sending an email, or tasks that query several places at the same time, are handed to a pool created with ExecutorService. In Spring Boot, a method with @Async, once @EnableAsync is turned on, runs in a thread pool that Spring Boot has configured automatically, unless something else is specified. If there are too few threads, tasks wait a long time in the queue, and if there are too many, they use a lot of memory, so the number is set to suit the work.</p>
 <p>There are two ways to have threads do tasks. One is to create a new thread each time a task comes up, with the line new Thread(() -&gt; work()).start(). The other is to hand the tasks to a thread pool. A thread pool is an ExecutorService object that you create with the line Executors.newFixedThreadPool(2), which sets the number of threads. When you hand a task to it with the line pool.submit(() -&gt; work()), one of the threads in the pool takes the task and runs it. If all the threads in the pool are busy, the remaining tasks wait in line, and a thread that finishes a task does not end but goes on to the next task in line. The last line, pool.shutdown(), accepts no new tasks, finishes the tasks already handed over, and then closes the pool. In this lab you change how the tasks are handed over and how many threads the pool has, and the same code is compiled and run 20 times each, to show how many different thread names ran the work() method and whether the same name repeats. (Which thread does which task can differ from run to run, so the runs are compared only by the number and the list of names.)</p>
 <p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21 and ran each 20 times to check against real execution</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Thread pool</dt>
 <dd>This structure keeps a fixed number of threads and reuses them, so that threads are not created and destroyed every time they are needed. It reduces the cost of creating threads, and by limiting the number of threads that run at the same time, it prevents excessive memory use and context switching. Tasks to be processed pile up in a queue, and an idle thread takes one and runs it. Tomcat's request handling and a DB connection pool follow the same idea.</dd>
 <dt>ExecutorService and newFixedThreadPool</dt>
+<dd><b>Why it exists</b> — Without a pool that Java provides, you would have to write code yourself that creates a set number of threads, lines tasks up, and hands them out to idle threads. ExecutorService and newFixedThreadPool create such a pool in one line, so all we have to do is hand over the tasks.</dd>
+<dd><b>Where it's used today</b> — It is used when you process several files in parts or query several places at once, setting the number of threads that run at the same time. If you also need to put a limit on the number of tasks piling up in the queue, you create a ThreadPoolExecutor yourself.</dd>
 <dd>ExecutorService is an interface in java.util.concurrent that runs the tasks you hand to it (a Runnable or a Callable) on threads. If you use it as in Executors.newFixedThreadPool(2), you get a thread pool that reuses a set number of threads and takes tasks to run from a shared unbounded queue. According to the documentation, at any time the number of threads processing tasks is at most the set number, and if more tasks are handed over while all the threads are working, those tasks wait in the queue until a thread is free. The threads of this pool remain until you shut it down, and the names of the threads the pool creates have the form pool-N-thread-M (N is the pool number, and M is the number of the thread within that pool). When run on JDK 21, threads are created not when the pool is created but one at a time as tasks are handed over, up to the set number.</dd>
 <dt>submit()</dt>
+<dd><b>Why it exists</b> — If you start a task with new Thread(...).start(), a new thread is created for every task, and you also have to build a way to get the task's result back yourself. submit() only hands the task to the pool, and lets you take out the result later through the Future it returns.</dd>
+<dd><b>Where it's used today</b> — When you query several places at the same time and gather the results, you hand over each task with submit() and take out the result with get() of the Future you received. For a task whose result you do not need, you can hand it over with execute().</dd>
 <dd>submit() is the method that hands one task to an ExecutorService. If you pass a Runnable, as in pool.submit(() -&gt; work()), the task is handed to the pool, and the method returns a Future that represents the task. What runs the task is a thread of the pool, not the thread that called submit. If all the threads of the pool are busy, the handed-over task waits in the queue, and when a thread becomes free, tasks are taken from the front of the queue and run.</dd>
 <dt>shutdown()</dt>
+<dd><b>Why it exists</b> — The threads of a pool are created and managed by the pool, so we cannot stop them one by one. With one call, shutdown() tells the whole pool to stop accepting new tasks, and lets the threads finish by themselves after completing even the tasks left in the queue.</dd>
+<dd><b>Where it's used today</b> — It is used to close the pool before ending the program. Often, after shutdown() you wait for a set time with awaitTermination(), and if it still has not finished, you signal it to stop what it is doing with shutdownNow().</dd>
 <dd>shutdown() is the method that tells an ExecutorService to run the tasks already handed over to the end but to accept no new tasks. It returns right away without waiting for the handed-over tasks to finish, and the documentation says to use awaitTermination if you want to wait. The documentation also says to shut down an ExecutorService you no longer use so that its resources can be reclaimed. The threads a pool creates are not daemon threads, and on JDK 21, when the shutdown line was removed and the program was run, the program did not end even after it had finished all the handed-over tasks.</dd>
 </dl>
 <h2>Try these</h2>
@@ -105,6 +113,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +190,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

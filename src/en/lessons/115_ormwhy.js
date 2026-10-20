@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ormwhy', nav: 'What JPA solves', cat: 'JPA', mode: 'step',
   title: 'When you write the SQL yourself, what do you have to fill in by hand?',
+  why: 'When you work with JDBC directly, you take the columns of each row you read one by one and move them into the fields of an object, fill in connected objects by writing more SQL, and when one field is added, you have to find and fix every SQL statement that field passes through. With JPA, you write the correspondence between classes and tables once, and it generates this moving code and the SQL for you, and within one transaction it returns the same row as the same object.',
+  use: 'In web services built with Spring, saving and querying entities with Spring Data JPA is common. It suits places where you often read one object, change it, and save it, such as members, orders, and posts. For work where the shape of the SQL matters, such as statistics that combine several tables or bulk updates, you use it together with tools where you write SQL directly, such as JdbcTemplate or MyBatis.',
   intro: 'Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects.',
   terms: ['ORM', 'JDBC', 'Object/relational impedance mismatch', 'JPA, Hibernate, Spring Data JPA', 'First-level cache'],
   controls: [

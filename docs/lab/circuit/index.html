@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
 <h1>서킷 브레이커</h1>
 <p><b>죽은 서비스를 계속 부르면 나까지 죽는다</b></p>
+<p><b>왜 생겼나</b> — 타임아웃만 두면 응답이 없는 서비스를 부를 때마다 그 시간만큼은 꼭 기다려야 하고, 재시도까지 붙이면 이미 버거운 서비스에 요청이 더 몰린다. 서킷 브레이커는 최근 호출의 실패 기록을 보고 당분간 부르지 않기로 정해, 기다리지 않고 바로 실패하거나 대체 응답을 돌려주면서 상대가 회복할 시간을 준다.</p>
+<p><b>지금 어디에 쓰나</b> — MSA에서 한 서비스가 다른 서비스를 HTTP로 부를 때, 외부 결제사나 지도 API처럼 바깥 서비스를 부를 때 부르는 대상마다 둔다. 자바·스프링에서는 Resilience4j를 흔히 쓰고, 차단됐을 때 돌려줄 대체 응답(빈 추천 목록, &quot;잠시 후 다시 시도&quot; 안내 등)을 함께 정한다.</p>
 <p>주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패율이 정해 둔 값(임계치) 이상이 되면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.</p>
 <p>실행으로 대조 · Resilience4j 2.4.0에 27가지 조합의 호출 순서를 넣어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>서킷 브레이커</dt>
 <dd>호출 대상 서비스에 장애가 났을 때 계속 호출하며 기다리지 않도록 호출을 차단하는 장치다. 실패가 일정 수준을 넘으면 차단 상태가 되어 이후 호출을 즉시 실패 처리하고, 일정 시간이 지나면 일부 호출을 시험적으로 보내 회복되었는지 확인한다. 한 서비스의 장애가 호출하는 서비스들로 번지는 것을 막는다.</dd>
 <dt>모놀리식과 MSA(마이크로서비스)</dt>
+<dd><b>왜 생겼나</b> — 기능이 많아진 하나의 애플리케이션은 작은 수정에도 전체를 다시 빌드하고 배포해야 하고, 여러 팀이 같은 코드와 배포 일정을 나눠 쓰느라 서로 기다리게 된다. MSA는 서비스를 나눠 팀마다 자기 서비스를 따로 바꾸고 내보내게 하려는 방식이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 여러 팀이 큰 서비스를 나눠 맡는 조직에서 MSA를 쓴다. 작은 팀이나 새로 시작하는 서비스는 모놀리식으로 시작해, 나눌 경계가 분명해지고 필요해질 때 서비스를 떼어 내는 경우가 많다.</dd>
 <dd>모놀리식은 모든 기능을 하나의 애플리케이션으로 만들어 함께 배포하는 구조다. MSA는 기능별로 작은 서비스로 나눠 각각 독립적으로 개발, 배포, 확장하는 구조다. MSA는 서비스별로 따로 배포하고 확장할 수 있고 장애가 격리되지만, 서비스 간 통신, 데이터 일관성, 운영의 복잡도가 크게 늘어난다.</dd>
 <dt>병목(Bottleneck)</dt>
 <dd>시스템 전체의 처리 성능을 제한하는 가장 느린 부분이다. 다른 부분을 아무리 개선해도 병목이 그대로면 전체 성능은 나아지지 않는다. 성능 개선은 측정으로 병목을 찾는 것에서 시작한다.</dd>
@@ -129,6 +133,10 @@ PaymentResult payLater(Order order, Throwable t) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -202,9 +210,10 @@ PaymentResult payLater(Order order, Throwable t) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 대용량 트래픽</p>
 <h1>캐시와 TTL</h1>
 <p><b>캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</b></p>
+<p><b>왜 생겼나</b> — 같은 상품 정보를 볼 때마다 DB에서 다시 읽으면 결과가 매번 같은데도 DB가 같은 일을 되풀이하고, 요청이 늘면 DB가 먼저 버티지 못한다. 캐시는 한 번 읽은 결과를 메모리 저장소에 잠시 남겨 두고 다음 요청부터 거기서 돌려주게 해서, DB까지 가는 요청을 줄인다.</p>
+<p><b>지금 어디에 쓰나</b> — 상품 상세, 인기 게시글 목록, 공통 코드처럼 자주 읽고 가끔 바뀌는 데이터를 Redis나 애플리케이션 메모리에 두고, 스프링에서는 @Cacheable로 메서드 결과를 저장해 두는 방식을 흔히 쓴다. 결제 직전의 재고나 잔액처럼 늘 최신이어야 하는 값은 캐시를 거치지 않고 DB에서 읽는다.</p>
 <p>인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.</p>
 <p>개념 모형 · 동작 방식을 보이는 모형</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,14 +40,17 @@
 <dt>캐시</dt>
 <dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
 <dt>Cache-Aside 패턴</dt>
+<dd><b>지금 어디에 쓰나</b> — 상품 상세나 회원 프로필처럼 읽기가 쓰기보다 훨씬 많은 데이터에 Redis와 함께 쓴다. Spring의 @Cacheable과 @CacheEvict를 붙이면 이 순서로 동작한다.</dd>
 <dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
 <dt>TTL(Time To Live)</dt>
+<dd><b>지금 어디에 쓰나</b> — Redis에서는 EXPIRE나 SET의 EX 옵션으로 정한다. 캐시 말고도 휴대폰 인증번호, 세션, 분산 락처럼 일정 시간 뒤 저절로 사라져야 하는 값에 쓴다.</dd>
 <dd>데이터가 유효한 시간이다. 캐시에 값을 넣을 때 TTL을 지정하면 그 시간이 지난 뒤 자동으로 삭제된다. 원본과 어긋난 값이 캐시에 무기한 남는 것을 막는 기본적인 안전장치다.</dd>
 <dt>캐시 스탬피드</dt>
 <dd>많이 조회되는 캐시 항목이 만료되는 순간, 동시에 들어온 다수의 요청이 모두 캐시에서 값을 찾지 못하고 한꺼번에 데이터베이스를 조회하는 현상이다. 순간적으로 데이터베이스에 부하가 몰려 장애로 이어질 수 있다. 한 요청만 원본을 조회하게 잠그거나 만료 시간을 분산하는 방법으로 완화한다.</dd>
 <dt>Redis</dt>
 <dd>데이터를 메모리에 저장하는 키-값 저장소다. 문자열뿐 아니라 리스트, 해시, 집합, 정렬된 집합 등의 자료구조를 제공한다. 메모리에서 동작해 매우 빠르며 캐시, 세션 저장소, 분산 락, 순위표, 요청 수 제한 등에 쓰인다. 명령을 하나의 스레드에서 차례로 실행한다.</dd>
 <dt>분산 락</dt>
+<dd><b>지금 어디에 쓰나</b> — 여러 서버에서 함께 도는 스케줄러 작업을 한 번만 실행하거나, 쿠폰 발급처럼 동시에 몰리는 요청을 줄 세울 때 쓴다. 자바에서는 Redisson의 RLock이나 스케줄러용 ShedLock 같은 라이브러리를 흔히 쓴다.</dd>
 <dd>여러 서버에서 실행되는 프로세스들 사이에서 한 번에 하나만 특정 작업을 수행하도록 하는 잠금이다. 자바의 synchronized는 한 서버 안에서만 유효하므로, 서버가 여러 대일 때는 모두가 함께 접근하는 저장소(Redis 등)에 &quot;잠금 표시&quot;를 두는 방식으로 구현한다. 잠금을 건 쪽에 문제가 생겨도 풀리도록 만료 시간을 둔다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -97,6 +102,10 @@ public Product getProduct(long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ public Product getProduct(long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

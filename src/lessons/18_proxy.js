@@ -1,6 +1,8 @@
 Lab.register({
   id: 'proxy', nav: '프록시와 자기 호출', cat: '스프링', mode: 'step',
   title: '애너테이션을 붙였는데 왜 동작하지 않나',
+  why: '트랜잭션을 열고 커밋하거나 롤백하는 코드를 메서드마다 직접 쓰면 같은 try-catch가 곳곳에 반복되고 업무 코드와 뒤섞인다. 스프링은 이런 공통 작업을 프록시가 맡게 해서, 메서드에는 @Transactional 한 줄만 붙이고 트랜잭션을 열고 닫는 일은 프록시가 메서드 앞뒤에서 하게 했다.',
+  use: '@Transactional, @Async, @Cacheable, @PreAuthorize처럼 메서드에 붙이는 여러 스프링 기능이 프록시로 동작한다. 그래서 애너테이션을 붙였는데 효과가 없으면 먼저 그 호출이 다른 빈에서 프록시를 거쳐 들어왔는지, 메서드가 private은 아닌지 본다. 같은 클래스 안에서 부르던 메서드는 다른 빈으로 옮겨 해결하는 경우가 많다.',
   intro: '@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 그 빈 대신 프록시(대리 객체)를 등록해 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애너테이션이 적용되기도 하고 무시되기도 합니다.',
   terms: ['프록시(Proxy)', '자기 호출(Self-invocation)', 'AOP(관점 지향 프로그래밍)', 'JDK 동적 프록시와 CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [

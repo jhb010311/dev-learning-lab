@@ -1,6 +1,8 @@
 Lab.register({
   id: 'inner', nav: 'Inner classes and anonymous classes', cat: 'Java language', mode: 'step',
   title: 'How is a class declared inside a class connected to the outer object?',
+  why: 'If a small class that is used only to help one class is taken out as a separate top-level class, it becomes visible for other code to use, and the relationship between the two classes is hard to see in the code. A nested class declares such a class in the body of the outer class to show the relationship, and can also be made private so that only the outer class uses it, and anonymous classes and lambdas let you create an implementation that is used once, without a name, right where it is needed.',
+  use: 'A small class used only together with one class, such as the builder class of the builder pattern, is made as a static nested class, and HashMap also keeps Node, which represents one element, as a static nested class. An action passed once, such as a sort order or a button click handler, used to be written as an anonymous class, and if the interface has only one method to implement, it is now written as a lambda.',
   intro: 'You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen when it was created, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.',
   terms: ['Inner classes and nested classes', 'Anonymous class', 'Effectively final', 'Lambda expression', 'static'],
   controls: [

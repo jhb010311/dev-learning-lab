@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Sessions</h1>
 <p><b>What is a session, and where is the logged-in state remembered?</b></p>
+<p><b>Why it exists</b> — If you write who the user is directly in a cookie, as in &quot;user=kim,&quot; then even if the user changes that value to admin in the browser and sends it, the server is fooled. A session writes who the user is in a store on the server side and gives the browser only a hard-to-guess ID, so it prevents someone from changing a value on the browser side and becoming another person.</p>
+<p><b>Where it's used today</b> — It is commonly used to keep a logged-in state on a website where the server builds the pages and sends them. In Spring, you sometimes use it directly through HttpSession, and Spring Security's form login also writes the information of the logged-in person in the session. When cookies are troublesome to handle, as in a mobile app, or when you want the server not to keep login records, you use a token instead.</p>
 <p>A session is a memory that is written in a store inside the server. In the code box, session is an argument of the type HttpSession, and it points to one slot in the server's session store that belongs to this request. The line session.setAttribute(&quot;user&quot;, &quot;kim&quot;) in the login method writes &quot;the user of this session is kim&quot; in that slot, and the line session.getAttribute(&quot;user&quot;) in the me method reads that value from the slot. Each slot has a number the server gave it (the session ID), and the server gives only this number to the browser, as a cookie named JSESSIONID. The browser sends that cookie with every following request, and the server finds the slot in the store by the number and knows who it is. In this lab you change how /me is requested after logging in (without the cookie, by another person, after the server deleted the slot) and see whether the server recognizes who it is. The code box shows only the part that runs when login succeeds. The process of checking the username and password is not covered in this lab, so it was left out. What a cookie is follows the earlier &quot;Cookies&quot; lab.</p>
 <p>Checked against real execution · Started Spring Boot 4.1.1 (embedded Tomcat 11.0.24) with real component scanning for 8 combinations, sent requests, and checked them (the HttpClient writes the Cookie header itself, and it was not run in a real browser)</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Session</dt>
 <dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot change its contents (having the session ID stolen is a different problem). When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
 <dt>Session ID (JSESSIONID)</dt>
+<dd><b>Why it exists</b> — If a session ID were given as a number assigned in order, like 1, 2, 3, someone could use another person's session just by guessing and sending that person's number. A container such as Tomcat makes the session ID a long randomly generated string, so that it is hard to guess another person's number.</dd>
+<dd><b>Where it's used today</b> — When a session is created on a server made with Spring Boot, you can see this number under the name JSESSIONID in the cookie list of the browser's developer tools. When there are several servers, the session is sometimes gathered in one place, a store such as Redis, so that the same number finds it whichever server you go to.</dd>
 <dd>A session ID is a unique string that a servlet container gives to a session when it creates it, and it is a number that points to one slot in the server's session store. It can be read with getId() of HttpSession, and what kind of number to use is decided by the container (in the Tomcat 11 of this lab it was 32 uppercase letters and digits). When a session is carried over by a cookie, the specification fixes the name of the cookie as JSESSIONID, and when the server gives the number in a Set-Cookie header, the browser sends it in the Cookie header with every following request. The server finds the slot by this number alone, so if another person sends the same number, it is treated as the same session. That is why the number must not be exposed.</dd>
 <dt>HttpSession</dt>
+<dd><b>Why it exists</b> — If a developer had to make the number, read the cookie, and find the store by that number every time a session is used, it would be troublesome and easy to get wrong. HttpSession leaves that work to the servlet container, and the developer only writes and reads values with setAttribute and getAttribute.</dd>
+<dd><b>Where it's used today</b> — You keep in it values that must be remembered between one user's requests, such as the logged-in user, a shopping cart, and input that is received in parts over several screens. In an API server that a mobile app calls, a token such as a JWT is sometimes used instead of a session.</dd>
 <dd>HttpSession is a servlet interface that provides a way to identify one user across more than one request and to store information about that user on the server. A Spring controller method can receive it by declaring an argument of the type HttpSession, and if the request has no session, the server creates a new one. setAttribute(&quot;user&quot;, &quot;kim&quot;) writes a value into the slot under a name, and getAttribute(&quot;user&quot;) reads it, and reading a name that has not been written returns null. When invalidate() is called, the session becomes invalid, the values bound to it are released, and later requests cannot see that session. The values of a session are stored on the server, and only the session ID goes to the browser.</dd>
 <dt>Cookie</dt>
 <dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
@@ -97,6 +103,10 @@ public String me(HttpSession session) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +180,10 @@ public String me(HttpSession session) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

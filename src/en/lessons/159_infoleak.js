@@ -1,6 +1,8 @@
 Lab.register({
   id: 'infoleak', nav: 'Information leakage', cat: 'Authentication', mode: 'step',
   title: 'What do error responses and login failure messages tell the outside world?',
+  why: 'If every controller builds its own error response with try-catch, it is easy for one of them to make the mistake of sending out the exception message as it is, and the shape of the responses also becomes inconsistent. @ControllerAdvice and @ExceptionHandler let you receive the exceptions raised in many controllers in one place and decide what to send as the response, so the details go to the log, and only a short message and a status code decided in advance go outside.',
+  use: 'In a REST API, it is used to return an error body of the same shape for each kind of exception, such as 400 for a validation failure, 404 for a missing resource, and 500 for an unexpected error. A login failure message also does not tell a nonexistent ID from a wrong password, and by default Spring Security converts a nonexistent ID into the same BadCredentialsException as a wrong password and reports it.',
   intro: 'The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells "unknown user ID" apart from "wrong password", it also tells which IDs are registered.',
   terms: ['Error responses and information leakage', 'Stack trace', 'Account enumeration', '@ControllerAdvice and @ExceptionHandler', 'HTTP status codes'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>Proxies and reverse proxies</h1>
 <p><b>How does a server behind a proxy know who sent the request?</b></p>
+<p><b>Why it exists</b> — If an application server faces the internet directly, every server needs its own certificate and has to handle HTTPS, and when you grow to several servers, there is no separate place to spread the requests among them. A reverse proxy accepts outside connections in one place, decrypts the HTTPS, and passes the requests on to the servers behind it, so certificate management and request distribution are gathered in one place in front of the servers.</p>
+<p><b>Where it's used today</b> — A common setup puts nginx or a cloud load balancer in front of a Spring Boot server to handle HTTPS and to spread requests. In this setup, you set server.forward-headers-strategy so that the server reads the client address and whether the request was https from the X-Forwarded-* headers. To avoid being fooled by values that the client wrote, you make the proxy at the very front rewrite those headers, or you read only the later values added by a proxy you can trust.</p>
 <p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. Either way, it is the proxy that actually opens the connection to the server, so the address the server sees at the other end of the connection is the address of the proxy, not of the client. That is why a proxy passes on the original information in a header such as X-Forwarded-For, but this header is also one that a client can write with any value it likes.</p>
 <p>Checked against real execution · Proxy and server built with Node 24 on three loopback addresses (127.0.0.10, 20, 30); 42 combinations run with the Node http and https modules and curl 8.21 and checked. The proxy is a test one built for this purpose; the behavior of products such as nginx is based on the documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Forward proxy</dt>
+<dd><b>Where it's used today</b> — In a company network where you must go through a proxy to get outside, you must write the proxy address in Maven's settings.xml or Gradle's gradle.properties to download libraries. A Java program sets it with system properties such as https.proxyHost.</dd>
 <dd>A forward proxy is an intermediate server that stands on the client side and sends the client's requests on to outside servers on its behalf. The client sets the address of the proxy and goes through it on purpose, and the remote address that a server sees is the proxy, not the client. It is used to collect and log or block the requests that go out from a company or a school in one place, or to hide the address of the client. It is the opposite of a reverse proxy, which stands on the server side and acts for the server, in terms of whom it acts for.</dd>
 <dt>Reverse proxy</dt>
+<dd><b>Why it exists</b> — If slow clients connect straight to an application server, the request processing threads stay tied up with those connections while the clients slowly upload a large request body or slowly take a response. A reverse proxy such as Nginx, in its default configuration, buffers requests and responses and exchanges data quickly with the backend server, so the backend server's threads are not tied up for long by slow connections.</dd>
+<dd><b>Where it's used today</b> — It is used to split static file requests and /api requests by path and send them to different servers, or to reject too-large uploads at the front with Nginx's client_max_body_size. In Kubernetes, an Ingress controller takes this role.</dd>
 <dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
 <dt>X-Forwarded-For</dt>
+<dd><b>Where it's used today</b> — You read this value to record the real user IP in an access log, or to block requests that come too often from one IP. In nginx, the proxy_set_header setting attaches this header and passes it on.</dd>
 <dd>X-Forwarded-For is a request header in which a proxy writes the address of the original client when it passes a request on. The remote address that a server behind a proxy sees is the proxy, so the address of the real client is passed on only through this header. When a request goes through several proxies, each proxy appends the address of whoever connected to it at the end, separated by a comma. It is a request header, so a client can also write any value into it; a server must use only the values added by a trusted proxy that it manages (the values on the right), and must not read it at all if it is not behind a proxy. It is a widely used convention, not a standard, and the standard header that does the same job is Forwarded.</dd>
 <dt>X-Forwarded-Proto and TLS termination</dt>
+<dd><b>Where it's used today</b> — It is used in a setup where nginx or a cloud load balancer receives HTTPS and the Spring Boot server behind receives only HTTP. For the address that Spring Security redirects to the login page to go out as https://, you make it read this header with server.forward-headers-strategy.</dd>
 <dd>TLS termination is a setup in which a reverse proxy or a load balancer receives the HTTPS connection of the client, removes the encryption, and passes the request on to the server behind it as unencrypted HTTP. Certificate management and encryption work can be gathered in one place. In this setup the server behind sees only an HTTP connection, so the proxy tells it the protocol the client originally used with the X-Forwarded-Proto: https header. If the server does not read this header, it may build redirect addresses with http:// or misjudge the conditions for secure cookies. Like X-Forwarded-For, use only the values added by a trusted proxy.</dd>
 <dt>HTTPS and TLS</dt>
 <dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
@@ -109,6 +116,10 @@ http.createServer((req, res) =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -182,9 +193,10 @@ http.createServer((req, res) =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

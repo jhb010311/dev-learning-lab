@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Relational model and design</p>
 <h1>Tables, keys, and constraints</h1>
 <p><b>What data gets in when there are no constraints?</b></p>
+<p><b>Why it exists</b> — If the application checks in the form &quot;first look up whether the same email exists, and insert it if not&quot;, two requests can pass the lookup at the same time and the same value can be inserted twice. A constraint checks the rule at the moment the database writes the row, so one of the requests that arrive at the same time is rejected with an error and the rule of the table is kept.</p>
+<p><b>Where it's used today</b> — You use a unique key to prevent duplicate member emails and IDs, a foreign key to prevent an order that points to a member who does not exist, and CHECK for the rule that a quantity must be greater than 0. When a duplicate error occurs at sign-up, Spring receives it as an exception of the DataIntegrityViolationException family and turns it into a message such as &quot;this email is already in use&quot;.</p>
 <p>Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are.</p>
 <p>Checked against real execution · The SQL of all 48 combinations was run as it is on MySQL 8.4.11, and the error numbers, the number of rows changed, and all the rows of both tables afterwards were checked</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Primary key, unique key, foreign key</dt>
 <dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
 <dt>NOT NULL and CHECK</dt>
+<dd><b>Why it exists</b> — A column that can hold NULL has to be handled separately every time it is read: for example, an = comparison with it never becomes true, and the row is left out of COUNT(column). A value such as a negative price has to be filtered out by the reader every time. NOT NULL and CHECK keep such values from being stored in the first place, so that the reader does not have to consider those cases.</dd>
+<dd><b>Where it's used today</b> — Put NOT NULL on a column that must have a value, such as an email or a sign-up date, and CHECK on a rule such as a price of 0 or more. When JPA creates the tables, @Column(nullable = false) becomes NOT NULL.</dd>
 <dd>These are constraints that limit the values that can go into a single column. NOT NULL does not allow the column to be left empty (NULL), and CHECK does not accept a value that makes the condition written in the parentheses false. For example, CHECK (age &gt;= 0) blocks a negative age. If the result of the condition is NULL (unknown), CHECK lets the value pass, so if a value must exist, add NOT NULL as well. MySQL actually enforces CHECK from 8.0.16, and versions before that ignored a CHECK even if you wrote one.</dd>
 <dt>Foreign key referential actions (ON DELETE)</dt>
+<dd><b>Why it exists</b> — What to do with the child rows when a parent row is deleted differs from data to data, and if this is kept only in application code, it is not applied to a DELETE sent by another route. A referential action writes that decision on the foreign key, so that the database follows the same rule whichever route the deletion comes from.</dd>
+<dd><b>Where it's used today</b> — Choose CASCADE to delete the comments along with a post, SET NULL to keep the work records even when the person in charge leaves the company, and RESTRICT to prevent a product that still has orders from being deleted.</dd>
 <dd>These are the actions that you set on a foreign key to decide what happens to the child rows that point to a parent row when that parent row is deleted. RESTRICT rejects the deletion of the parent if child rows remain. CASCADE deletes the child rows along with the parent, and SET NULL keeps the child rows and changes only the foreign key column to NULL. If you write nothing, the default is NO ACTION, which behaves the same as RESTRICT in MySQL's InnoDB. One statement with CASCADE can also delete rows of another table, so use it only for data that may disappear together, and SET NULL can be used only when the foreign key column can accept NULL. What happens when the key value of the parent is changed is set in the same way with ON UPDATE.</dd>
 </dl>
 <h2>Try these</h2>
@@ -110,6 +116,10 @@ SELECT COUNT(*)
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +193,10 @@ SELECT COUNT(*)
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

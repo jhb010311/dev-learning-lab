@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Dependencies and the supply chain</h1>
 <p><b>How do libraries I never wrote down get into my program, and who decides their versions?</b></p>
+<p><b>Why it exists</b> — In the days when you downloaded library files by hand and put them in, a person had to find the other files that a library needed and match the versions. Gradle and Maven collect everything that is needed when you write only a name and a version, but to that extent, code and versions that you did not choose get mixed into the build. Lock files, version overrides, and vulnerability scanning tools are devices used to make a person check and decide again what comes in automatically like this.</p>
+<p><b>Where it's used today</b> — A Spring Boot project brings in several libraries with one starter, and their versions follow the list that Spring Boot has decided (dependency management). When a vulnerability becomes known, you find out through which path it came in with ./gradlew dependencies, and then either raise the direct dependency or override only the version of that library. You get alerts from OWASP Dependency-Check attached to the build or from Dependabot turned on in a GitHub repository.</p>
 <p>When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as part of your program. That is why a vulnerability in a library you never chose becomes your problem too. Depending on whether you wrote a version as a range or pinned it, a newly published version may come in automatically, and if you misspell a name by one letter, a completely different package may come in. The path a library takes from being built, through the repository, into your build is called the supply chain, and slipping malicious code in somewhere along that path is a supply chain attack. The library names and vulnerabilities shown here are all made up for the explanation.</p>
 <p>Partly checked against real execution · A concept model built with made-up libraries. Which versions come in was checked against the result of actually resolving 15 combinations with Gradle 8.14.3, and the verdicts &quot;vulnerable&quot;, &quot;malicious&quot;, and &quot;fake&quot; are a made-up storyline</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,7 @@
 <dt>Transitive dependency</dt>
 <dd>A transitive dependency is a library that comes in because a library I wrote directly in the build file (a direct dependency) needs it. The build tool reads the POM that comes with each library and follows what is needed one step after another, so writing one line brings in far more libraries than that. A transitive dependency runs inside my program in exactly the same way as a direct dependency, so its vulnerability becomes a vulnerability of my program. Its name is not visible in the build file, so you have to use a command that prints the dependency tree to check what came in and by which path.</dd>
 <dt>Version ranges and lock files</dt>
+<dd><b>Where it's used today</b> — npm creates package-lock.json by default, and Gradle writes the versions to gradle.lockfile when you turn on dependency locking and build with --write-locks. Maven has no default lock file, so it is usual to write exact versions instead of ranges.</dd>
 <dd>If you write the version of a dependency not as one fixed version but as a range, such as &quot;the highest version among 2.x&quot;, the newest version in that range is chosen every time you build. This has the advantage of receiving fixed versions automatically, but building the same code can bring in different code on different days, and a new version that has a problem also comes in automatically. A lock file is a file that records the versions once decided, including transitive dependencies, and makes later builds download only those versions. If you manage the lock file together with the code, anyone building at any time gets the same result, and a new version comes in only when you update the lock file.</dd>
 <dt>Supply chain attacks and typosquatting</dt>
 <dd>A supply chain attack is an attack that does not hit a program directly but slips bad code into the libraries the program uses or into its build process. One way is to take over the account that publishes a library and upload a new version containing malicious code. Typosquatting is another way: publishing a fake package under a name that differs by one or two letters from a widely used name and waiting for someone to make a typo. The code that comes in runs with the same permissions as my program, so the damage is large. You prepare by pinning versions, checking the names and sources of dependencies, and putting a tool that checks for known vulnerabilities into the build.</dd>
@@ -86,6 +89,10 @@ dependencies {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +166,10 @@ dependencies {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

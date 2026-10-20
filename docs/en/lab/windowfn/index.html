@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Window functions</h1>
 <p><b>How do you add a rank and a running total without reducing the rows?</b></p>
+<p><b>Why it exists</b> — To give each row a rank without window functions, you had to join the table to itself or use a correlated subquery to count, for each row, &quot;the number of rows with a higher score than mine&quot;, so the statement was long and got slower as rows increased. A window function lets you do the same calculation in one statement by writing only the partition criteria and the sort order in the OVER clause.</p>
+<p><b>Where it's used today</b> — You use it in reports and statistics that need a value compared with the surrounding rows for each row, such as the ranking of popular posts on a board, salary ranking by department, the running total of sales by date, and the change from the previous month. A condition such as &quot;only the first of each team&quot; is done by numbering with ROW_NUMBER and then filtering in an outer query. If you need only totals and do not need each row, use GROUP BY.</p>
 <p>GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row.</p>
 <p>Checked against real execution · The SQL of all 24 combinations was run on MySQL 8.4, and the number of rows and the value added to each row were checked against the screen</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,17 @@
 <dt>Window function</dt>
 <dd>This is a function that adds to each row a value computed by looking at several rows related to that row, without combining the rows. You write OVER (...) after the function to say which rows are laid out in which order for the calculation. Unlike GROUP BY, which reduces each group to one row of the result, the number of result rows stays the same, so you can see the original value of each row and its rank or running total on one line. In MySQL, window functions are available from version 8.0. They are allowed only in the select list and in ORDER BY, so to filter on the result of a window function, you wrap the query in a subquery.</dd>
 <dt>ROW_NUMBER, RANK, DENSE_RANK</dt>
+<dd><b>Where it's used today</b> — ROW_NUMBER is used to split a list into pages or to keep only one of the rows with overlapping values, RANK when the rank after a tie must be left empty, as in a contest ranking, and DENSE_RANK when you count the rank of distinct values, as in &quot;the top three score levels&quot;.</dd>
 <dd>These are window functions that give rows a number or a rank in the order of the ORDER BY inside OVER. The difference among the three is how they handle rows with the same sort value (ties, which the MySQL documentation calls peers). ROW_NUMBER gives different numbers even to peers. RANK gives peers the same rank and then skips as many ranks (1, 1, 3), and DENSE_RANK gives peers the same rank without skipping (1, 1, 2). With ROW_NUMBER, which of the tied rows gets the lower number is not defined, so if the result must always be the same, add a column whose values are unique to the sort order.</dd>
 <dt>PARTITION BY</dt>
+<dd><b>Where it's used today</b> — You use it when you must count separately &quot;by something&quot;, such as a rank within each class, an order sequence number for each customer, and a running total of monthly sales for each product. If you add OVER (PARTITION BY customer-number-column) to an aggregate function such as SUM or COUNT, you can see that customer's order total together on every order row.</dd>
 <dd>This is a clause you write inside the OVER of a window function to divide the rows into groups that have the same value in the columns you name. Each group is called a partition, and the numbers, ranks, and running totals are calculated again from the beginning for each partition. It looks similar to GROUP BY, but the difference is that it does not combine rows. If you do not write PARTITION BY, the whole result is one partition.</dd>
 <dt>LAG and LEAD</dt>
+<dd><b>Where it's used today</b> — You use LAG when you compare with the immediately preceding row, such as the change in sales from the previous day or the time difference from the previous login, and LEAD when you need a following row, such as attaching the next visit date to find the number of days until the customer returned.</dd>
 <dd>These are window functions that fetch the value of a row before or after the current row in an ordered line of rows. LAG fetches the value of the previous row, and LEAD fetches the value of the next row. They let you compare neighboring rows, such as the difference between yesterday and today, without joining the same table one more time. For the first row of a partition (LAG) or the last row (LEAD), where there is no row to fetch, the value is NULL.</dd>
 <dt>GROUP BY, WHERE, HAVING</dt>
+<dd><b>Why it exists</b> — Without GROUP BY, you would have to bring every row into the application and count and add them yourself to get a total per group. GROUP BY and HAVING finish the grouping, counting, and filtering in the database, so the application receives only a few result rows.</dd>
+<dd><b>Where it's used today</b> — It is used in queries for statistics and admin screens, such as daily sales, the number of products per category, and finding members who have ordered more than three times.</dd>
 <dd>GROUP BY groups rows that have the same value in the specified columns and computes an aggregate (such as a sum or a count) for each group. WHERE filters individual rows before they are grouped, and HAVING filters groups after grouping. So put conditions on aggregate results in HAVING and all other conditions in WHERE.</dd>
 </dl>
 <h2>Try these</h2>
@@ -99,6 +106,10 @@ SELECT name, team, pts,
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ SELECT name, team, pts,
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

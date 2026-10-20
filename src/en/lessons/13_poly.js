@@ -1,6 +1,8 @@
 Lab.register({
   id: 'poly', nav: 'Polymorphism and method selection', cat: 'Java language', mode: 'step',
   title: 'Who decides which method runs, and when?',
+  why: 'When different kinds of objects must behave differently, without polymorphism you must check the kind of each object one by one with if or switch and branch, and every time a kind is added you must find and change all of those branches. Polymorphism lets you call the same method through a supertype and have the actual object run it in its own way, so that the differences are expressed by overriding the method in each subclass instead of by branches.',
+  use: 'It is used when you split code that does the same job in several ways, such as payment methods or notification methods, into one interface and several implementation classes. Spring injecting a bean by an interface type or passing all the implementations of the same interface together as a List, and handling a collection through a variable of type List, also rely on this property.',
   intro: 'The declared type of a variable and the type of the object that it actually refers to can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.',
   terms: ['Polymorphism', 'Overriding', 'Overloading', 'static', 'Inheritance'], ranks: ['oop', 'absint'],
   controls: [

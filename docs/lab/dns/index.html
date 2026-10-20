@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 주소와 이름</p>
 <h1>DNS</h1>
 <p><b>도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까</b></p>
+<p><b>왜 생겼나</b> — IP 주소는 사람이 외우기 어렵고, 서버를 옮겨 주소가 바뀌면 그 주소를 아는 모든 사용자와 프로그램이 새 주소를 알아야 한다. DNS는 이름과 주소의 짝을 이름의 주인이 관리하는 서버에 두고 누구나 물어볼 수 있게 해서, 사람은 이름만 기억하고 주소가 바뀌면 그 서버의 레코드 하나만 고치면 되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 브라우저의 주소 입력부터 스프링 애플리케이션이 DB나 외부 API에 접속하는 주소까지, 이름으로 접속하는 모든 곳에서 쓰인다. 서버를 옮길 때는 미리 TTL을 짧게 줄여 두고 레코드를 바꿔야 캐시에 남은 예전 주소가 빨리 사라진다. 메일을 받을 서버(MX)나 도메인 소유 확인 값(TXT)도 DNS 레코드로 알린다.</p>
 <p>컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.</p>
 <p>일부만 실행으로 확인 · 127.0.0.1에 띄운 시험용 네임 서버와 리졸버로 서른두 가지 조합을 실제 DNS 메시지로 실행해 대조. 레코드의 풀이는 Node.js 24의 c-ares와 대조했고, 리졸버와 캐시의 동작은 RFC 1034와 1035의 절차를 재현한 것</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,16 @@
 <dt>DNS</dt>
 <dd>도메인 이름(example.com)을 컴퓨터가 통신에 사용하는 IP 주소로 바꿔 주는 시스템이다. 브라우저에 주소를 입력하면 먼저 DNS에 그 이름의 IP 주소를 물어본 뒤 해당 IP로 접속한다. 조회 결과는 일정 시간 동안 캐시된다.</dd>
 <dt>DNS 레코드</dt>
+<dd><b>왜 생겼나</b> — 이름에 붙여 알려야 할 정보는 서버 주소만이 아니라 메일을 받을 서버, 다른 이름으로 넘기기처럼 여러 가지다. DNS 레코드는 이런 정보를 종류별 한 줄로 나눠, 종류가 늘어도 같은 방식으로 적고 물을 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 도메인을 산 뒤 관리 화면에서 웹 서버의 IP 주소를 A 레코드로 적고, www 같은 이름은 CNAME으로 다른 이름에 연결한다. 호스팅이나 클라우드 서비스가 알려 준 이름을 CNAME으로 걸어 두는 일이 흔하다.</dd>
 <dd>도메인의 네임 서버가 이름마다 가지고 있는 한 줄의 정보로, 이름, 종류, 값, TTL로 이루어진다. A는 이름에 IPv4 주소를, AAAA는 IPv6 주소를 연결한다. CNAME은 이름을 다른 이름의 별명으로 만들며, 별명을 물으면 진짜 이름으로 한 번 더 찾아야 주소가 나온다. MX는 그 도메인 앞으로 온 메일을 받는 서버의 이름과 우선순위를 알려 주고, 숫자가 작은 서버부터 시도한다.</dd>
 <dt>재귀 리졸버와 권한 있는 네임 서버</dt>
+<dd><b>왜 생겼나</b> — 세상의 모든 이름을 한 서버가 맡으면 감당할 수 없고, 사용자 컴퓨터마다 여러 서버를 차례로 묻게 하면 일이 무거워진다. DNS는 이름을 영역별로 나눠 권한 있는 네임 서버가 각자 맡게 하고, 찾아다니는 일은 재귀 리졸버가 대신하게 나눈다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 도메인을 사면 그 도메인의 권한 있는 네임 서버를 정하는데, 보통 도메인을 산 곳이나 클라우드의 DNS 서비스가 맡는다. 컴퓨터나 공유기에 8.8.8.8 같은 공용 재귀 리졸버의 주소를 직접 적어 쓰기도 한다.</dd>
 <dd>권한 있는 네임 서버는 어떤 도메인의 레코드 원본을 가지고 있어 그 도메인에 대한 질문에 직접 답하는 서버다. 재귀 리졸버는 사용자의 컴퓨터를 대신해 답을 찾아다 주는 서버로, 루트 서버에서 시작해 TLD 서버, 권한 있는 네임 서버의 순서로 물어 답을 얻는다. 루트 서버와 TLD 서버는 답 대신 다음에 물어볼 서버를 알려 주는데, 이런 응답을 리퍼럴(referral)이라고 한다. 그렇게 알려 줄 수 있는 것은 위쪽 영역에 아래쪽 영역을 맡은 네임 서버가 적혀 있기 때문이며, 이렇게 아래쪽 영역을 따로 떼어 맡기는 것을 위임(delegation)이라고 한다. 사용자의 컴퓨터는 재귀 리졸버 하나에게만 물으며, 그 주소는 보통 통신사나 공유기가 네트워크 설정으로 알려 준다.</dd>
 <dt>DNS 캐시와 TTL</dt>
+<dd><b>왜 생겼나</b> — 답을 받을 때마다 루트 서버부터 다시 물으면 느리고 네임 서버에도 질문이 몰린다. 캐시는 받은 답을 다시 쓰게 해 이를 줄이고, TTL은 그 답을 쓸 기한을 정해 바뀐 레코드가 결국은 퍼지게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 잘 바뀌지 않는 레코드는 TTL을 길게 두어 질문을 줄이고, 장애 때 다른 서버로 빨리 넘겨야 하는 레코드는 짧게 둔다. JVM도 이름 조회 결과를 따로 기억해 두며, 그 시간은 networkaddress.cache.ttl 보안 속성으로 바꾼다.</dd>
 <dd>DNS에서 받은 답을 다시 묻지 않도록 기억해 두는 것이 캐시이고, 그 답을 얼마 동안 기억해도 되는지를 초 단위로 적은 숫자가 TTL이다. TTL은 레코드를 관리하는 쪽이 정해 레코드에 붙인다. 캐시는 브라우저, 운영체제, 재귀 리졸버에 각각 있으며, TTL이 지나면 답을 버리고 다시 묻는다. 그래서 레코드를 바꿔도 이미 캐시에 들어간 답은 TTL이 끝날 때까지 쓰이고, 사용자마다 새 값을 받는 시점이 다르다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -94,6 +102,10 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +179,10 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

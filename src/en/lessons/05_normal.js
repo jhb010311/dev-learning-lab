@@ -1,6 +1,8 @@
 Lab.register({
   id: 'normal', nav: 'Normalization', cat: 'Database', mode: 'step',
   title: 'What happens if you do not split the table?',
+  why: 'If you write several kinds of information together in one table, the same fact is repeated in every row and there are more places to correct, and some information cannot be added or kept without other information. Normalization looks at which values are determined by which other values (functional dependency) and splits the table, so that each fact is recorded in only one place.',
+  use: 'It is the basic rule you follow when you design tables for business data that keeps changing, such as members, orders, and products. You usually go as far as the third normal form. For statistics or list tables where queries are very frequent and the cost of joins is a problem, you sometimes duplicate data on purpose, which is called denormalization.',
   intro: 'Here are two designs. In one, the member name and address are stored in the orders table as well. In the other, members and orders are split into separate tables. Do the same operations on both, and you will see that data goes out of step or is lost only when everything is packed into one table.',
   terms: ['Normalization and denormalization', 'Functional dependency', 'Primary key, unique key, foreign key'], ranks: ['normal'],
   controls: [

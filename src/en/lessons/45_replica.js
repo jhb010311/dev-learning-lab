@@ -1,6 +1,8 @@
 Lab.register({
   id: 'replica', nav: 'Replication lag and CAP', cat: 'Database', mode: 'step',
   title: 'I just saved it, but the query shows the old value',
+  why: 'If one DB server receives all reads and writes, in a read-heavy service that one server\'s processing capacity becomes the limit of the whole service, and if that server stops, there is nowhere left to read data. Replication reapplies changes made on the source, in order, to other DB servers, so that several servers holding the same data can be kept.',
+  use: 'It is used to spread reads across several replicas in a service where reads far outnumber writes, such as product lists or posts, and the replicas are also kept as standby servers to take over when the source fails. In Spring, the data sources are sometimes configured separately so that read-only transactions go to a replica. Reads that must be current right away, such as a confirmation screen just after saving or a balance, are read from the source.',
   intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. This time difference is called replication lag. The CAP theorem says that when the network is partitioned, a system has to choose between continuing to respond (availability) and refusing to respond with data that may be stale (consistency), and this lab shows both cases.',
   terms: ['Replication', 'Eventual consistency', 'CAP theorem', 'Read-only transaction (readOnly)'], ranks: ['dbengine', 'nosql', 'traffic'],
   controls: [

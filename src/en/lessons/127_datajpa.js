@@ -1,6 +1,8 @@
 Lab.register({
   id: 'datajpa', nav: 'Spring Data JPA', cat: 'JPA', mode: 'step',
   title: 'How does a repository work when there is no implementation class?',
+  why: 'If you write the code to save and query with EntityManager yourself, for every entity you had to write almost the same save, get-one, get-all, and delete methods and JPQL strings over and over. Spring Data JPA gathers these common methods in JpaRepository and lets a repository interface inherit them, so you do not write the same code again for each entity.',
+  use: 'It is commonly used in services that use JPA with Spring Boot, with one repository interface for each entity. A simple condition query is written as a query method, a list screen receives pages split with Pageable, and for a query whose name would become too long, you write JPQL directly in @Query. For a query whose search conditions change with each request, you use Querydsl or Specification together.',
   intro: 'Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. This lab shows how a method name becomes a query, and also which SQL is actually sent when a page is requested and when save() is called.',
   terms: ['JPA, Hibernate, Spring Data JPA', 'Query method', 'Pageable and Page', 'save() and merge', 'Entity'],
   controls: [

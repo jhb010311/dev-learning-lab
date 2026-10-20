@@ -1,6 +1,8 @@
 Lab.register({
   id: 'bufferpool', nav: 'Buffer pool and pages', cat: 'Database', mode: 'step',
   title: 'Why does reading one row read a whole 16KB page?',
+  why: 'If every read and change of a row went directly to the disk, a frequently used row would have to be read from the same place again and again, and every change would have to be written straight to that place in the data file. InnoDB\'s buffer pool takes this repeated disk work into one place in memory, so that the more often data is used, the fewer trips to the disk it needs.',
+  use: 'The most direct use is setting innodb_buffer_pool_size when you configure a MySQL server. On a server that runs only the database, a large share of the memory is given to the buffer pool. If frequently used data cannot all stay in the buffer pool, even the same query reads the disk more and becomes slower, so when you look for the cause of a slow query, also check how many times data was read from disk.',
   intro: 'InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later.',
   terms: ['Buffer pool', 'Page (InnoDB)', 'Dirty pages and flushing', 'Eviction policy', 'Undo log and redo log'],
   controls: [

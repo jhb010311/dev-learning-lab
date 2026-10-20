@@ -1,6 +1,8 @@
 Lab.register({
   id: 'connpool', nav: '커넥션 풀과 OSIV', cat: 'JPA', mode: 'time',
   title: '쿼리는 금방 끝났는데 커넥션이 모자란 이유',
+  why: 'DB 연결은 맺을 때마다 TCP 연결과 로그인 절차를 거쳐야 하고, DB가 한꺼번에 받아 줄 수 있는 연결 수에도 한도가 있다. 커넥션 풀은 정해 둔 개수의 연결을 미리 열어 두고 요청들이 돌려 가며 쓰게 해서, 연결 준비 시간을 아끼고 요청이 몰려도 DB에 붙는 연결 수가 그 개수를 넘지 않게 한다.',
+  use: '스프링 부트에서는 HikariCP의 maximum-pool-size로 풀 크기를 정하고, 풀 크기에 서버 대수를 곱한 연결 수가 DB 한도를 넘지 않게 맞춘다. DB와 상관없이 오래 걸리는 외부 API 호출이 있으면 spring.jpa.open-in-view=false로 OSIV를 끄고 외부 호출을 트랜잭션 밖으로 빼서, 그동안 연결을 붙잡지 않게 한다.',
   intro: '요청은 DB 작업을 하고 나서 외부 API를 호출한 뒤 응답합니다. DB 커넥션은 풀에서 빌려 쓰고 돌려줍니다. 커넥션을 언제 돌려주느냐(OSIV 설정)에 따라, 같은 풀 크기로 버틸 수 있는 요청 수가 크게 달라집니다.',
   terms: ['커넥션 풀', 'OSIV(Open Session In View)', '영속성 컨텍스트', '병목(Bottleneck)'], ranks: ['jpaorm', 'tuning', 'traffic'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'git', nav: 'Merge and rebase', cat: 'Git', mode: 'step',
   title: 'Three ways to combine two branches',
+  why: 'If several people combine the changes they made separately by copying files, they lose track of who changed what and overwrite each other\'s edits. Git\'s merge and rebase combine the changes of two branches automatically and ask a person only about the parts where the same place was edited, and they leave the combined result in the commit history.',
+  use: 'When you combine a Pull Request on GitHub, you choose one of a merge commit, squash, or rebase, and each team decides which shape to leave in the history. You use rebase to move your own working branch on top of the latest main, and merge to combine a branch that is already shared with other people. If you do not want to keep the small commits made during the work, you use squash to leave one commit per feature.',
   intro: 'While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict.',
   terms: ['Merge and rebase', 'Merge conflict', 'Git fetch, pull, and push', 'Git-flow and GitHub Flow', 'Code review and pull requests'], ranks: ['git'],
   controls: [

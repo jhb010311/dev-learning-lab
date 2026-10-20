@@ -33,7 +33,7 @@ function check(id, where, text) {
   });
 }
 list.forEach(l => {
-  check(l.id, '소개', l.intro); check(l.id, '물음', l.title); check(l.id, '전제', l.assume);
+  check(l.id, '왜 생겼나', l.why); check(l.id, '지금 어디에 쓰나', l.use); check(l.id, '소개', l.intro); check(l.id, '물음', l.title); check(l.id, '전제', l.assume);
   (l.presets || []).forEach(p => { check(l.id, '예시', p.t); check(l.id, '예시 설명', p.d); check(l.id, '물음', p.q); });
   const base = {}; l.controls.forEach(d => { base[d.id] = d.value; check(l.id, '설정', d.label); (d.options || []).forEach(o => check(l.id, '설정', o[1])); });
   const combos = []; const opts = l.controls.map(d => d.type === 'select' ? d.options.map(o => o[0]) : d.type === 'check' ? [false, true] : [d.value]);

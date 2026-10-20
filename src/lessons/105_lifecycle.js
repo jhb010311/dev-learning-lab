@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lifecycle', nav: '빈 생명주기 콜백', cat: '스프링', mode: 'step',
   title: '생성자에서 주입받은 필드를 썼더니 왜 null인가',
+  why: '준비 작업을 생성자에 두면 필드나 세터로 주입받을 의존성이 아직 비어 있어 쓸 수 없고, 애플리케이션이 끝날 때 자원을 정리할 자리도 따로 없었다. 빈 생명주기 콜백은 컨테이너가 의존성 주입을 마친 직후와 컨테이너를 닫기 직전에 정해 둔 메서드를 불러 주어, 준비와 정리를 알맞은 때에 하게 해 준다.',
+  use: '애플리케이션이 뜰 때 자주 쓰는 코드표나 설정값을 미리 읽어 두기, 외부 서버와의 연결을 열어 두었다가 종료할 때 닫기, 직접 만든 스레드 풀을 멈추기 같은 일에 쓴다. 보통은 @PostConstruct와 @PreDestroy를 쓰고, 소스를 고칠 수 없는 외부 라이브러리의 클래스라면 @Bean의 initMethod와 destroyMethod를 쓴다.',
   intro: '컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다.',
   terms: ['빈 생명주기', '@PostConstruct와 @PreDestroy', 'InitializingBean과 DisposableBean', '생성자 주입, 세터 주입, 필드 주입', '@Configuration과 @Bean'],
   controls: [

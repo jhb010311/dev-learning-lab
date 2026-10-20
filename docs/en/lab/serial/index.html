@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › I/O</p>
 <h1>Serialization</h1>
 <p><b>What comes back when you restore a saved object?</b></p>
+<p><b>Why it exists</b> — To save an object to a file or send it to another JVM, you would have to write, for every class, code that writes the fields one by one in a fixed order and reads them back to assemble the object. With Java's default serialization, you only mark the class as Serializable. ObjectOutputStream then follows the field values and the objects they refer to and converts them into bytes, and ObjectInputStream creates the object again from those bytes.</p>
+<p><b>Where it's used today</b> — Requests and responses of web APIs are usually exchanged as JSON created with Jackson, and you meet Java's default serialization where Serializable is required. When Tomcat is configured to keep sessions and saves them to a file as it shuts down, or when Spring Session stores sessions in Redis with its default settings, the session attribute objects must be Serializable. You add transient to fields that must not be saved.</p>
 <p>The default serialization mechanism in Java converts an object to bytes and writes them to a file (writeObject), and then creates the object again from those bytes (readObject). But not everything in an object is saved, and not every object can be saved. Set point to 50, save the object, change point to 70, and then restore the object to see what is saved and what is not.</p>
 <p>Checked against real execution · The 15 combinations were compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Serialization and deserialization</dt>
 <dd>Serialization converts an object into a form that can be stored or sent (such as a sequence of bytes or JSON), and deserialization restores an object from that form. In web APIs, the typical case is conversion between objects and JSON (for example with Jackson). Java's built-in serialization (Serializable) has compatibility problems when the class structure changes and carries security risks, so formats such as JSON are mostly used today.</dd>
 <dt>Serializable</dt>
+<dd><b>Why it exists</b> — If any object could be saved as bytes, even things that cannot be used after being restored, such as an open file, and things that must not go outside, such as a secret value, would be saved. Serializable makes the person who wrote a class state for themselves whether the class may be saved.</dd>
+<dd><b>Where it's used today</b> — You implement it where Serializable is required, such as objects stored in a session or a cache. Deserializing bytes that came from an untrusted place can cause security problems, so for data exchanged with the outside you use a format such as JSON.</dd>
 <dd>This is the interface that marks a class as one whose objects can be saved with the default serialization mechanism in Java. It has no methods to implement, and adding implements Serializable to the class declaration is all it takes to mark the class. If you try to write an object that does not have this mark with ObjectOutputStream, a NotSerializableException is thrown. When an object is saved, the objects that its fields refer to are saved with it, so the classes of those objects must all be Serializable as well.</dd>
 <dt>transient</dt>
+<dd><b>Why it exists</b> — Default serialization saves all non-static fields, so if there is no way to leave out just one field, you have to write the whole class's way of saving yourself with writeObject. transient lets you leave a field out of saving by attaching just one keyword to the field declaration.</dd>
+<dd><b>Where it's used today</b> — You attach it to a field that can be recreated after restoration, and you fill that value in again at restoration by defining a readObject method in the class.</dd>
 <dd>This is the keyword that marks a field as one that must not be saved during serialization. A field marked with it is not included in the bytes that go out to a file or the network, and in the restored object it has the default value of its type (0 for a number, null for a reference type). It is used for values that must not be left outside the program, such as a password, for values that can simply be computed again, and for fields that refer to an object that cannot be saved because it is not Serializable. Your code has to take into account that the field is empty after the object is restored.</dd>
 <dt>serialVersionUID</dt>
+<dd><b>Why it exists</b> — Without a criterion for deciding whether the saved data and the current class are the same version, old data could be read wrongly by a class whose shape has changed. serialVersionUID has the class state a version number, so that data that does not match is rejected before it is read.</dd>
+<dd><b>Where it's used today</b> — For a change that still allows reading old data, such as adding one field, you leave the number as it is, and if the change means old data must no longer be read, you change the number. The -Xlint:serial option of javac warns about Serializable classes that do not have this field.</dd>
 <dd>This is a number that indicates which version of a class a piece of serialized data was created with. The number is recorded together with the object when the object is saved, and if it differs from the number of the current class when the object is restored, an InvalidClassException is thrown. If you do not declare it yourself in the class, as in private static final long serialVersionUID = 1L;, Java computes a value from the name, fields, methods, and other details of the class, and even a small change to the class can change this value. For this reason, it is recommended that a Serializable class declare this number explicitly.</dd>
 <dt>static</dt>
 <dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
@@ -106,6 +114,10 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -179,9 +191,10 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

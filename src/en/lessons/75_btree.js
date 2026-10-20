@@ -1,6 +1,8 @@
 Lab.register({
   id: 'btree', nav: 'Binary search and B-trees', cat: 'Data structures', mode: 'step',
   title: 'If the data is sorted, you can discard half at a time',
+  why: 'If values are in no particular order, you have to compare them one by one from the start even to find a single one, and if the value is not there, you have to look at all of them to the end. Binary search, at the price of keeping the values sorted, removes half of the candidates with each comparison, and a B-tree splits each node into many branches to cut the number of reads from disk to a few.',
+  use: 'In Java, binary search is used when you search sorted arrays and lists with Arrays.binarySearch and Collections.binarySearch. The default indexes of MySQL (InnoDB) and PostgreSQL belong to the B-tree family, so conditions such as WHERE id = 5 or a range condition are handled without reading the whole table. If you do not need order and only search by an exact key, a hash-based method such as HashMap is used instead.',
   intro: 'You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once.',
   terms: ['Binary search', 'Time complexity (big-O notation)', 'B-tree index', 'Full table scan', 'Index'], ranks: ['ds', 'index'],
   controls: [

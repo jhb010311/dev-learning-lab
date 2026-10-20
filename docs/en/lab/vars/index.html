@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
 <h1>Variables and types</h1>
 <p><b>What is copied when you assign one variable to another?</b></p>
+<p><b>Why it exists</b> — If even a single number were made into an object, each value would need its own object and would have to be read through a reference, which makes calculation slower and uses more memory. Primitive types are types such as int and double for calculating small values directly without an object, and reference types make it so that when a large object is assigned or passed to a method, only the reference is copied instead of the whole object.</p>
+<p><b>Where it's used today</b> — int, long, and boolean are used when handling a single value, such as a count, a number of repetitions, or a true/false flag, and String, List, and classes you write yourself are all handled as reference types. When you pass an object to a method, that method can modify the same object, so if you must protect the original, pass a copy or an immutable object. Primitive types cannot be used inside angle brackets (&lt;&gt;), as in List&lt;Integer&gt;, so the wrapper class Integer is used instead of int.</p>
 <p>A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference type such as a class type holds a reference that points to where an object is. Whether you assign a variable or pass it to a method, what is copied is always &quot;what the variable holds&quot;. So with a primitive type the original variable stays the same when you change the copy, and with a reference type the two variables end up looking at the same single object.</p>
 <p>Checked against real execution · Checked by running 15 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Primitive types and reference types</dt>
 <dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
 <dt>Pass by value</dt>
+<dd><b>Why it exists</b> — If a method could change the caller's variable itself, as with a C++ reference parameter (&amp;), you could not tell from the calling line alone whether your variable will change. Java always copies the argument when passing it, so the only line that changes my local variable is a line that assigns to that variable.</dd>
+<dd><b>Where it's used today</b> — When a method must return several results, assigning to the parameters does not work, so you return an object or a record that bundles the results. You also cannot make a method that swaps the values of two local variables, so you put the values to swap in a list and swap the slots, as in Collections.swap(list, i, j).</dd>
 <dd>This is a way of calling a method in which what is copied into the parameter is not the variable written as the argument but what that variable holds. It is also called call by value, and Java always passes arguments this way and in no other way. For a primitive type the value is copied, and for a reference type the reference is copied, so the parameter and the variable of the caller refer to the same object. That is why a change that the method makes to the contents of the passed object is visible to the caller, but assigning a different object to the parameter does not change the variable of the caller.</dd>
 <dt>Immutable object</dt>
 <dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
 <dt>Heap memory</dt>
+<dd><b>Where it's used today</b> — In production monitoring, you watch heap usage and the amount left after GC to find memory leaks. When you start in a container, set the maximum heap size below the container's memory limit to leave room for memory outside the heap, such as stacks and Metaspace.</dd>
 <dd>This is the memory area where every object and array created with new is stored, and it is shared by all threads. The garbage collector manages it and reclaims objects that are no longer used. Its size is set with the -Xms (initial) and -Xmx (maximum) options, and an OutOfMemoryError occurs when it runs out of space.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +97,10 @@ System.out.println(a.x);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ System.out.println(a.x);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

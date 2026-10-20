@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Authentication and authorization</h1>
 <p><b>How are authentication and authorization different?</b></p>
+<p><b>Why it exists</b> — If you check &quot;has the user logged in, is the user an administrator&quot; directly with an if statement in every controller method, missing just one place leaves that address open to anyone. If you divide authentication and authorization and check them in turn, you can report separately &quot;log in again&quot; and &quot;you cannot do this,&quot; and Spring Security lets you gather these checks in one place as a few lines of rules per address.</p>
+<p><b>Where it's used today</b> — Use it where what each person can do differs, such as a my-information screen that only logged-in members can see and a member management screen that only administrators use. In a Spring server, you usually write rules per address in the SecurityFilterChain configuration of Spring Security. A decision that differs by data, such as &quot;only the author can edit,&quot; is hard to decide with address rules alone, so you attach @PreAuthorize to the method or check separately in the service code.</p>
 <p>Authentication and authorization are two checks a server makes when it receives a request. Authentication checks who sent the request (whether the username and password are right), and authorization checks whether that person is allowed to do this (whether they have permission). Authentication comes first. These checks are not in the controller's code. Spring Security makes them before the request reaches the controller, and the rules for them are the settings part at the top of the screen. The line .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;) is an authorization rule that opens /admin only to someone with the ADMIN role, the line .anyRequest().authenticated() is a rule that opens any other address only to someone whose identity is confirmed, and the line .httpBasic(...) is the method that confirms who it is from the username and password carried in the request. In this lab you remove or open the authorization rule and send /admin requests from the administrator admin, the regular member kim, a wrong password, and no username, and you see at which check the request is blocked and what response goes out.</p>
 <p>Checked against real execution · Sent HTTP Basic requests for 12 combinations to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1 and checked them</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,20 @@
 <dt>Authentication and authorization</dt>
 <dd>Authentication checks who a user is. Authorization decides whether that verified user has permission to use a specific resource or feature. Authentication happens first, and authorization is decided based on its result. In HTTP status codes, a failed authentication corresponds to 401 and a failed authorization corresponds to 403.</dd>
 <dt>401 Unauthorized and 403 Forbidden</dt>
+<dd><b>Why it exists</b> — If only one code is used to reject, the receiving side cannot tell whether logging in again would help or whether it still would not work even after logging in. 401 and 403 report these two cases with different numbers.</dd>
+<dd><b>Where it's used today</b> — The code of an app or web screen sends the user to the login screen when it receives a 401, and shows a notice that there is no permission when it receives a 403.</dd>
 <dd>401 and 403 are HTTP status codes that a server uses when it rejects a request, and the reasons for rejecting are different. 401 (Unauthorized) means the request lacks valid authentication credentials for the target resource, and the server must send a WWW-Authenticate header in the response to tell how to authenticate. 403 (Forbidden) means the server understood the request but refuses to handle it, and if the request carried credentials, the client must not automatically repeat the request with the same credentials. When a request whose identity is not confirmed is blocked, Spring Security responds according to the authentication setup (with HTTP Basic it sends a 401, with form login it redirects to the login page), and it sends a 403 when a user whose identity is confirmed is blocked for lack of permission.</dd>
 <dt>Authority (role)</dt>
+<dd><b>Why it exists</b> — If you decide per person that &quot;this person may use the member management screen&quot;, the rules must be changed whenever users increase. Authority and role give a name to what can be done and give users that name, so that rules can be written only with names.</dd>
+<dd><b>Where it's used today</b> — It is used to block an address for administrators only by writing hasRole(&quot;ADMIN&quot;), or to divide the menus a user can see by member grade.</dd>
 <dd>An authority is a label for what an authenticated user is allowed to do, and a role is one use of an authority, such as ADMIN or USER, that stands for the position the user holds. In Spring Security, the authorities a user has are held in the Authentication as GrantedAuthority objects. hasRole(&quot;ADMIN&quot;) is a shorter form of hasAuthority: it puts the prefix ROLE_ in front of the name and checks whether the user has the authority ROLE_ADMIN. An authority has meaning only after it is confirmed who the user is, so you cannot weigh authorities for a request that has not gone through authentication.</dd>
 <dt>HTTP Basic authentication</dt>
+<dd><b>Why it exists</b> — If every server decides its own way of verifying who someone is, browsers and programs have to adjust differently for each server. HTTP Basic fixes in the HTTP rules how to send a username and password, so that any browser or program sends them the same way.</dd>
+<dd><b>Where it's used today</b> — It is used in places that only need simple protection, such as internal admin tools and servers under development, or for requests exchanged between programs. It is rarely used in web services that members use, because it is hard to build logout with it.</dd>
 <dd>HTTP Basic is an HTTP authentication method that confirms who the user is by sending a username and password in the Authorization header of the request. When the server rejects a request that came without credentials for a resource that needs a username and password with a 401 and tells the client about the Basic method in the WWW-Authenticate header, the client sends the request again with an Authorization header. Spring Security turns this method on with the httpBasic setting, and if the username and password in the header match a registered user, it remembers that user as the authenticated user, and if they do not match, it rejects the request with a 401. Because it sends the username and password with every request, it should be used over an encrypted connection (HTTPS) to be safe. A login page, sessions, and tokens are separate methods.</dd>
 <dt>Spring Security and SecurityFilterChain</dt>
+<dd><b>Why it exists</b> — If you wrote security checks yourself as Servlet filters, you had to arrange by hand, in every project, the order and the URLs of the filters for login checks, permission checks, and CSRF checks. Spring Security provides such filters in a fixed order, and SecurityFilterChain lets you choose which check to use for which URL.</dd>
+<dd><b>Where it's used today</b> — You configure form login, JWT verification, social login, and restrictions on admin URLs in a SecurityFilterChain bean. For groups with different rules, such as /api/** URLs and page URLs, you use more than one chain to split them.</dd>
 <dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
 </dl>
 <h2>Try these</h2>
@@ -106,6 +116,10 @@ public class AdminController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -179,9 +193,10 @@ public class AdminController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
 <h1>비밀번호 해시</h1>
 <p><b>DB가 털렸을 때 비밀번호는 얼마나 버티나</b></p>
+<p><b>왜 생겼나</b> — 비밀번호를 평문으로 두면 DB가 유출되는 순간 그대로 드러나고, SHA-256 같은 빠른 해시로 바꿔 저장해도 공격자는 흔한 비밀번호를 아주 빠르게 대입해 맞춰 본다. bcrypt는 회원마다 다른 솔트를 자동으로 붙이고 계산 비용(cost)을 일부러 높여, 한 번 맞춰 보는 데 드는 시간을 늘려 대입 공격을 느리게 만든다.</p>
+<p><b>지금 어디에 쓰나</b> — 회원 가입과 로그인이 있는 서비스에서 비밀번호를 저장할 때 쓴다. 스프링 시큐리티에서는 PasswordEncoder로 바꿔 저장하고 로그인 때 matches로 비교하며, BCryptPasswordEncoder가 흔한 선택이다. 나중에 원래 값으로 되돌려 써야 하는 정보(외부 API 키 등)는 해시가 아니라 암호화해 저장한다.</p>
 <p>회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다. 해시는 원래 값으로 되돌릴 수 없게 계산해 낸 값입니다. 평문, 해시, 솔트를 넣은 해시, 일부러 느리게 만든 해시(bcrypt)를 비교합니다.</p>
 <p>일부만 실행으로 확인 · SHA-256은 실제 계산, bcrypt는 재지 못함</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,10 @@
 <dt>해시 함수와 솔트</dt>
 <dd>해시 함수는 입력을 고정된 길이의 값으로 바꾸는 함수로, 결과에서 원래 입력을 되돌릴 수 없다. 비밀번호는 원문 대신 해시 값을 저장해 유출되더라도 원문이 드러나지 않게 한다. 솔트는 비밀번호마다 다르게 덧붙이는 무작위 값으로, 같은 비밀번호라도 다른 해시가 되게 해 미리 계산해 둔 해시 목록을 이용한 공격을 막는다.</dd>
 <dt>bcrypt</dt>
+<dd><b>지금 어디에 쓰나</b> — 회원 비밀번호를 저장할 때 쓴다. Spring Security의 PasswordEncoderFactories가 만드는 기본 인코더도 새 비밀번호를 bcrypt로 저장하며, 같은 목적의 다른 선택지로 Argon2, scrypt, PBKDF2가 있다.</dd>
 <dd>비밀번호 저장용으로 설계된 해시 함수다. 솔트를 자동으로 생성해 결과에 포함하고, 연산 비용(cost)을 설정해 일부러 계산을 느리게 만든다. 계산이 느리면 공격자가 수많은 후보를 대입해 보는 데 드는 시간이 크게 늘어난다. Spring Security의 BCryptPasswordEncoder가 이를 사용한다.</dd>
 <dt>대칭키 암호화와 비대칭키 암호화</dt>
+<dd><b>지금 어디에 쓰나</b> — HTTPS(TLS)에서는 연결을 맺을 때 서버 인증서의 서명 확인과 키 교환에 비대칭키 방식을 쓰고, 이어지는 HTTP 데이터는 AES 같은 대칭키로 암호화한다. DB에 저장하는 카드번호 같은 값은 대칭키로 암호화하고, SSH 로그인에 쓰는 키 쌍은 비대칭키다.</dd>
 <dd>대칭키 암호화는 암호화와 복호화에 같은 키를 쓰는 방식으로 빠르지만 키를 상대와 안전하게 공유해야 하는 문제가 있다(AES). 비대칭키 암호화는 공개키와 개인키의 쌍을 쓰는 방식으로, 공개키로 암호화한 것은 개인키로만 풀 수 있어 키 공유 문제가 없지만 느리다(RSA). 실제로는 비대칭키로 대칭키를 안전하게 교환한 뒤 대칭키로 데이터를 암호화한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -81,6 +85,10 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -154,9 +162,10 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

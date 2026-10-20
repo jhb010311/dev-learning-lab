@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,11 +31,15 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Hashing</h1>
 <p><b>What is a hash, and why do we store passwords as hashes?</b></p>
+<p><b>Why it exists</b> — If you store a password as it is, the moment the database leaks or an administrator looks at it, the passwords of all members are exposed, and other sites where members use the same password become at risk. If you store passwords as hashes, the server can check only &quot;is it the same as what was entered&quot; without keeping the original password, and even if the stored value is stolen, you cannot log in directly with that value.</p>
+<p><b>Where it's used today</b> — A service with sign-up and login stores passwords as hashes by default. However, for passwords you do not use a fast hash such as SHA-256 but a dedicated method such as BCrypt, which is deliberately slow to compute and adds a salt, and in Spring you use it through Spring Security's PasswordEncoder. A hash such as SHA-256 is used to check that a downloaded file was not changed on the way.</p>
 <p>A hash function is a calculation that gives a mixed-up value of a fixed length, whatever text you put in. The sha256(&quot;pass1234&quot;) in the code is the line that puts pass1234 into the hash function called SHA-256 (sha256 is a helper method made for this example), and the value that comes out is 64 characters of 0-9 and a-f. A hash function has three properties. If you put in the same text, you always get the same value. If even one character is different, you get a completely different value. And you cannot calculate the original text backwards from the value that came out. So at sign-up, the server stores the hash value, not the password itself, and at login, it hashes the entered text the same way and only checks whether it is the same as the stored value. In this lab, you enter the right password, a password that differs by one character, and the stored value itself, once for a server that hashes and stores the password and once for a server that stores it as it is, and you see what happens to the login. (A real service does not store passwords with SHA-256. It uses a dedicated function. See the explanation below for details.)</p>
 <p>Checked against real execution · Compiled and ran 6 combinations on JDK 21 with javax.tools and checked against the results. The SHA-256 values were also checked against the standard examples, Node.js, and openssl</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Hash function</dt>
+<dd><b>Why it exists</b> — To see whether two pieces of data are the same, you would normally have to put all of both side by side and compare them. A hash function lets you compare only a short value, so you can tell whether your copy has changed without downloading the original again.</dd>
+<dd><b>Where it's used today</b> — Compare the SHA-256 value of a downloaded file with the value written on the site to check that the file was not changed or damaged during the download. The 40-character name that Git gives each commit is also a value made by a hash function.</dd>
 <dd>A hash function is a calculation that gives a mixed-up value of a fixed length, whatever length of text (data) you put in, and that value is called a hash value or a digest. SHA-256 gives a 256-bit value, that is, 64 hexadecimal characters, whether the input is 1 character or 100 characters. The same input always gives the same value, and if the input changes even a little, a completely different value comes out with very high probability. These terms mean a cryptographic hash function such as SHA-256, which is used for a different purpose from the hash code used in the data structure HashMap.</dd>
 <dt>One-way function</dt>
 <dd>A hash function being one-way means that it is easy to calculate the value from the input, but it is made so that finding the original input backwards from the value that came out is not practically possible. The NIST standard explains that it calls these functions secure because finding an input that matches a given hash value, and finding two different inputs that give the same hash value, is computationally infeasible. This is not proven mathematically, it means no method is known. One-way is different from encryption. With encryption you can turn the value back if you have the key, but a hash has no key to turn it back. Also, a short and common input can be found by hashing the candidates one by one and comparing them.</dd>
@@ -93,6 +97,10 @@ System.out.println(ok);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +174,10 @@ System.out.println(ok);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

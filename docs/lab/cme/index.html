@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
 <h1>순회 중 삭제</h1>
 <p><b>반복문 안에서 원소를 지우면</b></p>
+<p><b>왜 생겼나</b> — 순회하는 도중에 리스트의 구조가 바뀌면 반복자가 가리키는 위치와 실제 원소가 어긋나, 원소를 건너뛰거나 같은 원소를 두 번 보는 오류가 아무 표시 없이 생길 수 있다. ArrayList 같은 컬렉션의 fail-fast 반복자는 순회 중 구조가 바뀐 것을 알아차리면 ConcurrentModificationException을 던져, 문제가 생긴 자리에서 바로 드러나게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 향상된 for문도 반복자로 돌기 때문에, 그 본문에서 list.remove나 add를 부르면 대개 이 예외를 만난다. 장바구니에서 품절 상품 빼기처럼 순회하며 일부를 지울 때는 Iterator의 remove나 removeIf를 쓴다. 여러 스레드가 순회하며 고치는 컬렉션에는 CopyOnWriteArrayList나 ConcurrentHashMap처럼 순회 중 변경에 예외를 던지지 않는 것을 쓴다.</p>
 <p>리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.</p>
 <p>실행으로 대조 · JDK 21에서 열 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>ArrayList</dt>
 <dd>내부에 배열을 두고 가득 차면 더 큰 배열로 옮겨 담는 리스트다. 인덱스로 원소에 접근하는 속도가 O(1)로 빠르고, 끝에 추가하는 것도 분할 상환으로 O(1)이다. 중간에 삽입하거나 삭제하면 뒤의 원소들을 한 칸씩 옮겨야 해서 O(n)이 걸린다.</dd>
 <dt>ConcurrentHashMap</dt>
+<dd><b>왜 생겼나</b> — 여러 스레드가 HashMap을 함께 고치면 넣은 값이 사라질 수 있고, Collections.synchronizedMap으로 감싸면 모든 호출이 락 하나를 차례로 기다린다. ConcurrentHashMap은 안전을 지키면서 그 기다림을 줄였다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 서버처럼 여러 요청 스레드가 함께 보는 캐시나 키별 횟수 세기(merge, compute)에 쓴다. 한 스레드에서만 쓰는 맵이면 HashMap으로 충분하다.</dd>
 <dd>여러 스레드가 동시에 사용해도 안전한 해시 맵이다. 맵 전체에 락을 거는 대신 버킷 단위로 제어해 동시성이 높고, 조회는 락 없이 수행된다. null 키와 null 값을 허용하지 않는다. &quot;없으면 넣기&quot; 같은 복합 동작은 putIfAbsent, compute처럼 원자성이 보장된 메서드를 써야 한다.</dd>
 <dt>스레드 안전(Thread-safe)</dt>
 <dd>여러 스레드가 동시에 사용해도 올바르게 동작하는 성질이다. 공유하는 상태가 없거나, 상태가 불변이거나, 접근이 적절히 동기화되어 있으면 스레드 안전하다. 스프링의 싱글톤 빈은 여러 요청 스레드가 함께 사용하므로 스레드 안전하게(보통 상태를 갖지 않게) 만들어야 한다.</dd>
@@ -86,6 +90,10 @@ for (Integer x : list) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ for (Integer x : list) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

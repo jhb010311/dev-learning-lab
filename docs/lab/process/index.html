@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>프로세스와 스레드</h1>
 <p><b>일꾼을 늘리는 두 가지 방법</b></p>
+<p><b>왜 생겼나</b> — 실행 흐름이 하나뿐이면 한 작업이 끝날 때까지 다른 작업은 기다려야 한다. 운영체제는 프로그램마다 메모리를 따로 떼어 준 프로세스로 실행해 한 프로그램의 고장이 다른 프로그램에 번지지 않게 하고, 프로세스 하나에 실행 흐름인 스레드를 여러 개 두어 메모리를 함께 쓰면서 여러 일을 동시에 진행하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 톰캣은 프로세스 하나에서 요청마다 스레드 풀의 스레드를 배정해 여러 사용자를 동시에 처리하고, 크롬 브라우저는 사이트별로 프로세스를 나눠 한 사이트의 탭이 죽어도 다른 사이트 탭은 계속 돌게 한다. 같은 애플리케이션을 서버 여러 대나 컨테이너 여러 개로 띄우는 것도 프로세스를 나누는 방식이다. 데이터를 자주 주고받는 작업은 스레드로, 서로의 고장이 번지면 안 되는 작업은 프로세스로 나눈다.</p>
 <p>프로그램을 실행하면 프로세스가 하나 생기고, 그 안에서 실제로 코드를 실행하는 것이 스레드입니다. 0.3초씩 걸리는 작업 세 개를 스레드 하나로, 한 프로세스 안의 스레드 세 개로, 프로세스 세 개로 나눠 실행해 봅니다. 메모리를 함께 쓰는지와, 하나가 죽었을 때 나머지가 어떻게 되는지가 다릅니다.</p>
 <p>실행으로 대조 · JDK 21에서 아홉 가지 조합을 실행해 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>프로세스와 스레드</dt>
 <dd>프로세스는 실행 중인 프로그램으로, 운영체제로부터 독립된 메모리 공간을 할당받는다. 스레드는 프로세스 안에서 실제로 작업을 수행하는 실행 흐름으로, 같은 프로세스의 스레드들은 메모리(힙, 코드, 데이터)를 공유하고 스택만 따로 가진다. 그래서 스레드 간에는 데이터를 주고받기 쉽지만 동시에 같은 데이터를 건드리는 문제가 생긴다.</dd>
 <dt>IPC(프로세스 간 통신)</dt>
+<dd><b>왜 생겼나</b> — 프로세스마다 메모리를 따로 두면 서로를 망가뜨리지 못하는 대신, 다른 프로세스의 변수를 직접 읽을 수도 없다. IPC는 운영체제가 마련한 통로로만 값을 주고받게 해서, 서로 떨어뜨려 둔 채로 협력하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 셸에서 명령을 |로 잇는 것이 파이프이고, 같은 컴퓨터의 Docker 데몬이나 PostgreSQL에 붙을 때는 유닉스 도메인 소켓을 쓰기도 한다.</dd>
 <dd>서로 독립된 메모리를 가진 프로세스들이 데이터를 주고받는 방법이다. 파이프, 메시지 큐, 공유 메모리, 소켓 등이 있다. 서버 프로그램 사이의 통신은 대부분 소켓 위에서 동작하는 HTTP나 메시지 브로커를 이용한다.</dd>
 <dt>런타임 데이터 영역</dt>
 <dd>JVM이 프로그램을 실행하면서 사용하는 메모리 영역이다. 스레드마다 따로 갖는 영역으로 PC 레지스터, JVM 스택, 네이티브 메서드 스택이 있고, 모든 스레드가 공유하는 영역으로 힙과 메서드 영역이 있다. 어떤 데이터가 스레드 간에 공유되는지를 이해하는 기준이 된다.</dd>
@@ -93,6 +97,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +174,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

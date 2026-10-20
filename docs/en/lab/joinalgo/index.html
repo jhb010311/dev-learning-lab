@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,23 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Join algorithms</h1>
 <p><b>How does the database find matching rows when the join column has no index?</b></p>
+<p><b>Why it exists</b> — If you look for pairs with a nested loop when the join column has no index, for each row of the table read first you have to read the other table again from beginning to end, so when both tables grow, the amount read grows by their product. A hash join builds a hash table of the join column values from one table, then scans the other table once and finds the matches directly, so even without an index it removes the need to reread a table for every row.</p>
+<p><b>Where it's used today</b> — MySQL chooses it by itself in statistics and report queries that join columns without indexes, or in cleanup queries that run only once, and it appears in Extra of EXPLAIN as Using join buffer (hash join). For joins that run often, such as screen requests, and find only some rows, you do not rely on a hash join but create an index on the join column of the table read later, so that only the rows needed are read.</p>
 <p>A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join.</p>
 <p>Checked against real execution · Seven combinations were run on MySQL 8.4 with EXPLAIN, EXPLAIN FORMAT=TREE, and EXPLAIN ANALYZE and checked against the join method and the number of reads</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Nested-loop join</dt>
+<dd><b>Where it's used today</b> — It suits queries that pick only a few rows from the side read first and connect them, such as the list of orders of one member. If the join column of the other table has an index that can be used, MySQL usually finds the pairs with this method, and the type of the other table appears as ref or eq_ref in EXPLAIN.</dd>
 <dd>A join method that reads the rows of one table one at a time and, for each row, finds the matching rows in another table. It has the same shape as a double loop (nested loops) in a program, which is where the name comes from. The amount read is the number of rows in the table read first multiplied by the number of rows read per lookup. If the join column of the table read later has an index, only the rows needed are read, but if it does not, the whole table must be read each time.</dd>
 <dt>Hash join</dt>
+<dd><b>Where it's used today</b> — It is used in statistics and settlement queries that join large tables as a whole on columns that have no index. In MySQL, join_buffer_size decides the size of the memory for the hash table, and when it overflows, the work is split into temporary files on disk.</dd>
 <dd>A join method that builds in memory a hash table keyed on the join column values of the rows of one table, and then reads the other table once, finding the matches in that hash table. Each table is read only once, so it reads far less than joining with a nested loop without an index. MySQL supports it from 8.0.18, and chooses it when there is no index that can be used for the join column. Compared with a join that uses an index, it has the disadvantages that the hash table takes memory and that the table is read in full even when only some of its rows are needed.</dd>
 <dt>Driving table</dt>
 <dd>The table that is read first in a join. In a nested-loop join, the rest of the tables are looked up for each row of this table. Which table becomes the driving table is decided not by the order written in FROM but by the optimizer calculating costs. The one chosen is usually the table that has fewer rows after filtering by conditions and whose counterpart table can then be reached through an index. In MySQL, the table on the upper line of the EXPLAIN result is the driving table.</dd>
 <dt>Optimizer</dt>
+<dd><b>Why it exists</b> — If developers had to decide which index to read and in what order to join for every query, they would have to rewrite queries whenever the amount and distribution of data change. With an optimizer, the SQL states only the result that is wanted, and the database chooses how to read based on the statistics at that time.</dd>
+<dd><b>Where it's used today</b> — You usually do not think about it, but when an EXPLAIN result differs from what you expect, in MySQL you collect fresh statistics with ANALYZE TABLE or correct the choice with a hint such as FORCE INDEX.</dd>
 <dd>The database component that chooses, among the several ways a SQL statement can be executed, the one that is expected to cost the least. It decides based on statistics such as the number of rows in a table and the distribution of values. If the statistics differ from the real data, it can choose an inefficient way.</dd>
 <dt>Query execution plan (EXPLAIN)</dt>
 <dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
@@ -91,6 +97,10 @@ SELECT m.name, o.amount
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ SELECT m.name, o.amount
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

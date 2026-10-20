@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 배포와 운영</p>
 <h1>배포 전략</h1>
 <p><b>서비스를 끊지 않고 새 버전으로 바꾸려면</b></p>
+<p><b>왜 생겼나</b> — 서버를 모두 내리고 새 버전을 올리면 그동안 서비스가 멈추고, 새 버전에 버그가 있으면 모든 사용자가 한꺼번에 겪는다. 롤링, 블루-그린, 카나리 배포는 기존 서버가 요청을 계속 받는 동안 새 버전을 준비하고 요청을 옮기는 시점과 비율을 조절해서, 멈추지 않고 바꾸면서 문제가 생겼을 때 되돌리거나 영향을 좁힐 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 쿠버네티스의 Deployment는 기본으로 롤링 업데이트를 써서, 자주 배포하는 웹 서비스에서 흔히 본다. 서버를 두 배로 둘 여유가 있고 되돌리기가 빨라야 하면 블루-그린을, 버그의 영향이 클까 걱정되면 카나리로 일부 요청에만 먼저 내보내고 오류율을 보며 늘린다.</p>
 <p>서버 4대가 v1으로 돌고 있습니다. 이것을 v2로 바꾸는 방법에 따라, 배포 중에 서비스가 끊기는지, 서버가 얼마나 더 필요한지, 새 버전에 문제가 있을 때 몇 명이 영향을 받는지가 달라집니다.</p>
 <p>문서·표준 대조 · Kubernetes와 스프링 부트 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>롤링, 블루-그린, 카나리 배포</dt>
 <dd>서비스 중단 없이 새 버전을 배포하는 방식들이다. 롤링은 서버를 일부씩 차례로 새 버전으로 교체한다. 블루-그린은 새 버전 환경을 통째로 따로 준비한 뒤 트래픽을 한 번에 전환한다. 카나리는 일부 사용자에게만 새 버전을 먼저 적용해 문제가 없는지 확인한 뒤 점차 확대한다.</dd>
 <dt>Graceful Shutdown</dt>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트는 server.shutdown 설정으로 이 동작을 정하고(최근 버전은 기본으로 켜져 있다), spring.lifecycle.timeout-per-shutdown-phase로 기다릴 최대 시간을 정한다. 쿠버네티스는 Pod를 내릴 때 SIGTERM을 보내고 정해진 시간이 지나면 강제로 끝내므로, 그 전에 정리를 마치게 맞춘다.</dd>
 <dd>애플리케이션을 종료할 때 새 요청은 받지 않고 이미 처리 중인 요청은 끝까지 처리한 뒤 종료하는 것이다. 배포 등으로 서버를 내릴 때 진행 중이던 요청이 중간에 끊겨 오류가 나는 것을 막는다.</dd>
 <dt>헬스 체크(Liveness, Readiness)</dt>
+<dd><b>왜 생겼나</b> — 확인을 하나로만 하면 DB가 잠깐 느려졌을 뿐인데 서버를 재시작해 버리거나, 반대로 요청을 못 받는 서버에 계속 요청을 보내게 된다. Liveness와 Readiness를 나누면 다시 띄울지와 요청을 보낼지를 따로 판단할 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쿠버네티스의 livenessProbe와 readinessProbe가 스프링 부트 Actuator의 /actuator/health/liveness, /actuator/health/readiness를 부르게 하고, 시작이 오래 걸리는 애플리케이션은 startupProbe를 더해 시작하는 동안 재시작되지 않게 한다.</dd>
 <dd>서버가 정상인지 주기적으로 확인하는 것이다. Liveness는 프로세스가 살아 있는지를 확인해 문제가 있으면 재시작하게 한다. Readiness는 요청을 받을 준비가 되었는지를 확인해 준비되지 않은 서버로는 트래픽을 보내지 않게 한다. 서버가 시작 중이거나 종료 중일 때 요청이 들어가는 것을 막는다.</dd>
 <dt>로드밸런서</dt>
 <dd>들어오는 요청을 여러 서버에 나눠 보내는 장치다. 서버의 상태를 주기적으로 확인(헬스 체크)해 문제가 있는 서버로는 요청을 보내지 않는다. 한 서버에 부하가 몰리는 것을 막고, 일부 서버에 장애가 나도 서비스를 유지하게 한다.</dd>
@@ -103,6 +108,10 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

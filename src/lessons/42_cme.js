@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cme', nav: '순회 중 삭제', cat: '자료구조', mode: 'step',
   title: '반복문 안에서 원소를 지우면',
+  why: '순회하는 도중에 리스트의 구조가 바뀌면 반복자가 가리키는 위치와 실제 원소가 어긋나, 원소를 건너뛰거나 같은 원소를 두 번 보는 오류가 아무 표시 없이 생길 수 있다. ArrayList 같은 컬렉션의 fail-fast 반복자는 순회 중 구조가 바뀐 것을 알아차리면 ConcurrentModificationException을 던져, 문제가 생긴 자리에서 바로 드러나게 한다.',
+  use: '향상된 for문도 반복자로 돌기 때문에, 그 본문에서 list.remove나 add를 부르면 대개 이 예외를 만난다. 장바구니에서 품절 상품 빼기처럼 순회하며 일부를 지울 때는 Iterator의 remove나 removeIf를 쓴다. 여러 스레드가 순회하며 고치는 컬렉션에는 CopyOnWriteArrayList나 ConcurrentHashMap처럼 순회 중 변경에 예외를 던지지 않는 것을 쓴다.',
   intro: '리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.',
   terms: ['fail-fast 반복자', 'ArrayList', 'ConcurrentHashMap', '스레드 안전(Thread-safe)'], ranks: ['collection', 'exception'],
   controls: [

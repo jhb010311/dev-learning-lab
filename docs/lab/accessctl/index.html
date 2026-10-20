@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인가</p>
 <h1>접근 제어</h1>
 <p><b>로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나</b></p>
+<p><b>왜 생겼나</b> — 화면에 남의 주문으로 가는 링크를 보여 주지 않는 것만으로는 막지 못한다. 요청은 주소창이나 curl로 누구든 직접 만들어 보낼 수 있기 때문이다. 접근 제어는 서버가 요청마다 역할과 자원의 주인을 확인해서, 화면이 무엇을 보여 주든 허락되지 않은 요청을 거절하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문, 게시글, 첨부 파일처럼 주인이 있는 자원을 번호로 조회·수정·삭제하는 API마다 필요하다. 관리자 주소처럼 역할로 나뉘는 곳은 SecurityFilterChain의 URL 규칙으로 막고, 누구의 자원인지는 역할만으로 알 수 없으므로 DB에서 찾을 때 로그인한 사용자를 조건에 넣거나 메서드 보안의 식으로 주인을 확인한다.</p>
 <p>로그인했다는 것은 &quot;누구인지 확인됐다&quot;(인증)는 뜻일 뿐, &quot;이 자원을 봐도 된다&quot;(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄워 서른 가지 조합의 응답 코드와 본문을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,20 @@
 <dt>인증과 인가</dt>
 <dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
 <dt>접근 제어와 소유자 확인</dt>
+<dd><b>왜 생겼나</b> — 인증은 요청한 사람이 누구인지만 알려 줄 뿐, 그 사람이 이 자원을 다뤄도 되는지는 알려 주지 않는다. 접근 제어는 자원마다 허락 여부를 서버가 따로 판단하게 해서, 로그인한 사용자라도 허락된 자원에만 닿게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 마이페이지의 주문 내역, 내 글 수정과 삭제, 내 파일 내려받기처럼 자기 것만 다뤄야 하는 기능에 쓴다. 상담원이나 관리자처럼 남의 자원을 다뤄야 하는 사람은 역할을 확인해 따로 허락한다.</dd>
 <dd>접근 제어는 확인된 사용자가 어떤 자원을 보거나 바꿔도 되는지를 서버가 정하고 지키게 하는 일이다. 로그인했는지만 확인하고 자원의 주인을 확인하지 않으면, 주소나 요청에 든 번호만 바꿔 다른 사람의 자원을 볼 수 있다. 이런 취약점을 IDOR(안전하지 않은 직접 객체 참조)라고 부른다. 막으려면 자원을 조회한 뒤 그 자원의 주인과 지금 로그인한 사용자를 서버 코드에서 비교하거나, 처음부터 &quot;내 것 가운데에서만&quot; 조회한다. 화면에서 버튼이나 링크를 숨기는 것은 접근 제어가 아니며, 확인은 반드시 서버에서 요청마다 한다.</dd>
 <dt>역할 기반 접근 제어(RBAC)</dt>
+<dd><b>왜 생겼나</b> — 사용자마다 할 수 있는 일을 하나씩 정해 두면 사람이 들어오거나 맡은 일이 바뀔 때마다 설정을 고쳐야 하고 빠뜨리기 쉽다. RBAC는 권한을 역할에 묶고 사용자에게는 역할만 주어, 사람이 바뀌면 역할만 바꾸면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 관리자 화면 주소를 ADMIN 역할에게만 열거나, 사내 시스템에서 직원·팀장·관리자가 볼 메뉴와 할 수 있는 일을 나누는 데 쓴다.</dd>
 <dd>사용자에게 USER, ADMIN 같은 역할을 주고, 역할마다 할 수 있는 일을 정해 두는 방식이다. 스프링 시큐리티에서는 hasRole(&quot;ADMIN&quot;)처럼 주소나 메서드에 필요한 역할을 적는다. 규칙이 단순하고 한곳에서 관리하기 쉽지만, 역할은 &quot;어떤 종류의 사용자인가&quot;만 말해 주므로 같은 역할을 가진 두 사용자를 구별하지 못한다. 그래서 &quot;자기 주문만 볼 수 있다&quot; 같은 규칙은 역할만으로는 표현할 수 없고, 자원의 주인을 비교하는 확인을 함께 써야 한다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 <dt>Spring Security와 SecurityFilterChain</dt>
+<dd><b>왜 생겼나</b> — 보안 검사를 서블릿 필터로 직접 짜면 로그인 확인, 권한 검사, CSRF 검사 필터의 순서와 적용할 주소를 프로젝트마다 손으로 맞춰야 했다. Spring Security는 이런 필터를 정해진 순서로 제공하고, SecurityFilterChain에서는 어느 주소에 어떤 검사를 쓸지를 고르게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 폼 로그인, JWT 검증, 소셜 로그인, 관리자 주소 제한을 SecurityFilterChain 빈에 설정한다. /api/** 주소와 화면 주소처럼 규칙이 다른 묶음은 체인을 둘 이상 두어 나눈다.</dd>
 <dd>Spring Security는 인증과 인가를 처리하는 스프링의 보안 프레임워크로, 서블릿 필터들의 묶음으로 동작한다. SecurityFilterChain은 어떤 요청에 어떤 보안 필터들을 어떤 순서로 적용할지 정의한 것이다. 요청이 컨트롤러에 도달하기 전에 필터들이 차례로 인증 정보 확인, 권한 검사 등을 수행한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -105,6 +115,10 @@ Order one(@PathVariable long id, Authentication auth) {     // auth: 지금 로�
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +192,10 @@ Order one(@PathVariable long id, Authentication auth) {     // auth: 지금 로�
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

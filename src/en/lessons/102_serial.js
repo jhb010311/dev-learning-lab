@@ -1,6 +1,8 @@
 Lab.register({
   id: 'serial', nav: 'Serialization', cat: 'Java language', mode: 'step',
   title: 'What comes back when you restore a saved object?',
+  why: 'To save an object to a file or send it to another JVM, you would have to write, for every class, code that writes the fields one by one in a fixed order and reads them back to assemble the object. With Java\'s default serialization, you only mark the class as Serializable. ObjectOutputStream then follows the field values and the objects they refer to and converts them into bytes, and ObjectInputStream creates the object again from those bytes.',
+  use: 'Requests and responses of web APIs are usually exchanged as JSON created with Jackson, and you meet Java\'s default serialization where Serializable is required. When Tomcat is configured to keep sessions and saves them to a file as it shuts down, or when Spring Session stores sessions in Redis with its default settings, the session attribute objects must be Serializable. You add transient to fields that must not be saved.',
   intro: 'The default serialization mechanism in Java converts an object to bytes and writes them to a file (writeObject), and then creates the object again from those bytes (readObject). But not everything in an object is saved, and not every object can be saved. Set point to 50, save the object, change point to 70, and then restore the object to see what is saved and what is not.',
   terms: ['Serialization and deserialization', 'Serializable', 'transient', 'serialVersionUID', 'static'],
   controls: [

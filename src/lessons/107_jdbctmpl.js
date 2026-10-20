@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate과 예외 변환', cat: '스프링', mode: 'step',
   title: 'JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나',
+  why: 'JDBC를 직접 쓰면 예외가 났을 때 close를 빠뜨려 커넥션이 풀에 돌아가지 않는 실수가 쉽게 생기고, 중복 키인지 SQL 문법 오류인지는 DB마다 다른 오류 코드를 보고 가려야 했다. JdbcTemplate은 커넥션과 Statement를 스스로 정리하고, 그 오류 코드를 DuplicateKeyException처럼 이름만 봐도 원인을 아는 예외로 바꿔서 DB가 달라도 같은 catch로 처리하게 했다.',
+  use: 'JPA를 쓰는 프로젝트에서도 대량 INSERT나 통계용 조회처럼 SQL을 직접 쓰는 편이 나은 곳에 함께 쓴다. 테이블이 몇 개 안 되는 작은 서비스나 배치 작업에서 SQL을 그대로 보며 다루고 싶을 때도 쓴다. 최근 스프링에서는 같은 일을 메서드를 이어 부르는 모양으로 쓰는 JdbcClient도 쓸 수 있다.',
   intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, JDBC 드라이버가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
   terms: ['JdbcTemplate', '예외 변환과 DataAccessException', '커넥션 풀', 'Checked 예외와 Unchecked 예외', '템플릿 메서드 패턴'],
   controls: [

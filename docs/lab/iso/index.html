@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 트랜잭션과 잠금</p>
 <h1>격리 수준</h1>
 <p><b>다른 트랜잭션이 바꾸는 중인 데이터가 내게 어떻게 보이나</b></p>
+<p><b>왜 생겼나</b> — 동시에 도는 트랜잭션을 모두 한 줄로 세워 차례로 실행하면 가장 안전하지만, 그만큼 동시에 처리할 수 있는 양이 크게 준다. 트랜잭션 격리 수준은 커밋 전 값 읽기, 다시 읽었을 때 값이 바뀜, 없던 행이 나타남 같은 이상 현상 가운데 어디까지 허용할지를 단계로 정해서, 필요한 만큼만 막고 나머지는 동시에 돌게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 보통은 DB의 기본 격리 수준을 그대로 쓰고, 스프링에서는 꼭 필요한 트랜잭션만 @Transactional(isolation = ...)로 바꾼다. 정산이나 통계처럼 한 트랜잭션에서 여러 번 읽은 값이 서로 맞아야 할 때 격리 수준을 따진다. 재고 차감처럼 같은 행을 동시에 고치는 문제는 격리 수준에 기대기보다 락이나 조건을 넣은 UPDATE로 막는다.</p>
 <p>트랜잭션 A가 조회하는 사이에 트랜잭션 B가 같은 데이터를 바꿉니다. 격리 수준에 따라 A가 B의 변경을 보기도 하고 못 보기도 합니다.</p>
 <p>실행으로 대조 · MySQL 8.4.11에서 세션 두 개로 열두 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -44,10 +46,14 @@
 <dt>Phantom Read</dt>
 <dd>한 트랜잭션 안에서 같은 조건으로 두 번 조회했는데, 그 사이에 다른 트랜잭션이 행을 추가하거나 삭제해서 결과의 행 수가 달라지는 현상이다. 값이 바뀌는 것이 아니라 없던 행이 나타나거나 있던 행이 사라진다는 점에서 Non-repeatable Read와 구분된다.</dd>
 <dt>MVCC(다중 버전 동시성 제어)</dt>
+<dd><b>왜 생겼나</b> — 잠금만으로 격리를 지키면, 한 트랜잭션이 행을 고치는 동안 그 행을 읽으려는 트랜잭션도 끝날 때까지 기다려야 한다. MVCC는 고치기 전 버전을 남겨 두고 읽는 쪽에 그 버전을 보여 주는 방법으로 이 대기를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL InnoDB의 기본 격리 수준에서 FOR UPDATE 없이 실행하는 평범한 SELECT가 이 방식으로 읽어서, 긴 통계 조회가 돌아도 주문 저장이 막히지 않는다. 읽은 값을 바탕으로 고칠 때는 FOR UPDATE나 @Version으로 따로 지킨다.</dd>
 <dd>데이터를 변경할 때 이전 버전을 보존해 두어, 읽는 트랜잭션이 자신의 스냅샷 시점에 맞는 버전을 볼 수 있게 하는 방식이다. 스냅샷 시점은 격리 수준에 따라 달라서, MySQL의 REPEATABLE READ는 트랜잭션의 첫 읽기 시점, READ COMMITTED는 문장을 실행할 때마다 새로 잡는다. 읽기 작업이 쓰기 작업을 기다리지 않고 쓰기 작업도 읽기 작업을 기다리지 않아 동시 처리 성능이 높다. MySQL InnoDB, PostgreSQL, Oracle이 모두 이 방식을 쓴다.</dd>
 <dt>Undo 로그와 Redo 로그</dt>
 <dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때 쓰이며, InnoDB에서는 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC)도 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
 <dt>공유 락과 배타 락</dt>
+<dd><b>왜 생겼나</b> — 잠금이 한 종류뿐이면 읽기만 하는 트랜잭션끼리도 서로 기다려야 한다. 공유 락과 배타 락으로 나누면 읽기끼리는 함께 진행하고, 쓰기가 낄 때만 차례를 지키게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL에서 SELECT ... FOR SHARE는 공유 락을, FOR UPDATE와 UPDATE, DELETE는 배타 락을 건다. 읽은 행이 트랜잭션 동안 바뀌지 않게 붙잡을 때는 공유 락을, 읽고 곧 고칠 행에는 배타 락을 쓴다.</dd>
 <dd>공유 락(S)은 읽기를 위한 잠금으로 여러 트랜잭션이 동시에 가질 수 있다. 배타 락(X)은 쓰기를 위한 잠금으로 한 트랜잭션만 가질 수 있으며, 배타 락이 걸린 데이터에는 다른 트랜잭션이 공유 락도 배타 락도 걸 수 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -100,6 +106,10 @@ COMMIT;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +183,10 @@ COMMIT;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

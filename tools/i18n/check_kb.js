@@ -1,7 +1,7 @@
 // 영어로 옮긴 설명집 파일 하나를 한국어 원본과 대조한다. 사용: node tools/i18n/check_kb.js <파일 이름>   예: node tools/i18n/check_kb.js kb1.js
 // 보는 것: kb/en/<파일>이 있고 줄 수(용어 수)와 순서가 원본과 같은지, 분류가 maps.js의 이름인지, 용어 이름이 용어 대조표의 영어 이름인지,
 //          한글이 남지 않았는지, 설명이 지나치게 짧거나 길지 않은지(원문에서 빠뜨리거나 보탠 것이 없는지의 대략적인 신호).
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), whyuse = require('../whyuse.js');
 const root = path.join(__dirname, '..', '..'), f = process.argv[2], HAN = /[가-힣]/, MAPS = require('./maps.js');
 if (!f) { console.log('사용: node tools/i18n/check_kb.js <파일 이름>'); process.exit(1); }
 const koP = path.join(root, 'kb', f), enP = path.join(root, 'kb', 'en', f), errs = [], warns = [];
@@ -13,7 +13,9 @@ fs.readFileSync(enP, 'utf8').split('\n').forEach((l, i) => { if (HAN.test(l)) er
 if (ko.length !== en.length) errs.push('용어 수가 다름: 한국어 ' + ko.length + '개, 영어 ' + en.length + '개');
 else ko.forEach((r, i) => {
   const e = en[i], at = (i + 1) + '번째 (' + r[1] + ')';
-  if (!Array.isArray(e) || e.length !== 3 || e.some(x => !x)) return errs.push(at + ': [분류, 용어, 설명] 세 칸이어야 함');
+  const fe = whyuse.kbErrors(e); if (fe.length) return errs.push(at + ': ' + fe.join(', '));
+  // 네 번째 칸(why, use)은 원본에 있는 것과 같은 것이 있어야 한다
+  whyuse.sameKeys(r[3], e[3]).forEach(k => errs.push(at + ': 네 번째 칸의 ' + k + '가 ' + (r[3] && r[3][k] ? '원본에는 있는데 영어에 없음' : '원본에는 없는데 영어에 있음')));
   if (e[0] !== MAPS.KBCAT[r[0]]) errs.push(at + ': 분류는 ' + JSON.stringify(MAPS.KBCAT[r[0]]) + ' 이어야 함');
   if (!tb[r[1]]) errs.push(at + ': 용어 대조표에 없는 용어'); else if (e[1] !== tb[r[1]]) errs.push(at + ': 용어 이름은 대조표의 ' + JSON.stringify(tb[r[1]]) + ' 이어야 함 (지금 ' + JSON.stringify(e[1]) + ')');
   // 한글 한 자는 영어 두세 자쯤이다. 비율이 크게 벗어나면 빠뜨렸거나 보탠 것일 수 있다.

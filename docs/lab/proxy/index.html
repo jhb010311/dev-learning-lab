@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › AOP와 프록시</p>
 <h1>프록시와 자기 호출</h1>
 <p><b>애너테이션을 붙였는데 왜 동작하지 않나</b></p>
+<p><b>왜 생겼나</b> — 트랜잭션을 열고 커밋하거나 롤백하는 코드를 메서드마다 직접 쓰면 같은 try-catch가 곳곳에 반복되고 업무 코드와 뒤섞인다. 스프링은 이런 공통 작업을 프록시가 맡게 해서, 메서드에는 @Transactional 한 줄만 붙이고 트랜잭션을 열고 닫는 일은 프록시가 메서드 앞뒤에서 하게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — @Transactional, @Async, @Cacheable, @PreAuthorize처럼 메서드에 붙이는 여러 스프링 기능이 프록시로 동작한다. 그래서 애너테이션을 붙였는데 효과가 없으면 먼저 그 호출이 다른 빈에서 프록시를 거쳐 들어왔는지, 메서드가 private은 아닌지 본다. 같은 클래스 안에서 부르던 메서드는 다른 빈으로 옮겨 해결하는 경우가 많다.</p>
 <p>@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 그 빈 대신 프록시(대리 객체)를 등록해 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애너테이션이 적용되기도 하고 무시되기도 합니다.</p>
 <p>실행으로 대조 · 스프링 7.0.9에서 열 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,8 +44,12 @@
 <dt>AOP(관점 지향 프로그래밍)</dt>
 <dd>로깅, 트랜잭션, 권한 검사처럼 여러 곳에 반복해서 나타나는 부가 기능(횡단 관심사)을 핵심 비즈니스 코드에서 분리해 한곳에 모아 두는 프로그래밍 기법이다. 부가 기능을 한 번만 작성하고 &quot;어디에 적용할지&quot;를 따로 지정하므로, 핵심 코드가 깔끔해지고 부가 기능의 수정이 한곳에서 끝난다.</dd>
 <dt>JDK 동적 프록시와 CGLIB</dt>
+<dd><b>왜 생겼나</b> — JDK 동적 프록시는 인터페이스를 구현하는 방식이라, 인터페이스 없이 클래스로만 만든 빈에는 트랜잭션 같은 부가 기능을 붙일 수 없었다. CGLIB 방식은 클래스를 상속해 프록시를 만들어 이 제약을 풀었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot는 인터페이스가 있는 빈도 CGLIB로 감싸므로, 인터페이스가 아니라 구현 클래스 타입으로 주입받아도 오류가 나지 않는다. 디버거에서 빈의 클래스 이름에 $SpringCGLIB$가 붙어 있으면 CGLIB 프록시다.</dd>
 <dd>스프링이 프록시를 만드는 두 가지 방식이다. JDK 동적 프록시는 대상 객체가 구현한 인터페이스를 구현하는 프록시를 만든다. CGLIB는 대상 클래스를 상속한 하위 클래스를 실행 중에 만들어 프록시로 쓴다. Spring Boot는 기본적으로 CGLIB를 사용한다. 상속 방식이므로 final 클래스와 final·private 메서드에는 적용할 수 없다.</dd>
 <dt>@Async</dt>
+<dd><b>왜 생겼나</b> — 오래 걸리는 일을 다른 스레드로 넘기려면 ExecutorService를 만들고 작업을 제출하는 코드를 호출하는 곳마다 써야 했다. @Async는 메서드에 애너테이션을 붙이면 스프링이 그 호출을 스레드 풀에 넘기게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — @EnableAsync를 켠 뒤, 가입 축하 메일이나 푸시 알림처럼 응답에 결과가 필요 없는 일에 쓴다. 결과가 필요하면 CompletableFuture를 돌려받고, 실패해도 꼭 다시 보내야 하면 메시지 큐가 더 맞다.</dd>
 <dd>메서드를 호출한 스레드가 아닌 별도의 스레드 풀에서 실행하게 하는 애너테이션이다. 호출한 쪽은 결과를 기다리지 않고 바로 다음으로 진행한다. 프록시 기반이므로 같은 클래스 안에서 호출하면 적용되지 않고, 다른 스레드에서 실행되므로 호출한 쪽의 트랜잭션이 이어지지 않는다.</dd>
 <dt>@Transactional</dt>
 <dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애너테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
@@ -99,6 +105,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +182,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

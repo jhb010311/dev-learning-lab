@@ -1,6 +1,8 @@
 Lab.register({
   id: 'race', nav: '경쟁 상태', cat: '동시성', mode: 'step',
   title: 'count++는 왜 숫자를 잃어버리나',
+  why: '여러 스레드가 같은 값을 읽고 고치는 코드는 한 스레드의 작업이 끝나기 전에 다른 스레드가 끼어들 수 있어서 결과를 믿을 수 없다. synchronized는 같은 락으로 묶은 구간을 한 번에 한 스레드만 실행하게 해서 이 끼어듦을 막고, AtomicInteger는 락 없이 "읽은 값이 그대로일 때만 바꾸기"를 성공할 때까지 되풀이해서 같은 결과를 낸다.',
+  use: '조회수처럼 여러 요청이 함께 올리는 숫자, 여러 스레드가 같이 쓰는 캐시나 목록을 다룰 때 쓴다. 숫자 하나를 세는 정도면 AtomicInteger나 AtomicLong을, 여러 값을 함께 바꿔야 하면 synchronized나 ReentrantLock을 쓴다. 서버가 여러 대이면 한 JVM의 락은 다른 서버를 막지 못하므로 DB의 락을 쓰거나 UPDATE 문 하나로 바로 더한다.',
   intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 이렇게 스레드들이 실행되는 순서에 따라 결과가 달라지는 상황을 경쟁 상태라고 합니다.',
   terms: ['경쟁 상태(Race Condition)', '임계 영역과 상호 배제', 'synchronized', 'volatile', '가시성(Visibility)', '원자성(Atomicity)과 CAS', '스레드 안전(Thread-safe)'], ranks: ['javasync', 'concurrency'],
   controls: [

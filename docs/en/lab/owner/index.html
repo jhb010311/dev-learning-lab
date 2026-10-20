@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>The owning side of a relationship</h1>
 <p><b>You added a member to the team's list, so why is the foreign key in the database empty?</b></p>
+<p><b>Why it exists</b> — An object can have two references that point to each other, such as the team of a member and the members of a team, but in the table, what represents this connection is one foreign key. If you do not decide which side to follow when the values of the two references disagree, the same connection would be stored separately in two places. mappedBy marks one of the references as read-only, so that exactly one side is the one that writes the foreign key.</p>
+<p><b>Where it's used today</b> — When you want to get the list of members from a team, or the list of order items from an order, you make a bidirectional relationship with @OneToMany(mappedBy = ...). You set the value on the @ManyToOne side that holds the foreign key, and it is common to add a convenience method for the relationship that also puts it into the list side. If the list on the other side is not really needed, keep only the unidirectional @ManyToOne and query the list with JPQL.</p>
 <p>When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship.</p>
 <p>Checked against real execution · All 12 combinations were run on Hibernate 7.4.5 and H2, and the tables, the SQL that was sent, the foreign key values, and the size of the list were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>Owning side and mappedBy</dt>
 <dd>In a bidirectional relationship, the side that actually manages the foreign key is called the owning side. JPA inserts or updates the foreign key by looking only at the value in the reference on the owning side. On the other side, which is not the owning side (the inverse side), you write the name of the field on the owning side in mappedBy to mark it as read-only, and values you put there are not reflected in the database. The owning side is the entity that corresponds to the table that holds the foreign key, that is, the &quot;many&quot; side of a many-to-one relationship. (The JPA specification says that the &quot;many&quot; side of a bidirectional one-to-many or many-to-one relationship must be the owning side, which is why @ManyToOne has no mappedBy.) If you leave out mappedBy in a bidirectional relationship, the two references are treated as different relationships, and an unintended join table is created.</dd>
 <dt>Unidirectional and bidirectional relationships</dt>
+<dd><b>Why it exists</b> — If there is only a reference from the member to the team, you have to query separately with JPQL to see the members of a team from the team. A bidirectional relationship puts a reference on the other side too, so that you can go straight from the team object to the list of members, and a unidirectional relationship keeps only one reference, which reduces the values that have to be kept in step.</dd>
 <dd>These words describe the direction in which one entity refers to another entity. If only the member has the team as a field, the relationship is unidirectional. If the team also has a list of members as a field, so that they point to each other, it is bidirectional. In tables, a single foreign key allows a join from either side, so a table has no direction. An object, however, can reach the other one only from the side that holds the reference. So a bidirectional relationship in objects is really two different unidirectional references, and you have to decide which of the two manages the foreign key.</dd>
 <dt>Primary key, unique key, foreign key</dt>
 <dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 <dt>Transactional write-behind and flush</dt>
+<dd><b>Why it exists</b> — If SQL were sent right away every time an entity changed, then even changing the same row several times would send that many UPDATE statements, and every statement would make a trip to the database. Transactional write-behind delays the SQL until the flush, sends it once with the final state, and, depending on the settings, lets several statements be grouped into a JDBC batch.</dd>
+<dd><b>Where it's used today</b> — In batch jobs that save many rows, you turn on hibernate.jdbc.batch_size to group INSERT statements (they are not grouped with the IDENTITY strategy). In tests, you send the SQL right away with em.flush() and em.clear() and read it back from the database to check.</dd>
 <dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
 </dl>
 <h2>Try these</h2>
@@ -115,6 +121,10 @@ int size = found.getMembers().size();
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -188,9 +198,10 @@ int size = found.getMembers().size();
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

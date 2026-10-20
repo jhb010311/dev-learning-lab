@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ctor', nav: 'Classes, objects, and constructors', cat: 'Java language', mode: 'step',
   title: 'What happens, and in what order, when you use new?',
+  why: 'If you let people fill in the fields one by one after creating an object, an incomplete object with some field left out can be used as it is. A constructor is code that always runs when you use new, so if it receives the required values as parameters, the object cannot be created without those values.',
+  use: 'In Spring, constructor injection, in which a class receives the other objects (beans) it will use as constructor parameters, is the recommended way, and the received values are stored once in final fields. When there are many parameters and the order gets confusing, you use a named static factory method or the builder pattern to reduce direct calls to the constructor.',
   intro: 'A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field initializers and initializer blocks run in the order in which they are written, and finally the constructor body runs. Depending on which constructors you declare, new Order() may not compile at all (Order is a class made for this lab as an example).',
   terms: ['Classes and objects', 'Constructor', 'Default constructor', 'Default values of fields', 'this'],
   controls: [

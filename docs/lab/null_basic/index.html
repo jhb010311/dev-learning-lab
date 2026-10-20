@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>null</h1>
 <p><b>null은 무엇이고, 왜 NullPointerException이 나는가</b></p>
+<p><b>왜 생겼나</b> — &quot;아직 가리킬 객체가 없다&quot;를 나타낼 방법이 따로 없다면, 빈 문자열 같은 값을 &quot;없음&quot;의 뜻으로 정해 써야 하고, 그러면 정말로 글자가 0개인 값과 구별되지 않는다. null은 String이든 직접 만든 클래스든 객체를 가리키는 변수라면 모두 쓸 수 있는 &quot;없음&quot; 표시여서, 찾는 회원이 없을 때나 아직 정하지 않은 값을 진짜 값과 섞이지 않게 나타낸다.</p>
+<p><b>지금 어디에 쓰나</b> — Map의 get이 없는 키에 null을 돌려주는 것처럼, 자바의 여러 메서드는 &quot;찾는 것이 없음&quot;을 null로 알린다. 그래서 받은 값을 쓰기 전에 if (x != null)로 먼저 확인하는 코드를 자주 본다. 스프링 데이터 JPA의 findById처럼, 없을 수도 있는 값을 null 대신 Optional로 돌려주어 부르는 쪽이 확인을 빠뜨리지 않게 하는 방법도 쓴다.</p>
 <p>변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 &quot;아무 객체도 가리키지 않는다&quot;를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 name이 가리키는 객체에게 일을 시킨다는 표시인데, null이면 시킬 객체가 없어서 NullPointerException이라는 예외가 납니다. if (name != null)은 name이 객체를 가리키는지 먼저 묻는 확인입니다. 글자가 하나도 없는 빈 문자열 &quot;&quot;는 null이 아니라 글자가 0개인 문자열 객체입니다. 이 실습은 name에 담는 값을 &quot;kim&quot;, null, &quot;&quot;로 바꾸고 if 확인을 붙였다 떼며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 예외가 나는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 java로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,11 @@
 <dt>NullPointerException</dt>
 <dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. null인지 아닌지는 실행 중의 값에 달려 있어서 컴파일러가 미리 잡아 주지 못하고, 실행해 봐야 드러난다(Unchecked 예외라 처리를 강제하지도 않는다). null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
 <dt>null 검사</dt>
+<dd><b>왜 생겼나</b> — null인 변수에 메서드를 부르면 그 자리에서 NullPointerException이 나서 이어지는 코드가 실행되지 않는다. null 검사는 쓰기 전에 if로 먼저 물어서, null일 때는 기본값을 쓰거나 안내를 보여 주는 다른 길로 가게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 화면에서 받은 이름이나 DB에서 찾은 회원처럼 없을 수도 있는 값을 쓰기 전에 넣는다. 글자가 있는지까지 보려면 name != null &amp;&amp; !name.isEmpty()처럼 빈 문자열 검사를 뒤에 이어 붙인다.</dd>
 <dd>null 검사는 변수를 쓰기 전에 if (name != null)처럼 그 변수가 null이 아닌지 조건으로 확인하는 코드이다. 참조를 !=로 비교하면 둘 다 null이거나 같은 객체를 가리킬 때 false이고 그렇지 않으면 true이므로, name != null은 name이 어떤 객체를 가리키고 있을 때 true이다. if문은 조건이 true이면 첫 번째 블록을, false이면 else 블록을 실행하므로, name.length() 같은 호출을 true 쪽 블록에만 두면 null일 때는 그 호출이 실행되지 않는다. name != null은 객체가 있는지만 따지며 글자가 있는지는 따지지 않으므로, 빈 문자열 &quot;&quot;은 이 검사를 통과한다.</dd>
 <dt>빈 문자열</dt>
+<dd><b>지금 어디에 쓰나</b> — 글자를 이어 붙여 문자열을 만들 때 String s = &quot;&quot;;로 시작값을 두거나, 이름이 없을 때 null 대신 &quot;&quot;를 넣어 메서드를 불러도 예외가 나지 않게 할 때 쓴다. 입력칸을 비워 둔 채 보낸 폼 값도 서버에서는 흔히 빈 문자열로 받는다.</dd>
 <dd>빈 문자열은 글자가 하나도 없는 문자열로, 코드에서는 큰따옴표 두 개를 붙여 &quot;&quot;로 쓴다. 문자열 리터럴은 실행할 때 String 객체를 가리키는 값이므로, &quot;&quot;도 null이 아니라 글자 수가 0인 String 객체이다. 이 객체에 length()를 부르면 0을 돌려주고 예외가 나지 않으며, isEmpty()는 length()가 0이면 true를 돌려준다. null과 구별해야 하는 이유는, 빈 문자열은 객체가 있으므로 메서드를 부를 수 있지만 null은 부르면 NullPointerException이 나기 때문이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -87,6 +92,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +169,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

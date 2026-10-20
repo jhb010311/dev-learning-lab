@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>쿠키</h1>
 <p><b>쿠키는 무엇이고, 누가 저장하고 누가 보내는가</b></p>
+<p><b>왜 생겼나</b> — 쿠키 없이 서버가 같은 사람을 알아보게 하려면, 페이지의 모든 링크와 주소 뒤에 그 사람의 표시를 일일이 붙여 넘겨야 해서 번거롭고, 주소를 남에게 보내면 표시까지 따라간다. 쿠키는 서버가 한 번 맡긴 값을 브라우저가 기억했다가 알아서 다시 보내게 해서, 페이지를 옮겨 다녀도 표시가 끊기지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 로그인한 상태를 이어 가는 세션 번호(톰캣의 JSESSIONID 같은 것)를 주고받는 데 흔히 쓴다. &quot;아이디 기억하기&quot;, 화면 언어 선택, &quot;오늘 하루 보지 않기&quot;처럼 다음 방문에도 이어져야 하는 작은 값을 둘 때도 쓴다. 쿠키 값은 사용자가 브라우저에서 보고 고칠 수 있으므로, 누구인지 같은 중요한 정보는 서버 쪽(세션)에 두고 쿠키에는 그 번호만 둔다.</p>
 <p>HTTP에서는 요청 하나하나가 따로여서, 서버는 두 번째 요청이 아까 그 사람에게서 온 것인지 스스로는 알 수 없습니다. 쿠키는 이 문제를 풀기 위한 작은 값입니다. 코드 칸에는 서버가 첫 요청에 돌려주는 응답 글이 있고, 그 안의 Set-Cookie: visitor=kim 줄이 쿠키를 맡기는 줄입니다. 서버는 이 줄로 &quot;이 값을 맡아 두었다가 다음에 올 때 보여 달라&quot;고 부탁합니다. 값을 저장하는 것도, 다시 보내는 것도 브라우저입니다. 브라우저는 저장해 둔 값을 같은 서버로 가는 다음 요청에 Cookie: visitor=kim 헤더로 붙여 보냅니다. 이 실습의 서버는 요청에 Cookie 헤더로 visitor 값이 오면 &quot;또 오셨군요, 값&quot;을, 없으면 &quot;처음 오셨군요&quot;를 돌려주게 만들어 둔 서버이고, 그 서버 코드는 화면에 보이지 않습니다. Set-Cookie 줄을 지우거나, 둘째 요청 전에 쿠키를 지우거나, 쿠키를 저장하지 않는 프로그램으로 요청해 가며, 같은 서버에 두 번 요청했을 때 서버가 둘째 요청을 알아보는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 net 서버와 curl 8.21.0의 쿠키 엔진으로 여섯 가지 조합을 실행해 대조(브라우저에서는 실행하지 않음)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,14 @@
 <dt>쿠키</dt>
 <dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
 <dt>Set-Cookie 헤더</dt>
+<dd><b>지금 어디에 쓰나</b> — 로그인처럼 서버가 세션을 새로 만들면, 톰캣이 응답에 JSESSIONID라는 쿠키를 보내는 Set-Cookie 헤더를 붙인다. 중요한 쿠키에는 스크립트가 읽지 못하게 하는 HttpOnly, HTTPS로만 보내게 하는 Secure 같은 속성을 함께 적는다.</dd>
 <dd>Set-Cookie는 서버가 응답에 붙여 쿠키를 클라이언트(브라우저 같은 사용자 에이전트)에 보내는 응답 헤더이다(RFC 6265 4.1절). Set-Cookie: visitor=kim처럼 &quot;이름=값&quot; 하나로 시작하며, 뒤에 만료나 경로 같은 속성을 덧붙일 수 있다. 뜻은 &quot;이 값을 맡아 두었다가 다음에 올 때 보여 달라&quot;는 부탁이다. 값을 저장해 두었다가 같은 서버로 가는 요청에 돌려보낼지는 받은 쪽이 정하므로, 쿠키를 저장하지 않는 프로그램은 이 줄을 받아도 쓰지 않는다.</dd>
 <dt>Cookie 헤더</dt>
+<dd><b>지금 어디에 쓰나</b> — 서버는 요청의 Cookie 헤더에서 JSESSIONID 값을 읽어 어느 세션의 요청인지 찾는다. 스프링에서는 헤더를 직접 나누지 않고 @CookieValue(&quot;visitor&quot;)처럼 이름을 적어 쿠키 값 하나를 받는다.</dd>
 <dd>Cookie는 클라이언트가 저장해 둔 쿠키를 서버로 돌려보낼 때 요청에 붙이는 헤더이다(RFC 6265 4.2절). Cookie: visitor=kim처럼 저장해 둔 &quot;이름=값&quot;만 적고, 만료나 경로 같은 속성은 싣지 않는다(4.2.1절). 브라우저가 쿠키를 보낼 조건에 맞는 요청에 이 헤더를 붙이므로, 개발자가 요청을 보내는 코드에 따로 쓰지 않는다. 서버는 이 헤더를 읽어 어떤 쿠키를 가진 클라이언트의 요청인지 알아볼 수 있고, 헤더를 무시할 수도 있다(3절).</dd>
 <dt>HTTP와 무상태(Stateless)</dt>
+<dd><b>왜 생겼나</b> — 서버가 요청마다 앞선 대화를 기억해야 하는 방식이면, 사용자가 늘수록 그 기억을 쌓아 둘 자원이 늘고 연결이 끊기면 대화를 이어 갈 수 없다. HTTP는 요청 하나만 보고 처리할 수 있게 정해, 서버가 요청 사이에 아무것도 기억하지 않아도 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 페이지와 이미지를 받는 일, 모바일 앱이 서버 API를 부르는 일, 서버가 다른 서비스의 API를 부르는 일이 모두 HTTP로 이뤄진다. 서버 쪽에서도 수시로 먼저 보내야 하는 채팅 같은 기능에는 WebSocket을 함께 쓴다.</dd>
 <dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -85,6 +91,10 @@ Content-Type: text/plain; charset=utf-8
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +168,10 @@ Content-Type: text/plain; charset=utf-8
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

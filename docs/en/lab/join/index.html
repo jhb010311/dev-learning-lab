@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>JOIN and GROUP BY</h1>
 <p><b>Do you put the condition in ON or in WHERE?</b></p>
+<p><b>Why it exists</b> — Storing data divided into tables such as members and orders reduces duplication, but a screen needs the combined result of the two. Looking up each table separately in the application and matching the pairs increases the code and the number of round trips to the DB, so JOIN has the DB do this matching in one SQL statement. OUTER JOIN keeps even rows without a match in the result, so that cases such as &quot;members with no orders&quot; can also be seen.</p>
+<p><b>Where it's used today</b> — It is used for queries such as attaching the member name to an order list, computing the number of orders and the total amount per member (together with GROUP BY), and finding members who have never ordered (a LEFT JOIN, then the rows where the match is NULL). Even when JPA is used, a JPQL join and fetch join are in the end converted to SQL JOIN and executed.</p>
 <p>Join 3 members and 4 orders. The join type, the place where you write the condition, and the way you aggregate all change which rows come out. Logically, SQL processes FROM/JOIN → WHERE → GROUP BY → HAVING in this order, and if you follow the rows that are left after each step, you can see why.</p>
 <p>Checked against real execution · The SQL for the 18 combinations was run in SQLite and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>JOIN (INNER, OUTER)</dt>
 <dd>The operation that combines rows of two tables according to a condition. INNER JOIN includes only the rows where the condition matches on both sides. LEFT OUTER JOIN includes every row of the left table and fills in NULL when there is no match on the right. Choose between them based on whether data without a match must stay in the result.</dd>
 <dt>GROUP BY, WHERE, HAVING</dt>
+<dd><b>Why it exists</b> — Without GROUP BY, you would have to bring every row into the application and count and add them yourself to get a total per group. GROUP BY and HAVING finish the grouping, counting, and filtering in the database, so the application receives only a few result rows.</dd>
+<dd><b>Where it's used today</b> — It is used in queries for statistics and admin screens, such as daily sales, the number of products per category, and finding members who have ordered more than three times.</dd>
 <dd>GROUP BY groups rows that have the same value in the specified columns and computes an aggregate (such as a sum or a count) for each group. WHERE filters individual rows before they are grouped, and HAVING filters groups after grouping. So put conditions on aggregate results in HAVING and all other conditions in WHERE.</dd>
 <dt>Primary key, unique key, foreign key</dt>
 <dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
@@ -80,6 +84,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +161,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

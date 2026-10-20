@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Processes</h1>
 <p><b>What is a process, and what is separate when you run a program twice?</b></p>
+<p><b>Why it exists</b> — If several programs share a computer's memory without any separation, one program's mistake can overwrite another program's values or stop it along with itself. The operating system creates a separate process for each program that is run and also gives it separate memory, so that a value changed or an error in one process does not spread to another process.</p>
+<p><b>Where it's used today</b> — Starting a Spring Boot server with the java -jar command creates one process. If the same server is started several times, each process has its own memory, so one cannot see the value of a variable in another; therefore login information or counts that several servers must see together are kept outside the process, as in a DB. To split work inside one program and share the same values, use threads instead of processes.</p>
 <p>Counter.class, made by compiling Counter.java (a class written for this lab as an example), is a file stored on disk. When you run this file with the command java Counter, something that is running comes into being. That is a process. The operating system gives each process a number (PID) and gives it memory that only that process uses. In the code, static int count is a variable in that memory, and add() raises count by 3 and then prints the PID of this process and count. The flow that runs code inside a process is called a thread. In this lab you run the same Counter.class in two terminals, run it again after it ends, or run it once and let threads inside it run add one after another. You see how many processes are created and what count each one saw. (A program such as a web server is also one process when you run it with the java command. static is not covered in this lab.)</p>
 <p>Checked against real execution · Ran all six combinations as real javac and java processes on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Programs and processes</dt>
 <dd>A program is a file stored on disk, and a process is that file being run. In Java, Counter.class made by javac is a program file, and the command java Counter makes the operating system create one process that runs that file. Even if there is 1 file, one process is created each time you run it, so running the same file twice gives two processes. A process exists only while it is running, and it disappears when it ends. A process has its own execution environment.</dd>
 <dt>PID (process ID)</dt>
+<dd><b>Why it exists</b> — If you run the same program twice, the two processes have the same name, so you cannot tell which one is meant by the name alone. A PID gives a different number to each living process, so that the operating system and people can point to exactly one process.</dd>
+<dd><b>Where it's used today</b> — To end a server that does not stop, you find the PID with jps or Task Manager, and end only that process with kill (taskkill /PID on Windows). Spring Boot also prints its own PID in the log when it starts.</dd>
 <dd>A PID is the identification number that the operating system gives to a process. In Java, ProcessHandle.current().pid() reads the PID of the process that is running now. Processes that are alive at the same time have different PIDs. The threads inside one process belong to the same process, so they have one PID. The operating system may reuse a number after the process ends, and the time until it is reused is not fixed.</dd>
 <dt>Memory space of a process</dt>
 <dd>The Java Tutorials explain that each process has its own memory space. A variable inside a process, for example static int count, is in the memory of that process. So even if you run the same program twice, each process has its own count, and a value changed by one process cannot be seen from the other. When a process ends, the values in its memory can no longer be used, and even if you run the same program again, the count of the new process starts from the initial value. In contrast, the threads inside one process share the memory of that process.</dd>
@@ -108,6 +112,10 @@ java Counter</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -181,9 +189,10 @@ java Counter</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

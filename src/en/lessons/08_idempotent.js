@@ -1,6 +1,8 @@
 Lab.register({
   id: 'idem', nav: 'Retries and idempotency', cat: 'HTTP', mode: 'step',
   title: 'No response came back, so the request was sent again',
+  why: 'When no response arrives, the client cannot tell whether the request never reached the server or was processed and only the response was lost, so sending it again risks having the same work done twice. Idempotency identifies requests that leave the server in the same state no matter how many times they run as when they run once, so such requests can be safely sent again. An idempotency key lets the server recognize a request it has already handled even for requests that are not idempotent, such as POST.',
+  use: 'For POST APIs where work must not be done twice, such as payment, transfer, and order creation, you receive an idempotency key to prevent duplicates. Automatic retries in HTTP clients and gateways are usually turned on only for idempotent requests such as GET, PUT, and DELETE. A change such as "increase the quantity by 1" is sometimes turned into an idempotent one by changing it to a value assignment such as "set the quantity to 3".',
   intro: 'On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, running a request several times either gives the same result (the method is idempotent) or it does not.',
   terms: ['Safe methods and idempotent methods', 'HTTP methods', 'Idempotency and idempotency keys', 'HTTP status codes'], ranks: ['rest', 'http'],
   controls: [

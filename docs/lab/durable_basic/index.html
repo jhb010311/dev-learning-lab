@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › DB</p>
 <h1>저장과 지속성</h1>
 <p><b>커밋한 데이터는 서버가 꺼져도 남는가</b></p>
+<p><b>왜 생겼나</b> — 데이터를 그냥 파일에 쓰는 프로그램은 쓰는 도중에 전원이 나가면 어디까지 저장되었는지 알 수 없고, 반쯤 쓴 내용이 남기도 한다. 파일에 저장하는 DB는 COMMIT을 경계로 삼아, 다시 켠 뒤에 COMMIT하지 않은 변경은 버리고 COMMIT이 성공했다고 답한 변경은 돌려준다(COMMIT한 내용을 바로 디스크에 쓰는 설정일 때). 그래서 프로그램은 COMMIT이 성공했는지만 보면 된다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문, 결제, 회원 가입처럼 사라지면 안 되는 기록은 MySQL이나 PostgreSQL처럼 디스크에 저장하는 DB에 COMMIT까지 해서 남긴다. 스프링에서는 @Transactional을 붙인 메서드가 예외 없이 끝나면 COMMIT이 나간다. 테스트처럼 끝나면 지워져도 되는 곳에서는 H2를 jdbc:h2:mem: 주소로 메모리에만 두고 쓰는 일이 흔하다.</p>
 <p>DB는 데이터를 저장해 두었다가 꺼내 주는 프로그램이고, 보통은 데이터를 디스크의 파일에 저장합니다(이 실습에서 보듯 메모리에만 두게 할 수도 있습니다). 자바 프로그램의 변수는 프로그램이 끝나면 사라지지만, COMMIT까지 끝낸 데이터는 DB 프로그램이 갑자기 꺼졌다가 다시 켜져도 남아 있어야 합니다. 이 성질을 지속성(durability)이라고 합니다. 이 실습의 코드에서 이 성질을 가르는 것은 두 가지입니다(DB에 따라 COMMIT한 내용을 바로 디스크에 쓰게 하는 설정도 더 필요합니다). 하나는 COMMIT으로, 묶음 안의 변경을 남기겠다고 확정하는 문장입니다. 다른 하나는 데이터를 두는 곳으로, 연결 주소가 jdbc:h2:file: 글자로 시작하면 디스크의 파일에, jdbc:h2:mem: 글자로 시작하면 메모리에만 둡니다. 이 실습은 COMMIT 줄을 지우거나 데이터를 두는 곳을 바꿔 가며 같은 INSERT를 실행하고, DB 프로그램을 정리 없이 끝낸 다음 다시 켜서 memo 테이블(이 실습에서 지은 이름)을 읽어 봅니다. (이 실습은 자바 프로그램이 H2를 불러 같은 프로세스에서 실행하는 방식(임베디드 모드)으로 H2를 썼습니다. 그래서 &quot;DB 프로그램이 꺼진다&quot;는 것은 그 자바 프로그램이 끝나는 것입니다. MySQL 같은 DB는 보통 따로 도는 프로그램(서버)으로 쓰고, 그때는 DB 서버 프로그램이 꺼지는 것입니다. DB가 이 약속을 어떻게 지키는지(로그와 버퍼)는 세부 동작 실습에서 다룹니다.)</p>
 <p>실행으로 대조 · H2 2.4.240에서 네 가지 조합을 정리 없이 프로세스를 끝낸 뒤 다시 열어 실행해 대조, 지속성의 규칙은 MySQL과 H2 문서와 대조(전원 차단은 실행하지 않음)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>지속성(Durability)</dt>
 <dd>지속성은 COMMIT이 성공한 트랜잭션의 변경이 전원 장애나 시스템 충돌이 나도 사라지지 않는 성질이며, ACID의 D에 해당한다. MySQL 문서는 지속성이 보통 디스크 저장소에 쓰는 일로 이루어지고, 쓰는 도중의 장애에 대비해 여분의 기록을 둔다고 설명한다. MySQL에서는 이것이 소프트웨어 설정(innodb_flush_log_at_trx_commit 등)과 하드웨어(저장 장치의 쓰기 버퍼, 운영체제의 fsync() 지원 등)가 함께 정하는 성질이어서, 설정에 따라 보장 정도가 달라진다. COMMIT하기 전의 변경은 이 약속의 대상이 아니다.</dd>
 <dt>파일 DB와 메모리 DB</dt>
+<dd><b>왜 생겼나</b> — 테스트할 때마다 DB 서버를 따로 켜고 지난번 데이터를 지우는 일은 번거롭다. 메모리 DB는 프로그램과 함께 생겼다가 끝나면 사라져서, 매번 빈 DB로 빠르게 시작하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JPA나 JDBC를 쓰는 스프링 부트 프로젝트에 H2를 의존성으로 넣고 DB 주소를 적지 않으면, 스프링 부트가 H2 메모리 DB를 저절로 만들어 쓴다. 파일 DB 방식은 DB 서버를 따로 두지 않는 작은 프로그램이 데이터를 파일에 남길 때 쓴다.</dd>
 <dd>파일 DB는 데이터를 디스크의 파일에 저장하는 DB이고, 메모리 DB는 컴퓨터의 메모리에만 두는 DB이다. H2에서는 연결 주소로 고른다. jdbc:h2:file:경로로 시작하면(file: 은 생략할 수 있다) 파일에 저장하고, jdbc:h2:mem:이름으로 시작하면 메모리에 둔다. 파일 DB는 연결을 닫아도 남지만, H2 문서에 따르면 메모리 DB는 마지막 연결을 닫으면 내용이 사라지고, DB_CLOSE_DELAY=-1을 붙여도 프로그램(가상 머신)이 살아 있는 동안만 남는다. MySQL 용어집은 디스크에 저장하는 DB(disk-based)의 반대를 인메모리 DB라고 부른다.</dd>
 <dt>커밋과 롤백</dt>
+<dd><b>지금 어디에 쓰나</b> — 계좌 이체처럼 여러 번 고쳐야 하는 일을 모두 반영하거나 모두 취소할 때 쓴다. DB 도구로 데이터를 손으로 고칠 때도 트랜잭션을 연 뒤 SELECT로 결과를 보고, 맞으면 COMMIT, 틀리면 ROLLBACK을 보낸다.</dd>
 <dd>커밋(commit)은 트랜잭션 안에서 한 데이터 변경을 모두 DB에 확정해 반영하는 것이고, 롤백(rollback)은 그 변경을 모두 취소해 트랜잭션을 시작하기 전 상태로 되돌리는 것이다. 트랜잭션은 끝날 때 둘 중 하나로 끝나며, 이미 커밋한 변경은 롤백으로 되돌릴 수 없다. 스프링에서 @Transactional이 붙은 메서드는 정상으로 끝나면 스프링이 커밋하고, 예외로 끝나면 롤백 규칙을 보고 롤백한다. 기본 규칙에서는 RuntimeException과 Error가 메서드 밖으로 던져지면 롤백하고 체크 예외는 롤백하지 않는다. 트랜잭션이 없으면 JDBC 연결의 기본 설정인 자동 커밋에 따라 저장 문장마다 곧바로 커밋되므로, 뒤에서 예외가 나도 앞의 저장은 롤백할 수 없다.</dd>
 <dt>H2의 쓰기 지연(WRITE_DELAY)</dt>
+<dd><b>왜 생겼나</b> — COMMIT할 때마다 파일에 다 쓸 때까지 기다리면, COMMIT이 잦은 프로그램은 그만큼 느려진다. WRITE_DELAY는 파일에 쓰는 일을 잠깐 미뤄 COMMIT을 빨리 끝내는 대신 지속성을 조금 내준 설정이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — H2 파일 DB에서 전원이 나갈 때 COMMIT한 기록을 잃는 일을 줄이려면 0으로 낮춰 미루지 않게 하고, 잃어도 다시 만들 수 있는 데이터라면 기본값대로 둔다.</dd>
 <dd>WRITE_DELAY는 H2에서 COMMIT과 그 내용을 파일에 쓰는 일 사이에 둘 수 있는 최대 지연이며 밀리초로 정한다. H2 문서에 따르면 기본값은 500이고, SET WRITE_DELAY 숫자 명령이나 연결 주소 끝의 ;WRITE_DELAY=0 꼴로 바꿀 수 있으며 설정은 데이터베이스에 남는다. H2는 기본으로 COMMIT한 내용을 파일에 쓰는 일을 미루기 때문에, H2 문서는 전원이 나가면 1초 남짓 동안 COMMIT한 내용을 잃을 수 있다고 적고 있다. 하드 디스크가 쓰기 명령(fsync)을 지키지 않는 경우도 많아, 어떤 설정이든 완전한 지속성은 장치에 달려 있다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +99,10 @@ SELECT * FROM memo;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +176,10 @@ SELECT * FROM memo;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

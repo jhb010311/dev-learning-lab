@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Secure connections</p>
 <h1>TLS handshake</h1>
 <p><b>What happens before the https padlock locks</b></p>
+<p><b>Why it exists</b> — If only HTTP is used, anyone on the same Wi-Fi or passing through an intermediate device can read or swap passwords and cookies as they are, and there is no way to know whether the other party is really that site. TLS adds one more encryption layer under HTTP, so that without changing application code, the content going back and forth cannot be snooped on or altered, and the identity of the other server is vouched for by a certificate.</p>
+<p><b>Where it's used today</b> — Not only login and payment screens: now most websites and app API calls go over https. Browsers use HTTP/2 only over https, and TLS is sometimes turned on for calls between servers and for DB connections too. Rather than putting the certificate on the Spring server directly, it is common for nginx or a load balancer in front to handle TLS and for the servers behind to receive HTTP.</p>
 <p>HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encryption key that only the two of them know&quot;.</p>
 <p>Checked against real execution · Checked by making real TLS 1.3 connections with openssl</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>HTTPS and TLS</dt>
 <dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
 <dt>TLS handshake and certificates</dt>
+<dd><b>Why it exists</b> — If you only encrypt and do not verify the other side, you end up in an encrypted conversation even with a fake server that has put itself in the middle. The TLS handshake and certificates let two parties who have not shared a key beforehand meet for the first time and agree on a key, while also verifying that the other side is the owner of that domain.</dd>
+<dd><b>Where it's used today</b> — A server operator gets a certificate from a certificate authority such as Let's Encrypt, installs it on a web server or load balancer, and renews it before it expires. Between internal services, calls are sometimes protected with mTLS, in which both sides verify each other's certificates.</dd>
 <dd>The TLS handshake is the process, before encrypted communication starts, in which the client and the server agree on the cryptographic algorithms to use, verify the identity of the server, and agree on the keys that will encrypt the data. A certificate is a document that contains the server's public key and domain information and is signed and vouched for by a trusted certificate authority (CA). The client validates it to confirm that the server it connected to is the real one.</dd>
 <dt>Symmetric-key cryptography and public-key cryptography</dt>
+<dd><b>Where it's used today</b> — In HTTPS (TLS), public-key cryptography is used when the connection is set up, to verify the signature of the server certificate and to exchange keys, and the HTTP data that follows is encrypted with a symmetric key such as AES. Values stored in a database, such as card numbers, are encrypted with a symmetric key, and the key pair used for SSH login is a public-key one.</dd>
 <dd>Symmetric-key cryptography uses the same key to encrypt and to decrypt. It is fast, but it has the problem that the key must be shared safely with the other party (AES). Public-key cryptography uses a pair of keys, a public key and a private key. Data encrypted with the public key can be decrypted only with the private key, so there is no key-sharing problem, but it is slow (RSA). In practice, public-key cryptography is used to exchange a symmetric key safely, and then the symmetric key encrypts the data.</dd>
 <dt>HMAC and digital signatures</dt>
+<dd><b>Why it exists</b> — If you send only a hash value, someone in the middle can change the content, compute a new hash, and attach it, so the forgery cannot be noticed. HMAC and digital signatures attach a value that can be created only with a key, so the receiving side can tell apart a message modified by a party that does not have the key.</dd>
+<dd><b>Where it's used today</b> — They are used for the signature of a JWT (HS256 is HMAC, RS256 is a digital signature), for signatures sent in a request header as with GitHub webhooks, and for verifying HTTPS certificates.</dd>
 <dd>Techniques for confirming that a message was not changed on the way and that the legitimate party sent it. HMAC hashes the message together with a secret key that both sides share to produce an authentication code. With a digital signature, the sender signs with a private key and the receiver verifies with the public key. Only the signer can create the signature, so the sender cannot deny having sent the message.</dd>
 </dl>
 <h2>Try these</h2>
@@ -93,6 +100,10 @@ server:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +177,10 @@ server:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

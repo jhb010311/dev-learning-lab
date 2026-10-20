@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>Sessions and JWT</h1>
 <p><b>Where is the login state stored?</b></p>
+<p><b>Why it exists</b> — An HTTP request knows nothing about the earlier requests, so if you do not want to send the password again with every request, you need a mark that says &quot;this user has already logged in&quot;. A session solves this: the server stores the login record and finds it by the session ID. A JWT lets the server only verify a token that it signed, so even with many servers, it can identify the user without a shared store for login records.</p>
+<p><b>Where it's used today</b> — A web service where the server builds the pages commonly uses sessions, and when there are several servers, the sessions are kept in a shared store such as Redis. For mobile apps and for APIs where several services must verify the same login, JWT is commonly used. A token that has already been issued is hard to invalidate before it expires, so the access token is kept short and a new one is issued with a refresh token.</p>
 <p>A logged-in user sends requests at 10-minute intervals, and a load balancer hands the requests to the servers in turn. See what happens when you add servers or force a logout, first when the server remembers the login state (a session) and then when the client carries it (a JWT).</p>
 <p>Conceptual model · A model that reproduces a widely used setup</p>
 <h2>Concepts in this lab</h2>
@@ -42,8 +44,12 @@
 <dt>JSON Web Token (JWT)</dt>
 <dd>A token that carries content such as user information (claims) and has a signature attached. It has three parts: a header, a payload, and a signature. The server verifies the signature to confirm that the token was not forged, and it does not need to look up a separate store. The payload is encoded, not encrypted, so anyone can read its contents. Do not put sensitive information in it.</dd>
 <dt>Access token and refresh token</dt>
+<dd><b>Why it exists</b> — When one token keeps a login going, a long lifetime means a stolen token stays usable for a long time, and a short lifetime means the user must log in again often. If you split it into an access token and a refresh token, the token that travels with every API request has a short life, and the login continues through the refresh token.</dd>
+<dd><b>Where it's used today</b> — It is commonly used in mobile apps and SPAs that keep a login with a JWT. The refresh token is often kept in an HttpOnly cookie or in the app's secure storage, and the server also records it and revokes it when the user logs out.</dd>
 <dd>An access token is the token that a client presents when it calls an API. Its lifetime is kept short to reduce the damage if it is stolen. A refresh token is the token used to get a new access token when the access token expires. It has a long lifetime and is stored more securely. The server can revoke a refresh token to stop new access tokens from being issued.</dd>
 <dt>HTTP as a stateless protocol</dt>
+<dd><b>Why it exists</b> — If the server had to remember the earlier conversation for each request, the resources needed to keep that memory would grow with the number of users, and a conversation could not continue once a connection was cut. HTTP is defined so that a request can be handled by looking at that request alone, so the server does not have to remember anything between requests.</dd>
+<dd><b>Where it's used today</b> — Receiving web pages and images, a mobile app calling a server API, and a server calling another service's API are all done over HTTP. For features like chat, in which the server also has to send data first at any time, WebSocket is used together with it.</dd>
 <dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
 </dl>
 <h2>Try these</h2>
@@ -94,6 +100,10 @@ if (session == null) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +177,10 @@ if (session == null) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

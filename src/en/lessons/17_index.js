@@ -1,6 +1,8 @@
 Lab.register({
   id: 'index', nav: 'Indexes and full table scans', cat: 'Database', mode: 'step',
   title: 'Why is the index not used even though it exists?',
+  why: 'Without something arranged separately, even if only a few rows match the condition, the database must check every row one by one, so lookups get slower as the table grows. An index builds a B-tree from the values of a column and lets the search narrow down from the top, so that even with 10 million rows it finds the position of the wanted row after only a few levels.',
+  use: 'Create it on columns that often appear in WHERE, JOIN, and ORDER BY, such as finding a member by email, looking up an order by order number, and cutting an order list by period. MySQL and PostgreSQL create an index automatically for a primary key and a UNIQUE constraint. For a column with few distinct values, where each value matches about half of the rows, the optimizer tends to choose a full table scan even if there is an index, so the effect is small.',
   intro: 'There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics.',
   terms: ['Index', 'B-tree index', 'Full table scan', 'Query execution plan (EXPLAIN)', 'Optimizer', 'Cardinality and selectivity'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [

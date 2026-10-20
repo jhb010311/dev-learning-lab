@@ -1,6 +1,8 @@
 Lab.register({
   id: 'setmap', nav: 'Set과 Map의 종류', cat: '자료구조', mode: 'step',
   title: '같은 값을 넣었는데 꺼내는 순서가 왜 다른가',
+  why: 'HashSet과 HashMap은 해시값으로 자리를 정해 빨리 찾는 대신, 꺼내는 순서가 넣은 순서와도 정렬 순서와도 상관없다. 순서가 필요할 때마다 따로 정렬하거나 순서를 기록할 List를 함께 관리하면 번거롭다. 그래서 자바는 넣은 순서를 기억하는 LinkedHashSet·LinkedHashMap과, 늘 정렬된 상태를 유지하는 TreeSet·TreeMap을 함께 제공한다.',
+  use: '순서와 상관없이 중복을 없애거나 키로 찾기만 하면 HashSet·HashMap을 쓴다. 넣은 순서대로 보여 줘야 하는 목록이나 오래 안 쓴 것부터 지우는 캐시(LinkedHashMap의 접근 순서 모드)에는 Linked 계열을, 이름순 목록이나 ceilingKey·subMap 같은 범위 검색에는 Tree 계열을 쓴다.',
   intro: 'Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.',
   terms: ['List, Set, Map', '해시 테이블과 HashMap', 'LinkedHashSet과 LinkedHashMap', 'TreeSet과 TreeMap', '시간 복잡도(Big-O)'],
   controls: [

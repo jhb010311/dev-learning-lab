@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>JWT structure and verification</h1>
 <p><b>How does the server trust a token that anyone can read?</b></p>
+<p><b>Why it exists</b> — The server session approach keeps the login state in server storage and looks it up with the session ID on every request, so if there are several servers, or several services have to check the same login, they all have to share that storage. A JWT writes the user information and a signature into the token itself, so any server that has only the key for checking the signature can verify on its own that the token is exactly as it was issued.</p>
+<p><b>Where it's used today</b> — The ID token in OpenID Connect is a JWT, and a JWT is also commonly used for the access tokens that an OAuth 2.0 authorization server issues. The side that calls the API sends the token in the Authorization: Bearer header, and the OAuth2 resource server feature of Spring Security checks the signature and the expiration time. If you need a logout or an account suspension to take effect right away, you use server sessions or keep the lifetime of the token short.</p>
 <p>A JWT is a string made of three parts joined by dots (.): a header, a payload, and a signature. The first two parts are not encrypted. They are only written in a different notation, so anyone can read and change them. The server can still trust the token because it recalculates the third part, the signature, by itself.</p>
 <p>Checked against real execution · Tokens were actually created with crypto (HMAC-SHA256) in Node.js 24 and the verification results of all 16 combinations were checked, and the Java code on the screen was also run on JDK 21 and checked</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>JSON Web Token (JWT)</dt>
 <dd>A token that carries content such as user information (claims) and has a signature attached. It has three parts: a header, a payload, and a signature. The server verifies the signature to confirm that the token was not forged, and it does not need to look up a separate store. The payload is encoded, not encrypted, so anyone can read its contents. Do not put sensitive information in it.</dd>
 <dt>Base64url encoding</dt>
+<dd><b>Where it's used today</b> — It is used to write byte values that go straight into a URL, such as a token sent in an address or the code_challenge value of OAuth PKCE. In Java, you create it with Base64.getUrlEncoder().withoutPadding().</dd>
 <dd>A notation that writes bytes using only uppercase and lowercase English letters, digits, and the characters - and _. It is Base64 with + and / replaced by - and _ and the trailing = removed, so that the result can be put in a URL or an HTTP header without breaking. All three parts of a JWT are written in this notation. Anyone can turn it back into the original contents without a key, so it is not encryption and does not hide the contents at all.</dd>
 <dt>Claim</dt>
 <dd>A name/value pair written in the payload of a token. Some names are defined by the standard, such as sub (who the token is about), exp (the expiration time), and iss (who issued it), and some are added by a service because it needs them, such as role. exp is written in seconds counted from midnight (0:00) on January 1, 1970 (UTC), and the server accepts the token only while the current time is before exp. Claims can be read by anyone, so you do not put sensitive values such as passwords in them, and you do not trust their contents before the signature has been verified.</dd>
 <dt>HMAC and digital signatures</dt>
+<dd><b>Why it exists</b> — If you send only a hash value, someone in the middle can change the content, compute a new hash, and attach it, so the forgery cannot be noticed. HMAC and digital signatures attach a value that can be created only with a key, so the receiving side can tell apart a message modified by a party that does not have the key.</dd>
+<dd><b>Where it's used today</b> — They are used for the signature of a JWT (HS256 is HMAC, RS256 is a digital signature), for signatures sent in a request header as with GitHub webhooks, and for verifying HTTPS certificates.</dd>
 <dd>Techniques for confirming that a message was not changed on the way and that the legitimate party sent it. HMAC hashes the message together with a secret key that both sides share to produce an authentication code. With a digital signature, the sender signs with a private key and the receiver verifies with the public key. Only the signer can create the signature, so the sender cannot deny having sent the message.</dd>
 <dt>Algorithm verification</dt>
+<dd><b>Where it's used today</b> — In code that verifies a JWT, you fix the algorithms to accept, such as HS256 or RS256. This also blocks the attack in which alg is changed to HS256 on a server that verifies with a public key, so that the public key is used as if it were a secret key.</dd>
 <dd>The practice of having the server, not the token, decide which signature algorithm is used to verify a token. The header of a JWT has an item called alg that says which algorithm was used to sign it, but the header is text that anyone can change. If the server simply follows this value, the sender can change alg to none (no signature) and make the server skip the signature check. So the server decides the list of algorithms it accepts in advance, and if the alg in the header is not in that list, it rejects the token before even calculating the signature.</dd>
 </dl>
 <h2>Try these</h2>
@@ -119,6 +125,10 @@ Claims verify(String token, long now) throws Exception {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -192,9 +202,10 @@ Claims verify(String token, long now) throws Exception {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

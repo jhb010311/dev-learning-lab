@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>Switches and routers</h1>
 <p><b>If the destination IP is the server, why is the frame sent to the router's MAC address?</b></p>
+<p><b>Why it exists</b> — Not every device can be connected directly to every other device in the world, and if received data were sent to every device, the network would overflow with useless data. A switch looks at the MAC address within the same network and passes the frame only to the port where the receiving device is connected, and a router looks at the destination IP address between networks and chooses where to hand it next, so a device needs to know only one default gateway to send anywhere.</p>
+<p><b>Where it's used today</b> — A router at home or in an office does both the switch role and the router role, and the default gateway set on a PC is that router's address. When you cannot connect to a server, use traceroute (tracert on Windows) to see up to which router the packet went. This command sends packets with the TTL increased one at a time from 1 and collects the responses returned by the router where the TTL ran out.</p>
 <p>A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1.</p>
 <p>Conceptual model · A conceptual model of the rules in RFC 826, 791, 1122, and 1812. It could not be checked against real equipment, so it was checked in 18 combinations against values calculated from the same rules by a different method</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>MAC address and ARP</dt>
+<dd><b>Why it exists</b> — A program knows the other side by its IP address, but a LAN and Wi-Fi hand over frames by MAC address. ARP connects the two, so that the pairs of IP address and MAC address can be found out by asking when needed, without writing them by hand in a table.</dd>
+<dd><b>Where it's used today</b> — When you send to a device on the same network or to the default gateway and do not know the MAC address, an ARP request goes out, and you can see the pairs already learned with the arp -a command. In IPv6, Neighbor Discovery (NDP) does the same job instead of ARP.</dd>
 <dd>A MAC address is a 48-bit address attached to each network device, such as a network card, and it is used within a network to say to whom a frame should be handed. While an IP address points to the final destination, a MAC address points to the device that will take the frame over next. ARP is the protocol that finds the MAC address of the owner of an IP address from that IP address. A request that says &quot;whoever owns this IP address, tell me your MAC address&quot; is sent to every device on the network, only the owner answers, and the result is kept for a while in the ARP cache. An ARP request cannot cross a router, so the MAC address of a device on another network cannot be found.</dd>
 <dt>Switch and router</dt>
+<dd><b>Where it's used today</b> — In an office, you plug the LAN cable of each seat into a switch to join them into one network, and put a router at the exit to the internet. In the cloud, you set up subnets and routing tables instead of devices to make the same distinction.</dd>
 <dd>A switch is a device that connects the devices in one network, and it looks at the destination MAC address of the frame and, if it knows which port that device is connected to, sends the frame out only through that port. It does not look at IP addresses and does not change the contents of the frame. A router is a device that connects different networks, and it decides where to hand a packet next by looking at the destination IP address of the packet and its routing table. When a packet passes a router, the frame is built anew and the MAC addresses change, but the IP addresses usually stay the same (NAT, which changes addresses as a home router does, is an exception) and the TTL goes down by 1. A home router combines a router, a switch, and a wireless access point in one machine.</dd>
 <dt>Default gateway</dt>
+<dd><b>Where it's used today</b> — A computer connected to a home router usually receives the router's address as the default gateway together with its IP address by DHCP, so you rarely need to write it by hand. When you give a server a fixed IP, you write it yourself and check it with ipconfig or ip route.</dd>
 <dd>The default gateway is the address of the router to which a computer hands the packets it sends outside its own network. The computer compares the destination IP address with its own IP address using the subnet mask. If they are on the same network, it sends the packet directly to the other device, and if not, it sends it to the default gateway. In that case, the destination IP address of the packet is left as the original destination, and only the destination MAC address of the frame is set to that of the gateway. If the default gateway is set wrong, the computer can communicate with devices on the same network but cannot get out to the internet.</dd>
 <dt>TTL of an IP packet</dt>
+<dd><b>Where it's used today</b> — It is used to roughly guess the number of routers passed to reach the other side from the TTL value shown in a ping result, and to find at which router a packet stops with traceroute (tracert on Windows).</dd>
 <dd>The TTL of an IP packet is a number in the header that gives a limit on the number of routers the packet can pass. The sender sets the initial value, and a router decreases it by 1 each time it forwards the packet. When it reaches 0, the router discards the packet and sends an ICMP &quot;Time Exceeded&quot; message back to the sender. It exists to prevent a packet from circling between routers forever because of a wrong path setting. traceroute is a tool that sends packets with the TTL raised one at a time from 1 and checks the routers that respond, in order. It has the same name as the TTL (how long data is kept) in caches and DNS, but it is a different concept.</dd>
 <dt>OSI model</dt>
 <dd>A model that divides the process of network communication into seven layers by role. From the bottom, they are the physical, data link, network (IP), transport (TCP/UDP), session, presentation, and application (HTTP) layers. Each layer does its own job by using the functions of the layer directly below it. It is the reference for calling the location of a device or a problem &quot;Layer N&quot;.</dd>
@@ -104,6 +111,10 @@ else forwardInNewFrame(packet);    // write only new MAC addresses and send it o
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +188,10 @@ else forwardInNewFrame(packet);    // write only new MAC addresses and send it o
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

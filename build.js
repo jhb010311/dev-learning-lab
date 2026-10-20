@@ -13,7 +13,9 @@ const ls = d => fs.existsSync(d) ? fs.readdirSync(d) : [];
 // 설명: kb1~6.js 다음에, 나중에 실습과 함께 추가한 kb_<id>.js를 이름 순으로 잇는다
 const kbFiles = ls(kbDir).filter(f => /^kb.*\.js$/.test(f)).sort((a, b) => (/^kb\d/.test(a) ? 0 : 1) - (/^kb\d/.test(b) ? 0 : 1) || a.localeCompare(b));
 const kb = kbFiles.flatMap(f => require(path.join(kbDir, f)));
-{ const seen = new Set(); kb.forEach(r => { if (r.length < 3 || !r[0] || !r[1] || !r[2]) throw new Error('kb 형식 오류: ' + r[1]); if (seen.has(r[1])) throw new Error('kb에 같은 용어가 두 번 있음: ' + r[1]); seen.add(r[1]); }); }
+// 항목은 [분류, 용어, 설명]이고, 네 번째 칸 { why, use }(왜 생겼나, 지금 어디에 쓰나)는 고르는 것이다. 모양은 tools/whyuse.js가 본다.
+const whyuse = require('./tools/whyuse.js');
+{ const seen = new Set(); kb.forEach(r => { const e = whyuse.kbErrors(r); if (e.length) throw new Error('kb 형식 오류: ' + r[1] + ' — ' + e.join(', ')); if (seen.has(r[1])) throw new Error('kb에 같은 용어가 두 번 있음: ' + r[1]); seen.add(r[1]); }); }
 
 function loadLessons() {
   const list = [];
@@ -67,9 +69,10 @@ if (require.main === module) {
     if (bad.length) throw new Error('영어판 글에 한글이 ' + bad.length + '줄 남음:\n  ' + bad.slice(0, 30).join('\n  ')); }
   const explain = {};
   list.forEach(l => {
-    const ex = l.terms.map(name => { const i = kb.findIndex(r => r[1] === name); if (i < 0) throw new Error(l.id + ': 설명집에 없는 용어 ' + name); return { no: i + 1, name, book: kb[i][2] }; });
+    const ex = l.terms.map(name => { const i = kb.findIndex(r => r[1] === name); if (i < 0) throw new Error(l.id + ': 설명집에 없는 용어 ' + name); return Object.assign({ no: i + 1, name, book: kb[i][2] }, kb[i][3] || {}); });
     explain[l.id] = { explain: ex, refs: '' };
     ['id', 'nav', 'cat', 'mode', 'title', 'intro', 'controls', 'presets', 'code', 'label', 'columns', 'simulate', 'render', 'assume'].forEach(k => { if (l[k] === undefined) throw new Error(l.id + ': ' + k + ' 없음'); });
+    whyuse.lessonErrors(l).forEach(e => { throw new Error(l.id + ': ' + e); });
     l.presets.forEach(p => Object.keys(p.v).forEach(k => { if (!l.controls.some(c => c.id === k)) throw new Error(l.id + ': 프리셋의 알 수 없는 설정 ' + k); }));
   });
   // 개념 파일의 문자열에 든 <script>, </script>, <!-- 가 HTML 파서에게 태그로 읽히지 않도록 < 를 \x3c 로 바꾼다
@@ -96,7 +99,7 @@ if (require.main === module) {
   const perLv = [1, 2, 3].map(lv => bank.filter(q => q.lv === lv).length);
   tracks.forEach(t => [1, 2, 3].forEach(lv => { if (bank.filter(q => q.tr === t.id && q.lv === lv).length < 4) throw new Error('quiz: ' + t.id + ' 경로의 ' + lv + '단계 문제가 4개 미만'); }));
   console.log('테스트 문제', bank.length + '개 (초급 ' + perLv[0] + ', 중급 ' + perLv[1] + ', 응용 ' + perLv[2] + '), 실습 결과와 대조한 문제', simChecked + '개, 기초용 용어', kb.length + '개');
-  const terms = kb.map(r => [r[0], r[1], r[2]]);
+  const terms = kb.map(r => r.slice(0, r[3] ? 4 : 3)); // 네 번째 칸(why, use)은 있을 때만 넘긴다
   // 용어 풀이 사전: 형식, 설명집 용어 이름, 그리고 같은 표현이 한 실습에서 두 항목에 걸리지 않는지 확인
   const glossSrc = fs.existsSync(path.join(dir, 'glossary.js')) ? fs.readFileSync(path.join(dir, 'glossary.js'), 'utf8') : '';
   const gl = []; new Function('Lab', glossSrc)({ glossary: g => gl.push(...g) });

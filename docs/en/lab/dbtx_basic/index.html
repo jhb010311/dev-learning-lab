@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Transactions</h1>
 <p><b>What does a transaction group together, and what do COMMIT and ROLLBACK do?</b></p>
+<p><b>Why it exists</b> — If the program stops with an error between two statements, or the server's power goes off, then without a transaction only the change of the first statement remains in the database. To undo it, the program must remember what it changed and change it back in reverse, but a program that has already stopped cannot even do that. A transaction lets the database cancel changes that are not confirmed by itself, so the database takes on this cleanup.</p>
+<p><b>Where it's used today</b> — Use it where several statements must succeed together, such as recording a payment while using points, or reducing inventory while placing an order. In a Java program built with Spring, you usually do not write BEGIN and COMMIT directly; you attach @Transactional to a method and Spring does the same work before and after it.</p>
 <p>Taking 300 out of account 1 and adding 300 to account 2 takes two UPDATE statements. If only one of them is applied, money disappears or appears. A transaction turns several statements like these into one unit that is &quot;either all applied or none applied&quot;. In code, the statement BEGIN starts the unit, and COMMIT or ROLLBACK ends it. COMMIT makes everything done in the unit final so that other connections can see it, and ROLLBACK cancels everything done in the unit. Changes that are not yet final cannot be seen from other connections. (In MySQL, the standard way is to write START TRANSACTION instead of BEGIN, and it means the same. H2, the database this lab was checked against, does not accept START TRANSACTION, so we wrote BEGIN.) In this lab, you remove BEGIN, change COMMIT to ROLLBACK, or remove the statement that ends the transaction, run the same two UPDATEs, and see how the balance read from another connection changes.</p>
 <p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked them, and checked the rules against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
 <dt>Commit and rollback</dt>
+<dd><b>Where it's used today</b> — You use them to apply everything or cancel everything for work that must change several things, such as a bank transfer. Even when you fix data by hand with a DB tool, you open a transaction, look at the result with SELECT, and send COMMIT if it is right and ROLLBACK if it is wrong.</dd>
 <dd>A commit makes all the data changes in a transaction final in the database, and a rollback cancels all of those changes and returns to the state before the transaction started. A transaction ends in one of the two, and a change that has already been committed cannot be undone by a rollback. In Spring, when a method with @Transactional ends normally, Spring commits, and when it ends with an exception, Spring looks at the rollback rules and rolls back. Under the default rule, it rolls back when a RuntimeException or an Error is thrown out of the method, and it does not roll back for a checked exception. Without a transaction, each save statement is committed immediately by auto-commit, which is the default setting of a JDBC connection, so even if an exception occurs later, the earlier save cannot be rolled back.</dd>
 <dt>Autocommit</dt>
+<dd><b>Why it exists</b> — If you had to write the start and the COMMIT separately for every statement you run, it would be tedious, and if you forgot COMMIT, the changes would stay unconfirmed. Autocommit saves this trouble by making each statement that is not grouped permanent right away.</dd>
+<dd><b>Where it's used today</b> — When you run one line of SQL in a database tool, it is usually applied right away in this way. It is also on when a Java program first connects to a database, and Spring turns it off while it groups several statements into one transaction.</dd>
 <dd>Autocommit is the mode in which, when you have not started a transaction yourself, the database commits each SQL statement as soon as it runs. MySQL starts a new connection with autocommit on, so one statement is one transaction, and its result is final right away and is visible from other connections too. A statement made final this way cannot be undone with ROLLBACK. When you start a transaction, autocommit is off until you end it with COMMIT or ROLLBACK, and when it ends, autocommit returns to its previous state. If a session with autocommit off ends without committing its last transaction, MySQL (InnoDB) rolls that transaction back.</dd>
 <dt>BEGIN, COMMIT, and ROLLBACK statements</dt>
+<dd><b>Why it exists</b> — With only autocommit, every statement becomes permanent right away, so you cannot group several statements into one. BEGIN and COMMIT tell the database the start and the end of a group, so that the statements between them are made permanent all at once, or all canceled at once with ROLLBACK.</dd>
+<dd><b>Where it's used today</b> — When fixing data by hand in a database tool, start with BEGIN, check the result with SELECT, and run COMMIT if it is right and ROLLBACK if it is wrong.</dd>
 <dd>BEGIN, COMMIT, and ROLLBACK are the SQL statements that start and end a transaction. BEGIN is the statement that starts a transaction, and in MySQL it means the same as START TRANSACTION (START TRANSACTION is recommended because it is standard SQL syntax). COMMIT makes permanent all the changes made so far inside the transaction, and ROLLBACK cancels all of them. By default autocommit is on, so without a statement that starts a transaction, COMMIT and ROLLBACK have no transaction to commit or cancel. Inside a MySQL stored program (a procedure, a trigger, and so on), BEGIN is read as the start of a BEGIN ... END block, so you must use START TRANSACTION, and the syntax of the statement that starts a transaction differs a little from database to database.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +99,10 @@ SELECT * FROM account ORDER BY id;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +176,10 @@ SELECT * FROM account ORDER BY id;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

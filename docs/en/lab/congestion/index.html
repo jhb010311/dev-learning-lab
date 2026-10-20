@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>Flow control and congestion control</h1>
 <p><b>How does TCP decide how much to send at a time?</b></p>
+<p><b>Why it exists</b> — If the sender sends only at its own speed, the receiver's buffer or the queue of an intermediate router overflows and packets are discarded, and as everyone resends what was discarded, the path gets even more congested. TCP's flow control and congestion control let it reduce and increase the amount it sends by itself, according to the room the receiver announces and the state of the network that it guesses from loss, so that several connections share the same path.</p>
+<p><b>Where it's used today</b> — The operating system's TCP does this on its own, so you do not handle it directly in Java code. That the speed is not at full for the first while when you send a large file to a faraway server over a new connection, and that the transfer speed drops greatly on a wireless network with frequent packet loss, come from this behavior. On a Linux server, you can change the congestion control method (CUBIC, BBR, and so on) with kernel settings.</p>
 <p>Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control.</p>
 <p>Conceptual model · A model of the concept that follows the rules of RFC 5681. It was not checked against a real TCP run; it was checked in 153 settings against a separate calculation of the same rules, one ACK at a time</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>Receive window and congestion window</dt>
 <dd>These are the two limits that decide how much TCP can send at one time. The receive window (rwnd) is the value the receiver reports in its acknowledgments, saying &quot;I can receive this much more right now,&quot; and it keeps the buffer of the receiver from overflowing. The congestion window (cwnd) is the value the sender manages on its own, based on its estimate of &quot;the network can handle this much,&quot; and it is not reported to the other side. The sender sends so that the data not yet acknowledged does not exceed the smaller of the two values. Respecting the receive window is flow control, and raising and lowering the congestion window is congestion control.</dd>
 <dt>Slow start and congestion avoidance</dt>
+<dd><b>Why it exists</b> — If you send a lot from the start, a lot of data arrives at once without knowing whether the path can handle it, and packets are lost; if you only grow a little at a time from the start, it takes a long time before the empty path is fully used. Slow start and congestion avoidance balance between these two problems by growing fast below the threshold and slowly above it.</dd>
 <dd>These are the two phases in which TCP grows the congestion window. Slow start begins with a very small congestion window and grows it each time an acknowledgment arrives, so the window doubles with every round trip. Despite the name, the window grows fast; it is called slow start because the sender does not send a lot from the beginning. When the congestion window reaches the slow start threshold (ssthresh), TCP moves to congestion avoidance and grows it by only one segment per round trip. When a loss is detected, TCP concludes that the network is congested, lowers the threshold, and reduces the window: by about half if the same acknowledgment arrived three times in a row, and down to one segment if it was a timeout (even if the window at the start of the connection was larger than that). This explanation is the basic method of the standard (RFC 5681), and the algorithm an operating system actually uses may differ in how much it grows and shrinks the window.</dd>
 <dt>TCP and UDP</dt>
 <dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
@@ -105,6 +108,10 @@ function onThreeDuplicateAcks(flight) {   // the same ACK three times = one segm
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +185,10 @@ function onThreeDuplicateAcks(flight) {   // the same ACK three times = one segm
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

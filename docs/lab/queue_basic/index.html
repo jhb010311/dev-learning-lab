@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 구조와 운영</p>
 <h1>메시지 큐</h1>
 <p><b>메시지 큐는 무엇이고, 직접 부르는 것과 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 한 서버가 다른 서버에 일을 직접 시키면, 상대가 일을 마칠 때까지 기다려야 하고, 상대가 꺼져 있으면 그 일은 실패해서 누군가 다시 보내 주지 않는 한 처리되지 않는다. 메시지 큐는 두 서버 사이에서 시킬 일을 메시지로 맡아 두어서, 일을 받는 쪽이 지금 켜져 있는지, 얼마나 바쁜지와 상관없이 시키는 쪽이 일을 넘길 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문이 끝난 뒤 보내는 알림 메일이나 문자, 올린 동영상의 변환처럼 시간이 걸리지만 바로 답하지 않아도 되는 일을 넘길 때 쓴다. 실제 서비스에서는 Kafka나 RabbitMQ 같은 제품을 쓰고, 일을 하는 서버를 여러 대 두어 같은 큐에서 나눠 꺼내게 하기도 한다. 결제 승인처럼 결과를 바로 받아야 다음으로 갈 수 있는 일은 큐 대신 요청을 직접 보낸다.</p>
 <p>메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 일을 적어 두는 줄입니다. 코드 칸은 세 줄입니다. 첫 줄의 주문 서버는 알림 서버에 시킬 일을 &quot;주문 N 알림&quot;이라는 짧은 글(메시지)로 적어 큐에 넣고, 결과를 받으면 바로 다음 일로 넘어갑니다(메시지를 보내는 쪽). 둘째 줄의 큐는 넣은 메시지를 넣은 차례대로 보관합니다. 셋째 줄의 알림 서버는 큐에서 메시지를 하나씩 꺼내 처리합니다(메시지를 받는 쪽). 이 실습은 큐 줄을 지우고 주문 서버가 알림 서버에 요청을 직접 보내게 하거나, 알림 서버가 주문 3건을 보내는 동안 꺼져 있다가 나중에 켜지게 해 가며, 주문 서버가 받는 결과와 알림이 처리되는 모습을 봅니다. 코드 칸은 실행한 프로그램의 소스가 아니라 무엇이 무엇을 하는지 적은 글이고, 실행에 쓴 큐는 이 실습을 위해 쓴 아주 작은 큐 서버입니다(Kafka나 RabbitMQ 같은 실제 제품이 아닙니다).</p>
 <p>실행으로 대조 · Node.js 24.18.0의 http 서버 둘(이 실습을 위해 쓴 작은 큐 서버와 직접 요청을 받는 알림 서버)과 주문 서버 역할의 프로그램으로 네 가지 조합을 실행해 대조. Kafka, RabbitMQ 같은 실제 제품은 실행하지 않음</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>메시지 큐</dt>
 <dd>보내는 쪽(생산자)과 받는 쪽(소비자) 사이에서 메시지를 보관했다가 전달하는 중간 저장소다. 생산자는 메시지를 넣고 바로 다음 일을 하며, 소비자는 자신의 속도로 꺼내 처리한다. 두 시스템이 서로를 직접 호출하지 않아 결합이 낮아지고, 순간적으로 몰린 요청을 쌓아 두었다가 처리할 수 있다.</dd>
 <dt>생산자와 소비자</dt>
+<dd><b>왜 생겼나</b> — 일을 만드는 쪽이 처리까지 직접 하면, 처리가 느린 만큼 만드는 쪽도 멈춰 기다린다. 생산자와 소비자로 역할을 나누고 사이에 큐를 두면, 각자 자기 속도로 일하고 바쁠 때는 소비자만 늘려 더 많이 처리할 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 주문 서버가 생산자가 되어 &quot;주문 완료&quot; 메시지를 보내고, 알림 서버가 소비자가 되어 그 메시지를 받아 메일을 보내는 식으로 쓴다. 한 자바 프로그램 안에서도 BlockingQueue를 사이에 두고 스레드끼리 같은 방식으로 일을 나눈다.</dd>
 <dd>생산자(producer)는 메시지를 만들어 보내는 프로그램이고, 소비자(consumer)는 그 메시지를 받아 처리하는 프로그램이다. RabbitMQ 튜토리얼은 메시지를 보내는 프로그램을 producer, 메시지가 오기를 주로 기다리는 프로그램을 consumer라고 부르고, Kafka 문서는 이벤트를 쓰는 클라이언트 애플리케이션을 producer, 이벤트를 읽고 처리하는 쪽을 consumer라고 부른다. 큐를 사이에 두면 생산자는 큐에 메시지를 넣기만 하고, 소비자는 준비됐을 때 큐에서 꺼낸다. Kafka 문서는 둘이 서로를 모르는 채로 완전히 분리되어 있다고 설명한다.</dd>
 <dt>메시지 브로커</dt>
+<dd><b>왜 생겼나</b> — 생산자와 소비자가 서로 직접 연결하면 상대의 주소를 알아야 하고, 소비자를 늘리거나 바꿀 때마다 생산자도 고쳐야 한다. 메시지 브로커는 둘 사이에 따로 떠 있는 서버여서, 양쪽이 브로커의 주소만 알면 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 서버 여러 대가 RabbitMQ나 Kafka 같은 브로커 서버에 연결해 메시지를 보내고 받는다. 브로커를 직접 띄우지 않고 Amazon SQS처럼 클라우드에서 운영해 주는 큐 서비스를 쓰기도 한다.</dd>
 <dd>메시지 브로커는 생산자가 보낸 메시지를 받아 소비자에게 전달해 주는 중간 프로그램이다. RabbitMQ 튜토리얼은 RabbitMQ를 메시지를 받아서 전달하는 메시지 브로커라고 소개한다. 브로커 안에는 메시지를 보관하는 큐가 있고, 같은 튜토리얼은 큐를 호스트의 메모리와 디스크가 허락하는 만큼 메시지를 담는 큰 완충 공간으로 설명한다. 생산자와 소비자는 서로 직접 연결하지 않고 브로커를 통해 메시지를 주고받는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -82,6 +88,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -155,9 +165,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

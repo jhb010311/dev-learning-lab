@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>Transaction basics</h1>
 <p><b>What if the withdrawal went through but the deposit did not?</b></p>
+<p><b>Why it exists</b> — If several statements are run separately, then when an error occurs midway, the application has to find the earlier statements that were already applied and undo them itself, and if the undoing code also fails or the server goes down, inconsistent data stays as it is. A transaction has the database manage the changes between the start and the commit as one unit, so that if it fails the database cancels all of them, and after a commit they remain even if a failure occurs.</p>
+<p><b>Where it's used today</b> — It is used where several tables are changed together, such as processing that saves an order, reduces stock, and deducts points. In Spring, it is common to add @Transactional to a service method so that the method commits when it ends normally and rolls back when a runtime exception occurs. Calls to an external payment API or changes to another server's database cannot be undone by a database transaction, so a compensating action that sends a separate cancel request is provided.</p>
 <p>A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. A transaction groups several statements so that either all of them take effect or none of them do. This lab compares the result when the two statements are not grouped with the result when they are.</p>
 <p>Checked against real execution · All 12 combinations were run on SQLite with two connections</p>
 <h2>Concepts in this lab</h2>
@@ -82,6 +84,10 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -155,9 +161,10 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Associations</h1>
 <p><b>What is an association, and what does @ManyToOne do for you?</b></p>
+<p><b>Why it exists</b> — A table points to another row by writing a number, and a Java object points directly to another object. Without something that connects the two, we must write code that takes out the number from the object each time we save and, each time we read, uses that number to find the other side again and attach it. An association marker such as @ManyToOne leaves this translating work to JPA, so that in Java code you only follow objects.</p>
+<p><b>Where it's used today</b> — It is commonly used for relationships where &quot;many point to one,&quot; such as an order and the member who placed it, a post and its author, and a comment and the post it is attached to. If you want to see a list from the opposite side, use @OneToMany together. Something that JPA cannot find directly, such as an object in another service's database, keeps only the number as a field.</p>
 <p>An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In Java objects, Order points directly to a Member object through a field (Order and Member are example entity classes made for this lab). When an entity points to another entity like this, it is an association. If you write @ManyToOne above that field, JPA connects the two. When it saves, it takes the id out of the Member object and puts it in the foreign key column, and when it reads, it uses that number to make a Member object and has the field point to it. So you can just follow the objects, as in order.getMember().getName(). This lab runs the same code, which saves an order and reads it again, on a database where (1, Kim) is already in the member table, and changes only the field declaration. You see what happens if you remove @ManyToOne, and what changes if you keep only a number (Long memberId) in the field instead of an object.</p>
 <p>Checked against real execution · Compiled the source of all 4 combinations on Hibernate 7.4.5 and H2 2.4.240, started JPA for real, saved and read again, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Association</dt>
 <dd>An association is a relationship in which one entity points to another entity. In tables, a row writes the primary key value of a row of another table in one column (a foreign key) and points to that row, and in Java objects, a field of one entity points directly to an object of another entity. JPA connects these two expressions. When it saves, it takes the primary key out of the object it points to and puts it in the foreign key column, and when it reads, it uses the foreign key value to find the other entity and puts it in the field. The JPA specification (which calls this a relationship) says to put one of @OneToOne, @OneToMany, @ManyToOne, and @ManyToMany on a field or property that shows an association. If you keep only a number in the field instead of the other side's object, it is not an association but an ordinary number field, and you have to find the other entity directly with that number.</dd>
 <dt>@ManyToOne</dt>
+<dd><b>Where it's used today</b> — You put it on the field of the entity on the &quot;many&quot; side, such as a field that points from an order to a member, or from a comment to a post. By default, when you read an order the member is read with it, so it is common to also write fetch = FetchType.LAZY so that it is read only when needed.</dd>
 <dd>@ManyToOne is an annotation that you put on a field to show that &quot;this field points to one other entity, and many of this entity can point to the same one&quot;. A typical case is many orders pointing to one member. The type of the target is found from the type of the field. In tables, the table of the entity that has this field gets a foreign key column that holds the primary key value of the other side, and if you do not set the column name separately, it becomes the name that joins the field name, an underscore, and the name of the other side's primary key column (member_id for a member field of the type Member). If a field of another entity type has no such association mark, Hibernate 7.4.5 cannot find a way to put that field in a column and throws an error while starting.</dd>
 <dt>@JoinColumn</dt>
+<dd><b>Why it exists</b> — Without a place to write the name of the foreign key column, JPA can use only the name it made by its rule, so to fit an already-existing table you would have to name the field to match that column. @JoinColumn lets you write the column name separately from the field name.</dd>
+<dd><b>Where it's used today</b> — You use it when the foreign key column name of an existing table differs from the rule, or to state clearly in the code the column name that the team decided on. If you also write nullable = false, JPA makes that column unable to be left empty when it creates the table.</dd>
 <dd>@JoinColumn is an annotation that specifies the foreign key column of an association, and you use it together with an association mark such as @ManyToOne. You write the column name in name, and if you do not write it, the name becomes the name that joins the field name, an underscore, and the name of the other side's primary key column. For example, if you put @JoinColumn(name = &quot;buyer_id&quot;), the foreign key column becomes buyer_id, not member_id. What changes is the column name in the table, and the way of following objects in the entity code does not change.</dd>
 <dt>Primary key, unique key, foreign key</dt>
 <dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
@@ -96,6 +101,10 @@ System.out.println(o.getMember().getName());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +178,10 @@ System.out.println(o.getMember().getName());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

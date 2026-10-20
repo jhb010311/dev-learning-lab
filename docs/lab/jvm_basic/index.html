@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>컴파일과 JVM</h1>
 <p><b>자바 코드는 어떻게 실행되는가</b></p>
+<p><b>왜 생겼나</b> — C 언어처럼 소스를 그 컴퓨터가 바로 실행하는 명령(기계어)으로 바꾸는 방식은, 윈도우, 맥, 리눅스마다 따로 컴파일한 실행 파일을 만들어야 한다. 자바는 javac가 어느 컴퓨터에서든 같은 .class 파일(바이트코드)을 만들고 컴퓨터마다 설치된 JVM이 그 파일을 실행해서, 한 번 컴파일한 파일을 JVM이 있는 곳 어디서나 돌릴 수 있게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 프로젝트도 Gradle이나 Maven 같은 빌드 도구가 자바 컴파일러로 .class 파일을 만들고, 그것을 묶은 jar 파일을 java -jar 명령으로 JVM에서 실행한다. IntelliJ 같은 개발 도구의 실행 버튼도 컴파일과 실행을 차례로 해 준다. 코틀린으로 쓴 코드도 .class 파일로 바뀌어 같은 JVM에서 실행된다.</p>
 <p>우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21의 javac와 java 명령으로 여섯 가지 조합을 실제로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>컴파일과 javac</dt>
 <dd>컴파일은 사람이 쓴 소스 코드를 JVM이 실행할 수 있는 형태로 바꾸는 일이고, 자바에서 이 일을 하는 프로그램이 javac(자바 컴파일러)이다. javac 명령은 확장자가 .java인 소스 파일을 읽어 확장자가 .class인 class 파일로 바꾸며, 따로 정하지 않으면 class 파일을 소스 파일과 같은 폴더에 만든다. javac는 코드를 바꾸기만 하고 실행하지는 않으므로, 컴파일한 뒤에 JVM에서 실행하는 단계가 따로 있다. 소스에 오류가 있으면 javac가 오류 메시지를 출력하고, 오류가 없으면 class 파일이 출력 폴더에 놓인다. 소스 파일을 고쳐도 이미 만든 class 파일은 바뀌지 않으므로, 고친 내용을 쓰려면 javac로 다시 컴파일해야 한다.</dd>
 <dt>.class 파일</dt>
+<dd><b>지금 어디에 쓰나</b> — jar 파일은 여러 .class 파일을 하나로 묶은 압축 파일이고, 서버에서 실행하는 것도 소스가 아니라 이 .class 파일들이다. 오류가 났을 때 나오는 줄 번호도 .class 파일에 적힌 정보로 알려 준다.</dd>
 <dd>.class 파일은 컴파일의 결과로 만들어지는 파일로, JVM이 읽는 class 파일 형식으로 되어 있다. 이 안에는 JVM의 명령어(바이트코드)와 기호 표, 그 밖의 부가 정보가 들어 있고, 파일의 맨 앞 4바이트는 이 형식임을 알리는 0xCAFEBABE이다. JVM은 자바 언어를 알지 못하고 이 class 파일 형식만 안다. java Hello처럼 클래스 이름으로 실행하면 JVM은 클래스 경로에서 그 이름의 클래스를 찾는데, 클래스 경로를 따로 정하지 않으면 현재 폴더이다. 그래서 같은 폴더에 Hello.java가 있어도 Hello.class가 없으면 Hello 클래스를 찾을 수 없다는 오류가 난다.</dd>
 <dt>JVM(자바 가상 머신)</dt>
+<dd><b>지금 어디에 쓰나</b> — 자바뿐 아니라 Kotlin, Scala로 쓴 프로그램도 바이트코드로 컴파일되어 JVM에서 실행된다. 서버에서는 힙 크기(-Xmx)나 GC 종류 같은 실행 방식을 JVM 옵션으로 정해 프로그램을 띄운다.</dd>
 <dd>자바 바이트코드를 읽어 실행하는 프로그램이다. 운영체제마다 그에 맞는 JVM이 있어서, 한 번 컴파일한 자바 프로그램을 수정 없이 여러 운영체제에서 실행할 수 있다. 클래스를 읽어 들이고, 메모리를 관리하고(가비지 컬렉션), 바이트코드를 기계어로 바꿔 실행하는 일을 맡는다.</dd>
 <dt>바이트코드</dt>
+<dd><b>지금 어디에 쓰나</b> — javap -c로 .class 파일의 바이트코드를 보면 컴파일러가 코드를 어떻게 바꿨는지 확인할 수 있다. 스프링과 Hibernate는 실행 중에 바이트코드를 직접 만들어 프록시 클래스를 생성한다.</dd>
 <dd>자바 컴파일러(javac)가 소스 코드를 변환해 만든 중간 형태의 코드로 .class 파일에 담긴다. 특정 CPU나 운영체제의 기계어가 아니라 JVM이 이해하는 명령어라서 어느 플랫폼의 JVM에서든 실행된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +97,10 @@ java Hello</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ java Hello</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

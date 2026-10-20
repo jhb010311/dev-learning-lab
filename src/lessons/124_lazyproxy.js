@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lazyproxy', nav: '프록시와 지연 로딩', cat: 'JPA', mode: 'step',
   title: '지연 로딩으로 받은 객체는 진짜 엔티티인가',
+  why: '연관된 엔티티를 늘 함께 읽어 오면, 주문 하나만 보려 해도 쓰지 않을 회원과 그 회원의 팀까지 함께 조회하게 된다. Hibernate는 연관 객체 자리에 식별자만 아는 프록시를 두고 그 객체의 값이 정말 쓰일 때까지 조회를 미뤄서, 쓰지 않는 데이터는 읽지 않게 한다.',
+  use: '@ManyToOne은 기본값이 즉시 로딩이어서, 회원을 쓰지 않는 주문 조회가 많으면 FetchType.LAZY를 적는다. 연관관계는 지연 로딩으로 두고 함께 보여 줄 때만 fetch join이나 @EntityGraph로 읽는 방식을 흔히 쓴다. 외래 키만 채우는 저장에서는 em.getReference(스프링 데이터 JPA의 getReferenceById)로 SELECT 없이 연관관계를 맺는다.',
   intro: 'em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다.',
   terms: ['엔티티 프록시', 'LazyInitializationException', '지연 로딩과 즉시 로딩', '영속성 컨텍스트', '1차 캐시'],
   controls: [

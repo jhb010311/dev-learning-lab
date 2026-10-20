@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Foreign keys</h1>
 <p><b>What is a foreign key, and what changes without one?</b></p>
+<p><b>Why it exists</b> — Without a foreign key, the program code must check by itself every time it saves whether &quot;that member really exists.&quot; If even one place of code misses the check, or if a person runs SQL directly on the database, an order with no owner is created. A foreign key leaves this check to the database, so that the same rule is kept whichever program writes by whichever path.</p>
+<p><b>Where it's used today</b> — Put it where a row of one table points to a row of another table, such as an order and a member, or a comment and a post. To delete the child rows together when you delete the parent row, add ON DELETE CASCADE. In places where there are very many writes and speed matters, or where tables are divided across several database servers, the program sometimes does the check without foreign keys.</p>
 <p>The member_id column of the orders table holds &quot;the number of the member who placed this order.&quot; When you write the line FOREIGN KEY (member_id) REFERENCES member(id) for this column, it becomes a foreign key. It is a promise to the database that the value in member_id must be an id that really exists in the member table, so the database rejects any INSERT or DELETE that breaks the promise. In this lab you remove that line, or change the member_id of the second order, and run the same SQL each time. You see whether the database accepts each statement and whether an order that points to a missing member is left at the end.</p>
 <p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -101,6 +103,10 @@ SELECT * FROM orders ORDER BY id;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +180,10 @@ SELECT * FROM orders ORDER BY id;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

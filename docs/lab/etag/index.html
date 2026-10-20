@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP 캐시와 ETag</h1>
 <p><b>같은 파일을 또 받을 필요가 있을까</b></p>
+<p><b>왜 생겼나</b> — 브라우저가 페이지를 열 때마다 이미지, 스크립트, API 응답을 처음부터 다시 받으면, 바뀐 것이 없어도 전송량과 기다리는 시간이 매번 들고 서버도 같은 일을 되풀이한다. HTTP 캐시와 ETag는 서버가 응답마다 재사용 규칙과 버전 표시를 붙여 보내게 해서, 클라이언트가 바뀐 것만 새로 받게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 이름에 해시를 붙인 JS·CSS 파일에는 max-age를 길게 주고, 배포할 때 이름을 바꿔 새 파일을 받게 한다. 자주 바뀌는 API 응답에는 ETag를 붙이며, 스프링에서는 ResponseEntity의 eTag()나 ShallowEtagHeaderFilter로 붙인다. 개인정보나 결제 화면처럼 남으면 안 되는 응답은 no-store로 저장을 막는다.</p>
 <p>브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다.</p>
 <p>실행으로 대조 · 시험 서버와 실제 브라우저로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>조건부 요청과 ETag</dt>
 <dd>클라이언트가 이미 가지고 있는 데이터가 여전히 최신인지 서버에 확인하는 요청 방식이다. ETag는 자원의 버전을 나타내는 식별 값으로, 클라이언트가 이 값을 요청에 실어 보내면 서버는 자원이 바뀌지 않은 경우 본문 없이 304 Not Modified로 응답한다. 같은 데이터를 다시 전송하지 않아 네트워크 사용을 줄인다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 <dt>캐시</dt>
 <dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
@@ -90,6 +94,10 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +171,10 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

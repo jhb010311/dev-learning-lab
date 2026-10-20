@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
 <h1>로드밸런서와 스케일 아웃</h1>
 <p><b>서버를 늘리면 어디까지 버티나</b></p>
+<p><b>왜 생겼나</b> — 서버 한 대의 사양을 올리는 방식은 살 수 있는 가장 큰 장비에서 더 나아갈 수 없고, 그 한 대가 고장 나면 서비스 전체가 멈춘다. 스케일 아웃은 같은 서버를 여러 대 두고 로드밸런서가 요청을 나눠 보내게 해서, 서버를 붙여 처리량을 늘리고 한 대가 빠져도 남은 서버가 요청을 이어받게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 할인 행사나 티켓 예매처럼 요청이 몰리는 웹 서비스에서 애플리케이션 서버를 여러 대 띄우고 앞에 로드밸런서를 둔다. 클라우드에서는 부하에 따라 서버 수를 자동으로 바꾸는 오토스케일링과 함께 쓴다. 여러 대로 나누기 어려운 DB는 스케일 업, 읽기 전용 복제본, 캐시로 부담을 따로 줄인다.</p>
 <p>서버를 더 크게 바꾸는 대신 서버 수를 늘려 부하를 나누는 것이 스케일 아웃입니다. 로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다. 서버를 늘려 갈 때 처리량이 어디까지 늘고 어디가 먼저 막히는지 봅니다.</p>
 <p>개념 모형 · 관계를 보이는 예시 수치</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,6 +44,8 @@
 <dt>병목(Bottleneck)</dt>
 <dd>시스템 전체의 처리 성능을 제한하는 가장 느린 부분이다. 다른 부분을 아무리 개선해도 병목이 그대로면 전체 성능은 나아지지 않는다. 성능 개선은 측정으로 병목을 찾는 것에서 시작한다.</dd>
 <dt>오토스케일링</dt>
+<dd><b>왜 생겼나</b> — 서버 수를 가장 바쁜 때에 맞춰 고정하면 한가한 시간에도 비용을 내고, 평소에 맞추면 요청이 몰릴 때 버티지 못한다. 오토스케일링은 지표를 보고 서버 수를 그때그때 바꿔, 둘 중 하나를 포기하지 않아도 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — AWS의 Auto Scaling 그룹이나 쿠버네티스의 HorizontalPodAutoscaler로 CPU 사용률이나 요청 수에 따라 서버나 Pod 수를 조절한다. 하루 중 이용량 차이가 큰 쇼핑몰이나 배달 서비스에서 흔히 쓴다.</dd>
 <dd>CPU 사용률이나 요청 수 같은 지표에 따라 서버의 수를 자동으로 늘리거나 줄이는 기능이다. 부하가 많을 때는 서버를 추가하고 적을 때는 줄여 비용을 아낀다. 서버가 추가되어 요청을 받을 수 있게 되기까지 시간이 걸리므로, 예고된 급증에는 미리 늘려 두는 것이 안전하다.</dd>
 <dt>TPS와 응답 시간 백분위</dt>
 <dd>TPS는 시스템이 1초에 처리하는 요청(트랜잭션)의 수다. 응답 시간은 평균만 보면 일부 느린 요청이 가려지므로 백분위로 본다. p95가 1초라는 것은 요청의 95%가 1초 안에 처리된다는 뜻이고, p99는 99%를 기준으로 한 값이다. 느린 일부 요청이 사용자 경험을 좌우하므로 p95, p99를 함께 관리한다.</dd>
@@ -93,6 +97,10 @@ server {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +174,10 @@ server {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

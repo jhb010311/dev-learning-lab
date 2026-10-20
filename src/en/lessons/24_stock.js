@@ -1,6 +1,8 @@
 Lab.register({
   id: 'stock', nav: 'Stock decrement and locks', cat: 'Database', mode: 'step',
   title: 'What if many orders arrive at once for 3 items in stock?',
+  why: 'When several requests do "read the stock, subtract 1 if any is left, and save" at the same time, two of them read the same number and each writes the value it subtracted, so one subtraction is lost. Pessimistic locking (SELECT ... FOR UPDATE) keeps other transactions from locking that row from the moment of reading, so they are processed one after another, and optimistic locking (@Version) makes the save fail if the version has changed, which prevents overwriting.',
+  use: 'It is used where several requests change the same row at the same time, such as stock deduction, first-come-first-served coupon issuing, and seat reservation. It is usual to choose pessimistic locking when conflicts are frequent and optimistic locking when they are rare, and when only subtraction is needed, a single UPDATE statement with the condition "subtract 1 only when greater than 0" will also do. When servers must queue up together for work outside the DB too, a Redis distributed lock is used.',
   intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. A lock is the typical safeguard against such concurrent changes, and this lab compares the results of several ways of locking and of preventing the problem without a lock.',
   terms: ['Pessimistic locking', 'Optimistic locking (@Version)', 'Shared locks and exclusive locks', 'Distributed lock', 'Race condition'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Thread count and context switching</h1>
 <p><b>Adding threads does not keep making things faster</b></p>
+<p><b>Why it exists</b> — If a new thread is created every time a task arrives, the number of threads grows without limit when requests pile up. Threads added after the CPU is already fully busy add no throughput and only take up memory, and creating and destroying threads costs something for every task. A thread pool creates a fixed number of threads in advance and reuses them, so the number of threads running at the same time can be capped to suit the kind of work.</p>
+<p><b>Where it's used today</b> — Tomcat handles requests with threads from a thread pool (server.tomcat.threads.max), and in Java code, tasks such as image conversion or external API calls are handed to a pool with ExecutorService. For computation-heavy tasks the pool size is set near the number of cores, and for tasks that wait for a database or an external response it is set much larger. For tasks that mostly wait, virtual threads are sometimes used instead.</p>
 <p>A CPU core runs only one thread at any given moment. When more threads want to run than there are cores, the operating system runs them in turn, each for a short time (context switching). Throughput then stops growing, and only the time for one task to finish gets longer. The right number of threads is completely different depending on whether the tasks mostly compute or mostly wait.</p>
 <p>Partly checked against real execution · The trend is the same as in measurements on JDK 21 (the numbers come from the model)</p>
 <h2>Concepts in this lab</h2>
@@ -87,6 +89,10 @@ for (Photo photo : photos) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +166,10 @@ for (Photo photo : photos) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'webattack', nav: 'Three web attacks', cat: 'Authentication', mode: 'step',
   title: 'What happens when you trust input as it is',
+  why: 'If user input is joined as it is onto an SQL string or HTML, the input is interpreted as a command or script rather than a value, and if login is checked by the cookie alone, a request triggered from another site is processed as if it were the user\'s own. Parameter binding and output escaping make input be treated only as a value and as text, a CSRF token checks whether a request came from that site\'s own page, and a SameSite cookie keeps the cookie from being attached to such requests.',
+  use: 'PreparedStatement, MyBatis\'s #{} binding, escaping output such as Thymeleaf\'s th:text, and Spring Security\'s CSRF protection take care of this defense. A hole opens where user input goes into MyBatis\'s ${} or th:utext. For an API that sends a token in the Authorization header instead of a cookie, the browser does not attach the token automatically, so CSRF protection is sometimes turned off.',
   intro: 'SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user\'s browser. In the third, a logged-in user\'s browser is made to send a request on the attacker\'s behalf.',
   terms: ['SQL injection', 'Cross-site scripting (XSS)', 'Cross-site request forgery (CSRF)', 'HttpOnly, Secure, and SameSite', 'Cookie'], ranks: ['websec', 'auth'],
   controls: [

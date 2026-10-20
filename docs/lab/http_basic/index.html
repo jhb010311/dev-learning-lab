@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>HTTP 요청</h1>
 <p><b>HTTP 요청은 어떻게 생긴 글인가</b></p>
+<p><b>왜 생겼나</b> — 브라우저와 서버는 서로 다른 사람이 만든 프로그램이라, 요청을 적는 방법이 프로그램마다 다르면 서로가 보낸 글을 읽을 수 없다. HTTP는 요청 줄, 헤더, 끝을 알리는 빈 줄의 순서와 모양을 하나로 정해 두어서, 어느 브라우저가 보낸 요청이든 어느 서버든 같은 방법으로 읽게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 브라우저로 웹 페이지를 열 때, 휴대폰 앱이 서버에서 데이터를 받아 올 때 HTTP 요청이 오간다. 스프링 부트 서버에서는 보통 톰캣이 이 글을 읽고 스프링이 경로에 맞는 메서드를 찾아 부르므로, 개발자가 이 줄을 직접 읽을 일은 드물다. 요청이 생각대로 처리되지 않을 때는 curl -v나 브라우저 개발자 도구의 네트워크 탭으로 실제로 보낸 메서드, 경로, 헤더를 확인한다.</p>
 <p>브라우저가 서버에 보내는 HTTP 요청은 정해진 모양의 글자 몇 줄입니다. 첫 줄(요청 줄)에는 메서드, 경로, 버전을 적습니다. 그 아래에는 &quot;이름: 값&quot; 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄로 헤더가 끝났음을 알립니다(본문이 없는 요청은 여기서 끝납니다). 서버는 이 글을 읽어 무엇을 달라는 요청인지 압니다. 이 실습은 첫 줄, Host 줄, 마지막 빈 줄을 하나씩 바꾸거나 지워 가며 같은 서버(/hello 주소만 만들어 둔 서버)에 글자를 그대로 보내, 서버가 그 글을 요청으로 읽는지, 어떤 응답을 돌려주는지, 우리가 쓴 서버 코드까지 가는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 http 서버에 열두 가지 조합의 글자를 그대로 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,14 @@
 <dt>요청 줄(request line)</dt>
 <dd>요청 줄은 HTTP 요청의 맨 첫 줄로, 메서드, 요청 대상(보통 경로), HTTP 버전을 공백으로 나누어 차례로 적는다. 예를 들어 GET /hello HTTP/1.1은 /hello에 대해 GET(달라는 요청)을 HTTP/1.1 규칙으로 보낸다는 뜻이다. 서버는 이 줄로 무엇을 달라는 요청인지 알아낸다. 세 칸의 모양이 맞지 않으면 서버는 그 글을 요청으로 읽지 못하고, RFC 9112는 잘못된 요청 줄에 400 응답을 돌려주도록 권한다(3.2절).</dd>
 <dt>Host 헤더</dt>
+<dd><b>왜 생겼나</b> — 요청 줄에는 보통 경로만 적혀서, 한 서버가 여러 사이트를 맡으면 /index.html이 어느 사이트의 것인지 알 수 없다. Host 헤더는 사이트 이름을 함께 보내, IP 주소 하나로 여러 사이트를 운영할 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 호스팅 업체가 서버 한 대에 여러 사람의 웹사이트를 둘 때 쓰고, Nginx 같은 서버도 Host 값을 보고 요청을 알맞은 프로그램에 나눠 보낸다.</dd>
 <dd>Host는 요청이 어느 사이트(호스트 이름과 포트)로 온 것인지를 알리는 헤더로, 값은 localhost:8080처럼 적는다. 한 서버가 여러 사이트를 맡을 수 있어서 서버가 어느 사이트의 요청인지 구분하는 데 쓴다. RFC 9112는 클라이언트가 모든 HTTP/1.1 요청에 Host 헤더를 보내야 하고, 서버는 Host가 없는 HTTP/1.1 요청에 400(Bad Request)으로 응답해야 한다고 정한다(3.2절). Node.js의 http 모듈도 Host가 없는 요청을 애플리케이션 코드에 넘기지 않고 400으로 답한다.</dd>
 <dt>HTTP 요청의 끝(빈 줄)</dt>
 <dd>HTTP 요청은 요청 줄, 헤더 줄들, 아무 글자도 없는 빈 줄 순서로 쓰며, 빈 줄이 헤더가 끝났다는 표시다(RFC 9112 2.1절). 줄바꿈은 CRLF(캐리지 리턴과 줄 바꿈 두 글자)로 적는다. 서버는 이 빈 줄이 와야 요청이 끝까지 왔다고 보고 처리를 시작하므로, 빈 줄이 오지 않으면 뒤에 글자가 더 오는 줄 알고 기다린다. 본문이 있는 요청에서는 빈 줄 다음부터가 본문이다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -84,6 +90,10 @@ Host: localhost:8080
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +167,10 @@ Host: localhost:8080
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

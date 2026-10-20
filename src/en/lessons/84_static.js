@@ -1,6 +1,8 @@
 Lab.register({
   id: 'static', nav: 'static and instance', cat: 'Java language', mode: 'step',
   title: 'Why does the value of a change when only b was touched?',
+  why: 'A calculation that picks the larger of two numbers, or a constant that only needs to exist once in the whole program, has nothing to do with any particular object, but if you could create them only as instance members, you would have to create a useless object first every time you used them. static ties such members to the class instead of an object, so you can use them with only the class name, as in Math.max(3, 5).',
+  use: 'It is used for methods whose result is decided only by the values they receive, such as Math.max and Integer.parseInt, and for constants declared as static final, such as Integer.MAX_VALUE. A logger kept one per class (private static final Logger) is also a common example. A static field is shared by the whole program, so a value that differs for each request is not put in a static field.',
   intro: 'When you put static in front of a field, the field exists only once, in the class and not in an object, and all objects share that one field. An instance variable, which is a field without static, is created separately for each object. A static method is called without an object, so you cannot use instance variables or this inside it.',
   terms: ['static', 'Classes and objects', 'Instance members and static members', 'this'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Deployment</h1>
 <p><b>When does a running server change after you edit the code?</b></p>
+<p><b>Why it exists</b> — If, each time a new version is released, files are moved to the server by hand and the server is turned off and on as needed, it is easy to forget a file to move or for the order to differ from person to person, and it also becomes unclear which version is running on the server now. If the deployment steps are decided in advance and followed exactly, putting the new version on the server and restarting it is always done in the same order, so forgotten steps decrease, and you can tell which version has been running since when.</p>
+<p><b>Where it's used today</b> — Deployment happens each time a new feature is released or a bug is fixed. These days it is common to set things up so that when code is pushed to a repository, a tool such as GitHub Actions or Jenkins goes on to build, test, and put it on the server. If there are several servers, they are replaced one at a time, so that other servers keep receiving requests while one is restarted.</p>
 <p>The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.</p>
 <p>Checked against real execution · Ran six combinations with a Node.js 24.18.0 server (a child process) that was really started, with the server.js file edited, and with the server stopped and started, sending requests from an http client, and checked against the model</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,7 @@
 <dt>Deployment</dt>
 <dd>Deployment is the work of putting a new version of the code into a server that is really running, so that users' requests reach the new version. Editing and saving a source file is not enough to make a deployment. A server that is already running runs on the code it read in when it started, so the server has to change to the new code. The simplest way is to stop the server and start it again with the new code, and with this way, when there is only one server, requests fail while it is stopped. The Kubernetes documentation explains this work as replacing old Pods with new Pods, and it distinguishes Recreate, which ends all the existing Pods and then creates new ones, from RollingUpdate, which replaces them gradually.</dd>
 <dt>Server restart</dt>
+<dd><b>Where it's used today</b> — A Spring Boot server usually reads the settings file when it starts, so you have to start it again even after editing application.properties. During development, Spring Boot DevTools restarts the application automatically every time it is rebuilt (while leaving the process as it is).</dd>
 <dd>A server restart is ending a running server process and running the same server program again to create a new process. The code the ended process held disappears with it, and the new process reads in the source file from the beginning when it starts. So a restart is a way of bringing the code that is on the disk at that moment into the server. Until it is stopped and started again, no process accepts connections, so a request that arrives in between fails with a connection refused error. If you restart without editing the source file, the server only reads the same code again.</dd>
 <dt>Code loaded at startup</dt>
 <dd>The server of this lab (Node.js) reads in the source file when the process starts, and after that it runs on the code it holds inside itself. The Node.js documentation explains that a module loaded with require is cached after it is first loaded, and that calling the same module several times does not run the module code several times. However, the server.js of this lab is not a module loaded with require but a start file run directly with the node command, so this documentation does not decide the behavior of server.js. On Node.js 24.18.0 in our test environment, even when I waited 0.5s after starting the server and editing the file, the code held by the live process stayed the same, and a server that was not started again answered requests with the old code. The file on the disk and the code inside the process are in different places.</dd>
@@ -84,6 +87,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +164,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

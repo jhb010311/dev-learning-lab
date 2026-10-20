@@ -1,6 +1,8 @@
 Lab.register({
   id: 'pk_basic', nav: 'Primary keys', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['constraints'],
   title: 'What is a primary key, and what changes without one?',
+  why: 'If a table has two rows whose values are all the same, a WHERE condition cannot point to just one of them, and if you search by a value that can repeat, such as a name, rows you did not mean to touch get changed along with it. A primary key fixes one column whose value must be different in every row and has the DB enforce that rule, so a program can pick exactly the row it wants with that one value and change or delete it.',
+  use: 'A table that stores things that must be told apart one by one, such as members, orders, and posts, almost always has a primary key. Usually the DB numbers an id column automatically as 1, 2, 3 (AUTO_INCREMENT in MySQL), and other tables use this number when they point to that row (a foreign key). In JPA, the field marked with @Id in an entity class is paired with the primary key column.',
   intro: 'A primary key is what you get when you write PRIMARY KEY on one column while creating a table. It is a promise to the database that the value in that column must be different in every row and cannot be empty (NULL), so the database rejects any INSERT that breaks the promise. That is why "the row with id 1" always points to exactly one row. In this lab you remove PRIMARY KEY, or change the id of the second row you insert, and run the same SQL each time. You see whether the database accepts the INSERT and how many rows the UPDATE changes.',
   terms: ['Primary key, unique key, foreign key', 'Constraint', 'NULL and three-valued logic', 'Rows and columns'],
   controls: [

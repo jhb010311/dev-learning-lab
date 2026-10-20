@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>JIT warmup</h1>
 <p><b>Why are the first requests right after a deployment slow?</b></p>
+<p><b>Why it exists</b> — If bytecode is only interpreted one instruction at a time, the same file runs on any operating system but runs slowly, and if it is compiled to machine code from the start, it is fast but must be built separately for each operating system and CPU. The JIT compiler picks only the frequently used code while the program runs and turns it into machine code for that machine, so the same bytecode runs much faster than with interpretation alone.</p>
+<p><b>Where it's used today</b> — A typical JVM such as HotSpot always does this without being turned on, so developers mostly think about it right after a deployment and when measuring performance. Examples are calling the main APIs in advance before passing requests to a new server, and discarding the first stretch when measuring performance. For short-lived programs where startup speed matters, a method that compiles to machine code in advance, such as a GraalVM native image, is sometimes used.</p>
 <p>Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster.</p>
 <p>Checked against real execution · Values actually measured on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>JIT compiler</dt>
 <dd>This JVM component compiles frequently executed bytecode to machine code while the program runs, and from then on runs that machine code directly. At first the interpreter interprets and runs the bytecode one instruction at a time; then the JVM finds the parts that run repeatedly and optimizes them. This is why a Java application is faster after it has run for a while than it is right after startup (warmup).</dd>
 <dt>Bytecode</dt>
+<dd><b>Where it's used today</b> — If you view the bytecode of a .class file with javap -c, you can see how the compiler transformed the code. Spring and Hibernate create bytecode directly at run time to generate proxy classes.</dd>
 <dd>This is the intermediate form of code that the Java compiler (javac) produces from source code, and it is stored in .class files. It is not the machine code of a particular CPU or operating system but a set of instructions that the JVM understands, so it runs on the JVM of any platform.</dd>
 <dt>Java Virtual Machine (JVM)</dt>
+<dd><b>Where it's used today</b> — Programs written in Kotlin and Scala, not only Java, are also compiled to bytecode and run on the JVM. On a server, you start a program by setting how it runs, such as the heap size (-Xmx) and the kind of GC, with JVM options.</dd>
 <dd>This is the program that reads and runs Java bytecode. Each operating system has its own version of it, so a Java program that is compiled once can run on several operating systems without modification. It loads classes, manages memory (garbage collection), and converts bytecode to machine code and runs it.</dd>
 <dt>Class loader</dt>
+<dd><b>Why it exists</b> — If where and how to read classes were fixed inside the JVM, it could not handle varied locations such as a jar bundled in a jar file or a library folder for each web application. The class loader separates out the way of reading, so a new loader can be created and used when needed.</dd>
+<dd><b>Where it's used today</b> — Tomcat gives each web application its own class loader so that different versions of the same library can run together, and Spring Boot uses a dedicated class loader that reads the library jars bundled in the executable jar.</dd>
 <dd>This JVM component finds class files and reads them into memory. Classes are not all read when the program starts; each class is loaded at the point when it is first needed. After a class is loaded, the JVM makes it ready for use through linking (verification, preparation, and resolution of symbolic references) and initialization (running static initializers).</dd>
 </dl>
 <h2>Try these</h2>
@@ -104,6 +110,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +187,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

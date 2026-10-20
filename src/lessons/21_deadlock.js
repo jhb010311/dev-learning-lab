@@ -1,6 +1,8 @@
 Lab.register({
   id: 'deadlock', nav: '교착 상태', cat: '동시성', mode: 'step',
   title: '서로 기다리다 둘 다 멈춘다',
+  why: 'synchronized는 락을 얻을 때까지 끝없이 기다리고 도중에 포기할 방법이 없어서, 두 스레드가 서로의 락을 기다리면 프로그램을 다시 시작하기 전까지 풀리지 않는다. ReentrantLock의 tryLock은 기다릴 시간을 정하고 그 안에 못 얻으면 false를 돌려주게 해서, 가진 락을 내려놓고 다시 시도할 길을 열었다.',
+  use: '락 순서를 하나로 정하는 규칙과 tryLock은 두 계좌 사이 이체처럼 락을 여러 개 잡는 코드에서 쓴다. 기본은 번호가 작은 계좌부터 잡듯 순서를 정하는 것이고, 순서를 정하기 어려울 때 tryLock을 보탠다. DB 트랜잭션끼리 교착 상태가 나면 MySQL InnoDB나 PostgreSQL이 알아채 한쪽을 롤백시키므로, 애플리케이션은 그 실패를 받아 다시 시도한다.',
   intro: '스레드 1은 계좌 A에서 B로, 스레드 2는 B에서 A로 이체합니다. 이체하려면 두 계좌의 락을 모두 잡아야 합니다. 락을 잡는 순서와 타이밍에 따라 두 스레드가 서로의 락을 기다리며 영원히 멈출 수 있습니다.',
   terms: ['교착 상태(Deadlock)', '임계 영역과 상호 배제', 'synchronized', '힙 덤프와 스레드 덤프'], ranks: ['concurrency', 'os', 'javasync'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'explainplan', nav: 'Reading the execution plan', cat: 'Database', mode: 'step',
   title: 'What should you read in one line of EXPLAIN?',
+  why: 'When a query is slow and you do not know what the database reads and how, all you can do is create more indexes or change the statement and measure the time. EXPLAIN shows, without running the query, the index the database chose, the number of rows it expects to read, and whether it sorts separately or uses a temporary table, so that you look for the reason a query is slow in the plan and not by guessing.',
+  use: 'You use it to find the cause of a query caught in the slow query log, and to check whether a query actually uses a newly created index. When you use JPA, you also take the SQL printed in the log and put EXPLAIN in front of it. If you need the number of rows actually read and the time taken instead of estimates, in MySQL you use EXPLAIN ANALYZE, which actually runs the query.',
   intro: 'Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries.',
   terms: ['Query execution plan (EXPLAIN)', 'EXPLAIN join types (type column)', 'EXPLAIN Extra information (Extra column)', 'Full table scan', 'Covering index'],
   controls: [

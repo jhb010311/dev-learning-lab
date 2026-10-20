@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lazyproxy', nav: 'Proxies and lazy fetching', cat: 'JPA', mode: 'step',
   title: 'Is an object received through lazy fetching a real entity?',
+  why: 'If you always read associated entities together, then even when you want to see only one order, you also query a member you will not use and even that member\'s team. Hibernate puts, in the place of the associated object, a proxy that knows only the identifier, and postpones the query until the values of that object are really used, so data that is not used is not read.',
+  use: '@ManyToOne is eager by default, so if many order queries do not use the member, you write FetchType.LAZY. It is common to leave associations lazy and read them with a fetch join or @EntityGraph only when you show them together. For a save that only fills in the foreign key, you connect the association without a SELECT by using em.getReference (getReferenceById in Spring Data JPA).',
   intro: 'A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed.',
   terms: ['Entity proxy', 'LazyInitializationException', 'Lazy fetching and eager fetching', 'Persistence context', 'First-level cache'],
   controls: [

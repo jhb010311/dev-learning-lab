@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>의존성과 공급망</h1>
 <p><b>내가 적지 않은 라이브러리는 어떻게 내 프로그램에 들어오고, 그 버전은 누가 정하나</b></p>
+<p><b>왜 생겼나</b> — 라이브러리 파일을 직접 내려받아 넣던 때는 그 라이브러리에 필요한 다른 파일까지 사람이 찾아 버전을 맞춰야 했다. Gradle과 Maven은 이름과 버전만 적으면 필요한 것을 모두 모아 주지만, 그만큼 내가 고르지 않은 코드와 버전이 빌드에 섞인다. 잠금 파일, 버전 덮어쓰기, 취약점 검사 도구는 이렇게 자동으로 들어오는 것을 다시 사람이 확인하고 정하게 하려고 쓰는 장치다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 프로젝트는 스타터 하나로 여러 라이브러리가 함께 들어오고, 그 버전은 스프링 부트가 정해 둔 목록(의존성 관리)을 따른다. 취약점이 알려지면 ./gradlew dependencies로 어느 경로로 들어왔는지 찾아 직접 의존성을 올리거나 그 라이브러리의 버전만 덮어쓰고, 빌드에 붙이는 OWASP Dependency-Check나 GitHub 저장소에서 켜는 Dependabot으로 알림을 받는다.</p>
 <p>빌드 파일에 라이브러리 한 줄을 적으면, 그 라이브러리가 필요로 하는 다른 라이브러리(전이 의존성)까지 함께 들어와 내 프로그램의 일부로 실행됩니다. 그래서 내가 고른 적 없는 라이브러리의 취약점도 내 문제가 됩니다. 버전을 범위로 적었는지 고정했는지에 따라 새로 올라온 버전이 자동으로 들어오기도 하고, 이름을 한 글자 잘못 적으면 전혀 다른 패키지가 들어오기도 합니다. 라이브러리가 만들어져 저장소를 거쳐 내 빌드에 들어오기까지의 길을 공급망이라고 하고, 그 길 어딘가에 악성 코드를 끼워 넣는 것이 공급망 공격입니다. 여기 나오는 라이브러리 이름과 취약점은 모두 설명을 위해 꾸민 것입니다.</p>
 <p>일부만 실행으로 확인 · 꾸민 라이브러리로 만든 개념 모형. 어떤 버전이 들어오는지는 열다섯 가지 조합을 Gradle 8.14.3으로 실제 해석해 대조했고, 취약·악성·가짜라는 판정은 꾸민 줄거리</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,7 @@
 <dt>전이 의존성</dt>
 <dd>내가 빌드 파일에 직접 적은 라이브러리(직접 의존성)가 다시 필요로 해서 함께 들어오는 라이브러리다. 빌드 도구는 라이브러리마다 딸린 설명 파일을 읽어 필요한 것을 차례로 따라가며 가져오므로, 한 줄을 적어도 실제로 들어오는 라이브러리는 훨씬 많다. 전이 의존성도 내 프로그램 안에서 직접 의존성과 똑같이 실행되므로 그 취약점은 내 프로그램의 취약점이 된다. 빌드 파일에는 이름이 보이지 않기 때문에, 의존성 나무를 출력하는 명령으로 무엇이 어떤 경로로 들어왔는지 확인해야 한다.</dd>
 <dt>버전 범위와 잠금 파일</dt>
+<dd><b>지금 어디에 쓰나</b> — npm은 package-lock.json을 기본으로 만들고, Gradle은 의존성 잠금(dependency locking)을 켠 뒤 --write-locks를 붙여 빌드하면 gradle.lockfile에 버전을 적는다. Maven에는 기본 잠금 파일이 없어서 범위 대신 정확한 버전을 적는 것이 보통이다.</dd>
 <dd>의존성의 버전을 하나로 고정하지 않고 &quot;2.x 가운데 가장 높은 버전&quot;처럼 범위로 적으면, 빌드할 때마다 그 범위에서 가장 새로운 버전이 선택된다. 고친 버전을 자동으로 받는 장점이 있지만, 같은 코드를 빌드해도 날에 따라 다른 코드가 들어오고 문제가 있는 새 버전도 자동으로 들어온다. 잠금 파일은 한 번 정해진 버전을 전이 의존성까지 모두 적어 두고 다음 빌드부터 그 버전만 받게 하는 파일이다. 잠금 파일을 코드와 함께 관리하면 누가 언제 빌드해도 같은 결과가 나오고, 새 버전은 잠금 파일을 갱신할 때만 들어온다.</dd>
 <dt>공급망 공격과 타이포스쿼팅</dt>
 <dd>공급망 공격은 프로그램을 직접 공격하지 않고 그 프로그램이 가져다 쓰는 라이브러리나 빌드 과정에 나쁜 코드를 끼워 넣는 공격이다. 라이브러리의 배포 계정을 빼앗아 악성 코드가 든 새 버전을 올리는 것이 한 가지 방법이고, 타이포스쿼팅은 널리 쓰이는 이름과 한두 글자만 다른 이름으로 가짜 패키지를 올려 두고 오타를 기다리는 방법이다. 들어온 코드는 내 프로그램과 같은 권한으로 실행되므로 피해가 크다. 버전을 고정하고, 의존성의 이름과 출처를 확인하고, 알려진 취약점을 검사하는 도구를 빌드에 넣어 대비한다.</dd>
@@ -86,6 +89,10 @@ dependencies {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +166,10 @@ dependencies {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

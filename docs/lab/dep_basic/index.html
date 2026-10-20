@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>라이브러리와 의존성</h1>
 <p><b>라이브러리는 무엇이고, 없으면 어떻게 되는가</b></p>
+<p><b>왜 생겼나</b> — JSON 글을 객체로 바꾸기, 테스트 실행하기 같은 흔한 일을 프로젝트마다 처음부터 짜면 시간이 들고 실수도 생긴다. 라이브러리는 이런 일을 하는 클래스를 jar 파일로 받아 import로 가져다 쓰게 한다. jar를 손으로 받아 -cp에 적는 번거로운 일은 Gradle이나 Maven 같은 빌드 도구가 대신 맡는다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 프로젝트의 build.gradle에서 dependencies 부분에 spring-boot-starter-web이나 JUnit 같은 라이브러리 이름을 적을 때 본다. Gradle은 그 라이브러리가 다시 쓰는 라이브러리까지 받아 와 클래스패스에 넣는다. 테스트에만 필요한 것은 testImplementation으로 적어, 프로그램을 실행할 때의 클래스패스에는 들어가지 않게 한다.</p>
 <p>라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Greeter는 App.java 안에 없습니다. 그래서 컴파일할 때도, 실행할 때도 컴파일러(javac)와 JVM(java)은 클래스패스(클래스 파일을 찾아볼 곳의 목록)에서 Greeter를 찾아야 하고, 명령에서는 -cp 뒤에 그 목록을 적습니다. 내 프로젝트가 쓰는 라이브러리를 의존성이라고 부르며, 빌드 도구 Gradle에서는 implementation으로 적은 의존성이 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 javac 명령과 java 명령에서 greet.jar를 하나씩 빼 가며 실제로 컴파일하고 실행해, 어느 단계에서 어떤 오류가 나는지를 봅니다. (Gradle은 이 실습에서 실행하지 않습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 네 가지 조합을 greet.jar를 만들어 javac와 java 명령 그대로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,14 @@
 <dt>라이브러리와 jar 파일</dt>
 <dd>라이브러리는 남이 만들어 둔 클래스들로, 내 코드가 import로 가져다 쓴다. 자바에서는 컴파일한 클래스 파일을 jar 파일 하나로 묶어 나누어 주는 일이 흔하다. 예를 들어 Greeter.java를 컴파일해 jar 도구로 묶으면 jar tf greet.jar가 lib/Greeter.class를 비롯한 안의 파일 목록을 보여 준다. 내 코드를 컴파일하거나 실행할 때 jar 안의 클래스가 필요하면, 그 jar를 클래스패스에 적어야 한다. jar가 내 소스와 같은 폴더에 놓여 있다는 것만으로는 찾아보는 곳에 들어가지 않는다.</dd>
 <dt>클래스패스(-cp)</dt>
+<dd><b>왜 생겼나</b> — JVM이 컴퓨터의 모든 폴더를 뒤져 클래스를 찾는다면 느리고, 같은 이름의 클래스가 여러 곳에 있을 때 어느 것을 쓸지도 정할 수 없다. 클래스패스는 찾아볼 곳과 그 순서를 사람이 정해 주게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 평소에는 IntelliJ나 Gradle이 의존성 jar를 모아 클래스패스를 만들어 주므로 직접 적을 일이 적다. 실행할 때 클래스를 찾지 못했다는 오류가 나면, 그 클래스를 가진 jar가 클래스패스에 있는지부터 확인한다.</dd>
 <dd>클래스패스는 컴파일러(javac)와 JVM(java)이 사용자 클래스 파일을 찾아볼 곳의 목록이다. 명령에서는 -cp(또는 --class-path, -classpath) 뒤에 적고, 목록의 한 곳은 디렉터리나 JAR 파일이며 Windows에서는 세미콜론(;)으로, 그 밖의 시스템에서는 콜론(:)으로 구분한다. -cp를 적지 않고 CLASSPATH 환경 변수도 없으면 javac와 java 모두 현재 폴더를 쓴다. javac와 java는 각각 자기 명령의 클래스패스를 따로 받으므로, 컴파일할 때 준 -cp가 실행할 때 저절로 이어지지 않는다. -cp greet.jar처럼 jar만 적으면 현재 폴더는 찾아보는 곳이 아니므로, 현재 폴더의 클래스 파일도 쓰려면 greet.jar;.처럼 점(.)을 함께 적어야 한다.</dd>
 <dt>NoClassDefFoundError</dt>
 <dd>NoClassDefFoundError는 JVM이나 클래스 로더가 클래스의 정의를 불러오려는데 그 정의를 찾을 수 없을 때 던져지는 오류이다. API 문서는 찾으려는 클래스의 정의가 지금 실행 중인 클래스를 컴파일할 때는 있었지만 이제는 찾을 수 없는 경우라고 설명한다. 라이브러리 jar를 컴파일할 때는 클래스패스에 넣고 실행할 때는 빼면 이 오류가 난다. 컴파일할 때 jar가 없어서 나는 &quot;package lib does not exist&quot; 같은 컴파일 오류와는 시점이 다르다. 컴파일 오류는 프로그램을 실행하기 전에 컴파일러가 알리고, 이 오류는 프로그램이 실행되는 도중에 그 클래스가 필요해진 곳에서 난다.</dd>
 <dt>빌드 의존성과 implementation</dt>
+<dd><b>왜 생겼나</b> — jar 파일을 각자 받아 쓰면 팀원마다 다른 버전을 쓰게 되기 쉽다. build.gradle에 좌표와 버전을 적어 두면 누구의 컴퓨터에서 빌드하든 같은 라이브러리를 같은 버전으로 받아 온다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 내 코드에서 import해 쓰는 라이브러리는 implementation에 적는다. 내 코드가 직접 부르지 않고 실행할 때만 필요한 DB 드라이버는 runtimeOnly에 적는다.</dd>
 <dd>의존성은 내 프로젝트가 쓰는 라이브러리이다. Gradle에서는 dependencies 블록 안에 group:name:version 좌표로 적는다. 그 가운데 implementation은 메인 소스를 컴파일할 때와 실행할 때 모두 필요한 의존성을 적는 자리이다. Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일에 쓰는 compileClasspath와 실행에 쓰는 runtimeClasspath에 모두 포함된다. 곧 손으로 javac와 java 명령에 -cp를 적던 일을 빌드 도구가 설정 한 줄로 대신한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -102,6 +108,10 @@ java -cp greet.jar;. App</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +185,10 @@ java -cp greet.jar;. App</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'accessctl', nav: 'Access control', cat: 'Authentication', mode: 'step',
   title: 'If a logged-in user only changes the number in the URL, can they see someone else\'s order?',
+  why: 'Not showing a link to someone else\'s order on the screen is not enough to stop access, because anyone can build and send a request directly from the address bar or with curl. Access control makes the server check the role and the owner of the resource on every request, so it refuses a request that is not allowed, whatever the screen shows.',
+  use: 'It is needed for every API that looks up, changes, or deletes a resource that has an owner, such as an order, a post, or an attachment, by its number. Places that are divided by role, such as admin addresses, are blocked with the URL rules of SecurityFilterChain. Whose resource it is cannot be known from the role alone, so you either add the logged-in user to the condition when you look the resource up in the DB, or check the owner with an expression of method security.',
   intro: 'Being logged in only means that "who you are has been confirmed" (authentication). It does not mean "you may view this resource" (authorization). What happens if kim logs in and then changes only the order number in the URL to request lee\'s order? Depending on what the server checks, the order is either shown as it is or the request is refused.',
   terms: ['Authentication and authorization', 'Access control and ownership checks', 'Role-based access control (RBAC)', 'HTTP status codes', 'Spring Security and SecurityFilterChain'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'strbuild', nav: 'String, StringBuilder', cat: 'Java language', mode: 'step',
   title: 'Why is the original unchanged after you call a string method?',
+  why: 'If a String could be modified, then in the string constant pool, where several places share one object for literals with the same characters, a change in one place would change the others, and a file path or connection address that has already been checked could later be changed by other code. If a String is made an object that cannot be changed, this does not happen, and building text by appending characters many times is handled separately by StringBuilder, which modifies a single object.',
+  use: 'String is used for text that is read only after it is created once, such as names, addresses, and messages, and StringBuilder is used when you append pieces many times in a loop to build long text. The synchronized StringBuffer is used only when several threads must append to one object together. Joining within a single expression, as in a + b + c, can just use +.',
   intro: 'A String is an object whose contents do not change once it has been created. Methods such as concat, replace, and toUpperCase do not modify the original. They create a new string and return it, so if you ignore the return value, it looks as if nothing happened. A StringBuilder, in contrast, modifies the contents of a single object directly. Look at the difference while using == to check whether two variables refer to the same object.',
   terms: ['String immutability', 'Immutable object', 'StringBuilder and StringBuffer', 'Identity and equality'],
   controls: [

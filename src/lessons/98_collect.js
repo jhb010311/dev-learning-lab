@@ -1,6 +1,8 @@
 Lab.register({
   id: 'collect', nav: '스트림으로 모으기', cat: '자바 언어', mode: 'step',
   title: '스트림의 결과를 어떤 모양으로 모으나',
+  why: '스트림이 없을 때 목록을 고객별로 묶거나 개수를 세려면, 빈 Map을 만들고 for문을 돌며 키가 이미 있는지 확인해 가며 값을 넣는 코드를 매번 적어야 했다. collect와 Collectors는 "어떤 모양으로 모을지"를 groupingBy, toMap, joining 같은 이름으로 고르게 해서 그 반복 코드를 줄인다.',
+  use: 'DB에서 읽은 목록을 카테고리별로 묶거나(groupingBy), id로 바로 찾을 수 있는 Map으로 바꾸거나(toMap), 이름들을 쉼표로 이어 한 줄로 만들 때(joining) 쓴다. 묶은 다음 합계나 평균이 필요하면 groupingBy에 summingInt, averagingInt 같은 Collector를 함께 넘긴다.',
   intro: '스트림에서 흘러나온 원소들은 마지막에 collect 같은 최종 연산으로 결과를 받아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.',
   terms: ['Stream API', 'Collector와 collect', 'groupingBy와 partitioningBy', '메서드 참조', 'List, Set, Map'],
   controls: [

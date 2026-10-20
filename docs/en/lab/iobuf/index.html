@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,15 +31,21 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › I/O</p>
 <h1>I/O streams and buffers</h1>
 <p><b>I called write, so why is the file empty?</b></p>
+<p><b>Why it exists</b> — If you write one byte at a time directly to a file or a socket, each write costs a call to the operating system, so the more small writes there are, the slower it gets. BufferedOutputStream collects small write requests and passes them to the underlying stream in larger chunks, which reduces the number of calls to the operating system. The price is that the data does not reach the file until the buffer fills or you call flush or close.</p>
+<p><b>Where it's used today</b> — When you read and write files, you use buffered streams such as BufferedReader, BufferedWriter, and Files.newBufferedWriter by default, and you use try-with-resources to make sure they are closed. Text that includes Korean is read with a character stream that has the encoding set to UTF-8. For output that must reach the other side right away, such as a message sent over a socket, you call flush after writing the whole message.</p>
 <p>When you write to a file, calling out.write does not mean that the data goes into the file right away. A buffered stream collects data in memory and writes it out all at once. This lab writes the 9 bytes of the three Korean characters &quot;가나다&quot; one byte at a time, counts how many writes actually reach the underlying stream, and then reads the file back both byte by byte and character by character.</p>
 <p>Checked against real execution · The 48 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Byte streams and character streams</dt>
+<dd><b>Where it's used today</b> — Use InputStream and OutputStream to save an uploaded image or to copy a file as it is. To read a text file such as a CSV or a log line by line, use a BufferedReader created with Files.newBufferedReader with the encoding specified.</dd>
 <dd>A stream is a channel through which data flows in sequence from one side to the other, and Java has two kinds: one that handles data in units of bytes and one that handles it in units of characters. The InputStream and OutputStream family are the byte streams, which are used to move content as it is, such as images and compressed files. The Reader and Writer family are the character streams, which convert bytes to characters according to a given encoding. Text in which one character takes several bytes, such as Korean, is garbled if you read it with a byte stream and convert each byte to a character, so use a character stream with a specified encoding to read and write text.</dd>
 <dt>Buffer and flush</dt>
+<dd><b>Where it's used today</b> — Use a buffer when writing a lot of logs to a file or sending a response through a socket. For data that the other side must receive right away, such as a chat message, call flush after writing, and if you close with try-with-resources, close also does the flush.</dd>
 <dd>A buffer is an area of memory that holds data for a while without sending it out right away. BufferedOutputStream and BufferedWriter collect the data they receive through write in a buffer and, when the buffer becomes full, write it to the underlying stream all at once, which reduces the number of writes to a file or the network. flush is a request to write out what has been collected so far even though the buffer is not full, and close performs a flush before it closes the stream. So if neither flush nor close is called, the data that was left in the buffer is not written to the destination.</dd>
 <dt>Character encoding and UTF-8</dt>
+<dd><b>Why it exists</b> — If every country uses a different encoding (Korea uses EUC-KR and others), characters are garbled when you open a file written in another encoding, and it is hard to mix characters of several countries in one text. UTF-8 writes every Unicode character by one rule, and keeps English letters as 1 byte, the same as ASCII.</dd>
+<dd><b>Where it's used today</b> — It is commonly used as the encoding of web pages, JSON, and Java source files. To store even emoji in MySQL, specify the character set as utf8mb4, not utf8.</dd>
 <dd>A character encoding is a rule that defines which bytes each character is converted to when it is stored. UTF-8 is the most widely used encoding, and the length of a character varies from 1 byte to 4 bytes depending on the character. English letters and digits take 1 byte, and one Korean character takes 3 bytes. Text is garbled when the encoding used for writing differs from the one used for reading, or when the bytes are cut off in the middle of a character, so it is safer to state the encoding explicitly in code that reads and writes text.</dd>
 <dt>finally and try-with-resources</dt>
 <dd>A finally block runs whether the try block ends normally or throws an exception (except when the JVM exits during the try, for example through System.exit()), and it is used to clean up resources. The try-with-resources statement lets you declare a resource that implements AutoCloseable inside the parentheses of try, and close() is then called automatically when the block ends. Compared with closing the resource yourself in finally, it leads to fewer forgotten closes and fewer exception-handling mistakes.</dd>
@@ -107,6 +113,10 @@ System.out.println(sb);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +190,10 @@ System.out.println(sb);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

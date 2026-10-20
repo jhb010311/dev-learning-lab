@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>The Spring container and beans</h1>
 <p><b>You never wrote new, so who creates the object and passes it in?</b></p>
+<p><b>Why it exists</b> — If an object creates the objects it uses directly with new, then every time you want to change the implementation or replace it with a fake object in a test, you have to change the code that uses it. The Spring container lets you decide separately, with configuration such as @Component or @Bean, what to create and where to connect it, and at startup it creates and connects the objects as configured. The code that uses an object only needs to know the interface.</p>
+<p><b>Where it's used today</b> — In a Spring application, the controllers, services, and repositories are usually registered as beans and connected to each other with constructor injection. Classes you write yourself are registered with the @Component family such as @Service and @Repository, and objects from external libraries are registered with @Bean methods of a @Configuration class. When one interface has several implementations, you choose one with @Primary or @Qualifier.</p>
 <p>For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed. OrderService, DiscountPolicy, FixedDiscountPolicy, RateDiscountPolicy and AppConfig in this lab are classes and an interface made for this example.</p>
 <p>Checked against real execution · All 30 combinations were run on Spring Boot 4.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Spring bean</dt>
 <dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
 <dt>@Configuration and @Bean</dt>
+<dd><b>Why it exists</b> — XML configuration writes class names as text, so a typo or a type error was found only by running the application. @Configuration and @Bean let you write bean definitions in Java code, so the compiler checks them and you can jump to them directly in the IDE.</dd>
+<dd><b>Where it's used today</b> — They are used to register library objects that must be created with configuration values, such as ObjectMapper and RestClient, and configuration objects such as Spring Security's SecurityFilterChain.</dd>
 <dd>@Configuration marks a configuration class that contains bean definitions, and the object returned by each @Bean method inside it is registered as a bean. Use them when you need to make a bean from a class in an external library that you cannot modify, or when you need to control the creation process yourself. Classes that you write yourself are usually registered with @Component or a related annotation.</dd>
 <dt>@Primary and @Qualifier</dt>
+<dd><b>Why it exists</b> — When there are several beans of the same type, if the user of the bean writes the implementation class directly, it is tied to that implementation, and if the registration is reduced to one, the others cannot be used. @Primary and @Qualifier let annotations decide the bean to use by default and the bean to choose by name, while both stay registered.</dd>
+<dd><b>Where it's used today</b> — When you register two DataSources, such as a main database and a read-only database, put @Primary on the default one and @Qualifier at the place that receives the other. It is also used in code that chooses among implementations of the same interface depending on the situation.</dd>
 <dd>These are two annotations that determine which bean is injected when there are two or more beans of the same type. The Spring container looks up the bean to inject by type, and when several beans match and there is no clue to decide which one to use (@Primary, @Qualifier, or a name), it throws a NoUniqueBeanDefinitionException and the application does not start. @Primary goes on the side that registers the bean (a class or a @Bean method) and marks it as &quot;the one to prefer when there are several&quot;. @Qualifier goes on the side that receives the injection (a constructor parameter or a field) and names the bean to use directly. When both are present, the bean specified with @Qualifier is injected.</dd>
 <dt>NoSuchBeanDefinitionException and NoUniqueBeanDefinitionException</dt>
 <dd>These are two exceptions that the container throws when it cannot determine which bean to inject. NoSuchBeanDefinitionException is thrown when no bean of the required type is registered at all, and NoUniqueBeanDefinitionException is thrown when there are two or more beans of the same type and the container cannot choose one. Singleton beans are created when the application starts, so these exceptions usually appear at startup, not while a request is being handled, if the bean is a singleton, and the application does not start. For the former, check whether a bean registration (@Component or @Bean) is missing, and for the latter, check whether another bean of the same type has been added.</dd>
@@ -111,6 +117,10 @@ int pay = orderService.order(20000);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -184,9 +194,10 @@ int pay = orderService.order(20000);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>생성자</h1>
 <p><b>생성자는 무엇이고, 언제 실행되는가</b></p>
+<p><b>왜 생겼나</b> — 생성자에서 값을 받지 않으면 객체를 new로 만든 뒤 필드를 한 줄씩 따로 채워야 하는데, 한 줄을 빠뜨려도 컴파일러는 알려 주지 않아서 이름이 null인 객체가 그대로 쓰인다. 생성자는 객체를 만드는 순간 꼭 필요한 값을 받아 필드를 채우게 하고, 값을 받는 생성자만 적어 두면 그 값 없이는 객체를 만들 수 없게 막는다.</p>
+<p><b>지금 어디에 쓰나</b> — new ArrayList&lt;&gt;()나 new StringBuilder(&quot;시작&quot;)처럼 자바가 주는 클래스도 생성자로 객체의 처음 상태를 정한다. 만든 뒤 바뀌면 안 되는 필드는 final로 선언하고 생성자에서 한 번만 채운다. 스프링에서는 클래스가 일에 필요한 다른 객체를 생성자의 매개변수로 받아 두는 방식을 흔히 쓴다.</p>
 <p>생성자는 클래스 안에 적는 코드 묶음입니다. 이름이 클래스 이름과 같고 반환 타입을 적지 않는다는 점이 메서드와 다릅니다. 메서드는 우리가 이름으로 불러야 실행되지만, 생성자는 new Card(&quot;김철수&quot;)를 실행할 때마다 한 번씩 실행되어 새로 만든 객체의 필드를 채웁니다(Card는 이 실습에서 예시로 만든 클래스입니다). 생성자를 하나도 적지 않으면 컴파일러가 아무 일도 하지 않는 생성자를 대신 넣습니다. 이 실습은 Card(String owner) 생성자를 지우거나 객체를 만드는 줄을 new Card()로 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 생성자가 몇 번 실행되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,10 @@
 <dt>생성자</dt>
 <dd>객체를 new로 만들 때 한 번 실행되어 필드를 처음 상태로 맞추는 코드다. 이름이 클래스 이름과 같고 반환 타입을 적지 않는다. 받는 인자가 다르면 한 클래스에 여러 개를 둘 수 있으며, new에 넘긴 인자에 맞는 것이 선택된다. 생성자 본문은 필드가 기본값으로 채워지고 필드 초기화식과 초기화 블록이 실행된 뒤에 실행된다.</dd>
 <dt>기본 생성자</dt>
+<dd><b>지금 어디에 쓰나</b> — JPA는 엔티티를 DB에서 읽어 올 때 인자 없는 생성자로 객체를 먼저 만들므로, 엔티티에는 인자 없는 생성자가 있어야 한다. 그래서 인자 있는 생성자를 적은 엔티티에도 인자 없는 생성자를 따로 두며, 다른 코드가 함부로 쓰지 않게 protected로 두는 일이 많다.</dd>
 <dd>클래스에 생성자를 하나도 적지 않았을 때 컴파일러가 자동으로 넣어 주는, 인자가 없고 본문이 빈 생성자다. 이것 덕분에 생성자를 적지 않은 클래스도 new 클래스이름()으로 객체를 만들 수 있다. 생성자를 하나라도 직접 적으면 만들어지지 않는다. 그래서 인자 있는 생성자만 적은 클래스는 인자 없이 new를 하면 컴파일 오류가 난다.</dd>
 <dt>this</dt>
+<dd><b>지금 어디에 쓰나</b> — this.name = name처럼 생성자와 setter에서 받은 값을 필드에 넣을 때 흔히 본다. StringBuilder의 append처럼 메서드가 return this로 자기 객체를 돌려주면 sb.append(&quot;a&quot;).append(&quot;b&quot;)처럼 호출을 이어 쓸 수 있다.</dd>
 <dd>인스턴스 메서드나 생성자 안에서 지금 다루고 있는 객체 자신을 가리키는 참조다. this.name처럼 써서 같은 이름의 매개변수와 필드를 구분한다. 생성자의 첫 문장으로 this(인자)를 쓰면 같은 클래스의 다른 생성자를 먼저 실행한다. static 메서드에는 대상 객체가 없으므로 this를 쓸 수 없다.</dd>
 <dt>필드의 기본값</dt>
 <dd>객체가 만들어질 때 값을 따로 주지 않은 필드에 자동으로 들어가는 값이다. int 같은 숫자 타입은 0, boolean은 false, String을 비롯한 참조 타입은 null이다. 필드 초기화식이나 생성자가 값을 넣기 전까지는 이 값이 보인다. 메서드 안의 지역 변수에는 기본값이 없어서, 값을 넣지 않고 읽으면 컴파일 오류가 난다.</dd>
@@ -97,6 +101,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +178,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

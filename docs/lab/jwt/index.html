@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
 <h1>JWT의 구조와 검증</h1>
 <p><b>누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나</b></p>
+<p><b>왜 생겼나</b> — 서버 세션 방식은 로그인 상태를 서버 저장소에 두고 요청마다 세션 ID로 찾아보므로, 서버가 여러 대이거나 여러 서비스가 같은 로그인을 확인해야 하면 모두가 그 저장소를 함께 써야 한다. JWT는 사용자 정보와 서명을 토큰 자체에 적어서, 서명을 확인할 키만 가진 서버라면 어디서든 토큰이 발급된 그대로인지 스스로 확인할 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — OpenID Connect의 ID 토큰이 JWT이고, OAuth 2.0 인가 서버가 발급하는 액세스 토큰에도 흔히 쓰인다. API를 부르는 쪽은 Authorization: Bearer 헤더로 토큰을 보내고, Spring Security의 OAuth2 리소스 서버 기능이 서명과 만료 시각을 검사한다. 로그아웃이나 계정 정지를 바로 반영해야 하면 서버 세션을 쓰거나 토큰의 유효 시간을 짧게 잡는다.</p>
 <p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다.</p>
 <p>실행으로 대조 · Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들어 열여섯 가지 조합의 검증 결과를 대조했고, 화면의 자바 코드도 JDK 21에서 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,16 @@
 <dt>JWT(JSON Web Token)</dt>
 <dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
 <dt>Base64URL 인코딩</dt>
+<dd><b>지금 어디에 쓰나</b> — 주소에 실어 보내는 토큰이나 OAuth PKCE의 code_challenge 값처럼 URL에 바로 넣을 바이트 값을 적을 때 쓴다. 자바에서는 Base64.getUrlEncoder().withoutPadding()으로 만든다.</dd>
 <dd>바이트를 영문 대소문자와 숫자, 그리고 -와 _만으로 옮겨 적는 표기법이다. 주소(URL)나 HTTP 헤더에 그대로 넣어도 깨지지 않도록 Base64에서 +와 /를 -와 _로 바꾸고 끝의 =를 뺀 것이다. JWT의 세 부분은 모두 이 표기로 적혀 있다. 키가 없어도 누구나 원래 내용으로 되돌릴 수 있으므로 암호화가 아니며, 내용을 숨기는 효과는 전혀 없다.</dd>
 <dt>클레임(Claim)</dt>
 <dd>토큰의 내용(payload)에 적힌 &quot;이름: 값&quot; 한 쌍을 가리키는 말이다. 누구에 관한 토큰인지를 적는 sub, 만료 시각을 적는 exp, 발급한 곳을 적는 iss처럼 표준이 이름을 정해 둔 것이 있고, role처럼 서비스가 필요해서 넣는 것도 있다. exp는 1970년 1월 1일 0시(UTC)부터 센 초로 적으며, 서버는 지금 시각이 exp보다 앞일 때만 토큰을 받는다. 클레임은 누구나 읽을 수 있으므로 비밀번호 같은 민감한 값은 넣지 않고, 서명을 확인하기 전에는 그 내용을 믿지 않는다.</dd>
 <dt>HMAC과 전자서명</dt>
+<dd><b>왜 생겼나</b> — 해시 값만 붙여 보내면 중간에서 내용을 바꾸고 해시도 새로 계산해 붙일 수 있어 위조를 알아챌 수 없다. HMAC과 전자서명은 키가 있어야만 만들 수 있는 값을 붙여, 키가 없는 쪽이 고친 메시지를 받는 쪽이 가려내게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JWT의 서명(HS256은 HMAC, RS256은 전자서명), GitHub 웹훅처럼 요청 헤더에 붙여 보내는 서명, HTTPS 인증서 검증에 쓰인다.</dd>
 <dd>메시지가 중간에 바뀌지 않았고 정당한 상대가 보냈음을 확인하는 기술이다. HMAC은 양쪽이 공유한 비밀키와 메시지를 함께 해시해 인증 코드를 만든다. 전자서명은 보내는 쪽이 개인키로 서명하고 받는 쪽이 공개키로 검증하며, 서명한 쪽만 만들 수 있으므로 보낸 사실을 부인할 수 없다.</dd>
 <dt>알고리즘 고정(alg 검증)</dt>
+<dd><b>지금 어디에 쓰나</b> — JWT를 검증하는 코드에서 받을 알고리즘을 HS256이나 RS256처럼 정해 둔다. 공개 키로 검증하는 서버에 alg를 HS256으로 바꿔 공개 키를 비밀 키처럼 쓰게 하는 공격도 이것으로 막는다.</dd>
 <dd>토큰을 검증할 때 쓸 서명 알고리즘을 토큰이 아니라 서버가 정해 두는 것이다. JWT의 머리말에는 alg라는 항목이 있어 어떤 알고리즘으로 서명했는지 적혀 있지만, 머리말은 누구나 고칠 수 있는 글자다. 서버가 이 값을 그대로 따르면, 보내는 쪽이 alg를 none(서명 없음)으로 바꿔 서명 확인을 건너뛰게 만들 수 있다. 그래서 서버는 받을 알고리즘의 목록을 미리 정하고, 머리말의 alg가 그 목록에 없으면 서명을 계산해 보기도 전에 거절한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -119,6 +125,10 @@ Claims verify(String token, long now) throws Exception {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -192,9 +202,10 @@ Claims verify(String token, long now) throws Exception {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

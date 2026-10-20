@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
 <h1>시큐리티 필터 체인</h1>
 <p><b>401과 403은 어디에서 갈리나</b></p>
+<p><b>왜 생겼나</b> — 컨트롤러마다 로그인 여부와 권한을 확인하는 코드를 직접 넣으면, 한 곳만 빠뜨려도 그 경로가 열린다. Spring Security는 이 확인을 컨트롤러 앞의 필터 단계로 모아, 경로별 규칙을 설정 한 곳에 적어 두면 모든 요청에 같은 방식으로 적용되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 로그인이 필요한 웹 서비스와 API 서버에서 쓴다. JWT나 세션으로 사용자를 확인하고, 관리자 경로에는 ADMIN 권한만 통과시키고, 거부할 때 나가는 401·403 응답의 모양을 정하는 일을 이 설정에서 한다. 컨트롤러 메서드 단위로 권한을 따질 때는 @PreAuthorize 같은 애너테이션을 함께 쓴다.</p>
 <p>스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어디에서 막히고 어떤 응답으로 끝나는지 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1과 시큐리티 7.1.1 서버에 열두 가지 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,19 @@
 <dt>인증과 인가</dt>
 <dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
 <dt>Spring Security와 SecurityFilterChain</dt>
+<dd><b>왜 생겼나</b> — 보안 검사를 서블릿 필터로 직접 짜면 로그인 확인, 권한 검사, CSRF 검사 필터의 순서와 적용할 주소를 프로젝트마다 손으로 맞춰야 했다. Spring Security는 이런 필터를 정해진 순서로 제공하고, SecurityFilterChain에서는 어느 주소에 어떤 검사를 쓸지를 고르게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 폼 로그인, JWT 검증, 소셜 로그인, 관리자 주소 제한을 SecurityFilterChain 빈에 설정한다. /api/** 주소와 화면 주소처럼 규칙이 다른 묶음은 체인을 둘 이상 두어 나눈다.</dd>
 <dd>Spring Security는 인증과 인가를 처리하는 스프링의 보안 프레임워크로, 서블릿 필터들의 묶음으로 동작한다. SecurityFilterChain은 어떤 요청에 어떤 보안 필터들을 어떤 순서로 적용할지 정의한 것이다. 요청이 컨트롤러에 도달하기 전에 필터들이 차례로 인증 정보 확인, 권한 검사 등을 수행한다.</dd>
 <dt>SecurityContext</dt>
+<dd><b>왜 생겼나</b> — 필터에서 확인한 사용자를 컨트롤러와 서비스까지 전하려면 메서드마다 사용자 정보를 매개변수로 넘겨야 한다. SecurityContext를 두면 그렇게 넘기지 않아도 같은 요청을 처리하는 어느 계층에서든 SecurityContextHolder로 현재 사용자를 얻는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 컨트롤러의 @AuthenticationPrincipal 매개변수와 메서드에 붙인 @PreAuthorize 검사가 이곳의 인증 정보를 쓴다. @Async처럼 다른 스레드로 넘어가면 기본으로는 이어지지 않아 따로 넘겨야 한다.</dd>
 <dd>현재 요청을 보낸 사용자의 인증 정보(누구인지, 어떤 권한이 있는지)를 담아 두는 Spring Security의 저장소다. 인증에 성공하면 이곳에 정보가 저장되고, 이후 컨트롤러나 서비스에서 현재 사용자를 조회할 때 여기서 꺼낸다. 기본적으로 스레드별로 보관된다.</dd>
 <dt>필터(Filter)</dt>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트에서는 OncePerRequestFilter를 상속해 만들고 빈으로 등록하면 적용된다. 요청 로그나 요청 번호 붙이기처럼 컨트롤러와 무관한 일에 쓰고, 어느 컨트롤러 메서드인지 알아야 하면 인터셉터가 맞다.</dd>
 <dd>서블릿 컨테이너 수준에서 요청과 응답을 가로채 처리하는 구성 요소로 서블릿 표준에 속한다. 요청이 DispatcherServlet에 도달하기 전과 응답이 돌아가는 길에 동작하며, 인코딩 설정, CORS 처리, 인증 같은 모든 요청에 걸친 작업에 쓴다. Spring Security도 필터들의 묶음으로 동작한다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -103,6 +112,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +189,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

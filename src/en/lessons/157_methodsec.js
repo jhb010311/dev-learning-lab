@@ -1,6 +1,8 @@
 Lab.register({
   id: 'methodsec', nav: 'Method security', cat: 'Authentication', mode: 'step',
   title: 'When does an authorization check on a method run, and when is it skipped?',
+  why: 'If you check permissions only with URL rules, then when the same function is called from several addresses, you have to write the same rule for every address without missing any, and if you miss even one, that address runs without a check. Method security writes the permission condition directly on the method, so whichever address the request came through, when another bean calls that method, it goes through the same check.',
+  use: 'It is used to put @PreAuthorize("hasRole(\'ADMIN\')") on a service method that only administrators may use, or to write "is the logged-in user the author of the post?" as an expression on a method that edits or deletes a post. Checks that are enough at the address level, such as blocking a whole admin area, stay in the URL rules of SecurityFilterChain, and method security is used for fine conditions in the service layer, so the two are used together.',
   intro: 'Method security is a way to write "who may run this method" on a method instead of on a URL. @PreAuthorize evaluates its expression before the method runs, and @PostAuthorize evaluates its expression after the method returns a value. If the expression is false, the call is denied. But these annotations sometimes do nothing just because you added them.',
   terms: ['Method security (@PreAuthorize, @PostAuthorize)', 'Authentication and authorization', 'Proxy', 'Self-invocation', 'SecurityContext'],
   controls: [

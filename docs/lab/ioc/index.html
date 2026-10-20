@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
 <h1>스프링 컨테이너와 빈</h1>
 <p><b>new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나</b></p>
+<p><b>왜 생겼나</b> — 객체가 쓸 객체를 직접 new로 만들면, 구현을 바꾸거나 테스트에서 가짜 객체로 바꾸려 할 때마다 그 객체를 쓰는 코드를 고쳐야 했다. 스프링 컨테이너는 무엇을 만들어 어디에 연결할지를 @Component나 @Bean 같은 설정으로 따로 정하게 하고, 기동할 때 그 설정대로 객체를 만들어 연결한다. 쓰는 쪽 코드는 인터페이스만 알면 된다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 애플리케이션의 컨트롤러, 서비스, 리포지토리는 보통 빈으로 등록하고 생성자 주입으로 서로 연결한다. 직접 작성한 클래스는 @Service, @Repository 같은 @Component 계열로, 외부 라이브러리의 객체는 @Configuration 클래스의 @Bean 메서드로 등록한다. 같은 인터페이스의 구현이 여럿이면 @Primary나 @Qualifier로 고른다.</p>
 <p>주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 이 실습의 OrderService, DiscountPolicy, FixedDiscountPolicy, RateDiscountPolicy, AppConfig는 예시로 만든 클래스와 인터페이스입니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1에서 서른 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,12 @@
 <dt>스프링 빈(Bean)</dt>
 <dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
 <dt>@Configuration과 @Bean</dt>
+<dd><b>왜 생겼나</b> — XML 설정은 클래스 이름을 글자로 적어서 오타나 타입 오류를 실행해 봐야 알았다. @Configuration과 @Bean은 빈 정의를 자바 코드로 쓰게 해, 컴파일러가 검사하고 IDE에서 바로 찾아갈 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — ObjectMapper나 RestClient처럼 설정값을 넣어 만들어야 하는 라이브러리 객체, Spring Security의 SecurityFilterChain 같은 설정 객체를 등록할 때 쓴다.</dd>
 <dd>@Configuration은 빈 정의를 담은 설정 클래스임을 나타내고, 그 안의 @Bean 메서드가 반환하는 객체가 빈으로 등록된다. 직접 수정할 수 없는 외부 라이브러리의 클래스를 빈으로 만들거나 생성 과정을 직접 제어해야 할 때 쓴다. 내가 작성한 클래스는 보통 @Component 계열을 붙여 등록한다.</dd>
 <dt>@Primary와 @Qualifier</dt>
+<dd><b>왜 생겼나</b> — 같은 타입의 빈이 여럿일 때 쓰는 쪽이 구현 클래스를 직접 적으면 그 구현에 묶이고, 등록을 하나로 줄이면 나머지를 못 쓴다. @Primary와 @Qualifier는 둘 다 등록한 채로 기본으로 쓸 빈과 이름으로 고를 빈을 애너테이션으로 정하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 주 DB와 읽기 전용 DB처럼 DataSource를 둘 등록할 때 기본 쪽에 @Primary를, 다른 쪽을 받는 자리에 @Qualifier를 붙인다. 같은 인터페이스의 구현을 상황마다 골라 쓰는 코드에서도 쓴다.</dd>
 <dd>같은 타입의 빈이 둘 이상일 때 어느 것을 주입할지 정하는 두 애너테이션이다. 스프링 컨테이너는 주입할 빈을 타입으로 찾는데, 맞는 빈이 여럿인데 어느 것을 쓸지 정할 단서(@Primary, @Qualifier, 이름)가 없으면 NoUniqueBeanDefinitionException을 던져 애플리케이션이 뜨지 않는다. @Primary는 빈을 등록하는 쪽(클래스나 @Bean 메서드)에 붙여 &quot;여럿이면 이것을 먼저 쓴다&quot;고 표시한다. @Qualifier는 주입받는 쪽(생성자 파라미터나 필드)에 붙여 쓸 빈의 이름을 직접 적는다. 둘이 함께 있으면 @Qualifier로 지정한 빈이 들어간다.</dd>
 <dt>NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException</dt>
 <dd>컨테이너가 주입할 빈을 정하지 못했을 때 던지는 두 예외다. NoSuchBeanDefinitionException은 필요한 타입의 빈이 하나도 등록돼 있지 않을 때, NoUniqueBeanDefinitionException은 같은 타입의 빈이 둘 이상이라 하나를 고를 수 없을 때 발생한다. 싱글톤 빈은 애플리케이션이 뜰 때 만들어지므로, 이 예외들은 싱글톤 빈이라면 대개 요청을 처리하는 도중이 아니라 기동 시점에 나타나 애플리케이션이 뜨지 않는다. 앞의 것은 빈 등록(@Component나 @Bean)이 빠졌는지, 뒤의 것은 같은 타입의 빈이 둘 이상 등록되지 않았는지 확인한다.</dd>
@@ -111,6 +117,10 @@ int pay = orderService.order(20000);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -184,9 +194,10 @@ int pay = orderService.order(20000);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

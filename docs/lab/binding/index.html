@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>요청 매핑과 파라미터 바인딩</h1>
 <p><b>요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나</b></p>
+<p><b>왜 생겼나</b> — 서블릿만으로 요청을 받으면 주소마다 어느 코드를 부를지 직접 나누고, request.getParameter로 꺼낸 글자를 숫자로 바꾸는 코드와 값이 없을 때의 처리를 메서드마다 써야 했다. 스프링 MVC의 요청 매핑과 파라미터 바인딩은 이것을 애너테이션 몇 개로 바꿔서, 메서드 선언만 보고도 어떤 요청을 받아 어떤 값을 어떤 타입으로 쓰는지 알 수 있게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 MVC로 만든 API의 컨트롤러는 이 애너테이션들로 값을 받는다. /orders/{id}처럼 대상을 가리키는 번호는 @PathVariable, 검색어나 페이지 번호 같은 선택 조건은 @RequestParam, 여러 필드로 된 JSON 본문은 @RequestBody로 받는 것이 흔한 나눔이다. HTML 폼을 제출하는 화면에서는 @ModelAttribute로 여러 값을 객체 하나에 받는다.</p>
 <p>요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애너테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 마흔여덟 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,18 @@
 <dt>@RequestParam과 @PathVariable</dt>
 <dd>요청에 실려 온 값 하나를 컨트롤러 메서드의 파라미터로 받게 해 주는 애너테이션이다. @RequestParam은 요청 파라미터(쿼리 스트링과 폼 형식 본문의 이름=값)에서, @PathVariable은 /orders/{id}처럼 주소 경로에 만들어 둔 {이름} 자리에서 값을 꺼낸다. 꺼낸 값은 글자이므로 스프링이 파라미터의 타입(int 등)으로 바꿔 주고, 바꿀 수 없는 글자가 오면 컨트롤러를 실행하지 않고 400으로 응답한다. @RequestParam은 값이 없으면 400이 되는 것이 기본이며, required = false를 주면 null이, defaultValue를 주면 그 값이 대신 들어간다. required = false를 쓸 때는 null을 담을 수 있도록 int가 아니라 Integer 같은 객체 타입으로 선언한다.</dd>
 <dt>@ModelAttribute와 @RequestBody</dt>
+<dd><b>왜 생겼나</b> — 값이 많을 때 파라미터를 하나씩 받으면 메서드 선언이 길어지고, 받을 값이 늘 때마다 선언을 고쳐야 한다. @ModelAttribute와 @RequestBody는 여러 값을 객체 하나로 받게 해서, 값이 늘면 그 클래스에 필드만 더하면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 검색 조건이 여러 개인 목록 조회는 @ModelAttribute로, 프런트엔드나 앱이 JSON으로 보내는 생성·수정 요청은 @RequestBody로 받는 경우가 많다. 받는 객체에 @Valid를 함께 붙여 값을 검사한다.</dd>
 <dd>요청의 값 여러 개를 객체 하나로 받는 두 가지 방법이다. @ModelAttribute는 객체를 먼저 만든 뒤, 요청 파라미터(쿼리 스트링과 폼 형식 본문) 가운데 필드와 이름이 같은 것을 setter로 넣어 준다(record처럼 생성자로 값을 받는 클래스라면 객체를 만들 때 생성자의 인자로 넣는다). @RequestBody는 요청 본문 전체를 Content-Type에 맞는 메시지 컨버터에 넘겨 객체로 바꾸며, 주로 JSON 본문을 받을 때 쓴다. 두 방법은 보는 자리가 달라서, JSON 본문으로 보낸 값은 @ModelAttribute로 들어오지 않고 쿼리 스트링으로 보낸 값은 @RequestBody로 들어오지 않는다. @ModelAttribute는 값이 없는 필드를 그대로 두고 오류로 보지 않으므로, 반드시 있어야 하는 값은 따로 검증해야 한다.</dd>
 <dt>쿼리 스트링과 폼 본문</dt>
+<dd><b>지금 어디에 쓰나</b> — 검색어, 정렬 기준, 페이지 번호처럼 주소만으로 같은 결과를 다시 볼 수 있어야 하는 값은 쿼리 스트링에 싣는다. 비밀번호처럼 주소와 접속 기록에 남으면 안 되는 값이나 게시글 내용처럼 긴 값은 POST 폼 본문에 싣는다.</dd>
 <dd>쿼리 스트링은 주소에서 ? 뒤에 이름=값을 &amp;로 이어 붙인 부분이고, 폼 본문은 같은 모양의 글자를 요청 본문에 실어 보낸 것이다. 폼 본문을 보낼 때는 Content-Type 헤더를 application/x-www-form-urlencoded로 적는다. HTML의 form을 GET으로 보내면 값이 쿼리 스트링에, POST로 보내면 폼 본문에 실린다. 서블릿 컨테이너는 이 둘을 합쳐 &quot;요청 파라미터&quot;로 제공하므로, 서버 코드는 어느 쪽으로 왔는지 구분하지 않고 같은 방법으로 꺼낸다. JSON 본문은 요청 파라미터에 포함되지 않는다.</dd>
 <dt>ArgumentResolver</dt>
+<dd><b>지금 어디에 쓰나</b> — Spring Data의 Pageable, Spring Security의 @AuthenticationPrincipal 매개변수도 이것으로 채워진다. 직접 만들 때는 HandlerMethodArgumentResolver를 구현해 WebMvcConfigurer의 addArgumentResolvers로 등록한다.</dd>
 <dd>컨트롤러 메서드의 매개변수에 넣을 값을 요청에서 꺼내 만들어 주는 구성 요소다. @RequestParam, @PathVariable, @RequestBody 등이 붙은 매개변수가 이를 통해 채워진다. 직접 구현하면 로그인한 사용자 정보처럼 반복되는 값을 컨트롤러 매개변수로 바로 받을 수 있다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -96,6 +104,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +181,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>DNS</h1>
 <p><b>What does DNS turn a name into?</b></p>
+<p><b>Why it exists</b> — A numeric IP address is hard to remember, and it sometimes changes when the server is moved to another computer. If users had to connect by IP address, everyone would have to be told the new number each time the server is moved. DNS has the DNS server manage the pairs of names and IP addresses, so that you leave the name as it is and change only the IP address paired with it.</p>
+<p><b>Where it's used today</b> — It is used when you visit a site with a browser, when a program sends a request by name to another company's server, and when you write the database server in a Spring setting by name instead of an IP address. To open a site, you register the domain name you bought in DNS and pair it with the server's IP address. When you test only on your own computer, you sometimes write a name and an IP address in the hosts file so that they are used before the DNS server.</p>
 <p>Computers connect to each other by IP address (a number), but people use names like shop.example. DNS is the service that turns a name into an IP address, and a DNS server is a computer that holds a table listing each name with its IP address. The code box on the screen has two parts. The upper part is what is registered on the DNS server (name → IP address), and the lower part is the address the client tries to reach. A client that connects by name first asks the DNS server for the IP address of that name, before it connects to the server, and then connects to the IP address it got in the answer. In this lab you leave the name unregistered, register it with a different IP address, or write an IP address directly in the address instead of a name, and make the same connection each time, to see how many times the DNS server is asked and which computer is reached. The 8080 on the screen is a port number written as an example.</p>
 <p>Checked against real execution · Ran all 6 combinations on Node.js 24.18.0 with a small DNS server (RFC 1035 messages) started inside 127.0.0.x, a dns.Resolver client, and two HTTP servers, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>DNS</dt>
 <dd>The system that translates a domain name (example.com) into the IP address that computers use to communicate. When you enter an address in a browser, the browser first asks this system for the IP address of that name and then connects to that IP address. Lookup results are cached for a certain time.</dd>
 <dt>Domain names</dt>
+<dd><b>Why it exists</b> — If anyone could give names freely, the same name would be used in two places, and it could not be decided which computer it points to. In a domain name, there is a separate party that manages each level separated by dots, so that one name is registered to only one owner.</dd>
+<dd><b>Where it's used today</b> — In https://shop.example/items in the address bar, the shop.example part is the domain name, and so is the part after the @ in an email address. A domain name must be kept registered by paying at set intervals, and if it is not renewed, someone else can take it.</dd>
 <dd>A domain name is a name written as text separated by dots, like shop.example, that points to a computer and is easy for people to read and remember. Computers connect to each other by IP address, not by name, so to connect by name, DNS must first turn the name into an IP address. The pairs of names and IP addresses are held by the DNS server, and if you pair a name with a different IP address, the same name points to a different computer. A name that ends in .example is reserved for documents and examples, so it is not actually registered (RFC 6761 section 6.5).</dd>
 <dt>IP address (IPv4)</dt>
+<dd><b>Why it exists</b> — On the internet, where many networks are joined, each device needs a common address from which it is possible to know which way to send to. An IP address is divided into a network part and a device part, so that a router can decide where to send next by looking only at the front part of the destination.</dd>
+<dd><b>Where it's used today</b> — You use it when you connect to a server or set a DB address, and when you check in a log who sent a request. 32 bits are not enough addresses, so addresses are shared out using private addresses and NAT, and IPv6, which uses 128-bit addresses, is also used alongside.</dd>
 <dd>This is a 32-bit numeric address used to find a device on the internet. To make it easy for people to read, it is cut into 8-bit groups and written as four decimal numbers from 0 to 255, such as 192.168.0.10. The front part of the address shows which network the device is on, and the back part shows which device it is within that network. Where the front part ends cannot be known from the address alone; it is decided only together with a subnet mask.</dd>
 <dt>NXDOMAIN response</dt>
 <dd>An NXDOMAIN response is the answer a DNS server gives to say that the name it was asked about does not exist. It is a response whose RCODE field in the message header is 3 (Name Error), and RFC 1035 says that this value has a meaning only in responses from an authoritative name server (section 4.1.1). It is commonly called NXDOMAIN. When a client gets this answer, it has not obtained an IP address, so it cannot start a connection to the server. It appears when a name is not registered or a name has a typo, and it has nothing to do with whether a server for that name is running.</dd>
@@ -84,6 +90,10 @@ http://shop.example:8080/</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +167,10 @@ http://shop.example:8080/</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

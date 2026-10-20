@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인가</p>
 <h1>메서드 보안</h1>
 <p><b>메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나</b></p>
+<p><b>왜 생겼나</b> — URL 규칙으로만 권한을 검사하면 같은 기능을 여러 주소에서 부를 때 주소마다 같은 규칙을 빠짐없이 적어야 하고, 하나라도 빠뜨리면 그 주소로는 검사 없이 실행된다. 메서드 보안은 권한 조건을 메서드에 직접 적어서, 어느 주소를 거쳐 왔든 다른 빈이 그 메서드를 부르면 같은 검사를 거치게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 관리자만 써야 하는 서비스 메서드에 @PreAuthorize(&quot;hasRole('ADMIN')&quot;)를 붙이거나, 글 수정·삭제 메서드에 &quot;로그인한 사용자가 글쓴이인가&quot;를 식으로 적는 데 쓴다. 관리자 화면 전체를 막는 것처럼 주소 단위로 충분한 검사는 SecurityFilterChain의 URL 규칙에 두고, 메서드 보안은 서비스 계층의 세밀한 조건에 써서 둘을 함께 쓴다.</p>
 <p>주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애너테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.</p>
 <p>실행으로 대조 · 스프링 시큐리티 7.1.1에서 서른여섯 가지 조합을 실행해 검사 실행 여부, 본문 실행 여부, 받은 값이나 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -44,6 +46,8 @@
 <dt>자기 호출(Self-invocation)</dt>
 <dd>같은 객체 안에서 자신의 다른 메서드를 직접 호출하는 것이다. 프록시 기반의 기능은 외부에서 프록시를 거쳐 들어오는 호출에만 적용되므로, 내부에서 this로 호출한 메서드에는 @Transactional, @Async, @Cacheable 같은 설정이 적용되지 않는다. 해당 메서드를 다른 빈으로 분리하는 것이 일반적인 해결책이다.</dd>
 <dt>SecurityContext</dt>
+<dd><b>왜 생겼나</b> — 필터에서 확인한 사용자를 컨트롤러와 서비스까지 전하려면 메서드마다 사용자 정보를 매개변수로 넘겨야 한다. SecurityContext를 두면 그렇게 넘기지 않아도 같은 요청을 처리하는 어느 계층에서든 SecurityContextHolder로 현재 사용자를 얻는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 컨트롤러의 @AuthenticationPrincipal 매개변수와 메서드에 붙인 @PreAuthorize 검사가 이곳의 인증 정보를 쓴다. @Async처럼 다른 스레드로 넘어가면 기본으로는 이어지지 않아 따로 넘겨야 한다.</dd>
 <dd>현재 요청을 보낸 사용자의 인증 정보(누구인지, 어떤 권한이 있는지)를 담아 두는 Spring Security의 저장소다. 인증에 성공하면 이곳에 정보가 저장되고, 이후 컨트롤러나 서비스에서 현재 사용자를 조회할 때 여기서 꺼낸다. 기본적으로 스레드별로 보관된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -107,6 +111,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +188,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

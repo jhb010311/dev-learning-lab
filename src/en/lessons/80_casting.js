@@ -1,6 +1,8 @@
 Lab.register({
   id: 'casting', nav: 'Operators and type conversion', cat: 'Java language', mode: 'step',
   title: 'Why is 7 / 2 equal to 3 and not 3.5?',
+  why: 'When number types of different sizes are mixed in one expression, it must be decided which type to calculate in, and if a large value could be put into a variable of a smaller type with no sign at all, you could not tell from the code alone that the value was cut off. Java\'s type conversion rules let the compiler do widening conversions by itself, and make narrowing conversions, such as putting a double value into an int variable, compile only if you write (int) yourself, which shows in the code the places where a value can be cut off.',
+  use: 'When you calculate an average or a ratio, you convert one side first, as in (double) sum / count, to avoid integer division. When you must reduce a long value to an int and it might exceed the range, you use Math.toIntExact, which throws an exception on overflow, instead of a cast. For calculations such as money, where decimal errors are a problem, use BigDecimal instead of double.',
   intro: 'In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition.',
   terms: ['Type conversion', 'Integer division and remainder', 'Integer overflow', 'String concatenation'],
   controls: [

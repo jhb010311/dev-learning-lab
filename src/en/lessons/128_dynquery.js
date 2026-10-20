@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dynquery', nav: 'Dynamic queries and Querydsl', cat: 'JPA', mode: 'step',
   title: 'How do you add a search condition to where only when it is given?',
+  why: 'If you join JPQL strings for each condition, the compiler sees them only as text, so even a query whose pieces were joined wrongly shows its error only when that combination is actually run. With the Criteria API and Querydsl, you pass the conditions as Java objects and the tool attaches where and and for you, and Querydsl points to fields with Q classes generated from entities, so it catches even a typo in a field name at compile time.',
+  use: 'You use it for search features where only the items that were entered become conditions, such as a member search on an admin screen or a product filter in a shop. In projects that use Spring Data JPA, using Querydsl together is common, and sometimes the Criteria API is wrapped and used with Spring Data\'s Specification. For a query whose conditions are always the same, a query method or @Query is enough.',
   intro: 'On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.',
   terms: ['Dynamic query', 'JPQL', 'Criteria API', 'Querydsl', 'SQL injection'],
   controls: [

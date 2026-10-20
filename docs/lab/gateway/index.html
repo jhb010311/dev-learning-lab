@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
 <h1>게이트웨이와 점진적 전환</h1>
 <p><b>거대한 서버를 멈추지 않고 조금씩 떼어 내기</b></p>
+<p><b>왜 생겼나</b> — 오래된 거대한 서버를 새로 만든 시스템으로 한 번에 바꾸면, 새 시스템이 다 만들어질 때까지 오래 기다려야 하고 바꾸는 날 생긴 문제가 모든 기능에 한꺼번에 번진다. 앞단의 API 게이트웨이가 경로마다 요청을 보낼 곳을 정하게 하면, 기능을 하나씩 새 서비스로 옮기고 문제가 생긴 경로만 기존 서버로 되돌릴 수 있다.</p>
+<p><b>지금 어디에 쓰나</b> — 여러 서비스로 나뉜 시스템의 입구로 쓰여, 웹과 모바일 앱이 주소 하나로 여러 서비스를 부르게 하고 로그인 토큰이 없는 요청은 내부 서비스까지 가지 않게 막는다. 기존 서버를 새 서비스로 조금씩 옮기는 전환 작업에서는 경로별로 보낼 곳을 바꾸는 데 쓴다. 스프링에서는 Spring Cloud Gateway를 쓰고, Nginx 같은 리버스 프록시로 경로만 나누기도 한다.</p>
 <p>모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다.</p>
 <p>문서·표준 대조 · Spring Cloud Gateway의 설정 조건</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>API 게이트웨이</dt>
 <dd>클라이언트의 모든 요청을 가장 먼저 받아 알맞은 내부 서비스로 전달하는 단일 진입점이다. 인증, 요청 수 제한, 로깅 같은 공통 기능을 한곳에서 처리한다. 클라이언트는 내부 서비스의 구성과 주소를 알 필요가 없다.</dd>
 <dt>Strangler Fig 패턴</dt>
+<dd><b>지금 어디에 쓰나</b> — 오래된 모놀리식 서비스를 여러 서비스로 나눌 때나 오래된 프레임워크로 만든 화면을 새 기술로 바꿀 때 쓴다. 새로 만드는 기능은 처음부터 새 시스템에 두고, 기존 기능은 이용이 적거나 떼기 쉬운 것부터 옮긴다.</dd>
 <dd>기존 시스템을 한 번에 교체하지 않고 기능을 하나씩 새 시스템으로 옮겨 가며 점진적으로 대체하는 방법이다. 요청을 받는 앞단에서 옮겨진 기능의 요청만 새 시스템으로 보내고 나머지는 기존 시스템이 계속 처리한다. 모든 기능이 옮겨지면 기존 시스템을 제거한다.</dd>
 <dt>모놀리식과 MSA(마이크로서비스)</dt>
+<dd><b>왜 생겼나</b> — 기능이 많아진 하나의 애플리케이션은 작은 수정에도 전체를 다시 빌드하고 배포해야 하고, 여러 팀이 같은 코드와 배포 일정을 나눠 쓰느라 서로 기다리게 된다. MSA는 서비스를 나눠 팀마다 자기 서비스를 따로 바꾸고 내보내게 하려는 방식이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 여러 팀이 큰 서비스를 나눠 맡는 조직에서 MSA를 쓴다. 작은 팀이나 새로 시작하는 서비스는 모놀리식으로 시작해, 나눌 경계가 분명해지고 필요해질 때 서비스를 떼어 내는 경우가 많다.</dd>
 <dd>모놀리식은 모든 기능을 하나의 애플리케이션으로 만들어 함께 배포하는 구조다. MSA는 기능별로 작은 서비스로 나눠 각각 독립적으로 개발, 배포, 확장하는 구조다. MSA는 서비스별로 따로 배포하고 확장할 수 있고 장애가 격리되지만, 서비스 간 통신, 데이터 일관성, 운영의 복잡도가 크게 늘어난다.</dd>
 <dt>리버스 프록시</dt>
+<dd><b>왜 생겼나</b> — 느린 클라이언트가 애플리케이션 서버에 바로 붙으면, 큰 요청 본문을 천천히 올리거나 응답을 천천히 받아 가는 동안 요청 처리 스레드가 그 연결에 묶인다. Nginx 같은 리버스 프록시는 기본 설정에서 요청과 응답을 버퍼에 받아 두고 뒤쪽 서버와는 빠르게 주고받아, 뒤쪽 서버의 스레드가 느린 연결에 오래 묶이지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 정적 파일 요청과 /api 요청을 경로로 나눠 다른 서버로 보내거나, Nginx의 client_max_body_size로 너무 큰 업로드를 앞단에서 거절할 때 쓴다. 쿠버네티스에서는 Ingress 컨트롤러가 이 역할을 맡는다.</dd>
 <dd>클라이언트의 요청을 대신 받아 내부의 서버로 전달하고 그 응답을 클라이언트에 돌려주는 서버다. 클라이언트는 실제 서버를 직접 알지 못한다. 여러 서버로의 요청 분산, TLS 처리, 캐싱, 내부 서버 보호 등의 역할을 한다.</dd>
 <dt>롤링, 블루-그린, 카나리 배포</dt>
 <dd>서비스 중단 없이 새 버전을 배포하는 방식들이다. 롤링은 서버를 일부씩 차례로 새 버전으로 교체한다. 블루-그린은 새 버전 환경을 통째로 따로 준비한 뒤 트래픽을 한 번에 전환한다. 카나리는 일부 사용자에게만 새 버전을 먼저 적용해 문제가 없는지 확인한 뒤 점차 확대한다.</dd>
@@ -99,6 +106,10 @@ spring.cloud.gateway.server.webflux:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ spring.cloud.gateway.server.webflux:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

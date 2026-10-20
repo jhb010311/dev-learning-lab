@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
 <h1>Layers and encapsulation</h1>
 <p><b>You send 1500 bytes, so why do 1616 bytes cross the wire?</b></p>
+<p><b>Why it exists</b> — One communication mixes jobs of different kinds: carrying signals, finding a route to the destination, resending missing data, and exchanging web pages. If it is built as one block, changing one part means changing everything. A layered structure divides these jobs into layers and fixes only the form of what passes between layers, so that even if you replace a network cable with Wi-Fi, the IP, TCP, and HTTP above it are used as they are, without changes.</p>
+<p><b>Where it's used today</b> — Use it as a standard for checking from the lowest layer up when a connection fails: &quot;Are the network cable and Wi-Fi connected? Are the IP address and route right? Is the port open? What is the HTTP response?&quot; Layer numbers are also used to say whether a device sees only up to the IP address and port or up to the HTTP path and headers, as in &quot;L4 load balancer&quot; and &quot;L7 load balancer.&quot;</p>
 <p>A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order.</p>
 <p>Partly checked against real execution · The number of pieces and their sizes for 10 combinations were checked on Node.js 24 by building the real header bytes, attaching them, and unpacking them. The header sizes and the correspondence between layers are explanations based on RFC 9293, 791, 894, and 1122</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>OSI model</dt>
 <dd>A model that divides the process of network communication into seven layers by role. From the bottom, they are the physical, data link, network (IP), transport (TCP/UDP), session, presentation, and application (HTTP) layers. Each layer does its own job by using the functions of the layer directly below it. It is the reference for calling the location of a device or a problem &quot;Layer N&quot;.</dd>
 <dt>TCP/IP model</dt>
+<dd><b>Where it's used today</b> — When you look for a communication fault, you check along the layers. You look in turn at whether IP is reachable with ping, whether the TCP port is open with nc or telnet, and whether an HTTP response comes back with curl.</dd>
 <dd>A model that divides the protocols the internet actually uses into four layers by role. From the top, they are the application layer (HTTP, DNS), the transport layer (TCP, UDP), the internet layer (IP), and the link layer (Ethernet, Wi-Fi). Compared with the OSI model, the application, presentation, and session layers are combined into the one application layer, and the data link and physical layers are combined into the one link layer. Each layer leaves delivery to the layer directly below it and does only its own job, so if the technology of one layer changes, the other layers can be used as they are.</dd>
 <dt>Encapsulation and decapsulation</dt>
+<dd><b>Where it's used today</b> — A VPN encapsulates one IP packet as a whole again as the contents of another IP packet and sends it. When you open a packet in Wireshark, the Ethernet, IP, and TCP headers appear in order from the outside, with the HTTP message innermost.</dd>
 <dd>Encapsulation is the process, on the sending side, of adding the header of a layer in front of the data every time the data moves down to a lower layer. An HTTP message gets a TCP header, an IP header, and an Ethernet header in that order, and each layer treats what it received from above as content and does not look inside it. Decapsulation is the reverse on the receiving side: the headers are checked and removed in the opposite order as the data moves up to the upper layers. The name is the same as encapsulation in object-oriented programming, but it is a different concept.</dd>
 <dt>Segment, packet, and frame</dt>
 <dd>These are the names that the same data is given at each layer. Application data with a TCP header added is called a segment, a segment with an IP header added is called a packet (an IP datagram), and a packet with an Ethernet header and a frame check sequence at the end added is called a frame. The TCP header contains a port number that identifies a program, the IP header contains an IP address that identifies a computer, and the Ethernet header contains a MAC address that identifies a device on the same network. In everyday speech, people often call all of them packets without distinguishing the layer.</dd>
 <dt>MTU and MSS</dt>
+<dd><b>Why it exists</b> — The size that a link can carry at one time differs from link to link, so an IP packet larger than that is split in the middle or dropped. MSS makes TCP cut the data into sizes that fit the MTU from the start, which reduces splitting at the IP layer.</dd>
+<dd><b>Where it's used today</b> — On stretches where more headers are added, such as PPPoE or a VPN, the MTU becomes smaller than 1500. If a problem occurs in which only large responses stall, you reduce the MSS on the router or firewall to fit.</dd>
 <dd>The MTU is the largest IP packet that the link layer can carry in one frame, and on Ethernet it is 1500 bytes. The MSS is the largest amount of data that fits in one TCP segment, which is the MTU minus the IP header and the TCP header. When both headers are the default 20 bytes, the MSS on Ethernet is 1460 bytes. If the data to send is larger than the MSS, TCP splits it into several pieces, and TCP on the receiving side joins them again using the sequence numbers.</dd>
 </dl>
 <h2>Try these</h2>
@@ -105,6 +111,10 @@ console.log(total);                                     // total size that went 
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +188,10 @@ console.log(total);                                     // total size that went 
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Postman에서는 되는데 브라우저에서만 막히는 이유',
+  why: '브라우저의 동일 출처 정책만 있으면, 화면과 API 서버의 스킴·호스트·포트 중 하나만 달라도 페이지의 스크립트가 API 응답을 읽을 수 없다. 그렇다고 정책을 아예 풀면 아무 사이트의 스크립트나 로그인된 사용자의 쿠키를 실어 다른 사이트의 응답을 읽게 된다. CORS는 서버가 어느 출처에 응답을 보여 줘도 되는지 헤더로 밝혀, 허용한 출처에 대해서만 이 제한을 풀게 한다.',
+  use: 'React나 Vue 화면과 API 서버의 출처가 다른 구성에서 설정한다. 개발 중에 localhost:3000의 화면이 localhost:8080의 API를 부르는 경우도 포트가 달라 다른 출처다. 스프링에서는 @CrossOrigin이나 WebMvcConfigurer의 addCorsMappings로 허용 출처를 적고, 리버스 프록시로 화면과 API를 같은 출처로 묶으면 CORS 설정이 필요 없다.',
   intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다.',
   terms: ['CORS와 동일 출처 정책', 'Preflight 요청', 'HTTP 메서드', '쿠키'], ranks: ['websec', 'http', 'network'],
   controls: [

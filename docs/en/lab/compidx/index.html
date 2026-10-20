@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Composite and covering indexes</h1>
 <p><b>A composite index can be used only in column order</b></p>
+<p><b>Why it exists</b> — With only indexes made separately for each column, for a query with several conditions the DB usually narrows the range using just one of them, and must filter by the other conditions by reading the found rows one by one. A composite index ties the columns used together into one index in a fixed order, so that the range is narrowed by several conditions at once, and a query that selects only those columns is answered by reading only the index.</p>
+<p><b>Where it's used today</b> — It is created for list queries in which the same combination of conditions and sorting recurs, such as &quot;one member's paid orders, most recent first&quot;. It is usual to put columns compared with equality first and columns used for range conditions or sorting after them. When the combinations of conditions vary so much that one order cannot fit them all, indexes are created only for the frequently used combinations, and you also weigh that more indexes make writes slower.</p>
 <p>An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. When every column the query reads is in the index, so that the table does not have to be visited, the index is called a covering index for that query.</p>
 <p>Checked against documentation and standards · The official MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Composite index and leftmost prefix</dt>
 <dd>A composite index is an index built on two or more columns together. It is sorted by the first column first and then by the second column within that, so it can be used for a search only when the conditions use its columns in order, starting from the left. An index on (a, b, c) is used for a condition on a or on a and b, but not for a condition on b alone (as an exception, in MySQL 8.0.13 and later the optimizer can use this index with Skip Scan when the leading column has few distinct values).</dd>
 <dt>Covering index</dt>
+<dd><b>Why it exists</b> — Even when a secondary index finds the rows, if the columns the query needs are not in the index, the table has to be read again for every row found, so the query gets slower as the result grows. A covering index makes the columns the query uses part of the index columns, which removes this extra read.</dd>
+<dd><b>Where it's used today</b> — It is used when designing an index around a query that often reads only a few columns, such as a list or a count. The deferred join, which first picks only the ids through the index on a list with a large OFFSET and then reads just those rows, also relies on it.</dd>
 <dd>An index that contains every column a query needs, so the result can be produced from the index alone without reading the table rows. Skipping the table access makes the read faster. In a MySQL execution plan, it appears as Using index in the Extra column.</dd>
 <dt>Clustered index and secondary index</dt>
+<dd><b>Why it exists</b> — If rows are piled up separately in the table and the index only points to their locations, then even a lookup by primary key needs one more read of the row after reading the index. A clustered index stores the rows themselves in key order, so lookups by primary key and range lookups finish with only an index search.</dd>
+<dd><b>Where it's used today</b> — This is why, in InnoDB, the primary key is set to an increasing value such as AUTO_INCREMENT. If you use a random UUID as the primary key, rows are inserted in the middle, so page splits are frequent, and each secondary index grows larger because the long key is attached to it.</dd>
 <dd>A clustered index stores the row data itself at the bottom of the index (the leaf nodes), so the data of the table is stored in the order of its key. In MySQL InnoDB, the primary key is the clustered index. An InnoDB secondary index holds the primary key value in its leaf nodes. After a lookup in the secondary index, that primary key is used for one more lookup in the clustered index to read the row.</dd>
 <dt>Cardinality and selectivity</dt>
 <dd>Cardinality is the number of distinct values in a column. The more distinct values there are (for example, a national ID number or an email address), the fewer rows one condition leaves and the more effective an index is. The fewer kinds of values there are (for example, gender), the more rows match a condition and the less effective an index is. Selectivity is the cardinality divided by the number of rows in the table; the closer it is to 1, the better a single condition narrows down the rows.</dd>
@@ -89,6 +95,10 @@ SELECT *
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +172,10 @@ SELECT *
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

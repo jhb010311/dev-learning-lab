@@ -1,6 +1,8 @@
 Lab.register({
   id: 'absint', nav: 'Interfaces and abstract classes', cat: 'Java language', mode: 'step',
   title: 'Neither can be created with new, so how do they differ?',
+  why: 'If a common parent is an ordinary class, you are forced to write meaningless default content into the parent, and the compiler does not tell you when a child class forgets to override that method. Interfaces and abstract classes can have methods without a body, so a missing implementation is caught as a compile error before running, and the mistake of creating an object from the parent itself is also prevented.',
+  use: 'In Spring, services and repositories are received as interface types and the implementation is chosen through configuration, and Spring Data JPA creates the implementation object for you once you declare only an interface that extends JpaRepository. When several implementations must share the same fields and processing order, an abstract class is used, and Java\'s AbstractList and Spring\'s OncePerRequestFilter are examples.',
   intro: 'An interface and an abstract class both define a contract that says "these methods must exist", and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields).',
   terms: ['Interface', 'Abstract class', 'Default method', 'Abstraction', 'Inheritance', 'Polymorphism'], ranks: ['absint', 'oop'],
   controls: [

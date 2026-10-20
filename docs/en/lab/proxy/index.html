@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › AOP and proxies</p>
 <h1>Proxies and self-invocation</h1>
 <p><b>Why does the annotation have no effect?</b></p>
+<p><b>Why it exists</b> — If you write the code that opens a transaction and commits or rolls it back directly in every method, the same try-catch is repeated everywhere and gets mixed with the business code. Spring has a proxy take on this common work, so that you attach only one line, @Transactional, to a method, and the proxy opens and closes the transaction before and after the method.</p>
+<p><b>Where it's used today</b> — Many Spring features that you attach to a method, such as @Transactional, @Async, @Cacheable, and @PreAuthorize, work through a proxy. So if an annotation has no effect, first check whether the call came in through the proxy from another bean, and whether the method is private. For a method that was called from inside the same class, the problem is often solved by moving the method to another bean.</p>
 <p>@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.</p>
 <p>Checked against real execution · All 10 combinations were run on Spring 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -42,8 +44,12 @@
 <dt>Aspect-oriented programming (AOP)</dt>
 <dd>This programming technique separates additional behavior that appears repeatedly in many places (crosscutting concerns), such as logging, transactions, and permission checks, from the core business code and gathers it in one place. You write the additional behavior only once and specify separately &quot;where to apply it&quot;, so the core code stays clean and a change to that behavior is made in one place.</dd>
 <dt>JDK dynamic proxy and CGLIB</dt>
+<dd><b>Why it exists</b> — A JDK dynamic proxy works by implementing interfaces, so extra features such as transactions could not be added to a bean made only as a class, without an interface. The CGLIB approach removes this restriction by creating the proxy by extending the class.</dd>
+<dd><b>Where it's used today</b> — Spring Boot wraps even beans that have an interface with CGLIB, so no error occurs even if you receive the injection by the implementation class type, not the interface. If the class name of a bean in a debugger has $SpringCGLIB$ attached, it is a CGLIB proxy.</dd>
 <dd>These are the two ways Spring creates a proxy. A JDK dynamic proxy is a proxy that implements the interfaces that the target object implements. CGLIB creates, at run time, a subclass that extends the target class and uses it as the proxy. Spring Boot uses CGLIB by default. Because it works by inheritance, it cannot be applied to final classes or to final or private methods.</dd>
 <dt>@Async</dt>
+<dd><b>Why it exists</b> — To hand a long-running job to another thread, you had to create an ExecutorService and write code to submit the task at every place that calls it. With @Async, you put the annotation on a method and Spring hands that call to a thread pool.</dd>
+<dd><b>Where it's used today</b> — After you turn on @EnableAsync, you use it for work whose result the response does not need, such as a welcome email for a new sign-up or a push notification. If you need the result, you receive a CompletableFuture, and if a message must be sent again even when it fails, a message queue is a better fit.</dd>
 <dd>This annotation makes a method run in a separate thread pool, not in the thread that called it. The caller does not wait for the result and moves on right away. It is proxy-based, so it does not apply when the method is called from inside the same class, and because the method runs in another thread, the caller's transaction does not carry over.</dd>
 <dt>@Transactional</dt>
 <dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
@@ -100,6 +106,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +183,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

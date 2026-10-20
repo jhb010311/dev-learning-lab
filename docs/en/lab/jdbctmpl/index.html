@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>JdbcTemplate and exception translation</h1>
 <p><b>What does JdbcTemplate do for you, and what does it translate exceptions to?</b></p>
+<p><b>Why it exists</b> — When you use JDBC directly, it is easy to forget close when an exception occurs, so the connection does not return to the pool, and you had to tell a duplicate key from an SQL syntax error by looking at error codes that differ from database to database. JdbcTemplate cleans up the connection and the Statement by itself and translates those error codes into exceptions such as DuplicateKeyException, whose names tell you the cause, so the same catch works even when the database is different.</p>
+<p><b>Where it's used today</b> — Even in a project that uses JPA, it is used together for places where writing SQL directly is better, such as bulk INSERT and queries for statistics. It is also used in small services with only a few tables or in batch jobs, when you want to see and handle the SQL as it is. In recent versions of Spring, you can also use JdbcClient, which does the same work in a style of chained method calls.</p>
 <p>When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the JDBC driver into a Spring exception (one from the DataAccessException hierarchy).</p>
 <p>Checked against real execution · 18 combinations were run on the JdbcTemplate of Spring Framework 7.0.9 and H2 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>JdbcTemplate</dt>
 <dd>This is a JDBC helper class provided by Spring that does the work that is repeated every time SQL is run. It handles internally the work of getting a connection, creating a PreparedStatement and setting the values, running the statement, reading the result, and closing the resources whether or not an exception is thrown, so the developer only has to pass in the SQL, the values to put into it, and the way to hold the result. update is used for inserts, updates, and deletes, queryForObject for queries whose result is exactly 1 row, and query for queries that return multiple rows as a list. queryForObject throws EmptyResultDataAccessException when the result has 0 rows and IncorrectResultSizeDataAccessException when it has 2 or more rows, so use it with care for queries where 0 rows can be a normal result.</dd>
 <dt>Exception translation and DataAccessException</dt>
+<dd><b>Why it exists</b> — Each technology has different exceptions, such as SQLException in JDBC and PersistenceException in JPA, so when you changed the technology, you also had to change the code that catches the exceptions. Spring's exception translation maps both JDBC exceptions and JPA exceptions into the DataAccessException hierarchy.</dd>
+<dd><b>Where it's used today</b> — It is used in code that uses JdbcTemplate, for example by catching DuplicateKeyException and reporting &quot;ID already exists&quot;. In Spring Boot, JPA exceptions that come out of the methods of a bean marked with @Repository are also converted into the same hierarchy.</dd>
 <dd>This is what Spring does when it converts the exceptions thrown by a data access technology into its own exception hierarchy. The SQLException of JDBC is a checked exception, and what the problem is can be known only from the codes inside it (the SQLState and the error code), but Spring translates it to a subclass of DataAccessException and throws that. A duplicate key becomes DuplicateKeyException, any other constraint violation becomes DataIntegrityViolationException, and invalid SQL becomes BadSqlGrammarException. DataAccessException is an unchecked exception, so no throws clause is needed, and the original exception is kept as the cause. Problems are told apart by the name of the exception class, so the service code is not tied to the error codes of a particular database product.</dd>
 <dt>Connection pool</dt>
 <dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP.</dd>
 <dt>Checked and unchecked exceptions</dt>
 <dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
 <dt>Template Method pattern</dt>
+<dd><b>Why it exists</b> — If several classes each implement the same sequence of preparation, a differing step, and cleanup on their own, a mistake of forgetting the cleanup step can occur in each class, and changing the sequence means changing all of them. The Template Method pattern puts the sequence in one place, the superclass, and so prevents such mistakes.</dd>
+<dd><b>Where it's used today</b> — Java's standard AbstractList provides the rest of the behavior once you implement only get and size, and in the Servlet API, the service method of HttpServlet calls doGet or doPost depending on the request method. When an inheritance structure is a burden, you can instead pass only the part that varies as a lambda.</dd>
 <dd>A pattern in which the superclass fixes the overall flow of a task and subclasses implement only the steps within that flow that differ. It removes duplication of the common procedure. Spring's JdbcTemplate is built on the same idea: it fixes the flow of getting a connection, handling exceptions, and cleaning up resources, and it takes only the varying part as an argument.</dd>
 </dl>
 <h2>Try these</h2>
@@ -99,6 +105,10 @@ public int insert(Long id, String name, String city) throws SQLException {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +182,10 @@ public int insert(Long id, String name, String city) throws SQLException {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

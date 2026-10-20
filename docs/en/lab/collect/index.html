@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Collecting a stream</h1>
 <p><b>Into what shape do you collect the result of a stream?</b></p>
+<p><b>Why it exists</b> — Without streams, to group a list by customer or to count, you had to write the same code every time: create an empty Map, loop with a for statement, and put values in while checking whether the key already exists. collect and Collectors let you choose &quot;what shape to collect into&quot; by names such as groupingBy, toMap, and joining, which reduces that repeated code.</p>
+<p><b>Where it's used today</b> — It is used to group a list read from the database by category (groupingBy), to turn it into a Map that you can look up directly by id (toMap), and to join names with commas into one line (joining). If you need totals or averages after grouping, you pass a Collector such as summingInt or averagingInt to groupingBy.</p>
 <p>The elements that come out of a stream must be received at the end by a terminal operation such as collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.</p>
 <p>Checked against real execution · Checked by running 24 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Stream API</dt>
 <dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
 <dt>Collector and collect</dt>
+<dd><b>Why it exists</b> — reduce combines two values and returns a new value, so building a List or Map by its rule creates a new collection for each element and copies the previous one over. collect creates one collection in advance and adds the elements to it in turn, so there is no such waste when turning a stream's result into a collection or a string.</dd>
+<dd><b>Where it's used today</b> — It is used to receive the filtered and transformed result back as a List or Set (toList, toSet), or to join names with commas into a single line (joining). If you need only a List, you can also get it with Stream's toList() without collect, and the List received this way cannot be modified.</dd>
 <dd>collect is the terminal operation that gathers the elements that come out of a stream into a single result, and a Collector is the object that represents how they are gathered (which container is used and how the elements are put in). The Collectors class provides the Collectors that are used often. toList and toSet put the elements into a collection, joining concatenates them into a single string, and toMap puts them into a Map with the key and the value that you specify. toMap throws an IllegalStateException when the same key appears twice, so if keys can be duplicated, give a merge function that combines the two values as the third argument.</dd>
 <dt>groupingBy and partitioningBy</dt>
+<dd><b>Why it exists</b> — filter discards the elements that do not meet a condition, so if you need both the matching and the non-matching ones, you have to create and run the stream twice. partitioningBy goes through the stream once and splits it into two groups, true and false, and groupingBy computes a key for each element and splits them into several groups.</dd>
+<dd><b>Where it's used today</b> — It is used to group orders by date and count the orders per day (groupingBy and counting), or to split members into adults and minors (partitioningBy).</dd>
 <dd>These are Collectors that divide the elements of a stream into groups and collect them into a Map. groupingBy computes a key for each element and groups the elements that have the same key, and its default result is a Map&lt;key, List&lt;element&gt;&gt;. If you give a Collector such as counting or summingInt as the second argument, you get the count or the sum of each group instead of a list. partitioningBy divides the elements into two groups, a true group and a false group, by a single condition, and the two keys are always present even when no element belongs to a group. The Map that groupingBy returns does not guarantee an order, so if you need an order, specify separately that a Map such as TreeMap is to be used.</dd>
 <dt>Method reference</dt>
+<dd><b>Where it's used today</b> — You often see it in streams and sorting in forms such as map(String::trim), forEach(System.out::println), and Comparator.comparing(String::length). When you process the argument or call a method twice, write a lambda instead.</dd>
 <dd>This is a syntax that refers to an existing method by name in place of a lambda. You write it by joining a class (or an object) and a method name with ::, as in String::length or System.out::println. It is a shorter way to write a lambda that does nothing but call one method.</dd>
 <dt>List, Set, Map</dt>
 <dd>These are the three basic kinds of Java collections. A List is ordered, allows duplicates, and is accessed by index. A Set does not allow duplicates. A Map stores key-value pairs, and its keys cannot be duplicated. You choose among them by the nature of the data (whether order is needed, whether duplicates are allowed, and whether you look things up by key).</dd>
@@ -98,6 +105,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -171,9 +182,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

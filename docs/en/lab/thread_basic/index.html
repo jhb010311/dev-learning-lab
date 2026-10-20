@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Threads</h1>
 <p><b>What is a thread, and what does start() do?</b></p>
+<p><b>Why it exists</b> — If there is only one flow of execution, then while it does something slow, such as downloading a file or waiting for another server's response, everything else has to wait until that finishes. A thread lets one program have several flows of execution, so that while one flow waits or does something slow, another flow does other work.</p>
+<p><b>Where it's used today</b> — Tomcat, which Spring Boot uses by default, has one thread handle each incoming request and so handles the requests of many users together, so even if we never create a Thread, the code we wrote runs on several threads. Even when you handle threads yourself to run work separately, you mostly use ExecutorService, which reuses threads that were made in advance, rather than new Thread.</p>
 <p>A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a thread object is new Thread(() -&gt; work()). work() is a method made for this example; it prints the name of the thread that runs it. The () -&gt; work() in the parentheses is code that says &quot;call work()&quot; and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)</p>
 <p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21, ran each 20 times as a child java process, and checked the output and the number of newly started threads</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Processes and threads</dt>
 <dd>A process is a running program, and the operating system gives it its own independent memory space. A thread is a flow of execution that does the actual work inside a process. The threads of one process share memory (heap, code, and data), and each has only its own stack. This makes it easy for threads to exchange data, but it also causes problems when they touch the same data at the same time.</dd>
 <dt>Main thread and thread names</dt>
+<dd><b>Why it exists</b> — When there are several threads, it is hard to tell which flow of execution a line printed on the screen or in a record came from. The name attached to each thread lets people tell these flows apart in readable words.</dd>
+<dd><b>Where it's used today</b> — The records (logs) of a Spring Boot server write, on each line, the name of the thread that printed the line. The Tomcat threads that handle requests have names like http-nio-8080-exec-1, so you look at this name when following the records of one request or finding where it stopped.</dd>
 <dd>When you run a Java program with java Main, the virtual machine calls the main method of that class to start the execution, and the thread that runs this main method from the top is usually called the main thread. You read the name of a thread with getName(), and Thread.currentThread() returns the Thread object of the thread that is running this code right now, so Thread.currentThread().getName() tells you &quot;who is running this line&quot;. A thread that you create with new Thread(...) without giving it a name is automatically given a name such as Thread-0 or Thread-1, which is &quot;Thread-&quot; followed by an integer. That the name of the main thread is main is not defined by the specification but is a value you can confirm by running on JDK 21.</dd>
 <dt>start() and run()</dt>
+<dd><b>Why it exists</b> — The way to create a thread differs for each operating system, so to create one yourself you would have to call that operating system's features. start() leaves this job to the Java virtual machine (JVM), and the work to do is written in run() as an ordinary method, so that the task code and the creation of a thread are separated.</dd>
+<dd><b>Where it's used today</b> — In a short example or a test, you start a thread right away with new Thread(task).start(). If you write the work as a Runnable or a lambda, you can also hand the same code to an ExecutorService and run it on a thread of a pool.</dd>
 <dd>These are two methods of Thread: start() creates a new thread and has that thread execute run(), and run() is an ordinary method that holds the work the thread is to do. So if you call run() directly, no new thread is created, and the calling thread runs that code in order. start() can be called only once on a Thread object, and a second call throws an IllegalThreadStateException. To run the same task again, create a new Thread object.</dd>
 <dt>join()</dt>
+<dd><b>Why it exists</b> — To wait for another thread to finish without join(), you would have to write a loop that keeps asking whether it has finished, write wait/notify signals yourself, or guess the time with sleep. join() lets you move on to the next line as soon as that thread finishes, and it also guarantees that the values the finished thread changed are visible afterward.</dd>
+<dd><b>Where it's used today</b> — You use it when you hand work out to several threads and combine the results after all finish, and when you check the result in a test after the threads finish. For tasks handed to a thread pool, you wait with get() of the Future or with CountDownLatch instead of join().</dd>
 <dd>This method makes the current thread wait until another thread terminates. A thread that calls t.join() does not go on to the next line until t terminates, so it is used when the caller needs to receive and use a result that another thread produces. While it waits, the state of the calling thread is WAITING, and when a time is given, as in join(1000), it is TIMED_WAITING. When it is called on a thread that has already terminated or has not started yet, it returns right away without waiting.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +105,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +182,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>정보 누출</h1>
 <p><b>오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나</b></p>
+<p><b>왜 생겼나</b> — 컨트롤러마다 try-catch로 오류 응답을 따로 만들면 어느 한 곳에서 예외 메시지를 그대로 내보내는 실수가 생기기 쉽고, 응답 모양도 제각각이 된다. @ControllerAdvice와 @ExceptionHandler는 여러 컨트롤러에서 난 예외를 한곳에서 받아 응답으로 무엇을 내보낼지 정하게 해서, 자세한 내용은 로그로 보내고 밖으로는 미리 정한 짧은 안내와 상태 코드만 나가게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — REST API에서 검증 실패는 400, 없는 자원은 404, 예상하지 못한 오류는 500처럼 예외 종류마다 같은 모양의 오류 본문을 돌려주는 데 쓴다. 로그인 실패 글귀도 없는 아이디와 틀린 비밀번호를 구별하지 않는데, 스프링 시큐리티는 기본으로 없는 아이디를 틀린 비밀번호와 같은 BadCredentialsException으로 바꿔 알린다.</p>
 <p>서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1(스프링 시큐리티 7.1.1) 서버의 실제 응답과 스무 가지 조합을 대조. 글귀가 아니라 항목이 들어 있는지와 두 응답이 같은지를 비교</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,17 @@
 <dt>오류 응답과 정보 누출</dt>
 <dd>서버가 실패했을 때 돌려주는 응답에 서버 안의 정보가 실려 밖으로 나가는 것이다. 예외 메시지에는 실행하려던 SQL이나 파일 경로가, 스택 트레이스에는 쓰는 프레임워크와 코드의 구조가 들어 있어 공격하는 사람에게 다음 시도를 위한 단서가 된다. 스프링 부트의 기본 오류 응답은 예외 메시지와 스택 트레이스를 넣지 않으며, 설정을 always로 바꾸거나 코드에서 예외의 메시지를 그대로 응답에 넣을 때 새어 나간다. 응답에는 정해 둔 글귀와 오류 번호만 담고, 자세한 내용은 서버의 로그에 남기는 것이 기본이다.</dd>
 <dt>스택 트레이스</dt>
+<dd><b>왜 생겼나</b> — 예외 메시지 한 줄만으로는 어느 메서드에서, 어떤 호출을 거쳐 문제가 났는지 알 수 없다. 스택 트레이스는 그 호출 순서를 줄 번호까지 남겨, 다시 실행해 보지 않고도 문제가 난 자리를 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 로그를 남길 때 log.error(&quot;주문 실패&quot;, e)처럼 예외 객체를 마지막 인자로 넘기면 함께 기록된다. 운영 중에 난 오류는 이 기록을 보고 원인을 찾는다.</dd>
 <dd>예외가 생긴 순간에 어떤 메서드들이 어떤 순서로 호출되고 있었는지를 적은 기록이다. 첫 줄에 예외의 클래스 이름과 메시지가 있고, 그 아래로 메서드마다 클래스 이름, 메서드 이름, 파일 이름과 줄 번호가 한 줄씩 이어지며, 원인이 된 다른 예외가 있으면 Caused by로 덧붙는다. 개발자가 오류의 원인을 찾을 때 가장 먼저 보는 자료다. 그만큼 프로그램 안의 구조를 자세히 보여 주므로 사용자에게 가는 응답에는 넣지 않고 로그에만 남긴다.</dd>
 <dt>계정 열거</dt>
 <dd>서버의 응답 차이를 이용해 어떤 아이디나 이메일이 가입돼 있는지를 알아내는 것이다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주거나, 회원 가입과 비밀번호 찾기 화면이 가입 여부를 알려 주면, 아이디를 바꿔 가며 요청해 가입된 아이디의 목록을 만들 수 있다. 이 목록은 비밀번호를 대입해 보거나 속이는 메일을 보낼 대상이 된다. 막으려면 두 경우의 응답을 글귀와 상태 코드까지 같게 만들고, 응답 시간의 차이도 줄인다. 스프링 시큐리티는 기본으로 두 경우를 같은 예외로 다룬다.</dd>
 <dt>@ControllerAdvice와 @ExceptionHandler</dt>
+<dd><b>지금 어디에 쓰나</b> — @RestControllerAdvice로 입력 검증 실패(MethodArgumentNotValidException)는 400, 찾는 자원이 없으면 404처럼 예외별 상태 코드와 오류 본문을 정한다. 오류 본문을 스프링의 ProblemDetail로 표준 형식에 맞추기도 한다.</dd>
 <dd>여러 컨트롤러에서 발생한 예외를 한곳에서 처리하게 하는 기능이다. @ControllerAdvice 클래스 안에 예외 종류별로 @ExceptionHandler 메서드를 두면, 컨트롤러 실행 중 발생한 예외가 그 메서드로 전달되어 일관된 형식의 오류 응답을 만들 수 있다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -96,6 +103,10 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +180,10 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

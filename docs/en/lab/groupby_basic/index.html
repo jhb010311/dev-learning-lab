@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>GROUP BY and aggregation</h1>
 <p><b>What does GROUP BY group, and what do COUNT and SUM count?</b></p>
+<p><b>Why it exists</b> — To find the number of orders and the total for each member, fetching all rows into Java and adding them up for each member with a loop means that the more rows there are, the more data is moved, and the code also gets longer. GROUP BY and aggregate functions finish this calculation in the DB and return only one line per group.</p>
+<p><b>Where it's used today</b> — It is used to produce numbers for statistics or admin screens, such as the daily sales total, the number of units sold per product, and the number of posts per board. To put a condition on the grouped result, such as choosing only members with 3 or more orders, HAVING is used rather than WHERE.</p>
 <p>COUNT(*) and SUM(price) are aggregate functions that reduce many rows to one value. COUNT(*) returns how many rows there are, and SUM(price) returns the total when you add up all the prices. GROUP BY member is added after a SELECT statement, and it puts the rows that have the same member value into one group and makes the aggregation run once for each group. One group becomes one line of the result. In this lab you run the same aggregation on an orders table that holds 5 orders, and you remove GROUP BY member, add the ungrouped column id to SELECT, and add a WHERE condition, and you see how many lines the result has and what shape it takes.</p>
 <p>Checked against real execution · Ran 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>GROUP BY clause</dt>
 <dd>The GROUP BY clause is a clause that you write after a SELECT statement as GROUP BY and a column name, and it makes the rows that have the same value in that column into one group. An aggregate function is calculated once for each group, and one group becomes one line of the result. So the number of rows in the result is the number of groups, not the number of original rows. If you use an aggregate function without writing GROUP BY, all the rows that meet the condition become one group, and the result is one row. Filtering rows with WHERE happens before grouping, so WHERE decides which rows to group.</dd>
 <dt>Aggregate function</dt>
+<dd><b>Why it exists</b> — If you bring all the rows to the application and add them with a loop to get a total or a count, a lot of data has to be moved over the network. An aggregate function finishes the calculation in the DB and returns only the result value.</dd>
+<dd><b>Where it's used today</b> — You use it together with GROUP BY when you produce statistics such as the number of orders, the monthly sales total, and the average rating by product. In JPQL of JPA too, you can use COUNT, SUM, AVG, MAX, and MIN as they are.</dd>
 <dd>A function that takes the values of several rows and returns a single value. COUNT (number of rows), SUM (total), AVG (average), MAX (largest value), and MIN (smallest value) are typical. With GROUP BY, it is computed once for each group. Without GROUP BY, all the rows that satisfy the condition are treated as one group. An aggregate function can be computed only after the groups are made, so it cannot be used in WHERE. You use it in HAVING, SELECT, and ORDER BY. Aggregate functions other than COUNT(*) skip NULL values when they compute.</dd>
 <dt>COUNT and SUM</dt>
+<dd><b>Where it's used today</b> — COUNT(*) is used to make the page numbers under a bulletin board, because the total number of posts is needed. To get the total money spent for each month in a household account book, SUM is used with GROUP BY.</dd>
 <dd>COUNT(*) and SUM(column) are typical aggregate functions. COUNT(*) returns how many rows there are in a group, and it counts a row even if a column has the value NULL. COUNT(column) counts only the rows in which that column is not NULL. SUM(column) returns the total of the values of that column in the group. With GROUP BY, they are calculated once for each group, and without it, once for all the rows.</dd>
 <dt>Nonaggregated columns and ONLY_FULL_GROUP_BY</dt>
+<dd><b>Why it exists</b> — When ONLY_FULL_GROUP_BY is off, MySQL picks and writes the value from any row in the group for a nonaggregated column, so a wrong value can appear in the result without an error. This mode rejects such a statement from the start so that the mistake shows up right away.</dd>
+<dd><b>Where it's used today</b> — If you move a query that ran on a server with this mode off to a server with it on, you may get this error. In that case, it is safer to fix the query and decide which value to show than to turn the mode off.</dd>
 <dd>In a SELECT that does aggregation, a column that is not written in GROUP BY and is not inside an aggregate function is called a nonaggregated column. One group becomes one line of the result, but a group can hold several values of that column, so it cannot be decided what to write on that line. When the SQL mode ONLY_FULL_GROUP_BY is on (it is on by default in 8.4), MySQL rejects a statement that uses a nonaggregated column in SELECT, HAVING, or ORDER BY. The same is true of a statement that uses an aggregate function without GROUP BY. However, it allows the case where the column written in GROUP BY decides the value of that column as one (for example, a primary key), and to reduce the value to one, you put it inside an aggregate function such as MAX, or use ANY_VALUE. Databases differ in how they check this rule.</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +98,10 @@ ORDER BY member;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +175,10 @@ ORDER BY member;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

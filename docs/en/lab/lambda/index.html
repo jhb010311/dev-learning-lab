@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lambda expressions and functional interfaces</h1>
 <p><b>When does the code in a lambda expression run?</b></p>
+<p><b>Why it exists</b> — Before lambdas, to pass a single action, such as a sort order or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the form (parameters) -&gt; body, so you write only the action to pass.</p>
+<p><b>Where it's used today</b> — It is used when you pass an action to standard methods that accept one, such as filter and map of a stream, sort and removeIf of a list, and computeIfAbsent of a Map. It is also used when you postpone creating a value until it is needed, as with orElseGet of Optional, and when you create a Runnable to pass to a thread. When the body gets long, you move it out into a named method and pass it as a method reference.</p>
 <p>A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.</p>
 <p>Checked against real execution · Checked by running 36 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
 <dt>Functional interface</dt>
+<dd><b>Why it exists</b> — Java has no separate type that represents just a function, so a type was needed for the variables and parameters that receive a lambda. A functional interface uses an interface with only one abstract method as that type, so existing interfaces such as Runnable and Comparator can receive a lambda as they are.</dd>
+<dd><b>Where it's used today</b> — It is used when you write a method that receives behavior as a parameter, as the stream's filter receives a Predicate and map receives a Function. When you define one yourself, you add @FunctionalInterface so that the compiler checks that there is only one abstract method.</dd>
 <dd>This is an interface with only one abstract method (a redeclared method of Object such as equals is not counted, and any number of default and static methods is allowed), and it is a type to which a lambda expression or a method reference can be assigned. The java.util.function package predefines types such as Function (takes an input and returns a result), Supplier (supplies a value), Consumer (consumes a value), and Predicate (tests a condition).</dd>
 <dt>Method reference</dt>
+<dd><b>Where it's used today</b> — You often see it in streams and sorting in forms such as map(String::trim), forEach(System.out::println), and Comparator.comparing(String::length). When you process the argument or call a method twice, write a lambda instead.</dd>
 <dd>This is a syntax that refers to an existing method by name in place of a lambda. You write it by joining a class (or an object) and a method name with ::, as in String::length or System.out::println. It is a shorter way to write a lambda that does nothing but call one method.</dd>
 <dt>Differences between anonymous classes and lambda expressions</dt>
 <dd>An anonymous class is syntax that implements an interface or a class right where it is used and creates an object without giving the class a name, and it is written in the form new InterfaceName() { method implementations }. A lambda expression is syntax that does the same thing more briefly, in the form (parameters) -&gt; statement, but only for a functional interface, which has exactly one abstract method. When you implement a functional interface with a simple body that does not use this, the result of a call is the same whichever of the two you use. However, an anonymous class can also implement an interface that has several methods, and it can have fields, and this inside it refers to the object of the anonymous class itself. this inside a lambda expression refers to the enclosing object in which the lambda expression is written.</dd>
@@ -103,6 +108,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

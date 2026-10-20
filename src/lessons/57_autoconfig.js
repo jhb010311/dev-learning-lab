@@ -1,6 +1,8 @@
 Lab.register({
   id: 'autoconf', nav: '스프링 부트 자동 설정', cat: '스프링', mode: 'step',
   title: '의존성만 추가했는데 왜 빈이 생기나',
+  why: '스프링만 쓸 때는 DataSource, EntityManagerFactory, 트랜잭션 매니저 같은 빈을 설정 클래스나 XML로 직접 등록하고 DispatcherServlet도 web.xml 같은 곳에 직접 등록해야 해서, 프로젝트마다 거의 같은 설정을 되풀이했다. 스프링 부트의 자동 설정은 이런 설정을 라이브러리 쪽에 미리 만들어 두고 조건이 맞을 때만 적용해서, 개발자는 바꿀 부분만 직접 등록하게 한다.',
+  use: '@SpringBootApplication을 붙인 애플리케이션은 모두 이 기능으로 기본 빈을 받는다. 스타터를 추가하고 접속 주소만 적으면 커넥션 풀, JPA, 내장 톰캣이 준비되고, 기본값과 다르게 쓰고 싶은 것은 application.yml의 설정값으로 바꾸거나 DataSource, JsonMapper 같은 빈을 @Bean으로 직접 등록한다. 여러 프로젝트가 함께 쓰는 사내 라이브러리를 만들 때 자기만의 자동 설정을 만들어 넣기도 한다.',
   intro: '스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 "이 조건이 맞으면 이 빈을 등록한다"를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다.',
   terms: ['Spring Boot 자동 설정(Auto-configuration)', '스타터(Starter)', '내장 서버', '@Configuration과 @Bean', '컴포넌트 스캔'], ranks: ['boot', 'bean', 'di'],
   controls: [

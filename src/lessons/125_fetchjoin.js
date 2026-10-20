@@ -1,6 +1,8 @@
 Lab.register({
   id: 'fetchjoin', nav: 'JPQL과 페치 조인', cat: 'JPA', mode: 'step',
   title: 'join과 join fetch는 무엇이 다른가',
+  why: '연관관계를 지연 로딩으로 두면 게시글 목록을 읽은 뒤 게시글마다 댓글 조회가 따로 나가고(N+1 문제), JPQL의 그냥 join은 조인한 대상을 SELECT에 넣지 않아 이 조회를 막지 못한다. fetch join은 조인한 엔티티의 컬럼까지 한 번에 읽어 연관 객체를 채워서, 뒤따르는 조회를 없앤다.',
+  use: '게시글과 작성자, 주문과 회원처럼 함께 보여 줄 연관 엔티티를 한 번에 읽을 때 쓰고, 스프링 데이터 JPA에서는 @Query에 join fetch를 적거나 @EntityGraph를 붙인다. 컬렉션을 여러 개 읽거나 컬렉션 페치 조인의 페이징이 메모리에서 처리될 때(경고 HHH90003004)는 페치 조인 대신 @BatchSize나 hibernate.default_batch_fetch_size로 댓글을 묶어 읽는다.',
   intro: 'JPQL은 테이블이 아니라 엔티티를 대상으로 쓰는 쿼리입니다. 게시글을 조회하면서 댓글을 그냥 join할 때와 join fetch할 때, DB에서 읽어 오는 컬럼과 그 뒤에 따라 나가는 조회가 달라집니다.',
   terms: ['JPQL', 'fetch join', '컬렉션 페치 조인과 페이징', 'MultipleBagFetchException', '카테시안 곱'],
   controls: [

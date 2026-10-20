@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>AOP and proxies</h1>
 <p><b>What is a proxy, and how does Spring step in before and after my method?</b></p>
+<p><b>Why it exists</b> — If tasks such as writing logs, or starting and ending a transaction, are written by hand in every method, the same lines are scattered in many places, and when one is forgotten or needs changing, you have to hunt through all of them. Spring's AOP lets you write that work together in one class, and a proxy created by Spring receives the call first and inserts that work before and after it, so the code of the original method is left untouched.</p>
+<p><b>Where it's used today</b> — A method with @Transactional running inside a transaction, and a method with @Cacheable returning a stored result, both work through this proxy. When you write your own, @Aspect is used for things such as measuring a method's execution time or recording calls. If you call an object created with new, or call one of an object's own methods from within the same object, the call does not go through the proxy, so nothing steps in.</p>
 <p>When you put an annotation such as @Transactional on a method, something we did not write happens before and after that method when it is called. This is because Spring does not use the object it made from the class we wrote as it is. It creates a stand-in object (a proxy) that receives the calls in its place, and keeps that. This lab shows the same thing with a LogAspect that we write ourselves, instead of @Transactional (LogAspect, OrderService, and Caller are class names made up for this lab as examples). LogAspect is a class with @Aspect, and it is the place where we write separately what to insert into many methods in common (here, one line of log). The execution(* OrderService.order(..)) inside @Before is an expression that selects the order() method of the OrderService class. Writing separately what to insert in common like this is called AOP. If @Autowired is on the orderService field of the calling class Caller, Spring makes that field refer to the object that Spring keeps. In this lab you remove LogAspect, or make that field refer to an object made directly with new OrderService(), and see what the same order() call prints and what the object that received the call is.</p>
 <p>Checked against real execution · Ran all four combinations with real @Aspect proxies on Spring 7.0.9 and AspectJ weaver 1.9.25.1, and checked the printed lines and the class of the called object</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Aspect-oriented programming (AOP)</dt>
 <dd>This programming technique separates additional behavior that appears repeatedly in many places (crosscutting concerns), such as logging, transactions, and permission checks, from the core business code and gathers it in one place. You write the additional behavior only once and specify separately &quot;where to apply it&quot;, so the core code stays clean and a change to that behavior is made in one place.</dd>
 <dt>@Aspect and @Before</dt>
+<dd><b>Why it exists</b> — If the work to be inserted and its targets are written separately in a configuration file, it is hard to tell from the code alone what is inserted and when. @Aspect and @Before let you write that directly on the class and method, so that by looking at one class you can tell what runs and when.</dd>
+<dd><b>Where it's used today</b> — It is used to leave a record every time a method is called, or to check the values passed in before execution. For work to do after a method ends, use @After or @AfterReturning instead, and for work before and after, use @Around.</dd>
 <dd>@Aspect is an annotation that you put above a class to mark that the class is an aspect (a class where behavior to insert into many methods in common is written). An aspect also has to be a bean managed by Spring, so to have it found by class path scanning, @Aspect alone is not enough, and you must also add an annotation such as @Component. @Before is put above a method of the aspect, and a pointcut expression is written in its parentheses. This method runs before the method that the expression selects runs. When Spring decides that an aspect applies to a bean, it creates a proxy of that bean automatically (auto-proxying). To use this feature, you must turn on @AspectJ support, and the aspectjweaver library must be on the class path.</dd>
 <dt>@Autowired</dt>
+<dd><b>Why it exists</b> — If you write in a configuration file, one by one, which bean to put in which place, the configuration file has to be changed together every time you change a class. With @Autowired, you only mark the place that receives it, and Spring looks at the type, picks the matching bean, and puts it in.</dd>
+<dd><b>Where it's used today</b> — In old code and test code, you often see it put on a field. Newly written code more often receives beans through a constructor instead of a field.</dd>
 <dd>@Autowired is an annotation that you put on a field or a constructor so that Spring finds a bean of the matching type in the container and puts it in that place. When it is put on a field, Spring fills in the object even if our code has no line that puts a value in the field. If there is no matching bean, the injection fails by default. Spring looks in the beans kept by the container, so an object made directly with new in the code is a different object from the bean the container kept.</dd>
 </dl>
 <h2>Try these</h2>
@@ -108,6 +114,10 @@ class Caller {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -181,9 +191,10 @@ class Caller {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

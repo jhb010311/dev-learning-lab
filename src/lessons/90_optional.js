@@ -1,6 +1,8 @@
 Lab.register({
   id: 'optional', nav: 'Optional', cat: '자바 언어', mode: 'step',
   title: '값이 있는데도 orElse의 기본값 코드는 왜 실행되나',
+  why: 'null을 돌려주는 메서드는 반환 타입만 봐서는 값이 없을 수 있다는 것을 알 수 없어서, 부르는 쪽이 null 검사를 빠뜨리면 한참 뒤의 다른 줄에서 NullPointerException이 났다. Optional은 "없을 수 있음"을 반환 타입에 드러내고, 값이 없을 때 쓸 기본값이나 처리를 orElse·map 같은 메서드로 꺼내는 자리에 바로 적게 한다.',
+  use: '조회 결과가 없을 수 있는 메서드의 반환 타입에 쓴다. 스프링 데이터 JPA의 findById, 스트림의 findFirst와 max가 Optional을 돌려주는 대표적인 예다. 필드나 메서드 매개변수의 타입으로는 쓰지 않는 것이 일반적이고, 결과가 여러 개인 메서드는 Optional 대신 빈 리스트를 돌려준다.',
   intro: 'Optional은 값이 있을 수도 없을 수도 있다는 것을 나타내는 객체입니다. 값이 있으면 그 값을 가리키고, 없으면 비어 있습니다. 만드는 방법(of, ofNullable, empty)과 꺼내는 방법(get, orElse, orElseGet, map)에 따라, 값이 없을 때 예외가 나기도 하고 기본값이 쓰이기도 합니다. orElse와 orElseGet은 결과가 같아 보여도 기본값을 만드는 코드가 실행되는 때가 다릅니다.',
   terms: ['Optional', 'orElse와 orElseGet', 'NullPointerException', '지연 평가(Lazy Evaluation)', '람다 표현식'],
   controls: [

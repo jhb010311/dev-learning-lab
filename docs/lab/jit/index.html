@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>JIT 워밍업</h1>
 <p><b>배포 직후의 첫 요청들은 왜 느린가</b></p>
+<p><b>왜 생겼나</b> — 바이트코드를 한 명령씩 해석만 하면 어느 운영체제에서나 같은 파일이 돌지만 느리고, 처음부터 기계어로 컴파일해 두면 빠른 대신 운영체제와 CPU마다 따로 만들어야 한다. JIT 컴파일러는 실행 중에 많이 쓰이는 코드만 골라 그 기계에 맞는 기계어로 바꿔서, 같은 바이트코드를 쓰면서도 해석만 할 때보다 훨씬 빠르게 돌게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — HotSpot 같은 일반적인 JVM에서는 따로 켜지 않아도 늘 동작하므로, 개발자가 신경 쓰는 때는 주로 배포 직후와 성능 측정이다. 새 서버에 요청을 넘기기 전에 주요 API를 미리 호출해 두거나, 성능을 잴 때 처음 구간을 버리는 것이 그 예다. 기동 속도가 중요한, 잠깐 돌고 끝나는 프로그램에서는 GraalVM 네이티브 이미지처럼 미리 기계어로 컴파일하는 방식을 쓰기도 한다.</p>
 <p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 명령씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,14 @@
 <dt>JIT 컴파일러</dt>
 <dd>프로그램 실행 중에 자주 실행되는 바이트코드를 기계어로 컴파일해 두고 이후에는 그 기계어를 직접 실행하는 JVM의 구성 요소다. 처음에는 인터프리터로 바이트코드 명령을 하나씩 해석해 실행하다가, 반복 실행되는 부분을 찾아 최적화한다. 그래서 자바 애플리케이션은 기동 직후보다 어느 정도 실행된 뒤에 더 빨라진다(워밍업).</dd>
 <dt>바이트코드</dt>
+<dd><b>지금 어디에 쓰나</b> — javap -c로 .class 파일의 바이트코드를 보면 컴파일러가 코드를 어떻게 바꿨는지 확인할 수 있다. 스프링과 Hibernate는 실행 중에 바이트코드를 직접 만들어 프록시 클래스를 생성한다.</dd>
 <dd>자바 컴파일러(javac)가 소스 코드를 변환해 만든 중간 형태의 코드로 .class 파일에 담긴다. 특정 CPU나 운영체제의 기계어가 아니라 JVM이 이해하는 명령어라서 어느 플랫폼의 JVM에서든 실행된다.</dd>
 <dt>JVM(자바 가상 머신)</dt>
+<dd><b>지금 어디에 쓰나</b> — 자바뿐 아니라 Kotlin, Scala로 쓴 프로그램도 바이트코드로 컴파일되어 JVM에서 실행된다. 서버에서는 힙 크기(-Xmx)나 GC 종류 같은 실행 방식을 JVM 옵션으로 정해 프로그램을 띄운다.</dd>
 <dd>자바 바이트코드를 읽어 실행하는 프로그램이다. 운영체제마다 그에 맞는 JVM이 있어서, 한 번 컴파일한 자바 프로그램을 수정 없이 여러 운영체제에서 실행할 수 있다. 클래스를 읽어 들이고, 메모리를 관리하고(가비지 컬렉션), 바이트코드를 기계어로 바꿔 실행하는 일을 맡는다.</dd>
 <dt>클래스 로더</dt>
+<dd><b>왜 생겼나</b> — 클래스를 어디서 어떻게 읽을지가 JVM에 고정되어 있으면, jar 파일에 묶인 jar나 웹 애플리케이션별 라이브러리 폴더처럼 다양한 위치를 다룰 수 없다. 클래스 로더는 읽는 방법을 따로 떼어 내, 필요하면 새 로더를 만들어 쓸 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 톰캣은 웹 애플리케이션마다 클래스 로더를 따로 두어 같은 라이브러리의 서로 다른 버전을 함께 돌리고, 스프링 부트는 실행 jar에 묶인 라이브러리 jar를 읽는 전용 클래스 로더를 쓴다.</dd>
 <dd>클래스 파일을 찾아 메모리로 읽어 들이는 JVM의 구성 요소다. 클래스는 프로그램 시작 때 전부 읽는 것이 아니라 처음 필요해지는 시점에 로딩된다. 읽어 들인 클래스는 JVM이 링킹(검증, 준비, 그리고 심볼릭 참조의 해석)과 초기화(static 초기화 실행)를 거쳐 사용할 수 있게 만든다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -104,6 +110,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +187,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

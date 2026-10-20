@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Deadlock</h1>
 <p><b>Two threads wait for each other, and both stop</b></p>
+<p><b>Why it exists</b> — synchronized waits endlessly until it gets the lock and has no way to give up midway, so when two threads wait for each other's locks, it is not resolved until the program is restarted. ReentrantLock's tryLock sets a time to wait and returns false if it cannot get the lock within that time, which opens a way to put down the locks it holds and try again.</p>
+<p><b>Where it's used today</b> — The rule of fixing one lock order and tryLock are used in code that takes several locks, such as a transfer between two accounts. The basic approach is to fix an order, like taking the account with the smaller number first, and you add tryLock when it is hard to fix an order. When a deadlock occurs between database transactions, MySQL InnoDB or PostgreSQL notices it and rolls back one side, so the application receives that failure and tries again.</p>
 <p>Thread 1 transfers money from account A to B, and thread 2 transfers from B to A. To make a transfer, a thread must acquire the locks of both accounts. Depending on the order in which the locks are acquired and on the timing, the two threads can stop forever, each waiting for the lock that the other holds.</p>
 <p>Checked against real execution · Checked by running it on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Deadlock</dt>
 <dd>This is a state in which two or more threads (or transactions) can never make progress, because each is waiting for a resource that the other holds. The typical case is that A holds resource 1 and waits for 2 while B holds resource 2 and waits for 1. It can be prevented by always acquiring resources in the same order.</dd>
 <dt>Critical section and mutual exclusion</dt>
+<dd><b>Where it's used today</b> — You wrap a section that reads a value and writes it back, such as reducing stock or changing a balance, with synchronized or ReentrantLock. With several servers, you get the same effect with a database row lock (SELECT … FOR UPDATE) or a distributed lock that uses Redis.</dd>
 <dd>A critical section is a section of code that causes problems if several threads run it at the same time. Mutual exclusion guarantees that only one thread at a time runs that section, and it is implemented with a lock. While one thread holds the lock, the other threads wait.</dd>
 <dt>synchronized</dt>
+<dd><b>Why it exists</b> — If you acquire and release a lock yourself, you may forget to release it when an exception occurs, and other threads can wait forever. synchronized prevents this mistake with a language syntax in which the JVM releases the lock automatically the moment execution leaves the block, even if an exception was thrown.</dd>
+<dd><b>Where it's used today</b> — It is used to protect a short section such as incrementing a counter or updating a shared collection. If you need a time limit on waiting or a fair order, use ReentrantLock, and if you change only one number, use AtomicInteger.</dd>
 <dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
 <dt>Heap dump and thread dump</dt>
+<dd><b>Why it exists</b> — A server in production cannot be stopped and examined with a debugger, so you had to guess from logs alone why memory was filling up or where threads had stopped. A dump saves the state of that moment to a file, so you can open and examine it separately even after the problem has passed.</dd>
+<dd><b>Where it's used today</b> — With -XX:+HeapDumpOnOutOfMemoryError, a heap dump is saved automatically at the moment an OutOfMemoryError occurs, and when requests seem to have stopped, you take several thread dumps a few seconds apart with jcmd or jstack and compare them.</dd>
 <dd>A heap dump is a file that saves information about every object in the heap at a certain moment. You analyze which objects take up a lot of memory and what refers to them, to find the cause of a memory leak. A thread dump records what every thread is running at that moment (its stack), and it is used to find the cause of an unresponsive application or a deadlock.</dd>
 </dl>
 <h2>Try these</h2>
@@ -89,6 +96,10 @@ void transfer(Account from, Account to, long amount) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +173,10 @@ void transfer(Account from, Account to, long amount) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

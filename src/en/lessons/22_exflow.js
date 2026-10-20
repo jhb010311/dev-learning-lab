@@ -1,6 +1,8 @@
 Lab.register({
   id: 'exflow', nav: 'Exceptions and finally', cat: 'Java language', mode: 'step',
   title: 'When an exception is thrown, which blocks run, and in what order?',
+  why: 'If the code that closes a resource is placed only at the end of the normal flow, then on the path where an exception occurs, that line is not reached, and a file or database connection stays open. finally gives a place that is passed through whichever way you leave, so the cleanup code is gathered in one place, and try-with-resources lets the compiler do what used to be written in layers in finally, the null check and the exception handling of close().',
+  use: 'Use try-with-resources when you open a JDBC Connection, PreparedStatement, or ResultSet, or a file or network stream. ReentrantLock is not AutoCloseable, so call unlock() in finally. When you use JdbcTemplate or JPA, Spring takes care of closing connections, so there is less need to write it yourself.',
   intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception (it does not run if System.exit() ends the JVM itself). The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
   terms: ['finally and try-with-resources', 'Exception and Error', 'Checked and unchecked exceptions'], ranks: ['exception'],
   controls: [

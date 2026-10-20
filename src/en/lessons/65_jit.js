@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jit', nav: 'JIT warmup', cat: 'JVM', mode: 'step',
   title: 'Why are the first requests right after a deployment slow?',
+  why: 'If bytecode is only interpreted one instruction at a time, the same file runs on any operating system but runs slowly, and if it is compiled to machine code from the start, it is fast but must be built separately for each operating system and CPU. The JIT compiler picks only the frequently used code while the program runs and turns it into machine code for that machine, so the same bytecode runs much faster than with interpretation alone.',
+  use: 'A typical JVM such as HotSpot always does this without being turned on, so developers mostly think about it right after a deployment and when measuring performance. Examples are calling the main APIs in advance before passing requests to a new server, and discarding the first stretch when measuring performance. For short-lived programs where startup speed matters, a method that compiles to machine code in advance, such as a GraalVM native image, is sometimes used.',
   intro: 'Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster.',
   terms: ['JIT compiler', 'Bytecode', 'Java Virtual Machine (JVM)', 'Class loader'], ranks: ['jvm', 'tuning', 'deploy'],
   controls: [

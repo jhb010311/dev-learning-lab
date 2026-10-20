@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Cookies</h1>
 <p><b>Showing a name tag, every time, to a server that cannot remember you</b></p>
+<p><b>Why it exists</b> — Without cookies, to keep a login state you would have to attach an identifier to every link's address or to a hidden field in every form, and a value attached to an address leaks when the link is shared or saved in a history. A cookie sends this value in a request header instead of the address and has the browser attach it automatically, so the side that builds the pages does not have to handle the value for each link.</p>
+<p><b>Where it's used today</b> — It is mainly used to send the session ID after login (such as the JSESSIONID cookie of Tomcat) to tell the server that the requests come from the same user, and it is also used to remember settings such as the language. Login cookies get HttpOnly, Secure, and SameSite, which prevent or reduce reading by scripts, sending over plain HTTP, and being sent along with requests from other sites. Mobile apps sometimes send a token in the Authorization header instead of using cookies.</p>
 <p>HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.</p>
 <p>Partly checked against real execution · Checked with a browser and a test server (deletion when the browser is closed was not verified)</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Cookie</dt>
 <dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
 <dt>HTTP as a stateless protocol</dt>
+<dd><b>Why it exists</b> — If the server had to remember the earlier conversation for each request, the resources needed to keep that memory would grow with the number of users, and a conversation could not continue once a connection was cut. HTTP is defined so that a request can be handled by looking at that request alone, so the server does not have to remember anything between requests.</dd>
+<dd><b>Where it's used today</b> — Receiving web pages and images, a mobile app calling a server API, and a server calling another service's API are all done over HTTP. For features like chat, in which the server also has to send data first at any time, WebSocket is used together with it.</dd>
 <dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
 <dt>HttpOnly, Secure, and SameSite</dt>
+<dd><b>Why it exists</b> — A cookie could originally be read by scripts on the page, and it was sent along even over unencrypted HTTP connections and with requests that started from other sites. The server attaches these attributes to each cookie in the Set-Cookie header to choose and block these paths.</dd>
+<dd><b>Where it's used today</b> — It is usual to attach all three to a login session cookie. In Spring Boot, they are attached to the session cookie with the http-only, secure, and same-site settings under server.servlet.session.cookie.</dd>
 <dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks.</dd>
 <dt>Session</dt>
 <dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot change its contents (having the session ID stolen is a different problem). When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
@@ -96,6 +102,10 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +179,10 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

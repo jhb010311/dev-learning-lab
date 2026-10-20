@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>== and equals</h1>
 <p><b>Why is == false when the values are the same?</b></p>
+<p><b>Why it exists</b> — If the equality of objects is judged only by whether they are the same object, as with ==, there is no way to treat as the same the same string or the same member number created at different times. equals is the method that lets a class decide for itself &quot;what counts as the same,&quot; and standard classes such as String and Integer have already overridden it to compare by content.</p>
+<p><b>Where it's used today</b> — Use equals to compare values that are objects, such as a string or an id received as a Long, and use == for primitive values, enums, and when you really want to check whether it is the same object. To use a class you made yourself as a key of a HashMap or an element of a HashSet, override equals and hashCode together, and compare values that may be null with Objects.equals.</p>
 <p>== compares whether two variables refer to the same object, and equals compares whether the contents are the same. Depending on how they are created, strings and Integer objects are sometimes reused and sometimes created anew, so the result of == can differ even when the values are the same.</p>
 <p>Checked against real execution · Every combination was run on JDK 21 and checked against the result</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>String pool</dt>
 <dd>This is a storage area where the JVM keeps string literals and reuses the existing object when a literal with the same contents appears again. It saves memory because the same string is not created several times. This sharing is possible because String is immutable. Creating a string with new String(&quot;a&quot;) makes a new object that is separate from the pool.</dd>
 <dt>Boxing and unboxing</dt>
+<dd><b>Why it exists</b> — Before automatic boxing existed, every time you put an int into a collection you had to create an object with new Integer(n), and every time you took it out you had to call intValue() yourself. Automatic boxing and unboxing have the compiler insert this conversion for you.</dd>
+<dd><b>Where it's used today</b> — It always happens when you put numbers into and take them out of a List&lt;Integer&gt; or a Map&lt;String, Integer&gt;. In calculations that add many numbers repeatedly, an int array or an IntStream is used to avoid the cost of boxing.</dd>
 <dd>Boxing converts a primitive type (such as int) to a wrapper object (such as Integer), and unboxing is the reverse. Collections can hold only objects, so a primitive value that you add is boxed automatically. This has a cost for object creation and conversion, and unboxing a wrapper that is null throws a NullPointerException.</dd>
 <dt>Immutable object</dt>
 <dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
@@ -86,6 +90,10 @@ System.out.println(a.equals(b));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ System.out.println(a.equals(b));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

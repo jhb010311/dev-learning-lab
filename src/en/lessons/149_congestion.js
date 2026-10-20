@@ -1,6 +1,8 @@
 Lab.register({
   id: 'congestion', nav: 'Flow control and congestion control', cat: 'Networking', mode: 'step',
   title: 'How does TCP decide how much to send at a time?',
+  why: 'If the sender sends only at its own speed, the receiver\'s buffer or the queue of an intermediate router overflows and packets are discarded, and as everyone resends what was discarded, the path gets even more congested. TCP\'s flow control and congestion control let it reduce and increase the amount it sends by itself, according to the room the receiver announces and the state of the network that it guesses from loss, so that several connections share the same path.',
+  use: 'The operating system\'s TCP does this on its own, so you do not handle it directly in Java code. That the speed is not at full for the first while when you send a large file to a faraway server over a new connection, and that the transfer speed drops greatly on a wireless network with frequent packet loss, come from this behavior. On a Linux server, you can change the congestion control method (CUBIC, BBR, and so on) with kernel settings.',
   intro: 'Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control.',
   terms: ['Flow control and congestion control', 'Receive window and congestion window', 'Slow start and congestion avoidance', 'TCP and UDP'],
   controls: [

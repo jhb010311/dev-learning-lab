@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Locks (synchronized)</h1>
 <p><b>What is a lock, and what happens without one?</b></p>
+<p><b>Why it exists</b> — In a program where several threads change the same value, it is hard for the programmer to work out one by one when another thread will cut in, and wrong results appear only occasionally, so they are hard to find. Java's synchronized lets you put a lock that says &quot;only one thread at a time in this section&quot; with a single keyword, so that even when several threads run at the same time, that section is run by one thread after another.</p>
+<p><b>Where it's used today</b> — It is used on a server that receives several requests at once, to guard the places where several threads change the value of the same object together. For simply counting, AtomicInteger is often used instead, and for a Map that several threads use together, ConcurrentHashMap. synchronized blocks only threads within one program (JVM), so when there are several servers, you use another method such as a database lock.</p>
 <p>A lock is a mark that says &quot;only one thread runs this section at a time.&quot; In this code, the part that sets the lock is the synchronized before the declaration of the add method. What add does is the single line count++, and this one line is three steps: read the value of count, add 1, and write the added value to count. If two threads change the same count at the same time, another thread can change count after one thread has read the value and before it writes, and one thread's increment can be lost. When synchronized is attached, a thread must acquire the lock before entering add, and only one thread can hold the lock at a time, so the other thread waits until the previous thread leaves add. In this lab you add and remove synchronized and switch between 2 threads and 1 thread. The same code is compiled and really run, and you see the count printed at the end. (Creating threads and handling them with start and join is covered in the lab &quot;Threads&quot;. static is read as meaning that count and add exist only once in the program, and it is not covered in detail here.)</p>
 <p>Checked against real execution · Compiled 4 combinations with javax.tools on JDK 21, ran each 30 times as a child java process, and checked the final count (with 2 threads and no lock, all 30 runs were below 200000)</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Locks and monitors</dt>
 <dd>Every object in Java is associated with a monitor, and a thread can lock or unlock that monitor. This locking is commonly called a lock. Only one thread at a time can lock a monitor, and any other thread that tries to lock the same monitor is blocked and waits until it can lock it. A synchronized method acquires a monitor before it executes: an instance method uses the monitor associated with this, and a static method uses the monitor associated with the Class object of its class. When the method ends, the lock is released automatically.</dd>
 <dt>synchronized</dt>
+<dd><b>Why it exists</b> — If you acquire and release a lock yourself, you may forget to release it when an exception occurs, and other threads can wait forever. synchronized prevents this mistake with a language syntax in which the JVM releases the lock automatically the moment execution leaves the block, even if an exception was thrown.</dd>
+<dd><b>Where it's used today</b> — It is used to protect a short section such as incrementing a counter or updating a shared collection. If you need a time limit on waiting or a fair order, use ReentrantLock, and if you change only one number, use AtomicInteger.</dd>
 <dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
 <dt>The three steps of count++</dt>
 <dd>An expression such as count++, which changes the value of a variable and writes it back, is not one operation even though it is one line. It is split into three steps: read the current value, add 1 to the value you read, and write the added value to the variable. When you look at count++ on a static int field with javap on JDK 21, the order is getstatic, iconst_1 and iadd, and putstatic. If the three steps of two threads mix, and one thread adds 1 to a stale value it had read and writes it, the increment that another thread made in the meantime can be overwritten and lost. If you wrap the three steps in a lock so that no other thread can enter until one thread finishes, nothing is lost.</dd>
@@ -109,6 +113,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -182,9 +190,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

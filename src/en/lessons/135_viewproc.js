@@ -1,6 +1,8 @@
 Lab.register({
   id: 'viewproc', nav: 'Views, stored procedures, and triggers', cat: 'Database', mode: 'step',
   title: 'Why did the stock go down when you ran one INSERT line?',
+  why: 'When several programs share the same database, you have to write a long query or a rule such as "when an order comes in, reduce the stock" separately in each program, and if even one place is missed, the data goes out of step. Views, stored procedures, and triggers store that query and rule only once on the database side, so the same statement runs no matter which program calls them or changes the data.',
+  use: 'You use a view to call a join of several tables briefly in reports or statistics, and to show other users only the result without sensitive columns. You use a trigger for work that must not be skipped no matter which program makes the change, such as recording the change history whenever a row changes. If the same rule is placed in both a trigger and application code, it can run twice, so put it in only one of them.',
   intro: 'A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens.',
   terms: ['View', 'Stored procedure', 'Trigger', 'CHECK constraint', 'Transaction'],
   controls: [

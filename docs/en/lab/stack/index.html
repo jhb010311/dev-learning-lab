@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>Stack and heap</h1>
 <p><b>What happens in memory each time a method is called</b></p>
+<p><b>Why it exists</b> — In method calls, the one called later finishes first, and even when the same method is called in layers, as in recursion, each call needs its own local variables. The Java Virtual Machine stack matches this order by pushing a frame at each call and discarding it right when the method returns, so there is no need to clean up local variables separately. An object created with new may still be used after the call ends, so it is placed on the heap, and when no variable can reach it by following references, the garbage collector collects it.</p>
+<p><b>Where it's used today</b> — When a StackOverflowError occurs, you look for recursion that never ends or calls nested too deep, and when a heap shortage causes an OutOfMemoryError, you check with a heap dump whether too many objects remain on the heap. If deep recursion is really needed, you change it to a loop or increase the stack size with -Xss. Local variables cannot be touched by other threads, but objects on the heap can be seen by several threads together, so you also use this distinction when you think about concurrency problems.</p>
 <p>When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it.</p>
 <p>Checked against real execution · Checked by running code on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Run-time data areas</dt>
 <dd>These are the memory areas that the JVM uses while it runs a program. The areas that each thread has for itself are the pc register, the Java Virtual Machine stack, and the native method stack, and the areas shared by all threads are the heap and the method area. They are the basis for understanding which data is shared between threads.</dd>
 <dt>Java Virtual Machine stack</dt>
+<dd><b>Where it's used today</b> — The stack trace printed when an exception occurs and the list of calls in a thread dump are the JVM stack of each thread read from the top. If deep recursion is truly necessary, increase the stack size per thread with -Xss.</dd>
 <dd>This is a memory area that is created once for each thread. Each time a method is called, a frame that holds the method's local variables and intermediate values is pushed, and the frame is removed when the method ends. Because it is separate for each thread, local variables are not shared with other threads. If recursive calls go too deep, a StackOverflowError occurs.</dd>
 <dt>Heap memory</dt>
+<dd><b>Where it's used today</b> — In production monitoring, you watch heap usage and the amount left after GC to find memory leaks. When you start in a container, set the maximum heap size below the container's memory limit to leave room for memory outside the heap, such as stacks and Metaspace.</dd>
 <dd>This is the memory area where every object and array created with new is stored, and it is shared by all threads. The garbage collector manages it and reclaims objects that are no longer used. Its size is set with the -Xms (initial) and -Xmx (maximum) options, and an OutOfMemoryError occurs when it runs out of space.</dd>
 <dt>StackOverflowError and OutOfMemoryError</dt>
 <dd>A StackOverflowError occurs when method calls go so deep that they exceed the thread's stack space, and the usual cause is recursion with a wrong termination condition. An OutOfMemoryError occurs when memory such as the heap runs short and no more objects can be allocated, and common causes are a memory leak or loading too much data at once.</dd>
@@ -92,6 +96,10 @@ public static void main(String[] args) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +173,10 @@ public static void main(String[] args) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

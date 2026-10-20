@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
 <h1>실행 계획 읽기</h1>
 <p><b>EXPLAIN 한 줄에서 무엇을 읽어야 하나</b></p>
+<p><b>왜 생겼나</b> — 쿼리가 느릴 때 DB가 무엇을 어떻게 읽는지 모르면, 인덱스를 더 만들거나 문장을 바꿔 보며 시간을 재는 수밖에 없다. EXPLAIN은 쿼리를 실행하지 않고도 DB가 고른 인덱스, 읽을 것으로 예상한 행 수, 따로 정렬하거나 임시 테이블을 쓰는지를 보여 주어, 느린 이유를 짐작이 아니라 계획에서 찾게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 느린 쿼리 로그에 잡힌 쿼리의 원인을 찾을 때, 새로 만든 인덱스를 쿼리가 실제로 쓰는지 확인할 때 쓴다. JPA를 쓸 때도 로그에 찍힌 SQL을 꺼내 앞에 EXPLAIN을 붙여 본다. 예상치가 아니라 실제로 읽은 행 수와 걸린 시간이 필요하면 MySQL에서는 쿼리를 실제로 실행하는 EXPLAIN ANALYZE를 쓴다.</p>
 <p>쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.</p>
 <p>실행으로 대조 · MySQL 8.4에서 쉰 가지 조합을 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 대조 (rows는 크기만)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,16 @@
 <dt>실행 계획(EXPLAIN)</dt>
 <dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
 <dt>EXPLAIN의 type</dt>
+<dd><b>지금 어디에 쓰나</b> — 느린 쿼리의 실행 계획에서 type이 ALL이나 index인 테이블을 먼저 찾아, 조건 열에 인덱스를 더할지 정할 때 본다. 조인하는 쿼리에서는 뒤쪽 테이블이 eq_ref나 ref로 읽히는지 보아 조인 열의 인덱스가 쓰이는지 가늠한다.</dd>
 <dd>MySQL의 EXPLAIN 결과에서 그 테이블을 어떤 방법으로 읽는지를 나타내는 칸이다. 읽는 양이 적은 것부터 대략 const(기본 키나 유니크 인덱스로 한 행), eq_ref(조인에서 앞 테이블의 행마다 한 행), ref(유니크가 아닌 인덱스에서 값이 같은 행들), range(인덱스의 한 구간), index(인덱스 전체), ALL(테이블 전체) 순이다. index는 이름과 달리 인덱스를 처음부터 끝까지 읽는다는 뜻이므로 ALL과 마찬가지로 전부 읽는 접근이다. 어떤 값이 나오는지는 옵티마이저가 통계를 보고 정하므로, 같은 쿼리라도 데이터의 양과 분포에 따라 달라질 수 있다.</dd>
 <dt>EXPLAIN의 Extra</dt>
+<dd><b>지금 어디에 쓰나</b> — ORDER BY나 GROUP BY가 붙은 쿼리가 느릴 때 Using filesort나 Using temporary가 있는지 보고, 정렬 순서에 맞춘 인덱스를 만들지 정한다. 커버링 인덱스를 노리고 만든 인덱스가 제대로 쓰이는지도 Using index가 나오는지로 확인한다.</dd>
 <dd>MySQL의 EXPLAIN 결과에서 읽는 방법 말고 덧붙여 하는 일을 적어 주는 칸이다. Using where는 읽어 온 행을 조건으로 다시 걸러낸다는 뜻이고, Using index는 테이블에 가지 않고 인덱스만 읽어 끝낸다는 뜻이다. Using filesort는 ORDER BY를 위해 따로 정렬한다는 뜻이며, Using temporary는 GROUP BY 등을 위해 임시 테이블을 만든다는 뜻이다. 비어 있으면 덧붙은 작업이 없다는 것이다. Using filesort와 Using temporary는 읽는 행이 많을 때 느려지는 원인이 되므로, rows 칸의 값과 함께 본다.</dd>
 <dt>풀 테이블 스캔</dt>
 <dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는 데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
 <dt>커버링 인덱스</dt>
+<dd><b>왜 생겼나</b> — 세컨더리 인덱스로 행을 찾아도 필요한 컬럼이 인덱스에 없으면, 찾은 행마다 테이블을 다시 읽어야 해서 결과가 많을수록 느려진다. 커버링 인덱스는 조회에 쓰는 컬럼까지 인덱스 컬럼으로 정해 이 읽기를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 목록이나 개수 세기처럼 몇 개 컬럼만 많이 읽는 조회에 맞춰 인덱스를 설계할 때 쓴다. OFFSET이 큰 목록에서 id만 인덱스로 먼저 고르고 그 행만 읽는 지연 조인도 이것을 이용한다.</dd>
 <dd>쿼리가 필요로 하는 모든 컬럼이 인덱스에 포함되어 있어, 테이블의 행을 읽지 않고 인덱스만으로 결과를 만들 수 있는 경우를 말한다. 테이블 접근이 생략되어 조회가 빨라진다. MySQL의 실행 계획에서는 Extra 항목에 Using index로 표시된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -91,6 +97,10 @@ SELECT *
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ SELECT *
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'layers', nav: 'Layers and encapsulation', cat: 'Networking', mode: 'step',
   title: 'You send 1500 bytes, so why do 1616 bytes cross the wire?',
+  why: 'One communication mixes jobs of different kinds: carrying signals, finding a route to the destination, resending missing data, and exchanging web pages. If it is built as one block, changing one part means changing everything. A layered structure divides these jobs into layers and fixes only the form of what passes between layers, so that even if you replace a network cable with Wi-Fi, the IP, TCP, and HTTP above it are used as they are, without changes.',
+  use: 'Use it as a standard for checking from the lowest layer up when a connection fails: "Are the network cable and Wi-Fi connected? Are the IP address and route right? Is the port open? What is the HTTP response?" Layer numbers are also used to say whether a device sees only up to the IP address and port or up to the HTTP path and headers, as in "L4 load balancer" and "L7 load balancer."',
   intro: 'A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order.',
   terms: ['OSI model', 'TCP/IP model', 'Encapsulation and decapsulation', 'Segment, packet, and frame', 'MTU and MSS'],
   controls: [

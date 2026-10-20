@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>TCP 연결과 재전송</h1>
 <p><b>패킷이 사라지면 누가 알아채고 다시 보내나</b></p>
+<p><b>왜 생겼나</b> — IP 네트워크는 패킷을 최선을 다해 전달할 뿐이라, 도중에 사라지거나 순서가 바뀌거나 겹쳐 도착해도 알려 주지 않는다. TCP는 번호 매기기, 확인 응답, 재전송, 순서 맞추기를 운영체제가 맡아 처리하게 해서, 애플리케이션은 유실을 챙기지 않고 파일을 읽고 쓰듯 데이터를 주고받을 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바에서 Socket을 열거나 JDBC로 DB에 접속하거나 RestClient로 다른 서버를 부를 때 그 아래에서 TCP 연결이 맺어진다. 연결을 맺는 데 왕복 시간이 들어서 커넥션 풀이나 keep-alive로 맺어 둔 연결을 다시 쓴다. 조금 빠지는 것보다 늦게 오는 것이 더 나쁜 음성 통화나 실시간 대전 게임은 주로 UDP를 쓴다.</p>
 <p>TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.</p>
 <p>문서·표준 대조 · TCP 표준(RFC 9293)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>TCP와 UDP</dt>
 <dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>3-way handshake</dt>
+<dd><b>왜 생겼나</b> — 연결 확인 없이 바로 데이터를 보내면 상대가 받을 준비가 됐는지, 조각마다 붙일 번호를 어디서부터 셀지 모른 채 보내게 된다. 3-way handshake는 세 번의 주고받기로 양쪽이 서로의 시작 번호를 확인해, 이후 빠진 조각과 순서를 셀 기준을 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 직접 부르지는 않지만, 연결 타임아웃은 이 과정이 끝나기를 기다리는 한도다. 방화벽이 SYN을 조용히 버리면 답이 없어 이 타임아웃까지 기다리고, 상대 포트에서 기다리는 프로그램이 없으면 곧바로 Connection refused가 난다.</dd>
 <dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
 <dt>흐름 제어와 혼잡 제어</dt>
 <dd>둘 다 TCP가 전송 속도를 조절하는 기능이다. 흐름 제어는 받는 쪽이 처리할 수 있는 양에 맞춰 보내는 양을 조절해 받는 쪽이 넘치지 않게 한다. 혼잡 제어는 네트워크가 막히는 정도를 감지해 보내는 양을 줄이거나 늘려 네트워크 전체의 혼잡을 막는다.</dd>
@@ -86,6 +90,10 @@ socket.close();                                // 연결 종료</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ socket.close();                                // 연결 종료</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

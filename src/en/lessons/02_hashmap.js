@@ -1,6 +1,8 @@
 Lab.register({
   id: 'hashmap', nav: 'Inside HashMap', cat: 'Data structures', mode: 'step',
   title: 'Where does a HashMap put a key, and how does it find it?',
+  why: 'If you keep data in a list and search it, you have to compare from the beginning, one item at a time, on every search, so it gets slower as the number of items grows. A HashMap decides the slot where an item is stored directly from the hash code calculated from its key, so even as the number of items grows, it usually finds a value after a few comparisons.',
+  use: 'It is most commonly used where you often need to get "the value for this key". Examples are finding member information by member number, counting each word, and a table that holds data briefly while a request is being handled. If you need the order of insertion, use LinkedHashMap instead. If you need sorted order, use TreeMap.',
   intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
   terms: ['Hash table and HashMap', 'Hash collision', 'Load factor and resizing', 'Red-black tree', 'equals and hashCode contract'], ranks: ['collection', 'equals', 'ds'],
   controls: [

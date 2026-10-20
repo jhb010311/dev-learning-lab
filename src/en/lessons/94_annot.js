@@ -1,6 +1,8 @@
 Lab.register({
   id: 'annot', nav: 'Annotations', cat: 'Java language', mode: 'step',
   title: 'What really happens when you just add an annotation with @?',
+  why: 'Before annotations, information such as "this method is wrapped in a transaction" or "this class is saved to this table" was written in a place separate from the code, such as an XML configuration file, or was expressed by a rule such as a method name starting with test. When you changed the code, it was hard to change the separate configuration along with it. An annotation writes that information right above the class or method concerned and lets a tool read it.',
+  use: 'It is commonly used in Spring to specify bean registration, injection, transactions, and request mapping, as with @Component, @Autowired, @Transactional, and @GetMapping. JPA\'s @Entity and JUnit\'s @Test are also annotations. To read an annotation you made yourself while the program is running, with reflection or Spring AOP, you must add @Retention(RetentionPolicy.RUNTIME).',
   intro: 'An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.',
   terms: ['Annotation', 'Reflection', '@Retention and @Target', '@Override', 'Overriding'],
   controls: [

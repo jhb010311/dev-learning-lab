@@ -1,6 +1,8 @@
 Lab.register({
   id: 'subquery', nav: 'Subqueries', cat: 'Database', mode: 'step',
   title: 'Why does NOT IN return no rows at all?',
+  why: 'When you must use the result of another query as a condition and there is no subquery, you first had to run one query to get the value, and then put that value into a second query and send it. A subquery wraps that first query in parentheses and lets you write it in the place of a value or a list in the outer statement, so that the two steps finish in one SQL statement.',
+  use: 'You use it when the condition is another aggregate or the existence of rows, such as finding products more expensive than the average price, finding members who have never ordered, or attaching the most recent order date to each member. When you look for "what does not exist" and the subquery result may contain NULL, you use NOT EXISTS instead of NOT IN. If the same result can be written with JOIN, you sometimes rewrite it as a join.',
   intro: 'A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). This lab shows the result of each kind, and how NOT IN and NOT EXISTS differ when the result of the subquery contains a NULL.',
   terms: ['Subquery', 'Scalar subquery', 'Correlated subquery', 'IN and EXISTS', 'NULL and three-valued logic'],
   controls: [

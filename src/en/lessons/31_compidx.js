@@ -1,6 +1,8 @@
 Lab.register({
   id: 'compidx', nav: 'Composite and covering indexes', cat: 'Database', mode: 'step',
   title: 'A composite index can be used only in column order',
+  why: 'With only indexes made separately for each column, for a query with several conditions the DB usually narrows the range using just one of them, and must filter by the other conditions by reading the found rows one by one. A composite index ties the columns used together into one index in a fixed order, so that the range is narrowed by several conditions at once, and a query that selects only those columns is answered by reading only the index.',
+  use: 'It is created for list queries in which the same combination of conditions and sorting recurs, such as "one member\'s paid orders, most recent first". It is usual to put columns compared with equality first and columns used for range conditions or sorting after them. When the combinations of conditions vary so much that one order cannot fit them all, indexes are created only for the frequently used combinations, and you also weigh that more indexes make writes slower.',
   intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. When every column the query reads is in the index, so that the table does not have to be visited, the index is called a covering index for that query.',
   terms: ['Composite index and leftmost prefix', 'Covering index', 'Clustered index and secondary index', 'Cardinality and selectivity', 'Query execution plan (EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [

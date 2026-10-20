@@ -1,6 +1,8 @@
 Lab.register({
   id: 'windowfn', nav: 'Window functions', cat: 'Database', mode: 'step',
   title: 'How do you add a rank and a running total without reducing the rows?',
+  why: 'To give each row a rank without window functions, you had to join the table to itself or use a correlated subquery to count, for each row, "the number of rows with a higher score than mine", so the statement was long and got slower as rows increased. A window function lets you do the same calculation in one statement by writing only the partition criteria and the sort order in the OVER clause.',
+  use: 'You use it in reports and statistics that need a value compared with the surrounding rows for each row, such as the ranking of popular posts on a board, salary ranking by department, the running total of sales by date, and the change from the previous month. A condition such as "only the first of each team" is done by numbering with ROW_NUMBER and then filtering in an outer query. If you need only totals and do not need each row, use GROUP BY.',
   intro: 'GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row.',
   terms: ['Window function', 'ROW_NUMBER, RANK, DENSE_RANK', 'PARTITION BY', 'LAG and LEAD', 'GROUP BY, WHERE, HAVING'],
   controls: [

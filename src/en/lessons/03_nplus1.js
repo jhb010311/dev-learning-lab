@@ -1,6 +1,8 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: 'Why are many queries sent when you load the order list only once?',
+  why: 'Lazy fetching, which loads an associated entity only when it is actually used, reduces unneeded queries. But if you go through a list and touch the associated entity of each item one by one, a separate query is sent for every associated entity that has not been read yet. A fetch join joins the associated table to the query that reads the list and reads it together from the start. Batch fetching collects the ids of unread associated entities up to a set number and loads them with one query. Either way, the number of queries does not grow with the number of items in the list.',
+  use: 'You use these for queries that read many items and also use the associated entity of each item, such as a list API. For an association that attaches one entity to each item, such as @ManyToOne, load it with a fetch join or @EntityGraph. When you read a @OneToMany collection page by page, the batch size setting (@BatchSize, hibernate.default_batch_fetch_size) is commonly used instead of a fetch join, because with a fetch join the paging can be done in memory.',
   intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. When one query loads the list and N more queries are then sent to load the associated data, it is called the N+1 selects problem.',
   terms: ['N+1 selects problem', 'Lazy fetching and eager fetching', 'Fetch join', '@EntityGraph', 'Batch fetching (batch size)', 'First-level cache'], ranks: ['nplus1', 'jpaorm'],
   controls: [

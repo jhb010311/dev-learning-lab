@@ -1,6 +1,8 @@
 Lab.register({
   id: 'eq', nav: '==와 equals', cat: '자바 언어', mode: 'step',
   title: '같은 값인데 ==는 왜 false가 나오나',
+  why: '객체의 같음을 ==처럼 같은 객체인지로만 따지면, 같은 문자열이나 같은 회원 번호를 서로 다른 때에 만들었을 때 같은 것으로 다룰 방법이 없다. equals는 클래스가 "무엇이 같으면 같은 것인가"를 스스로 정하게 하는 메서드이고, String이나 Integer 같은 표준 클래스는 내용으로 비교하도록 이미 재정의되어 있다.',
+  use: '문자열이나 Long으로 받은 id처럼 객체로 된 값을 비교할 때는 equals를 쓰고, ==는 기본형 값이나 enum, 정말 같은 객체인지를 확인할 때 쓴다. 직접 만든 클래스를 HashMap의 키나 HashSet의 원소로 쓰려면 equals와 hashCode를 함께 재정의하고, null일 수 있는 값은 Objects.equals로 비교한다.',
   intro: '==는 두 변수가 같은 객체를 가리키는지를, equals는 내용이 같은지를 비교합니다. 문자열과 Integer는 만드는 방법에 따라 같은 객체를 재사용하기도 하고 새로 만들기도 해서, 값이 같아도 ==의 결과가 달라집니다.',
   terms: ['동일성과 동등성', 'String Pool(문자열 상수 풀)', '박싱과 언박싱', '불변 객체'], ranks: ['string', 'equals'],
   controls: [

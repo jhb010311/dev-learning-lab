@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
 <h1>Saga and outbox</h1>
 <p><b>When every service has its own database, how do you get &quot;all succeed or all cancel&quot;?</b></p>
+<p><b>Why it exists</b> — With one DB, one transaction can achieve &quot;all succeed or all cancel&quot;, but if each service has a different DB, a single rollback cannot undo another service's commit. A saga gets the result consistent not by a rollback but by running, in reverse, operations that cancel the steps already finished, and an outbox stores the message to send in the same transaction as the business data, so that saving and publishing do not fall out of step.</p>
+<p><b>Where it's used today</b> — In a trip booking where separate services handle flights, hotels, and payment, or in a shopping mall where the DB is split per service, functions that undo a step, such as payment cancellation and seat return, are built in advance and used. The outbox table is read periodically by a separate job and sent to a message broker such as Kafka, or a CDC tool such as Debezium reads the DB's change log and sends it. For services that share one DB, an ordinary transaction is enough.</p>
 <p>When ordering, payment, inventory, and shipping are split into services that each have their own database, you cannot wrap them in one database transaction. If a step fails partway through, you must run separate actions that undo the steps that already finished (the saga pattern). Also, if the server dies between saving to the database and publishing a message, the two get out of sync (the problem that the transactional outbox pattern solves).</p>
 <p>Checked against documentation and standards · Checked against the pattern descriptions on microservices.io</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Distributed transactions and the saga pattern</dt>
 <dd>The problem of handling work that spans several services (or databases) as if it were a single transaction. When each service has its own database, the work cannot be wrapped in one local transaction. Two-phase commit (2PC) can tie several databases together, but its burden on availability and coupling is heavy, so it is rarely used in microservices. In the saga pattern, each service commits its own work in turn, and if a step fails partway, compensating transactions that cancel the already completed work are run to restore consistency.</dd>
 <dt>Compensating transaction</dt>
+<dd><b>Where it's used today</b> — Even in an application that has only one service, when saving to its own database fails after it has called an external payment API, it calls the payment cancellation API to bring things back in line. Because a compensating action can also fail, it is retried or left on a list for a person to handle.</dd>
 <dd>A separate operation that is run to undo the effect of work that has already been committed. Unlike a database rollback, it is a new transaction that performs the opposite action (for example, canceling a payment or restoring stock). In the saga pattern, it is used to cancel the earlier steps when a failure occurs.</dd>
 <dt>Transactional outbox pattern</dt>
+<dd><b>Where it's used today</b> — It is used where an event must be delivered to another service after a database save, such as a shopping mall where the inventory and shipping services must be notified once an order is saved. Because the publishing side may send the same message again, the receiving side must filter out what it has already processed by message ID.</dd>
 <dd>A pattern for making a database change and a message publication succeed together. Instead of publishing the message directly, the application saves the message to be sent in a separate table (the outbox) in the same transaction that changes the business data. Later, another process reads this table and publishes the messages to the message broker. This prevents the inconsistency where the change is in the database but the message was never published.</dd>
 <dt>Message delivery guarantees</dt>
 <dd>The level of guarantee about how many times a message is delivered. With at-most-once, a message is delivered at most one time, so there are no duplicates but messages can be lost. With at-least-once, a message is delivered at least one time, so nothing is lost but duplicates can occur. With exactly-once, a message is delivered exactly one time. In practice, systems often use at-least-once and make the consumer handle duplicates (idempotent).</dd>
@@ -92,6 +96,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +173,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

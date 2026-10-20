@@ -1,6 +1,8 @@
 Lab.register({
   id: 'chkex', nav: 'Checked and unchecked exceptions', cat: 'Java language', mode: 'step',
   title: 'Why do some exceptions keep the code from even compiling unless you handle them?',
+  why: 'If the fact that a method can fail is written only in the documentation, the caller easily forgets the cases where the file is missing or the connection is lost. Java\'s checked exceptions make you write such failures in the throws of the method declaration, and the compiler tells you if the caller does not handle them. Mistakes that require fixing the code (a null reference, a wrong argument) are left as unchecked exceptions, so the code does not force handling at every call.',
+  use: 'You meet them in standard APIs that fail because of circumstances outside the program, such as IOException (file and network input and output) and SQLException (calling the database through JDBC). Spring\'s JdbcTemplate converts SQLException into the DataAccessException family of unchecked exceptions, so that throws does not spread through service code. If there is nothing to do at that point, you wrap the original exception as the cause and throw it as an unchecked exception.',
   intro: 'Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all.',
   terms: ['Checked and unchecked exceptions', 'Exception and Error', 'throws clause', 'Wrapped exception'],
   controls: [

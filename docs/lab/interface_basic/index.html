@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>인터페이스</h1>
 <p><b>인터페이스는 코드에서 어떻게 생겼고 무엇을 정하는가</b></p>
+<p><b>왜 생겼나</b> — 어떤 기능을 쓰는 코드가 특정 클래스 이름에 묶여 있으면, 그 기능을 다른 방식으로 바꿀 때마다 쓰는 쪽 코드도 함께 고쳐야 한다. 인터페이스는 &quot;이런 메서드가 있다&quot;는 것만 타입으로 정해 두어서, 쓰는 쪽은 그 타입만 보고 메서드를 부르고 실제로 어느 클래스의 객체가 오든 같은 코드로 다룰 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바의 List와 Map이 인터페이스여서, List&lt;String&gt; names = new ArrayList&lt;&gt;();처럼 변수는 인터페이스 타입으로 적고 실제 객체는 ArrayList나 LinkedList 가운데 골라 만든다. 스프링 데이터 JPA에서는 JpaRepository를 이어받은 인터페이스만 선언하면 스프링이 그 구현 객체를 만들어 주고, 한 기능을 여러 방식으로 만들어 두고 골라 쓸 때도 인터페이스를 쓴다.</p>
 <p>인터페이스는 interface로 선언하는 약속입니다. 이 실습은 예시로 지은 이름 Payable(인터페이스), Card(클래스), pay(메서드)를 씁니다. &quot;Payable 타입이라면 pay 메서드를 갖춰야 한다&quot;처럼 메서드의 이름만 적고 본문은 적지 않습니다. 클래스는 implements Payable로 그 약속을 지키겠다고 선언하고, 약속한 pay 메서드를 실제로 작성합니다. 그러면 Payable 타입 변수가 그 클래스의 객체를 가리킬 수 있습니다. 이 실습은 interface 선언, implements, pay 메서드를 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 열두 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>인터페이스</dt>
 <dd>클래스가 구현해야 할 메서드의 목록(계약)을 정의한 타입이다. 인스턴스 필드를 가질 수 없고, 한 클래스가 여러 인터페이스를 구현할 수 있다. 사용하는 코드가 인터페이스에만 의존하면 구현 클래스를 바꾸거나 테스트용 가짜 구현으로 교체하기 쉽다.</dd>
 <dt>implements</dt>
+<dd><b>지금 어디에 쓰나</b> — 자바가 주는 인터페이스를 따르는 클래스를 만들 때 쓴다. 예를 들어 Comparable을 implements하면 Collections.sort가 그 클래스의 객체를 정렬할 수 있고, Runnable을 implements하면 스레드가 실행할 일을 적을 수 있다.</dd>
 <dd>implements는 클래스 선언에서 그 클래스가 어떤 인터페이스의 약속을 지키겠다고 밝히는 키워드이다. class Card implements Payable처럼 클래스 이름 뒤에 쓰고, 인터페이스는 쉼표로 여러 개 적을 수 있다. abstract가 아닌 클래스가 implements를 쓰면 그 인터페이스의 모든 추상 메서드를 직접 작성하거나 상위 클래스에서 물려받아야 하고, 하나라도 빠지면 컴파일 오류이다. implements를 쓰면 그 인터페이스가 클래스의 상위 타입이 되어, 클래스의 객체를 그 인터페이스 타입의 변수에 담을 수 있다. 같은 이름의 메서드를 갖췄더라도 implements를 쓰지 않으면 그 인터페이스 타입이 되지 않는다.</dd>
 <dt>추상 메서드</dt>
+<dd><b>왜 생겼나</b> — 부모 쪽 메서드에 빈 본문 { }을 두면, 물려받는 클래스가 그 메서드를 작성하지 않아도 컴파일이 되어 아무 일도 하지 않는 메서드가 남는다. 추상 메서드는 본문을 두지 않아서, 작성을 빠뜨리면 컴파일 오류로 알려 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Runnable의 run, Comparator의 compare가 추상 메서드여서, 이 인터페이스를 따르는 클래스는 그 메서드를 직접 작성한다. 람다로 적는 본문도 이런 추상 메서드 하나의 본문이다.</dd>
 <dd>추상 메서드는 이름, 매개변수, 반환 타입만 선언하고 구현(본문)은 없는 메서드이다. 인터페이스 안에서 void pay();처럼 본문 자리에 세미콜론만 쓰면 abstract를 따로 쓰지 않아도 추상 메서드이고 public이다. 본문이 세미콜론이 아니라 중괄호 블록이면 블록이 비어 있어도({ }) 구현한 메서드이다. 추상 메서드는 그것을 가진 인터페이스를 implements한 클래스가 작성해야 하며, abstract가 아닌 클래스가 작성하지 않으면 컴파일 오류이다.</dd>
 <dt>타입</dt>
+<dd><b>왜 생겼나</b> — 값의 종류를 정하지 않으면 글자에 곱셈을 하거나 없는 메서드를 부르는 실수가 프로그램을 실행해 그 줄에 닿아야 드러난다. 자바의 타입은 이런 실수를 실행 전, 컴파일할 때 찾아 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 변수, 매개변수, 메서드가 돌려주는 값을 선언할 때 적는다. 인텔리제이 같은 편집기는 타입을 보고 그 값에 부를 수 있는 메서드 목록을 보여 준다.</dd>
 <dd>타입은 변수에 담을 수 있는 값의 종류를 정하는 이름이다. 자바의 타입은 기본형과 참조형으로 나뉘고, 참조형에는 클래스 타입, 인터페이스 타입, 타입 변수, 배열 타입이 있다. class Card나 interface Payable 선언을 쓰면 Card, Payable이라는 타입을 쓸 수 있게 된다. 컴파일러는 값을 변수에 담는 줄마다, 그 값의 타입이 변수의 타입과 같거나 그 하위 타입인지 확인한다. 클래스가 implements로 밝힌 인터페이스는 그 클래스의 상위 타입이다. 선언하지 않은 이름을 타입으로 쓰면 컴파일러가 그 타입을 찾지 못해 오류를 낸다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -101,6 +108,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +185,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

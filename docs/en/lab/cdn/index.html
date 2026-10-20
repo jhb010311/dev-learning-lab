@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>CDN</h1>
 <p><b>The origin was changed, so why do users still get the old file?</b></p>
+<p><b>Why it exists</b> — If a single origin server sends files directly to every user, users who are far away wait for the distance the data travels, and when users crowd in, that server and its network line carry the load alone. A CDN has servers in several regions share the sending of the same file, so it reduces both the delay caused by distance and the requests piling up at the origin.</p>
+<p><b>Where it's used today</b> — It is mainly used to deliver files that every user receives in the same form, such as images, videos, and CSS and JS files. For these files, you add a hash or a version to the file name so that the address changes whenever the content changes, and you set a long freshness lifetime. Screens that differ for each logged-in user, and API responses that change often, are usually not copied, and the origin answers them directly.</p>
 <p>A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy.</p>
 <p>Partly checked against real execution · Ran 16 combinations with an origin server and a self-built caching server (acting as the edge) started on 127.0.0.1, and checked. Not checked against a real CDN service</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,13 @@
 <dt>Origin server and edge server</dt>
 <dd>The origin server is the server that holds the original of a file, and an edge server is a server of the CDN, placed close to users, that keeps copies of it and answers on its behalf. A request from a user arrives at the edge first. If the edge has a usable copy, it answers right away (HIT), and if not, it fetches the file from the origin, passes it on, and keeps a copy (MISS). The edge does not ask the origin again during the freshness lifetime that the origin set in the response header. That makes responses faster and reduces the load on the origin, but changes made at the origin in the meantime are not reflected at the edge.</dd>
 <dt>Cache key</dt>
+<dd><b>Where it's used today</b> — A site whose responses differ by language puts a value that indicates the language, such as the Accept-Language header, into the cache key, so that a copy in another language is not sent out by mistake. A query string such as utm_source, used for ad tracking, is left out of the cache key so that copies of the same file do not split apart.</dd>
 <dd>The cache key is the information a cache uses to look up a stored copy. An HTTP cache by default uses the request method and the whole address (host, path, and query string) as the cache key. What a CDN puts in the cache key differs by product and setting, and some CDNs do not include the query string by default (the default cache key of CloudFront is the domain name and the path). When the query string is in the cache key, even a one-character difference in the query string of the same file makes it a different copy, and the request goes to the origin server again. Using this the other way around, if you change the version value in the address each time the file changes, you can send out the new content without deleting the old copy. So that query strings unrelated to the content do not split the copies into small pieces, CDNs have settings that decide which values go into the cache key and which are left out.</dd>
 <dt>Cache invalidation (purge)</dt>
+<dd><b>Where it's used today</b> — It is used when you must take down a wrongly uploaded image or a file that contains personal information in a hurry, or right after you deploy a first-screen file such as index.html whose address cannot be changed.</dd>
 <dd>Cache invalidation (purge) is the act of forcibly deleting a copy from the cache while it still has freshness lifetime left. If the edge of a CDN keeps sending out an old copy after you changed the origin, requesting invalidation of that address makes the next request fetch the new content from the origin. It is not a function defined in the HTTP standards; each CDN or proxy product offers its own, and it deletes by a single address or by a group of paths. It deletes only the copy at the edge, and it cannot delete the copy that a user's browser keeps separately. So for files that change often, rather than relying on invalidation, it is also common to use a version or a hash in the address.</dd>
 <dt>TTL (time to live)</dt>
+<dd><b>Where it's used today</b> — In Redis, you set it with EXPIRE or the EX option of SET. Besides caches, it is used for values that must disappear by themselves after a set time, such as phone verification codes, sessions, and distributed locks.</dd>
 <dd>The length of time for which data is valid. If you set it when you put a value in a cache, the value is deleted automatically after that time passes. It is a basic safeguard that stops a value that no longer matches the source from staying in the cache forever.</dd>
 </dl>
 <h2>Try these</h2>
@@ -110,6 +115,10 @@ http.createServer(async (req, res) =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +192,10 @@ http.createServer(async (req, res) =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Sorting and Comparator</h1>
 <p><b>Who decides the sort order, and why is comparing by subtraction wrong?</b></p>
+<p><b>Why it exists</b> — If sorting code is written anew for each element type or sort order, then every time you sort members by age or products by price, you have to write similar sorting code again. Comparable and Comparator are interfaces that separate out only the comparison rule. Sorting methods such as List.sort and Arrays.sort keep a single copy of the sorting procedure and ask only which of two elements comes first, through compareTo or compare, so you can swap in a different rule without changing the sorting code.</p>
+<p><b>Where it's used today</b> — To show a list in order of amount or date, you pass a rule made with Comparator.comparing to list.sort or to sorted of a stream. If there is more than one rule, you chain them with thenComparing, and you make a descending order with reversed. You also pass a Comparator when you give an order to a TreeMap, a TreeSet, or a PriorityQueue.</p>
 <p>Sorting means asking &quot;which of these two comes first?&quot; over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator).</p>
 <p>Checked against real execution · Checked by running 16 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -42,6 +44,7 @@
 <dt>Integer overflow</dt>
 <dd>This is what happens when the result of a calculation goes beyond the range that its type can hold and becomes an unexpected value. A Java int can hold -2147483648 through 2147483647, and a result beyond this range crosses over to the opposite end of the range and continues from there, with no exception. For example, adding 1 to 2147483647 gives -2147483648. No error occurs and the wrong value is silently used, so the problem is hard to find. For a calculation that can go out of range, use long, or use a method such as Math.addExact, which throws an exception when the result overflows.</dd>
 <dt>Method reference</dt>
+<dd><b>Where it's used today</b> — You often see it in streams and sorting in forms such as map(String::trim), forEach(System.out::println), and Comparator.comparing(String::length). When you process the argument or call a method twice, write a lambda instead.</dd>
 <dd>This is a syntax that refers to an existing method by name in place of a lambda. You write it by joining a class (or an object) and a method name with ::, as in String::length or System.out::println. It is a shorter way to write a lambda that does nothing but call one method.</dd>
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
@@ -102,6 +105,10 @@ System.out.println(list);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +182,10 @@ System.out.println(list);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

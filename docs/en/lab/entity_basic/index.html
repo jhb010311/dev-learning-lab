@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Entities</h1>
 <p><b>What is an entity, and how does it differ from an ordinary class?</b></p>
+<p><b>Why it exists</b> — To store a Java object in the database without an entity, you must write an INSERT statement yourself and take out the field values one by one to fill the statement. When reading, you must take the value of each column of the result and put it into the object one by one, and if you add one field, you must change all the related SQL. An entity tells JPA, by markers, the pairing of a class and a table, so that JPA takes on this copying work.</p>
+<p><b>Where it's used today</b> — In a program that uses a database with Spring, you make the things to be stored in tables, such as members, orders, products, and posts, into entity classes. You usually use them together with a Spring Data JPA repository to save and find. In places where you must tune SQL directly, such as statistics that join several tables, you sometimes write SQL directly with MyBatis or JdbcTemplate.</p>
 <p>An entity is a Java class that is paired with a database table, and one object of it is paired with one row of the table. In code, it is an ordinary Java class declared with class, and it differs from an ordinary class in two places. @Entity above the class is a marker that objects of this class are stored in a table, and @Id above a field is a marker that this field is the primary key (the column that tells rows apart). With these two, JPA (Jakarta Persistence, here Hibernate) looks at the fields of the class and pairs them with the columns of the table, and when you pass an object to em.persist, it builds the INSERT statement for you and runs it at commit. We do not write SQL. Here, em is the EntityManager object that makes JPA do the saving. In this lab, you remove the two markers one at a time and run the same saving code, to see whether the table is created and whether an INSERT statement is sent.</p>
 <p>Checked against real execution · Compiled the source as it is for all 8 combinations on Hibernate 7.4.5 and H2 2.4.240, really started JPA, saved, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Entity</dt>
 <dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
 <dt>@Entity</dt>
+<dd><b>Where it's used today</b> — In a project that uses JPA, put it at the top of every class to be paired with a table. Spring Boot finds the classes with this annotation when it starts and registers them as entities, and to make the table name different from the class name, add @Table(name = &quot;...&quot;) as well.</dd>
 <dd>@Entity is an annotation that you put above a class to mark that &quot;objects of this class are stored as one row of a database table&quot;. The JPA specification says that an entity class must have this annotation or be declared as an entity in an XML configuration file, and that the class must have a constructor with no arguments (public or protected) and must not be final. If you do not write a name, the class name becomes the entity name, and the table name also follows this name by default. A class without @Entity is not accepted as an entity even if you register it with JPA, so if you pass an object of that class to em.persist, an error occurs.</dd>
 <dt>@Id</dt>
+<dd><b>Why it exists</b> — If it is not known which object corresponds to which row in the database, then when you change or delete a value, you cannot decide which row to change. @Id marks the field that serves as the basis for this pairing, so that JPA finds the row by that value.</dd>
+<dd><b>Where it's used today</b> — It is usually put on an id field of type Long, with @GeneratedValue added so that the number is assigned automatically instead of being set by you. The value you pass when finding with the repository's findById is the value of this field.</dd>
 <dd>@Id is an annotation that you put above a field (or getter) of an entity to mark that &quot;this value is the primary key&quot;. The JPA specification says that every entity must have a primary key, and that a simple primary key made of one field is declared by putting @Id on that field. The primary key is the value that tells one object of the entity apart from the others, so it should not be changed after the object is saved. If you put @Id on a field, JPA reads and writes the value through the field (field access), and if you put it on a getter, it reads and writes through the getter (property access). If a class with @Entity has no @Id, JPA throws an error when it starts and stops.</dd>
 <dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd><b>Why it exists</b> — If you use an ORM library through its own API, you must change all the code when you switch to another implementation. JPA standardizes the mapping annotations and the way to use EntityManager, so your code follows the standard and an implementation such as Hibernate handles the actual behavior.</dd>
+<dd><b>Where it's used today</b> — In Spring Boot, adding spring-boot-starter-data-jpa means you use all three together, and the implementation is Hibernate by default.</dd>
 <dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
 </dl>
 <h2>Try these</h2>
@@ -101,6 +108,10 @@ em.getTransaction().commit();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +185,10 @@ em.getTransaction().commit();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

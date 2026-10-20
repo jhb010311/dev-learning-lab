@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,19 +31,29 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>IP addresses and subnets</h1>
 <p><b>Are two IP addresses with the same first three numbers on the same network?</b></p>
+<p><b>Why it exists</b> — If IP addresses are handled one by one, computers and routers must know where to send for each destination separately, and if the size of a network is chosen only from a few fixed classes, many addresses are left over or too few are available. The subnet mask and CIDR set the first few bits of an address as the network number so that addresses with the same front part are handled as one block, and they let you choose the size of that block as needed with /number.</p>
+<p><b>Where it's used today</b> — A common use is to set a range such as 10.0.0.0/16 when you create a VPC in the cloud and divide it into several /24 subnets to place web servers and database servers separately. CIDR is also used to write a range when you specify &quot;allow connections only from addresses in this range&quot; in a firewall or security group.</p>
 <p>An IP address is divided into a front part that shows &quot;which network&quot; and a back part that shows &quot;which device within it&quot;. A number after the address, such as /24, decides where the front part ends. A computer uses this number to judge whether the destination is on the same network, and so decides whether to send the data directly or to hand it to the default gateway (a home router or another router).</p>
 <p>Partly checked against real execution · The address calculation and the same-network judgment were checked for all 72 combinations against Node.js 24 net.BlockList and two other calculations. The NAT explanation follows RFC 3022</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>IP address (IPv4)</dt>
+<dd><b>Why it exists</b> — On the internet, where many networks are joined, each device needs a common address from which it is possible to know which way to send to. An IP address is divided into a network part and a device part, so that a router can decide where to send next by looking only at the front part of the destination.</dd>
+<dd><b>Where it's used today</b> — You use it when you connect to a server or set a DB address, and when you check in a log who sent a request. 32 bits are not enough addresses, so addresses are shared out using private addresses and NAT, and IPv6, which uses 128-bit addresses, is also used alongside.</dd>
 <dd>This is a 32-bit numeric address used to find a device on the internet. To make it easy for people to read, it is cut into 8-bit groups and written as four decimal numbers from 0 to 255, such as 192.168.0.10. The front part of the address shows which network the device is on, and the back part shows which device it is within that network. Where the front part ends cannot be known from the address alone; it is decided only together with a subnet mask.</dd>
 <dt>Subnet mask and CIDR</dt>
+<dd><b>Where it's used today</b> — In the network settings of a PC or a router, you write a subnet mask such as 255.255.255.0 together with the IP address. Tools such as Docker also express the range of the internal network they create in CIDR, as in 172.17.0.0/16.</dd>
 <dd>A subnet mask is a 32-bit number that shows where the network part of an IP address ends; the network part is 1s and the host part is 0s. CIDR notation gives the same information by writing the number of bits in the network part after the address, as in 192.168.0.10/24, and /24 means the same as the subnet mask 255.255.255.0. A computer applies the same mask to its own address and to the destination address. If the results are the same, it treats the destination as being on the same network and sends directly; if not, it sends to the default gateway. If the mask is entered wrongly, communication with even a nearby device may fail.</dd>
 <dt>Network address and broadcast address</dt>
+<dd><b>Where it's used today</b> — In routing tables and in the subnet settings of the cloud, a network is written as a network address, such as 10.0.1.0/24. The cloud may also set aside addresses besides these two, so AWS does not give the first four and the last one address of every subnet to servers.</dd>
 <dd>The network address is the address whose host-part bits are all 0, and the broadcast address is the address whose host-part bits are all 1. The network address is used to refer to the network itself, and the broadcast address is used to send to all devices on that network at once. Neither can be given to a device, so the number of host addresses usable on a network is the total number of addresses minus 2. For example, a /24 network has 256 addresses, but only 254 of them can be given to devices.</dd>
 <dt>Private IP address</dt>
+<dd><b>Why it exists</b> — IPv4 addresses are 32 bits, so their number is fixed, and it is not enough to give every device in homes and companies an address that does not overlap across the whole internet. Private IP addresses are set aside so that internal networks may reuse the same numbers, letting public addresses be used only where communication with the outside happens.</dd>
+<dd><b>Where it's used today</b> — The 192.168.0.x that a home router gives devices, company internal networks, and the server addresses in a cloud VPC are usually private addresses. A server that must not be reached directly from outside, such as a DB server, is given only a private address and not a public one.</dd>
 <dd>This is an address range set aside so that anyone can use it inside a home or company network without asking permission. There are three ranges, 10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16, and they are defined by RFC 1918. Because the same addresses are used in many places at once, routers on the internet do not find a route to them. So a device with a private address must borrow a public address through NAT to communicate with the internet.</dd>
 <dt>NAT</dt>
+<dd><b>Why it exists</b> — Routers on the internet do not find routes for private addresses, so a device that has only such an address cannot communicate with servers outside. If the NAT function of a router changes the address, several internal devices can use the internet with one public address.</dd>
+<dd><b>Where it's used today</b> — It is something a home router does by default, and in the cloud you put a NAT gateway so that servers in a private subnet can download updates. To let traffic come in from outside to a server inside, you write the pairs in advance, as with port forwarding on a router.</dd>
 <dd>This is a function that replaces the IP address written in a packet with another address as the packet passes through a router. A home router replaces the private source address and port of a packet sent out by an internal device with its own public address and a new port, and records the pair in a translation table. When the response comes back, it looks at the table, changes the destination back to the original private address and port, and delivers the packet to that device. Devices are told apart by port number, so several devices can share one public address, but a host on the outside cannot start a connection to an inside device, because the translation table has no pair for it.</dd>
 </dl>
 <h2>Try these</h2>
@@ -99,6 +109,10 @@ console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network)
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +186,10 @@ console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network)
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

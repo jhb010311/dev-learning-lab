@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
 <h1>Saga와 Outbox</h1>
 <p><b>서비스마다 DB가 따로일 때 &quot;전부 성공 아니면 전부 취소&quot;를 어떻게 하나</b></p>
+<p><b>왜 생겼나</b> — DB가 하나라면 트랜잭션 하나로 &quot;전부 성공 아니면 전부 취소&quot;를 맞출 수 있지만, 서비스마다 DB가 다르면 롤백 한 번으로 다른 서비스의 커밋을 되돌릴 수 없다. Saga는 롤백 대신 이미 끝난 단계를 취소하는 작업을 거꾸로 실행해 결과를 맞추고, Outbox는 보낼 메시지를 업무 데이터와 같은 트랜잭션으로 저장해 저장과 발행이 어긋나지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 항공·호텔·결제를 서로 다른 서비스가 맡는 여행 예약이나 서비스별로 DB가 나뉜 쇼핑몰에서, 결제 취소·좌석 반환 같은 되돌리는 기능을 미리 만들어 두고 쓴다. Outbox 테이블은 별도 작업이 주기적으로 읽어 Kafka 같은 메시지 브로커로 보내거나, Debezium 같은 CDC 도구가 DB 변경 로그를 읽어 보낸다. DB 하나를 함께 쓰는 서비스라면 일반 트랜잭션으로 충분하다.</p>
 <p>주문, 결제, 재고, 배송이 각자의 DB를 가진 서비스로 나뉘어 있으면 하나의 DB 트랜잭션으로 묶을 수 없습니다. 중간에 실패하면 이미 끝난 단계를 되돌리는 작업을 따로 실행해야 합니다(Saga). 또 DB 저장과 메시지 발행 사이에 서버가 죽으면 둘이 어긋납니다(Outbox가 해결하는 문제).</p>
 <p>문서·표준 대조 · microservices.io의 패턴 설명</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,10 @@
 <dt>분산 트랜잭션과 Saga 패턴</dt>
 <dd>여러 서비스(또는 데이터베이스)에 걸친 작업을 하나의 트랜잭션처럼 처리하는 문제다. 서비스마다 데이터베이스가 따로 있으면 하나의 로컬 트랜잭션으로 묶을 수 없다. 여러 데이터베이스를 묶는 2단계 커밋(2PC)이 있지만 가용성과 결합도 부담이 커 마이크로서비스에서는 잘 쓰지 않는다. Saga 패턴은 각 서비스가 자신의 작업을 차례로 커밋하고, 중간에 실패하면 이미 완료된 작업을 취소하는 보상 작업을 실행해 일관성을 맞추는 방법이다.</dd>
 <dt>보상 트랜잭션</dt>
+<dd><b>지금 어디에 쓰나</b> — 서비스가 하나뿐인 애플리케이션에서도 외부 결제 API를 부른 뒤 자기 DB 저장이 실패하면 결제 취소 API를 불러 맞춘다. 보상 작업도 실패할 수 있으므로 재시도하거나 사람이 처리할 목록에 남긴다.</dd>
 <dd>이미 커밋된 작업의 효과를 되돌리기 위해 실행하는 별도의 작업이다. 데이터베이스의 롤백과 달리 반대 동작(예: 결제 취소, 재고 복원)을 수행하는 새로운 트랜잭션이다. Saga 패턴에서 실패 시 이전 단계들을 취소하는 데 쓴다.</dd>
 <dt>Transactional Outbox 패턴</dt>
+<dd><b>지금 어디에 쓰나</b> — 주문이 저장되면 재고나 배송 서비스에 반드시 알려야 하는 쇼핑몰처럼, DB 저장 뒤 다른 서비스에 이벤트를 꼭 전해야 하는 곳에 쓴다. 발행하는 쪽이 같은 메시지를 다시 보낼 수 있으므로, 받는 쪽은 메시지 ID로 이미 처리한 것을 걸러야 한다.</dd>
 <dd>데이터베이스 변경과 메시지 발행을 함께 성공시키기 위한 패턴이다. 메시지를 직접 발행하는 대신, 업무 데이터를 변경하는 것과 같은 트랜잭션에서 보낼 메시지를 별도의 테이블(outbox)에 저장한다. 이후 다른 프로세스가 이 테이블을 읽어 메시지 브로커로 발행한다. DB에는 반영되었는데 메시지가 발행되지 않는 불일치를 막는다.</dd>
 <dt>메시지 전달 보장</dt>
 <dd>메시지가 몇 번 전달되는지에 대한 보장 수준이다. at-most-once는 최대 한 번 전달되어 중복은 없지만 유실될 수 있다. at-least-once는 최소 한 번 전달되어 유실은 없지만 중복될 수 있다. exactly-once는 정확히 한 번 전달된다. 실무에서는 at-least-once로 두고 소비자가 중복을 처리(멱등)하도록 만드는 경우가 많다.</dd>
@@ -92,6 +96,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +173,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

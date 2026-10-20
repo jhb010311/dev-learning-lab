@@ -1,6 +1,8 @@
 Lab.register({
   id: 'tls', nav: 'TLS handshake', cat: 'Networking', mode: 'step',
   title: 'What happens before the https padlock locks',
+  why: 'If only HTTP is used, anyone on the same Wi-Fi or passing through an intermediate device can read or swap passwords and cookies as they are, and there is no way to know whether the other party is really that site. TLS adds one more encryption layer under HTTP, so that without changing application code, the content going back and forth cannot be snooped on or altered, and the identity of the other server is vouched for by a certificate.',
+  use: 'Not only login and payment screens: now most websites and app API calls go over https. Browsers use HTTP/2 only over https, and TLS is sometimes turned on for calls between servers and for DB connections too. Rather than putting the certificate on the Spring server directly, it is common for nginx or a load balancer in front to handle TLS and for the servers behind to receive HTTP.',
   intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know".',
   terms: ['HTTPS and TLS', 'TLS handshake and certificates', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures'], ranks: ['network', 'websec', 'http'],
   controls: [

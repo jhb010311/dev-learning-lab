@@ -1,6 +1,8 @@
 Lab.register({
   id: 'immut', nav: 'Immutability and defensive copies', cat: 'Java language', mode: 'step',
   title: 'The field is final, but its value changed',
+  why: 'When an object is passed around to many places and one place changes its contents, other code that was using the same object is affected without knowing it, and it is hard to find when and where the change happened. An immutable object blocks every way to change its state after it is created, and a mutable object such as a list is copied on the way in and on the way out, so a value that was checked once never changes later.',
+  use: 'Value classes that Java provides, such as String, Integer, and LocalDate, and lists created with List.of are immutable. This approach is used when you make value objects such as an amount or a period, and request and response DTOs, as records. If a field refers to a list, the constructor must copy it with List.copyOf, so that even a record cannot have its contents changed from outside.',
   intro: 'In Order, a class made up for this example, the final field items refers to a list of items. final means only that items cannot be made to refer to a different list. It does not prevent the contents of that list from changing. Making a copy instead of storing the list received from outside, or returning the list the field refers to, as it is, is called a defensive copy. This lab shows whether outside code can change the contents of the order, depending on whether the constructor and the getter make a copy.',
   terms: ['Immutable object', 'Defensive copy', 'final', 'Encapsulation', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [

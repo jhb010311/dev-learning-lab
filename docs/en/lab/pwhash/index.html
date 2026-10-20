@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>Password hashing</h1>
 <p><b>How well do passwords hold up when the database leaks?</b></p>
+<p><b>Why it exists</b> — If passwords are kept in plain text, they are exposed as they are the moment the DB leaks, and even if they are stored converted with a fast hash such as SHA-256, an attacker tries common passwords very quickly. bcrypt automatically attaches a different salt for each member and deliberately raises the computation cost, which increases the time each guess takes and slows down brute-force attacks.</p>
+<p><b>Where it's used today</b> — It is used to store passwords in a service that has sign-up and login. In Spring Security, passwords are converted and stored with a PasswordEncoder and compared with matches at login, and BCryptPasswordEncoder is a common choice. Information that must later be turned back into its original value (such as external API keys) is stored encrypted, not hashed.</p>
 <p>Two members happen to use the same password (password123). How the passwords are stored in the database greatly changes how long an attacker needs to recover the original passwords after the database leaks. A hash is a value computed from the original in a way that cannot be reversed. This lab compares plain text, a hash, a salted hash, and a deliberately slow hash (bcrypt).</p>
 <p>Partly checked against real execution · SHA-256 was actually computed; bcrypt could not be measured</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Hash function and salt</dt>
 <dd>A hash function turns an input into a fixed-length value, and the original input cannot be recovered from the result. For passwords, the hash value is stored instead of the plain text, so the plain text is not exposed even if the data leaks. A salt is a random value that is added to each password and is different for each one. It makes the same password produce a different hash, which blocks attacks that use precomputed lists of hashes.</dd>
 <dt>bcrypt</dt>
+<dd><b>Where it's used today</b> — It is used when storing member passwords. The default encoder created by Spring Security's PasswordEncoderFactories also stores new passwords with bcrypt, and other choices for the same purpose include Argon2, scrypt, and PBKDF2.</dd>
 <dd>A hash function designed for storing passwords. It generates a salt automatically and includes it in the result, and it lets you set a work factor (cost) that makes the computation slow on purpose. A slow computation greatly increases the time an attacker needs to try a huge number of candidates. Spring Security's BCryptPasswordEncoder uses it.</dd>
 <dt>Symmetric-key cryptography and public-key cryptography</dt>
+<dd><b>Where it's used today</b> — In HTTPS (TLS), public-key cryptography is used when the connection is set up, to verify the signature of the server certificate and to exchange keys, and the HTTP data that follows is encrypted with a symmetric key such as AES. Values stored in a database, such as card numbers, are encrypted with a symmetric key, and the key pair used for SSH login is a public-key one.</dd>
 <dd>Symmetric-key cryptography uses the same key to encrypt and to decrypt. It is fast, but it has the problem that the key must be shared safely with the other party (AES). Public-key cryptography uses a pair of keys, a public key and a private key. Data encrypted with the public key can be decrypted only with the private key, so there is no key-sharing problem, but it is slow (RSA). In practice, public-key cryptography is used to exchange a symmetric key safely, and then the symmetric key encrypts the data.</dd>
 </dl>
 <h2>Try these</h2>
@@ -81,6 +85,10 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -154,9 +162,10 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

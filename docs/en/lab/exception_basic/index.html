@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Exceptions</h1>
 <p><b>What is an exception, and what does try-catch do?</b></p>
+<p><b>Why it exists</b> — Without exceptions, a method often returns a special value such as -1 to report a problem, and if the caller does not check that value, the problem passes silently and leads to a wrong result. A Java exception stops execution right where the problem occurred and jumps to the place that caught it with try-catch, so the problem does not pass unnoticed, and the code that handles it can be written separately from the usual code.</p>
+<p><b>Where it's used today</b> — Java throws an exception when you try to convert text that is not a number with Integer.parseInt, when the file you want to open does not exist, and when the network connection drops. If there is something to do on the spot, such as telling the user &quot;invalid input&quot;, you handle it with catch, and if not, you do not catch it and pass it on to the caller. On a Spring server, an exception that was not handled is often turned into an error response in a method marked with @ExceptionHandler.</p>
 <p>An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. You write the code that might fail between the braces of try { }. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.</p>
 <p>Checked against real execution · Eight combinations were compiled with javax.tools on JDK 21 and run as child java processes, and the standard output, standard error, and exit code were checked</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Exception and Error</dt>
 <dd>Both are subtypes of Throwable that represent abnormal situations while a program runs. An Exception is a situation that the application can catch and handle (such as invalid input or a missing file). An Error is a serious problem at the JVM level, such as running out of memory or a stack overflow, and applications usually do not try to recover from it.</dd>
 <dt>try-catch</dt>
+<dd><b>Why it exists</b> — If nothing catches an exception, that thread simply ends, and one problem stops all the work it was doing. try-catch sets in advance the code to run when a problem occurs, so that the program can keep running after an exception.</dd>
+<dd><b>Where it's used today</b> — To keep reading the rest when an exception occurs in one of several files being read in turn, put the try-catch inside the loop. Something that must be closed after use, like a file, is written in the parentheses after try (try-with-resources) so that it is closed even if an exception occurs.</dd>
 <dd>try-catch is a statement that decides where execution goes to handle an exception when one occurs. You wrap code that might fail in try { } and add catch (kind of exception e) { } after it. When an exception is thrown inside try, execution stops there. If the kind of the thrown exception is the kind written in catch or a subkind of it, execution jumps into catch, runs it, and then continues with the lines below the try-catch. If there are several catch clauses, the first one that matches, from the top, is used. If no catch matches, the exception keeps passing outward past the try-catch, and if nobody catches it, that thread ends. If no exception occurs, the code inside catch does not run.</dd>
 <dt>Throwing an exception (throw)</dt>
+<dd><b>Why it exists</b> — If a method that received a wrong value just continues, the problem shows up only after the wrong value has spread through several methods, and the cause is hard to find. throw stops execution at the place where the mistake was noticed, so that the error message points to where the problem occurred.</dd>
+<dd><b>Where it's used today</b> — Check the parameters at the beginning of a method and throw IllegalArgumentException if a negative amount or an empty name comes in, and throw IllegalStateException if the object is in a state that is not suitable for doing the work.</dd>
 <dd>Throwing an exception means creating an exception object, stopping what is being done now, and moving execution to the place that catches it. When something breaks the rules of Java, such as dividing an integer by 0, Java throws an exception by itself, and your code can also throw one directly with a throw statement, as in throw new IllegalStateException(). After an exception is thrown, execution does not go back to the place where it was thrown and continue. Java goes up through the callers one by one looking for a try-catch that can catch this exception, and if there is none all the way up, that thread ends.</dd>
 <dt>NullPointerException</dt>
 <dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. Whether a value is null depends on the values at run time, so the compiler cannot catch it in advance and it shows up only when the code runs (it is an unchecked exception, so handling is not forced either). This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
@@ -93,6 +99,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +176,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

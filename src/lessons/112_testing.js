@@ -1,6 +1,8 @@
 Lab.register({
   id: 'testing', nav: '테스트', cat: '스프링', mode: 'step',
   title: '테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나',
+  why: '스프링 애플리케이션은 빈끼리 제대로 이어지는지까지 확인해야 하는데, 서버를 띄워 손으로 요청을 보내 보는 방식은 느리고 매번 되풀이하기 어렵다. 스프링과 스프링 부트의 테스트 지원(@SpringBootTest, @WebMvcTest 등)은 테스트 코드에서 컨텍스트를 띄우되 필요한 계층만 올리거나 빈을 가짜로 바꾸게 하고, 한 번 만든 컨텍스트를 다시 써서 이 확인을 빠르게 자동으로 하게 해 준다.',
+  use: '컨트롤러의 요청 주소, 입력 검증, 응답 JSON 모양은 @WebMvcTest와 MockMvc로 확인하고, 리포지토리의 쿼리는 @DataJpaTest로, 여러 계층이 실제로 이어지는지는 @SpringBootTest로 확인한다. 서비스의 계산 규칙처럼 스프링 없이도 확인할 수 있는 것은 new와 Mockito만 쓴 단위 테스트가 더 빠르다.',
   intro: '컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 관리하는 컨테이너)에 등록되는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. 예시로 만든 OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.',
   terms: ['단위 테스트와 통합 테스트', '테스트 대역(Mock, Stub)', '@SpringBootTest와 @WebMvcTest', '@MockitoBean', '테스트 컨텍스트 캐시'],
   controls: [

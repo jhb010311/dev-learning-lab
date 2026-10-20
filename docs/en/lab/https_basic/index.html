@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>HTTPS</h1>
 <p><b>How is HTTPS different from HTTP?</b></p>
+<p><b>Why it exists</b> — With HTTP alone, not only can someone peek at the text at an intermediate device, but the client also has no way to notice if the text is secretly changed or a fake server answers as if it were the real one. HTTPS first checks with a certificate whether the other side is the real server for that address, and then encrypts the text that is exchanged, so that it blocks peeking, changing, and fake servers all at once.</p>
+<p><b>Where it's used today</b> — Screens for login, payment, and entering personal information use it, and these days most websites and apps also exchange data with servers over HTTPS. A browser shows a warning such as &quot;Not secure&quot; on a page at an http address. On company servers, a common setup is that a program such as nginx placed in front of the Spring app terminates HTTPS, and the Spring app receives over HTTP behind it.</p>
 <p>HTTP sends requests and responses onto the network as plain characters. Between the client and the server there are things like routers and carrier equipment, and if someone looks at the characters passing through there, even a password can be read as it is. HTTPS sends the same HTTP characters encrypted, and the address starts with https://. The code box on the screen has three parts. The first is the address the client connects to, the second is the content it sends (the body of a POST request), and the third is the server's certificate, which appears only for https. Before the HTTP request is sent, the server shows its certificate to prove that it is the owner of that name, and the client checks two things: whether the certificate is in its list of trusted certificates, and whether the name it connected to is written in the certificate. If a check fails, the client closes the connection and does not send the request. In this lab you change https:// to http://, stop trusting the certificate, or connect with a name that is not written in the certificate, and send the same content each time. You see what can be seen in the middle of the diagram and what the server receives. 8080 and 8443 on the screen are port numbers written as examples, and password=1234 is a string for testing.</p>
 <p>Checked against real execution · Ran 8 combinations between an http/https server and client of Node.js 24.18.0 with a TCP relay placed between them, using a test certificate made with openssl, and checked them</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>HTTPS and TLS</dt>
 <dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
 <dt>TLS handshake and certificates</dt>
+<dd><b>Why it exists</b> — If you only encrypt and do not verify the other side, you end up in an encrypted conversation even with a fake server that has put itself in the middle. The TLS handshake and certificates let two parties who have not shared a key beforehand meet for the first time and agree on a key, while also verifying that the other side is the owner of that domain.</dd>
+<dd><b>Where it's used today</b> — A server operator gets a certificate from a certificate authority such as Let's Encrypt, installs it on a web server or load balancer, and renews it before it expires. Between internal services, calls are sometimes protected with mTLS, in which both sides verify each other's certificates.</dd>
 <dd>The TLS handshake is the process, before encrypted communication starts, in which the client and the server agree on the cryptographic algorithms to use, verify the identity of the server, and agree on the keys that will encrypt the data. A certificate is a document that contains the server's public key and domain information and is signed and vouched for by a trusted certificate authority (CA). The client validates it to confirm that the server it connected to is the real one.</dd>
 <dt>Plaintext</dt>
 <dd>Plaintext means characters that are sent as they are, without encryption. When you connect with http://, the characters of the request and the response travel over the network as plaintext, so they can be read at places between the client and the server such as a router or carrier equipment, and a password is no exception. When data is encrypted, the same content travels as bytes that cannot be recognized, and only the two ends that hold the key can turn it back into the original characters (RFC 8446 section 1 explains that the data in a channel made with TLS is visible only at the two ends). The word plaintext can also mean &quot;the text before it is encrypted,&quot; so tell the two apart from the context.</dd>
 <dt>Server certificate verification (trust anchors and name)</dt>
+<dd><b>Where it's used today</b> — A browser does this check every time it opens an HTTPS site, and if it fails, it shows a warning screen and stops the connection. A Java program makes the same check when it calls another HTTPS server, so to connect to a server that uses a certificate you made yourself, you have to put that certificate in the list of trust anchors.</dd>
 <dd>An HTTPS client checks the certificate the server shows before it sends the encrypted request. There are two checks. One is whether the certificate can be trusted: RFC 9110 section 4.3.4 says this check needs the client to be configured in advance with a set of trust anchors, that is, a list of the certificates (or certificate authorities) it trusts. The other is whether the name it connected to (or the IP address, if it connected by IP address) is written in the certificate. For example, if you connect by 127.0.0.1 to a server that shows a certificate with only the name localhost, the name is not written there, so the check fails. When a certificate is not valid for that address, a user agent such as a browser must obtain confirmation from the user or terminate the connection, and an automated client is recommended to terminate the connection (same section).</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +96,10 @@ Signed by an authority the client trusts</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +173,10 @@ Signed by an authority the client trusts</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dynquery', nav: '동적 쿼리와 Querydsl', cat: 'JPA', mode: 'step',
   title: '검색 조건이 있을 때만 where에 붙이려면',
+  why: '조건마다 JPQL 문자열을 이어 붙이면 컴파일러는 그것을 그냥 글자로 보므로, 조각을 잘못 이은 쿼리도 그 조합이 실제로 실행될 때까지 오류가 드러나지 않는다. Criteria API와 Querydsl은 조건을 자바 객체로 만들어 넘기면 where와 and를 도구가 붙여 주고, Querydsl은 엔티티에서 만든 Q클래스로 필드를 가리켜 필드 이름 오타까지 컴파일할 때 잡는다.',
+  use: '관리자 화면의 회원 검색, 쇼핑몰의 상품 필터처럼 입력한 항목만 조건이 되는 검색 기능에 쓴다. 스프링 데이터 JPA를 쓰는 프로젝트에서는 Querydsl을 함께 쓰는 경우가 흔하고, 스프링 데이터의 Specification으로 Criteria API를 감싸 쓰기도 한다. 조건이 늘 같은 쿼리라면 쿼리 메서드나 @Query로 충분하다.',
   intro: '회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.',
   terms: ['동적 쿼리', 'JPQL', 'Criteria API', 'Querydsl', 'SQL Injection'],
   controls: [

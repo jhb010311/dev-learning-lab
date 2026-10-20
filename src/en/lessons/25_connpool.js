@@ -1,6 +1,8 @@
 Lab.register({
   id: 'connpool', nav: 'Connection pool and OSIV', cat: 'JPA', mode: 'time',
   title: 'Why connections run short even though the queries finish quickly',
+  why: 'Every time a DB connection is made, it has to go through a TCP connection and a login procedure, and there is also a limit on the number of connections the DB can accept at once. A connection pool opens a set number of connections in advance and lets requests take turns using them, which saves connection setup time and keeps the number of connections to the DB from exceeding that number even when requests pile up.',
+  use: 'In Spring Boot, the pool size is set with HikariCP\'s maximum-pool-size, and it is adjusted so that the pool size multiplied by the number of servers does not exceed the DB limit. If there is a long external API call unrelated to the DB, OSIV is turned off with spring.jpa.open-in-view=false and the external call is moved outside the transaction, so that the connection is not held during that time.',
   intro: 'A request does its database work, then calls an external API, and then responds. Database connections are borrowed from a pool and returned to it. Depending on when a connection is returned (the Open Session in View setting, OSIV for short), the number of requests that a pool of the same size can withstand differs greatly.',
   terms: ['Connection pool', 'Open Session in View', 'Persistence context', 'Bottleneck'], ranks: ['jpaorm', 'tuning', 'traffic'],
   controls: [

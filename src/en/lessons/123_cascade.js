@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cascade', nav: 'Cascade and orphan removal', cat: 'JPA', mode: 'step',
   title: 'What happens to the children when you save or delete only the parent?',
+  why: 'When you handle entities that are created together and disappear together, such as a post and its comments, without cascade you have to call em.persist or em.remove separately for each child, and if you miss even one, a save is skipped or a delete fails. Cascade makes the same operation happen to the children when you save or delete the parent, and orphanRemoval deletes the rows of children removed from the collection, so that just working with the parent object keeps the rows of the children in line.',
+  use: 'In a relationship where a child belongs to only that one parent, such as an order and its order items, or a post and its attached files, CascadeType.ALL and orphanRemoval = true are often used together. It is also used so that when you delete one item of a list on a screen, just removing it from the collection sends a DELETE. You do not set it on an entity that several orders point to together, such as a product, and you save and delete it separately.',
   intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.',
   terms: ['Cascade', 'Orphan removal (orphanRemoval)', 'Persistence context', 'Transactional write-behind and flush', 'Entity'],
   controls: [

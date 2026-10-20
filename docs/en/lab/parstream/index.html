@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,11 +31,15 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Parallel streams and the common pool</h1>
 <p><b>Someone else's parallel stream slows down my code</b></p>
+<p><b>Why it exists</b> — To split a calculation on a large collection across several cores, you used to have to write the code yourself to create a thread pool, split up the data, and collect the results. A parallel stream leaves the splitting and combining to the ForkJoinPool just by changing stream() to parallelStream(), and so that each piece of code does not create new threads, it makes them all share the one common pool of the JVM.</p>
+<p><b>Where it's used today</b> — It is used to finish calculations that only use the CPU without waiting, such as aggregating or transforming a very large number of elements, quickly in batch jobs. To run tasks that wait, such as database queries or external API calls, at the same time, use an ExecutorService with its own chosen size, or virtual threads, instead of the common pool. It is rarely needed in code that handles web requests.</p>
 <p>parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too.</p>
 <p>Checked against real execution · Values actually measured on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>ForkJoinPool and the common pool</dt>
+<dd><b>Why it exists</b> — If you split a large task into small pieces and give them to several threads, the threads finish at different times, and a thread that finishes first sits idle. ForkJoinPool gives each thread its own queue of tasks and lets a thread with nothing to do take tasks from another thread's queue (work stealing), so the work is divided evenly.</dd>
+<dd><b>Where it's used today</b> — It is used when a large CPU-only computation is spread over several cores, as with Arrays.parallelSort and parallel streams. Tasks that wait for a database or an external API are run on a separately created ExecutorService so that they do not hold on to the common pool.</dd>
 <dd>This is a thread pool used to split a large task into small tasks, process them on several threads, and combine the results. The JVM has a common pool (commonPool) that everything shares, and parallel streams run in it by default. If you run a long task there, other tasks that use the same pool also slow down.</dd>
 <dt>Stream API</dt>
 <dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
@@ -84,6 +88,10 @@ items.parallelStream().forEach(this::resize);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ items.parallelStream().forEach(this::resize);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

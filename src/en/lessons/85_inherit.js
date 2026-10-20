@@ -1,6 +1,8 @@
 Lab.register({
   id: 'inherit', nav: 'Inheritance and overriding', cat: 'Java language', mode: 'step',
   title: 'When does the superclass constructor run when a subclass object is created?',
+  why: 'If several similar classes each hold their own copies of the same fields and methods, then to change the common part you have to find every class and make the same change, and if even one is missed, the behavior differs. Inheritance puts the common part in one place, the parent class, and has the children take it over with extends, and for behavior that differs per child, overriding lets you write only that method again.',
+  use: 'Every class inherits from Object, so you override toString or equals when you use them, and you inherit from RuntimeException to create an exception class that fits your program. In JPA, common fields such as the creation time are placed in a parent class annotated with @MappedSuperclass, and the entities inherit them. When you only want to borrow functionality, you use composition instead of inheritance, keeping another object in a field and handing the work to it.',
   intro: 'Creating a subclass object with new makes just one object, and that object has both the fields inherited from the superclass and the fields that the subclass declares. No separate superclass object is created. When you use new, the superclass constructor finishes first, and only then do the field initializers and the constructor body of the subclass run. Because of this order, there are cases in which you must write super(...), and when the superclass constructor calls an overridden method, that method sees subclass fields that are still empty.',
   terms: ['Inheritance', 'Overriding', 'Constructor', 'super', 'Default values of fields'],
   controls: [

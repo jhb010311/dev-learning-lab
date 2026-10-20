@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 관측</p>
 <h1>평균과 백분위</h1>
 <p><b>평균 응답 시간은 멀쩡한데 왜 느리다는 불만이 오나</b></p>
+<p><b>왜 생겼나</b> — 평균 응답 시간에서는 아주 느린 소수의 요청이 다수의 빠른 요청에 묻혀, 사용자 몇 명이 몇 초씩 기다려도 숫자는 멀쩡해 보인다. 느린 요청이 많아지면 평균이 실제로 어떤 요청도 걸리지 않은 시간이 되기도 한다. 응답 시간 백분위는 평균 대신 &quot;요청의 99%가 몇 초 안에 끝났나&quot;처럼 느린 쪽 끝을 따로 보여 준다.</p>
+<p><b>지금 어디에 쓰나</b> — 서비스 목표를 &quot;p99 응답 시간 1초 이하&quot;처럼 정하고, 넘으면 알림이 오게 하는 데 쓴다. 스프링 부트에서는 Actuator와 Micrometer로 요청 시간 지표를 내보내고 Prometheus와 Grafana에서 p95, p99를 그래프로 본다. JMeter나 k6 같은 부하 테스트 도구의 결과도 평균과 함께 백분위로 읽는다.</p>
 <p>요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다. 평균은 모든 값을 더해 개수로 나눈 값이고, 백분위는 값을 순서대로 줄 세웠을 때 몇 퍼센트 지점에 있는 값인지를 말합니다(p99는 99% 지점의 값). 같은 데이터를 평균과 백분위로 나란히 놓고, 느린 요청이 어느 쪽에서 드러나는지 봅니다.</p>
 <p>실행으로 대조 · 같은 데이터를 자바로 따로 계산해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>TPS와 응답 시간 백분위</dt>
 <dd>TPS는 시스템이 1초에 처리하는 요청(트랜잭션)의 수다. 응답 시간은 평균만 보면 일부 느린 요청이 가려지므로 백분위로 본다. p95가 1초라는 것은 요청의 95%가 1초 안에 처리된다는 뜻이고, p99는 99%를 기준으로 한 값이다. 느린 일부 요청이 사용자 경험을 좌우하므로 p95, p99를 함께 관리한다.</dd>
 <dt>부하 테스트</dt>
+<dd><b>왜 생겼나</b> — 기능 테스트는 요청 하나가 맞게 처리되는지만 보므로, 동시에 수백 명이 쓸 때 커넥션 풀이 모자라거나 락 대기가 길어지는 문제는 드러나지 않는다. 부하 테스트는 이런 문제를 사용자가 겪기 전에 일부러 재현해 보는 방법이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 대규모 할인 행사나 서비스 출시 전에 예상 동시 사용자 수를 견디는지 확인하고, 서버가 몇 대 필요한지 정할 때 쓴다. 운영 데이터를 건드리지 않도록 운영과 비슷한 사양의 별도 환경에서 돌린다.</dd>
 <dd>실제와 비슷한 양의 요청을 인위적으로 보내 시스템이 어느 정도까지 견디는지, 한계에 이르렀을 때 어디가 먼저 문제가 되는지(병목) 확인하는 테스트다. 운영 전에 처리 가능한 용량을 파악하고 개선 효과를 측정하는 데 쓴다. JMeter, nGrinder, k6 같은 도구를 사용한다.</dd>
 <dt>APM</dt>
+<dd><b>왜 생겼나</b> — 로그만으로 느린 원인을 찾으려면 의심 가는 곳마다 시간을 재는 코드를 넣고 다시 배포하는 일을 되풀이해야 한다. APM은 실행 중인 애플리케이션에서 메서드와 쿼리, 외부 호출에 걸린 시간을 계속 모아 두어, 문제가 생긴 뒤에도 그때의 기록을 볼 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 운영 중에 특정 API가 갑자기 느려졌을 때 느린 요청 하나를 골라 어느 쿼리나 외부 호출에서 시간이 걸렸는지 따라가 보고, 배포 전후의 응답 시간과 오류율을 비교하는 데 쓴다.</dd>
 <dd>애플리케이션의 성능을 모니터링하는 도구다. 요청별 응답 시간, 어느 메서드나 쿼리에서 시간이 걸렸는지, 오류 발생 현황 등을 수집해 보여 준다. 자바에서는 주로 에이전트 방식으로 코드 수정 없이 적용한다. Pinpoint, Scouter, Datadog 등이 있다.</dd>
 <dt>관측성(로그, 지표, 추적)</dt>
 <dd>시스템의 외부 출력만으로 내부 상태를 파악할 수 있는 능력이다. 로그는 개별 사건의 기록, 지표(메트릭)는 요청 수나 응답 시간처럼 수치로 집계한 값, 추적은 하나의 요청이 여러 서비스를 거쳐 가는 경로와 구간별 소요 시간의 기록이다. 세 가지를 함께 갖춰야 문제를 감지하고 원인을 찾을 수 있다.</dd>
@@ -88,6 +94,10 @@ management.metrics.distribution.percentiles:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -161,9 +171,10 @@ management.metrics.distribution.percentiles:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

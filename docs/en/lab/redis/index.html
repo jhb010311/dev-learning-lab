@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Redis single-threaded execution</h1>
 <p><b>If one command is slow, everyone waits</b></p>
+<p><b>Why it exists</b> — If frequently read values are fetched from the database every time, the disk and query costs add up, and if each application server keeps them in its own memory, the servers see different values when there are several of them. Redis is an in-memory store that several servers connect to together over the network. It returns a value directly from a single key, which is lighter than a database query, and lets all servers see the same value.</p>
+<p><b>Where it's used today</b> — It is commonly used as a cache that keeps product information or query results for a few minutes to reduce database queries, as a session store where several servers see the same login information, and as a counter that counts views or likes with INCR. Original data that must not be lost and searches that mix several conditions stay in the relational database, and Redis usually holds values that can be created again.</p>
 <p>Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.</p>
 <p>Partly checked against real execution · The principle was measured and checked on Redis 8.10.2 (the time values are examples)</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,10 @@
 <dt>Cache</dt>
 <dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
 <dt>Atomicity and CAS (compare-and-swap)</dt>
+<dd><b>Where it's used today</b> — The request counter built with AtomicInteger and AtomicLong, and ConcurrentHashMap putting the first value into an empty slot, use CAS. The version comparison in JPA optimistic locking (UPDATE … WHERE version = ?) uses the same idea in the database.</dd>
 <dd>Atomicity is the property that an operation made of several steps runs as one, with no gap for anything to cut in. CAS (compare-and-swap) performs &quot;change to the new value only if the current value equals the value I read&quot; as a single atomic operation, which makes safe updates possible without locks. AtomicInteger and similar classes use it.</dd>
 <dt>Event loop</dt>
+<dd><b>Where it's used today</b> — Netty, the default server of WebFlux, and Node.js and Redis work with this structure. If you must make a blocking call in an event loop, you hand it off to a separate thread, such as Reactor's Schedulers.boundedElastic().</dd>
 <dd>This is a structure in which a small number of threads detect the I/O events that occur on many connections and process them in turn. There is no thread per connection, so one thread takes care of many connections. If you run a long task or a blocking call on such a thread, processing stops for every connection that the thread is responsible for.</dd>
 </dl>
 <h2>Try these</h2>
@@ -87,6 +91,10 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all t
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +168,10 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all t
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

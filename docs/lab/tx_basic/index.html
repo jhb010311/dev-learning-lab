@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>@Transactional</h1>
 <p><b>@Transactional은 무엇을 묶어 주는가</b></p>
+<p><b>왜 생겼나</b> — 여러 번의 저장을 한 묶음으로 처리하려면, @Transactional 없이 JDBC 코드만으로는 메서드마다 DB 연결을 얻어 자동 반영을 끄고, 끝에서 반영하고, 예외가 나면 취소하는 코드를 try-catch로 직접 적어야 한다. 이 코드는 메서드마다 똑같이 되풀이되고, 한 곳이라도 빠뜨리면 반쪽 저장이 남을 수 있다. @Transactional은 이 되풀이를 메서드 위의 한 줄로 줄여 준다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 애플리케이션에서 DB에 두 번 이상 쓰는 메서드에 흔히 적는다. 주문을 저장하면서 재고를 줄일 때, 회원을 지우면서 그 회원이 쓴 글도 지울 때처럼 하나만 반영되면 안 되는 경우다. 읽기만 하는 메서드에는 @Transactional(readOnly = true)를 적어 읽기만 한다는 것을 알리기도 한다.</p>
 <p>@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습에서 예시로 만든 OrderService 클래스의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 런타임 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.</p>
 <p>실행으로 대조 · Spring 7.0.9와 H2 2.4.240에서 네 가지 조합을 실제 @Transactional 프록시로 실행해 행 수와 단계 문장의 근거를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,7 @@
 <dt>트랜잭션</dt>
 <dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
 <dt>커밋과 롤백</dt>
+<dd><b>지금 어디에 쓰나</b> — 계좌 이체처럼 여러 번 고쳐야 하는 일을 모두 반영하거나 모두 취소할 때 쓴다. DB 도구로 데이터를 손으로 고칠 때도 트랜잭션을 연 뒤 SELECT로 결과를 보고, 맞으면 COMMIT, 틀리면 ROLLBACK을 보낸다.</dd>
 <dd>커밋(commit)은 트랜잭션 안에서 한 데이터 변경을 모두 DB에 확정해 반영하는 것이고, 롤백(rollback)은 그 변경을 모두 취소해 트랜잭션을 시작하기 전 상태로 되돌리는 것이다. 트랜잭션은 끝날 때 둘 중 하나로 끝나며, 이미 커밋한 변경은 롤백으로 되돌릴 수 없다. 스프링에서 @Transactional이 붙은 메서드는 정상으로 끝나면 스프링이 커밋하고, 예외로 끝나면 롤백 규칙을 보고 롤백한다. 기본 규칙에서는 RuntimeException과 Error가 메서드 밖으로 던져지면 롤백하고 체크 예외는 롤백하지 않는다. 트랜잭션이 없으면 JDBC 연결의 기본 설정인 자동 커밋에 따라 저장 문장마다 곧바로 커밋되므로, 뒤에서 예외가 나도 앞의 저장은 롤백할 수 없다.</dd>
 <dt>프록시(Proxy)</dt>
 <dd>실제 객체를 대신해 호출을 받는 대리 객체다. 호출을 받으면 부가 작업을 수행한 뒤 실제 객체에 전달한다. 스프링은 AOP와 @Transactional 같은 기능을 적용할 빈을 프록시로 감싸 컨테이너에 등록하므로, 다른 빈이 주입받는 것은 실제 객체가 아니라 프록시다.</dd>
@@ -98,6 +101,10 @@ public class OrderService {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -171,9 +178,10 @@ public class OrderService {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

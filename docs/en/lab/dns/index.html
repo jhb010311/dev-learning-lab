@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>DNS</h1>
 <p><b>Who knows the IP address of a domain name, and when does a change show up?</b></p>
+<p><b>Why it exists</b> — An IP address is hard for people to remember, and when a server is moved and its address changes, every user and program that knows the address must learn the new one. DNS keeps the pairs of names and addresses on servers managed by the owner of the name and lets anyone ask them, so that people remember only the name, and when the address changes only one record on that server needs to be changed.</p>
+<p><b>Where it's used today</b> — It is used everywhere you connect by name, from typing an address in a browser to the address with which a Spring application connects to a database or an external API. When you move a server, shorten the TTL beforehand and then change the record, so that the old address left in caches disappears quickly. The mail-receiving server (MX) and the value for verifying domain ownership (TXT) are also announced as DNS records.</p>
 <p>A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again.</p>
 <p>Partly checked against real execution · 32 combinations were run as real DNS messages with a test name server and resolver started on 127.0.0.1, and checked. The parsing of records was checked against c-ares in Node.js 24, and the behavior of the resolver and the cache reproduces the procedures of RFC 1034 and 1035</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>DNS</dt>
 <dd>The system that translates a domain name (example.com) into the IP address that computers use to communicate. When you enter an address in a browser, the browser first asks this system for the IP address of that name and then connects to that IP address. Lookup results are cached for a certain time.</dd>
 <dt>DNS record</dt>
+<dd><b>Why it exists</b> — The information to attach to a name is not only the address of a server; it is of several kinds, such as the server that receives mail and forwarding to another name. DNS records split this information into one line per type, so that even when types increase, it can be written and asked for in the same way.</dd>
+<dd><b>Where it's used today</b> — After buying a domain, in the management screen you write the IP address of the web server as an A record and connect a name such as www to another name with a CNAME. It is common to set a name given by a hosting or cloud service as a CNAME.</dd>
 <dd>One line of information that the name server of a domain holds for each name, made up of a name, a type, a value, and a TTL. An A record connects a name to an IPv4 address, and an AAAA record connects it to an IPv6 address. A CNAME record makes a name an alias of another name, and if you ask for the alias, you must look up the canonical name once more to get an address. An MX record gives the name and priority of the server that receives mail sent to the domain, and the server with the smaller number is tried first.</dd>
 <dt>Recursive resolver and authoritative name server</dt>
+<dd><b>Why it exists</b> — If one server took charge of every name in the world, it could not cope, and if every user's computer had to ask several servers in turn, the work would be heavy. DNS splits names into zones, lets each authoritative name server take charge of its own zone, and splits the work so that the recursive resolver does the searching on behalf of the user.</dd>
+<dd><b>Where it's used today</b> — When you buy a domain, you decide the authoritative name servers of that domain, and they are usually run by the place where you bought the domain or by the DNS service of a cloud. You can also write the address of a public recursive resolver such as 8.8.8.8 directly into a computer or a router.</dd>
 <dd>An authoritative name server is a server that holds the original records of a domain and answers questions about that domain directly. A recursive resolver is a server that looks for the answer on behalf of the user's computer, starting from a root server and asking a TLD server and then the authoritative name server in that order. A root server and a TLD server give not the answer but the next server to ask, and this kind of response is called a referral. They can do this because the upper zone lists the name servers responsible for the lower zone, and handing a lower zone over to separate servers in this way is called delegation. The user's computer asks only one recursive resolver, and its address is usually given in the network settings by an internet provider or a home router.</dd>
 <dt>DNS cache and TTL</dt>
+<dd><b>Why it exists</b> — If every answer were asked for again from the root server each time, it would be slow and questions would pile up on the name servers. A cache reduces this by reusing a received answer, and the TTL sets how long the answer may be used, so that a changed record eventually spreads.</dd>
+<dd><b>Where it's used today</b> — A record that rarely changes is given a long TTL to reduce questions, and a record that must be switched quickly to another server during an outage is given a short one. The JVM also remembers the result of a name lookup separately, and that time is changed with the networkaddress.cache.ttl security property.</dd>
 <dd>A cache is where an answer received through DNS is remembered so that it is not asked for again, and the TTL is a number, written in seconds, that says how long the answer may be remembered. The side that manages the record decides the TTL and attaches it to the record. There are caches in the browser, in the operating system, and in the recursive resolver, and when the TTL passes, the answer is discarded and asked for again. So even if you change a record, an answer already in a cache is used until the TTL ends, and each user receives the new value at a different time.</dd>
 </dl>
 <h2>Try these</h2>
@@ -94,6 +102,10 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +179,10 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

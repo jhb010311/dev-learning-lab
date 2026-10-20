@@ -1,6 +1,8 @@
 Lab.register({
   id: 'generic_basic', nav: '제네릭', cat: '기초개념', mode: 'step', basic: true, deep: ['generic'],
   title: 'List<String>의 <String>은 무엇을 해 주는가',
+  why: '같은 리스트 클래스를 String에도 Integer에도 쓰려면 아무 객체나 받게 만들어야 하는데, 그러면 무엇을 넣기로 했는지 컴파일러가 확인해 줄 수 없다. 종류마다 리스트를 따로 만들면 같은 코드를 되풀이해야 한다. 제네릭은 ArrayList 같은 클래스를 한 번만 만들고 쓰는 쪽이 <String>처럼 종류를 적게 해서, 코드 하나로 여러 종류를 다루면서도 컴파일러가 검사하게 한다.',
+  use: 'List<String>, Map<String, Integer>처럼 자바의 컬렉션을 쓸 때 거의 언제나 본다. 스프링에서도 응답을 돌려줄 때 쓰는 ResponseEntity<String> 같은 꼴로 나온다. <>를 빼고 쓰는 로 타입은 제네릭이 없던 예전 코드와 함께 쓰려고 남겨 둔 것이라, 새 코드에서는 쓰지 않는다.',
   intro: 'List<String>의 <String>은 "이 리스트에는 String만 담는다"고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 담으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 담게 해 줍니다. 표시를 지우면 리스트는 아무 객체나 받고, 컴파일러는 꺼낸 것이 무엇인지 알지 못합니다. 그래서 꺼낼 때마다 (String)이라고 직접 적어야 하고, 잘못 담은 것은 컴파일할 때가 아니라 실행 중에 꺼내는 순간에야 드러납니다. 이 실습은 <String>, 담는 값, (String)을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
   terms: ['제네릭', '타입 인자(<String>)', '로 타입(raw type)', 'ClassCastException'],
   controls: [

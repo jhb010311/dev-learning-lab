@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>WHERE</h1>
 <p><b>What does WHERE decide, and what happens without it?</b></p>
+<p><b>Why it exists</b> — Thousands or tens of thousands of rows pile up in a table, but what you need at one time is usually a few of them. Without WHERE, you would have to read every row into the program and pick the needed rows yourself, and there would be no way to change only one person's information. WHERE leaves the picking to the database, so that only the needed rows are picked and handled.</p>
+<p><b>Where it's used today</b> — Attach it when you handle only specific rows, such as finding one member by id at login, changing only one person's password, or deleting only records older than 30 days. To prevent the whole table from being changed by accidentally leaving out WHERE, some people make a habit of first checking the target rows with a SELECT with the same condition and then running UPDATE or DELETE.</p>
 <p>WHERE is the &quot;WHERE condition&quot; that you add after an SQL statement. It decides which of the rows in a table an UPDATE, DELETE, or SELECT applies to. The database looks at the rows one by one, checks whether the condition is met, and applies the statement to, or reads, only the rows that match. In this lab you change the kind of statement and the WHERE condition and run the same SQL on the same table each time. You see how many rows the statement applies to and which rows are left at the end. You also see what happens when you remove WHERE.</p>
 <p>Checked against real execution · Ran all 12 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>WHERE clause</dt>
 <dd>The WHERE clause is a condition that you add after a SELECT, UPDATE, or DELETE statement to decide which rows of a table the statement applies to. The database checks whether the condition is true for each row, and it applies the UPDATE or DELETE to, or reads with SELECT, only the rows for which it is true. If several rows match, the statement is applied to all of them. If no row matches, it is applied to no row, and that is not an error. If you do not write WHERE, every row is a target, so SELECT reads everything, UPDATE changes every row, and DELETE deletes every row.</dd>
 <dt>UPDATE and DELETE</dt>
+<dd><b>Where it's used today</b> — You use them to change or remove data that already exists, such as fixing member information, changing an order status, or deleting a withdrawn member. In real services, a method of using UPDATE to change a column such as deleted and mark the row as &quot;deleted&quot;, instead of deleting the row, is also commonly used.</dd>
 <dd>UPDATE is a statement that changes the values in the columns of rows that are already in a table, and DELETE is a statement that deletes rows. Both decide which rows they apply to with a WHERE condition, and when they run, they return the number of rows they applied to (in JDBC, executeUpdate returns that number). If you do not write WHERE, UPDATE changes every row and DELETE deletes every row. Even then the statement finishes without an error, so if you leave out WHERE in a statement that was meant to change or delete one person, the database does not warn you. Even if DELETE deletes all the rows, the table itself remains.</dd>
 <dt>Rows and columns</dt>
+<dd><b>Why it exists</b> — If information is written down differently for each item, you do not know what is where, and it is hard to find or compare. Rows and columns fix the names and types of the cells (columns) first and have each piece of information written as one line (row) that fits those cells, so that all the data has the same shape.</dd>
+<dd><b>Where it's used today</b> — It is used to store information that piles up as many items with the same entries, such as members, orders, and posts. With JPA, one entity class is paired with a table, its fields with columns, and one object with one row.</dd>
 <dd>A table in a relational database is made of columns and rows, like a spreadsheet. A column is a kind of cell whose name and type are fixed when the table is created. For example, id and name are the columns of the member table. A row is one line filled with values for those columns, and the information about one member is one row. INSERT adds one row, UPDATE changes every row that matches the WHERE condition, and SELECT reads rows. A column with no value is shown as NULL.</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +96,10 @@ SELECT * FROM member ORDER BY id;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +173,10 @@ SELECT * FROM member ORDER BY id;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'mapping', nav: '엔티티 매핑과 기본 키', cat: 'JPA', mode: 'step',
   title: '엔티티에 붙인 애너테이션은 테이블과 저장되는 값을 어떻게 바꾸나',
+  why: '필드 이름과 컬럼 이름, 자바의 enum과 DB에 저장되는 값, 기본 키를 누가 정하는지는 서로 맞춰 두지 않으면 어긋나는데, JDBC에서는 이 대응이 SQL 문자열과 옮기는 코드 곳곳에 흩어져 있었다. JPA의 매핑 애너테이션은 이 대응을 엔티티 클래스의 필드 위에 모아 적게 해서, 한곳만 보면 컬럼 이름과 저장 방식, 키를 정하는 방법을 알 수 있게 했다.',
+  use: 'enum 필드에는 순서가 바뀌어도 값이 어긋나지 않도록 @Enumerated(EnumType.STRING)을 붙이고, 기본 키는 MySQL이면 IDENTITY, 시퀀스가 있는 DB면 SEQUENCE 전략으로 DB에 맡기는 경우가 많다. 저장하지 않을 계산용 필드에는 @Transient를 붙인다. 테이블을 Flyway 같은 도구로 따로 만든다면 길이 한도와 unique 같은 제약은 그 도구의 SQL에 적어야 DB가 지킨다.',
   intro: 'JPA는 엔티티 클래스의 필드와 애너테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.',
   terms: ['@Column', '@Enumerated', '@Transient', '기본 키 생성 전략(@GeneratedValue)', '엔티티'],
   controls: [

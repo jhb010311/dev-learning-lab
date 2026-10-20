@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
 <h1>상속 관계 매핑</h1>
 <p><b>상속한 클래스는 테이블 몇 개에 어떻게 저장되나</b></p>
+<p><b>왜 생겼나</b> — 공통 필드를 가진 부모 클래스와 종류별 자식 클래스를 직접 저장하려면, 테이블을 어떻게 나눌지 정하고 SQL마다 어느 테이블을 읽을지, 읽은 행을 어느 자식 객체로 만들지 코드로 갈라야 했다. JPA의 상속 관계 매핑은 @Inheritance로 전략 하나만 고르면 이 SQL을 대신 만들어 주고, 부모 타입으로 조회해도 알맞은 자식 객체를 돌려준다.</p>
+<p><b>지금 어디에 쓰나</b> — 상품을 책·음반·영화로 나누거나 결제를 카드·계좌 이체로 나누는 것처럼, 공통 필드가 많고 종류마다 필드가 조금씩 다른 데이터에 쓴다. 조회를 단순하고 빠르게 하려면 단일 테이블 전략을, 빈 칸 없이 나눠 저장하려면 조인 전략을 흔히 고른다. 부모 타입으로 조회할 일 없이 공통 필드만 물려주려는 것이라면 상속 매핑 대신 @MappedSuperclass를 쓴다.</p>
 <p>자바에는 상속이 있지만 관계형 데이터베이스의 테이블에는 상속이 없습니다. 그래서 부모 Item과 자식 Book, Album, Movie를 테이블에 담는 방법을 골라야 합니다. JPA에는 세 가지 전략이 있고, 어느 것을 고르느냐에 따라 테이블의 수와 모양, 저장할 때의 INSERT 수, 조회할 때의 쿼리 모양이 달라집니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 스물일곱 가지 조합을 실행해 테이블, INSERT 수, 조회 쿼리의 조인과 UNION 수, 남은 행을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,10 @@
 <dt>상속 관계 매핑</dt>
 <dd>자바 클래스의 상속 구조를 테이블에 담는 방법을 정하는 것이다. 관계형 데이터베이스에는 상속이 없으므로, 부모와 자식의 필드를 어떤 테이블에 나눠 넣을지 골라야 한다. JPA에서는 부모 엔티티에 @Inheritance를 붙이고 조인, 단일 테이블, 구현 클래스마다 테이블의 세 전략 가운데 하나를 지정한다. 지정하지 않으면 단일 테이블 전략이 쓰인다. 전략에 따라 테이블의 수, 저장할 때의 INSERT 수, 조회 쿼리의 모양이 달라진다.</dd>
 <dt>조인 전략(JOINED)</dt>
+<dd><b>지금 어디에 쓰나</b> — 자식만의 컬럼에 NOT NULL 같은 제약을 걸어 DB에서도 값을 지켜야 할 때 고른다. 단일 테이블 전략에서는 그 컬럼들이 null을 허용해야 해서 NOT NULL을 걸 수 없다.</dd>
 <dd>부모 테이블과 자식 테이블을 따로 만들고, 자식 테이블의 기본 키가 부모 테이블의 기본 키를 가리키는 외래 키가 되게 하는 상속 매핑 전략이다. 부모의 필드는 부모 테이블에, 자식만의 필드는 자식 테이블에 저장되므로 같은 값이 겹치지 않고 빈 칸도 생기지 않는다. 대신 객체 하나를 저장할 때 INSERT가 두 번 나가고, 조회할 때는 조인이 필요하다. 부모 타입으로 조회하면 어느 자식인지 알 수 없어서 자식 테이블을 모두 조인한다.</dd>
 <dt>단일 테이블 전략(SINGLE_TABLE)</dt>
+<dd><b>지금 어디에 쓰나</b> — 자식 종류가 적고 자식만의 필드가 몇 개뿐이며, 부모 타입으로 목록을 자주 조회할 때 고른다.</dd>
 <dd>부모와 모든 자식의 필드를 테이블 하나에 넣는 상속 매핑 전략이다. 행마다 어느 자식인지 적어 두는 구분 컬럼(기본 이름은 DTYPE)이 함께 만들어진다. 조인이 필요 없어서 저장과 조회 쿼리가 단순하다. 대신 자기 것이 아닌 자식의 컬럼은 null로 남으므로 자식의 컬럼이 null을 허용해야 하고, 자식이 많아지면 테이블이 넓어진다.</dd>
 <dt>구현 클래스마다 테이블 전략(TABLE_PER_CLASS)</dt>
 <dd>부모 테이블 없이 자식 클래스마다 테이블을 하나씩 만들고, 부모의 필드까지 자식 테이블마다 되풀이해 넣는 상속 매핑 전략이다. 자식 타입 하나만 저장하고 조회할 때는 그 테이블 하나만 쓰면 되어 단순하다. 하지만 부모 타입으로 조회하면 찾는 행이 어느 테이블에 있는지 알 수 없어서 자식 테이블을 모두 UNION으로 합쳐야 한다. 그래서 부모 타입으로 다룰 일이 있을 때는 피하는 전략이다.</dd>
@@ -110,6 +114,10 @@ em.persist(book);
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +191,10 @@ em.persist(book);
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

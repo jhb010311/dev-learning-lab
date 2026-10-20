@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,13 +31,17 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Input and injection</h1>
 <p><b>What happens when text typed by a user is read as code?</b></p>
+<p><b>Why it exists</b> — If SQL is built by joining input directly onto the SQL text, a single quotation mark in a name is enough to break the SQL, and deliberately crafted input can become a command that pulls out other people's rows too. Finding and fixing each dangerous character in the input is easy to get wrong. PreparedStatement fixes the shape of the SQL first with ?, and passes the values separately, so that whatever the input is, it is never read as SQL syntax.</p>
+<p><b>Where it's used today</b> — It is the basic way to put values sent by users, such as search terms, IDs, and order numbers, into SQL in Java. Spring's JdbcTemplate also takes SQL with ? and the values separately and runs it with PreparedStatement. However, a table name or a column name used as the sort key cannot be passed with ?, so the choice is limited to a list decided in advance.</p>
 <p>SQL is a command sent to the database as text. To find a member by the name a user typed into an input box, that name has to go somewhere in the SQL, and this lab compares two ways to do it in Java code. One is to attach the input to the SQL text (&quot;… name = '&quot; + input + &quot;'&quot;). The other is to leave a ? in the SQL where the value goes and pass the input separately through a PreparedStatement (a tool that takes values separately). When you attach it, characters in the input such as a quote also become part of the SQL text, so the database reads them as SQL syntax. Then the input is no longer a value but a command. This is SQL injection. When you pass it with ?, even a quote or OR in the input is only part of the value to look for. In this lab, you put into each of the two ways an ordinary name, a text with a quote and OR, and an ordinary name with a quote, and see the SQL the database received and the rows that came back. (The code on the screen is shown as if it were inside the main method, and the import lines and the main declaration are left out. There is no input box; the text is written in the input variable. Web attacks in general and JdbcTemplate are covered in the in-depth labs.)</p>
 <p>Checked against real execution · Compiled six combinations on JDK 21 and H2 2.4.240 and ran them in new Java processes and checked them; the rules were checked against OWASP and the Java SE 21 API documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Statement and executeQuery</dt>
+<dd><b>Where it's used today</b> — Use a Statement for SQL that has no changing values, such as SQL that creates a table or a query of all rows without conditions. Use PreparedStatement when user input is involved, and use executeUpdate, not executeQuery, for INSERT, UPDATE, and DELETE.</dd>
 <dd>A Statement is an object used to send an SQL statement that has no values put into it to the database and run it, and it is made with conn.createStatement(). executeQuery(sql) sends a statement such as a SELECT and returns the result as one ResultSet, and the value it returns is never null. It gives a SQLException if a database access error occurs, if it is called on a closed Statement, or if the SQL it sends does not produce a single ResultSet. To Java, SQL is just a string, so a wrong text still compiles and is found out as an error at run time, when the database reads it. That making a Statement alone does not send SQL to the database and that SQL is sent when executeQuery is called was checked by running it on H2.</dd>
 <dt>PreparedStatement and bind variables</dt>
+<dd><b>Where it's used today</b> — Always use it where a value entered by a user goes into SQL, such as finding a member by ID at login or finding posts by a search word. JdbcTemplate and JPA also send SQL as a PreparedStatement when they pass values.</dd>
 <dd>A PreparedStatement is an object that holds an SQL statement compiled in advance and is used to run the same statement many times, and you create it with conn.prepareStatement(sql). You leave the place for a value in the SQL as ?, and pass the place number (starting from 1) and the value separately, as in setString(1, value). Deciding the SQL first and passing the values later like this is called using bind variables. OWASP explains that with this way the database always tells code and data apart whatever the input is, so even if an attacker inserts an SQL command, the intent of the query cannot be changed. In the H2 2.4.240 run for this lab as well, when a value was passed with ?, the SQL the database recorded kept the ? as it was and the text of the input did not appear in it.</dd>
 <dt>SQL string literals and quotes</dt>
 <dd>In SQL, a text value (a string literal) starts with a single quote and ends with a single quote. To put a single quote character inside a string, you write the quote twice as '' in H2 (for example 'John''s car'), and MySQL also allows putting  before the quote in addition to ''. The quote is also the character that tells where a string ends, so if you attach input to the SQL text as it is, a quote inside the input ends the string, and the characters after it are read as SQL syntax. This is why an ordinary name with a quote (O'Neil) also causes a syntax error when it is attached. The way of passing a value does not use the quote in the SQL text, so it does not have this problem.</dd>
@@ -97,6 +101,10 @@ while (rs.next()) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +178,10 @@ while (rs.next()) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

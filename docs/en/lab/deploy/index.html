@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
 <h1>Deployment strategies</h1>
 <p><b>How to switch to a new version without interrupting the service</b></p>
+<p><b>Why it exists</b> — If all servers are taken down and the new version is put up, the service stops in the meantime, and if the new version has a bug, all users hit it at once. Rolling, blue-green, and canary deployments prepare the new version while the existing servers keep receiving requests, and adjust when and in what proportion requests are moved, so that the switch is made without stopping, and if a problem occurs you can roll back or narrow its impact.</p>
+<p><b>Where it's used today</b> — Kubernetes's Deployment uses a rolling update by default, and it is commonly seen in web services that deploy often. If you can afford to double the servers and need a fast rollback, use blue-green; if you worry that a bug could have a large impact, use a canary, sending the new version to only some requests first and increasing the share while watching the error rate.</p>
 <p>Four servers are running v1. Depending on how you switch them to v2, it changes whether the service is interrupted during the deployment, how many more servers you need, and how many users are affected if the new version has a problem.</p>
 <p>Checked against documentation and standards · The official Kubernetes and Spring Boot documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Rolling, blue-green, and canary deployments</dt>
 <dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
 <dt>Graceful shutdown</dt>
+<dd><b>Where it's used today</b> — Spring Boot sets this behavior with the server.shutdown setting (recent versions have it on by default) and sets the maximum time to wait with spring.lifecycle.timeout-per-shutdown-phase. Kubernetes sends SIGTERM when it takes a Pod down and ends it forcibly after a set time, so you adjust things so that cleanup finishes before then.</dd>
 <dd>Stopping an application by accepting no new requests, finishing the requests that are already in progress, and only then exiting. It prevents errors caused by in-progress requests being cut off when a server is taken down, for example for a deployment.</dd>
 <dt>Health check (liveness, readiness)</dt>
+<dd><b>Why it exists</b> — If you do the check in only one way, the server may be restarted just because the database was briefly slow, or conversely requests keep being sent to a server that cannot take requests. Separating liveness and readiness lets you decide separately whether to restart it and whether to send requests.</dd>
+<dd><b>Where it's used today</b> — Have Kubernetes' livenessProbe and readinessProbe call Spring Boot Actuator's /actuator/health/liveness and /actuator/health/readiness, and for an application that takes a long time to start, add a startupProbe so that it is not restarted while it is starting.</dd>
 <dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
 <dt>Load balancer</dt>
 <dd>A device that distributes incoming requests across several servers. It checks the state of the servers periodically (health check) and does not send requests to a server that has a problem. It keeps load from piling up on one server and keeps the service running even when some servers fail.</dd>
@@ -103,6 +108,10 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

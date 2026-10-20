@@ -1,6 +1,8 @@
 Lab.register({
   id: 'eqhash', nav: 'equals and hashCode', cat: 'Java language', mode: 'step',
   title: 'Why can HashMap not find the key when you override only equals?',
+  why: 'The default equals of Object only checks whether two variables refer to the same object, and the default hashCode usually produces a different value for each object, so even two objects whose fields are all equal are treated as different. If you override only equals to decide equality by value, collections that first choose a place by the hash value become inconsistent with that decision, and the equals and hashCode contract requires that two objects equal by equals produce the same hash value, which prevents this inconsistency.',
+  use: 'When objects that should be treated as the same if their values are equal, such as coordinates or amounts, are used as HashMap keys or HashSet elements, you override both methods together. The composite key class of JPA must also override equals and hashCode. If it is a value object whose fields do not change, declare it as a record and let the compiler create the two methods.',
   intro: 'To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, HashMap and HashSet cannot find an object that you meant to be equal.',
   terms: ['equals and hashCode contract', 'Identity and equality', 'Hash table and HashMap', 'Hash collision', 'record'],
   controls: [

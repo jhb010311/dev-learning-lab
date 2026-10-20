@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
 <h1>이진 탐색과 B-트리</h1>
 <p><b>정렬돼 있으면 절반씩 버릴 수 있다</b></p>
+<p><b>왜 생겼나</b> — 값이 아무 순서로나 놓여 있으면 하나를 찾으려 해도 처음부터 하나씩 비교해야 하고, 없는 값이면 끝까지 다 봐야 한다. 이진 탐색은 값을 정렬해 두는 대가로 비교 한 번마다 후보의 반을 지워 나가고, B-트리는 노드 하나에서 여러 갈래로 나눠 디스크에서 읽어 오는 횟수를 몇 번으로 줄인다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바에서는 정렬된 배열과 리스트를 Arrays.binarySearch, Collections.binarySearch로 찾을 때 이진 탐색을 쓴다. MySQL(InnoDB)과 PostgreSQL의 기본 인덱스는 B-트리 계열이라서, WHERE id = 5나 범위 조건을 테이블 전체를 읽지 않고 처리한다. 순서는 필요 없고 같은 키로만 찾는다면 HashMap처럼 해시로 찾는 방식을 대신 쓴다.</p>
 <p>값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.</p>
 <p>실행으로 대조 · 화면의 탐색은 알고리즘을 실제로 실행한 결과</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>이진 탐색</dt>
 <dd>정렬된 데이터에서 가운데 값과 비교해 찾는 범위를 절반씩 줄여 나가는 탐색 방법이다. 시간 복잡도는 O(log n)이다. 데이터가 정렬되어 있어야만 사용할 수 있다. 데이터베이스의 B-트리 인덱스도 정렬된 상태에서 범위를 좁혀 가는 같은 원리를 이용한다.</dd>
 <dt>시간 복잡도(Big-O)</dt>
+<dd><b>왜 생겼나</b> — 실행 시간을 초로 재면 컴퓨터와 입력에 따라 값이 달라서, 두 방식 중 어느 쪽이 나은지 말하기 어렵다. Big-O 표기는 상수와 작은 항을 버리고 입력이 커질 때 늘어나는 모양만 남겨, 환경과 관계없이 방식끼리 비교하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 자료구조를 고를 때(ArrayList의 contains는 O(n), HashSet은 평균 O(1)), 이중 반복문이 데이터 증가를 버틸지 따질 때, 코딩 테스트에서 풀이가 시간 안에 끝날지 가늠할 때 쓴다.</dd>
 <dd>입력 크기 n이 커질 때 알고리즘의 연산 횟수가 얼마나 빠르게 늘어나는지를 나타내는 표기다. O(1)은 크기와 무관하게 일정, O(log n)은 크기가 두 배가 되어도 한 단계만 늘어남, O(n)은 크기에 비례, O(n²)은 크기의 제곱에 비례함을 뜻한다. 데이터가 많아질 때 어떤 방식이 버티는지 판단하는 기준이다.</dd>
 <dt>B-트리 인덱스</dt>
+<dd><b>왜 생겼나</b> — 디스크에 둔 이진 트리는 노드마다 키가 하나라 행이 많으면 높이가 커지고, 노드를 하나 읽을 때마다 디스크를 읽어야 해서 느리다. B-트리는 디스크 페이지 하나에 키를 많이 두어 몇 번의 페이지 읽기로 값을 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL InnoDB와 PostgreSQL에서 CREATE INDEX로 방식을 따로 정하지 않으면 B-트리 인덱스가 만들어진다. 같은 값 찾기만 하는 경우 PostgreSQL에서는 해시 인덱스를 고를 수도 있다.</dd>
 <dd>대부분의 관계형 데이터베이스가 기본으로 쓰는 인덱스 구조다. 값이 정렬된 상태로 유지되는 균형 잡힌 트리이며, 한 노드에 많은 키를 담아 트리의 높이가 낮다. 루트에서 몇 단계만 내려가면 원하는 값을 찾을 수 있고, 값이 정렬되어 있어 같은 값 조회뿐 아니라 범위 조회와 정렬에도 사용된다.</dd>
 <dt>풀 테이블 스캔</dt>
 <dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는 데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
@@ -93,6 +99,10 @@ SELECT * FROM orders WHERE amount = 230;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +176,10 @@ SELECT * FROM orders WHERE amount = 230;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

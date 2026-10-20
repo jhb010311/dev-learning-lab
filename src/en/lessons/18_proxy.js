@@ -1,6 +1,8 @@
 Lab.register({
   id: 'proxy', nav: 'Proxies and self-invocation', cat: 'Spring', mode: 'step',
   title: 'Why does the annotation have no effect?',
+  why: 'If you write the code that opens a transaction and commits or rolls it back directly in every method, the same try-catch is repeated everywhere and gets mixed with the business code. Spring has a proxy take on this common work, so that you attach only one line, @Transactional, to a method, and the proxy opens and closes the transaction before and after the method.',
+  use: 'Many Spring features that you attach to a method, such as @Transactional, @Async, @Cacheable, and @PreAuthorize, work through a proxy. So if an annotation has no effect, first check whether the call came in through the proxy from another bean, and whether the method is private. For a method that was called from inside the same class, the problem is often solved by moving the method to another bean.',
   intro: '@Transactional and @Async do not change the method itself. Spring registers a proxy (a stand-in object) in place of the bean and adds the extra behavior only to calls that come in through the proxy. So depending on where and how the method is called, the same annotation is either applied or ignored.',
   terms: ['Proxy', 'Self-invocation', 'Aspect-oriented programming (AOP)', 'JDK dynamic proxy and CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [

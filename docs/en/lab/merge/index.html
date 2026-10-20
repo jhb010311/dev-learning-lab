@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>Detached entities and merge</h1>
 <p><b>Why were other values erased when I only fixed the name with merge?</b></p>
+<p><b>Why it exists</b> — An object made from values received from a screen, or an entity taken out in an earlier transaction, is an object the persistence context does not know, so it is not a target of dirty checking as it is. The JPA merge operation gets the entity with the same id from the persistence context or the database and then copies all the field values of the object passed in, so it is a way to apply the contents of such an object to the database all at once.</p>
+<p><b>Where it's used today</b> — Spring Data JPA's save calls merge instead of persist for an object it judges not to be a new entity (when there is no @Version field, an object whose id is not null), so if you pass an object made from a request body to save in an update API, a merge happens. To keep fields that are left out from being overwritten with null when you update only some fields, it is common to use dirty checking: load the entity again and put in only the values to change.</p>
 <p>A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply it, and this lab compares two of them. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Member in this lab is an entity class made for this example.</p>
 <p>Checked against real execution · 18 combinations were run on Hibernate 7.4.5 and H2, and the SQL of each line and the values left in the DB were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>Merge operation</dt>
 <dd>The feature that copies the values of a detached object onto a managed entity so that they are applied to the DB, called with em.merge. It finds the managed entity with the id of the object you passed (reading it with a SELECT if it is not in the persistence context), overwrites it with the values of all the fields of the object you passed, and then returns that managed entity. The object you passed does not become managed, so you must do the later work with the returned object. You can pass a newly created object as well as a detached one, and in that case a new managed entity is created and the values are copied. Because it overwrites all the fields, a field left empty in the object you passed also becomes null in the DB. To change only some values, it is safer to load the entity and put in only the values to change, which is the dirty checking approach.</dd>
 <dt>Dirty checking</dt>
+<dd><b>Where it's used today</b> — It is used when you finish an update in a @Transactional service method by loading an entity and only changing its values. A change made outside a transaction, or a change to a detached entity, is not applied, so in that case you modify an entity that you loaded again inside a transaction.</dd>
 <dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
@@ -94,6 +97,10 @@ em.getTransaction().commit();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +174,10 @@ em.getTransaction().commit();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

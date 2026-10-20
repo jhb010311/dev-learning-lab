@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dep_basic', nav: '라이브러리와 의존성', cat: '기초개념', mode: 'step', basic: true, deep: ['supplychain', 'autoconf'],
   title: '라이브러리는 무엇이고, 없으면 어떻게 되는가',
+  why: 'JSON 글을 객체로 바꾸기, 테스트 실행하기 같은 흔한 일을 프로젝트마다 처음부터 짜면 시간이 들고 실수도 생긴다. 라이브러리는 이런 일을 하는 클래스를 jar 파일로 받아 import로 가져다 쓰게 한다. jar를 손으로 받아 -cp에 적는 번거로운 일은 Gradle이나 Maven 같은 빌드 도구가 대신 맡는다.',
+  use: '스프링 부트 프로젝트의 build.gradle에서 dependencies 부분에 spring-boot-starter-web이나 JUnit 같은 라이브러리 이름을 적을 때 본다. Gradle은 그 라이브러리가 다시 쓰는 라이브러리까지 받아 와 클래스패스에 넣는다. 테스트에만 필요한 것은 testImplementation으로 적어, 프로그램을 실행할 때의 클래스패스에는 들어가지 않게 한다.',
   intro: '라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Greeter는 App.java 안에 없습니다. 그래서 컴파일할 때도, 실행할 때도 컴파일러(javac)와 JVM(java)은 클래스패스(클래스 파일을 찾아볼 곳의 목록)에서 Greeter를 찾아야 하고, 명령에서는 -cp 뒤에 그 목록을 적습니다. 내 프로젝트가 쓰는 라이브러리를 의존성이라고 부르며, 빌드 도구 Gradle에서는 implementation으로 적은 의존성이 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 javac 명령과 java 명령에서 greet.jar를 하나씩 빼 가며 실제로 컴파일하고 실행해, 어느 단계에서 어떤 오류가 나는지를 봅니다. (Gradle은 이 실습에서 실행하지 않습니다.)',
   terms: ['라이브러리와 jar 파일', '클래스패스(-cp)', 'NoClassDefFoundError', '빌드 의존성과 implementation'],
   controls: [

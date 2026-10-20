@@ -1,6 +1,8 @@
 Lab.register({
   id: 'shard', nav: 'Sharding', cat: 'Database', mode: 'step',
   title: 'What happens when you split data across several databases',
+  why: 'As data and writes grow, you first move the database server to better hardware and add read-only replicas, but a replica holds all the same data as the source server, and the single source server still receives the writes. Sharding divides the rows among several database servers, so each server stores only a part of the whole and handles only the writes for its share, which gets past the limit of one machine.',
+  use: 'It is used to divide a table by a key such as a member number when the table keeps growing and takes many writes, so that one server cannot handle it, as with orders per member, chat messages, and game user data in a large-scale service. Joins and transactions across several shards become difficult, so unless you are at that scale, you first use index and query improvements, caches, read-only replicas, and partitioning within a single database.',
   intro: 'When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard.',
   terms: ['Sharding and partitioning', 'Scale up and scale out', 'Replication'], ranks: ['dbengine', 'traffic', 'nosql'],
   controls: [

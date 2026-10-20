@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>Persistence context</h1>
 <p><b>When does JPA send SQL?</b></p>
+<p><b>Why it exists</b> — When you work with JDBC directly, every time you change an object's value you have to write and run an UPDATE statement, and if you read the same row twice, two queries are sent and two different objects are created. The persistence context manages the entities read during one transaction, one for each id, and compares them with their state when first read. It sends an UPDATE by itself for an entity whose value changed, and it does not go to the database when you look up the same entity by id again.</p>
+<p><b>Where it's used today</b> — In a service that uses Spring Data JPA, when a @Transactional method loads an entity and only changes a value, an UPDATE is sent at commit without calling save, and this behavior is the reason. When you insert or modify a lot of data at once, the number of managed entities keeps growing, so you call flush and clear from time to time, or use JdbcTemplate or a bulk UPDATE query instead.</p>
 <p>JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed.</p>
 <p>Checked against real execution · The SQL of 6 scenarios was checked against Hibernate 7.4.5 and H2</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 <dt>Dirty checking</dt>
+<dd><b>Where it's used today</b> — It is used when you finish an update in a @Transactional service method by loading an entity and only changing its values. A change made outside a transaction, or a change to a detached entity, is not applied, so in that case you modify an entity that you loaded again inside a transaction.</dd>
 <dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 <dt>Transactional write-behind and flush</dt>
+<dd><b>Why it exists</b> — If SQL were sent right away every time an entity changed, then even changing the same row several times would send that many UPDATE statements, and every statement would make a trip to the database. Transactional write-behind delays the SQL until the flush, sends it once with the final state, and, depending on the settings, lets several statements be grouped into a JDBC batch.</dd>
+<dd><b>Where it's used today</b> — In batch jobs that save many rows, you turn on hibernate.jdbc.batch_size to group INSERT statements (they are not grouped with the IDENTITY strategy). In tests, you send the SQL right away with em.flush() and em.clear() and read it back from the database to check.</dd>
 <dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
 <dt>Entity</dt>
 <dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
@@ -87,6 +93,10 @@ public void run() {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +170,10 @@ public void run() {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

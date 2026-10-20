@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>스레드</h1>
 <p><b>스레드는 무엇이고, start()는 무엇을 하는가</b></p>
+<p><b>왜 생겼나</b> — 실행 흐름이 하나뿐이면 파일 내려받기나 다른 서버의 응답 기다리기처럼 오래 걸리는 일을 하는 동안, 다른 일은 모두 그 일이 끝나기를 기다려야 한다. 스레드는 한 프로그램이 실행 흐름을 여러 개 갖게 해서, 한 흐름이 기다리거나 오래 걸리는 일을 하는 동안 다른 흐름이 다른 일을 하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트가 기본으로 쓰는 톰캣은 들어온 요청 하나를 스레드 하나가 맡아 처리하게 해서 여러 사용자의 요청을 함께 처리하므로, 우리가 Thread를 만들지 않아도 우리가 쓴 코드가 여러 스레드에서 실행된다. 일을 따로 돌리려고 스레드를 직접 다룰 때도 new Thread보다, 만들어 둔 스레드를 다시 쓰는 ExecutorService를 주로 쓴다.</p>
 <p>스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -&gt; work())입니다. work()는 이 예제에서 만든 메서드로, 자기를 실행한 스레드의 이름을 출력합니다. 괄호 안의 () -&gt; work()는 &quot;work()를 부르라&quot;는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 자식 java 프로세스로 20번씩 실행해, 출력과 새로 시작된 스레드의 수를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,16 @@
 <dt>프로세스와 스레드</dt>
 <dd>프로세스는 실행 중인 프로그램으로, 운영체제로부터 독립된 메모리 공간을 할당받는다. 스레드는 프로세스 안에서 실제로 작업을 수행하는 실행 흐름으로, 같은 프로세스의 스레드들은 메모리(힙, 코드, 데이터)를 공유하고 스택만 따로 가진다. 그래서 스레드 간에는 데이터를 주고받기 쉽지만 동시에 같은 데이터를 건드리는 문제가 생긴다.</dd>
 <dt>main 스레드와 스레드의 이름</dt>
+<dd><b>왜 생겼나</b> — 스레드가 여럿이면 화면이나 기록에 찍힌 줄이 어느 실행 흐름에서 나왔는지 알기 어렵다. 스레드마다 붙는 이름은 이 흐름들을 사람이 읽을 수 있는 말로 구분하게 해 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트 서버의 기록(로그)은 줄마다 그 줄을 찍은 스레드의 이름을 함께 적는다. 요청을 처리하는 톰캣 스레드는 http-nio-8080-exec-1 같은 이름이어서, 한 요청의 기록을 따라가거나 멈춘 곳을 찾을 때 이 이름을 본다.</dd>
 <dd>자바 프로그램을 java Main으로 실행하면 가상 머신이 그 클래스의 main 메서드를 불러 실행을 시작하고, 이 main 메서드를 위에서부터 실행하는 스레드를 보통 main 스레드라고 부른다. 스레드의 이름은 getName()으로 읽고, Thread.currentThread()는 지금 이 코드를 실행하고 있는 스레드의 Thread 객체를 돌려주므로 Thread.currentThread().getName()은 &quot;누가 이 줄을 실행하고 있는가&quot;를 알려 준다. 이름을 주지 않고 new Thread(...)로 만든 스레드에는 Thread-0, Thread-1처럼 &quot;Thread-&quot; 뒤에 정수를 붙인 이름이 자동으로 붙는다. main 스레드의 이름이 main이라는 것은 명세가 정한 것이 아니라 JDK 21에서 실행해 확인되는 값이다.</dd>
 <dt>start()와 run()</dt>
+<dd><b>왜 생겼나</b> — 스레드를 만드는 방법은 운영체제마다 달라서 직접 만들려면 그 운영체제의 기능을 불러야 한다. start()는 이 일을 자바 가상 머신(JVM)에 맡기고, 할 일은 run()에 보통 메서드로 적게 해서 작업 코드와 스레드를 만드는 일을 나눴다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 짧은 예제나 테스트에서는 new Thread(작업).start()로 바로 스레드를 띄운다. 할 일을 Runnable이나 람다로 적어 두면 같은 코드를 ExecutorService에 넘겨 풀의 스레드에서 실행할 수도 있다.</dd>
 <dd>start()는 새 스레드를 만들어 그 스레드가 run()을 실행하게 하는 메서드이고, run()은 스레드가 할 일을 담은 보통의 메서드다. 그래서 run()을 직접 부르면 새 스레드가 생기지 않고, 부른 스레드가 그 코드를 순서대로 실행한다. start()는 Thread 객체 하나에 한 번만 부를 수 있으며, 두 번째로 부르면 IllegalThreadStateException이 발생한다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만든다.</dd>
 <dt>join()</dt>
+<dd><b>왜 생겼나</b> — join() 없이 다른 스레드가 끝나기를 기다리려면 끝났는지 계속 묻는 반복문이나 wait·notify 신호를 직접 짜거나, sleep으로 시간을 짐작해야 한다. join()은 그 스레드가 끝나자마자 다음 줄로 넘어가게 하고, 끝난 스레드가 바꾼 값이 그 뒤에 보이는 것도 보장한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 일을 여러 스레드에 나눠 맡긴 뒤 모두 끝나면 결과를 합칠 때, 테스트에서 스레드들이 끝난 뒤 결과를 확인할 때 쓴다. 스레드 풀에 맡긴 작업은 join() 대신 Future의 get()이나 CountDownLatch로 기다린다.</dd>
 <dd>다른 스레드가 끝날 때까지 지금 스레드를 기다리게 하는 메서드다. t.join()을 부른 스레드는 t가 끝날 때까지 다음 줄로 가지 않으므로, 다른 스레드가 만든 결과를 받아서 써야 할 때 쓴다. 기다리는 동안 부른 쪽 스레드의 상태는 WAITING이고, join(1000)처럼 시간을 주면 TIMED_WAITING이다. 이미 끝났거나 아직 시작하지 않은 스레드에 부르면 기다리지 않고 바로 돌아온다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -97,6 +105,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +182,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

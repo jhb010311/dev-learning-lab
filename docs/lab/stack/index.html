@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>스택과 힙</h1>
 <p><b>메서드를 부를 때마다 메모리에서는 무슨 일이</b></p>
+<p><b>왜 생겼나</b> — 메서드 호출은 나중에 부른 것이 먼저 끝나고, 재귀처럼 같은 메서드가 겹쳐 불려도 호출마다 지역 변수가 따로 있어야 한다. JVM 스택은 호출할 때 프레임을 하나 쌓고 반환할 때 바로 버리는 방식으로 이 순서를 맞추어 지역 변수를 따로 정리할 필요가 없게 한다. new로 만든 객체는 호출이 끝난 뒤에도 쓰일 수 있으므로 힙에 두고, 어떤 변수에서도 참조를 따라가 닿을 수 없게 되면 가비지 컬렉터가 거두게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — StackOverflowError가 나면 끝나지 않는 재귀나 너무 깊은 호출을 찾고, 힙이 모자라 OutOfMemoryError가 나면 힙에 객체가 너무 많이 남아 있는지 힙 덤프로 확인한다. 깊은 재귀가 꼭 필요하면 반복문으로 바꾸거나 -Xss로 스택 크기를 키운다. 지역 변수는 다른 스레드가 건드릴 수 없지만 힙의 객체는 여러 스레드가 함께 볼 수 있어서, 동시성 문제를 따질 때도 이 구분을 쓴다.</p>
 <p>메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다.</p>
 <p>실행으로 대조 · JDK 21에서 실행해 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,10 @@
 <dt>런타임 데이터 영역</dt>
 <dd>JVM이 프로그램을 실행하면서 사용하는 메모리 영역이다. 스레드마다 따로 갖는 영역으로 PC 레지스터, JVM 스택, 네이티브 메서드 스택이 있고, 모든 스레드가 공유하는 영역으로 힙과 메서드 영역이 있다. 어떤 데이터가 스레드 간에 공유되는지를 이해하는 기준이 된다.</dd>
 <dt>JVM 스택</dt>
+<dd><b>지금 어디에 쓰나</b> — 예외가 났을 때 찍히는 스택 트레이스와 스레드 덤프의 호출 목록은 각 스레드의 JVM 스택을 위에서부터 읽은 것이다. 깊은 재귀가 꼭 필요하면 -Xss로 스레드당 스택 크기를 늘린다.</dd>
 <dd>스레드마다 하나씩 만들어지는 메모리 영역이다. 메서드가 호출될 때마다 그 메서드의 지역 변수와 중간 계산값을 담은 프레임이 쌓이고, 메서드가 끝나면 제거된다. 스레드별로 분리되어 있어 지역 변수는 다른 스레드와 공유되지 않는다. 재귀 호출이 너무 깊어지면 StackOverflowError가 발생한다.</dd>
 <dt>힙(Heap) 메모리</dt>
+<dd><b>지금 어디에 쓰나</b> — 운영 모니터링에서 힙 사용량과 GC 뒤에 남는 양을 지켜보며 메모리 누수를 찾는다. 컨테이너에서 띄울 때는 힙 최대 크기를 컨테이너 메모리 한도보다 작게 잡아 스택과 Metaspace 같은 힙 밖 메모리 몫을 남긴다.</dd>
 <dd>new로 만든 모든 객체와 배열이 저장되는 메모리 영역으로, 모든 스레드가 공유한다. 가비지 컬렉터가 관리하며 더 이상 쓰이지 않는 객체를 회수한다. 크기는 -Xms(초기), -Xmx(최대) 옵션으로 정하고, 공간이 부족하면 OutOfMemoryError가 발생한다.</dd>
 <dt>StackOverflowError와 OutOfMemoryError</dt>
 <dd>StackOverflowError는 메서드 호출이 너무 깊어져 스레드의 스택 공간을 넘었을 때 발생하며 주로 종료 조건이 잘못된 재귀가 원인이다. OutOfMemoryError는 힙 등의 메모리가 부족해 객체를 더 할당할 수 없을 때 발생하며 메모리 누수나 한 번에 너무 많은 데이터를 올리는 것이 흔한 원인이다.</dd>
@@ -92,6 +96,10 @@ public static void main(String[] args) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +173,10 @@ public static void main(String[] args) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

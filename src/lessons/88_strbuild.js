@@ -1,6 +1,8 @@
 Lab.register({
   id: 'strbuild', nav: 'String, StringBuilder', cat: '자바 언어', mode: 'step',
   title: '문자열 메서드를 불렀는데 왜 원본이 그대로인가',
+  why: 'String을 고칠 수 있다면, 같은 글자의 리터럴을 여러 곳이 한 객체로 함께 쓰는 문자열 상수 풀에서 한 곳의 수정이 다른 곳까지 바꾸고, 이미 검사를 마친 파일 경로나 접속 주소도 나중에 다른 코드가 바꿀 수 있다. String을 바꿀 수 없는 객체로 두면 이런 일이 생기지 않고, 글자를 여러 번 이어 붙여 만드는 일은 한 객체를 고쳐 쓰는 StringBuilder가 따로 맡는다.',
+  use: 'String은 이름, 주소, 메시지처럼 한 번 만든 뒤 읽기만 하는 글자에 쓰고, 반복문에서 조각을 여러 번 이어 붙여 긴 글을 만들 때는 StringBuilder를 쓴다. 여러 스레드가 한 객체에 함께 이어 붙여야 할 때만 동기화된 StringBuffer를 쓴다. a + b + c처럼 한 식에서 붙이는 정도는 그냥 +로 써도 된다.',
   intro: 'String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는 객체 하나의 내용을 직접 고쳐 씁니다. 두 변수가 같은 객체를 가리키는지를 ==로 확인하면서 차이를 살펴봅니다.',
   terms: ['String의 불변성', '불변 객체', 'StringBuilder와 StringBuffer', '동일성과 동등성'],
   controls: [

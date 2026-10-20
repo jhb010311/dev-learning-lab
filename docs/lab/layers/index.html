@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 큰 그림</p>
 <h1>계층 구조와 캡슐화</h1>
 <p><b>1500바이트를 보냈는데 왜 전선에는 1616바이트가 지나갈까</b></p>
+<p><b>왜 생겼나</b> — 통신 하나에는 신호를 실어 보내는 일, 목적지까지 길을 찾는 일, 빠진 데이터를 다시 보내는 일, 웹 페이지를 주고받는 일처럼 성격이 다른 일이 섞여 있어서, 한 덩어리로 만들면 하나를 바꿀 때 전부를 고쳐야 한다. 계층 구조는 이 일을 층으로 나누고 층 사이에 주고받는 모양만 정해 두어, 랜선을 와이파이로 바꿔도 그 위의 IP, TCP, HTTP를 고치지 않고 그대로 쓰게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 접속이 안 될 때 &quot;랜선과 와이파이는 연결됐나, IP 주소와 경로는 맞나, 포트는 열려 있나, HTTP 응답은 무엇인가&quot;처럼 아래 층부터 차례로 확인하는 기준으로 쓴다. &quot;L4 로드 밸런서&quot;, &quot;L7 로드 밸런서&quot;처럼 장비가 IP 주소와 포트까지만 보는지, HTTP의 경로와 헤더까지 보는지를 말할 때도 계층 번호를 쓴다.</p>
 <p>네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다.</p>
 <p>일부만 실행으로 확인 · 조각 수와 크기 열 가지 조합을 Node.js 24에서 실제 머리말 바이트를 만들어 붙이고 풀어 대조. 머리말의 크기와 계층의 대응은 RFC 9293, 791, 894, 1122에 따른 설명</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,16 @@
 <dt>OSI 7계층</dt>
 <dd>네트워크 통신 과정을 역할에 따라 일곱 단계로 나눈 모델이다. 아래부터 물리, 데이터 링크, 네트워크(IP), 전송(TCP/UDP), 세션, 표현, 응용(HTTP) 계층이다. 각 계층은 바로 아래 계층의 기능을 이용해 자신의 역할을 수행한다. 장비나 문제의 위치를 &quot;몇 계층&quot;이라고 부르는 기준이 된다.</dd>
 <dt>TCP/IP 4계층</dt>
+<dd><b>지금 어디에 쓰나</b> — 통신 장애를 찾을 때 층을 따라 확인한다. ping으로 IP가 닿는지, nc나 telnet으로 TCP 포트가 열렸는지, curl로 HTTP 응답이 오는지를 차례로 본다.</dd>
 <dd>인터넷이 실제로 쓰는 프로토콜들을 역할에 따라 네 단계로 나눈 모델이다. 위에서부터 응용 계층(HTTP, DNS), 전송 계층(TCP, UDP), 인터넷 계층(IP), 링크 계층(이더넷, 와이파이)이다. OSI 7계층과 견주면 응용, 표현, 세션 계층이 응용 계층 하나로, 데이터 링크와 물리 계층이 링크 계층 하나로 묶인다. 각 계층은 바로 아래 계층에 전달을 맡기고 자기 일만 하므로, 한 계층의 기술이 바뀌어도 다른 계층은 그대로 쓸 수 있다.</dd>
 <dt>캡슐화와 역캡슐화</dt>
+<dd><b>지금 어디에 쓰나</b> — VPN은 IP 패킷 하나를 통째로 다른 IP 패킷의 내용으로 다시 캡슐화해 보낸다. 와이어샤크로 패킷을 열면 바깥쪽부터 이더넷, IP, TCP 머리말이 차례로 보이고 맨 안쪽에 HTTP 메시지가 보인다.</dd>
 <dd>캡슐화는 보내는 쪽에서 데이터가 아래 계층으로 내려갈 때마다 그 계층의 머리말(헤더)을 앞에 붙이는 것이다. HTTP 메시지에는 TCP 머리말, IP 머리말, 이더넷 머리말이 차례로 붙으며, 각 계층은 위에서 받은 것을 내용물로만 취급하고 들여다보지 않는다. 역캡슐화는 받는 쪽에서 반대 순서로 머리말을 확인하고 떼어 내며 위 계층으로 올리는 것이다. 객체지향의 캡슐화와 이름은 같지만 다른 개념이다.</dd>
 <dt>세그먼트, 패킷, 프레임</dt>
 <dd>같은 데이터를 계층마다 다르게 부르는 이름이다. 응용 계층의 데이터에 TCP 머리말이 붙은 것을 세그먼트, 거기에 IP 머리말이 붙은 것을 패킷(IP 데이터그램), 다시 이더넷 머리말과 꼬리말이 붙은 것을 프레임이라고 한다. TCP 머리말에는 프로그램을 가리키는 포트 번호가, IP 머리말에는 컴퓨터를 가리키는 IP 주소가, 이더넷 머리말에는 같은 네트워크 안의 장비를 가리키는 MAC 주소가 들어 있다. 일상에서는 계층을 가리지 않고 모두 패킷이라고 부르는 일도 많다.</dd>
 <dt>MTU와 MSS</dt>
+<dd><b>왜 생겼나</b> — 링크마다 한 번에 실을 수 있는 크기가 달라서, 그보다 큰 IP 패킷은 중간에서 쪼개지거나 버려진다. MSS는 TCP가 처음부터 MTU에 맞는 크기로 잘라 보내게 해서 IP에서 쪼개지는 일을 줄인다.</dd>
+<dd><b>지금 어디에 쓰나</b> — PPPoE나 VPN처럼 머리말이 더 붙는 구간에서는 MTU가 1500보다 작아진다. 이때 큰 응답만 멈추는 문제가 생기면 공유기나 방화벽에서 MSS를 줄여 맞춘다.</dd>
 <dd>MTU는 링크 계층이 프레임 하나에 실어 줄 수 있는 IP 패킷의 최대 크기이고, 이더넷에서는 1500바이트다. MSS는 TCP 세그먼트 하나에 실을 수 있는 데이터의 최대 크기로, MTU에서 IP 머리말과 TCP 머리말을 뺀 값이다. 머리말이 기본 크기인 20바이트씩이면 이더넷에서 MSS는 1460바이트가 된다. TCP는 보낼 데이터가 MSS보다 크면 여러 조각으로 나누어 보내고, 받는 쪽 TCP가 순서 번호를 보고 다시 이어 붙인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -105,6 +111,10 @@ console.log(total);                                     // 전선으로 나간 �
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +188,10 @@ console.log(total);                                     // 전선으로 나간 �
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
 <h1>정렬과 Comparator</h1>
 <p><b>정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나</b></p>
+<p><b>왜 생겼나</b> — 정렬 코드를 원소의 타입이나 기준마다 새로 적으면, 회원을 나이순으로, 상품을 가격순으로 정렬할 때마다 비슷한 정렬 코드를 또 만들어야 한다. Comparable과 Comparator는 비교 기준만 따로 떼어 내는 인터페이스다. List.sort, Arrays.sort 같은 정렬 메서드는 정렬 절차를 한 벌만 두고 두 원소의 앞뒤만 compareTo나 compare로 물어서, 정렬 코드를 고치지 않고 기준만 바꿔 끼울 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 목록을 금액순, 날짜순으로 보여 줄 때 list.sort나 스트림의 sorted에 Comparator.comparing으로 만든 기준을 넘긴다. 기준이 둘 이상이면 thenComparing으로 잇고, 내림차순은 reversed로 만든다. TreeMap, TreeSet, PriorityQueue에 순서를 정해 줄 때도 Comparator를 넘긴다.</p>
 <p>정렬은 &quot;둘 가운데 어느 것이 앞인가&quot;를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator).</p>
 <p>실행으로 대조 · JDK 21에서 열여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,6 +44,7 @@
 <dt>정수 오버플로</dt>
 <dd>계산 결과가 그 타입이 담을 수 있는 범위를 넘어 엉뚱한 값이 되는 현상이다. 자바의 int는 -2147483648부터 2147483647까지 담을 수 있고, 이 범위를 넘으면 예외 없이 반대쪽 끝으로 넘어가 이어진다. 예를 들어 2147483647에 1을 더하면 -2147483648이 된다. 오류가 나지 않고 틀린 값이 조용히 쓰이므로 찾기 어렵다. 범위를 넘을 수 있는 계산에는 long을 쓰거나, 넘칠 때 예외를 던지는 Math.addExact 같은 메서드를 쓴다.</dd>
 <dt>메서드 참조</dt>
+<dd><b>지금 어디에 쓰나</b> — 스트림과 정렬에서 map(String::trim), forEach(System.out::println), Comparator.comparing(String::length) 같은 모양으로 흔히 본다. 인자를 가공하거나 메서드를 두 번 부르는 경우에는 람다로 쓴다.</dd>
 <dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
@@ -102,6 +105,10 @@ System.out.println(list);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +182,10 @@ System.out.println(list);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

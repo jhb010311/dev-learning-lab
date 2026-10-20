@@ -1,6 +1,8 @@
 Lab.register({
   id: 'undoredo', nav: 'Undo and redo logs', cat: 'Database', mode: 'step',
   title: 'Why does the data survive even if the power goes out right after a commit?',
+  why: 'If changes were written straight to the data files, every commit would have to modify several places on disk, which is slow, and if the server went down in the middle of writing, there would be no way to know how far the changes had been applied. The undo log and redo log record the value before the change and the content of the change separately, so that writing to the data files can be postponed, while after a failure, committed changes can be filled in again and uncommitted changes can be rolled back.',
+  use: 'In MySQL InnoDB, rollback and the reading of earlier versions in MVCC use the undo log, and recovery after the server goes down uses both logs, and developers do not need to record either of them separately. In operation you meet them in settings such as innodb_flush_log_at_trx_commit, which decide whether the redo log is reliably written to disk at every commit. A value other than 1 makes writes faster, but some recent commits can be lost in a failure.',
   intro: 'When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo).',
   terms: ['Undo log and redo log', 'ACID', 'MVCC (multiversion concurrency control)', 'Transaction'], ranks: ['dbengine', 'isolation'],
   controls: [

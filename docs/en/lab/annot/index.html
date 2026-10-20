@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Annotations</h1>
 <p><b>What really happens when you just add an annotation with @?</b></p>
+<p><b>Why it exists</b> — Before annotations, information such as &quot;this method is wrapped in a transaction&quot; or &quot;this class is saved to this table&quot; was written in a place separate from the code, such as an XML configuration file, or was expressed by a rule such as a method name starting with test. When you changed the code, it was hard to change the separate configuration along with it. An annotation writes that information right above the class or method concerned and lets a tool read it.</p>
+<p><b>Where it's used today</b> — It is commonly used in Spring to specify bean registration, injection, transactions, and request mapping, as with @Component, @Autowired, @Transactional, and @GetMapping. JPA's @Entity and JUnit's @Test are also annotations. To read an annotation you made yourself while the program is running, with reflection or Spring AOP, you must add @Retention(RetentionPolicy.RUNTIME).</p>
 <p>An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.</p>
 <p>Checked against real execution · 28 combinations were actually compiled and run on JDK 21 and checked against the results (including the contents of the class file and the result of reflection)</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,20 @@
 <dt>Annotation</dt>
 <dd>This is metadata that you attach to code. It does nothing by itself; the compiler or a framework reads it and acts on it. Some, like @Override, are used by the compiler for checks, and others, like @Transactional and @Autowired, are read by a framework at run time through reflection to apply a feature.</dd>
 <dt>Reflection</dt>
+<dd><b>Why it exists</b> — A framework cannot know in advance the names of the classes users will write later, so ordinary code cannot create objects of those classes or call their methods. Reflection makes this possible by inspecting classes while the program runs and letting you work with them by name alone.</dd>
+<dd><b>Where it's used today</b> — You rarely use it directly in application code; it is used when building frameworks, testing tools, and serialization libraries. If the same job can be done with interfaces and polymorphism, that way is safer because it gets compile-time type checking.</dd>
 <dd>This feature lets a running program inspect information about a class (its fields, methods, constructors, and annotations) and create objects or call methods by name. Spring's dependency injection, JPA's entity handling, and JSON serialization libraries all work on top of it. It is slower than a normal call and does not get compile-time type checking.</dd>
 <dt>@Retention and @Target</dt>
+<dd><b>Why it exists</b> — If there were no way to decide where each annotation may be attached and when it is kept, the compiler could not catch a marker meant for methods being attached to a class by mistake, and a marker meant only for the compiler would remain until run time. @Target and @Retention let the one who creates the annotation decide these two.</dd>
+<dd><b>Where it's used today</b> — You write them together when you create an annotation yourself. Spring's @Component and @Transactional also carry @Retention(RetentionPolicy.RUNTIME) and @Target, so Spring finds and reads these markers at run time.</dd>
 <dd>These are two annotations that you apply to a new annotation, when you create it, to set its properties. @Retention decides how far the annotation is retained. SOURCE retains it only in the source code, CLASS retains it up to the class file, and RUNTIME retains it until run time so that it can be read with reflection. When @Retention is not written, the policy is CLASS, so you must write RUNTIME on an annotation that will be read at run time. @Target decides where the annotation can be applied (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and applying it in a place that does not match is a compile-time error.</dd>
 <dt>@Override</dt>
+<dd><b>Why it exists</b> — Overriding happens silently as long as the name and parameters match, so if a parent method's name is later changed, the child method remains as a separate method, not an override, without any error. @Override writes the intent to override in the code, so that such a mismatch shows up as a compile error.</dd>
+<dd><b>Where it's used today</b> — You put it on a method when you override toString, equals, or hashCode, or implement a method of an interface. An IDE also writes it when it generates overriding code.</dd>
 <dd>This is an annotation that indicates that the method right below it overrides a method of a superclass or an interface. The compiler reads it and checks whether the method really overrides, and if it does not, the compiler reports a compile-time error. It catches the mistake of writing the wrong method name or parameters and so creating a new method that is not an override. A method overrides even without it, and the behavior of the program does not change either, but to prevent mistakes you always put it on a method that overrides. It is an annotation that is retained only in the source code, so it is not recorded in the class file.</dd>
 <dt>Overriding</dt>
+<dd><b>Why it exists</b> — When an inherited method does not fit a subclass, creating a new method with a different name means that code calling through the supertype still runs the old inherited behavior. Overriding redefines the method with the same signature so that the new behavior runs even when it is called through the supertype.</dd>
+<dd><b>Where it's used today</b> — It is used when you rewrite toString, equals, and hashCode to suit a class, and when you implement the methods of an interface. If you add @Override, the compiler catches the mistake of writing the name or parameters wrongly and ending up with a new method.</dd>
 <dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
 </dl>
 <h2>Try these</h2>
@@ -103,6 +113,10 @@ if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +190,10 @@ if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

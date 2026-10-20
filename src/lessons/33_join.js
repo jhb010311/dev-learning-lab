@@ -1,6 +1,8 @@
 Lab.register({
   id: 'join', nav: 'JOIN과 GROUP BY', cat: '데이터베이스', mode: 'step',
   title: '조건을 ON에 쓰느냐 WHERE에 쓰느냐',
+  why: '데이터를 회원, 주문처럼 테이블로 나눠 저장하면 중복은 줄지만, 화면에는 둘을 합친 결과가 필요하다. 애플리케이션에서 테이블마다 따로 조회해 짝을 맞추면 코드와 DB 왕복 횟수가 늘어나므로, JOIN은 이 짝 맞추기를 SQL 한 문장으로 DB가 하게 한다. OUTER JOIN은 짝이 없는 행까지 결과에 남겨 "주문이 없는 회원" 같은 경우도 볼 수 있게 한다.',
+  use: '주문 목록에 회원 이름 붙이기, 회원별 주문 수와 금액 합계 내기(GROUP BY와 함께), 한 번도 주문하지 않은 회원 찾기(LEFT JOIN 후 짝이 NULL인 행) 같은 조회에 쓴다. JPA를 쓸 때도 JPQL의 join과 fetch join은 결국 SQL JOIN으로 바뀌어 실행된다.',
   intro: '회원 3명과 주문 4건을 조인합니다. 조인 종류, 조건을 쓰는 위치, 집계 방식에 따라 결과 행이 달라집니다. SQL은 FROM/JOIN → WHERE → GROUP BY → HAVING 순으로 처리되며, 단계마다 남는 행을 따라가 보면 이유가 보입니다.',
   terms: ['JOIN (INNER, OUTER)', 'GROUP BY, WHERE, HAVING', '기본 키, 유니크 키, 외래 키'], ranks: ['join', 'tuning'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 예외</p>
 <h1>체크 예외와 언체크 예외</h1>
 <p><b>어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나</b></p>
+<p><b>왜 생겼나</b> — 메서드가 실패할 수 있다는 사실이 문서에만 적혀 있으면, 부르는 쪽은 파일이 없거나 연결이 끊기는 경우를 잊고 넘어가기 쉽다. 자바의 체크 예외는 그런 실패를 메서드 선언의 throws에 적게 하고, 부르는 쪽이 처리하지 않으면 컴파일러가 알려 준다. 코드를 고쳐야 하는 실수(null 참조, 잘못된 인자)는 언체크 예외로 두어 호출마다 처리를 강요하지 않는다.</p>
+<p><b>지금 어디에 쓰나</b> — IOException(파일·네트워크 입출력), SQLException(JDBC로 DB 호출)처럼 프로그램 바깥 사정으로 실패하는 표준 API에서 만난다. 스프링의 JdbcTemplate은 SQLException을 언체크 예외인 DataAccessException 계열로 바꿔서, 서비스 코드에 throws가 번지지 않게 한다. 그 자리에서 할 처리가 없으면 원래 예외를 원인(cause)으로 지정해 언체크 예외로 바꿔 던진다.</p>
 <p>자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실제로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,12 @@
 <dt>예외(Exception)와 Error</dt>
 <dd>둘 다 프로그램 실행 중의 비정상 상황을 나타내는 Throwable의 하위 타입이다. Exception은 애플리케이션이 잡아서 처리할 수 있는 상황(잘못된 입력, 파일 없음 등)이고, Error는 메모리 부족이나 스택 오버플로처럼 JVM 수준의 심각한 문제라 애플리케이션이 복구를 시도하지 않는 것이 일반적이다.</dd>
 <dt>throws 선언</dt>
+<dd><b>왜 생겼나</b> — 체크 예외를 밖으로 넘길 방법이 없다면, 그 자리에서 할 처리가 없는 메서드도 억지로 잡아야 해서 빈 catch로 오류를 덮어 버리기 쉽다. throws 선언은 처리를 부른 쪽으로 미루어, 그 예외를 알맞게 다룰 수 있는 코드에서 잡게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Files.readString처럼 파일과 네트워크를 다루는 표준 API의 선언에서 throws IOException을 흔히 본다. JUnit 테스트 메서드에는 throws Exception을 붙여, 테스트 중에 난 체크 예외를 잡지 않고 테스트 실패로 드러나게 하기도 한다.</dd>
 <dd>메서드 선언 끝에 throws IOException처럼 적어, 이 메서드가 그 예외를 밖으로 던질 수 있음을 알리는 문법이다. 체크 예외를 메서드 안에서 잡지 않으려면 반드시 적어야 하고, 그러면 그 메서드를 호출하는 쪽이 다시 잡거나 throws로 선언해야 컴파일된다. 예외를 처리하는 것이 아니라 처리할 의무를 호출한 쪽으로 넘기는 것이다. 언체크 예외는 적지 않아도 되며, 적더라도 호출하는 쪽에 의무가 생기지 않는다. 예외를 실제로 던지는 문장인 throw와는 다른 낱말이다.</dd>
 <dt>예외 감싸기</dt>
+<dd><b>왜 생겼나</b> — 낮은 층의 예외를 그대로 위로 던지면 위쪽 코드까지 SQLException 같은 세부 기술의 예외에 묶이고, 체크 예외라면 거치는 메서드마다 throws가 붙는다. 예외 감싸기는 그 층에 맞는 예외로 바꿔 던지면서 원래 예외는 원인으로 남겨, 처음 원인을 잃지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Stream의 map에 넘긴 람다처럼 체크 예외를 던질 수 없는 자리에서 IOException을 UncheckedIOException으로 감싸 던질 때 쓴다. 스프링도 JDBC의 SQLException을 DataAccessException 계열 예외로 감싸서 넘긴다.</dd>
 <dd>잡은 예외를 원인(cause)으로 가리키는 다른 종류의 예외를 새로 만들어 던지는 것이다. &quot;감싼다&quot;고 부르지만 원래 예외가 새 예외 안으로 들어가는 것은 아니고, 새 예외가 원래 예외를 참조로 갖고 있을 뿐이다. 체크 예외를 catch로 잡아 throw new RuntimeException(e)처럼 언체크 예외로 바꿔 던지면, 지나가는 메서드마다 throws를 적지 않아도 컴파일된다. 원래 예외를 생성자에 넘기면 새 예외가 그것을 원인으로 가리키게 되어, 오류 출력의 Caused by 아래에 함께 나온다. 원래 예외를 넘기지 않으면 처음에 무엇이 잘못됐는지 알 수 없게 되므로 반드시 넘긴다. 감싸도 예외가 사라지는 것은 아니어서, 어디에서도 잡지 않으면 실행이 중단된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +98,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +175,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

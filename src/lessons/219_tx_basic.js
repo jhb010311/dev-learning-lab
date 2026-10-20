@@ -1,6 +1,8 @@
 Lab.register({
   id: 'tx_basic', nav: '@Transactional', cat: '기초개념', mode: 'step', basic: true, deep: ['tx', 'txprop'],
   title: '@Transactional은 무엇을 묶어 주는가',
+  why: '여러 번의 저장을 한 묶음으로 처리하려면, @Transactional 없이 JDBC 코드만으로는 메서드마다 DB 연결을 얻어 자동 반영을 끄고, 끝에서 반영하고, 예외가 나면 취소하는 코드를 try-catch로 직접 적어야 한다. 이 코드는 메서드마다 똑같이 되풀이되고, 한 곳이라도 빠뜨리면 반쪽 저장이 남을 수 있다. @Transactional은 이 되풀이를 메서드 위의 한 줄로 줄여 준다.',
+  use: '스프링 애플리케이션에서 DB에 두 번 이상 쓰는 메서드에 흔히 적는다. 주문을 저장하면서 재고를 줄일 때, 회원을 지우면서 그 회원이 쓴 글도 지울 때처럼 하나만 반영되면 안 되는 경우다. 읽기만 하는 메서드에는 @Transactional(readOnly = true)를 적어 읽기만 한다는 것을 알리기도 한다.',
   intro: '@Transactional은 메서드 위에 적는 표시(애너테이션)입니다. 이 실습에서 예시로 만든 OrderService 클래스의 order() 메서드는 jdbc.update로 DB에 저장을 두 번 합니다(orders 테이블에 주문, payment 테이블에 결제). 두 저장 사이에는 stock 확인이 있고, stock이 0이면 예외를 던집니다. 아무 표시가 없으면 DB는 저장을 받는 대로 반영하므로, 예외가 나도 앞의 저장은 그대로 남습니다. order() 위에 @Transactional을 적으면 스프링이 그 메서드 안의 저장을 한 묶음(트랜잭션)으로 다루어, 메서드가 정상으로 끝나면 모두 반영(커밋)하고 런타임 예외로 끝나면 모두 취소(롤백)합니다. 묶음을 시작하고 반영하거나 취소하는 코드는 우리가 쓰지 않고, 스프링이 order()를 부르는 앞뒤에서 합니다. 이 실습은 @Transactional을 지우거나 stock에 담는 값을 바꿔 가며 같은 order()를 부르고, 호출이 끝난 뒤 두 테이블에 남은 행을 봅니다.',
   terms: ['@Transactional', '트랜잭션', '커밋과 롤백', '프록시(Proxy)'],
   controls: [

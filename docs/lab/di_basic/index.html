@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>의존성 주입</h1>
 <p><b>의존성 주입은 무엇을 대신해 주는가</b></p>
+<p><b>왜 생겼나</b> — 필요한 객체를 클래스마다 new로 직접 만들면, 여럿이 같이 써도 되는 객체가 만드는 곳마다 따로 생기고, 그 객체를 만드는 방법이 바뀌면 만드는 줄이 있는 곳을 모두 찾아 고쳐야 한다. 의존성 주입은 클래스가 필요한 것을 받을 자리(보통 생성자의 매개변수)만 적어 두고 만들어 넣어 주는 일은 밖에서 맡게 해서, 클래스는 받은 객체를 쓰는 일만 하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 서버에서 컨트롤러가 서비스를, 서비스가 리포지토리를 쓸 때 이 방식으로 잇는다. 스프링은 생성자로 받는 방식을 권하고, 생성자가 하나뿐이면 &quot;여기로 넣어 달라&quot;는 표시인 @Autowired를 적지 않아도 그 생성자로 넣어 준다. 테스트에서는 스프링 없이 생성자에 가짜 객체를 직접 넘겨 클래스 하나만 따로 시험하기도 한다.</p>
 <p>의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 예시로 만든 클래스 OrderService는 결제를 하려고, 역시 예시로 만든 PayService의 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9에서 여섯 가지 조합을 실제 컴포넌트 스캔으로 컴파일해 실행하고, 필드의 객체까지 리플렉션으로 재어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>DI(의존성 주입)</dt>
 <dd>객체가 사용하는 다른 객체(의존성)를 스스로 만들지 않고 외부에서 전달받는 방식이다. 스프링에서는 컨테이너가 빈을 생성하면서 생성자, 세터, 필드를 통해 의존성을 넣어 준다. 구현 클래스를 바꾸거나 테스트에서 가짜 객체를 넣기 쉬워지고 클래스 사이의 결합도가 낮아진다.</dd>
 <dt>생성자 주입, 세터 주입, 필드 주입</dt>
+<dd><b>지금 어디에 쓰나</b> — 새로 짜는 스프링 코드는 생성자 주입이 기본이며, 생성자가 하나면 @Autowired를 붙이지 않아도 스프링이 그 생성자로 주입한다. 롬복의 @RequiredArgsConstructor로 생성자를 대신 만들게 하는 경우가 많다.</dd>
 <dd>의존성을 넣는 세 가지 방법이다. 생성자 주입은 객체 생성 시 의존성을 받으므로 필드를 final로 둘 수 있고 의존성이 빠진 채 객체가 만들어지는 일이 없어 스프링이 권장한다. 세터 주입은 선택적인 의존성에 쓴다. 필드 주입은 필드에 @Autowired를 붙이는 방식으로 코드는 짧지만 스프링 없이 객체를 만들어 테스트하기 어렵다.</dd>
 <dt>의존성</dt>
 <dd>의존성은 어떤 클래스가 일을 하려고 필요로 하는 다른 클래스의 객체다. 예를 들어 OrderService가 결제를 하려고 PayService 객체의 메서드를 부른다면, OrderService는 PayService에 의존한다고 말하고 PayService 객체가 OrderService의 의존성이다. 스프링 문서는 의존성을 객체가 함께 일하는 다른 객체로 설명한다. 필요한 객체를 new로 직접 만들 수도 있고 생성자의 매개변수로 받을 수도 있는데, 스프링이 만들어 넣어 주는 것을 의존성 주입이라고 한다.</dd>
 <dt>@Component</dt>
+<dd><b>왜 생겼나</b> — 스프링에게 맡길 클래스를 설정 파일에 하나씩 적으면, 클래스를 새로 만들 때마다 설정 파일도 함께 고쳐야 한다. @Component는 그 표시를 클래스 위에 바로 붙이게 해서, 클래스만 만들면 스프링이 찾아가게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 직접 만든 클래스 가운데 컨트롤러, 서비스, 리포지토리가 아닌 도우미 클래스를 빈으로 만들 때 붙인다. 라이브러리의 클래스처럼 고칠 수 없는 클래스에는 붙일 수 없어서, 대신 @Bean을 붙인 메서드로 등록한다.</dd>
 <dd>@Component는 클래스 위에 붙여, 스프링이 그 클래스를 알고 객체를 만들어 관리하는 대상(빈)으로 삼게 하는 애너테이션이다. 스프링은 컴포넌트 스캔으로 지정한 패키지 아래의 클래스를 훑어 @Component가 붙은 클래스를 찾고, 그 클래스의 객체를 만들어 컨테이너에 보관한다. 빈의 이름을 따로 정하지 않으면 클래스 이름의 첫 글자를 소문자로 바꾼 것이 쓰인다(Greeter는 greeter). @Repository, @Service, @Controller는 @Component를 특수화한 것이어서 같은 방식으로 찾아진다. 이 애너테이션이 없는 클래스는 같은 패키지에 있어도 찾아지지 않으므로, 스프링에게 그 클래스의 객체를 달라고 하면 그런 빈이 없다는 예외가 난다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -126,6 +131,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -199,9 +208,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

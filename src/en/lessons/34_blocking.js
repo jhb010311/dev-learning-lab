@@ -1,6 +1,8 @@
 Lab.register({
   id: 'blocking', nav: 'Blocking, non-blocking, and virtual threads', cat: 'Concurrency', mode: 'time',
   title: 'What a thread does while it waits',
+  why: 'A method that attaches one thread to each request holds the thread even while waiting for a DB or an external API, so when concurrent requests exceed the number of threads, later requests wait in line even if the CPU is idle. A non-blocking event loop uses the thread for other requests while waiting, so that few threads can progress many requests, and virtual threads give a similar effect with code written in the blocking style as it is.',
+  use: 'Spring MVC still defaults to the blocking method of using a thread per request, and with a JDK and Spring Boot that support virtual threads, the request-handling threads can be changed to virtual threads by configuration. A non-blocking method such as WebFlux is used for gateways that relay many external calls and for streaming responses, and in this case a blocking call such as JDBC must not be made on an event loop thread.',
   intro: 'Every request spends some time waiting for a response from a database or an external API. Compare three approaches: holding on to the thread during that time (blocking), releasing the thread and continuing when the response arrives (non-blocking), and virtual threads, where you write the code in the blocking style but the operating system thread is released while the code waits.',
   terms: ['Blocking and non-blocking', 'Synchronous and asynchronous', 'Virtual thread', 'Spring WebFlux and the reactive stack', 'Event loop', 'Tomcat\'s threading model'], ranks: ['webflux', 'was', 'javaver'],
   controls: [

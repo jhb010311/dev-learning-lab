@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Removing during iteration</h1>
 <p><b>What happens when you remove elements inside a loop</b></p>
+<p><b>Why it exists</b> — If the structure of a list changes during traversal, the position the iterator points to and the actual elements fall out of step, and errors such as skipping an element or seeing the same element twice can occur without any sign. The fail-fast iterator of a collection such as ArrayList throws ConcurrentModificationException when it notices that the structure changed during traversal, so that the problem shows up right where it occurs.</p>
+<p><b>Where it's used today</b> — An enhanced for statement also iterates with an iterator, so calling list.remove or add in its body usually raises this exception. When removing some elements while traversing, as when taking sold-out items out of a shopping cart, use Iterator's remove or removeIf. For collections that several threads traverse and modify, use something that does not throw an exception for changes during traversal, such as CopyOnWriteArrayList or ConcurrentHashMap.</p>
 <p>The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all.</p>
 <p>Checked against real execution · Checked by running 10 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>ArrayList</dt>
 <dd>This is a list that keeps an array inside and moves the elements to a larger array when the array is full. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
 <dt>ConcurrentHashMap</dt>
+<dd><b>Why it exists</b> — If several threads modify a HashMap together, values that were put in can disappear, and if you wrap it with Collections.synchronizedMap, every call waits in turn for a single lock. ConcurrentHashMap keeps it safe while reducing that waiting.</dd>
+<dd><b>Where it's used today</b> — It is used for a cache that several request threads share, as in a web server, and for counting per key (merge, compute). If the map is used by only one thread, HashMap is enough.</dd>
 <dd>This is a hash map that is safe for several threads to use at the same time. It does not lock the whole map; it controls access per bucket, which gives high concurrency, and lookups run without a lock. It does not allow null keys or null values. For a compound action such as &quot;put if absent&quot;, you must use a method that guarantees atomicity, such as putIfAbsent or compute.</dd>
 <dt>Thread safety</dt>
 <dd>This is the property of working correctly even when several threads use something at the same time. Code is thread-safe if there is no shared state, if the state is immutable, or if access is properly synchronized. A Spring singleton bean is used by many request threads together, so it must be made thread-safe (usually by keeping no state).</dd>
@@ -86,6 +90,10 @@ for (Integer x : list) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ for (Integer x : list) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

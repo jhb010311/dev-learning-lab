@@ -8,7 +8,7 @@
 //   5. 문제(src/en/quiz_<id>.js): 한국어판과 개수·단계·sim 설정이 같고, sim이 영어 모형의 결과와 맞는다.
 //   6. 검증 수준(src/en/verify_<id>.js)의 수준이 같다. 설명집(kb/en/kb_<id>.js)의 용어 수가 같다.
 //   7. 영어 실습을 test.js로 돌린다(그림 밖으로 나간 글자, 칸이 좁아 잘리는 글자).
-const fs = require('fs'), path = require('path'), cp = require('child_process');
+const fs = require('fs'), path = require('path'), cp = require('child_process'), whyuse = require('../whyuse.js');
 const root = path.join(__dirname, '..', '..'), id = process.argv[2];
 if (!id) { console.log('사용: node tools/i18n/check_en.js <실습 id>'); process.exit(1); }
 const HAN = /[가-힣]/, errs = [], warns = [], MAPS = require('./maps.js');
@@ -67,6 +67,8 @@ if (en.presets[0] && en.presets[0].t !== MAPS.FIRST_PRESET) err('첫 예시의 �
 en.presets.forEach(p => { if (!p.t || !p.d || HANEN(p.t + p.d)) err('예시의 이름이나 설명에 한글이 남음: ' + p.t); });
 en.presets.forEach((p, i) => { const k = ko.presets[i]; if (!k) return; if (k.q && !p.q) err('예시 ' + (i + 1) + '의 물음(q)이 없음'); if (!k.q && p.q) err('예시 ' + (i + 1) + ': 한국어에 없는 물음(q)이 있음'); if (p.q && HANEN(p.q)) err('예시 ' + (i + 1) + '의 물음에 한글이 남음'); });
 ['title', 'nav', 'intro', 'assume'].forEach(k => { if (!en[k] || HANEN(en[k])) err(k + '가 없거나 한글이 남음'); });
+// 고르는 항목 why(왜 생겼나), use(지금 어디에 쓰나): 원본에 있는 것만 있고, 한글이 없어야 한다
+whyuse.lessonErrors(en).forEach(e => err(e)); whyuse.sameKeys(ko, en).forEach(k => err(k + '가 ' + (ko[k] ? '원본에는 있는데 영어에 없음' : '원본에는 없는데 영어에 있음'))); ['why', 'use'].forEach(k => { if (en[k] && HANEN(en[k])) err(k + '에 한글이 남음'); });
 same(ko.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), en.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), 'controls');
 same(ko.presets.map(p => p.v), en.presets.map(p => p.v), 'presets.v');
 if (ko.columns.length !== en.columns.length) err('columns의 수가 다름');
@@ -130,7 +132,7 @@ else ko.terms.forEach((t, i) => { if (!tb[t]) warns.push('용어 대조표에 �
 const myKb = path.join(root, 'kb', 'kb_' + id + '.js'), myKbEn = path.join(kbEnDir, 'kb_' + id + '.js');
 if (fs.existsSync(myKb)) {
   if (!fs.existsSync(myKbEn)) err('영어 설명집 파일이 없음: kb/en/kb_' + id + '.js');
-  else { const a = require(myKb), b = require(myKbEn); if (a.length !== b.length) err('kb_' + id + '.js의 용어 수가 다름'); else a.forEach((r, i) => { if (b[i].length !== 3 || b[i].some(x => !x || HANEN(x))) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째: 형식 오류이거나 한글이 남음'); if (b[i][0] !== MAPS.KBCAT[r[0]]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 분류는 ' + JSON.stringify(MAPS.KBCAT[r[0]]) + ' 이어야 함'); if (tb[r[1]] && tb[r[1]] !== b[i][1]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 용어 이름은 대조표의 ' + JSON.stringify(tb[r[1]]) + ' 이어야 함'); if (b[i][2] && b[i][2].length < 120) warns.push('설명이 너무 짧음: ' + b[i][1]); }); }
+  else { const a = require(myKb), b = require(myKbEn); if (a.length !== b.length) err('kb_' + id + '.js의 용어 수가 다름'); else a.forEach((r, i) => { if (whyuse.kbErrors(b[i]).length || whyuse.sameKeys(r[3], b[i][3]).length || b[i].slice(0, 3).concat(b[i][3] ? Object.values(b[i][3]) : []).some(x => HANEN(x))) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째: 형식 오류이거나 한글이 남음'); if (b[i][0] !== MAPS.KBCAT[r[0]]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 분류는 ' + JSON.stringify(MAPS.KBCAT[r[0]]) + ' 이어야 함'); if (tb[r[1]] && tb[r[1]] !== b[i][1]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 용어 이름은 대조표의 ' + JSON.stringify(tb[r[1]]) + ' 이어야 함'); if (b[i][2] && b[i][2].length < 120) warns.push('설명이 너무 짧음: ' + b[i][1]); }); }
 }
 
 // 5. 문제

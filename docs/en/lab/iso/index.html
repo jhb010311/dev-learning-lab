@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
 <h1>Isolation levels</h1>
 <p><b>How does data that another transaction is changing look to me?</b></p>
+<p><b>Why it exists</b> — Lining up all concurrently running transactions in one line and running them one after another is the safest, but it greatly reduces the amount that can be processed at the same time. The transaction isolation level sets in steps how far to allow phenomena such as reading a value before it is committed, a value changing when it is read again, and a row appearing that was not there, so that it blocks only as much as needed and lets the rest run concurrently.</p>
+<p><b>Where it's used today</b> — Usually you use the database's default isolation level as it is, and in Spring you change it with @Transactional(isolation = ...) only for the transactions that really need it. Consider the isolation level when values read several times in one transaction must agree with each other, as in settlement or statistics. A problem where the same row is changed concurrently, such as an inventory decrease, is prevented with a lock or an UPDATE with a condition rather than by relying on the isolation level.</p>
 <p>While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.</p>
 <p>Checked against real execution · Ran all 12 combinations on MySQL 8.4.11 with two sessions and checked the results against them</p>
 <h2>Concepts in this lab</h2>
@@ -44,10 +46,14 @@
 <dt>Phantom read</dt>
 <dd>A situation in which a transaction runs a query with the same condition twice and gets a different number of rows, because another transaction inserted or deleted rows in between. It differs from a non-repeatable read in that values do not change. Instead, rows that did not exist appear, or rows that existed disappear.</dd>
 <dt>MVCC (multiversion concurrency control)</dt>
+<dd><b>Why it exists</b> — If you keep isolation with locks alone, while one transaction modifies a row, a transaction that wants to read that row must also wait until it finishes. MVCC removes this waiting by keeping the version from before the change and showing that version to the reading side.</dd>
+<dd><b>Where it's used today</b> — In MySQL InnoDB's default isolation level, an ordinary SELECT run without FOR UPDATE reads this way, so saving an order is not blocked even while a long statistics query is running. When you modify data based on a value you read, you protect it separately with FOR UPDATE or @Version.</dd>
 <dd>A method that keeps earlier versions of data when the data changes, so that a reading transaction can see the version that matches the time of its snapshot. The snapshot time depends on the isolation level: in MySQL, REPEATABLE READ takes it at the first read of the transaction, and READ COMMITTED takes a new one each time a statement runs. Reads do not wait for writes and writes do not wait for reads, so concurrent performance is high. MySQL InnoDB, PostgreSQL, and Oracle all use this method.</dd>
 <dt>Undo log and redo log</dt>
 <dd>An undo log records data as it was before a change. It is used to roll back a transaction, and in InnoDB it is also used to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
 <dt>Shared locks and exclusive locks</dt>
+<dd><b>Why it exists</b> — If there is only one kind of lock, even transactions that only read must wait for each other. When locks are split into shared and exclusive locks, reads proceed together, and turns are enforced only when a write is involved.</dd>
+<dd><b>Where it's used today</b> — In MySQL, SELECT ... FOR SHARE takes a shared lock, and FOR UPDATE, UPDATE, and DELETE take an exclusive lock. You use a shared lock to hold on to rows you read so that they do not change during the transaction, and an exclusive lock for rows you read and will modify soon.</dd>
 <dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
 </dl>
 <h2>Try these</h2>
@@ -100,6 +106,10 @@ COMMIT;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +183,10 @@ COMMIT;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

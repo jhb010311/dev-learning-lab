@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lambda', nav: 'Lambda expressions and functional interfaces', cat: 'Java language', mode: 'step',
   title: 'When does the code in a lambda expression run?',
+  why: 'Before lambdas, to pass a single action, such as a sort order or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the form (parameters) -> body, so you write only the action to pass.',
+  use: 'It is used when you pass an action to standard methods that accept one, such as filter and map of a stream, sort and removeIf of a list, and computeIfAbsent of a Map. It is also used when you postpone creating a value until it is needed, as with orElseGet of Optional, and when you create a Runnable to pass to a thread. When the body gets long, you move it out into a named method and pass it as a method reference.',
   intro: 'A lambda expression is syntax that turns "an action to run later" into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [

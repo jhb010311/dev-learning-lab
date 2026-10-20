@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cache', nav: 'Caching and TTL', cat: 'High traffic', mode: 'time',
   title: 'How much does a cache reduce database queries, and when do requests pile up again?',
+  why: 'If product information is read from the database again each time it is viewed, the database repeats the same work even though the result is the same every time, and when requests increase, the database is the first thing that cannot hold up. A cache keeps a result that has been read once in a memory store for a short time and returns it from there from the next request on, so that fewer requests go to the database.',
+  use: 'Data that is read often and changes rarely, such as a product detail, a popular post list, and common codes, is put in Redis or application memory, and in Spring, storing the result of a method with @Cacheable is a common approach. Values that must always be the latest, such as inventory or balance right before payment, are read from the database without going through the cache.',
   intro: 'One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.',
   terms: ['Cache', 'Cache-aside pattern', 'TTL (time to live)', 'Cache stampede', 'Redis', 'Distributed lock'], ranks: ['cache', 'traffic', 'nosql'],
   controls: [

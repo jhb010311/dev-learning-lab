@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>static과 인스턴스</h1>
 <p><b>b만 건드렸는데 왜 a의 값도 바뀌나</b></p>
+<p><b>왜 생겼나</b> — 두 수 중 큰 값을 고르는 계산이나 프로그램 전체에 하나만 있으면 되는 상수는 특정 객체와 상관이 없는데, 인스턴스 멤버로만 만들 수 있다면 쓸 때마다 쓸모없는 객체부터 만들어야 한다. static은 이런 멤버를 객체가 아니라 클래스에 묶어, Math.max(3, 5)처럼 클래스 이름만으로 쓰게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — Math.max, Integer.parseInt처럼 받은 값만으로 결과가 정해지는 메서드와, Integer.MAX_VALUE처럼 static final로 선언하는 상수에 쓴다. 클래스마다 하나씩 두는 로거(private static final Logger)도 흔한 예다. static 필드는 프로그램 전체가 함께 쓰게 되므로, 요청마다 달라지는 값은 static 필드에 두지 않는다.</p>
 <p>필드 앞에 static을 붙이면 그 필드는 객체가 아니라 클래스에 하나만 생기고, 모든 객체가 그 하나를 함께 씁니다. static을 붙이지 않은 인스턴스 필드는 객체마다 따로 생깁니다. static 메서드는 객체 없이 불리므로, 그 안에서는 인스턴스 필드와 this를 쓸 수 없습니다.</p>
 <p>실행으로 대조 · JDK 21에서 서른 가지 조합을 컴파일하고 실행해 컴파일 결과와 출력을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,10 @@
 <dt>클래스와 객체</dt>
 <dd>클래스는 어떤 필드(데이터)와 메서드(동작)를 가질지 적어 둔 설계도이고, 객체는 그 설계도로 new를 해서 메모리(힙)에 실제로 만든 것이다. 객체를 인스턴스라고도 부른다. 클래스 하나로 객체를 여러 개 만들 수 있고, 객체마다 필드 값을 따로 가진다. 변수에는 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조가 담긴다.</dd>
 <dt>인스턴스 멤버와 static 멤버</dt>
+<dd><b>지금 어디에 쓰나</b> — 회원의 이름, 주문의 금액처럼 객체마다 다른 상태와 그 상태를 다루는 메서드는 인스턴스 멤버로 둔다. List.of나 LocalDate.of처럼 객체를 만들어 돌려주는 정적 팩토리 메서드는 아직 객체가 없을 때 불러야 하므로 static 멤버로 둔다.</dd>
 <dd>인스턴스 멤버는 static을 붙이지 않은 필드와 메서드로, 객체에 속한다. 인스턴스 필드는 객체마다 따로 생기고, 인스턴스 메서드는 a.hit()처럼 객체를 대상으로 불러야 한다. static 멤버는 클래스에 속해서 객체 없이 클래스이름.멤버로 쓴다. static 메서드 안에는 대상 객체가 없으므로 인스턴스 필드, 인스턴스 메서드, this를 이름만으로 쓸 수 없고, 쓰면 컴파일 오류가 난다. 반대로 인스턴스 메서드 안에서는 static 멤버를 자유롭게 쓸 수 있다.</dd>
 <dt>this</dt>
+<dd><b>지금 어디에 쓰나</b> — this.name = name처럼 생성자와 setter에서 받은 값을 필드에 넣을 때 흔히 본다. StringBuilder의 append처럼 메서드가 return this로 자기 객체를 돌려주면 sb.append(&quot;a&quot;).append(&quot;b&quot;)처럼 호출을 이어 쓸 수 있다.</dd>
 <dd>인스턴스 메서드나 생성자 안에서 지금 다루고 있는 객체 자신을 가리키는 참조다. this.name처럼 써서 같은 이름의 매개변수와 필드를 구분한다. 생성자의 첫 문장으로 this(인자)를 쓰면 같은 클래스의 다른 생성자를 먼저 실행한다. static 메서드에는 대상 객체가 없으므로 this를 쓸 수 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -103,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

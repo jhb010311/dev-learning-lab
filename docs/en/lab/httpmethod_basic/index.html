@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>HTTP methods</h1>
 <p><b>How is GET different from POST?</b></p>
+<p><b>Why it exists</b> — If requests are told apart by address alone, separate addresses must be invented for viewing a list and for posting an article, and the browser cannot know whether it is safe to send this request again. An HTTP method states what is to be done with a word on the first line of the request. GET carries a promise that it does not change anything on the server, so when a page opened with GET is refreshed, the browser simply sends it again, and when a page opened with POST is refreshed, the browser first asks whether to send it again.</p>
+<p><b>Where it's used today</b> — In Spring, @GetMapping and @PostMapping make different Java methods receive requests for the same address depending on the HTTP method. GET is used to show a list or a detail page, and POST is used to submit a sign-up or article-writing form. In APIs that exchange JSON, PUT, PATCH, and DELETE are often used as well for editing and deleting.</p>
 <p>The first word of the first line of an HTTP request is called the method. The method is the word that tells the server what the request wants done at that address, so even for the same /memos address, what the server does depends on whether you send GET or POST. GET is the method that gets something that is on the server; it is not a request to change anything on the server. POST is the method that asks the server to process the content (the body) that is sent with the request. A server writes code for the methods it handles, and if a request comes with a method it has not written code for, it answers with the status code 405. In this lab you send requests to a server that has a list of memos, change the method on the first line, send the same request once or twice, and see what happens to the memos on the server. The upper part of the code box is the text that was actually sent to the server, and a line that starts with # is a note that is not sent to the server (what the server has set up, and how many times the request is sent). The code box is not the code of the server program; it shows what was exchanged. (empty line) is a way to show a line with no text at all, so that you can see it.</p>
 <p>Checked against real execution · Ran all 6 combinations by sending the text of the request exactly as it is to an http server on Node.js 24.18.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>HTTP methods</dt>
 <dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
 <dt>GET method</dt>
+<dd><b>Where it's used today</b> — When you look at a list with conditions, as in a search, the conditions are attached after the address and sent with GET, as in /search?q=java. So you can bookmark the address of the result screen or send it to someone else to open the same screen again.</dd>
 <dd>GET is the HTTP method that requests the current content of the target resource (RFC 9110 section 9.3.1). GET is a &quot;safe&quot; method that is defined with a read-only meaning, so a client that sends GET neither requests nor expects a change of state on the server (section 9.2.1). So sending the same GET many times does not usually change what is left on the server. Even if you send a body with a GET request, that body generally has no defined meaning (section 9.3.1).</dd>
 <dt>POST method</dt>
+<dd><b>Why it exists</b> — If the values to send are attached after the address as in GET, they remain as they are in the visit history and the server logs, and it is hard to send a large value such as a file. POST sends the values in the body, which lessens these problems.</dd>
+<dd><b>Where it's used today</b> — Use it when passing values to a server to be processed, such as the ID and password of a login form, uploading a file, or placing an order.</dd>
 <dd>POST is the HTTP method that asks the target resource to process the body (the content) sent with the request according to its own rules (RFC 9110 section 9.3.3). Typical uses are handing the values written in an HTML form to a processing program, posting a message to a place like a bulletin board, creating a new resource that has not been identified yet, and appending data to the content of an existing resource. POST is neither a safe method nor an idempotent method (section 9.2), so if you send the same POST twice, the server may process it twice. If a new resource was created as a result, the server is recommended to answer with the 201 Created status code and a Location header (section 9.3.3).</dd>
 <dt>405 Method Not Allowed and the Allow header</dt>
+<dd><b>Why it exists</b> — 405 and the Allow header are a way to tell apart a wrong address (404) from a wrong method only, so that the sender knows right away which method to use to send again.</dd>
+<dd><b>Where it's used today</b> — In Spring, if you send POST to an address that has only @GetMapping, Spring returns 405 and an Allow header. When you receive this response, check not the address but the method you send and the mapping of the controller.</dd>
 <dd>405 Method Not Allowed is a status code that means the server knows the method on the request line, but the target of the request does not support that method (RFC 9110 section 15.5.6). The server must add an Allow header to a 405 response to tell the methods that the target currently supports (sections 15.5.6 and 10.2.1). For example, Allow: GET, POST means that the target accepts GET and POST. When the server does not know the method at all or has not implemented it, it is recommended to answer with 501 Not Implemented, not 405 (section 9.1).</dd>
 </dl>
 <h2>Try these</h2>
@@ -85,6 +92,10 @@ Host: localhost:8080
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +169,10 @@ Host: localhost:8080
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

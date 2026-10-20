@@ -1,6 +1,8 @@
 Lab.register({
   id: 'loops', nav: 'Conditionals and loops', cat: 'Java language', mode: 'step',
   title: 'How many times does a loop run, and where does it stop?',
+  why: 'To do the same thing ten times or a hundred times without a loop, you would have to copy the same line that many times, and a number of repetitions that is known only when the program runs, such as the length of a list or user input, cannot be written down at all. A loop lets you write the code to repeat only once and leaves the number of repetitions to the condition expression, so the same code handles a different amount of data.',
+  use: 'It is used to go through the items of a list one by one to compute a total, to stop with break when the first item that matches a condition is found, and to ask again until valid input arrives. When the number of repetitions is fixed, for is mainly used, and when you do not know in advance when it will end, while is mainly used. To go through the elements of a collection in order, the for-each statement (for (String s : list)), which needs no index, or a stream is sometimes used.',
   intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a conditional statement: like if, it chooses what to run based on a value. It jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
   terms: ['for statement and while statement', 'break and continue', 'switch statement and fall through'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'tx', nav: 'Transaction basics', cat: 'Database', mode: 'step',
   title: 'What if the withdrawal went through but the deposit did not?',
+  why: 'If several statements are run separately, then when an error occurs midway, the application has to find the earlier statements that were already applied and undo them itself, and if the undoing code also fails or the server goes down, inconsistent data stays as it is. A transaction has the database manage the changes between the start and the commit as one unit, so that if it fails the database cancels all of them, and after a commit they remain even if a failure occurs.',
+  use: 'It is used where several tables are changed together, such as processing that saves an order, reduces stock, and deducts points. In Spring, it is common to add @Transactional to a service method so that the method commits when it ends normally and rolls back when a runtime exception occurs. Calls to an external payment API or changes to another server\'s database cannot be undone by a database transaction, so a compensating action that sends a separate cancel request is provided.',
   intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. A transaction groups several statements so that either all of them take effect or none of them do. This lab compares the result when the two statements are not grouped with the result when they are.',
   terms: ['Transaction', 'ACID', 'Undo log and redo log', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [

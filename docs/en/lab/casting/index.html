@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
 <h1>Operators and type conversion</h1>
 <p><b>Why is 7 / 2 equal to 3 and not 3.5?</b></p>
+<p><b>Why it exists</b> — When number types of different sizes are mixed in one expression, it must be decided which type to calculate in, and if a large value could be put into a variable of a smaller type with no sign at all, you could not tell from the code alone that the value was cut off. Java's type conversion rules let the compiler do widening conversions by itself, and make narrowing conversions, such as putting a double value into an int variable, compile only if you write (int) yourself, which shows in the code the places where a value can be cut off.</p>
+<p><b>Where it's used today</b> — When you calculate an average or a ratio, you convert one side first, as in (double) sum / count, to avoid integer division. When you must reduce a long value to an int and it might exceed the range, you use Math.toIntExact, which throws an exception on overflow, instead of a cast. For calculations such as money, where decimal errors are a problem, use BigDecimal instead of double.</p>
 <p>In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition.</p>
 <p>Checked against real execution · Checked by running 18 pieces of code on JDK 21 (including one compile-time error)</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,12 @@
 <dt>Type conversion</dt>
 <dd>This means changing the type of a value to another type. Converting from a narrower type to a wider type (from int to long, or from int to double) happens automatically, and in a calculation with mixed types, too, the narrower side is converted to the wider type before the calculation. Among the automatic conversions, however, int to float, long to float, and long to double may lose precision for large values. Converting from a wider type to a narrower type can lose information, so you must write the type yourself in parentheses, as in (int), and this is called a cast, or casting. Converting a double to an int discards the fractional part, and converting a large integer to a narrower integer type cuts off the high-order bits, which can give a completely different value. The conversion that happens when a value is stored in a variable is applied to the value after the calculation has finished, so it cannot bring back a part that was already discarded or that overflowed during the calculation.</dd>
 <dt>Integer division and remainder</dt>
+<dd><b>Where it's used today</b> — The remainder is used to find even numbers (n % 2 == 0) or to cycle an array index around (i % length), and integer division is used in calculations such as &quot;how many bundles you get when you group items by a given count&quot;. When you need a remainder of 0 or more even when dividing a negative number (when the divisor is positive), use Math.floorMod instead.</dd>
 <dd>When an integer is divided by an integer with /, the result is also an integer, and the fractional part is discarded without rounding. The result is truncated toward zero, so 7 / 2 is 3 and -7 / 2 is -3. The % operator gives the remainder of a division, and the sign of the remainder follows the sign of the dividend (the number on the left). Dividing an integer by 0, or taking the remainder with 0, throws an ArithmeticException. To get the fractional part too, convert one side to double before dividing.</dd>
 <dt>Integer overflow</dt>
 <dd>This is what happens when the result of a calculation goes beyond the range that its type can hold and becomes an unexpected value. A Java int can hold -2147483648 through 2147483647, and a result beyond this range crosses over to the opposite end of the range and continues from there, with no exception. For example, adding 1 to 2147483647 gives -2147483648. No error occurs and the wrong value is silently used, so the problem is hard to find. For a calculation that can go out of range, use long, or use a method such as Math.addExact, which throws an exception when the result overflows.</dd>
 <dt>String concatenation</dt>
+<dd><b>Where it's used today</b> — It is used to build text for a log or a screen by mixing it with values, as in &quot;Sum: &quot; + sum. When joining many times inside a loop, StringBuilder is used instead, and for text with a fixed form, String.format or formatted() is sometimes used instead.</dd>
 <dd>This is what the + operator does when either side of it is a string (String): it does not add, but creates a new string by joining the two values. The side that is not a string is first converted to a string and then joined. When there are several + operators, they are evaluated from the left, in order, so 1 + 2 + &quot;3&quot; becomes &quot;33&quot;, which joins 3 and &quot;3&quot;, and &quot;1&quot; + 2 + 3 becomes &quot;123&quot;. To add the numbers first, put that part in parentheses.</dd>
 </dl>
 <h2>Try these</h2>
@@ -83,6 +87,10 @@ System.out.println(r);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -156,9 +164,10 @@ System.out.println(r);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

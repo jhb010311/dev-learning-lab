@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 배포와 운영</p>
 <h1>컨테이너와 가상 머신</h1>
 <p><b>컨테이너는 왜 가볍고 빨리 뜨나</b></p>
+<p><b>왜 생겼나</b> — 서버에 자바와 라이브러리를 직접 설치해 돌리면 서버마다 버전과 설정이 조금씩 달라지고, 이를 가상 머신으로 나누면 격리는 되지만 무겁다. 컨테이너는 자바와 라이브러리까지 이미지 하나로 만들어 어느 서버에서나 같은 환경으로 띄우고, 리눅스 커널의 네임스페이스와 cgroups로 프로세스를 떼어 놓고 쓸 자원을 제한해서, 운영체제를 따로 올리지 않고도 격리된 실행 환경을 만든다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 애플리케이션을 Docker 이미지로 만들어 개발 PC, 테스트 서버, 운영 서버에서 똑같이 실행하고, 쿠버네티스가 이 컨테이너들을 여러 서버에 띄우고 죽으면 다시 띄운다. 자바는 힙 말고도 메모리를 쓰므로 컨테이너 메모리 제한보다 힙을 충분히 작게 잡는다. 다른 운영체제를 돌려야 하면 가상 머신을 쓴다.</p>
 <p>같은 애플리케이션을 여러 개 띄울 때, 가상 머신은 인스턴스마다 운영체제를 통째로 올리고 컨테이너는 호스트의 커널을 함께 씁니다. 방식과 개수를 바꿔 가며 올라가는 것들과 메모리 사용을 비교하고, 컨테이너에 메모리 제한을 걸었을 때 무슨 일이 생기는지도 보세요.</p>
 <p>문서·표준 대조 · Docker와 리눅스 커널 문서</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>컨테이너와 이미지</dt>
 <dd>컨테이너는 애플리케이션과 그 실행에 필요한 것들을 묶어, 호스트 운영체제의 커널을 공유하면서 다른 프로세스와 격리된 환경에서 실행하는 기술이다. 이미지는 컨테이너를 만드는 데 쓰는 읽기 전용 템플릿으로 애플리케이션과 라이브러리, 설정이 들어 있다. 같은 이미지로 실행하면 실행 환경의 차이로 생기는 문제를 크게 줄인다.</dd>
 <dt>컨테이너와 가상 머신의 차이</dt>
+<dd><b>지금 어디에 쓰나</b> — 같은 리눅스 위에서 여러 애플리케이션을 가볍게 띄우려면 컨테이너를, 다른 운영체제를 돌려야 하거나 믿을 수 없는 코드를 강하게 떼어 놓아야 하면 가상 머신을 쓴다. 클라우드에서는 가상 머신 위에서 컨테이너를 돌리는 구성이 흔하다.</dd>
 <dd>가상 머신은 하드웨어를 가상화해 그 위에 운영체제 전체를 따로 설치해 실행한다. 컨테이너는 호스트의 운영체제 커널을 공유하고 프로세스만 격리한다. 그래서 컨테이너는 가상 머신보다 가볍고 빨리 시작되지만 격리 수준은 가상 머신이 더 높다.</dd>
 <dt>네임스페이스와 cgroups</dt>
+<dd><b>왜 생겼나</b> — 같은 서버의 프로세스들은 서로의 프로세스 목록과 사용 중인 포트를 보고, 하나가 메모리를 다 쓰면 다른 프로세스까지 느려지거나 강제로 종료될 수 있다. 네임스페이스와 cgroups는 커널이 프로세스 묶음마다 보이는 것과 쓸 수 있는 양을 따로 정하게 해 이런 간섭을 줄인다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Docker나 쿠버네티스가 컨테이너를 띄울 때 쓴다. docker run의 --memory, --cpus 옵션이나 쿠버네티스의 resources.limits가 cgroups 설정이 되고, JVM은 이 메모리 제한을 읽어 힙 크기의 기본값을 정한다.</dd>
 <dd>컨테이너를 구현하는 리눅스 커널의 기능이다. 네임스페이스는 프로세스가 볼 수 있는 범위(프로세스 목록, 네트워크, 파일 시스템 등)를 분리해 서로 독립된 환경처럼 보이게 한다. cgroups는 프로세스 그룹이 사용할 수 있는 CPU와 메모리 같은 자원의 양을 제한한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -86,6 +91,10 @@ $ docker run -d --memory=1024m my-app:1.0</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +168,10 @@ $ docker run -d --memory=1024m my-app:1.0</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

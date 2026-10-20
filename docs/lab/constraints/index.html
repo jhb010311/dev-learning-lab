@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 관계형 모델과 설계</p>
 <h1>테이블, 키, 제약 조건</h1>
 <p><b>제약 조건이 없으면 어떤 데이터가 들어가 버리나</b></p>
+<p><b>왜 생겼나</b> — 애플리케이션에서 &quot;같은 이메일이 있는지 먼저 조회하고 없으면 넣는&quot; 식으로 검사하면, 두 요청이 동시에 조회를 통과해 같은 값이 두 번 들어갈 수 있다. 제약 조건은 데이터베이스가 행을 쓰는 순간에 규칙을 검사하므로, 동시에 들어온 요청 가운데 하나는 오류로 거절되고 테이블의 규칙이 지켜진다.</p>
+<p><b>지금 어디에 쓰나</b> — 회원 이메일과 아이디의 중복을 막는 데에는 유니크 키를, 없는 회원을 가리키는 주문을 막는 데에는 외래 키를, 수량은 0보다 커야 한다는 규칙에는 CHECK를 쓴다. 회원 가입에서 중복 오류가 나면 스프링에서는 DataIntegrityViolationException 계열의 예외로 받아 &quot;이미 쓰는 이메일&quot; 같은 안내로 바꾼다.</p>
 <p>회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다.</p>
 <p>실행으로 대조 · MySQL 8.4.11에서 마흔여덟 가지 조합의 SQL을 그대로 실행해 오류 번호, 바뀐 행 수, 끝난 뒤 두 테이블의 모든 행을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,12 @@
 <dt>기본 키, 유니크 키, 외래 키</dt>
 <dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
 <dt>NOT NULL과 CHECK</dt>
+<dd><b>왜 생겼나</b> — NULL이 들어갈 수 있는 컬럼은 = 비교가 참이 되지 않고 COUNT(컬럼)에서 빠지는 등 읽을 때마다 따로 다뤄야 하고, 음수 가격 같은 값은 읽는 쪽이 매번 걸러야 한다. NOT NULL과 CHECK는 이런 값이 처음부터 저장되지 않게 해서, 읽는 쪽이 그런 경우를 따지지 않아도 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 이메일이나 가입일처럼 꼭 있어야 하는 컬럼에는 NOT NULL을, 가격은 0 이상 같은 규칙에는 CHECK를 건다. JPA가 테이블을 만들어 줄 때 @Column(nullable = false)는 NOT NULL로 바뀐다.</dd>
 <dd>컬럼 하나에 들어갈 값을 제한하는 제약이다. NOT NULL은 그 컬럼을 비워 둘(NULL) 수 없게 하고, CHECK는 괄호 안에 적은 조건이 거짓이 되는 값을 받지 않는다. 예를 들어 CHECK (age &gt;= 0)은 음수 나이를 막는다. 조건의 결과가 NULL(알 수 없음)이면 CHECK는 통과시키므로, 값이 꼭 있어야 한다면 NOT NULL을 함께 건다. MySQL은 8.0.16부터 CHECK를 실제로 검사하며, 그 이전 버전은 CHECK를 적어도 무시했다.</dd>
 <dt>외래 키의 참조 동작(ON DELETE)</dt>
+<dd><b>왜 생겼나</b> — 부모 행을 지울 때 자식 행을 어떻게 할지는 데이터마다 다른데, 이를 애플리케이션 코드에만 두면 다른 경로로 보낸 DELETE에는 적용되지 않는다. 참조 동작은 그 결정을 외래 키에 적어 두어, 어느 경로로 지우든 데이터베이스가 같은 규칙을 따르게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 글을 지우면 댓글도 함께 지울 때 CASCADE, 담당자가 퇴사해도 업무 기록은 남길 때 SET NULL, 주문이 남은 상품은 지우지 못하게 할 때 RESTRICT를 고른다.</dd>
 <dd>부모 테이블의 행을 지울 때, 그 행을 가리키는 자식 행을 어떻게 할지 외래 키에 정해 두는 것이다. RESTRICT는 자식 행이 남아 있으면 부모의 삭제를 거부한다. CASCADE는 부모를 지우면서 자식 행도 함께 지우고, SET NULL은 자식 행은 남긴 채 외래 키 컬럼만 NULL로 바꾼다. 아무것도 적지 않으면 기본값은 NO ACTION이며, MySQL의 InnoDB에서는 RESTRICT와 같이 동작한다. CASCADE는 문장 하나가 다른 테이블의 행까지 지우므로 함께 사라져도 되는 데이터에만 쓰고, SET NULL은 외래 키 컬럼이 NULL을 받을 수 있을 때만 쓸 수 있다. 부모의 키 값을 바꿀 때의 동작은 ON UPDATE로 같은 방식으로 정한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -110,6 +116,10 @@ SELECT COUNT(*)
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +193,10 @@ SELECT COUNT(*)
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

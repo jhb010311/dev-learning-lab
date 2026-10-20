@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>파일 입출력</h1>
 <p><b>파일에 쓰고 읽는다는 것은 무엇을 주고받는 것인가</b></p>
+<p><b>왜 생겼나</b> — 프로그램의 변수에 둔 값은 프로그램이 끝나면 사라진다. 파일에 쓰고 읽는 기능은 값을 디스크의 파일에 바이트로 남겨서, 프로그램을 다시 켠 뒤에도, 다른 프로그램에서도 같은 내용을 읽게 해 준다. 글자는 UTF-8 같은 정해진 규칙으로 바이트가 되므로, 쓰는 쪽과 읽는 쪽이 같은 규칙을 쓰면 같은 글자를 얻는다.</p>
+<p><b>지금 어디에 쓰나</b> — 설정 파일이나 로그 파일을 읽고 쓰거나, 사용자가 올린 CSV 파일을 읽어 들일 때 쓴다. 파일의 글자가 깨져 보이면 쓴 규칙과 읽은 규칙이 다른 경우가 많아서, 쓰는 코드와 읽는 코드 모두에 StandardCharsets.UTF_8처럼 규칙을 적어 둔다. 여러 사람이 동시에 고치고 찾아야 하는 데이터는 파일보다 DB에 둔다.</p>
 <p>파일에 글자를 쓰고 읽는 코드는 Files 클래스의 메서드 세 개로 이루어집니다. Files.writeString 메서드는 글자를 파일에 쓰고, Files.readAllBytes 메서드는 파일에 저장된 바이트를 있는 그대로 읽고, Files.readString 메서드는 파일의 바이트를 글자로 되돌려 읽습니다. 파일에는 글자가 아니라 바이트(0부터 255까지의 숫자로 볼 수 있는 값)가 저장됩니다. 그래서 글자를 쓸 때는 정해진 규칙(문자 인코딩)에 따라 글자를 바이트로 바꾸고, 읽을 때는 규칙에 따라 바이트를 글자로 되돌립니다. 코드에서 StandardCharsets.UTF_8 부분이 그 규칙을 적은 곳이고, 쓰는 줄과 읽는 줄에 각각 적습니다. 이 실습은 쓰는 글자와 읽는 방법을 바꿔 가며 같은 코드를 컴파일하고 실행해, 파일에 실제로 저장된 바이트와 읽어 낸 글자를 봅니다. (Path.of(&quot;memo.txt&quot;)는 프로그램을 실행한 폴더 안의 memo.txt 파일을 가리키는 것으로 보고, 그 밖의 경로 규칙은 다루지 않습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 아홉 가지 조합을 javax.tools로 컴파일하고 새 자바 프로세스로 실행해, 저장된 파일의 바이트와 읽은 글자·예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>바이트(byte)</dt>
 <dd>바이트는 파일에 저장되는 내용을 이루는 기본 단위로, 8비트 하나이다. 자바의 byte 타입은 -128부터 127까지로 보여 주지만 같은 8비트를 0부터 255까지의 값으로 읽을 수도 있다(Byte.toUnsignedInt). 파일에는 글자나 그림 자체가 아니라 이런 바이트가 차례로 저장되고, 어떤 글자가 되는지는 그 바이트를 어떤 규칙으로 읽느냐에 따라 달라진다. 자바에서 byte[] 배열은 파일의 내용을 규칙 없이 있는 그대로 담는 그릇이고, Files.readAllBytes가 파일의 바이트를 이 배열로 읽어 온다. 파일의 크기도 글자 수가 아니라 바이트 수로 센다.</dd>
 <dt>문자 인코딩과 UTF-8</dt>
+<dd><b>왜 생겼나</b> — 나라마다 다른 인코딩(한국은 EUC-KR 등)을 쓰면, 다른 인코딩으로 쓴 파일을 열 때 글자가 깨지고 한 글에 여러 나라 글자를 섞기 어렵다. UTF-8은 유니코드의 모든 글자를 한 규칙으로 적고, 영문자는 ASCII와 같은 1바이트로 둔다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 페이지, JSON, 자바 소스 파일의 인코딩으로 흔히 쓴다. MySQL에서 이모지까지 저장하려면 문자셋을 utf8이 아니라 utf8mb4로 지정한다.</dd>
 <dd>문자 인코딩은 글자를 어떤 바이트로 바꾸어 저장할지 정한 규칙이다. UTF-8은 가장 널리 쓰이는 인코딩으로, 글자에 따라 1바이트에서 4바이트까지 길이가 달라진다. 영문자와 숫자는 1바이트, 한글 한 글자는 3바이트다. 쓸 때와 읽을 때의 인코딩이 다르거나 글자의 중간에서 바이트를 끊어 읽으면 글자가 깨지므로, 글을 읽고 쓰는 코드에는 인코딩을 명시하는 것이 안전하다.</dd>
 <dt>ISO_8859_1</dt>
 <dd>ISO_8859_1은 자바의 StandardCharsets가 상수로 제공하는 문자 인코딩의 하나로, 문서에는 ISO Latin Alphabet No. 1(ISO-LATIN-1)로 설명되어 있다. 이 JDK에서 0부터 255까지 바이트 256가지를 모두 읽어 보면 바이트 하나가 글자 하나가 되고 그 글자의 번호가 바이트 값과 같다. 그래서 어떤 바이트 열을 읽어도 오류 없이 글자로 바뀌지만, UTF-8로 저장한 한글처럼 한 글자가 여러 바이트인 글은 바이트마다 엉뚱한 글자가 되어 깨진다. 0x00부터 0x7F까지의 바이트는 UTF-8과 같은 영문자와 숫자가 된다.</dd>
@@ -94,6 +98,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +175,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Storage and durability</h1>
 <p><b>Does committed data stay after the server is turned off?</b></p>
+<p><b>Why it exists</b> — A program that simply writes data to a file cannot tell how much was saved if the power goes out during writing, and half-written content can remain. A DB that stores to files uses COMMIT as the boundary: after it is turned on again, changes that were not committed are discarded and changes for which COMMIT was reported successful are given back (when the setting writes committed content to disk immediately). So the program only has to check whether COMMIT succeeded.</p>
+<p><b>Where it's used today</b> — Records that must not be lost, such as orders, payments, and sign-ups, are saved by going through to COMMIT in a DB that stores to disk, such as MySQL or PostgreSQL. In Spring, COMMIT is sent when a method with @Transactional ends without an exception. In places where it is fine for data to be erased when the run ends, such as tests, it is common to use H2 only in memory with a jdbc:h2:mem: address.</p>
 <p>A database is a program that stores data and gives it back when asked, and it usually stores the data in files on disk (as this lab shows, it can also be set to keep the data only in memory). The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In the code of this lab, two things decide it (depending on the database, a setting that writes the committed data to disk right away is also needed). One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table (a name chosen for this lab). (This lab uses H2 in embedded mode, in which the Java program loads H2 and runs it in its own process. So &quot;the database program stops&quot; means that the Java program ends. A database such as MySQL is usually run as a separate program (a server), and in that case it is the database server program that stops. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)</p>
 <p>Checked against real execution · Ran all 4 combinations on H2 2.4.240 by ending the process without cleanup and opening the database again, and checked against the results; the rules of durability were checked against the MySQL and H2 documentation (cutting the power was not run)</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Durability</dt>
 <dd>Durability is the property that the changes of a transaction whose COMMIT succeeded are not lost even after a power failure or a system crash, and it is the D in ACID. The MySQL documentation explains that durability is usually achieved by writing to disk storage, with redundancy in case of a failure during the write. In MySQL it is a property decided together by software settings (such as innodb_flush_log_at_trx_commit) and hardware (such as the write buffer of the storage device and fsync() support in the operating system), so how far it is guaranteed depends on the settings. Changes made before COMMIT are not covered by this promise.</dd>
 <dt>Persistent and in-memory databases</dt>
+<dd><b>Why it exists</b> — Starting a separate database server for every test and deleting the data from last time is tedious. An in-memory database comes into being with the program and disappears when it ends, so that every run starts quickly with an empty database.</dd>
+<dd><b>Where it's used today</b> — In a Spring Boot project that uses JPA or JDBC, if you add H2 as a dependency and do not write a database address, Spring Boot creates and uses an H2 in-memory database by itself. The persistent database way is used when a small program that does not have a separate database server leaves its data in a file.</dd>
 <dd>A persistent database stores its data in files on disk, and an in-memory database keeps its data only in the memory of the computer. In H2, you choose by the connection address. An address that starts with jdbc:h2:file:path (file: can be left out) stores the data in a file, and an address that starts with jdbc:h2:mem:name keeps it in memory. A persistent database stays even after the connection is closed, but according to the H2 documentation, the content of an in-memory database is lost when the last connection is closed, and even with DB_CLOSE_DELAY=-1 it stays only while the program (the virtual machine) is alive. The MySQL glossary calls the opposite of an in-memory database a disk-based database.</dd>
 <dt>Commit and rollback</dt>
+<dd><b>Where it's used today</b> — You use them to apply everything or cancel everything for work that must change several things, such as a bank transfer. Even when you fix data by hand with a DB tool, you open a transaction, look at the result with SELECT, and send COMMIT if it is right and ROLLBACK if it is wrong.</dd>
 <dd>A commit makes all the data changes in a transaction final in the database, and a rollback cancels all of those changes and returns to the state before the transaction started. A transaction ends in one of the two, and a change that has already been committed cannot be undone by a rollback. In Spring, when a method with @Transactional ends normally, Spring commits, and when it ends with an exception, Spring looks at the rollback rules and rolls back. Under the default rule, it rolls back when a RuntimeException or an Error is thrown out of the method, and it does not roll back for a checked exception. Without a transaction, each save statement is committed immediately by auto-commit, which is the default setting of a JDBC connection, so even if an exception occurs later, the earlier save cannot be rolled back.</dd>
 <dt>H2 write delay (WRITE_DELAY)</dt>
+<dd><b>Why it exists</b> — If every COMMIT waited until everything was written to the file, a program that commits often would become slower by that much. WRITE_DELAY is a setting that puts off writing to the file for a short time, so COMMIT finishes quickly, in exchange for giving up a little durability.</dd>
+<dd><b>Where it's used today</b> — To reduce the chance of losing committed records when the power goes off in an H2 persistent database, lower it to 0 so that writing is not put off, and if the data can be recreated even if lost, leave it at the default.</dd>
 <dd>WRITE_DELAY is the maximum delay that H2 can put between a COMMIT and writing its content to the file, and it is set in milliseconds. According to the H2 documentation, the default is 500, and you can change it with the command SET WRITE_DELAY number or by adding ;WRITE_DELAY=0 to the end of the connection address, and the setting stays in the database. By default H2 puts off writing committed content to the file, so the H2 documentation says that when the power goes off, a bit more than 1 second of committed content can be lost. Many hard disks also do not obey the write command (fsync), so complete durability, with any setting, depends on the device.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +99,10 @@ SELECT * FROM memo;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +176,10 @@ SELECT * FROM memo;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

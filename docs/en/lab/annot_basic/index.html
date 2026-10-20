@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Annotations</h1>
 <p><b>What is an annotation, and what happens when you add one?</b></p>
+<p><b>Why it exists</b> — In the days before annotations, information such as &quot;this method is a test&quot; or &quot;Spring creates objects of this class&quot; had to be given through a rule, such as a method name that starts with test, or through an XML configuration file separate from the code, so when you changed the code, you also had to fix the configuration file separately. An annotation lets you write such a mark with @ right above the code it belongs to, so the code and the mark are seen in one place and are changed together.</p>
+<p><b>Where it's used today</b> — @Override makes the compiler check that you rewrote the superclass's method correctly. Spring's @Component, @GetMapping, and @Transactional and JUnit's @Test are marks that tell the framework &quot;treat this like this&quot;. You do not make annotations yourself very often, and usually you attach the ones that Java and frameworks have already made.</p>
 <p>An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface Run and put @Run above the work method. But a marker does not run anything by itself. For it to have an effect, something has to read the marker and act on it, and that is done by the compiler, by a framework such as Spring, or by code we write. Here we write a for loop ourselves that &quot;finds the methods that have Run and calls them&quot; to show that relationship. You remove @Run, remove the reader, and remove @Retention, compile and run the same code each time, and you see which methods are called.</p>
 <p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21 and run, and the methods called and the markers read at run time were checked</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Annotation</dt>
 <dd>This is metadata that you attach to code. It does nothing by itself; the compiler or a framework reads it and acts on it. Some, like @Override, are used by the compiler for checks, and others, like @Transactional and @Autowired, are read by a framework at run time through reflection to apply a feature.</dd>
 <dt>@interface</dt>
+<dd><b>Why it exists</b> — If you could use only the annotations that Java has made in advance, you could not attach a marker needed only by your own program. @interface lets you create the marker you need, so that the program can find the places where the marker is attached and handle them separately.</dd>
+<dd><b>Where it's used today</b> — Annotations that Spring provides, such as @Component, are also declared this way with @interface. What you create yourself is for cases like &quot;a method whose execution time is to be measured&quot;, when you want to attach the same marker in several places and handle them all at once.</dd>
 <dd>@interface is a declaration that creates a new annotation (a marker that starts with @). If you put @ before the interface of an ordinary interface declaration and write @interface Run { }, an annotation called Run is created, and after that you can put it above a class or a method as @Run. If the inside of the braces is empty, it is a marker that holds no values (a marker annotation), and if you put in declarations shaped like methods, they become elements that hold values, as in @Name(value). The declaration alone does not create any code that runs, and something else has to read the marker and act on it. If you do not write @Retention on an annotation you created yourself, it is not kept while the program runs.</dd>
 <dt>Reflection</dt>
+<dd><b>Why it exists</b> — A framework cannot know in advance the names of the classes users will write later, so ordinary code cannot create objects of those classes or call their methods. Reflection makes this possible by inspecting classes while the program runs and letting you work with them by name alone.</dd>
+<dd><b>Where it's used today</b> — You rarely use it directly in application code; it is used when building frameworks, testing tools, and serialization libraries. If the same job can be done with interfaces and polymorphism, that way is safer because it gets compile-time type checking.</dd>
 <dd>This feature lets a running program inspect information about a class (its fields, methods, constructors, and annotations) and create objects or call methods by name. Spring's dependency injection, JPA's entity handling, and JSON serialization libraries all work on top of it. It is slower than a normal call and does not get compile-time type checking.</dd>
 <dt>@Retention and @Target</dt>
+<dd><b>Why it exists</b> — If there were no way to decide where each annotation may be attached and when it is kept, the compiler could not catch a marker meant for methods being attached to a class by mistake, and a marker meant only for the compiler would remain until run time. @Target and @Retention let the one who creates the annotation decide these two.</dd>
+<dd><b>Where it's used today</b> — You write them together when you create an annotation yourself. Spring's @Component and @Transactional also carry @Retention(RetentionPolicy.RUNTIME) and @Target, so Spring finds and reads these markers at run time.</dd>
 <dd>These are two annotations that you apply to a new annotation, when you create it, to set its properties. @Retention decides how far the annotation is retained. SOURCE retains it only in the source code, CLASS retains it up to the class file, and RUNTIME retains it until run time so that it can be read with reflection. When @Retention is not written, the policy is CLASS, so you must write RUNTIME on an annotation that will be read at run time. @Target decides where the annotation can be applied (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and applying it in a place that does not match is a compile-time error.</dd>
 </dl>
 <h2>Try these</h2>
@@ -114,6 +122,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -187,9 +199,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cookie', nav: 'Cookies', cat: 'Authentication', mode: 'step',
   title: 'Showing a name tag, every time, to a server that cannot remember you',
+  why: 'Without cookies, to keep a login state you would have to attach an identifier to every link\'s address or to a hidden field in every form, and a value attached to an address leaks when the link is shared or saved in a history. A cookie sends this value in a request header instead of the address and has the browser attach it automatically, so the side that builds the pages does not have to handle the value for each link.',
+  use: 'It is mainly used to send the session ID after login (such as the JSESSIONID cookie of Tomcat) to tell the server that the requests come from the same user, and it is also used to remember settings such as the language. Login cookies get HttpOnly, Secure, and SameSite, which prevent or reduce reading by scripts, sending over plain HTTP, and being sent along with requests from other sites. Mobile apps sometimes send a token in the Authorization header instead of using cookies.',
   intro: 'HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
   terms: ['Cookie', 'HTTP as a stateless protocol', 'HttpOnly, Secure, and SameSite', 'Session'], ranks: ['auth', 'http'],
   controls: [

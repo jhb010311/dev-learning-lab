@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>Repositories</h1>
 <p><b>What is a repository, and who creates the implementation?</b></p>
+<p><b>Why it exists</b> — With JPA alone, without Spring Data JPA, you make a separate class for each entity, such as one for members and one for orders, to save, find, and delete, and you must write almost the same EntityManager code over and over, changing only the entity type. For queries that find by a condition, you also write the query text yourself in every method. A Spring Data JPA repository has Spring fill in these repeated parts, so that we only decide the name and shape of the methods.</p>
+<p><b>Where it's used today</b> — In a project that uses Spring Data JPA, you keep one repository interface per entity, and a service class has it injected to save and find. For queries with one or two conditions, such as finding a member by email or finding orders by status, naming the method according to the rules is enough. For queries with long and complex conditions, you write the query yourself with @Query or use a tool such as Querydsl together.</p>
 <p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt; (MemberRepository and Member are names made up for this example, and JpaRepository is an interface provided by Spring Data JPA), Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in CrudRepository (JpaRepository inherits CrudRepository through ListCrudRepository), and MemberRepository inherits it through JpaRepository. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
 <p>Checked against real execution · Compiled all 6 combinations on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2, started Spring for real, and checked the implementation objects and the SQL that was sent against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Repository</dt>
 <dd>A repository in Spring Data is an interface that gathers the methods that save and find entities. The central interface that Spring Data defines is Repository, and it takes the entity class to handle and the type of its id as type arguments. A developer only declares an interface that extends it and does not write an implementation class. When Spring starts, it finds all such interfaces under the configured packages, and for each one it creates a proxy object that handles the calls and registers it as a bean. So you can inject that bean and call a method such as save right away. An ordinary interface that does not extend Repository is not found, so no implementation object is created for it.</dd>
 <dt>JpaRepository</dt>
+<dd><b>Why it exists</b> — If you extend only Repository, you must declare methods such as save and findById one by one, so you end up writing the same lines over and over for each entity. JpaRepository declares in advance saving, finding, and deleting, plus sorting and paging, so that one line of inheritance gives you all of them.</dd>
+<dd><b>Where it's used today</b> — A repository made with Spring Data JPA usually extends JpaRepository. If you want to hide save or delete and open up only finding, you extend Repository and declare only the methods you need.</dd>
 <dd>JpaRepository is the repository interface that Spring Data JPA provides, and it takes the entity class and the id type as type arguments (for example, JpaRepository&lt;Member, Long&gt;). This interface is made for the storage technology and extends the CrudRepository family of interfaces, so if you extend it, you can use basic methods such as save, findById, findAll, count, and delete without declaring them. An interface that you declare by extending it becomes a target of Spring Data JPA, and when Spring starts, it creates an implementation object of that interface. If you do not extend it, these methods do not exist, so code that calls save does not compile. If you declare a method name that follows the rule, such as findByName, it becomes a query method, and Spring creates the query too.</dd>
 <dt>Query method</dt>
+<dd><b>Why it exists</b> — The methods you get by extending JpaRepository, such as finding by id or finding all, are the same for every entity, so a conditional query such as finding by email requires you to write JPQL and the code that passes parameters yourself. With a query method, you declare only the method name, Spring Data builds the query from that name, and conditional queries work without implementation code.</dd>
+<dd><b>Where it's used today</b> — It is commonly used for queries with one or two conditions, such as findByEmail, existsByLoginId, and countByStatus. When the name becomes too long to read, write the JPQL in @Query or move to Querydsl.</dd>
 <dd>A feature of Spring Data repositories that reads the name of a method declared in the repository interface and derives a query from it (a derived query). As in findByName, you write the property name of the entity after find…By, attach a keyword such as GreaterThan or Containing after the property name to set the kind of condition, and join several conditions with And or Or. The name is turned into a query when the application starts, so if you use a property name that the entity does not have, a PropertyReferenceException is thrown and the application does not start. When there are many conditions, the name becomes too long, so write the JPQL directly in @Query then.</dd>
 <dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd><b>Why it exists</b> — If you use an ORM library through its own API, you must change all the code when you switch to another implementation. JPA standardizes the mapping annotations and the way to use EntityManager, so your code follows the standard and an implementation such as Hibernate handles the actual behavior.</dd>
+<dd><b>Where it's used today</b> — In Spring Boot, adding spring-boot-starter-data-jpa means you use all three together, and the implementation is Hibernate by default.</dd>
 <dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
 </dl>
 <h2>Try these</h2>
@@ -93,6 +101,10 @@ System.out.println(found.size());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +178,10 @@ System.out.println(found.size());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

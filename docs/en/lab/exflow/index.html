@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
 <h1>Exceptions and finally</h1>
 <p><b>When an exception is thrown, which blocks run, and in what order?</b></p>
+<p><b>Why it exists</b> — If the code that closes a resource is placed only at the end of the normal flow, then on the path where an exception occurs, that line is not reached, and a file or database connection stays open. finally gives a place that is passed through whichever way you leave, so the cleanup code is gathered in one place, and try-with-resources lets the compiler do what used to be written in layers in finally, the null check and the exception handling of close().</p>
+<p><b>Where it's used today</b> — Use try-with-resources when you open a JDBC Connection, PreparedStatement, or ResultSet, or a file or network stream. ReentrantLock is not AutoCloseable, so call unlock() in finally. When you use JdbcTemplate or JPA, Spring takes care of closing connections, so there is less need to write it yourself.</p>
 <p>When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs whether the try block is left normally, by a return, or by an exception (it does not run if System.exit() ends the JVM itself). The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.</p>
 <p>Checked against real execution · All 32 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -90,6 +92,10 @@ int run() {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +169,10 @@ int run() {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>폴링·SSE·WebSocket</h1>
 <p><b>서버에서 생긴 일을 브라우저에 알리는 네 가지 방법</b></p>
+<p><b>왜 생겼나</b> — 새 소식을 바로 보여 주려고 브라우저가 몇 초마다 묻게 하면, 대부분의 요청이 빈손으로 끝나 서버 부하만 늘고 그래도 간격만큼 알림이 늦는다. SSE와 WebSocket은 연결 하나를 열어 둔 채 서버가 소식이 생기는 순간 보내게 해서, 묻지 않아도 바로 도착하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 알림 배지, 배송 상태, 긴 작업의 진행률, 시세처럼 서버가 보내기만 하면 되는 곳에는 SSE를, 채팅, 공동 편집, 온라인 게임처럼 양쪽이 자주 주고받는 곳에는 WebSocket을 쓴다. 스프링에서는 SseEmitter와 WebSocketHandler로 만든다. 몇 분에 한 번 바뀌는 정보라면 단순한 폴링으로 충분하다.</p>
 <p>HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.</p>
 <p>문서·표준 대조 · HTML 표준, WebSocket 표준(RFC 6455), 스프링 문서</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>SSE(Server-Sent Events)와 폴링</dt>
 <dd>폴링은 클라이언트가 일정 간격으로 서버에 새 데이터가 있는지 반복해 묻는 방식이다. SSE는 하나의 HTTP 연결을 열어 두고 서버가 클라이언트 쪽으로 이벤트를 계속 보내는 방식으로, 서버에서 클라이언트로의 한 방향 전송만 가능하다. 알림처럼 서버가 보내기만 하면 되는 경우 WebSocket보다 단순하다.</dd>
 <dt>WebSocket</dt>
+<dd><b>왜 생겼나</b> — HTTP 요청과 응답만으로 양방향 대화를 흉내 내려면 클라이언트가 계속 요청을 보내야 하고, 짧은 메시지에도 매번 헤더가 따라간다. WebSocket은 HTTP로 연결을 시작한 뒤 같은 TCP 연결을 WebSocket 통신으로 바꿔, 양쪽이 짧은 메시지를 HTTP 헤더 없이 주고받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링에서는 STOMP 지원(@MessageMapping)으로 채팅방 같은 주제별 구독을 다루기도 한다. 서버를 여러 대로 늘리면 연결이 서버마다 나뉘므로, 다른 서버에 연결된 사용자에게 보내려면 Redis 같은 메시지 중계를 함께 쓴다.</dd>
 <dd>클라이언트와 서버가 하나의 연결을 유지한 채 양쪽에서 자유롭게 메시지를 주고받을 수 있는 통신 규약이다. HTTP는 클라이언트가 요청해야 서버가 응답할 수 있지만, WebSocket은 서버가 먼저 데이터를 보낼 수 있어 채팅이나 실시간 알림에 쓰인다.</dd>
 <dt>HTTP와 무상태(Stateless)</dt>
+<dd><b>왜 생겼나</b> — 서버가 요청마다 앞선 대화를 기억해야 하는 방식이면, 사용자가 늘수록 그 기억을 쌓아 둘 자원이 늘고 연결이 끊기면 대화를 이어 갈 수 없다. HTTP는 요청 하나만 보고 처리할 수 있게 정해, 서버가 요청 사이에 아무것도 기억하지 않아도 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 페이지와 이미지를 받는 일, 모바일 앱이 서버 API를 부르는 일, 서버가 다른 서비스의 API를 부르는 일이 모두 HTTP로 이뤄진다. 서버 쪽에서도 수시로 먼저 보내야 하는 채팅 같은 기능에는 WebSocket을 함께 쓴다.</dd>
 <dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -85,6 +91,10 @@ setInterval(async () =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +168,10 @@ setInterval(async () =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

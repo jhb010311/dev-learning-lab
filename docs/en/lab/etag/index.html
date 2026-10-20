@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP caching and ETag</h1>
 <p><b>Do we have to fetch the same file again?</b></p>
+<p><b>Why it exists</b> — If a browser downloads images, scripts, and API responses from scratch every time it opens a page, it spends transfer volume and waiting time on every visit even when nothing has changed, and the server repeats the same work. HTTP caching and the ETag have the server attach a reuse rule and a version tag to each response, so the client downloads only what has changed.</p>
+<p><b>Where it's used today</b> — JS and CSS files with a hash in their names get a long max-age, and the name changes at deployment so that clients fetch the new file. Frequently changing API responses get an ETag, which Spring adds through eTag() on ResponseEntity or through ShallowEtagHeaderFilter. Responses that must not be kept, such as personal information or payment pages, are protected with no-store, which prevents them from being stored.</p>
 <p>A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as it is&quot; and &quot;a tag for the version of the content (the ETag)&quot;, the browser can skip the request altogether or ask only &quot;has it changed?&quot;.</p>
 <p>Checked against real execution · Checked with a test server and a real browser</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Conditional requests and ETag</dt>
 <dd>A kind of request in which the client asks the server whether the data it already has is still current. An ETag is an identifier value that represents the version of a resource. When the client sends this value in a request, the server responds with 304 Not Modified and no body if the resource has not changed. This reduces network use because the same data is not sent again.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 <dt>Cache</dt>
 <dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
@@ -90,6 +94,10 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +171,10 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

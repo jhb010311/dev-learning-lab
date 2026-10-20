@@ -1,6 +1,8 @@
 Lab.register({
   id: 'static', nav: 'static과 인스턴스', cat: '자바 언어', mode: 'step',
   title: 'b만 건드렸는데 왜 a의 값도 바뀌나',
+  why: '두 수 중 큰 값을 고르는 계산이나 프로그램 전체에 하나만 있으면 되는 상수는 특정 객체와 상관이 없는데, 인스턴스 멤버로만 만들 수 있다면 쓸 때마다 쓸모없는 객체부터 만들어야 한다. static은 이런 멤버를 객체가 아니라 클래스에 묶어, Math.max(3, 5)처럼 클래스 이름만으로 쓰게 한다.',
+  use: 'Math.max, Integer.parseInt처럼 받은 값만으로 결과가 정해지는 메서드와, Integer.MAX_VALUE처럼 static final로 선언하는 상수에 쓴다. 클래스마다 하나씩 두는 로거(private static final Logger)도 흔한 예다. static 필드는 프로그램 전체가 함께 쓰게 되므로, 요청마다 달라지는 값은 static 필드에 두지 않는다.',
   intro: '필드 앞에 static을 붙이면 그 필드는 객체가 아니라 클래스에 하나만 생기고, 모든 객체가 그 하나를 함께 씁니다. static을 붙이지 않은 인스턴스 필드는 객체마다 따로 생깁니다. static 메서드는 객체 없이 불리므로, 그 안에서는 인스턴스 필드와 this를 쓸 수 없습니다.',
   terms: ['static', '클래스와 객체', '인스턴스 멤버와 static 멤버', 'this'],
   controls: [

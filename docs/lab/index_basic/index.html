@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › DB</p>
 <h1>인덱스</h1>
 <p><b>인덱스는 무엇이고, 없으면 무엇이 달라지는가</b></p>
+<p><b>왜 생겼나</b> — 행이 몇 개뿐일 때는 처음부터 끝까지 훑어도 금방 끝나지만, 회원이 수백만 명이 되면 한 사람을 찾는 데도 모든 행을 읽느라 느려진다. 이런 조회가 동시에 많이 들어오면 DB 전체가 느려진다. 인덱스는 값을 미리 정리해 둔 목록을 따로 두어, 행이 늘어도 찾는 시간이 크게 늘지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 로그인 때 쓰는 이메일, 주문 목록을 볼 때 쓰는 회원 번호처럼 WHERE나 조인의 조건에 자주 쓰는 열에 만든다. 기본 키와 UNIQUE를 걸어 둔 열에는 대부분의 DB가 알아서 만든다. 인덱스를 많이 만들수록 행을 넣거나 지우는 일이 느려지므로, 자주 찾지 않는 열에까지 만들지는 않는다.</p>
 <p>인덱스(색인)는 어떤 열의 값을 정리해 두고, 그 값이 있는 행을 가리키는 목록입니다. DB가 테이블과 따로 만들어 두는 것이고, 책 뒤의 &quot;찾아보기&quot;와 같습니다. CREATE INDEX idx_name ON member(name)은 name 열의 색인을 만드는 문장입니다. 색인이 없으면 DB는 조건에 맞는 행을 찾으려고 테이블의 행을 처음부터 끝까지 읽어야 하고, 색인이 있으면 색인에서 값을 찾아 필요한 행만 읽습니다. 이 실습은 CREATE INDEX를 지우거나 찾는 열을 바꿔 가며 같은 SELECT를 실행해, 찾아낸 행은 같은데 DB가 읽은 행이 얼마나 달라지는지를 봅니다. 색인이 값을 어떤 구조로 정리하는지와 색인을 만드는 데 드는 비용은 다루지 않습니다.</p>
 <p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조(읽은 행은 EXPLAIN ANALYZE의 scanCount에서 1을 뺀 값), 규칙은 MySQL 문서와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>인덱스</dt>
 <dd>테이블에서 원하는 행을 빨리 찾기 위해 특정 컬럼의 값을 정렬된 형태로 따로 유지하는 자료구조다. 인덱스가 없으면 조건에 맞는 행을 찾기 위해 테이블 전체를 읽어야 한다. 조회는 빨라지지만 데이터를 추가, 수정, 삭제할 때마다 인덱스도 갱신해야 하므로 쓰기 성능과 저장 공간에 비용이 든다.</dd>
 <dt>CREATE INDEX</dt>
+<dd><b>왜 생겼나</b> — 테이블을 만들 때는 어떤 열로 자주 찾게 될지 다 알기 어렵다. CREATE INDEX는 데이터가 이미 쌓인 테이블에도, 테이블을 다시 만들지 않고 색인을 나중에 더하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 서비스를 운영하다 느린 조회를 찾으면 그 조건에 쓰인 열에 이 문장으로 색인을 더한다. 행이 아주 많으면 색인을 만드는 데 시간이 걸리므로, 사용자가 적은 시간에 실행하기도 한다.</dd>
 <dd>CREATE INDEX 색인이름 ON 테이블(열) 형태로, 이미 만든 테이블의 열에 색인(인덱스)을 더하는 SQL 문이다. 예를 들어 CREATE INDEX idx_name ON member(name)은 member 테이블의 name 열 값을 정리한 색인을 만든다. 색인은 테이블과 따로 저장되며 테이블의 행 자체는 바꾸지 않는다. 색인은 주로 만든 열을 조건으로 찾을 때 쓰이므로 다른 열로 빨리 찾으려면 그 열의 색인이 따로 있어야 한다(없어도 찾을 수는 있지만 전부 훑는다). 기본 키(PRIMARY KEY)를 적은 열에는 DB가 색인을 자동으로 만들어 두므로 CREATE INDEX를 쓰지 않아도 된다(MySQL에서 기본 키 자체는 CREATE INDEX가 아니라 CREATE TABLE이나 ALTER TABLE로 만든다).</dd>
 <dt>풀 테이블 스캔</dt>
 <dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는 데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
@@ -90,6 +94,10 @@ SELECT * FROM member WHERE name = '회원777';</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +171,10 @@ SELECT * FROM member WHERE name = '회원777';</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

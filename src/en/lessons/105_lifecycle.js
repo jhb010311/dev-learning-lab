@@ -1,6 +1,8 @@
 Lab.register({
   id: 'lifecycle', nav: 'Bean lifecycle callbacks', cat: 'Spring', mode: 'step',
   title: 'Why is an injected field null when you use it in the constructor?',
+  why: 'If you put preparation work in the constructor, the dependencies that are injected through fields or setters are still empty and cannot be used, and there was also no separate place to clean up resources when the application ends. Bean lifecycle callbacks make the container call methods you designate right after dependency injection is finished and right before the container is closed, so you can do preparation and cleanup at the right time.',
+  use: 'You use them for tasks such as reading frequently used code tables or setting values in advance when the application starts, opening a connection to an external server and closing it at shutdown, and stopping a thread pool you created yourself. Usually you use @PostConstruct and @PreDestroy, and for a class from an external library whose source you cannot change, you use initMethod and destroyMethod of @Bean.',
   intro: 'The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed.',
   terms: ['Bean lifecycle', '@PostConstruct and @PreDestroy', 'InitializingBean and DisposableBean', 'Constructor injection, setter injection, and field injection', '@Configuration and @Bean'],
   controls: [

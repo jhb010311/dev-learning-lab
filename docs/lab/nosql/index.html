@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>NoSQL과 문서 모델</h1>
 <p><b>주문을 테이블 셋에 나눌까, 문서 하나에 담을까</b></p>
+<p><b>왜 생겼나</b> — 관계형 DB는 데이터를 테이블마다 나눠 두므로 주문 하나를 보이려면 여러 테이블을 조인해야 하고, 새 항목을 하나 넣으려 해도 먼저 테이블 구조를 바꿔야 한다. 문서 데이터베이스 같은 NoSQL은 한 번에 함께 읽는 데이터를 문서 하나로 묶어 저장하고 문서마다 모양이 달라도 받아 주어, 읽기를 단순하게 하고 구조 변경 없이 항목을 늘리게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 상품마다 속성이 다른 상품 목록, 로그와 이벤트 기록, 사용자별 설정처럼 한 덩어리로 읽고 쓰며 모양이 자주 바뀌는 데이터에 MongoDB 같은 문서 DB를 쓴다. 상품 이름처럼 여러 곳이 같은 값을 함께 쓰고 자주 바뀌는 데이터나, 여러 테이블을 한 번에 고쳐야 하는 결제·재고 데이터는 주로 관계형 DB에 둔다.</p>
 <p>같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다.</p>
 <p>일부만 실행으로 확인 · MySQL 8.4.11의 JSON 컬럼으로 문서 모델을 재현해 스무 가지 조합을 실행으로 대조. 전용 문서 DB는 실행하지 못함</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -93,6 +95,10 @@ WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +172,10 @@ WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
 <h1>Security filter chain</h1>
 <p><b>Where is it decided whether the response is 401 or 403?</b></p>
+<p><b>Why it exists</b> — If code that checks login status and permissions is put directly in each controller, missing just one place leaves that path open. Spring Security gathers this check in the filter stage in front of the controllers, so that when rules for each path are written in one place in the configuration, they are applied to all requests in the same way.</p>
+<p><b>Where it's used today</b> — It is used in web services and API servers that require login. This configuration is where you verify users with a JWT or a session, let only the ADMIN role through on admin paths, and decide the shape of the 401 and 403 responses sent when a request is denied. When checking permissions per controller method, annotations such as @PreAuthorize are used together.</p>
 <p>Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it, and a filter near the back decides &quot;whether this user may enter this path&quot;. The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.</p>
 <p>Checked against real execution · All 12 requests were sent to a server running Spring Boot 4.1.1 and Spring Security 7.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,19 @@
 <dt>Authentication and authorization</dt>
 <dd>Authentication checks who a user is. Authorization decides whether that verified user has permission to use a specific resource or feature. Authentication happens first, and authorization is decided based on its result. In HTTP status codes, a failed authentication corresponds to 401 and a failed authorization corresponds to 403.</dd>
 <dt>Spring Security and SecurityFilterChain</dt>
+<dd><b>Why it exists</b> — If you wrote security checks yourself as Servlet filters, you had to arrange by hand, in every project, the order and the URLs of the filters for login checks, permission checks, and CSRF checks. Spring Security provides such filters in a fixed order, and SecurityFilterChain lets you choose which check to use for which URL.</dd>
+<dd><b>Where it's used today</b> — You configure form login, JWT verification, social login, and restrictions on admin URLs in a SecurityFilterChain bean. For groups with different rules, such as /api/** URLs and page URLs, you use more than one chain to split them.</dd>
 <dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
 <dt>SecurityContext</dt>
+<dd><b>Why it exists</b> — To pass the user identified in a filter on to the controller and the service, you would have to pass the user information as a parameter of every method. With a SecurityContext, you can get the current user through SecurityContextHolder in any layer that handles the same request, without passing it that way.</dd>
+<dd><b>Where it's used today</b> — The @AuthenticationPrincipal parameter of a controller and the @PreAuthorize check on a method use the authentication information held here. When execution moves to another thread, as with @Async, it is not carried over by default, so you must pass it separately.</dd>
 <dd>The place where Spring Security keeps the authentication information of the user who sent the current request (who the user is and what permissions the user has). When authentication succeeds, the information is stored here. Later, controllers and services read it from here to look up the current user. By default, it is kept per thread.</dd>
 <dt>Servlet filter</dt>
+<dd><b>Where it's used today</b> — In Spring Boot, you apply one by extending OncePerRequestFilter and registering it as a bean. Use it for work unrelated to controllers, such as request logging or attaching a request number, and if you need to know which controller method is involved, an interceptor is the right choice.</dd>
 <dd>This component intercepts and processes requests and responses at the servlet container level, and it is part of the Servlet standard. It acts before a request reaches DispatcherServlet and on the way back of the response, and it is used for work that spans all requests, such as setting the encoding, handling CORS, and authentication. Spring Security also works as a group of these components.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -103,6 +112,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +189,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

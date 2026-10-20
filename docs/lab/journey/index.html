@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 큰 그림</p>
 <h1>주소 입력부터 응답까지</h1>
 <p><b>주소창에 입력하고 엔터를 누르면</b></p>
+<p><b>왜 생겼나</b> — 주소 하나를 열려면 이름을 IP 주소로 바꾸는 일, 연결을 맺는 일, 엿보지 못하게 암호화하는 일, 요청을 알맞은 서버로 보내는 일, 실제로 결과를 만드는 일이 모두 필요하다. 웹 요청은 이 일들을 DNS, TCP, TLS, 리버스 프록시, WAS가 하나씩 나눠 맡는 구조로 처리되어서, 서버를 옮기거나 인증서를 바꾸거나 서버를 늘려도 다른 단계는 고치지 않아도 되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 페이지가 느릴 때 어느 단계에서 시간이 드는지 나눠 볼 때 쓴다. 브라우저 개발자 도구의 네트워크 탭과 curl의 시간 측정이 DNS 조회, 연결, TLS, 첫 바이트까지의 시간을 따로 보여 준다. 서버를 배치할 때도 정적 파일은 nginx나 CDN에, 실행해야 결과가 나오는 요청은 WAS에 맡기는 식으로 이 단계 구분을 따른다.</p>
 <p>브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다.</p>
 <p>일부만 실행으로 확인 · curl로 순서와 연결 재사용 확인, 프록시 뒤 구간은 미확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,14 +40,20 @@
 <dt>DNS</dt>
 <dd>도메인 이름(example.com)을 컴퓨터가 통신에 사용하는 IP 주소로 바꿔 주는 시스템이다. 브라우저에 주소를 입력하면 먼저 DNS에 그 이름의 IP 주소를 물어본 뒤 해당 IP로 접속한다. 조회 결과는 일정 시간 동안 캐시된다.</dd>
 <dt>웹 서버와 WAS</dt>
+<dd><b>왜 생겼나</b> — WAS 하나가 코드 실행에 더해 정적 파일 전송과 TLS 처리까지 맡으면, WAS를 여러 대로 늘리거나 바꿀 때마다 이런 설정도 서버마다 함께 손봐야 한다. 웹 서버를 앞에 두면 공통으로 하는 일은 그쪽에서 처리하고 WAS는 코드 실행에 집중하게 나눌 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트 웹 애플리케이션은 기본으로 내장 톰캣으로 실행되므로 그 자체가 WAS다. 클라우드에서는 웹 서버 대신 로드밸런서나 CDN이 TLS 처리와 정적 파일 전송을 맡는 구성도 흔하다.</dd>
 <dd>웹 서버는 HTTP 요청을 받아 이미지나 HTML 같은 정적인 파일을 응답하거나 요청을 다른 서버로 전달하는 프로그램이다(Nginx, Apache). WAS(웹 애플리케이션 서버)는 프로그램 코드를 실행해 요청마다 결과를 만들어 응답하는 프로그램이다(Tomcat). 웹 서버를 앞에 두고 WAS로 요청을 넘기는 구성이 흔하다.</dd>
 <dt>리버스 프록시</dt>
+<dd><b>왜 생겼나</b> — 느린 클라이언트가 애플리케이션 서버에 바로 붙으면, 큰 요청 본문을 천천히 올리거나 응답을 천천히 받아 가는 동안 요청 처리 스레드가 그 연결에 묶인다. Nginx 같은 리버스 프록시는 기본 설정에서 요청과 응답을 버퍼에 받아 두고 뒤쪽 서버와는 빠르게 주고받아, 뒤쪽 서버의 스레드가 느린 연결에 오래 묶이지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 정적 파일 요청과 /api 요청을 경로로 나눠 다른 서버로 보내거나, Nginx의 client_max_body_size로 너무 큰 업로드를 앞단에서 거절할 때 쓴다. 쿠버네티스에서는 Ingress 컨트롤러가 이 역할을 맡는다.</dd>
 <dd>클라이언트의 요청을 대신 받아 내부의 서버로 전달하고 그 응답을 클라이언트에 돌려주는 서버다. 클라이언트는 실제 서버를 직접 알지 못한다. 여러 서버로의 요청 분산, TLS 처리, 캐싱, 내부 서버 보호 등의 역할을 한다.</dd>
 <dt>CDN</dt>
 <dd>전 세계 여러 지역에 배치된 서버에 콘텐츠의 복사본을 두고, 사용자와 가까운 서버가 응답하게 하는 네트워크다. 이미지, 영상, 스크립트 같은 정적 파일의 전송이 빨라지고 원본 서버로 가는 요청이 줄어든다.</dd>
 <dt>HTTPS와 TLS</dt>
 <dd>HTTPS는 HTTP 통신을 TLS로 암호화한 것이다. TLS는 통신 내용을 제3자가 볼 수 없게 하고(기밀성), 중간에서 바꿀 수 없게 하며(무결성), 접속한 서버가 진짜인지 인증서로 확인한다(인증). SSL은 TLS의 전신인 프로토콜로, 지금은 폐기되어 실제로는 TLS만 쓰이지만 관습적으로 SSL이라는 이름이 함께 불린다.</dd>
 <dt>3-way handshake</dt>
+<dd><b>왜 생겼나</b> — 연결 확인 없이 바로 데이터를 보내면 상대가 받을 준비가 됐는지, 조각마다 붙일 번호를 어디서부터 셀지 모른 채 보내게 된다. 3-way handshake는 세 번의 주고받기로 양쪽이 서로의 시작 번호를 확인해, 이후 빠진 조각과 순서를 셀 기준을 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 직접 부르지는 않지만, 연결 타임아웃은 이 과정이 끝나기를 기다리는 한도다. 방화벽이 SYN을 조용히 버리면 답이 없어 이 타임아웃까지 기다리고, 상대 포트에서 기다리는 프로그램이 없으면 곧바로 Connection refused가 난다.</dd>
 <dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -103,6 +111,10 @@ server {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +188,10 @@ server {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

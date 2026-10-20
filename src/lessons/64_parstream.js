@@ -1,6 +1,8 @@
 Lab.register({
   id: 'parstream', nav: '병렬 스트림과 공용 풀', cat: '동시성', mode: 'step',
   title: '남의 병렬 스트림 때문에 내 코드가 느려진다',
+  why: '큰 컬렉션을 여러 코어로 나눠 계산하려면 스레드 풀을 만들고, 데이터를 쪼개 넘기고, 결과를 모으는 코드를 직접 써야 했다. 병렬 스트림은 stream()을 parallelStream()으로 바꾸는 것만으로 나누기와 합치기를 ForkJoinPool에 맡기고, 코드마다 스레드를 새로 만들지 않도록 JVM의 공용 풀 하나를 함께 쓰게 한다.',
+  use: '원소가 아주 많은 숫자 집계나 데이터 변환처럼 기다림 없이 CPU만 쓰는 계산을 배치 작업에서 빠르게 끝낼 때 쓴다. DB 조회나 외부 API 호출처럼 기다리는 작업을 동시에 돌리려면 공용 풀 대신 크기를 따로 정한 ExecutorService나 가상 스레드를 쓴다. 웹 요청을 처리하는 코드에서는 쓸 일이 드물다.',
   intro: 'parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다.',
   terms: ['ForkJoinPool과 공용 풀', 'Stream API', '스레드 풀', '블로킹과 논블로킹'], ranks: ['stream', 'threadpool', 'concurrency'],
   controls: [

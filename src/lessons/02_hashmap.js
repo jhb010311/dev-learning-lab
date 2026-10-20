@@ -1,6 +1,8 @@
 Lab.register({
   id: 'hashmap', nav: 'HashMap 내부', cat: '자료구조', mode: 'step',
   title: 'HashMap은 키를 어디에 넣고 어떻게 찾나',
+  why: '데이터를 리스트에 쌓아 두고 찾으면 찾을 때마다 처음부터 하나씩 비교해야 해서, 개수가 많아질수록 느려진다. HashMap은 키에서 계산한 해시값으로 저장할 칸을 바로 정해서, 개수가 늘어도 대개 몇 번의 비교로 값을 찾게 해 준다.',
+  use: '"이 키에 해당하는 값"을 자주 꺼내야 하는 곳에 가장 흔히 쓴다. 회원 번호로 회원 정보 찾기, 단어별 개수 세기, 요청을 처리하는 동안 잠깐 모아 두는 표 같은 것이다. 넣은 순서가 필요하면 LinkedHashMap, 정렬이 필요하면 TreeMap을 대신 쓴다.',
   intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode로 정한 버킷 번호가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
   terms: ['해시 테이블과 HashMap', '해시 충돌', '로드 팩터와 리사이즈', '레드-블랙 트리', 'equals와 hashCode 규약'], ranks: ['collection', 'equals', 'ds'],
   controls: [

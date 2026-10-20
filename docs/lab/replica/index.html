@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>복제 지연과 CAP</h1>
 <p><b>방금 저장했는데 조회하니 옛날 값이 나온다</b></p>
+<p><b>왜 생겼나</b> — DB 서버 한 대가 모든 조회와 저장을 받으면, 조회가 많은 서비스에서는 그 한 대의 처리 능력이 곧 서비스 전체의 한계가 되고, 그 서버가 멈추면 데이터를 읽을 곳도 사라진다. 레플리케이션은 원본에서 일어난 변경을 다른 DB 서버에 차례로 다시 적용해서, 같은 데이터를 가진 서버를 여러 대 둘 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 상품 목록이나 게시글처럼 읽기가 쓰기보다 훨씬 많은 서비스에서 조회를 복제본 여러 대로 나눌 때 쓰고, 원본이 고장 났을 때 넘겨받을 예비 서버로도 둔다. 스프링에서는 readOnly 트랜잭션을 복제본으로 보내도록 데이터소스를 나눠 구성하기도 한다. 저장 직후의 확인 화면이나 잔액처럼 바로 최신이어야 하는 조회는 원본에서 읽는다.</p>
 <p>쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다. 이 시간 차이를 복제 지연이라고 합니다. 네트워크가 끊겼을 때 응답을 계속할지(가용성), 최신인지 알 수 없는 값은 응답하지 않을지(일관성) 가운데 하나를 골라야 한다는 것이 CAP 정리이며, 두 경우를 모두 봅니다.</p>
 <p>개념 모형 · 원리를 보이는 모형</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,6 +44,8 @@
 <dt>CAP 정리</dt>
 <dd>분산 데이터 저장소는 일관성(모든 노드가 같은 데이터를 보여 줌), 가용성(요청에 항상 응답함), 분할 내성(노드 간 통신이 끊겨도 동작함)의 세 가지를 동시에 모두 보장할 수 없다는 정리다. 네트워크 단절은 피할 수 없으므로, 단절이 일어났을 때 일관성과 가용성 중 어느 쪽을 우선할지를 선택하게 된다.</dd>
 <dt>readOnly 트랜잭션</dt>
+<dd><b>왜 생겼나</b> — 조회만 하는 메서드라도 일반 트랜잭션으로 열면, Hibernate는 변경을 찾아내려고 읽은 엔티티마다 처음 모습(스냅숏)을 따로 보관한다. readOnly를 켜면 스프링이 Hibernate 세션을 읽기 전용으로 바꿔 이 보관을 건너뛰게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 서비스 클래스에 @Transactional(readOnly = true)를 붙여 기본을 읽기 전용으로 두고, 저장하는 메서드에만 @Transactional을 다시 붙이는 방식을 흔히 쓴다.</dd>
 <dd>@Transactional(readOnly = true)는 그 트랜잭션이 데이터를 변경하지 않음을 알리는 설정이다. JPA(Hibernate)에서는 변경 내용을 DB에 반영하는 flush를 생략하는 등의 최적화가 적용되고, 읽기용 DB와 쓰기용 DB를 나눠 쓰도록 따로 구성한 경우 읽기용으로 보내는 기준으로도 쓰인다. 조회 메서드에 붙여 의도를 명확히 한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -89,6 +93,10 @@ public Member getMember(long id) {                      // -&gt; 복제본
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +170,10 @@ public Member getMember(long id) {                      // -&gt; 복제본
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

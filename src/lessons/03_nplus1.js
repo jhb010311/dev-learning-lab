@@ -1,6 +1,8 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: '주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나',
+  why: '연관 엔티티를 실제로 쓸 때 가져오는 지연 로딩은 필요 없는 조회를 줄여 주지만, 목록을 돌며 연관 엔티티를 하나씩 건드리면 아직 읽지 않은 연관 엔티티마다 쿼리가 따로 나간다. fetch join은 목록을 읽는 쿼리에 연관 테이블을 조인해 처음부터 같이 읽어 오고, 배치 페치는 아직 읽지 않은 연관 엔티티의 id를 정한 개수만큼 모아 쿼리 한 번으로 가져와서, 쿼리 수가 목록의 건수만큼 늘지 않게 한다.',
+  use: '목록 API처럼 여러 건을 읽고 각 건의 연관 엔티티까지 쓰는 조회에 쓴다. @ManyToOne처럼 한 건에 하나씩 붙는 연관은 fetch join이나 @EntityGraph로 가져오고, @OneToMany 컬렉션을 페이지 단위로 읽을 때는 페이지 나누기가 메모리에서 처리될 수 있는 fetch join 대신 배치 크기 설정(@BatchSize, hibernate.default_batch_fetch_size)을 흔히 쓴다.',
   intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 목록을 가져오는 쿼리 1번에 더해, 연관된 데이터를 가져오는 쿼리가 N번 더 나가는 것을 N+1 문제라고 합니다.',
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [

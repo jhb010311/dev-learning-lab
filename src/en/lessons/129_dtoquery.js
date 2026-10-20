@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dtoquery', nav: 'Querying directly into a DTO', cat: 'JPA', mode: 'step',
   title: 'What is the difference between querying entities and copying them, and querying directly into a DTO?',
+  why: 'If you read values that are only for display as entities, the persistence context keeps each entity together with its original state for dirty checking, and even to take out one team name that is set to lazy loading, a separate query is sent. A JPQL constructor expression picks the values, even from joined tables, with one SELECT and creates DTO objects, and those DTOs are not managed, so they do not have this load.',
+  use: 'You use it for queries that only read and never modify, such as list screens and statistics, and for queries that collect a few columns each from several tables and send them out as an API response. In Spring Data JPA, you write the same new syntax in @Query, or use a projection that receives the data with an interface that has only the getters you need. If you must modify the values after querying and save them, query as entities.',
   intro: 'To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO.',
   terms: ['DTO', 'JPQL constructor expression', 'Persistence context', 'Dirty checking', 'N+1 selects problem'],
   controls: [

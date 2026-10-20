@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 주소와 이름</p>
 <h1>스위치와 라우터</h1>
 <p><b>받는 IP는 서버인데 왜 라우터의 MAC 주소로 보내나</b></p>
+<p><b>왜 생겼나</b> — 모든 기기가 세상의 모든 기기와 직접 연결될 수는 없고, 받은 데이터를 모든 기기에 뿌리면 네트워크가 쓸데없는 데이터로 넘친다. 스위치는 같은 네트워크 안에서 MAC 주소를 보고 받을 기기가 연결된 포트로만 프레임을 넘기고, 라우터는 네트워크 사이에서 목적지 IP 주소를 보고 다음에 건넬 곳을 골라, 기기는 기본 게이트웨이 하나만 알면 어디로든 보낼 수 있다.</p>
+<p><b>지금 어디에 쓰나</b> — 집이나 사무실의 공유기는 스위치와 라우터 역할을 함께 하고, PC에 설정된 기본 게이트웨이가 바로 공유기의 주소다. 서버에 접속이 안 될 때 traceroute(윈도에서는 tracert)로 어느 라우터까지 갔는지 보는데, 이 명령은 TTL을 1부터 하나씩 늘려 보내며 TTL이 다 된 라우터가 돌려주는 응답을 모은다.</p>
 <p>같은 네트워크 안의 기기에게는 그 기기의 MAC 주소로 직접 보내고, 스위치가 그 주소를 보고 전달합니다. 다른 네트워크의 기기에게는 직접 닿을 수 없으므로 게이트웨이(라우터)에게 맡깁니다. 라우터를 하나 지날 때마다 프레임의 MAC 주소는 새로 쓰이지만 IP 주소는 그대로이고, TTL은 1씩 줄어듭니다.</p>
 <p>개념 모형 · RFC 826, 791, 1122, 1812의 규칙을 옮긴 개념 모형. 실제 장비로는 대조하지 못했고, 같은 규칙을 다른 방법으로 계산한 값과 열여덟 가지 조합에서 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>MAC 주소와 ARP</dt>
+<dd><b>왜 생겼나</b> — 프로그램은 상대를 IP 주소로 알지만, 랜과 와이파이는 프레임을 MAC 주소로 건넨다. ARP는 둘 사이를 이어, IP 주소와 MAC 주소의 짝을 손으로 표에 적어 두지 않아도 필요할 때 물어 알아내게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 같은 네트워크의 기기나 기본 게이트웨이로 보낼 때 MAC 주소를 모르면 ARP 요청이 나가며, arp -a 명령으로 알아 둔 짝을 볼 수 있다. IPv6에서는 ARP 대신 이웃 탐색(NDP)이 같은 일을 한다.</dd>
 <dd>MAC 주소는 랜카드 같은 네트워크 장치마다 붙어 있는 48비트 주소로, 같은 네트워크 안에서 프레임을 누구에게 건넬지 가리키는 데 쓰인다. IP 주소가 최종 목적지를 가리킨다면 MAC 주소는 바로 다음에 건네받을 기기를 가리킨다. ARP는 IP 주소를 가지고 그 주인의 MAC 주소를 알아내는 규약이다. &quot;이 IP 주소의 주인은 MAC 주소를 알려 달라&quot;는 요청을 같은 네트워크의 모든 기기에게 보내면 주인만 응답하고, 알아낸 결과는 ARP 캐시에 한동안 보관된다. ARP 요청은 라우터를 넘어가지 못하므로 다른 네트워크에 있는 기기의 MAC 주소는 알아낼 수 없다.</dd>
 <dt>스위치와 라우터</dt>
+<dd><b>지금 어디에 쓰나</b> — 사무실에서는 자리마다 랜선을 스위치에 꽂아 한 네트워크로 묶고, 인터넷으로 나가는 길목에 라우터를 둔다. 클라우드에서는 장비 대신 서브넷과 라우팅 표를 설정해 같은 구분을 만든다.</dd>
 <dd>스위치는 같은 네트워크 안의 기기들을 이어 주는 장비로, 프레임의 받는 MAC 주소를 보고, 그 기기가 어느 포트에 연결됐는지 아는 경우 그 포트로만 내보낸다. IP 주소는 보지 않으며 프레임의 내용을 고치지 않는다. 라우터는 서로 다른 네트워크를 이어 주는 장비로, 패킷의 받는 IP 주소와 라우팅 표를 보고 다음에 넘길 곳을 정한다. 라우터를 지날 때 프레임은 새로 만들어져 MAC 주소가 바뀌지만 IP 주소는 보통 그대로이고(가정용 공유기처럼 주소를 바꿔 주는 NAT는 예외) TTL이 1 줄어든다. 가정용 공유기는 라우터와 스위치, 무선 접속 장치를 한 기계에 합친 것이다.</dd>
 <dt>기본 게이트웨이</dt>
+<dd><b>지금 어디에 쓰나</b> — 공유기에 연결한 컴퓨터는 보통 DHCP로 IP 주소와 함께 공유기 주소를 기본 게이트웨이로 받으므로 손으로 적을 일이 드물다. 서버에 고정 IP를 줄 때는 직접 적고, ipconfig나 ip route로 확인한다.</dd>
 <dd>컴퓨터가 자기 네트워크 밖으로 패킷을 보낼 때 맡기는 라우터의 주소다. 컴퓨터는 받는 IP 주소와 자기 IP 주소를 서브넷 마스크로 견주어, 같은 네트워크면 상대에게 직접 보내고 아니면 기본 게이트웨이에게 보낸다. 이때 패킷의 받는 IP 주소는 원래 목적지 그대로 두고, 프레임의 받는 MAC 주소만 게이트웨이의 것으로 적는다. 기본 게이트웨이가 잘못 설정되면 같은 네트워크 안의 기기와는 통신이 되는데 인터넷으로는 나가지 못한다.</dd>
 <dt>IP 패킷의 TTL</dt>
+<dd><b>지금 어디에 쓰나</b> — ping 결과에 찍히는 TTL 값으로 상대까지 지난 라우터 수를 대강 짐작하고, traceroute(윈도우는 tracert)로 패킷이 어느 라우터에서 멈추는지 찾을 때 쓰인다.</dd>
 <dd>IP 패킷이 지날 수 있는 라우터 수의 한도를 적은 헤더의 숫자다. 보내는 쪽이 처음 값을 정하고, 라우터는 패킷을 전달할 때마다 이 값을 1 줄인다. 0이 되면 라우터는 패킷을 버리고 보낸 쪽에 &quot;시간 초과&quot;를 알리는 ICMP 메시지를 돌려보낸다. 경로 설정이 잘못되어 패킷이 라우터 사이를 끝없이 맴도는 일을 막기 위한 장치다. traceroute는 TTL을 1부터 하나씩 늘려 보내면서 응답한 라우터를 차례로 확인하는 도구다. 캐시나 DNS에서 말하는 TTL(보관 시간)과는 이름만 같은 다른 개념이다.</dd>
 <dt>OSI 7계층</dt>
 <dd>네트워크 통신 과정을 역할에 따라 일곱 단계로 나눈 모델이다. 아래부터 물리, 데이터 링크, 네트워크(IP), 전송(TCP/UDP), 세션, 표현, 응용(HTTP) 계층이다. 각 계층은 바로 아래 계층의 기능을 이용해 자신의 역할을 수행한다. 장비나 문제의 위치를 &quot;몇 계층&quot;이라고 부르는 기준이 된다.</dd>
@@ -104,6 +111,10 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +188,10 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

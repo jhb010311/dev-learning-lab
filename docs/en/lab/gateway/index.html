@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
 <h1>Gateway and gradual migration</h1>
 <p><b>Breaking up a huge server piece by piece without stopping it</b></p>
+<p><b>Why it exists</b> — If an old, huge server is replaced with a newly built system all at once, you have to wait a long time until the new system is completely built, and a problem that appears on the day of the switch spreads to every feature at the same time. If an API gateway in front decides where each route's requests go, you can move features to new services one at a time, and send only the route that has a problem back to the existing server.</p>
+<p><b>Where it's used today</b> — It serves as the entrance to a system split into several services: the web and mobile apps call several services through one address, and requests without a login token are stopped before they reach the internal services. In a migration that moves an existing server to new services bit by bit, it is used to change where each route is sent. In Spring, Spring Cloud Gateway is used, and a reverse proxy such as Nginx is sometimes used to split only the paths.</p>
 <p>You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change.</p>
 <p>Checked against documentation and standards · The path and weight predicates of Spring Cloud Gateway</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>API gateway</dt>
 <dd>The single entry point that receives all client requests first and forwards them to the right internal service. It handles common functions such as authentication, rate limiting, and logging in one place. Clients do not need to know the layout and addresses of the internal services.</dd>
 <dt>Strangler fig pattern</dt>
+<dd><b>Where it's used today</b> — It is used when splitting an old monolithic service into several services, or when replacing a screen built with an old framework with a new technology. New features are built in the new system from the start, and existing features are moved starting with those that are used less or are easy to detach.</dd>
 <dd>A way to replace an existing system gradually by moving features to a new system one at a time, instead of replacing it all at once. At the front, where requests arrive, only the requests for features that have been moved go to the new system, and the existing system keeps handling the rest. When all features have been moved, the existing system is removed.</dd>
 <dt>Monolithic architecture and microservice architecture</dt>
+<dd><b>Why it exists</b> — An application that has grown to hold many features has to be rebuilt and redeployed as a whole even for a small change, and several teams that share the same code and deployment schedule end up waiting for each other. Microservice architecture is a way to split the system into services so that each team changes and releases its own service separately.</dd>
+<dd><b>Where it's used today</b> — Organizations in which several teams share the work on a large service use microservice architecture. Small teams and new services often start as a monolith and split off services when the boundaries to split on become clear and the need arises.</dd>
 <dd>A monolithic architecture builds all features as one application and deploys them together. A microservice architecture splits the features into small services, and each one is developed, deployed, and scaled independently. With microservices, each service can be deployed and scaled separately and failures are isolated, but the complexity of communication between services, data consistency, and operations grows a lot.</dd>
 <dt>Reverse proxy</dt>
+<dd><b>Why it exists</b> — If slow clients connect straight to an application server, the request processing threads stay tied up with those connections while the clients slowly upload a large request body or slowly take a response. A reverse proxy such as Nginx, in its default configuration, buffers requests and responses and exchanges data quickly with the backend server, so the backend server's threads are not tied up for long by slow connections.</dd>
+<dd><b>Where it's used today</b> — It is used to split static file requests and /api requests by path and send them to different servers, or to reject too-large uploads at the front with Nginx's client_max_body_size. In Kubernetes, an Ingress controller takes this role.</dd>
 <dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
 <dt>Rolling, blue-green, and canary deployments</dt>
 <dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
@@ -99,6 +106,10 @@ spring.cloud.gateway.server.webflux:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ spring.cloud.gateway.server.webflux:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

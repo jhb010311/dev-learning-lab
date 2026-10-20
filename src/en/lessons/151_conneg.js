@@ -1,6 +1,8 @@
 Lab.register({
   id: 'conneg', nav: 'Content negotiation and compression', cat: 'HTTP', mode: 'step',
   title: 'Why do different people get different responses from the same address?',
+  why: 'To send the same content separately by format, language, or compression method, you have to split the address into that many addresses, and the client has to know in advance which address suits it. With content negotiation, even requests that come to the same address get different responses depending on the conditions written in the request headers, so the server can send a response that suits the receiver without adding addresses.',
+  use: 'It is commonly used when a web server looks at Accept-Encoding and sends HTML, CSS, and JS files compressed with gzip or br. Spring MVC looks at the Accept header and sends the return value in a format it can convert to, either JSON or XML, and if you provide message files for each language, it uses the one that matches Accept-Language by default. When you let users choose the language themselves, it is also sometimes decided by the address (/en/) or by a cookie.',
   intro: 'Even for the same address, a server can give several representations of a response that differ in format, language, and compression method. When a client says what it wants with the Accept, Accept-Language, and Accept-Encoding headers, the server chooses among them. This is called content negotiation.',
   terms: ['Content negotiation (Accept and Content-Type)', 'Quality value (qvalue)', 'Compression in HTTP and Content-Encoding', 'Vary header', 'Cache'],
   controls: [

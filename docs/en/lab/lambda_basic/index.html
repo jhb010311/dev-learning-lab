@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Lambdas</h1>
 <p><b>What is a lambda a shorter way to write?</b></p>
+<p><b>Why it exists</b> — To hand one task to other code, in the days before lambdas you had to write an anonymous class that implements an interface over several lines, including new and the method declaration, and the one line that really mattered was buried in between. A lambda uses the fact that, for an interface with only one method, the compiler can tell which method's task it is, so you write only the parameters and the task with an arrow.</p>
+<p><b>Where it's used today</b> — It is used when you hand a task to other code, as in list.sort((a, b) -&gt; a.compareTo(b)), which passes the rule for sorting a list, list.removeIf(n -&gt; n &lt; 0), which removes the items that match a condition, and new Thread(() -&gt; ...), which passes the work to leave to a new thread. If the task grows long over several lines, you write it separately as a named method, and sometimes pass that method with a method reference (::).</p>
 <p>A lambda is short code written with an arrow (-&gt;). () -&gt; System.out.println(&quot;Working&quot;) is a short way to write &quot;an object that implements an interface with only one method.&quot; Here we use a Task interface that has just one method, run, and the code after the arrow is what run does. Written out in full, the same thing is code that creates a class that implements Task and creates an object with new. In this lab you write the lambda out as an anonymous class and as a class with a name and see that the result is the same, and you compile and run the same code to see whether the code after the arrow runs on the line where the lambda is written, what happens if you remove t.run() or call it twice, and what happens if Task has one more method.</p>
 <p>Checked against real execution · Eighteen combinations were compiled with javax.tools on JDK 21, run, and checked</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
 <dt>Functional interface</dt>
+<dd><b>Why it exists</b> — Java has no separate type that represents just a function, so a type was needed for the variables and parameters that receive a lambda. A functional interface uses an interface with only one abstract method as that type, so existing interfaces such as Runnable and Comparator can receive a lambda as they are.</dd>
+<dd><b>Where it's used today</b> — It is used when you write a method that receives behavior as a parameter, as the stream's filter receives a Predicate and map receives a Function. When you define one yourself, you add @FunctionalInterface so that the compiler checks that there is only one abstract method.</dd>
 <dd>This is an interface with only one abstract method (a redeclared method of Object such as equals is not counted, and any number of default and static methods is allowed), and it is a type to which a lambda expression or a method reference can be assigned. The java.util.function package predefines types such as Function (takes an input and returns a result), Supplier (supplies a value), Consumer (consumes a value), and Predicate (tests a condition).</dd>
 <dt>Anonymous class</dt>
+<dd><b>Where it's used today</b> — Use it when you implement an interface or abstract class with two or more methods right on the spot where it is used only once, or when you need an implementation that has fields. For an interface with only one abstract method, a lambda is usually used now.</dd>
 <dd>This is a class that is given no name and from which one object is created right where the class is declared. You write its body in braces after the name of an interface or a class, as in new Runnable() { ... }, and the result is an object that implements that interface or extends that class. Its advantage is that you do not have to create a separate file for a small implementation that is used only once. Inside an anonymous class, this refers to that newly created object, which is different from a lambda expression, where this refers to the outer object. When the code is compiled, a separate class file is produced whose name is the name of the outer class followed by a number, such as Outer$1.</dd>
 <dt>Interface</dt>
 <dd>This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance variables, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing.</dd>
@@ -93,6 +98,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +175,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jwt', nav: 'JWT structure and verification', cat: 'Authentication', mode: 'step',
   title: 'How does the server trust a token that anyone can read?',
+  why: 'The server session approach keeps the login state in server storage and looks it up with the session ID on every request, so if there are several servers, or several services have to check the same login, they all have to share that storage. A JWT writes the user information and a signature into the token itself, so any server that has only the key for checking the signature can verify on its own that the token is exactly as it was issued.',
+  use: 'The ID token in OpenID Connect is a JWT, and a JWT is also commonly used for the access tokens that an OAuth 2.0 authorization server issues. The side that calls the API sends the token in the Authorization: Bearer header, and the OAuth2 resource server feature of Spring Security checks the signature and the expiration time. If you need a logout or an account suspension to take effect right away, you use server sessions or keep the lifetime of the token short.',
   intro: 'A JWT is a string made of three parts joined by dots (.): a header, a payload, and a signature. The first two parts are not encrypted. They are only written in a different notation, so anyone can read and change them. The server can still trust the token because it recalculates the third part, the signature, by itself.',
   terms: ['JSON Web Token (JWT)', 'Base64url encoding', 'Claim', 'HMAC and digital signatures', 'Algorithm verification'],
   controls: [

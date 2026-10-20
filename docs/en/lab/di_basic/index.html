@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Dependency injection</h1>
 <p><b>What does dependency injection do for you?</b></p>
+<p><b>Why it exists</b> — If each class creates the objects it needs directly with new, an object that several classes could share is created separately wherever it is made, and if the way of creating that object changes, you have to find and fix every place that has a creating line. Dependency injection has a class write only a place to receive what it needs (usually a constructor parameter) and leaves creating and putting it in to the outside, so the class only uses the object it received.</p>
+<p><b>Where it's used today</b> — On a Spring server, this is how a controller is connected to a service and a service to a repository. Spring recommends receiving through the constructor, and if there is only one constructor, Spring puts the objects in through it even if you do not write @Autowired, the mark that says &quot;put them in here&quot;. In tests, you sometimes pass a fake object straight to the constructor, without Spring, and test a single class on its own.</p>
 <p>Dependency injection means that a class does not create the objects it needs to do its work, but receives them from outside. Here OrderService, a class made up for this example, needs an object of PayService, another class made up for this example, to make a payment, and this is called &quot;OrderService depends on PayService&quot;. In Spring, all you do is write PayService as a parameter of the OrderService constructor, and the @Component above a class is a mark that tells Spring to create an object (a bean) of that class and keep it. When Spring creates the OrderService object, it puts the PayService bean it was keeping into that constructor. In this lab you change the constructor to new PayService() or remove it, remove @Component above PayService, and run the same main, to see where the PayService that OrderService uses came from and how many PayService objects are created.</p>
 <p>Checked against real execution · Compiled 6 combinations with real component scanning on Spring Framework 7.0.9 and ran them, measured even the objects in the fields by reflection, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Dependency injection (DI)</dt>
 <dd>This is an approach in which an object does not create the other objects it uses (its dependencies) but receives them from outside. In Spring, the container supplies the dependencies through a constructor, a setter, or a field as it creates a bean. It becomes easier to change the implementing class or to put in a fake object in a test, and the coupling between classes becomes lower.</dd>
 <dt>Constructor injection, setter injection, and field injection</dt>
+<dd><b>Where it's used today</b> — For Spring code you write from scratch, constructor injection is the default, and if there is only one constructor, Spring injects through it even without @Autowired. Lombok's @RequiredArgsConstructor is often used to have the constructor generated.</dd>
 <dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
 <dt>Dependency</dt>
 <dd>A dependency is an object of another class that a class needs to do its work. For example, if OrderService calls a method of a PayService object to make a payment, we say that OrderService depends on PayService, and the PayService object is a dependency of OrderService. The Spring documentation describes a dependency as the other objects that an object works with. You can create the object you need yourself with new, or receive it as a constructor parameter, and when Spring creates it and puts it in for you, this is called dependency injection.</dd>
 <dt>@Component</dt>
+<dd><b>Why it exists</b> — If you write the classes to hand over to Spring one by one in a configuration file, the configuration file has to be changed together every time you create a new class. @Component lets you attach that marker directly above the class, so that once you create the class, Spring finds it.</dd>
+<dd><b>Where it's used today</b> — You attach it to turn into a bean a helper class that you wrote and that is not a controller, service, or repository. It cannot be attached to classes you cannot modify, such as a library's classes, so you register those with a method annotated with @Bean instead.</dd>
 <dd>@Component is an annotation that you put above a class so that Spring knows the class and treats it as something it creates objects of and manages (a bean). With component scanning, Spring scans the classes under a specified package, finds the classes with @Component, and creates objects of those classes and keeps them in the container. If you do not give the bean a name, the class name with its first letter in lowercase is used (greeter for Greeter). @Repository, @Service, and @Controller are specializations of @Component, so they are found in the same way. A class without this annotation is not found even if it is in the same package, so if you ask Spring for an object of that class, an exception saying that there is no such bean is thrown.</dd>
 </dl>
 <h2>Try these</h2>
@@ -126,6 +131,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -199,9 +208,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Offset and keyset pagination</h1>
 <p><b>Why later pages get slower</b></p>
+<p><b>Why it exists</b> — The OFFSET method, which divides by page number, makes the DB read even the rows it skips, so it gets slower toward the later pages of a list with a lot of data, and on screens where the user keeps scrolling down. Keyset (cursor-based) pagination passes the sort key of the last article received as the condition of the next request instead of a page number, and if the sort key has an index, it reduces the number of rows read to the page size, whichever page it is.</p>
+<p><b>Where it's used today</b> — It is used on screens that load continuously as you scroll down, such as feeds, comments, and notifications, and in batch processing that reads a large table in pieces from start to end. Even if new articles come in between pages, the same article does not appear twice. On screens where you must jump to an arbitrary position, such as a bulletin board where you go directly to a desired page number, the OFFSET method is used.</p>
 <p>A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to &quot;right after the last post you saw&quot;.</p>
 <p>Partly checked against real execution · The content of the results was checked with SQLite, and the number of rows read follows the documentation</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>Index</dt>
 <dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
 <dt>B-tree index</dt>
+<dd><b>Why it exists</b> — A binary tree on disk has one key per node, so its height grows when there are many rows, and it is slow because every node read is a disk read. A B-tree puts many keys in one disk page, so it finds a value with a few page reads.</dd>
+<dd><b>Where it's used today</b> — In MySQL InnoDB and PostgreSQL, a B-tree index is created when you do not specify the kind with CREATE INDEX. For lookups that only look for the same value, you can also choose a hash index in PostgreSQL.</dd>
 <dd>The index structure that most relational databases use by default. It is a balanced tree that keeps values sorted, and each node holds many keys, so the height of the tree is low. You can find a value by going down only a few levels from the root. Because the values are sorted, it is used not only for equality lookups but also for range lookups and sorting.</dd>
 </dl>
 <h2>Try these</h2>
@@ -80,6 +84,10 @@ SELECT id, title, created_at
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +161,10 @@ SELECT id, title, created_at
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'groupby_basic', nav: 'GROUP BY and aggregation', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['join', 'windowfn', 'selectorder'],
   title: 'What does GROUP BY group, and what do COUNT and SUM count?',
+  why: 'To find the number of orders and the total for each member, fetching all rows into Java and adding them up for each member with a loop means that the more rows there are, the more data is moved, and the code also gets longer. GROUP BY and aggregate functions finish this calculation in the DB and return only one line per group.',
+  use: 'It is used to produce numbers for statistics or admin screens, such as the daily sales total, the number of units sold per product, and the number of posts per board. To put a condition on the grouped result, such as choosing only members with 3 or more orders, HAVING is used rather than WHERE.',
   intro: 'COUNT(*) and SUM(price) are aggregate functions that reduce many rows to one value. COUNT(*) returns how many rows there are, and SUM(price) returns the total when you add up all the prices. GROUP BY member is added after a SELECT statement, and it puts the rows that have the same member value into one group and makes the aggregation run once for each group. One group becomes one line of the result. In this lab you run the same aggregation on an orders table that holds 5 orders, and you remove GROUP BY member, add the ungrouped column id to SELECT, and add a WHERE condition, and you see how many lines the result has and what shape it takes.',
   terms: ['GROUP BY clause', 'Aggregate function', 'COUNT and SUM', 'Nonaggregated columns and ONLY_FULL_GROUP_BY'],
   controls: [

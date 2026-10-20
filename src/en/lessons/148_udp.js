@@ -1,6 +1,8 @@
 Lab.register({
   id: 'udp', nav: 'TCP and UDP', cat: 'Networking', mode: 'step',
   title: 'If you send data in three pieces, does it arrive in three pieces?',
+  why: 'TCP takes time to establish a connection, resend missing pieces, and put things in order, and when one piece is late, even the data that arrived after it waits for that piece. UDP does none of this and sends the chunk as it is, in one go, so that it handles with little delay communication where current data matters more even if a little is lost, and short communication that ends with one answer to one question.',
+  use: 'Use UDP where it is better to discard late data than to wait for it, such as the position data of an online game or a video call. HTTP/3 also uses QUIC over UDP, and QUIC, instead of the operating system\'s TCP, takes on resending and ordering, so that one lost piece does not hold up other requests as well. A program that exchanges messages over TCP marks the boundaries of messages itself, by writing the message length at the front or inserting a delimiter character.',
   intro: 'TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives.',
   terms: ['TCP and UDP', 'Byte stream and datagram', 'Socket', 'Port', 'Three-way handshake'],
   controls: [

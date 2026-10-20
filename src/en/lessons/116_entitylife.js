@@ -1,6 +1,8 @@
 Lab.register({
   id: 'entitylife', nav: 'The lifecycle of an entity', cat: 'JPA', mode: 'step',
   title: 'Why is the same setName sometimes not applied to the DB?',
+  why: 'With JDBC, after changing an object\'s value you had to write and send an UPDATE statement yourself, and the developer also had to remember what was changed. The JPA persistence context holds the entities that you loaded or persisted and compares them with their original state, and at commit it finds the changed entities and sends UPDATE. So you have to think in terms of states about which objects are managed this way right now.',
+  use: 'Update code that loads an entity in a service method, only changes a value with a setter, and does not call a save method works because of this management. On the other hand, a change made after the transaction ends, or a change to an object created with new from request values, is not applied, so you write updates so that they load the entity in a service method with a transaction and change it there.',
   intro: 'An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state. Member in this lab is an entity class made for this example.',
   terms: ['The four entity states', 'Detached entity', 'Persistence context', 'Dirty checking', 'Transactional write-behind and flush'],
   controls: [

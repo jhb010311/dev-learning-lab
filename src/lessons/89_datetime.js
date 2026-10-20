@@ -1,6 +1,8 @@
 Lab.register({
   id: 'datetime', nav: '날짜와 시간', cat: '자바 언어', mode: 'step',
   title: '1월 31일에 한 달을 더하면 며칠이 되나',
+  why: 'java.time 이전의 Date와 Calendar는 객체 내용을 바꿀 수 있어서 넘겨준 날짜가 다른 코드에서 바뀌기도 했고, 월을 0부터 세어 1월이 0이었다. java.time은 날짜만, 날짜와 시각, 시간대가 붙은 시각을 서로 다른 불변 클래스로 나누고 월도 1부터 세게 해서, 이런 실수가 생길 틈을 줄였다.',
+  use: '생일이나 마감일처럼 날짜만 필요하면 LocalDate, 주문 시각처럼 실제로 일어난 순간은 Instant나 ZonedDateTime으로 다룬다. 스프링 부트에서는 JPA와 Jackson이 이 타입들을 DB 열과 JSON으로 바로 바꿔 준다. 여러 나라 사용자가 쓰는 서비스는 시각을 UTC 기준으로 저장하고, 화면에 보여 줄 때만 사용자의 시간대로 바꾼다.',
   intro: 'java.time의 날짜와 시간 객체(LocalDate, ZonedDateTime 등)는 String처럼 내용이 바뀌지 않습니다. plusMonths 같은 메서드는 새 객체를 돌려주고, 달마다 날수가 달라서 "한 달 뒤"의 계산이 생각과 다를 때가 있습니다. 같은 순간이라도 시간대에 따라 다른 날짜와 시각으로 적히며, 두 시점 사이의 간격은 날짜 단위(Period)와 시간 단위(Duration)로 따로 잽니다.',
   terms: ['java.time(날짜와 시간 API)', '시간대와 UTC', 'Period와 Duration', '불변 객체'],
   controls: [

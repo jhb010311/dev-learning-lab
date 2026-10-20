@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>JDBC</h1>
 <p><b>How does Java code send SQL to the database?</b></p>
+<p><b>Why it exists</b> — If each DB had a different way of exchanging data with a Java program, moving to another DB would mean rewriting all of the code that connects and sends SQL. JDBC lets connecting, sending SQL, and reading results be done with the same methods defined by Java, and leaves the parts that differ between DBs to a driver (a jar file) made for that DB.</p>
+<p><b>Where it's used today</b> — In the build.gradle of a Spring project, mysql-connector-j is the JDBC driver for MySQL, and the jdbc:mysql:// address written in spring.datasource.url is a JDBC connection address. Code is often written with JdbcTemplate or JPA, but these two also send SQL with JDBC underneath, so knowing this flow helps when you look for the cause of a DB error.</p>
 <p>A database is a program that works separately from the Java program. (A database such as MySQL is a completely different program. H2, used in this lab, runs inside the Java program, but what the code does is the same.) For Java code to have the database do work, it does three things, following the convention called JDBC. First, it makes a connection (Connection) to the database. Second, it sends SQL as text over that connection. Third, it reads the returned result (ResultSet) one row at a time. Without a connection, SQL cannot be sent, and if the SQL text is wrong, the database answers with an error, which becomes a SQLException in Java (an exception, a signal that an error occurred). In this lab you add a conn.close() line to code that reads the name of the member whose id is 1 from the member table, or change the SQL text, and see the SQL the database received, the value Java printed, and the exception. (The code on the screen is treated as being inside the main method, so the import lines and the main declaration are left out. JdbcTemplate and JPA, which write this repeated code for you, are covered in the in-depth labs.)</p>
 <p>Checked against real execution · Compiled and ran all six combinations in new Java processes on JDK 21 and H2 2.4.240, and checked the rules against the Java SE 21 API documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>JDBC</dt>
 <dd>The most basic standard API that a Java program uses to send SQL to a database and receive the results. You get a connection, pass the SQL statement to it as a string, fill in the values at the question marks and run it, and then take the column values one by one from the returned result (a ResultSet). Both writing the SQL and moving the values you took into the fields of an object are the developer's job. JPA and MyBatis also send SQL through JDBC internally. So even if you do not use JDBC directly, it helps to know what happens underneath.</dd>
 <dt>Connection and DriverManager</dt>
+<dd><b>Where it's used today</b> — In a real service, making a new connection for every request is slow, so Spring Boot gets a Connection from a connection pool (HikariCP), which lends out connections made in advance. DriverManager is mainly seen in small examples or test code.</dd>
 <dd>A Connection is an object that stands for a connection (a session) made with a particular database. SQL statements run inside this connection, and the results come back over it too. Java code gets a connection with DriverManager.getConnection(url). The url has the form jdbc:subprotocol:name (for example jdbc:h2:mem:shop), and DriverManager picks a fitting one from the registered JDBC drivers and makes the connection. close() releases the database and JDBC resources that the connection holds right away, and calling createStatement on a closed connection gives a SQLException. Without a connection, SQL cannot be sent.</dd>
 <dt>Statement and executeQuery</dt>
+<dd><b>Where it's used today</b> — Use a Statement for SQL that has no changing values, such as SQL that creates a table or a query of all rows without conditions. Use PreparedStatement when user input is involved, and use executeUpdate, not executeQuery, for INSERT, UPDATE, and DELETE.</dd>
 <dd>A Statement is an object used to send an SQL statement that has no values put into it to the database and run it, and it is made with conn.createStatement(). executeQuery(sql) sends a statement such as a SELECT and returns the result as one ResultSet, and the value it returns is never null. It gives a SQLException if a database access error occurs, if it is called on a closed Statement, or if the SQL it sends does not produce a single ResultSet. To Java, SQL is just a string, so a wrong text still compiles and is found out as an error at run time, when the database reads it. That making a Statement alone does not send SQL to the database and that SQL is sent when executeQuery is called was checked by running it on H2.</dd>
 <dt>ResultSet and SQLException</dt>
+<dd><b>Where it's used today</b> — The RowMapper that you pass to JdbcTemplate also receives a ResultSet and takes out values like rs.getString to move them into an object. If you use JdbcTemplate, SQLException comes out converted to DataAccessException, so you rarely have to catch it yourself.</dd>
 <dd>A ResultSet is the table of rows that a query returned, and it has a cursor that points to the current row. The cursor is at first in front of the first row, and next() moves it one step forward and returns true if there is a row at that place and false if there are no more. A method that takes the value of a column of the current row, such as getString(&quot;name&quot;), needs a current row, so calling it after next() has returned false gives a SQLException. Having no row that matches the condition, so that the result is empty, is not an error, and it is signaled by next() returning false. A SQLException is an exception that reports a database access error or another error (a subclass of Exception, so it is a checked exception), and it carries a description string, an SQLState, and an error code that differs for each database product.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +97,10 @@ System.out.println(rs.getString(&quot;name&quot;));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ System.out.println(rs.getString(&quot;name&quot;));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

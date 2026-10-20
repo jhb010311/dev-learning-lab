@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › JPA</p>
 <h1>JPQL</h1>
 <p><b>What is JPQL, and how is it different from SQL?</b></p>
+<p><b>Why it exists</b> — If you write SQL directly as text, table and column names spread throughout the code, and moving the returned rows into objects must be done by hand. JPQL lets you write conditions with the entity class and field names used in Java code, and JPA takes care of converting to SQL and of making entity objects from the results.</p>
+<p><b>Where it's used today</b> — It is used for queries other than finding a single record by its ID, such as finding a list that matches a condition, sorting, and counting. In Spring Data JPA, JPQL is written in the @Query annotation above a repository method. When a feature that exists only in a particular DB is truly needed, nativeQuery = true is added to @Query and SQL is written directly.</p>
 <p>em.find finds only one entity, by one primary key. To find several by a condition, such as all members who are 20 or older, you have to write a query (text that asks the database), and in JPA you write that query in a language called JPQL. JPQL looks like SQL, but you write it with the names of entity classes and fields, not tables and columns. The Member class on the screen is paired with the member_tbl table by @Table, and its name field is paired with the user_name column by @Column, so the two names are different. When em.createQuery passes the text in the jpql variable to JPA, JPA reads that text. When you call query.getResultList(), JPA turns the JPQL into SQL, sends it to the database, builds Member objects from the rows that come back, and puts them in list. In this lab you change the name that you write in JPQL from an entity name to a table name and to a column name, run the same code each time, and see the SQL that was sent to the database, what came back in list, and the error.</p>
 <p>Checked against real execution · Compiled and ran 4 combinations with the code on the screen as it is, on Hibernate 7.4.5 and H2 2.4.240, and checked the SQL that was sent, the objects that came back, and the line on which the error occurred against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>JPQL</dt>
 <dd>The JPA query language that you write against entities and their fields, not tables. Its syntax is similar to SQL, and when a query runs, the JPA provider translates it into SQL for the database in use. Its advantage is that it does not depend on the syntax of a specific database.</dd>
 <dt>em.createQuery and getResultList</dt>
+<dd><b>Where it's used today</b> — Use it to find several entities by a condition such as a name or a status. For a query whose result is certainly one, use getSingleResult, and in Spring Data JPA, you write JPQL in @Query to do the same thing.</dd>
 <dd>em.createQuery(text, result class) is a method that passes text written in JPQL to JPA, makes a query object (TypedQuery), and returns it, and getResultList() of that query object is a method that runs a SELECT query and returns the result as a list (List). The API documentation says that createQuery throws IllegalArgumentException if the text is wrong or the result class does not fit. Observed on Hibernate 7.4.5, an error caused by a wrong entity name or field name in the text occurred on the createQuery line, not on getResultList, and it was the getResultList line that sent SQL to the database. On the other hand, em.find(class, primary key) is a method that finds one entity by one primary key value, so when you find several by a condition, you use a query.</dd>
 <dt>Entity names and field names</dt>
 <dd>JPQL is a query that you write about entities and their fields, not tables and columns, so you write an entity name after from, and the field names of that entity in the conditions. Section 4.3.1 of the Jakarta Persistence specification says that a query string refers to an entity by its entity name, and that the name is the name of @Entity, and if it is not set, it is the unqualified name of the entity class (the class name without the package). The Hibernate guide says that you cannot refer to the tables and columns of the database directly in HQL and JPQL. So even if a class is paired with the member_tbl table by @Table and a field is paired with the user_name column by @Column, you write the class name Member and the field name name in JPQL, and writing the table name or the column name causes an error.</dd>
 <dt>@Table</dt>
+<dd><b>Why it exists</b> — Without @Table, the table name follows the entity name, so if the name of an existing table differs from the class name, you have to name the class to match the table. @Table lets you keep the class name as it is and set only the table name separately.</dd>
+<dd><b>Where it's used today</b> — Use it to avoid a name that overlaps with an SQL reserved word, such as order, by choosing orders, or to follow a naming rule that a company has set, such as tbl_. It is also sometimes used to write a unique constraint over several columns with uniqueConstraints.</dd>
 <dd>@Table is an annotation that you put above an entity class to set the table (the primary table) that the entity is paired with. You write the table name in name, and the API documentation says that if you do not write it, the entity name is used, and this default also applies when you do not put @Table at all. This name is only the name of the table in the SQL that is sent, so you cannot use it after from in JPQL, and you have to write the entity name of the class. What sets the name of the column that corresponds to a field is the name of @Column.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +102,10 @@ List&lt;Member&gt; list = query.getResultList();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ List&lt;Member&gt; list = query.getResultList();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'iobuf', nav: 'I/O streams and buffers', cat: 'Java language', mode: 'step',
   title: 'I called write, so why is the file empty?',
+  why: 'If you write one byte at a time directly to a file or a socket, each write costs a call to the operating system, so the more small writes there are, the slower it gets. BufferedOutputStream collects small write requests and passes them to the underlying stream in larger chunks, which reduces the number of calls to the operating system. The price is that the data does not reach the file until the buffer fills or you call flush or close.',
+  use: 'When you read and write files, you use buffered streams such as BufferedReader, BufferedWriter, and Files.newBufferedWriter by default, and you use try-with-resources to make sure they are closed. Text that includes Korean is read with a character stream that has the encoding set to UTF-8. For output that must reach the other side right away, such as a message sent over a socket, you call flush after writing the whole message.',
   intro: 'When you write to a file, calling out.write does not mean that the data goes into the file right away. A buffered stream collects data in memory and writes it out all at once. This lab writes the 9 bytes of the three Korean characters "가나다" one byte at a time, counts how many writes actually reach the underlying stream, and then reads the file back both byte by byte and character by character.',
   terms: ['Byte streams and character streams', 'Buffer and flush', 'Character encoding and UTF-8', 'finally and try-with-resources'],
   controls: [

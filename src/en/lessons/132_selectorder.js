@@ -1,6 +1,8 @@
 Lab.register({
   id: 'selectorder', nav: 'SELECT processing order', cat: 'Database', mode: 'step',
   title: 'Why can\'t you use an alias or an aggregate function in WHERE?',
+  why: 'In SQL, SELECT is written first, but to decide what to select you must first gather rows with FROM and filter them with WHERE. The logical processing order is a standard that regards each clause as receiving the result of the previous step and passing it to the next, and you reason about the result of a statement and the names you can use in each clause by this standard.',
+  use: 'When an error such as "Unknown column" or "Invalid use of group function" occurs in MySQL, you use it to decide whether to put the condition in WHERE or HAVING, or whether to wrap it one level in a subquery. The habit of writing a condition that filters each row in WHERE, and a condition that filters by a total or a count after grouping in HAVING, also comes from this order.',
   intro: 'You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes.',
   terms: ['Logical processing order of the SELECT statement', 'GROUP BY, WHERE, HAVING', 'Column alias (AS)', 'Aggregate function'],
   controls: [

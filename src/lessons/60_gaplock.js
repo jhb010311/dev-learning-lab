@@ -1,6 +1,8 @@
 Lab.register({
   id: 'gaplock', nav: '갭 락과 넥스트 키 락', cat: '데이터베이스', mode: 'step',
   title: '없는 행을 조회했는데 왜 INSERT가 막히나',
+  why: '행에만 락을 걸면 이미 있는 행은 지킬 수 있어도, 조건에 맞는 새 행이 다른 트랜잭션에서 들어오는 것은 막지 못해 같은 범위를 FOR UPDATE로 다시 조회하면 결과가 늘어날 수 있다. InnoDB의 갭 락과 넥스트 키 락은 잠그는 대상을 행에서 그 값이 들어올 인덱스의 자리까지 넓혀서, 트랜잭션이 끝날 때까지 조회 결과에 새 행이 끼어들지 않게 한다.',
+  use: 'MySQL InnoDB를 REPEATABLE READ로 쓰면 범위나 없는 값을 조건으로 한 SELECT ... FOR UPDATE, UPDATE, DELETE에 걸린다. "같은 값이 없을 때만 넣기"를 잠금 조회로 처리하거나 범위로 여러 행을 고칠 때 만난다. INSERT 대기나 교착 상태가 잦으면 유니크 제약을 걸고 중복 오류를 처리하거나 격리 수준을 READ COMMITTED로 낮춘다.',
   intro: '트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다.',
   terms: ['레코드 락, 갭 락, 넥스트 키 락', '공유 락과 배타 락', '트랜잭션 격리 수준', 'Phantom Read', '비관적 락', '교착 상태(Deadlock)'], ranks: ['dbengine', 'isolation'],
   controls: [

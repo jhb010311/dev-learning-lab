@@ -1,6 +1,8 @@
 Lab.register({
   id: 'iobuf', nav: '입출력 스트림과 버퍼', cat: '자바 언어', mode: 'step',
   title: 'write를 했는데 왜 파일이 비어 있나',
+  why: '파일이나 소켓에 1바이트씩 바로 쓰면 쓸 때마다 운영체제를 부르는 비용이 들어서, 작은 쓰기가 많을수록 느려진다. BufferedOutputStream은 작은 쓰기 요청을 모아 큰 덩어리로 아래 스트림에 넘겨서 운영체제를 부르는 횟수를 줄인다. 그 대가로 버퍼가 차거나 flush·close를 부르기 전에는 데이터가 파일에 닿지 않는다.',
+  use: '파일을 읽고 쓸 때 BufferedReader, BufferedWriter, Files.newBufferedWriter처럼 버퍼가 있는 스트림을 기본으로 쓰고, try-with-resources로 닫힘을 보장한다. 한글이 섞인 글은 인코딩을 UTF-8로 지정한 문자 스트림으로 읽는다. 소켓으로 보내는 메시지처럼 곧바로 상대에게 닿아야 하는 출력은 메시지 하나를 다 쓴 뒤 flush를 부른다.',
   intro: '파일에 쓸 때 out.write를 불렀다고 해서 그 데이터가 곧바로 파일에 들어가는 것은 아닙니다. 버퍼를 쓰는 스트림은 데이터를 메모리에 모아 두었다가 한꺼번에 내려보냅니다. "가나다" 9바이트를 한 바이트씩 쓰면서 아래 스트림으로 실제로 몇 번 내려가는지 세어 보고, 그 파일을 바이트 단위와 글자 단위로 다시 읽어 봅니다.',
   terms: ['바이트 스트림과 문자 스트림', '버퍼와 flush', '문자 인코딩과 UTF-8', 'finally와 try-with-resources'],
   controls: [

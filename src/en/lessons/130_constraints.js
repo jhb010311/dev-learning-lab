@@ -1,6 +1,8 @@
 Lab.register({
   id: 'constraints', nav: 'Tables, keys, and constraints', cat: 'Database', mode: 'step',
   title: 'What data gets in when there are no constraints?',
+  why: 'If the application checks in the form "first look up whether the same email exists, and insert it if not", two requests can pass the lookup at the same time and the same value can be inserted twice. A constraint checks the rule at the moment the database writes the row, so one of the requests that arrive at the same time is rejected with an error and the rule of the table is kept.',
+  use: 'You use a unique key to prevent duplicate member emails and IDs, a foreign key to prevent an order that points to a member who does not exist, and CHECK for the rule that a quantity must be greater than 0. When a duplicate error occurs at sign-up, Spring receives it as an exception of the DataIntegrityViolationException family and turns it into a message such as "this email is already in use".',
   intro: 'Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are.',
   terms: ['Constraint', 'Primary key, unique key, foreign key', 'NOT NULL and CHECK', 'Foreign key referential actions (ON DELETE)'],
   controls: [

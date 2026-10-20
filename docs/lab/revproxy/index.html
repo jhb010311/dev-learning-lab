@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
 <h1>프록시와 리버스 프록시</h1>
 <p><b>프록시 뒤의 서버는 누가 요청했는지 어떻게 아나</b></p>
+<p><b>왜 생겼나</b> — 애플리케이션 서버가 인터넷에 바로 나서면 서버마다 인증서를 두고 HTTPS를 처리해야 하고, 여러 대로 늘렸을 때 요청을 나눠 줄 곳도 따로 없다. 리버스 프록시는 바깥 연결을 한곳에서 받아 HTTPS 암호화를 풀고 뒤의 서버들로 나눠 넘겨서, 인증서 관리와 요청 나누기를 서버들 앞의 한 자리로 모은다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 서버 앞에 nginx나 클라우드 로드 밸런서를 두어 HTTPS 처리와 요청 나누기를 맡기는 구성이 흔하다. 이때 server.forward-headers-strategy를 설정해 서버가 X-Forwarded-* 헤더에서 클라이언트 주소와 https 여부를 읽게 한다. 클라이언트가 써넣은 값에 속지 않도록 맨 앞 프록시가 그 헤더를 새로 쓰게 하거나, 믿을 수 있는 프록시가 붙인 뒤쪽 값만 읽는다.</p>
 <p>프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다.</p>
 <p>실행으로 대조 · 루프백 주소 셋(127.0.0.10·20·30)에 Node 24로 만든 프록시와 서버를 띄우고 Node http·https와 curl 8.21로 42가지 조합을 실행해 대조. 프록시는 직접 만든 시험용이며 nginx 같은 제품의 동작은 문서 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>포워드 프록시</dt>
+<dd><b>지금 어디에 쓰나</b> — 프록시를 거쳐야 밖으로 나가는 회사망에서는 Maven의 settings.xml이나 Gradle의 gradle.properties에 프록시 주소를 적어야 라이브러리를 받는다. 자바 프로그램은 https.proxyHost 같은 시스템 속성으로 정한다.</dd>
 <dd>클라이언트 쪽에 서서 클라이언트의 요청을 대신 바깥 서버로 보내 주는 중간 서버다. 클라이언트는 프록시의 주소를 설정해 두고 일부러 그곳을 거치며, 서버가 보는 연결 상대는 클라이언트가 아니라 프록시가 된다. 회사나 학교에서 밖으로 나가는 요청을 한곳에 모아 기록하거나 막을 때, 또는 클라이언트의 주소를 가릴 때 쓴다. 서버 쪽에 서서 서버를 대신하는 리버스 프록시와는 누구를 대신하는지가 반대다.</dd>
 <dt>리버스 프록시</dt>
+<dd><b>왜 생겼나</b> — 느린 클라이언트가 애플리케이션 서버에 바로 붙으면, 큰 요청 본문을 천천히 올리거나 응답을 천천히 받아 가는 동안 요청 처리 스레드가 그 연결에 묶인다. Nginx 같은 리버스 프록시는 기본 설정에서 요청과 응답을 버퍼에 받아 두고 뒤쪽 서버와는 빠르게 주고받아, 뒤쪽 서버의 스레드가 느린 연결에 오래 묶이지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 정적 파일 요청과 /api 요청을 경로로 나눠 다른 서버로 보내거나, Nginx의 client_max_body_size로 너무 큰 업로드를 앞단에서 거절할 때 쓴다. 쿠버네티스에서는 Ingress 컨트롤러가 이 역할을 맡는다.</dd>
 <dd>클라이언트의 요청을 대신 받아 내부의 서버로 전달하고 그 응답을 클라이언트에 돌려주는 서버다. 클라이언트는 실제 서버를 직접 알지 못한다. 여러 서버로의 요청 분산, TLS 처리, 캐싱, 내부 서버 보호 등의 역할을 한다.</dd>
 <dt>X-Forwarded-For</dt>
+<dd><b>지금 어디에 쓰나</b> — 접속 기록에 실제 사용자 IP를 남기거나, 한 IP에서 너무 많이 오는 요청을 막을 때 이 값을 읽는다. nginx에서는 proxy_set_header 설정으로 이 헤더를 붙여 넘기게 한다.</dd>
 <dd>프록시가 요청을 넘길 때 원래 클라이언트의 주소를 적어 주는 요청 헤더다. 프록시 뒤의 서버가 보는 연결 상대는 프록시이므로, 실제 클라이언트의 주소는 이 헤더로만 전해진다. 프록시를 여러 대 거치면 각 프록시가 자신에게 연결한 상대의 주소를 쉼표로 뒤에 덧붙인다. 요청 헤더라서 클라이언트도 마음대로 써넣을 수 있으므로, 서버는 자신이 관리하는 믿을 수 있는 프록시가 붙인 값(뒤쪽 값)만 써야 하고 프록시 뒤에 있지 않다면 읽지 말아야 한다. 표준이 아닌 관례이며, 같은 일을 하는 표준 헤더로 Forwarded가 있다.</dd>
 <dt>X-Forwarded-Proto와 TLS 종료</dt>
+<dd><b>지금 어디에 쓰나</b> — nginx나 클라우드 로드 밸런서가 HTTPS를 받고, 뒤의 스프링 부트 서버는 HTTP로만 받는 구성에 쓴다. 스프링 시큐리티가 로그인 화면으로 보내는 주소가 https://로 나가려면 server.forward-headers-strategy로 이 헤더를 읽게 한다.</dd>
 <dd>TLS 종료는 리버스 프록시나 로드밸런서가 클라이언트의 HTTPS 연결을 받아 암호화를 풀고, 뒤의 서버에는 암호화하지 않은 HTTP로 넘기는 구성이다. 인증서 관리와 암호화 연산을 한곳에 모을 수 있다. 이때 뒤의 서버는 HTTP 연결만 보게 되므로, 프록시가 X-Forwarded-Proto: https 헤더로 클라이언트가 원래 쓴 프로토콜을 알려 준다. 서버가 이 헤더를 읽지 않으면 리다이렉트할 주소를 http://로 만들거나 보안 쿠키 조건을 잘못 판단할 수 있다. X-Forwarded-For와 마찬가지로 믿을 수 있는 프록시가 붙인 값만 써야 한다.</dd>
 <dt>HTTPS와 TLS</dt>
 <dd>HTTPS는 HTTP 통신을 TLS로 암호화한 것이다. TLS는 통신 내용을 제3자가 볼 수 없게 하고(기밀성), 중간에서 바꿀 수 없게 하며(무결성), 접속한 서버가 진짜인지 인증서로 확인한다(인증). SSL은 TLS의 전신인 프로토콜로, 지금은 폐기되어 실제로는 TLS만 쓰이지만 관습적으로 SSL이라는 이름이 함께 불린다.</dd>
@@ -109,6 +116,10 @@ http.createServer((req, res) =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -182,9 +193,10 @@ http.createServer((req, res) =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

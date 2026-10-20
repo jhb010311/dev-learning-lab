@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Stack, queue, priority queue</h1>
 <p><b>Insertion order and removal order</b></p>
+<p><b>Why it exists</b> — If values are gathered in one list and you find which to take out each time, the rules for taking out are scattered through the code, and finding the smallest value means scanning the whole list every time. Stacks, queues, and priority queues let the data structure decide the order of removal, so that taking out the latest first, the earliest first, or the smallest first is done with one method. A priority queue uses a heap so that it does not re-sort everything when inserting and removing.</p>
+<p><b>Where it's used today</b> — A stack is used for undo history, checking matching parentheses, and depth-first search, and a queue for a waiting list of tasks to process in the order they arrived and for breadth-first search. A priority queue is used to process tasks with the nearest deadline first, to pick the top N, or to find the shortest path (Dijkstra). For a queue that several threads put into and take out of together, a BlockingQueue implementation such as LinkedBlockingQueue is used.</p>
 <p>Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first.</p>
 <p>Checked against real execution · Checked against the real ArrayDeque and PriorityQueue on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Stack, queue, deque</dt>
 <dd>A stack takes out the most recently added item first (LIFO), a queue takes out the earliest added item first (FIFO), and a deque lets you add and remove items at both ends. In Java, ArrayDeque is the recommended implementation for both stacks and queues.</dd>
 <dt>Heap and priority queue</dt>
+<dd><b>Why it exists</b> — If values to be taken out by priority are kept in a sorted array, each insertion must shift the elements after it, which costs O(n), and if they are kept unsorted, each removal costs O(n). A heap does not sort everything; it keeps only the order in which a parent comes before its children, which makes both insertion and removal O(log n).</dd>
+<dd><b>Where it's used today</b> — It is used in a scheduler that picks the reserved task with the earliest run time (Java's ScheduledThreadPoolExecutor also uses a heap) and in merging several sorted lists into one. If you need to walk through everything in order, not just the first one, or to delete a value in the middle, TreeSet or TreeMap is better.</dd>
 <dd>A heap is a complete binary tree in which each parent node is always less than or equal to its child nodes (a min-heap) or greater than or equal to them (a max-heap). It lets you see the smallest (or largest) value in O(1) and remove it in O(log n), so it is used to implement a priority queue. Java's PriorityQueue is implemented with a heap. It shares only its name with the heap that is a memory area of the JVM.</dd>
 <dt>Time complexity (big-O notation)</dt>
+<dd><b>Why it exists</b> — If you measure running time in seconds, the value differs by computer and by input, so it is hard to say which of two approaches is better. Big-O notation drops constants and small terms and keeps only the shape of the growth as the input gets larger, so it lets you compare approaches regardless of the environment.</dd>
+<dd><b>Where it's used today</b> — It is used when choosing a data structure (contains is O(n) for ArrayList and O(1) on average for HashSet), when judging whether a double loop can withstand growing data, and when estimating whether a solution will finish in time in a coding test.</dd>
 <dd>This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows.</dd>
 </dl>
 <h2>Try these</h2>
@@ -86,6 +92,10 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +169,10 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

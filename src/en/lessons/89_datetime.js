@@ -1,6 +1,8 @@
 Lab.register({
   id: 'datetime', nav: 'Dates and times', cat: 'Java language', mode: 'step',
   title: 'What date do you get when you add one month to January 31?',
+  why: 'Date and Calendar, from before java.time, could change the contents of the object, so a date you passed on was sometimes changed by other code, and months were counted from 0, so January was 0. java.time separates a date only, a date and time, and a time with a time zone into different immutable classes and counts months from 1, which reduces the room for these mistakes.',
+  use: 'When only a date is needed, such as a birthday or a deadline, LocalDate is used, and a moment that actually happened, such as the time of an order, is handled with Instant or ZonedDateTime. In Spring Boot, JPA and Jackson convert these types directly to database columns and JSON. A service used by people in several countries stores times in UTC and converts them to the user\'s time zone only when showing them on screen.',
   intro: 'Like a String, the date and time objects of java.time (LocalDate, ZonedDateTime, and so on) do not change their contents. A method such as plusMonths returns a new object, and because the months have different numbers of days, the result of "one month later" is sometimes not what you expect. The same instant is written as a different date and time in each time zone, and the amount of time between two points in time is measured separately in date-based units (Period) and in time-based units (Duration).',
   terms: ['java.time (Date-Time API)', 'Time zone and UTC', 'Period and Duration', 'Immutable object'],
   controls: [

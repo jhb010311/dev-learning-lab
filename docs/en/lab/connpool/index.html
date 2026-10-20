@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>Connection pool and OSIV</h1>
 <p><b>Why connections run short even though the queries finish quickly</b></p>
+<p><b>Why it exists</b> — Every time a DB connection is made, it has to go through a TCP connection and a login procedure, and there is also a limit on the number of connections the DB can accept at once. A connection pool opens a set number of connections in advance and lets requests take turns using them, which saves connection setup time and keeps the number of connections to the DB from exceeding that number even when requests pile up.</p>
+<p><b>Where it's used today</b> — In Spring Boot, the pool size is set with HikariCP's maximum-pool-size, and it is adjusted so that the pool size multiplied by the number of servers does not exceed the DB limit. If there is a long external API call unrelated to the DB, OSIV is turned off with spring.jpa.open-in-view=false and the external call is moved outside the transaction, so that the connection is not held during that time.</p>
 <p>A request does its database work, then calls an external API, and then responds. Database connections are borrowed from a pool and returned to it. Depending on when a connection is returned (the Open Session in View setting, OSIV for short), the number of requests that a pool of the same size can withstand differs greatly.</p>
 <p>Checked against documentation and standards · The default behavior of HikariCP and Hibernate (the numbers are a model)</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Connection pool</dt>
 <dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP.</dd>
 <dt>Open Session in View</dt>
+<dd><b>Why it exists</b> — If you read a lazily fetched field in a controller or a view template after the transaction has ended, a LazyInitializationException occurs. OSIV keeps the persistence context open until the request ends, so you can read associated entities even while rendering the page.</dd>
+<dd><b>Where it's used today</b> — A small service that renders pages on the server is sometimes used with it left on. An API server with many requests turns it off with spring.jpa.open-in-view=false and returns the needed associated data by copying it into a DTO inside the transaction.</dd>
 <dd>A setting that keeps the persistence context open after the transaction ends, until request processing finishes (the response is written). It is convenient because lazy fetching also works in controllers and views. However, after the first database access during a request, the request keeps holding the database connection until the response is finished, so a service with many requests can run short of connections. It is on by default in Spring Boot.</dd>
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
@@ -113,6 +117,10 @@ OrderDto get(long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -186,9 +194,10 @@ OrderDto get(long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

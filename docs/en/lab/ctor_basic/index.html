@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Constructors</h1>
 <p><b>What is a constructor, and when does it run?</b></p>
+<p><b>Why it exists</b> — If a constructor takes no values, you have to create an object with new and then fill in the fields one line at a time, and even if you miss one line, the compiler does not tell you, so an object whose name is null gets used as it is. A constructor receives the values that are absolutely needed at the moment the object is created and fills in the fields, and if you write only a constructor that takes values, it blocks creating an object without those values.</p>
+<p><b>Where it's used today</b> — Classes that Java provides, such as new ArrayList&lt;&gt;() and new StringBuilder(&quot;start&quot;), also decide the starting state of an object with a constructor. A field that must not change after the object is made is declared final and filled in once in the constructor. In Spring, a common approach is for a class to receive the other objects it needs through the parameters of its constructor.</p>
 <p>A constructor is a block of code that you write inside a class. It differs from a method in two ways: its name is the same as the class name, and you do not write a return type. You have to call a method by name to run it, but a constructor runs once every time new Card(&quot;Alice&quot;) is executed, and it fills in the fields of the object that was just created (Card is a class made as an example for this lab). If you write no constructor at all, the compiler adds one that does nothing. In this lab you remove the Card(String owner) constructor or change the line that creates the object to new Card(), and the same code is compiled and run each time. You see what the compiler reports and how many times the constructor runs.</p>
 <p>Checked against real execution · Eight combinations were compiled with javax.tools and run on JDK 21, and the results were checked against the model</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Constructor</dt>
 <dd>This is code that runs once when an object is created with new and puts the fields into their initial state. Its name is the same as the class name, and it has no return type. A class can have several of them as long as they take different arguments, and the one that matches the arguments passed to new is selected. Its body runs after the fields have been set to their default values and the field initializers and initializer blocks have run.</dd>
 <dt>Default constructor</dt>
+<dd><b>Where it's used today</b> — When JPA reads an entity from the database, it first creates the object with the no-argument constructor, so an entity must have a no-argument constructor. So even an entity that has a constructor with arguments gets a separate no-argument constructor, and it is often made protected so that other code does not use it carelessly.</dd>
 <dd>This is the constructor with no arguments and an empty body that the compiler automatically provides when a class declares no constructors at all. Thanks to it, even a class that declares no constructor can create objects with new ClassName(). It is not provided once you write even one constructor yourself. So a class that declares only a constructor with arguments gets a compile-time error when new is used without arguments.</dd>
 <dt>this</dt>
+<dd><b>Where it's used today</b> — You often see it in constructors and setters when a received value is put into a field, as in this.name = name. If a method returns its own object with return this, as the append of StringBuilder does, calls can be chained, as in sb.append(&quot;a&quot;).append(&quot;b&quot;).</dd>
 <dd>This keyword is a reference to the current object: inside an instance method or a constructor, it refers to the very object that is being worked on. Writing this.name tells a field apart from a parameter with the same name. Writing this(arguments) as the first statement of a constructor runs another constructor of the same class first. A static method has no target object, so this cannot be used in it.</dd>
 <dt>Default values of fields</dt>
 <dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
@@ -97,6 +101,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +178,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

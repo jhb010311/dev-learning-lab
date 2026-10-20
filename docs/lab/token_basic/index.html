@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 보안</p>
 <h1>토큰</h1>
 <p><b>토큰은 무엇이고, 서버는 무엇을 보고 믿는가</b></p>
+<p><b>왜 생겼나</b> — 세션 방식에서는 로그인 기록이 그 기록을 가진 서버에만 있어서, 서버를 여러 대로 늘리면 어느 서버로 요청이 가도 같은 기록을 찾게 하는 준비가 따로 든다. 토큰은 &quot;누구인지&quot;와 그것을 보증하는 서명을 요청마다 함께 보내므로, 서명을 확인할 열쇠를 가진 서버라면 어디서든 다른 곳에 묻지 않고 그 자리에서 확인한다.</p>
+<p><b>지금 어디에 쓰나</b> — 모바일 앱이나 브라우저의 자바스크립트 화면이 스프링 서버의 API를 부를 때 로그인 확인용으로 흔히 쓴다. 여러 서비스로 나뉜 시스템에서 한 번 받은 토큰을 여러 서버가 함께 믿게 할 때도 쓴다. 한 번 내준 토큰은 서버가 도중에 무르기 어려워서, 유효 시간을 짧게 잡고 새 토큰을 다시 받는 방식을 함께 쓴다.</p>
 <p>로그인에 성공하면 서버가 &quot;이 사람은 kim이다&quot;라는 내용을 글자로 적고, 서버만 아는 비밀 열쇠로 계산한 서명을 뒤에 붙여 클라이언트에 줍니다. 이 글을 토큰이라고 하고, 가장 흔한 형식이 JWT입니다. 토큰은 점(.)으로 이은 세 덩어리, 곧 머리, 내용, 서명입니다. 클라이언트는 이 토큰을 들고 있다가 요청마다 Authorization: Bearer 토큰 헤더에 실어 보냅니다. 서버는 로그인한 사람의 목록을 따로 저장해 두지 않습니다. 대신 받은 토큰의 머리와 내용으로 서명을 다시 계산해, 토큰에 붙어 온 서명과 같은지 봅니다. 같으면 서버가 만든, 고쳐지지 않은 토큰이라고 믿고 내용을 읽습니다. 이 실습은 토큰의 내용을 고치거나, 서명을 떼어 내거나, 다른 열쇠로 서명하거나, 토큰을 빼 가며, 또 서버가 서명을 확인하지 않게 해 가며, 서버가 누구를 믿고 어떤 응답을 주는지를 봅니다. 코드 칸은 클라이언트가 보내는 요청과 그 토큰을 풀어 본 모습이고, 자바 코드가 아닙니다. 서명은 길어서 (서명)으로 줄여 적었습니다. 이 실습의 서버는 GET /me 요청에 &quot;안녕하세요, 사용자 이름&quot;을 돌려주도록 만들어 둔 서버이고, 그 서버 코드는 화면에 보이지 않습니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 http 서버에 열 가지 조합의 토큰을 실제 HTTP 요청으로 보내 대조하고, 토큰을 만드는 구현은 RFC 7515 부록 A.1의 예시 및 JWT 라이브러리 jose4j 0.9.5의 검증과 견줌</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,12 @@
 <dt>JWT(JSON Web Token)</dt>
 <dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
 <dt>서명(토큰의)</dt>
+<dd><b>왜 생겼나</b> — 토큰의 내용은 누구나 읽고 고쳐 적을 수 있는 글자라서, 서명이 없으면 kim을 admin으로 바꿔 보내도 서버가 알아챌 방법이 없다. 서명은 비밀 열쇠 없이는 맞게 만들 수 없는 값을 덧붙여, 서버가 내준 그대로인 토큰만 믿게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 로그인 뒤 받는 JWT에서 마지막 점(.) 뒤의 부분이 서명이며, 서버는 요청을 받을 때마다 이것부터 확인하고, 맞을 때만 내용을 믿는다. 스프링 시큐리티의 JWT 기능을 쓰면 이 확인은 라이브러리가 해 준다.</dd>
 <dd>토큰의 서명은 토큰의 머리와 내용을 서버만 아는 비밀 열쇠로 계산한 값으로, 토큰의 맨 뒤에 붙는다. JWT의 HS256 방식에서는 base64url로 적은 머리와 내용을 점(.)으로 이은 글자를 HMAC-SHA256으로 계산한다(RFC 7515 2절, 부록 A.1). 서버는 받은 토큰의 머리와 내용으로 같은 계산을 다시 해 붙어 온 서명과 견주며, 내용이 한 글자만 바뀌어도 계산한 값이 달라져 맞지 않는다. 열쇠를 모르는 쪽은 맞는 서명을 만들 수 없다는 것이 전제이므로 열쇠는 서버만 알아야 한다. 서명은 내용이 바뀌지 않았음을 보증할 뿐 내용을 숨기지는 않는다.</dd>
 <dt>Authorization: Bearer</dt>
+<dd><b>왜 생겼나</b> — 토큰을 보내는 자리를 서비스마다 제멋대로 정하면, 받는 서버와 도구가 토큰을 어디서 찾을지 매번 따로 맞춰야 한다. Authorization: Bearer는 토큰을 적는 자리와 모양을 하나로 정해, 어느 서버든 같은 자리에서 토큰을 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 앱이나 웹 화면이 로그인 뒤 서버에 데이터를 요청할 때, curl이나 Postman으로 API를 시험할 때 이 헤더에 토큰을 적는다. 주소의 쿼리에 토큰을 넣으면 방문 기록과 서버 기록에 남으므로 이 헤더를 쓴다.</dd>
 <dd>Authorization은 요청에 자격 증명을 실어 보내는 HTTP 요청 헤더이고, Bearer는 그 자격 증명이 토큰이라는 것을 알리는 방식의 이름이다. 클라이언트는 Authorization: Bearer 토큰 꼴로 한 줄을 적어 토큰을 서버에 보낸다(RFC 6750 2.1절). Bearer 토큰은 그것을 가진 쪽이면 누구든 쓸 수 있는 토큰이라는 뜻이다(1.2절). 요청에 이 헤더가 없거나 토큰을 받아 줄 수 없으면 서버는 보통 401 응답을 돌려주며, 그때 WWW-Authenticate 헤더에 방식의 이름 Bearer를 적도록 정해져 있다(3절).</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -91,6 +97,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.(서명)
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.(서명)
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

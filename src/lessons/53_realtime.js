@@ -1,6 +1,8 @@
 Lab.register({
   id: 'realtime', nav: '폴링·SSE·WebSocket', cat: 'HTTP', mode: 'step',
   title: '서버에서 생긴 일을 브라우저에 알리는 네 가지 방법',
+  why: '새 소식을 바로 보여 주려고 브라우저가 몇 초마다 묻게 하면, 대부분의 요청이 빈손으로 끝나 서버 부하만 늘고 그래도 간격만큼 알림이 늦는다. SSE와 WebSocket은 연결 하나를 열어 둔 채 서버가 소식이 생기는 순간 보내게 해서, 묻지 않아도 바로 도착하게 한다.',
+  use: '알림 배지, 배송 상태, 긴 작업의 진행률, 시세처럼 서버가 보내기만 하면 되는 곳에는 SSE를, 채팅, 공동 편집, 온라인 게임처럼 양쪽이 자주 주고받는 곳에는 WebSocket을 쓴다. 스프링에서는 SseEmitter와 WebSocketHandler로 만든다. 몇 분에 한 번 바뀌는 정보라면 단순한 폴링으로 충분하다.',
   intro: 'HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.',
   terms: ['SSE(Server-Sent Events)와 폴링', 'WebSocket', 'HTTP와 무상태(Stateless)'], ranks: ['http', 'network', 'traffic'],
   controls: [

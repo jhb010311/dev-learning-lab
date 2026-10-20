@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
 <h1>OFFSET과 키셋 페이징</h1>
 <p><b>뒤쪽 페이지일수록 느려지는 이유</b></p>
+<p><b>왜 생겼나</b> — 페이지 번호로 나누는 OFFSET 방식은 DB가 건너뛸 행까지 모두 읽어야 해서, 데이터가 많은 목록의 뒤쪽 페이지나 계속 내려 보는 화면에서 점점 느려진다. 키셋(커서) 페이징은 페이지 번호 대신 마지막으로 받은 글의 정렬 키를 다음 요청의 조건으로 넘겨, 정렬 키에 인덱스가 있으면 몇 번째 페이지든 읽는 행의 수를 페이지 크기만큼으로 줄인다.</p>
+<p><b>지금 어디에 쓰나</b> — 피드, 댓글, 알림처럼 아래로 내리며 이어서 불러오는 화면과, 큰 테이블을 처음부터 끝까지 나눠 읽는 일괄 처리에 쓴다. 넘기는 사이에 새 글이 들어와도 같은 글이 두 번 나오지 않는다. 원하는 페이지 번호로 바로 이동해야 하는 게시판처럼 임의의 위치로 건너뛰어야 하는 화면에서는 OFFSET 방식을 쓴다.</p>
 <p>게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다.</p>
 <p>일부만 실행으로 확인 · 결과 내용은 SQLite로 확인, 읽는 행 수는 문서 기준</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>인덱스</dt>
 <dd>테이블에서 원하는 행을 빨리 찾기 위해 특정 컬럼의 값을 정렬된 형태로 따로 유지하는 자료구조다. 인덱스가 없으면 조건에 맞는 행을 찾기 위해 테이블 전체를 읽어야 한다. 조회는 빨라지지만 데이터를 추가, 수정, 삭제할 때마다 인덱스도 갱신해야 하므로 쓰기 성능과 저장 공간에 비용이 든다.</dd>
 <dt>B-트리 인덱스</dt>
+<dd><b>왜 생겼나</b> — 디스크에 둔 이진 트리는 노드마다 키가 하나라 행이 많으면 높이가 커지고, 노드를 하나 읽을 때마다 디스크를 읽어야 해서 느리다. B-트리는 디스크 페이지 하나에 키를 많이 두어 몇 번의 페이지 읽기로 값을 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL InnoDB와 PostgreSQL에서 CREATE INDEX로 방식을 따로 정하지 않으면 B-트리 인덱스가 만들어진다. 같은 값 찾기만 하는 경우 PostgreSQL에서는 해시 인덱스를 고를 수도 있다.</dd>
 <dd>대부분의 관계형 데이터베이스가 기본으로 쓰는 인덱스 구조다. 값이 정렬된 상태로 유지되는 균형 잡힌 트리이며, 한 노드에 많은 키를 담아 트리의 높이가 낮다. 루트에서 몇 단계만 내려가면 원하는 값을 찾을 수 있고, 값이 정렬되어 있어 같은 값 조회뿐 아니라 범위 조회와 정렬에도 사용된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -80,6 +84,10 @@ SELECT id, title, created_at
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +161,10 @@ SELECT id, title, created_at
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

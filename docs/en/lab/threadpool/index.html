@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Thread pool</h1>
 <p><b>What changes when you add more threads</b></p>
+<p><b>Why it exists</b> — If a new thread is created every time a task arrives, the number of threads grows with the number of requests when many requests come at once. Each thread uses memory, and switching between threads has a cost, so the whole server can slow down or stop. A thread pool reuses threads it has already created and puts an upper limit on their number. Extra tasks wait in a queue or are rejected, so the server handles only as many tasks at the same time as it can bear.</p>
+<p><b>Where it's used today</b> — A servlet container such as Tomcat handles incoming requests with a thread pool. In application code, you create a pool with ExecutorService to call several external APIs at the same time and collect the results, or to run long tasks separately. When there are very many tasks that spend most of their time waiting, some applications use no pool and create a virtual thread for each task instead.</p>
 <p>A thread pool reuses the threads it has created, up to a set number, instead of creating and discarding a thread for every request. When a request comes in, one thread handles it from start to finish. When all the core threads are busy, requests wait in a queue; when the queue is full, more threads are created up to the maximum; and requests beyond that are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.</p>
 <p>Checked against real execution · Checked against the results of actually running a ThreadPoolExecutor</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>How ThreadPoolExecutor handles a new task</dt>
 <dd>Java's thread pool implementation handles an incoming task in the following order. If fewer threads than corePoolSize are running, it creates a new thread. Otherwise, it puts the task in the queue. If the queue is full, it creates more threads, up to maximumPoolSize. Beyond that, it rejects the task. Contrary to intuition, with a bounded queue the number of threads grows only after the queue is full (with an unbounded queue it does not grow).</dd>
 <dt>Tomcat's threading model</dt>
+<dd><b>Why it exists</b> — If one thread handles a request all the way through, even code that waits for a database response can be written from top to bottom in order, without being split into callbacks. Tomcat takes those threads from a pool created in advance and sets an upper limit on their number, so threads do not grow endlessly even when requests pile up.</dd>
+<dd><b>Where it's used today</b> — A Spring MVC service with slow external calls or many concurrent requests tunes server.tomcat.threads.max together with the size of the database connection pool. When requests seem to be stuck, you look in a thread dump to see at which line a request processing thread such as http-nio-8080-exec-1 is waiting.</dd>
 <dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default). Unlike the standard Java ThreadPoolExecutor, when no thread is idle it adds threads up to the maximum first, and new requests wait only when all of them are in use. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
 <dt>Blocking and non-blocking</dt>
 <dd>Blocking means that the calling thread is stopped until the called task finishes and cannot do other work. Non-blocking means that the call returns right away even though the task has not finished, so the thread can do other work. A typical JDBC call is a blocking call: the thread is stopped until the DB response arrives.</dd>
@@ -101,6 +105,10 @@ for (int i = 1; i &lt;= 10; i++) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +182,10 @@ for (int i = 1; i &lt;= 10; i++) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

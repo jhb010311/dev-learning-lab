@@ -1,6 +1,8 @@
 Lab.register({
   id: 'socket', nav: 'Sockets and ports', cat: 'Networking', mode: 'step',
   title: 'Of the several programs on one computer, which one receives this data?',
+  why: 'If a program had to handle the details of TCP or UDP itself, every program would have to write anew the complex work of establishing connections and resending data. With sockets, the operating system takes on that work and offers the program only a few operations, open, read, write, and close, and once a program fixes a port number, the operating system connects incoming connections to that program.',
+  use: 'In Java you can use the ServerSocket and Socket classes directly, but usually a server such as Tomcat opens a socket on port 8080 and a Spring application only handles requests on top of it. If an application does not start because the port is already in use, stop the other program that holds that port, or change the port with the server.port setting.',
   intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. A program creates a socket and binds it to a port number, and the operating system passes data that arrives for that port to that socket. This lab shows which program a connection reaches, depending on the ports the servers listen on and the port the client connects to.',
   terms: ['Port', 'Socket', 'Ephemeral port', 'TCP and UDP'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'deploy', nav: 'Deployment strategies', cat: 'Deployment and operations', mode: 'step',
   title: 'How to switch to a new version without interrupting the service',
+  why: 'If all servers are taken down and the new version is put up, the service stops in the meantime, and if the new version has a bug, all users hit it at once. Rolling, blue-green, and canary deployments prepare the new version while the existing servers keep receiving requests, and adjust when and in what proportion requests are moved, so that the switch is made without stopping, and if a problem occurs you can roll back or narrow its impact.',
+  use: 'Kubernetes\'s Deployment uses a rolling update by default, and it is commonly seen in web services that deploy often. If you can afford to double the servers and need a fast rollback, use blue-green; if you worry that a bug could have a large impact, use a canary, sending the new version to only some requests first and increasing the share while watching the error rate.',
   intro: 'Four servers are running v1. Depending on how you switch them to v2, it changes whether the service is interrupted during the deployment, how many more servers you need, and how many users are affected if the new version has a problem.',
   terms: ['Rolling, blue-green, and canary deployments', 'Graceful shutdown', 'Health check (liveness, readiness)', 'Load balancer', 'CI/CD'], ranks: ['deploy', 'cloud'],
   controls: [

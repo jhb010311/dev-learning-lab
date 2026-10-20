@@ -1,6 +1,8 @@
 Lab.register({
   id: 'optional', nav: 'Optional', cat: 'Java language', mode: 'step',
   title: 'Why does the default-value code in orElse run even when a value is present?',
+  why: 'With a method that returns null, you cannot tell from the return type alone that a value may be missing, so if the caller forgets the null check, a NullPointerException occurred on some other line much later. Optional shows "may be absent" in the return type, and lets you write the default value or the handling to use when the value is absent right where you take the value out, with methods such as orElse and map.',
+  use: 'It is used as the return type of methods whose lookup result may be absent. findById of Spring Data JPA and findFirst and max of streams are typical examples that return an Optional. It is generally not used as the type of a field or a method parameter, and a method with several results returns an empty list instead of an Optional.',
   intro: 'An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional is empty. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.',
   terms: ['Optional', 'orElse and orElseGet', 'NullPointerException', 'Lazy evaluation', 'Lambda expression'],
   controls: [

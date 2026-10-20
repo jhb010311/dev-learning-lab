@@ -1,6 +1,8 @@
 Lab.register({
   id: 'httpver', nav: 'HTTP/1.1, 2, 3', cat: 'HTTP', mode: 'step',
   title: 'What differs between the versions when you fetch 30 files',
+  why: 'As a single page grew to dozens of files, HTTP/1.1, which receives responses one after another, forced workarounds such as combining images into one or splitting content across several domains. HTTP/2 gives each request a numbered stream so that it no longer waits for the response before it, and HTTP/3 moved to QUIC over UDP so that streams are also handled separately at the transport level.',
+  use: 'The major browsers, CDNs, and nginx support HTTP/2, and HTTP/3 is also used by large sites and CDNs. Spring Boot turns on HTTP/2 with server.http2.enabled, but when nginx or a load balancer sits in front, it is common for that component to handle HTTP/2 and HTTP/3 with the browser and for the servers behind it to receive HTTP/1.1. gRPC, which servers use to call each other, also runs over HTTP/2.',
   intro: 'A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it.',
   terms: ['HTTP/1.1, HTTP/2, and HTTP/3', 'TCP and UDP', 'Three-way handshake'], ranks: ['http', 'network'],
   controls: [

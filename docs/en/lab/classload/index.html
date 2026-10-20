@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>Class loading and initialization</h1>
 <p><b>When does the static initializer of a class run?</b></p>
+<p><b>Why it exists</b> — If a program read every class it might use and ran every static block when it started, startup would be slow and even classes that are never used would take memory. So the JVM postpones static initialization and runs it only once per class, when a use defined by the specification happens for the first time, such as new, a call to a static method, or the use of a static field that is not a constant.</p>
+<p><b>Where it's used today</b> — The holder style of singleton, which creates one object late in a static field, relies on this rule and on the property that the JVM guarantees that only one thread initializes a class. When an exception occurs in a static block, an ExceptionInInitializerError occurs, and after that, a NoClassDefFoundError occurs every time the class is used. So you follow this order when you look for the cause of such errors.</p>
 <p>A static initializer written in a class does not run when the program starts. It runs once, when the class is first &quot;really&quot; used. But not every appearance of the class name in the code counts as that kind of use.</p>
 <p>Checked against real execution · The 18 combinations were newly compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Class loader</dt>
+<dd><b>Why it exists</b> — If where and how to read classes were fixed inside the JVM, it could not handle varied locations such as a jar bundled in a jar file or a library folder for each web application. The class loader separates out the way of reading, so a new loader can be created and used when needed.</dd>
+<dd><b>Where it's used today</b> — Tomcat gives each web application its own class loader so that different versions of the same library can run together, and Spring Boot uses a dedicated class loader that reads the library jars bundled in the executable jar.</dd>
 <dd>This JVM component finds class files and reads them into memory. Classes are not all read when the program starts; each class is loaded at the point when it is first needed. After a class is loaded, the JVM makes it ready for use through linking (verification, preparation, and resolution of symbolic references) and initialization (running static initializers).</dd>
 <dt>Class initialization</dt>
 <dd>This is the stage in which the static fields of a class are given their initial values and its static initializers are run. It is a different stage from loading, which reads the class in, and it happens at the moment the class is first actually used, for example when an object of the class is created, a static method is called, or a static field that is not a constant is used. It happens only once per class, and when a subclass is initialized, its superclass is initialized first. Creating an array, using ClassName.class, and reading a compile-time constant do not trigger initialization.</dd>
 <dt>Static initializer</dt>
+<dd><b>Why it exists</b> — A static field's initializer can have only a single expression, so preparation code that needs a loop or try-catch cannot be written in that place. A static initializer lets such multi-line preparation run once when the class is initialized.</dd>
+<dd><b>Where it's used today</b> — It is used for preparation that needs to be done only once per class, such as filling a static Map in advance with fixed values, or a JDBC driver class registering itself with DriverManager. When only a single value needs to be set, an initializer expression is shorter.</dd>
 <dd>This is a block of code written inside a class in the form static { ... }, and it runs once when the class is initialized. It is used when the value to put into a static field has to be computed with several lines of code. The initializer expressions of static fields and the static initializers run from top to bottom, in the order in which they are written in the source. Unlike a constructor, which runs every time an object is created, it does not run again no matter how many objects are created.</dd>
 <dt>Compile-time constant</dt>
+<dd><b>Where it's used today</b> — Only literals or compile-time constants can be used for an annotation's attribute value (PATH in @GetMapping(PATH)) and for the case labels of a switch on int or String. So addresses and configuration names are collected in static final String constants and used in such places.</dd>
 <dd>This is a variable, such as static final int MAX = 10, that is final, has a primitive type or the type String, and gets its value from a constant expression such as a literal. The compiler puts the value directly into the places that use such a constant, so at run time the class that declares the constant is not looked up and is not initialized either. A field whose value comes from a method call is not a constant even if it is final, because its value cannot be known at compile time. Because the value is put in directly, when you change the value of a constant you must also recompile the code that uses it for the new value to take effect.</dd>
 <dt>static</dt>
 <dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
@@ -100,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

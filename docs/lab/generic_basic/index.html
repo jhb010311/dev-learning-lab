@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>제네릭</h1>
 <p><b>List&lt;String&gt;의 &lt;String&gt;은 무엇을 해 주는가</b></p>
+<p><b>왜 생겼나</b> — 같은 리스트 클래스를 String에도 Integer에도 쓰려면 아무 객체나 받게 만들어야 하는데, 그러면 무엇을 넣기로 했는지 컴파일러가 확인해 줄 수 없다. 종류마다 리스트를 따로 만들면 같은 코드를 되풀이해야 한다. 제네릭은 ArrayList 같은 클래스를 한 번만 만들고 쓰는 쪽이 &lt;String&gt;처럼 종류를 적게 해서, 코드 하나로 여러 종류를 다루면서도 컴파일러가 검사하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — List&lt;String&gt;, Map&lt;String, Integer&gt;처럼 자바의 컬렉션을 쓸 때 거의 언제나 본다. 스프링에서도 응답을 돌려줄 때 쓰는 ResponseEntity&lt;String&gt; 같은 꼴로 나온다. &lt;&gt;를 빼고 쓰는 로 타입은 제네릭이 없던 예전 코드와 함께 쓰려고 남겨 둔 것이라, 새 코드에서는 쓰지 않는다.</p>
 <p>List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 담는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 담으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 담게 해 줍니다. 표시를 지우면 리스트는 아무 객체나 받고, 컴파일러는 꺼낸 것이 무엇인지 알지 못합니다. 그래서 꺼낼 때마다 (String)이라고 직접 적어야 하고, 잘못 담은 것은 컴파일할 때가 아니라 실행 중에 꺼내는 순간에야 드러납니다. 이 실습은 &lt;String&gt;, 담는 값, (String)을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -94,6 +96,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +173,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
 <h1>변수와 타입</h1>
 <p><b>변수를 다른 변수에 대입하면 무엇이 복사되나</b></p>
+<p><b>왜 생겼나</b> — 숫자 하나까지 모두 객체로 만들면 값마다 객체를 따로 만들고 참조를 거쳐 읽어야 해서 계산이 느려지고 메모리도 더 든다. 기본형은 int, double 같은 작은 값을 객체 없이 바로 계산하기 위한 타입이고, 참조형은 큰 객체를 대입하거나 메서드에 넘길 때 객체 전체 대신 참조만 복사하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — int, long, boolean은 개수, 반복 횟수, 참/거짓 표시처럼 값 하나를 다룰 때 쓰고, String, List와 직접 만든 클래스는 모두 참조형으로 다룬다. 메서드에 객체를 넘기면 그 메서드가 같은 객체를 고칠 수 있으므로, 원본을 지켜야 하면 복사본이나 불변 객체를 넘긴다. List&lt;Integer&gt;처럼 꺾쇠(&lt;&gt;) 안에는 기본형을 쓸 수 없어 int 대신 래퍼 클래스 Integer를 쓴다.</p>
 <p>변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기본형은 복사본을 바꿔도 원래 변수가 그대로이고, 참조형은 두 변수가 같은 객체 하나를 함께 보게 됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 열다섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>기본형과 참조형</dt>
 <dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
 <dt>값에 의한 전달</dt>
+<dd><b>왜 생겼나</b> — C++의 참조 매개변수(&amp;)처럼 메서드가 호출한 쪽 변수 자체를 바꿀 수 있으면, 호출하는 줄만 보고는 내 변수가 바뀔지 알 수 없다. 자바는 인자를 언제나 복사해 넘기므로, 내 지역 변수를 바꾸는 것은 그 변수에 대입하는 줄뿐이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메서드가 결과를 여러 개 돌려줘야 할 때 매개변수에 대입하는 방법은 통하지 않으므로, 결과를 묶은 객체나 record를 반환한다. 두 지역 변수의 값을 맞바꾸는 메서드도 만들 수 없어서, 맞바꿀 값은 리스트에 두고 Collections.swap(list, i, j)처럼 칸끼리 바꾼다.</dd>
 <dd>메서드를 호출할 때 인자로 적은 변수 자체가 아니라 그 변수에 들어 있는 것을 복사해 매개변수에 넣어 주는 방식이다. 영어로는 pass by value 또는 call by value라고 하며, 자바는 언제나 이 방식으로만 인자를 넘긴다. 기본형이면 값이 복사되고, 참조형이면 참조가 복사되어 매개변수와 호출한 쪽 변수가 같은 객체를 가리킨다. 그래서 메서드 안에서 넘겨받은 객체의 내용을 바꾸면 호출한 쪽에서도 바뀐 내용이 보이지만, 매개변수에 다른 객체를 대입해도 호출한 쪽 변수는 바뀌지 않는다.</dd>
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 <dt>힙(Heap) 메모리</dt>
+<dd><b>지금 어디에 쓰나</b> — 운영 모니터링에서 힙 사용량과 GC 뒤에 남는 양을 지켜보며 메모리 누수를 찾는다. 컨테이너에서 띄울 때는 힙 최대 크기를 컨테이너 메모리 한도보다 작게 잡아 스택과 Metaspace 같은 힙 밖 메모리 몫을 남긴다.</dd>
 <dd>new로 만든 모든 객체와 배열이 저장되는 메모리 영역으로, 모든 스레드가 공유한다. 가비지 컬렉터가 관리하며 더 이상 쓰이지 않는 객체를 회수한다. 크기는 -Xms(초기), -Xmx(최대) 옵션으로 정하고, 공간이 부족하면 OutOfMemoryError가 발생한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +97,10 @@ System.out.println(a.x);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ System.out.println(a.x);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

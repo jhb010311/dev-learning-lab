@@ -1,6 +1,8 @@
 Lab.register({
   id: 'process', nav: 'Processes and threads', cat: 'Concurrency', mode: 'step',
   title: 'Two ways to add more workers',
+  why: 'With only one flow of execution, other tasks must wait until one task finishes. The operating system runs each program as a process with its own separate memory, so that a failure in one program does not spread to another, and puts several threads, the flows of execution, in one process, so that they share memory while carrying out several jobs at the same time.',
+  use: 'Tomcat handles several users at the same time in one process by assigning a thread from a thread pool to each request, and the Chrome browser divides processes by site so that if the tab of one site dies, the tabs of other sites keep running. Starting the same application on several servers or in several containers is also a way of dividing it into processes. Work that exchanges data often is divided into threads, and work whose failures must not spread to each other is divided into processes.',
   intro: 'When you run a program, one process is created, and the threads inside it are what actually execute the code. This lab runs three tasks that take 0.3 seconds each in three ways: on one thread, on three threads in one process, and in three processes. The ways differ in whether memory is shared and in what happens to the rest when one of them dies.',
   terms: ['Processes and threads', 'Inter-process communication (IPC)', 'Run-time data areas', 'Context switching'], ranks: ['os', 'concurrency'],
   controls: [

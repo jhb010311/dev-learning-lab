@@ -1,6 +1,8 @@
 Lab.register({
   id: 'relations', nav: 'Many-to-one, one-to-many, one-to-one, many-to-many', cat: 'JPA', mode: 'step',
   title: 'How do the tables and foreign keys change depending on the kind of relationship?',
+  why: 'A table connects rows with foreign key values, and an object points to another object with a reference, so when you work with JDBC directly, you had to keep the other side\'s id value in the object and query again every time you needed it. @ManyToOne, @OneToMany, @OneToOne, and @ManyToMany tell JPA how to turn an object\'s reference into a foreign key or a join table when storing it, so that in code you only follow the reference.',
+  use: 'The most basic one is @ManyToOne, where an order points to a member and a member points to a team, and when you need the list on the other side, you add @OneToMany with mappedBy. When things connect only one to one, such as a member and a locker, you use @OneToOne. If the join table needs columns such as a quantity or a date, you do not use @ManyToMany but make the join table an entity and split it into two many-to-one relationships.',
   intro: 'The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save.',
   terms: ['Many-to-one and one-to-many relationships', 'One-to-one relationship', 'Many-to-many relationships and join tables', 'Owning side and mappedBy', 'Primary key, unique key, foreign key'],
   controls: [

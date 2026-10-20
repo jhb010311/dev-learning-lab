@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>파티셔닝</h1>
 <p><b>테이블을 조각내면 조회는 어느 조각을 읽나</b></p>
+<p><b>왜 생겼나</b> — 주문이나 로그처럼 계속 쌓이는 테이블은 행이 아주 많아지면, 오래된 데이터를 지우는 데에도 수많은 행을 하나씩 지우는 DELETE를 오래 돌려야 하고 그동안 테이블에 부담이 이어진다. 파티셔닝은 테이블을 기준 값에 따라 조각으로 나눠, 조회는 조건에 맞는 조각만 읽고 오래된 조각은 DROP PARTITION 한 번으로 통째로 버리게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 로그, 주문 기록, 결제 내역처럼 날짜별로 쌓이고 오래된 것을 주기적으로 지우는 테이블을 월이나 연도별 RANGE 파티션으로 나누는 것이 흔한 쓰임이다. 조회 조건에 파티션 키를 거의 쓰지 않으면 모든 파티션을 읽게 되어 오히려 손해이고, 한 서버의 용량이나 쓰기 성능이 모자란 문제라면 여러 서버로 나누는 샤딩을 쓴다.</p>
 <p>파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다.</p>
 <p>실행으로 대조 · MySQL 8.4.11에서 서른두 가지 조합을 실행해 오류 코드와 EXPLAIN의 partitions를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,7 @@
 <dt>RANGE 파티션과 HASH 파티션</dt>
 <dd>테이블을 파티션으로 나누는 대표적인 두 가지 방법이다. 행이 어느 파티션으로 갈지를 정하는 컬럼(또는 식)을 파티션 키라고 한다. RANGE는 파티션마다 값의 범위를 정해 두는 방식으로, 날짜처럼 이어진 범위로 조회하거나 오래된 데이터를 파티션째 지울 때 알맞다. 정해 둔 어느 범위에도 속하지 않는 값은 넣을 수 없으므로 다음 기간의 파티션을 미리 추가해야 한다. HASH는 파티션 키를 파티션 수로 나눈 나머지로 파티션을 정하는 방식으로, 행을 고르게 흩어 놓지만 범위 조건으로는 읽을 파티션을 줄이기 어렵다.</dd>
 <dt>파티션 프루닝</dt>
+<dd><b>지금 어디에 쓰나</b> — 날짜로 나눈 테이블에서 최근 한 달 주문이나 어제 로그처럼 날짜 범위로 묻는 조회가 그 기간의 파티션만 읽게 한다. 그래서 파티션 키는 조회 조건에 가장 자주 쓰이는 컬럼으로 고른다.</dd>
 <dd>조회 조건을 보고 해당 행이 있을 수 없는 파티션을 아예 읽지 않는 최적화다. 프루닝은 가지치기라는 뜻이다. 조건에 파티션 키 컬럼이 값이나 범위와 그대로 비교되는 형태로 들어 있어야 동작하며, MySQL에서는 EXPLAIN의 partitions 칸에서 실제로 읽는 파티션을 확인할 수 있다. 조건에 파티션 키가 없거나 파티션 키 컬럼에 함수나 계산을 씌우면 모든 파티션을 읽는다. 파티션을 나눠서 얻는 조회 성능의 이득은 대부분 이 프루닝에서 나온다.</dd>
 <dt>실행 계획(EXPLAIN)</dt>
 <dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
@@ -102,6 +105,10 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +182,10 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

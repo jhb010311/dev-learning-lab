@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP/1.1, 2, 3</h1>
 <p><b>파일 30개를 받을 때 버전마다 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 페이지 하나가 파일 수십 개로 늘면서, 응답을 하나씩 차례로 받는 HTTP/1.1에서는 이미지를 한 장으로 합치거나 도메인을 여러 개로 나누는 편법까지 써야 했다. HTTP/2는 요청마다 번호 붙은 스트림을 두어 앞의 응답을 기다리지 않게 했고, HTTP/3는 스트림을 전송 단계에서도 따로 다루도록 UDP 위의 QUIC으로 옮겼다.</p>
+<p><b>지금 어디에 쓰나</b> — 주요 브라우저와 CDN, nginx는 HTTP/2를 지원하고, HTTP/3도 큰 사이트와 CDN에서 쓰인다. 스프링 부트는 server.http2.enabled로 HTTP/2를 켜지만, 앞단에 nginx나 로드밸런서가 있으면 브라우저와의 HTTP/2·3은 거기서 처리하고 뒤쪽 서버는 HTTP/1.1로 받는 구성이 흔하다. 서버끼리 호출하는 gRPC도 HTTP/2 위에서 동작한다.</p>
 <p>웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.</p>
 <p>일부만 실행으로 확인 · HTTP/1.1·2는 브라우저로 확인, HTTP/3와 유실은 재현 못 함</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>TCP와 UDP</dt>
 <dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>3-way handshake</dt>
+<dd><b>왜 생겼나</b> — 연결 확인 없이 바로 데이터를 보내면 상대가 받을 준비가 됐는지, 조각마다 붙일 번호를 어디서부터 셀지 모른 채 보내게 된다. 3-way handshake는 세 번의 주고받기로 양쪽이 서로의 시작 번호를 확인해, 이후 빠진 조각과 순서를 셀 기준을 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 직접 부르지는 않지만, 연결 타임아웃은 이 과정이 끝나기를 기다리는 한도다. 방화벽이 SYN을 조용히 버리면 답이 없어 이 타임아웃까지 기다리고, 상대 포트에서 기다리는 프로그램이 없으면 곧바로 Connection refused가 난다.</dd>
 <dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -88,6 +92,10 @@ server {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -161,9 +169,10 @@ server {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

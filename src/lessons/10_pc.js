@@ -1,6 +1,8 @@
 Lab.register({
   id: 'pc', nav: '영속성 컨텍스트', cat: 'JPA', mode: 'step',
   title: 'JPA는 SQL을 언제 보내나',
+  why: 'JDBC로 직접 다루면 객체의 값을 바꿀 때마다 UPDATE 문을 쓰고 실행해야 하고, 같은 행을 두 번 읽으면 쿼리도 두 번 나가며 서로 다른 객체가 만들어진다. 영속성 컨텍스트는 한 트랜잭션 동안 읽은 엔티티를 id마다 하나씩 관리하며 처음 읽은 상태와 비교해서, 값이 바뀐 엔티티는 알아서 UPDATE로 보내고 id로 같은 엔티티를 다시 찾을 때는 DB에 가지 않게 한다.',
+  use: '스프링 데이터 JPA를 쓰는 서비스에서 @Transactional 메서드가 엔티티를 조회해 값만 바꾸면 save를 부르지 않아도 커밋할 때 UPDATE가 나가는 것이 이 동작이다. 많은 데이터를 한꺼번에 넣거나 고칠 때는 관리하는 엔티티가 계속 늘어나므로 중간중간 flush와 clear를 부르거나, JdbcTemplate이나 벌크 UPDATE 쿼리를 대신 쓴다.',
   intro: 'JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.',
   terms: ['영속성 컨텍스트', '1차 캐시', '변경 감지(Dirty Checking)', '쓰기 지연과 flush', '엔티티'], ranks: ['jpaorm'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'owner', nav: 'The owning side of a relationship', cat: 'JPA', mode: 'step',
   title: 'You added a member to the team\'s list, so why is the foreign key in the database empty?',
+  why: 'An object can have two references that point to each other, such as the team of a member and the members of a team, but in the table, what represents this connection is one foreign key. If you do not decide which side to follow when the values of the two references disagree, the same connection would be stored separately in two places. mappedBy marks one of the references as read-only, so that exactly one side is the one that writes the foreign key.',
+  use: 'When you want to get the list of members from a team, or the list of order items from an order, you make a bidirectional relationship with @OneToMany(mappedBy = ...). You set the value on the @ManyToOne side that holds the foreign key, and it is common to add a convenience method for the relationship that also puts it into the list side. If the list on the other side is not really needed, keep only the unidirectional @ManyToOne and query the list with JPQL.',
   intro: 'When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship.',
   terms: ['Owning side and mappedBy', 'Unidirectional and bidirectional relationships', 'Primary key, unique key, foreign key', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [

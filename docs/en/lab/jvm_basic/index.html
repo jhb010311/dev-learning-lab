@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Compilation and the JVM</h1>
 <p><b>How does Java code run?</b></p>
+<p><b>Why it exists</b> — Compiling source code into instructions that the computer can run directly (machine code), as C does, requires a separately compiled executable file for each of Windows, Mac, and Linux. In Java, javac produces the same .class file (bytecode) on any computer, and the JVM installed on each computer runs that file, so a file compiled once can run anywhere a JVM exists.</p>
+<p><b>Where it's used today</b> — In a Spring Boot project too, a build tool such as Gradle or Maven produces .class files with the Java compiler, and the jar file that bundles them is run on the JVM with the java -jar command. The run button in a development tool such as IntelliJ also compiles and then runs, in that order. Code written in Kotlin is also turned into .class files and runs on the same JVM.</p>
 <p>The Hello.java file that we write is text for people to read. When you run it with java Hello, this text is not run as it is, but goes through two steps. When you use the command javac Hello.java in a terminal (a window where you type commands as text), a program called javac (the compiler) reads this text and turns it into a file named Hello.class. This job is called compiling. Hello.class contains bytecode, which the JVM reads. Next, when you use the command java Hello, the JVM (Java Virtual Machine) starts, reads Hello.class, and runs main. In this lab you remove the javac line, make the source text wrong, or edit it after compiling, and the real javac and java commands are run, to show whether Hello.class is created and what java Hello runs.</p>
 <p>Checked against real execution · Ran the javac and java commands of JDK 21 for real in 6 combinations and checked the results against them</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>Compilation and javac</dt>
 <dd>Compilation is the job of turning source code written by a person into a form that the JVM can run, and in Java the program that does this job is javac (the Java compiler). The javac command reads source files with the extension .java and turns them into class files with the extension .class, and if nothing else is set it creates the class files in the same folder as the source files. javac only converts the code and does not run it, so running on the JVM is a separate step after compiling. If the source has an error, javac prints an error message, and if there are no errors, the class files are placed in the output folder. Even if you edit the source file, the class file you already made does not change, so to use the edited code you have to compile again with javac.</dd>
 <dt>Class file</dt>
+<dd><b>Where it's used today</b> — A jar file is a compressed file that bundles many .class files into one, and what runs on a server is these .class files, not the source. The line numbers shown when an error occurs are also reported from information recorded in the .class file.</dd>
 <dd>A .class file is a file created as the result of compiling, in the class file format that the JVM reads. It contains JVM instructions (bytecode), a symbol table, and other additional information, and the first 4 bytes of the file are 0xCAFEBABE, which marks this format. The JVM does not know the Java language and knows only this class file format. When you run by class name, as in java Hello, the JVM looks for the class of that name on the class path, and if you do not set the class path, it is the current folder. So even if Hello.java is in the same folder, if there is no Hello.class you get an error that the class Hello cannot be found.</dd>
 <dt>Java Virtual Machine (JVM)</dt>
+<dd><b>Where it's used today</b> — Programs written in Kotlin and Scala, not only Java, are also compiled to bytecode and run on the JVM. On a server, you start a program by setting how it runs, such as the heap size (-Xmx) and the kind of GC, with JVM options.</dd>
 <dd>This is the program that reads and runs Java bytecode. Each operating system has its own version of it, so a Java program that is compiled once can run on several operating systems without modification. It loads classes, manages memory (garbage collection), and converts bytecode to machine code and runs it.</dd>
 <dt>Bytecode</dt>
+<dd><b>Where it's used today</b> — If you view the bytecode of a .class file with javap -c, you can see how the compiler transformed the code. Spring and Hibernate create bytecode directly at run time to generate proxy classes.</dd>
 <dd>This is the intermediate form of code that the Java compiler (javac) produces from source code, and it is stored in .class files. It is not the machine code of a particular CPU or operating system but a set of instructions that the JVM understands, so it runs on the JVM of any platform.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +97,10 @@ java Hello</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ java Hello</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>URL structure</h1>
 <p><b>After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot;</b></p>
+<p><b>Why it exists</b> — If there is no fixed way to write an address, a browser, a server, and a proxy split the same address in different ways when they read it. A URL fixes in one format which symbols separate the way to connect, the server, the location of the resource, and the added values, so that it is read the same way everywhere, and it replaces characters that overlap with those symbols with percent-encoding so that values and separators are not mixed.</p>
+<p><b>Where it's used today</b> — In Spring, @RequestParam takes out the value from the query and @PathVariable takes out the value from the path, and the percent-encoding has already been decoded at that point. When you build an address to send to another server in Java, do not join strings directly; encode the values with UriComponentsBuilder, or put in a single query value converted with URLEncoder.</p>
 <p>A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place.</p>
 <p>Checked against real execution · All 300 combinations were run and checked against Node.js 24 URL, URLSearchParams, and the HTTP client (received by a test server on 127.0.0.1)</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,15 @@
 <dt>URL components</dt>
 <dd>A URL is divided into several parts at fixed symbols. In https://shop.example:8443/shop/list?q=a#review, https is the scheme, shop.example is the host, 8443 is the port, /shop/list is the path, q=a is the query, and review is the fragment. If the port is not written, the connection uses the default port of the scheme (80 for http, 443 for https). The host and port decide where to connect, and the path and the query are carried in the request line to the server. The fragment is used only by the browser to find a position in the document it received, and it is not sent to the server.</dd>
 <dt>Percent-encoding</dt>
+<dd><b>Why it exists</b> — A URL is defined to be written with only English letters, digits, and a few symbols, so characters such as Korean or a space cannot be sent as they are. Percent-encoding lets any character be rewritten with only characters in this range, so that Korean search terms and file names can also be put in addresses and exchanged.</dd>
+<dd><b>Where it's used today</b> — When you attach a search term to an address or send a form with GET, the browser converts the values like this and sends them, and the server's framework receives them and turns them back into the original characters. If you copy and paste a Korean address, the form such as %EA%B0%80 that you see is also this.</dd>
 <dd>A way of writing a character that has a special meaning in a URL, or that cannot be used in a URL, as % followed by two hexadecimal digits. The character is converted to UTF-8 bytes and each byte is written as %XX, so &amp; becomes %26 and one Korean character becomes three %XX groups. If you put a character such as &amp;, =, #, or + directly into a query value, it is read as a separator and the value is cut off or changed, so you must encode a value before you insert it. In a query, a space is sometimes written as +, which is why the + character itself must be written as %2B.</dd>
 <dt>Query string and form data</dt>
+<dd><b>Where it's used today</b> — Values for which the same result must be viewable again from the address alone, such as a search term, sort order, and page number, go in the query string. Values that must not remain in the address and in access logs, such as a password, or long values, such as the content of a post, go in the body of a POST form.</dd>
 <dd>The query string is the part of a URL after the ? in which name=value pairs are joined with &amp;, and form data is text of the same shape sent in the request body. When form data is sent, the Content-Type header is set to application/x-www-form-urlencoded. When an HTML form is submitted with GET, the values are carried in the query string, and when it is submitted with POST, they are carried as form data in the body. The servlet container combines the two and provides them as &quot;request parameters&quot;, so server code takes the values in the same way without telling which of the two they came from. A JSON body is not included in the request parameters.</dd>
 <dt>Relative URL</dt>
+<dd><b>Why it exists</b> — If you write the full address in every link, as in https://host/..., you have to fix every link when you move the host or location of the site. A relative URL lets you write only the part that differs from the address of the current document, so that you can use the links as they are even if you move the whole site.</dd>
+<dd><b>Where it's used today</b> — It is commonly used for links, images, and CSS file paths in HTML, and it is convenient when you put the same page on places with different hosts, such as a development server and a production server. A server can also write a relative URL when it tells the client to go to another address with the Location header of the response.</dd>
 <dd>A URL that leaves out the scheme and the host and gives only part of a URL. The browser fills in the missing parts from the URL of the current document, which is the base URL, to make a complete URL. If it starts with /, it replaces the whole path; otherwise it replaces the last segment of the base path, and .. means one level up. The result depends on whether the base path ends with /. The URL detail relative to /shop/list is /shop/detail, but relative to /shop/list/ it is /shop/list/detail.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +104,10 @@ console.log(new URL('detail', url).href);                // the URL that the lin
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +181,10 @@ console.log(new URL('detail', url).href);                // the URL that the lin
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

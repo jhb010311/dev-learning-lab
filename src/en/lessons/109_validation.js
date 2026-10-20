@@ -1,6 +1,8 @@
 Lab.register({
   id: 'validation', nav: 'Validation', cat: 'Spring', mode: 'step',
   title: 'The field has @NotBlank, so why does an empty value still get in?',
+  why: 'If you write input checks as if statements, the same condition is scattered over several places in controllers and services, some places are missed when the condition changes, and the shape of the error reported on failure also becomes different each time. Bean Validation lets you write a condition only once, right next to the declaration of its field, and leaves to the validator the work of collecting the violated items and reporting them with the field name and message.',
+  use: 'You use it to check the format that each field of a request body must follow, such as the email format of a sign-up (@Email), the range of a product price (@Min, @Max), and required input items (@NotBlank). When validation fails, the response is often a 400 that tells which field is wrong and why. A condition that can be known only by looking at the database, such as "is this email already registered?", is usually checked separately in service code.',
   intro: 'Input values come with conditions such as "the name must not be empty". Bean Validation is a way of writing such conditions above the fields as annotations like @NotBlank, and a condition written this way is called a constraint. However, a constraint does nothing just by being written down. Something has to say "validate this object", and in Spring MVC, the @Valid on a controller parameter is that signal.',
   terms: ['Bean Validation and @Valid', '@NotNull, @NotEmpty, and @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP status codes'],
   controls: [

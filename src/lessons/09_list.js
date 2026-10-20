@@ -1,6 +1,8 @@
 Lab.register({
   id: 'list', nav: 'ArrayList와 LinkedList', cat: '자료구조', mode: 'step',
   title: '같은 연산인데 드는 일의 양이 다르다',
+  why: '자바 배열은 만들 때 길이가 정해져서, 원소 수를 미리 모르면 더 큰 배열을 만들고 옮기는 코드를 직접 써야 한다. ArrayList는 이 길이 관리를 대신 맡아 배열처럼 번호로 바로 꺼내면서도 원소를 계속 더할 수 있게 하고, LinkedList는 노드를 잇는 방식이라 양 끝에서 넣고 빼는 일이 원소 수와 관계없이 빠르다.',
+  use: '조회 결과 목록이나 화면에 보여 줄 항목처럼 모아 두고 차례로 돌거나 번호로 꺼내는 리스트에는 ArrayList를 가장 흔히 쓴다. 양쪽 끝에서 넣고 빼는 큐나 스택이 필요하면 LinkedList보다 ArrayDeque 클래스를 흔히 쓴다.',
   intro: 'ArrayList는 배열 한 덩어리에 원소를 붙여 저장하고, LinkedList는 원소마다 노드를 만들어 앞뒤로 연결합니다. 조회, 삽입, 삭제를 위치를 바꿔 가며 해 보면 한쪽은 원소를 옮기느라, 다른 쪽은 노드를 따라가느라 일을 합니다.',
   terms: ['ArrayList', 'LinkedList', '시간 복잡도(Big-O)', '분할 상환 분석'], ranks: ['collection', 'ds'],
   controls: [

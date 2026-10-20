@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>equals and hashCode</h1>
 <p><b>Why can HashMap not find the key when you override only equals?</b></p>
+<p><b>Why it exists</b> — The default equals of Object only checks whether two variables refer to the same object, and the default hashCode usually produces a different value for each object, so even two objects whose fields are all equal are treated as different. If you override only equals to decide equality by value, collections that first choose a place by the hash value become inconsistent with that decision, and the equals and hashCode contract requires that two objects equal by equals produce the same hash value, which prevents this inconsistency.</p>
+<p><b>Where it's used today</b> — When objects that should be treated as the same if their values are equal, such as coordinates or amounts, are used as HashMap keys or HashSet elements, you override both methods together. The composite key class of JPA must also override equals and hashCode. If it is a value object whose fields do not change, declare it as a record and let the compiler create the two methods.</p>
 <p>To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, HashMap and HashSet cannot find an object that you meant to be equal.</p>
 <p>Checked against real execution · The 12 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -44,6 +46,8 @@
 <dt>Hash collision</dt>
 <dd>This happens when different keys are assigned to the same bucket. It cannot be avoided because the number of buckets is finite. Java's HashMap links the entries of the same bucket in a linked list, and when too many entries gather in one bucket, it converts the list to a red-black tree to shorten the search time. More collisions mean lower performance, so hashCode must spread values evenly.</dd>
 <dt>record</dt>
+<dd><b>Why it exists</b> — Even a class that only bundles values to pass them along required you to write the constructor, accessors, equals, hashCode, and toString by hand, so adding one field meant changing several places, and it was easy to miss one. A record has the compiler generate this code to match the list of fields, which reduces the place to change to one line.</dd>
+<dd><b>Where it's used today</b> — It is used for API request and response DTOs, for the return type of a method that returns several values at once, and for a group of values to be used as a Map key. It cannot be used as a JPA entity, which needs a default constructor and fields that can change.</dd>
 <dd>This is a syntax, which became a standard feature in Java 16, for compactly declaring a (shallowly) immutable class whose purpose is to hold data. You write only the list of fields, and the constructor, accessor methods, equals, hashCode, and toString are generated automatically. All fields are final, but if a field refers to a mutable object (such as a List), the contents of that object can change. It is used to define DTOs and value objects.</dd>
 </dl>
 <h2>Try these</h2>
@@ -107,6 +111,10 @@ System.out.println(set.size());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +188,10 @@ System.out.println(set.size());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Calling another server</h1>
 <p><b>How is a server calling another server different from calling a method?</b></p>
+<p><b>Why it exists</b> — If all features are in one program, changing only the payment part means restarting the whole program, and features run by another company, such as card payment or sending text messages, cannot be done by my program alone. A remote call hands such features to a separately running server, sends a request over the network, and receives the result, so that different programs can divide the work among themselves.</p>
+<p><b>Where it's used today</b> — It is used when a shopping mall server asks a payment company's server to process a payment, or asks another service's server for information such as maps or weather. In a service whose features are split across several servers, it is common for the order server to call the member server or the stock server. In Spring, requests are sent with RestClient or WebClient and the time to wait is also set, and work whose answer need not be received right away is sometimes passed to a message queue.</p>
 <p>A large service sometimes splits its features among several servers. If the order server that takes orders and the payment server that handles payments are different programs that run separately, the order server has to send a request (POST /pay) to the payment server over the network to make a payment. When you call a method in the same program, the one you call is always in the same program and the call finishes right away. But when you call a server across a network, the other side may be off and refuse the connection, or the other side may be slow and you may have to wait. So the code of the order server has to decide how long to wait for an answer (a timeout) and what to answer the client with when the call fails. In this lab, you change the state of the payment server and whether the waiting time is set, and see the response the client receives, the time it took, and what happened to the order server. The code box is not a program but a list of who sends what to whom, and the real run started an order server and a payment server with these settings and exchanged requests between them.</p>
 <p>Checked against real execution · Started an order server and a payment server on Node.js 24.18.0, ran six combinations, and checked them</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,10 @@
 <dt>Connect timeout and read timeout</dt>
 <dd>These are the two time limits that set how long a call to another server waits before giving up. The connect timeout is the limit on waiting until the TCP connection to the remote server is established, and the read timeout is the limit on waiting with no response data arriving after the connection is established. The two measure different intervals, so setting only the connect timeout does not protect against the case where the connection is made but the response is late. If no timeout is set, a slow remote server keeps the calling thread occupied, and when the thread pool runs out, the failure spreads to the calling side. A read timeout does not mean that the remote server did not handle the request, so you must watch out for duplicate handling when you send the same request again.</dd>
 <dt>502 Bad Gateway</dt>
+<dd><b>Where it's used today</b> — When the Spring Boot server behind Nginx is down or still starting, the browser shows 502. In that case, first check whether the server behind is running and whether the port in the proxy configuration matches the server's port.</dd>
 <dd>502 is a status code used when a server acting as a gateway or proxy receives an invalid response from the inbound server it accessed to fulfill the request (RFC 9110 section 15.6.3). The one that makes and sends this response is the proxy server the client connected to, not the origin server behind it. So when a client receives 502, it means the client reached the proxy server it connected to, and the problem is between the proxy server and the server behind it.</dd>
 <dt>504 Gateway Timeout</dt>
+<dd><b>Where it's used today</b> — In a service with a proxy in front, if the server behind does not answer within the set time, the browser shows 504. When you see this, first look for why the server behind is slow, and for work that takes long, change it so that it is not finished inside the request but handled separately and the result is checked later.</dd>
 <dd>504 is a status code used when a server, while acting as a gateway or proxy, does not get a timely answer from the inbound server it accessed to fulfill the request (RFC 9110 section 15.6.5). A server that calls another server can answer the client with this code when it gives up after passing its waiting limit. It is told apart from 502, which is used when an invalid answer is received from the inbound server. Receiving a 504 only means that the waiting has ended, not that the inbound server did not process the request. The inbound server may have finished processing after the limit was passed.</dd>
 </dl>
 <h2>Try these</h2>
@@ -84,6 +88,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

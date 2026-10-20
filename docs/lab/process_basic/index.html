@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 구조와 운영</p>
 <h1>프로세스</h1>
 <p><b>프로세스는 무엇이고, 프로그램을 두 번 실행하면 무엇이 따로인가</b></p>
+<p><b>왜 생겼나</b> — 여러 프로그램이 한 컴퓨터의 메모리를 구분 없이 함께 쓰면, 한 프로그램의 실수가 다른 프로그램의 값을 덮어쓰거나 함께 멈추게 할 수 있다. 운영체제는 실행한 프로그램마다 프로세스를 따로 만들고 메모리도 따로 내줘서, 한 프로세스가 고친 값이나 오류가 다른 프로세스로 번지지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 서버를 java -jar 명령으로 띄우면 프로세스 하나가 생긴다. 같은 서버를 여러 개 띄우면 프로세스마다 메모리가 따로라서 한쪽 변수의 값을 다른 쪽이 보지 못하므로, 여러 서버가 함께 봐야 하는 로그인 정보나 개수는 DB처럼 프로세스 바깥에 둔다. 한 프로그램 안에서 일을 나눠 같은 값을 함께 쓰려면 프로세스 대신 스레드를 쓴다.</p>
 <p>이 실습에서 예시로 만든 Counter 클래스(Counter.java)를 컴파일해 만든 Counter.class는 디스크에 저장된 파일입니다. 이 파일을 java Counter 명령으로 실행하면, 실행 중인 것이 하나 생깁니다. 이것이 프로세스입니다. 운영체제는 프로세스마다 번호(PID)를 붙이고, 그 프로세스만 쓰는 메모리를 내줍니다. 코드의 static int count는 그 메모리에 있는 변수이고, add()는 count를 3 올린 뒤 이 프로세스의 PID와 count를 출력합니다. 프로세스 안에서 코드를 실행하는 흐름은 스레드라고 부릅니다. 이 실습은 같은 Counter.class를 터미널 두 곳에서 실행하거나, 끝난 뒤 다시 실행하거나, 한 번만 실행하고 그 안에서 스레드가 차례로 add를 실행하게 하며 실제로 실행해, 프로세스가 몇 개 생기는지와 각자 본 count가 얼마인지를 봅니다. (웹 서버 같은 프로그램도 java 명령으로 실행하면 프로세스 하나입니다. static은 이 실습에서 다루지 않습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javac와 java 프로세스로 실제로 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>프로그램과 프로세스</dt>
 <dd>프로그램은 디스크에 저장된 파일이고, 프로세스는 그 파일을 실행한 것이다. 자바에서 javac로 만든 Counter.class는 프로그램 파일이고, java Counter 명령을 쓰면 운영체제가 프로세스를 하나 만들어 그 파일을 실행한다. 파일은 1개여도 실행할 때마다 프로세스가 하나씩 생기므로, 같은 파일을 두 번 실행하면 프로세스가 둘이 된다. 프로세스는 실행하는 동안만 있고, 끝나면 사라진다. 이 프로세스는 자기만의 실행 환경을 가진다.</dd>
 <dt>PID(프로세스 번호)</dt>
+<dd><b>왜 생겼나</b> — 같은 프로그램을 두 번 실행하면 두 프로세스의 이름이 같아서, 이름만으로는 어느 쪽을 가리키는지 알 수 없다. PID는 살아 있는 프로세스마다 다른 번호를 붙여, 운영체제와 사람이 프로세스 하나를 콕 집어 가리키게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 멈추지 않는 서버를 끝낼 때 jps나 작업 관리자로 PID를 찾고, kill(윈도우는 taskkill /PID)로 그 프로세스만 끝낸다. 스프링 부트도 시작할 때 로그에 자기 PID를 찍는다.</dd>
 <dd>PID는 운영체제가 프로세스에 붙이는 식별 번호이다. 자바에서는 ProcessHandle.current().pid()로 지금 실행 중인 프로세스의 PID를 읽는다. 같은 때에 살아 있는 프로세스는 서로 PID가 다르다. 한 프로세스 안의 스레드는 같은 프로세스이므로 PID가 하나이다. 운영체제는 프로세스가 끝난 뒤 그 번호를 다시 쓸 수 있고, 다시 쓰일 때까지의 시간은 정해져 있지 않다.</dd>
 <dt>프로세스의 메모리</dt>
 <dd>Java 튜토리얼(The Java Tutorials)은 각 프로세스가 자기만의 메모리 공간을 가진다고 설명한다. 프로세스 안의 변수, 예를 들어 static int count는 그 프로세스의 메모리에 있으므로, 같은 프로그램을 두 번 실행해도 프로세스마다 count가 따로 있고 한쪽이 바꾼 값은 다른 쪽에서 보이지 않는다. 프로세스가 끝나면 그 메모리의 값은 더는 쓸 수 없으며, 같은 프로그램을 다시 실행해도 새 프로세스의 count는 처음 값에서 시작한다. 반대로 한 프로세스 안의 스레드들은 그 프로세스의 메모리를 같이 쓴다.</dd>
@@ -108,6 +112,10 @@ java Counter</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -181,9 +189,10 @@ java Counter</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

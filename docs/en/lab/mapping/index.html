@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Entity mapping</p>
 <h1>Entity mapping and primary keys</h1>
 <p><b>How do the annotations on an entity change the table and the values that are stored?</b></p>
+<p><b>Why it exists</b> — The field name and the column name, a Java enum and the value stored in the database, and who decides the primary key all go out of step unless they are matched, and with JDBC this correspondence was scattered through the SQL strings and the moving code. JPA's mapping annotations let you write this correspondence together above the fields of the entity class, so you can learn the column name, how the value is stored, and how the key is decided by looking at one place.</p>
+<p><b>Where it's used today</b> — You attach @Enumerated(EnumType.STRING) to an enum field so that the values do not go out of step when the order changes, and for the primary key, you often leave it to the database with the IDENTITY strategy for MySQL or the SEQUENCE strategy for a database that has sequences. You attach @Transient to a field for calculation that is not to be stored. If you create the tables separately with a tool such as Flyway, constraints such as the length limit and unique must be written in the SQL of that tool for the database to enforce them.</p>
 <p>JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.</p>
 <p>Checked against real execution · All 96 combinations of entities were compiled and run on Hibernate 7.4.5 and H2, and the create table statements and the stored values were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>@Column</dt>
 <dd>This annotation specifies in detail which column of the table an entity field is paired with. name sets the column name, nullable = false forbids null, unique = true forbids duplicates, and length sets the maximum length of a string. A field is paired with a column even without it, and in that case a string has a length of 255 and allows null and duplicates. nullable, unique, and length are information that is applied when JPA creates the table (the create table statement). If you use a table that already exists as it is, unique and length prevent nothing at run time.</dd>
 <dt>@Enumerated</dt>
+<dd><b>Why it exists</b> — A Java enum value cannot be passed to JDBC as it is, so you had to write code yourself to convert it to a number or text when saving and convert it back when reading. JPA takes care of this conversion, and @Enumerated lets you choose whether the conversion uses the ordinal number or the name.</dd>
+<dd><b>Where it's used today</b> — Add it to a field that holds one of a few fixed values, such as an order status or a member grade. If the DB has to store a short code such as P or D instead of the name, create and use an AttributeConverter instead of @Enumerated.</dd>
 <dd>This annotation specifies what value an enum field is stored as in the database. EnumType.ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0) as a number, and EnumType.STRING stores the name of the constant as text. The default when you do not add it is ORDINAL. If you add a constant at the front or in the middle of the enum after saving with ORDINAL, the numbers shift, and values that are already stored are read back as different constants. No exception is thrown, so it is hard to notice, and using STRING is the safer choice.</dd>
 <dt>@Transient</dt>
+<dd><b>Why it exists</b> — If you keep a calculated value that is needed only on the screen as an entity field, JPA also tries to save that field, so either it looks for a column that does not exist and an SQL error occurs, or a useless column is created. @Transient lets you pick such fields one by one and leave them out of the mapping.</dd>
+<dd><b>Where it's used today</b> — Add it when an entity holds a value that is not saved and is used only for a moment, such as a total calculated from the unit price and the quantity, or the password confirmation value received at member sign-up. If there are many such values, they are often moved out into an object for the screen (a DTO) instead of being kept in the entity.</dd>
 <dd>This annotation leaves a field of an entity out of the mapping. No column is created for this field, and it is not used when saving or when reading. Every field of an entity is paired with a column unless you mark it otherwise, so add this to temporary values and values used only for calculation that do not need to be in the database. In an object that is read back from the database, this field is empty (null if it is a reference type). The Java transient keyword was meant to leave a field out of serialization, but JPA also does not store transient fields.</dd>
 <dt>Primary key generation strategy (@GeneratedValue)</dt>
+<dd><b>Why it exists</b> — If the code decides the primary key, you have to do things like reading the largest number to pick a number that does not overlap, and two requests may pick the same number at the same time. @GeneratedValue leaves the numbering to the auto-increment or the sequence of the DB, so that you get values that do not overlap.</dd>
+<dd><b>Where it's used today</b> — Add it together with @Id to the Long id field of an entity that has no number decided separately, such as a member, an order, or a post. If the key value already comes decided, such as an order number received from outside, do not add it and set the value yourself.</dd>
 <dd>This is the setting that decides who creates the value of the primary key (@Id) of an entity, and how. If you add only @Id, the code must set the value itself, and saving without a value throws an exception. If you add @GeneratedValue as well, the value is created automatically. IDENTITY leaves it to an auto-increment column of the database and is commonly used with MySQL, and SEQUENCE takes the number from a sequence of the database. If you set it to automatic generation and then set a value yourself and save with em.persist, that also causes an exception.</dd>
 <dt>Entity</dt>
 <dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
@@ -116,6 +124,10 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -189,9 +201,10 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

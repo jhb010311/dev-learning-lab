@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Message queues</h1>
 <p><b>What is a message queue, and how is it different from calling a server directly?</b></p>
+<p><b>Why it exists</b> — If one server gives work directly to another server, it has to wait until the other finishes, and if the other is down, the work fails and is not processed unless someone sends it again. A message queue holds the work to be done as messages between the two servers, so that the sending side can hand off work regardless of whether the receiving side is running now or how busy it is.</p>
+<p><b>Where it's used today</b> — It is used to hand off work that takes time but need not be answered right away, such as a notification email or text message sent after an order is finished, or the conversion of an uploaded video. Real services use products such as Kafka or RabbitMQ, and sometimes run several servers that do the work and let them take messages from the same queue, dividing them among themselves. For work that can go on to the next step only after its result is received right away, such as payment approval, the request is sent directly instead of through a queue.</p>
 <p>A message queue is a line, placed between the server that asks for work and the server that does the work, in which the work is written down. The code box has three lines. In the first line, the order server writes the work for the notification server as a short text (a message) called &quot;Notify order N&quot; and puts it in the queue, and when it gets the result it moves straight on to the next job (the side that sends messages). In the second line, the queue keeps the messages in the order they were put in. In the third line, the notification server takes messages out of the queue one at a time and handles them (the side that receives messages). In this lab you remove the queue line so that the order server sends requests straight to the notification server, or you keep the notification server stopped while the 3 orders are sent and start it later, and you see the result the order server gets and how the notifications are handled. The code box is not the source of a program that was run. It is text that says what does what, and the queue used in the runs is a very small queue server written for this lab (it is not a real product such as Kafka or RabbitMQ).</p>
 <p>Checked against real execution · Ran four combinations with two Node.js 24.18.0 http servers (a small queue server written for this lab and a notification server that receives direct requests) and a program that plays the order server, and checked against the model. Real products such as Kafka and RabbitMQ were not run</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Message queue</dt>
 <dd>An intermediate store that sits between the sending side (the producer) and the receiving side (the consumer), holds messages, and then delivers them. The producer puts a message in and moves straight on to its next work, and the consumer takes messages out and processes them at its own pace. The two systems do not call each other directly, so coupling is lower, and a sudden burst of requests can be piled up and processed later.</dd>
 <dt>Producers and consumers</dt>
+<dd><b>Why it exists</b> — If the side that creates tasks also does the processing itself, the creating side also stops and waits for as long as the processing is slow. If you split the roles into producer and consumer and put a queue between them, each works at its own speed, and when busy you can handle more by adding only consumers.</dd>
+<dd><b>Where it's used today</b> — For example, an order server becomes the producer and sends an &quot;order completed&quot; message, and a notification server becomes the consumer, receives that message, and sends an email. Even inside one Java program, threads divide work in the same way with a BlockingQueue between them.</dd>
 <dd>A producer is a program that creates and sends messages, and a consumer is a program that receives those messages and handles them. The RabbitMQ tutorial calls a program that sends messages a producer and a program that mostly waits to receive messages a consumer, and the Kafka documentation calls a client application that writes events a producer and the side that reads and processes events a consumer. When a queue sits between them, the producer only puts messages in the queue, and the consumer takes them out of the queue when it is ready. The Kafka documentation explains that the two are fully decoupled and agnostic of each other.</dd>
 <dt>Message broker</dt>
+<dd><b>Why it exists</b> — If a producer and a consumer connect directly to each other, each must know the other's address, and every time you add or change consumers, the producer must be changed too. A message broker is a separate server standing between the two, so both sides need to know only the broker's address.</dd>
+<dd><b>Where it's used today</b> — Several Spring servers connect to a broker server such as RabbitMQ or Kafka to send and receive messages. Instead of running a broker yourself, you may also use a queue service that is operated for you in the cloud, such as Amazon SQS.</dd>
 <dd>A message broker is an intermediate program that receives the messages a producer sends and passes them on to a consumer. The RabbitMQ tutorial introduces RabbitMQ as a message broker that accepts and forwards messages. Inside a broker there are queues that keep messages, and the same tutorial describes a queue as a large message buffer that is bound only by the memory and disk limits of the host. Producers and consumers do not connect to each other directly. They exchange messages through the broker.</dd>
 </dl>
 <h2>Try these</h2>
@@ -82,6 +88,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -155,9 +165,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

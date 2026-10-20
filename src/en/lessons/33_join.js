@@ -1,6 +1,8 @@
 Lab.register({
   id: 'join', nav: 'JOIN and GROUP BY', cat: 'Database', mode: 'step',
   title: 'Do you put the condition in ON or in WHERE?',
+  why: 'Storing data divided into tables such as members and orders reduces duplication, but a screen needs the combined result of the two. Looking up each table separately in the application and matching the pairs increases the code and the number of round trips to the DB, so JOIN has the DB do this matching in one SQL statement. OUTER JOIN keeps even rows without a match in the result, so that cases such as "members with no orders" can also be seen.',
+  use: 'It is used for queries such as attaching the member name to an order list, computing the number of orders and the total amount per member (together with GROUP BY), and finding members who have never ordered (a LEFT JOIN, then the rows where the match is NULL). Even when JPA is used, a JPQL join and fetch join are in the end converted to SQL JOIN and executed.',
   intro: 'Join 3 members and 4 orders. The join type, the place where you write the condition, and the way you aggregate all change which rows come out. Logically, SQL processes FROM/JOIN → WHERE → GROUP BY → HAVING in this order, and if you follow the rows that are left after each step, you can see why.',
   terms: ['JOIN (INNER, OUTER)', 'GROUP BY, WHERE, HAVING', 'Primary key, unique key, foreign key'], ranks: ['join', 'tuning'],
   controls: [

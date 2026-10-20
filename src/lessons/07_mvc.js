@@ -1,6 +1,8 @@
 Lab.register({
   id: 'mvc', nav: 'MVC 요청 흐름', cat: '스프링', mode: 'step',
   title: '요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지',
+  why: '서블릿만으로 웹 애플리케이션을 만들면 URL마다 서블릿을 두고, 요청 값을 꺼내 형을 바꾸고 응답을 만드는 공통 코드를 서블릿마다 되풀이해야 한다. 스프링 MVC는 요청을 받는 입구를 DispatcherServlet 하나로 모으고, URL에 맞는 메서드 찾기, 요청 값을 메서드 인자로 바꾸기, 반환값을 응답으로 바꾸기를 프레임워크가 맡아서, 컨트롤러에는 요청마다 다른 처리만 남게 한다.',
+  use: '스프링 MVC로 만든 애플리케이션에서는 화면을 돌려주는 @Controller와 JSON을 돌려주는 @RestController가 모두 이 구조로 동작한다. 로그인 확인처럼 모든 요청에 걸 일은 필터나 인터셉터로, 예외를 응답으로 바꾸는 일은 @RestControllerAdvice로 한곳에 모은다. 외부 호출을 기다리는 시간이 대부분인 요청이 아주 많으면 논블로킹 방식인 스프링 WebFlux를 대신 쓰기도 한다.',
   intro: 'MVC는 프로그램을 모델(Model, 데이터), 뷰(View, 화면), 컨트롤러(Controller, 요청을 받아 처리하는 곳)로 나누는 방식이고, 스프링 MVC는 이 방식으로 웹 요청을 처리합니다. HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 요청 하나가 지나가는 길에서 컨트롤러, 모델, 뷰가 각각 몇 번째 단계에서 일하는지, JSON을 돌려주는 @RestController에서는 그중 무엇이 빠지는지 봅니다.',
   terms: ['MVC(Model-View-Controller)', 'DispatcherServlet과 프론트 컨트롤러', 'HandlerMapping과 HandlerAdapter', 'ArgumentResolver', 'HttpMessageConverter', '필터(Filter)', '인터셉터(HandlerInterceptor)', '@ControllerAdvice와 @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [

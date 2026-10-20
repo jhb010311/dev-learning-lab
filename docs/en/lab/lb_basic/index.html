@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Load balancers</h1>
 <p><b>If you run several servers, which server does a request go to?</b></p>
+<p><b>Why it exists</b> — With only one server, that one has to receive all requests even as they increase, and if that server goes down the whole service stops. Merely starting several servers does not decide which server receives which request, or how to avoid a server that is down. A load balancer keeps a single entrance where requests arrive and distributes them among the servers that are alive, so that clients keep using the same address even when servers are added or one goes down.</p>
+<p><b>Where it's used today</b> — Web services with many users run the same server on several machines and put a load balancer in front of them. A load balancer offered by a cloud company, or a program such as Nginx, does this job, and it is also used to take servers out and put them back one at a time when switching to a new version. Values that must carry across requests, such as login state, are not kept only in one server's memory but are commonly kept where several servers can see them together, such as Redis or a DB.</p>
 <p>When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the side that sends requests) has to know several server addresses. So the client connects to one address only, and the load balancer that receives requests at that address spreads them across the servers. The load balancer in this lab sends requests to server A and server B in turn, and skips a server whose connection is refused. The code box is not Java code. It is a configuration that says which program runs at which address and what it does (lines that start with # are comments). Each server counts the requests it has received in its own memory and replies like &quot;I am A, request #1&quot;. In this lab you remove the load balancer, and you stop the server A program after 3 requests, and you see how the replies the client receives change.</p>
 <p>Checked against real execution · Ran all four combinations with an http server of Node.js 24.18.0 as server A (and B), a load balancer built by hand, and an http client, and checked against the model</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Load balancer</dt>
 <dd>A device that distributes incoming requests across several servers. It checks the state of the servers periodically (health check) and does not send requests to a server that has a problem. It keeps load from piling up on one server and keeps the service running even when some servers fail.</dd>
 <dt>Round robin</dt>
+<dd><b>Why it exists</b> — To choose the server for each request by checking how busy the servers are, you have to keep finding out their state. Round robin does not look at the state of the servers. It sends requests in a fixed order, going around, so one simple rule keeps the number of requests each server receives about the same.</dd>
+<dd><b>Where it's used today</b> — It is commonly used in front of web servers whose requests take about the same time to process. If long requests may be mixed in and work may pile up on one server, use instead the method that sends the request to the server with the fewest active connections (least_conn in NGINX).</dd>
 <dd>Round robin is a method that hands out requests to the servers in turn, one server at a time. With two servers, A and B, requests go to A, B, A, B, in that order. The NGINX documentation says this method, which distributes requests evenly across the servers, is the default and that no directive is needed to turn it on, and that you can also give each server a weight. Which server gets which request follows a fixed order, so when the servers are always in the same state, requests are spread evenly across them.</dd>
 <dt>Skipping a failed server</dt>
+<dd><b>Why it exists</b> — If requests are sent in turn even to a server that is down, every request whose turn falls on that server ends in an error. Skipping a failed server leaves out a server that cannot be connected to and sends the request again to the next server, so that users see fewer errors even when one server goes down.</dd>
+<dd><b>Where it's used today</b> — It is used so that requests go to the remaining servers while one server suddenly stops or is coming back up. To find out about a down server before a request arrives, it is sometimes used together with a health check, which sends a check request to the servers regularly (HAProxy, load balancers in the cloud, and so on).</dd>
 <dd>Skipping a failed server is what a load balancer does when an error occurs while it tries to connect to a server: it does not use that server and sends the same request to the next server. In the NGINX documentation the default of proxy_next_upstream is error and timeout, and error covers an error that occurs while establishing a connection with the server, so when a connection is refused, the request is passed to the next server. Also, after max_fails failures (default 1), the server is considered unavailable for fail_timeout (default 10 seconds). Because of this, even if one server stops, a new request is handled by a live server as long as other servers remain (a request that was already being handled may fail).</dd>
 <dt>Connection refused error</dt>
 <dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
@@ -86,6 +92,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +169,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

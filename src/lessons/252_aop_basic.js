@@ -1,6 +1,8 @@
 Lab.register({
   id: 'aop_basic', nav: 'AOP와 프록시', cat: '기초개념', mode: 'step', basic: true, deep: ['proxy', 'aop'],
   title: '프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가',
+  why: '로그 남기기, 트랜잭션 시작과 끝내기 같은 일을 메서드마다 직접 적으면 같은 줄이 여러 곳에 흩어지고, 빠뜨리거나 고칠 때 모두 찾아다녀야 한다. 스프링의 AOP는 그 일을 한 클래스에 모아 적게 하고, 스프링이 만든 프록시가 호출을 먼저 받아 앞뒤에 그 일을 끼워 넣어서, 원래 메서드의 코드는 손대지 않게 한다.',
+  use: '스프링에서 @Transactional을 붙인 메서드가 트랜잭션으로 묶여 실행되는 것, @Cacheable을 붙인 메서드가 저장해 둔 결과를 돌려주는 것이 이 프록시로 동작한다. 직접 쓸 때는 메서드 실행 시간 재기나 호출 기록 남기기에 @Aspect를 쓴다. new로 만든 객체를 부르거나 같은 객체 안에서 자기 메서드를 부르면 프록시를 거치지 않아 끼어들지 못한다.',
   intro: '@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 쓴 클래스로 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다(LogAspect, OrderService, Caller는 이 실습에서 예시로 지은 클래스 이름입니다). LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에 @Autowired가 붙어 있으면, 스프링이 이 칸이 자기가 보관한 객체를 가리키게 합니다. 이 실습은 LogAspect를 지우거나 그 칸이 new OrderService()로 직접 만든 객체를 가리키게 바꿔 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.',
   terms: ['프록시(Proxy)', 'AOP(관점 지향 프로그래밍)', '@Aspect와 @Before', '@Autowired'],
   controls: [

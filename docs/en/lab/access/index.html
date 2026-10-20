@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Access modifiers and encapsulation</h1>
 <p><b>How far do private, protected, and public open up access?</b></p>
+<p><b>Why it exists</b> — If any code can change a field directly, code that breaks a condition that must be kept, such as a balance becoming negative, can appear anywhere, and to change one field you have to find and fix every place that uses it. Access modifiers have the compiler check the range in which a member can be used, so fields are hidden and values can be changed only through the methods you have decided on.</p>
+<p><b>Where it's used today</b> — The basic shape is to keep fields private and open with public only the methods that must be used from outside. A helper class used only in the same package omits the access modifier (package-private) so it is not exposed to other packages, and protected is used for methods left open for child classes to override. If test code is placed in the same package name, it can also test package-private members.</p>
 <p>The access modifier in front of a field or a method determines which code can use that member. The compiler looks at which class and which package the accessing code is in to decide whether to allow the access, and if the access is not allowed, the result is a compile-time error. protected is open to subclasses, but one more condition applies in a subclass in a different package.</p>
 <p>Checked against real execution · The 24 combinations were compiled on JDK 21 from sources split into packages, and whether compilation succeeded and the error messages were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Access modifiers</dt>
 <dd>These are keywords that set the scope from which a class, field, or method can be accessed. public allows access from anywhere (when modules are used, code in another module can access it only if the package is exported), protected allows access from the same package and from subclasses, no modifier (package-private) allows access only from the same package, and private allows access only inside the top-level class where the member is declared (including its nested classes). Keeping access as narrow as possible is the basis of encapsulation.</dd>
 <dt>Encapsulation</dt>
+<dd><b>Why it exists</b> — If fields are public, code that changes a value appears all over the program, and when a value is wrong it is hard to find where it was changed. Encapsulation narrows the ways to change a value to the object's methods, so checking and changing happen in one place.</dd>
+<dd><b>Where it's used today</b> — It is used when an entity or domain class does not open up every setter and instead exposes only methods with a clear meaning, such as cancelling an order or making a deposit. String is the same kind of example: it hides its internal array and shows its contents only through methods.</dd>
 <dd>This means bundling an object's state (fields) together with the methods that work on that state, and hiding the internal implementation so that outside code cannot access it directly. If you make the fields private and let values change only through public methods, the methods can reject invalid values, and you can change the internal structure without affecting outside code.</dd>
 <dt>Package</dt>
+<dd><b>Why it exists</b> — If all classes are in one namespace, classes with the same name made by different libraries collide. A package attaches an affiliation before the class name so that classes with the same name can be told apart, as with java.util.Date and java.sql.Date.</dd>
+<dd><b>Where it's used today</b> — It is used to divide a project's classes by feature or layer, and the name is often written as the domain reversed, such as com.example.order.</dd>
 <dd>This is a namespace that groups related classes together. The single line package bank; at the top of a source file determines which package the classes in that file belong to, and packages usually match the folder structure. To use a class from another package, you either import it or write the package name as well, as in bank.Account. A member with no access modifier can be used only inside the same package, so a package is a unit that divides names and also a unit that divides access.</dd>
 <dt>protected</dt>
+<dd><b>Why it exists</b> — With private, even a subclass cannot use a member, and with public, any class can, so it is hard to express a place that is opened for subclasses to inherit and modify. protected opens it only to the same package and subclasses, which creates a range in between.</dd>
+<dd><b>Where it's used today</b> — It is often used for methods that a framework leaves for subclasses to override. The servlet class HttpServlet keeps doGet and doPost protected, and a class that extends it overrides them to handle requests.</dd>
 <dd>This is the access modifier that opens a member to the classes in the same package and to subclasses, even those in a different package. It gives wider access than writing no access modifier (only up to the same package) and narrower access than public. A subclass in a different package can use an inherited member only through its own type. That is, access through this or through a variable of its own class type works, but access through a variable of the superclass type is a compile-time error. It is easy to overlook that a class in the same package can also use the member even if it is not a subclass.</dd>
 <dt>Inheritance</dt>
 <dd>This means defining a new class (the subclass) that receives the fields and methods of an existing class (the superclass). It reuses common code, and the subclass adds or overrides only the parts it needs. A Java class supports single inheritance only, and a change to the superclass affects every subclass, so it is best used only when there is a clear &quot;is-a&quot; relationship.</dd>
@@ -103,6 +111,10 @@ public class SavingAccount extends Account {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +188,10 @@ public class SavingAccount extends Account {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

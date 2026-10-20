@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>Transaction propagation</h1>
 <p><b>How far does a rollback reach when an exception is thrown?</b></p>
+<p><b>Why it exists</b> — When a method that opens a transaction calls another transactional method, deciding by hand whether the two share one transaction or commit separately means passing the connection between the methods and matching the commit and rollback points yourself. Spring's transaction propagation setting lets you decide this relationship with one value of @Transactional, so that each method declares what succeeds or fails together and what is kept separately.</p>
+<p><b>Where it's used today</b> — Most service methods use the default REQUIRED and join the outer transaction. When a failure record or an audit log must be kept even if the order fails, you commit it separately with REQUIRES_NEW. REQUIRES_NEW uses one more connection, so be careful when the connection pool is small. If you need a rollback for a checked exception as well, specify rollbackFor.</p>
 <p>A method that saves an order calls a method of another bean that saves a log. Both are @Transactional. Which of the two, the order and the log, stays in the database depends on the propagation setting, on where the exception is thrown and what kind it is, and on whether the exception is caught.</p>
 <p>Checked against real execution · 72 combinations were run on Spring 7.0.9 and H2 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,13 @@
 <dt>@Transactional</dt>
 <dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
 <dt>Transaction propagation</dt>
+<dd><b>Where it's used today</b> — Most methods keep the default, REQUIRED, and you put REQUIRES_NEW on a method that saves a failure record or an audit log that must remain even if the outer work is rolled back.</dd>
 <dd>This setting decides what happens when a @Transactional method is called while a transaction is already in progress. The default, REQUIRED, joins the transaction in progress and starts a new one if there is none. REQUIRES_NEW suspends the existing transaction and always starts a separate new transaction. NESTED sets a savepoint inside the same transaction, which makes a partial rollback possible.</dd>
 <dt>Rollback rules and rollbackFor</dt>
+<dd><b>Where it's used today</b> — You specify it, as in @Transactional(rollbackFor = Exception.class), on a method that must roll back even for a checked exception, and conversely you use noRollbackFor to commit for a particular RuntimeException.</dd>
 <dd>By default, @Transactional rolls back only when a RuntimeException or an Error is thrown out of the method, and it commits when a checked exception is thrown. To roll back on a checked exception too, specify that exception in the rollbackFor attribute. Also, if you catch and handle an exception inside the method, the proxy cannot know about it, so no rollback happens. However, if that exception was thrown from another @Transactional method that joined the same transaction, the transaction is already marked rollback-only, so even if you catch and handle the exception, an UnexpectedRollbackException occurs at commit time.</dd>
 <dt>Savepoint</dt>
+<dd><b>Where it's used today</b> — In SQL it is used with SAVEPOINT and ROLLBACK TO SAVEPOINT, and in JDBC with Connection.setSavepoint() and rollback(savepoint). It is used when you insert several records in one transaction, and if one fails you roll back only that one and continue with the rest.</dd>
 <dd>This is an intermediate point that you mark while a transaction is in progress. If a problem occurs later, you can roll back only to that point and not the whole transaction. Spring's NESTED propagation uses this feature.</dd>
 <dt>Checked and unchecked exceptions</dt>
 <dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
@@ -101,6 +106,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +183,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

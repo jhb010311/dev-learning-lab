@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lazy evaluation in streams</h1>
 <p><b>A stream does not run in the order in which it is written</b></p>
+<p><b>Why it exists</b> — When you process a collection with a for loop, you must string together filtering, transforming, and collecting by hand with temporary lists and if statements, so the code gets long and its intent is hard to see. The Stream API lets you write what to do as a chain of step names such as filter and map, and has the library take on the iteration that takes out elements one by one and runs them, so that when only the first values are needed, as with findFirst, it can stop there.</p>
+<p><b>Where it's used today</b> — It is commonly used where you process a collection, such as picking only the items that match a condition from a list and converting them to DTOs, getting the total of order amounts, and grouping members by grade (groupingBy). For logic that needs exception handling at each step or changes to outside variables, a for loop is easier to read, and for data in a database, filter it in the database with WHERE rather than fetching everything and filtering with a stream.</p>
 <p>Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time.</p>
 <p>Checked against real execution · Checked by running 12 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Stream API</dt>
 <dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
 <dt>Lazy evaluation</dt>
+<dd><b>Why it exists</b> — If a computation is done immediately, it produces values that end up unused, and every step must store its whole intermediate result. Lazy evaluation removes that waste by delaying the computation until the value is actually used.</dd>
+<dd><b>Where it's used today</b> — Optional's orElseGet runs the Supplier only when there is no value, and the Logger of java.util.logging, when given a Supplier, does not build the message string if logging at that level is turned off.</dd>
 <dd>This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They run only when the terminal operation is called, and each element passes through the pipeline one at a time. The stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used.</dd>
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
@@ -91,6 +95,10 @@ List.of(5, 2, 8, 1, 9, 4).stream()
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +172,10 @@ List.of(5, 2, 8, 1, 9, 4).stream()
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

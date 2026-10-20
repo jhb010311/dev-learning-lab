@@ -1,6 +1,8 @@
 Lab.register({
   id: 'parallel', nav: '순차 호출과 병렬 호출', cat: '동시성', mode: 'time',
   title: '외부 호출 여러 개를 차례로 할까 한꺼번에 할까',
+  why: '서로 관계없는 외부 호출 여러 개를 차례로 부르면 각 호출의 대기 시간이 모두 더해진다. 스레드를 직접 만들거나 Future.get으로 하나씩 기다리는 방식은 결과 모으기와 예외 처리가 번거롭다. CompletableFuture는 여러 작업을 동시에 시작해 두고, 결과 합치기와 실패·시간 초과 때 대신할 값 정하기를 메서드를 이어 붙이는 방식으로 쓰게 한다.',
+  use: '상품 상세나 마이페이지처럼 화면 하나를 만들려고 회원, 재고, 리뷰 같은 여러 서비스를 함께 불러야 할 때 쓴다. allOf로 모두 끝나기를 기다리고, completeOnTimeout으로 늦은 호출은 기본값으로 대신한다. supplyAsync에 스레드 풀을 넘기지 않으면 대개 공용 ForkJoinPool에서 실행되므로, 외부 호출처럼 기다리는 작업에는 전용 스레드 풀을 지정하는 것이 보통이다.',
   intro: '상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.',
   terms: ['CompletableFuture', '동기와 비동기', '스레드 풀', 'ForkJoinPool과 공용 풀'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [

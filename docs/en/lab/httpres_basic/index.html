@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>HTTP responses</h1>
 <p><b>What does an HTTP response look like as text?</b></p>
+<p><b>Why it exists</b> — If the shape of responses differed from server to server, a browser would have to work out separately for each server where the part that reports the result ends and where the content begins. The fixed shape of an HTTP response has everyone follow the order of a status code on the first line, headers below it, and the body after a blank line, so that an answer sent by any server is read the same way.</p>
+<p><b>Where it's used today</b> — When a browser receives a web page or an app fetches data from a server, every answer that comes has a status code and headers, and usually a body follows. When a Spring controller returns a value, Spring and Tomcat attach the status code and headers to make the response. During development, you can see the status code and headers directly in the Network tab of the browser's developer tools.</p>
 <p>The HTTP response that a server sends back in answer to a request is also a few lines of text in a fixed shape. The first line (the status line) holds the version, the status code (a three-digit number like 200 or 404), and a short description. Below it come lines called headers, in the form &quot;name: value&quot;, and after an empty line, a line with no text at all, comes the body (the actual content). The client (the browser) learns from the status code what happened to the request, from the Content-Type header what kind of content the body is, and from the Content-Length header how many bytes the body is. In this lab you change or remove the status line, the Content-Type line, and the Content-Length line one at a time, send that text exactly as it is to the client, and see what the client reads out of it. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
 <p>Checked against real execution · Ran 18 combinations in which a net server on Node.js 24.18.0 sends the text exactly as it is and an http client reads it, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Status line</dt>
 <dd>The status line is the very first line of an HTTP response, and it holds the HTTP version, the status code, and a short description in order, separated by spaces. For example, HTTP/1.1 200 OK means that the text is written by the rules of HTTP/1.1, the result of the request is 200, and the description that people read is OK. The status code is a three-digit number that tells what happened to the request, and the description is only text for people (RFC 9112 section 4). The client reads from this line, so if a response does not start with a status line, the client cannot read that text as an HTTP response.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 <dt>Content-Type header</dt>
+<dd><b>Why it exists</b> — A body is just bytes, so if its kind is not announced, the receiver has to guess from the content, and a wrong guess garbles Korean text or makes it look wrong. The Content-Type header lets the sender tell the kind and the encoding directly.</dd>
+<dd><b>Where it's used today</b> — When a REST controller in Spring returns an object, Spring converts it to JSON text and adds Content-Type as application/json. In the opposite direction, when you send JSON to the server, you must add this header too, so that Spring reads the body as JSON.</dd>
 <dd>Content-Type is a header that tells what kind of content the body of a response is, and it is written like text/plain; charset=utf-8. The text/plain at the front is the kind (the media type), plain text, and charset=utf-8 is the character encoding the text is written in. The client looks at this value to decide whether to show the body as text or to handle it as a picture or another format. RFC 9110 section 8.3 says that when this header is missing, the receiver may assume the kind is application/octet-stream or may examine the data to decide it.</dd>
 <dt>Content-Length header</dt>
+<dd><b>Why it exists</b> — Without an indication of the length of the body, the end can be signaled only by closing the connection, so a new connection has to be made for every response. Content-Length announces the length in advance, so that the next request and response can follow one after another over the connection kept open.</dd>
+<dd><b>Where it's used today</b> — A browser uses this value to show what percent of a file has been downloaded. A response whose length is not known in advance is sent instead with Transfer-Encoding: chunked, with a length attached to each chunk.</dd>
 <dd>Content-Length is a header that tells the size of the body of a response as a number of bytes. The client uses this number to decide how far the body extends among the text that follows the headers (RFC 9112 section 6.2). It is a number of bytes, not a number of characters, so a Korean letter, which takes 3 bytes in UTF-8, counts as three times as many as the number of letters. A response that has neither Content-Length nor any other length indication takes the bytes received before the server closes the connection as the body (RFC 9112 section 6.3). So in this case a server that does not close the connection cannot tell where the body ends.</dd>
 </dl>
 <h2>Try these</h2>
@@ -87,6 +95,10 @@ Hello, world</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +172,10 @@ Hello, world</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

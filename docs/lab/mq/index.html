@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 메시지와 비동기</p>
 <h1>메시지 큐 기본</h1>
 <p><b>직접 부르지 않고 쪽지를 남긴다</b></p>
+<p><b>왜 생겼나</b> — 한 서버가 다른 서버를 직접 호출해 끝날 때까지 기다리면, 상대가 느린 만큼 응답이 늦어지고 상대가 멈춰 있으면 요청까지 실패한다. 메시지 큐는 두 서버 사이에 메시지를 쌓아 두는 곳을 두어, 보내는 쪽은 결과를 기다리지 않고 응답하고 받는 쪽은 멈췄다가 살아난 뒤에 밀린 메시지부터 처리하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문 뒤 확인 메일 보내기, 올린 이미지의 썸네일 만들기처럼 응답에 바로 필요하지 않은 뒷일을 넘길 때 쓰며, RabbitMQ, Kafka, Amazon SQS 같은 도구가 이 일을 한다. 한 사건을 여러 서비스가 각자 받아 처리해야 할 때도 쓴다. 결제 승인처럼 결과를 받아야 다음 단계로 갈 수 있는 일은 직접 호출을 그대로 쓴다.</p>
 <p>주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다.</p>
 <p>개념 모형 · 개념 모형(실제 메시지 큐로 확인하지 않음)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>메시지 큐</dt>
 <dd>보내는 쪽(생산자)과 받는 쪽(소비자) 사이에서 메시지를 보관했다가 전달하는 중간 저장소다. 생산자는 메시지를 넣고 바로 다음 일을 하며, 소비자는 자신의 속도로 꺼내 처리한다. 두 시스템이 서로를 직접 호출하지 않아 결합이 낮아지고, 순간적으로 몰린 요청을 쌓아 두었다가 처리할 수 있다.</dd>
 <dt>동기와 비동기</dt>
+<dd><b>왜 생겼나</b> — 모든 호출을 동기로 하면 메일 발송처럼 오래 걸리지만 결과가 당장 필요 없는 일까지 끝나기를 기다려야 해서 응답이 늦어진다. 비동기 방식은 일을 맡겨 두고 먼저 다음으로 넘어가 결과는 나중에 받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 결제 승인처럼 결과를 보고 다음 단계를 정해야 하는 호출은 동기로 하고, 알림 발송이나 통계 집계처럼 나중에 끝나도 되는 일은 메시지 큐나 @Async로 비동기 처리한다.</dd>
 <dd>동기는 작업을 요청한 쪽이 결과를 받을 때까지 기다린 뒤 다음으로 진행하는 방식이다. 비동기는 작업을 요청해 두고 결과를 기다리지 않고 다음 일을 진행하며, 결과는 나중에 콜백이나 Future 등으로 전달받는 방식이다.</dd>
 <dt>Pub/Sub</dt>
+<dd><b>왜 생겼나</b> — 보내는 쪽이 받을 곳을 하나하나 알고 직접 호출하면, 받는 곳이 늘 때마다 보내는 코드를 고쳐야 한다. Pub/Sub은 주제에 한 번 발행하면 구독한 곳 모두에 전달되게 해서, 받는 곳이 늘어도 보내는 쪽은 그대로 둔다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 여러 서버에 나뉘어 접속한 채팅 사용자에게 메시지를 뿌리거나, 설정 변경과 캐시 삭제 알림을 모든 서버에 보낼 때 쓴다. 놓치면 안 되는 메시지는 기록을 남기는 Kafka나 Redis Streams를 쓴다.</dd>
 <dd>발행자가 특정 주제(채널)에 메시지를 보내면 그 주제를 구독하고 있는 모든 구독자가 메시지를 받는 방식이다. 발행자와 구독자는 서로를 알 필요가 없다. Redis의 Pub/Sub은 메시지를 저장하지 않아 그 순간 연결되어 있지 않은 구독자는 메시지를 받지 못한다.</dd>
 <dt>메시지 전달 보장</dt>
 <dd>메시지가 몇 번 전달되는지에 대한 보장 수준이다. at-most-once는 최대 한 번 전달되어 중복은 없지만 유실될 수 있다. at-least-once는 최소 한 번 전달되어 유실은 없지만 중복될 수 있다. exactly-once는 정확히 한 번 전달된다. 실무에서는 at-least-once로 두고 소비자가 중복을 처리(멱등)하도록 만드는 경우가 많다.</dd>
@@ -87,6 +93,10 @@ OrderDto order(@RequestBody OrderRequest req) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +170,10 @@ OrderDto order(@RequestBody OrderRequest req) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

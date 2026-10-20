@@ -1,6 +1,8 @@
 Lab.register({
   id: 'bulk', nav: 'Bulk update and delete operations', cat: 'JPA', mode: 'step',
   title: 'After one UPDATE changes many rows, why does the entity still have the old value?',
+  why: 'If you want to change many rows that meet a condition by the same rule and you read the entities into memory one by one and change them, the time to read them and the memory load grow when there are tens of thousands of rows. A bulk operation, which runs a JPQL UPDATE or DELETE with executeUpdate(), lets the database change the rows directly without reading the entities, which removes this load.',
+  use: 'You use it for work that changes many rows with one condition, such as expiring all coupons past their period at once or raising the price of all products. In Spring Data JPA you run it with @Modifying and @Query, and if you give clearAutomatically = true, the persistence context is cleared after it runs. If you must put a different value in each row, or entity callbacks such as @PreUpdate must run, you change them one by one.',
   intro: 'An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed.',
   terms: ['Bulk update and delete operations', 'em.clear and em.refresh', 'Persistence context', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [

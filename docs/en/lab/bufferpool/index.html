@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Storage and recovery</p>
 <h1>Buffer pool and pages</h1>
 <p><b>Why does reading one row read a whole 16KB page?</b></p>
+<p><b>Why it exists</b> — If every read and change of a row went directly to the disk, a frequently used row would have to be read from the same place again and again, and every change would have to be written straight to that place in the data file. InnoDB's buffer pool takes this repeated disk work into one place in memory, so that the more often data is used, the fewer trips to the disk it needs.</p>
+<p><b>Where it's used today</b> — The most direct use is setting innodb_buffer_pool_size when you configure a MySQL server. On a server that runs only the database, a large share of the memory is given to the buffer pool. If frequently used data cannot all stay in the buffer pool, even the same query reads the disk more and becomes slower, so when you look for the cause of a slow query, also check how many times data was read from disk.</p>
 <p>InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later.</p>
 <p>Partly checked against real execution · On MySQL 8.4.11, disk reads and writes were checked by execution for the six combinations in which nothing is evicted. The number of slots and the order of eviction are a conceptual model</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Buffer pool</dt>
 <dd>The memory area where InnoDB keeps the pages it has read from disk. If a needed page is in the buffer pool, it is read from memory without going to disk. If it is not, it is read from disk and put into the buffer pool. The size is set with innodb_buffer_pool_size, and when the pool is full, pages that have not been used for a long time are evicted to make room. A disk is much slower than memory, so giving the buffer pool enough size to hold the frequently used data has a large effect on performance.</dd>
 <dt>Page (InnoDB)</dt>
+<dd><b>Why it exists</b> — On a disk, reading one contiguous chunk at once is usually faster than reading many small pieces separately. InnoDB groups rows and indexes into pages to read and write them, which reduces the number of trips to the disk.</dd>
 <dd>The basic unit in which InnoDB stores, reads, and writes data on disk. The default size is 16KB, and one page holds several rows together. Even when only one row is needed, the whole page that holds it is read, so the other rows on the same page are loaded into memory as well. Indexes are stored in pages too, not only the rows of a table. For this reason, reading rows that are stored close together reads less from disk, while reading scattered rows reads a different page for each row.</dd>
 <dt>Dirty pages and flushing</dt>
+<dd><b>Why it exists</b> — If you write to the data file every time the same page is changed several times in a short span, the number of writes equals the number of changes. If InnoDB keeps a changed page as a dirty page and flushes it later, several changes can be combined into one write.</dd>
+<dd><b>Where it's used today</b> — On a MySQL server with many writes, you tune the flush speed and the proportion of dirty pages that can accumulate with settings such as innodb_io_capacity and innodb_max_dirty_pages_pct.</dd>
 <dd>A dirty page is a page in the buffer pool whose content has been changed but has not yet been written to the data file on disk. When InnoDB changes a row, it changes only the page in memory, and a background thread collects the changed pages and writes them to the data file later. This writing is called flushing. A commit does not wait for flushing, and if the server goes down in the meantime, the changes are applied again from the redo log to recover. To evict a dirty page from the buffer pool, it must first be written to disk.</dd>
 <dt>Eviction policy</dt>
+<dd><b>Why it exists</b> — If you have not decided what to remove when memory is full, no new value can be added. An eviction policy decides the order of removal, so that even when the cache is full, it deletes the values used least first and keeps accepting new ones.</dd>
+<dd><b>Where it's used today</b> — When Redis is used only as a cache, set it to allkeys-lru or allkeys-lfu. When it is used together with values that must not be deleted, choose volatile-lru, which removes only keys that have a TTL. The default, noeviction, deletes nothing when maxmemory is reached and returns an error for write commands.</dd>
 <dd>The rule that decides which data to remove when the memory of a cache is full. Examples are LRU, which removes the least recently used data, and LFU, which removes the least frequently used data. In Redis, you set it with the maxmemory-policy setting.</dd>
 <dt>Undo log and redo log</dt>
 <dd>An undo log records data as it was before a change. It is used to roll back a transaction, and in InnoDB it is also used to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
@@ -97,6 +104,10 @@ SELECT name FROM item WHERE id = 1;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +181,10 @@ SELECT name FROM item WHERE id = 1;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

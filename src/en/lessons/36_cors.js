@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Why a request works in Postman but is blocked only in the browser',
+  why: 'With only the browser\'s same-origin policy, if even one of the scheme, host, and port differs between the screen and the API server, the page\'s script cannot read the API response. Lifting the policy altogether, however, would let any site\'s script read another site\'s response with the logged-in user\'s cookies attached. CORS has the server state in headers which origins may be shown the response, so that this restriction is lifted only for the origins it allows.',
+  use: 'It is configured where the origin of a React or Vue screen differs from that of the API server. During development, a screen at localhost:3000 calling an API at localhost:8080 is also a different origin because the ports differ. In Spring, the allowed origins are written with @CrossOrigin or addCorsMappings of WebMvcConfigurer, and if a reverse proxy puts the screen and the API under the same origin, no CORS configuration is needed.',
   intro: 'By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed.',
   terms: ['CORS and the same-origin policy', 'Preflight request', 'HTTP methods', 'Cookie'], ranks: ['websec', 'http', 'network'],
   controls: [

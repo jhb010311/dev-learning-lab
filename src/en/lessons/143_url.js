@@ -1,6 +1,8 @@
 Lab.register({
   id: 'url', nav: 'URL structure', cat: 'Networking', mode: 'step',
   title: 'After I added the search term "A&B" to the URL, the server received only "A"',
+  why: 'If there is no fixed way to write an address, a browser, a server, and a proxy split the same address in different ways when they read it. A URL fixes in one format which symbols separate the way to connect, the server, the location of the resource, and the added values, so that it is read the same way everywhere, and it replaces characters that overlap with those symbols with percent-encoding so that values and separators are not mixed.',
+  use: 'In Spring, @RequestParam takes out the value from the query and @PathVariable takes out the value from the path, and the percent-encoding has already been decoded at that point. When you build an address to send to another server in Java, do not join strings directly; encode the values with UriComponentsBuilder, or put in a single query value converted with URLEncoder.',
   intro: 'A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place.',
   terms: ['URI and URL', 'URL components', 'Percent-encoding', 'Query string and form data', 'Relative URL'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,15 +31,20 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Singleton beans and state</h1>
 <p><b>My order shows someone else's name</b></p>
+<p><b>Why it exists</b> — A singleton bean's fields are seen by all request threads, so a per-request value cannot be put there, and passing a value such as the current user as a parameter of every method makes the arguments grow at every call site. ThreadLocal gives each thread its own value even for the same variable, so that code running in the thread that handles one request can take that request's value from anywhere.</p>
+<p><b>Where it's used today</b> — Spring Security's SecurityContextHolder, Spring's transaction synchronization (remembering the DB connection currently in use), and SLF4J's MDC, which prints a request ID together with the log, keep their values in ThreadLocal by default. Because a thread pool reuses threads, the value must be cleared with remove when the request ends, and in places that continue in another thread, such as @Async, the value does not follow unless it is passed separately.</p>
 <p>By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value.</p>
 <p>Checked against real execution · Checked by running code on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Stateless singleton beans</dt>
+<dd><b>Why it exists</b> — If a new object were created for every request, the creation cost and the number of objects to clean up would grow with the number of requests. Spring creates only one instance of a bean by default and lets all requests share it, and the price is that a bean needs a stateless design that keeps no per-request values in its fields.</dd>
+<dd><b>Where it's used today</b> — Services, repositories, and controllers keep only their dependencies as final fields and pass request values as parameters. If there is a value that must be kept separately for each request, use a request-scoped bean or a ThreadLocal.</dd>
 <dd>A singleton bean is one instance that all request threads use together. So if you store data that differs per request in an instance variable, the data of different requests gets mixed up. A singleton bean must be designed to be stateless: it keeps no per-request state in fields and handles such data only through the local variables and parameters of its methods.</dd>
 <dt>Bean scope</dt>
 <dd>This is the range over which a bean instance is created and kept. The default, singleton, creates only one instance per container, and everyone shares it. prototype creates a new instance each time it is requested. In a web environment there are also the request scope, which creates one per HTTP request, and the session scope, which creates one per session.</dd>
 <dt>ThreadLocal</dt>
+<dd><b>Where it's used today</b> — SLF4J's MDC, which prints a request number in each log line, keeps its values in a ThreadLocal, and it is also used to give each thread its own copy of an object that is not thread-safe, such as SimpleDateFormat.</dd>
 <dd>This is a variable that lets each thread store its own independent value. The same variable has a different value in each thread, so thread-specific information can be kept without synchronization. Spring keeps the current transaction and the authentication information this way. In a thread pool, threads are reused, so you must always clear the value with remove() after use.</dd>
 <dt>Thread safety</dt>
 <dd>This is the property of working correctly even when several threads use something at the same time. Code is thread-safe if there is no shared state, if the state is immutable, or if access is properly synchronized. A Spring singleton bean is used by many request threads together, so it must be made thread-safe (usually by keeping no state).</dd>
@@ -90,6 +95,10 @@ class OrderService {                 // there is only one instance
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +172,10 @@ class OrderService {                 // there is only one instance
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

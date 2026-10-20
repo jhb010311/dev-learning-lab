@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>다형성과 메서드 선택</h1>
 <p><b>어느 메서드가 실행될지는 누가, 언제 정하나</b></p>
+<p><b>왜 생겼나</b> — 종류마다 다르게 동작해야 할 때 다형성이 없으면 if나 switch로 객체의 종류를 하나하나 검사해 나눠야 하고, 종류가 하나 늘 때마다 그런 분기를 모두 찾아 고쳐야 한다. 다형성은 상위 타입으로 같은 메서드를 부르면 실제 객체가 자기 방식대로 실행하게 해서, 분기 대신 하위 클래스마다 메서드를 오버라이딩하는 것으로 차이를 나타내게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 결제 수단이나 알림 발송 방식처럼 같은 일을 여러 방식으로 하는 코드를 인터페이스 하나와 구현 클래스 여러 개로 나눌 때 쓴다. 스프링이 인터페이스 타입으로 빈을 주입하거나 같은 인터페이스의 구현을 List로 한꺼번에 넘겨주는 것, 컬렉션을 List 타입 변수로 다루는 것도 이 성질에 기댄다.</p>
 <p>변수의 선언 타입과 그 변수가 실제로 가리키는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다.</p>
 <p>실행으로 대조 · JDK 21에서 모든 조합을 컴파일·실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>다형성</dt>
 <dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수에 여러 하위 타입 객체를 담을 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
 <dt>오버라이딩</dt>
+<dd><b>왜 생겼나</b> — 물려받은 메서드가 하위 클래스에 맞지 않을 때 다른 이름의 메서드를 새로 만들면, 상위 타입으로 부르는 코드는 여전히 물려받은 옛 동작을 실행한다. 오버라이딩은 같은 시그니처로 다시 정의해 상위 타입으로 불러도 새 동작이 실행되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 클래스에 맞게 다시 쓸 때와 인터페이스의 메서드를 구현할 때 쓴다. @Override를 붙이면 이름이나 매개변수를 잘못 적어 새 메서드가 되는 실수를 컴파일러가 잡는다.</dd>
 <dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
 <dt>오버로딩</dt>
+<dd><b>왜 생겼나</b> — 오버로딩이 없으면 같은 일을 하는 메서드라도 받는 값의 타입이나 개수마다 다른 이름을 지어야 하고, 쓰는 쪽은 그 이름들을 모두 알아야 한다. 오버로딩은 이름 하나로 묶고 고르는 일은 컴파일러에 맡긴다.</dd>
+<dd><b>지금 어디에 쓰나</b> — System.out.println이 int, String, Object를 모두 받는 것과 String.valueOf가 흔한 예다. 생성자를 여러 개 두어 일부 값을 생략하고도 객체를 만들게 할 때도 쓴다.</dd>
 <dd>같은 이름의 메서드를 매개변수의 개수나 타입을 다르게 해서 여러 개 정의하는 것이다. 어떤 메서드가 호출될지는 컴파일 시점에 인자의 타입을 보고 결정된다. 반환 타입만 다른 것은 오버로딩이 아니며 컴파일 오류다.</dd>
 <dt>static</dt>
 <dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
@@ -101,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

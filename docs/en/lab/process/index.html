@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Processes and threads</h1>
 <p><b>Two ways to add more workers</b></p>
+<p><b>Why it exists</b> — With only one flow of execution, other tasks must wait until one task finishes. The operating system runs each program as a process with its own separate memory, so that a failure in one program does not spread to another, and puts several threads, the flows of execution, in one process, so that they share memory while carrying out several jobs at the same time.</p>
+<p><b>Where it's used today</b> — Tomcat handles several users at the same time in one process by assigning a thread from a thread pool to each request, and the Chrome browser divides processes by site so that if the tab of one site dies, the tabs of other sites keep running. Starting the same application on several servers or in several containers is also a way of dividing it into processes. Work that exchanges data often is divided into threads, and work whose failures must not spread to each other is divided into processes.</p>
 <p>When you run a program, one process is created, and the threads inside it are what actually execute the code. This lab runs three tasks that take 0.3 seconds each in three ways: on one thread, on three threads in one process, and in three processes. The ways differ in whether memory is shared and in what happens to the rest when one of them dies.</p>
 <p>Checked against real execution · Checked by running the 9 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Processes and threads</dt>
 <dd>A process is a running program, and the operating system gives it its own independent memory space. A thread is a flow of execution that does the actual work inside a process. The threads of one process share memory (heap, code, and data), and each has only its own stack. This makes it easy for threads to exchange data, but it also causes problems when they touch the same data at the same time.</dd>
 <dt>Inter-process communication (IPC)</dt>
+<dd><b>Why it exists</b> — If each process has its own memory, they cannot damage each other, but in exchange they cannot read each other's variables directly. IPC lets them exchange values only through channels that the operating system provides, so they can cooperate while staying separated.</dd>
+<dd><b>Where it's used today</b> — Joining commands with | in a shell is a pipe, and when connecting to the Docker daemon or PostgreSQL on the same computer, a Unix domain socket is sometimes used.</dd>
 <dd>This is how processes that each have their own independent memory exchange data. The methods include pipes, message queues, shared memory, and sockets. Communication between server programs mostly uses HTTP or a message broker, which run on top of sockets.</dd>
 <dt>Run-time data areas</dt>
 <dd>These are the memory areas that the JVM uses while it runs a program. The areas that each thread has for itself are the pc register, the Java Virtual Machine stack, and the native method stack, and the areas shared by all threads are the heap and the method area. They are the basis for understanding which data is shared between threads.</dd>
@@ -93,6 +97,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +174,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

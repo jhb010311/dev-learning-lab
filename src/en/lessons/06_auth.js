@@ -1,6 +1,8 @@
 Lab.register({
   id: 'auth', nav: 'Sessions and JWT', cat: 'Authentication', mode: 'step',
   title: 'Where is the login state stored?',
+  why: 'An HTTP request knows nothing about the earlier requests, so if you do not want to send the password again with every request, you need a mark that says "this user has already logged in". A session solves this: the server stores the login record and finds it by the session ID. A JWT lets the server only verify a token that it signed, so even with many servers, it can identify the user without a shared store for login records.',
+  use: 'A web service where the server builds the pages commonly uses sessions, and when there are several servers, the sessions are kept in a shared store such as Redis. For mobile apps and for APIs where several services must verify the same login, JWT is commonly used. A token that has already been issued is hard to invalidate before it expires, so the access token is kept short and a new one is issued with a refresh token.',
   intro: 'A logged-in user sends requests at 10-minute intervals, and a load balancer hands the requests to the servers in turn. See what happens when you add servers or force a logout, first when the server remembers the login state (a session) and then when the client carries it (a JWT).',
   terms: ['Cookie', 'Session', 'JSON Web Token (JWT)', 'Access token and refresh token', 'HTTP as a stateless protocol'], ranks: ['auth', 'http'],
   controls: [

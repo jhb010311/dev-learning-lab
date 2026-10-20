@@ -1,6 +1,8 @@
 Lab.register({
   id: 'circuit', nav: 'Circuit breaker', cat: 'Microservices', mode: 'step',
   title: 'If you keep calling a dead service, you go down too',
+  why: 'With only a timeout, every call to a service that does not respond must wait for that whole time, and adding retries makes more requests pile onto a service that is already overloaded. A circuit breaker looks at the record of recent failed calls and decides not to call for a while, failing right away without waiting or returning a fallback response, which gives the other side time to recover.',
+  use: 'It is placed on each target being called when one service calls another by HTTP in a microservice architecture, or when calling an outside service such as an external payment provider or a map API. In Java and Spring, Resilience4j is commonly used, and the fallback response to return when calls are blocked (an empty recommendation list, a "try again later" message, and so on) is decided together with it.',
   intro: 'The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate reaches a set level (the threshold) or goes above it, a circuit breaker blocks the calls themselves. This stops threads from being tied up waiting for a service that does not respond.',
   terms: ['Circuit breaker', 'Monolithic architecture and microservice architecture', 'Bottleneck'], ranks: ['msa', 'traffic'],
   controls: [

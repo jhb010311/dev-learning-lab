@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>Optional</h1>
 <p><b>Why does the default-value code in orElse run even when a value is present?</b></p>
+<p><b>Why it exists</b> — With a method that returns null, you cannot tell from the return type alone that a value may be missing, so if the caller forgets the null check, a NullPointerException occurred on some other line much later. Optional shows &quot;may be absent&quot; in the return type, and lets you write the default value or the handling to use when the value is absent right where you take the value out, with methods such as orElse and map.</p>
+<p><b>Where it's used today</b> — It is used as the return type of methods whose lookup result may be absent. findById of Spring Data JPA and findFirst and max of streams are typical examples that return an Optional. It is generally not used as the type of a field or a method parameter, and a method with several results returns an empty list instead of an Optional.</p>
 <p>An Optional is an object that expresses that a value may or may not be present. When a value is present, the Optional refers to it; otherwise the Optional is empty. Depending on how you create it (of, ofNullable, empty) and how you get the value out (get, orElse, orElseGet, map), a missing value leads either to an exception or to a default value being used. orElse and orElseGet look as if they give the same result, but they differ in when the code that creates the default value runs.</p>
 <p>Checked against real execution · All 24 combinations were run on JDK 21, and the output and the exceptions were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Optional</dt>
 <dd>This container class expresses in the type that a value may or may not be present. When a method returns it in place of null, the caller is guided to handle the case where there is no value. It is used mainly as a method return type.</dd>
 <dt>orElse and orElseGet</dt>
+<dd><b>Why it exists</b> — If every time you take a value out of an Optional you write an if statement that checks with isPresent() and then calls get(), the code gets long, and mistakes also happen, such as calling get() without checking. orElse and orElseGet let you write &quot;if it is empty, this&quot; in a single call.</dd>
+<dd><b>Where it's used today</b> — Use orElse where a fixed default value is used when the setting value is missing, and orElseGet where the DB has to be queried again or a new object has to be created and saved when it is empty. To throw an exception instead of a default value when it is empty, use orElseThrow.</dd>
 <dd>These are the two methods that set the default value to use in its place when an Optional is empty. orElse(value) takes the default value itself as its argument, and orElseGet(function) takes a function (a lambda expression) that produces the default value. Java evaluates the arguments before it calls a method, so if you write orElse(makeDefault()), makeDefault() runs even when the Optional has a value. orElseGet runs the function that it was given only when the Optional is empty. So use orElseGet when creating the default value takes time or when other work, such as saving or logging, happens along with it.</dd>
 <dt>NullPointerException</dt>
 <dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. Whether a value is null depends on the values at run time, so the compiler cannot catch it in advance and it shows up only when the code runs (it is an unchecked exception, so handling is not forced either). This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
 <dt>Lazy evaluation</dt>
+<dd><b>Why it exists</b> — If a computation is done immediately, it produces values that end up unused, and every step must store its whole intermediate result. Lazy evaluation removes that waste by delaying the computation until the value is actually used.</dd>
+<dd><b>Where it's used today</b> — Optional's orElseGet runs the Supplier only when there is no value, and the Logger of java.util.logging, when given a Supplier, does not build the message string if logging at that level is turned off.</dd>
 <dd>This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They run only when the terminal operation is called, and each element passes through the pipeline one at a time. The stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used.</dd>
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
@@ -101,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

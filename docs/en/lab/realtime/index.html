@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Polling, SSE, and WebSocket</h1>
 <p><b>Four ways to tell the browser what happened on the server</b></p>
+<p><b>Why it exists</b> — If the browser asks every few seconds so that it can show news right away, most requests come back empty, the load on the server grows, and notifications are still delayed by up to the length of the interval. SSE and WebSocket keep one connection open and let the server send news the moment it occurs, so it arrives immediately without anyone asking.</p>
+<p><b>Where it's used today</b> — SSE is used where the server only needs to send, such as notification badges, delivery status, progress of a long task, and price quotes, and WebSocket is used where both sides exchange messages often, such as chat, collaborative editing, and online games. In Spring they are built with SseEmitter and WebSocketHandler. If the information changes only once every few minutes, simple polling is enough.</p>
 <p>HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket).</p>
 <p>Checked against documentation and standards · Checked against the HTML standard, the WebSocket standard (RFC 6455), and the Spring documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>SSE (server-sent events) and polling</dt>
 <dd>Polling is an approach in which the client repeatedly asks the server, at regular intervals, whether there is new data. SSE keeps one HTTP connection open while the server keeps sending events to the client, and data can travel in one direction only, from the server to the client. For cases such as notifications, where only the server needs to send, it is simpler than WebSocket.</dd>
 <dt>WebSocket</dt>
+<dd><b>Why it exists</b> — To imitate a two-way conversation with HTTP requests and responses alone, the client has to keep sending requests, and the headers go along every time even with a short message. WebSocket starts a connection with HTTP and then switches the same TCP connection to WebSocket communication, so both sides exchange short messages without HTTP headers.</dd>
+<dd><b>Where it's used today</b> — In Spring, STOMP support (@MessageMapping) is sometimes used to handle per-topic subscriptions such as chat rooms. When you scale out to several servers, connections are split across the servers, so to send to a user connected to a different server you also use a message relay such as Redis.</dd>
 <dd>A communication protocol that lets a client and a server keep one connection open and send messages freely from either side. In HTTP, the server can respond only after the client sends a request. With this protocol, the server can send data first, so it is used for chat and real-time notifications.</dd>
 <dt>HTTP as a stateless protocol</dt>
+<dd><b>Why it exists</b> — If the server had to remember the earlier conversation for each request, the resources needed to keep that memory would grow with the number of users, and a conversation could not continue once a connection was cut. HTTP is defined so that a request can be handled by looking at that request alone, so the server does not have to remember anything between requests.</dd>
+<dd><b>Where it's used today</b> — Receiving web pages and images, a mobile app calling a server API, and a server calling another service's API are all done over HTTP. For features like chat, in which the server also has to send data first at any time, WebSocket is used together with it.</dd>
 <dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
 </dl>
 <h2>Try these</h2>
@@ -85,6 +91,10 @@ setInterval(async () =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +168,10 @@ setInterval(async () =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

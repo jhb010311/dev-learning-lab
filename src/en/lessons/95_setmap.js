@@ -1,6 +1,8 @@
 Lab.register({
   id: 'setmap', nav: 'Kinds of Set and Map', cat: 'Data structures', mode: 'step',
   title: 'Why do the same values come out in a different order?',
+  why: 'HashSet and HashMap choose a place by the hash value and so find things quickly, but the order in which things come out has nothing to do with either the insertion order or the sorted order. It is troublesome to sort separately every time you need an order, or to manage a List alongside to record the order. So Java provides LinkedHashSet and LinkedHashMap, which remember the insertion order, and TreeSet and TreeMap, which always stay sorted.',
+  use: 'If you only need to remove duplicates or look up by key regardless of order, you use HashSet and HashMap. The Linked family is used for lists that must be shown in insertion order and for caches that remove the least recently used entries first (LinkedHashMap\'s access-order mode), and the Tree family is used for lists in name order and for range searches such as ceilingKey and subMap.',
   intro: 'A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in.',
   terms: ['List, Set, Map', 'Hash table and HashMap', 'LinkedHashSet and LinkedHashMap', 'TreeSet and TreeMap', 'Time complexity (big-O notation)'],
   controls: [

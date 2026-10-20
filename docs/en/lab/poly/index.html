@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Polymorphism and method selection</h1>
 <p><b>Who decides which method runs, and when?</b></p>
+<p><b>Why it exists</b> — When different kinds of objects must behave differently, without polymorphism you must check the kind of each object one by one with if or switch and branch, and every time a kind is added you must find and change all of those branches. Polymorphism lets you call the same method through a supertype and have the actual object run it in its own way, so that the differences are expressed by overriding the method in each subclass instead of by branches.</p>
+<p><b>Where it's used today</b> — It is used when you split code that does the same job in several ways, such as payment methods or notification methods, into one interface and several implementation classes. Spring injecting a bean by an interface type or passing all the implementations of the same interface together as a List, and handling a collection through a variable of type List, also rely on this property.</p>
 <p>The declared type of a variable and the type of the object that it actually refers to can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.</p>
 <p>Checked against real execution · Every combination was compiled and run on JDK 21 and checked against the result</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Polymorphism</dt>
 <dd>This is the property that calling the same method through a reference of the same type runs different behavior depending on the kind of the actual object. A variable of a supertype (an interface or a superclass) can hold objects of several subtypes, and which implementation runs is decided at run time (dynamic method lookup). It lets you add a new implementation without changing the calling code.</dd>
 <dt>Overriding</dt>
+<dd><b>Why it exists</b> — When an inherited method does not fit a subclass, creating a new method with a different name means that code calling through the supertype still runs the old inherited behavior. Overriding redefines the method with the same signature so that the new behavior runs even when it is called through the supertype.</dd>
+<dd><b>Where it's used today</b> — It is used when you rewrite toString, equals, and hashCode to suit a class, and when you implement the methods of an interface. If you add @Override, the compiler catches the mistake of writing the name or parameters wrongly and ending up with a new method.</dd>
 <dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
 <dt>Overloading</dt>
+<dd><b>Why it exists</b> — Without overloading, methods that do the same job would need a different name for each type or number of values they accept, and the calling side would have to know all those names. Overloading groups them under one name and leaves the choice to the compiler.</dd>
+<dd><b>Where it's used today</b> — System.out.println, which accepts int, String, and Object, and String.valueOf are common examples. It is also used when you provide several constructors so that an object can be created with some values left out.</dd>
 <dd>This means defining several methods with the same name but with a different number or different types of parameters. Which method is called is decided at compile time from the types of the arguments. Methods that differ only in return type are not overloaded; that is a compile-time error.</dd>
 <dt>static</dt>
 <dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
@@ -101,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

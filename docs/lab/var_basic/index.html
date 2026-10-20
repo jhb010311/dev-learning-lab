@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>변수와 타입</h1>
 <p><b>변수는 무엇이고, 타입은 무엇을 정하는가</b></p>
+<p><b>왜 생겼나</b> — 계산에 쓰는 값을 매번 숫자로 직접 적으면, 같은 값을 여러 곳에 쓸 때 고칠 곳도 여러 곳이 되고, 나이가 한 살 늘어나는 것처럼 실행하는 동안 바뀌는 값을 이어서 쓸 수 없다. 변수는 값에 이름을 붙여 저장해 두고 그 이름으로 다시 읽고 바꾸게 하며, 자바는 변수마다 타입을 정하게 해서 엉뚱한 종류의 값을 쓰는 실수를 실행하기 전에 컴파일러가 잡게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바 코드 어디서나 본다. 사용자가 입력한 이름, 장바구니에 고른 상품의 개수와 합계, 반복하면서 지금 몇 번째인지 세는 i 같은 값이 모두 변수로 다뤄진다. 한 번 정한 뒤 바뀌면 안 되는 값은 final을 붙여 선언해서 다시 대입하지 못하게 한다.</p>
 <p>변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 &quot;age는 int 변수다&quot;라고 기억해 두고 그 뒤의 줄들이 이 기억에 맞는지 실행하기 전에 확인합니다. 이 실습은 타입 int를 지우고, 담는 값을 바꾸고, 값을 아예 담지 않기도 하며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>변수</dt>
 <dd>변수는 값을 담아 두는 저장 공간에 붙인 이름이다. 모든 변수에는 컴파일할 때 이미 정해진 타입이 있고, 그 타입이 어떤 종류의 값을 담을 수 있는지를 정한다. 예를 들어 int age;로 선언한 변수는 정수만 담을 수 있고, int는 -2147483648부터 2147483647까지의 32비트 정수이다. 변수에 값을 담는 것은 = 로 하며, age = age + 1;은 &quot;오른쪽을 계산한 값을 왼쪽 변수에 담는다&quot;는 뜻이다. 담긴 값은 바뀔 수 있지만 변수의 이름과 타입은 바뀌지 않는다. 타입에 맞지 않는 값을 담으려 하면 컴파일 오류이다.</dd>
 <dt>선언과 초기화</dt>
+<dd><b>왜 생겼나</b> — 이름을 미리 밝히지 않고 바로 쓸 수 있으면, 이름을 잘못 친 줄이 새 변수를 하나 더 만든 것으로 처리되어 실수가 드러나지 않는다. 자바는 쓰기 전에 이름과 타입을 먼저 선언하게 해서, 이런 오타를 실행하기 전에 컴파일러가 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메서드 안에서 합계나 횟수처럼 계산하며 바뀌는 값을 둘 때 int count = 0;처럼 선언하면서 처음 값을 바로 주는 꼴을 흔히 쓴다. if 문의 갈래마다 값이 다르면 선언만 먼저 하고 갈래마다 값을 정한다.</dd>
 <dd>메서드 안에서 변수를 만드는 줄을 지역 변수 선언이라고 하며 타입, 이름, 그리고 선택적으로 = 뒤에 처음 담을 값(초기화)을 적는다. int age;는 선언만 한 것이고 int age = 20;은 선언하면서 초기화한 것이다. 선언하지 않은 이름을 쓰면 컴파일러가 그 이름을 찾지 못해 오류를 낸다. 지역 변수는 필드와 달리 0 같은 기본값이 저절로 들어가지 않으므로, 값을 읽기 전에 반드시 값이 담겨 있어야 하고 아니면 컴파일 오류이다. 값을 담는 줄 = 의 왼쪽에 쓴 이름은 읽는 것으로 치지 않는다.</dd>
 <dt>타입</dt>
+<dd><b>왜 생겼나</b> — 값의 종류를 정하지 않으면 글자에 곱셈을 하거나 없는 메서드를 부르는 실수가 프로그램을 실행해 그 줄에 닿아야 드러난다. 자바의 타입은 이런 실수를 실행 전, 컴파일할 때 찾아 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 변수, 매개변수, 메서드가 돌려주는 값을 선언할 때 적는다. 인텔리제이 같은 편집기는 타입을 보고 그 값에 부를 수 있는 메서드 목록을 보여 준다.</dd>
 <dd>타입은 변수에 담을 수 있는 값의 종류를 정하는 이름이다. 자바의 타입은 기본형과 참조형으로 나뉘고, 참조형에는 클래스 타입, 인터페이스 타입, 타입 변수, 배열 타입이 있다. class Card나 interface Payable 선언을 쓰면 Card, Payable이라는 타입을 쓸 수 있게 된다. 컴파일러는 값을 변수에 담는 줄마다, 그 값의 타입이 변수의 타입과 같거나 그 하위 타입인지 확인한다. 클래스가 implements로 밝힌 인터페이스는 그 클래스의 상위 타입이다. 선언하지 않은 이름을 타입으로 쓰면 컴파일러가 그 타입을 찾지 못해 오류를 낸다.</dd>
 <dt>기본형과 참조형</dt>
 <dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
@@ -89,6 +95,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +172,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

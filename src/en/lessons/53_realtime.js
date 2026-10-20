@@ -1,6 +1,8 @@
 Lab.register({
   id: 'realtime', nav: 'Polling, SSE, and WebSocket', cat: 'HTTP', mode: 'step',
   title: 'Four ways to tell the browser what happened on the server',
+  why: 'If the browser asks every few seconds so that it can show news right away, most requests come back empty, the load on the server grows, and notifications are still delayed by up to the length of the interval. SSE and WebSocket keep one connection open and let the server send news the moment it occurs, so it arrives immediately without anyone asking.',
+  use: 'SSE is used where the server only needs to send, such as notification badges, delivery status, progress of a long task, and price quotes, and WebSocket is used where both sides exchange messages often, such as chat, collaborative editing, and online games. In Spring they are built with SseEmitter and WebSocketHandler. If the information changes only once every few minutes, simple polling is enough.',
   intro: 'HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket).',
   terms: ['SSE (server-sent events) and polling', 'WebSocket', 'HTTP as a stateless protocol'], ranks: ['http', 'network', 'traffic'],
   controls: [

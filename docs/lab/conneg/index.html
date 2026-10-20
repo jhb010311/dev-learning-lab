@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>내용 협상과 압축</h1>
 <p><b>같은 주소인데 왜 사람마다 다른 응답을 받나</b></p>
+<p><b>왜 생겼나</b> — 같은 내용을 형식이나 언어, 압축 방식별로 따로 내보내려면 주소를 그 수만큼 나누고, 클라이언트가 자기에게 맞는 주소를 미리 알아야 한다. 내용 협상은 같은 주소로 들어온 요청이라도 요청 헤더에 적힌 조건을 보고 응답을 다르게 만들게 해서, 주소를 늘리지 않고도 받는 쪽에 맞는 응답을 보낼 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 웹 서버가 Accept-Encoding을 보고 HTML·CSS·JS 파일을 gzip이나 br로 줄여 보내는 데 흔히 쓰인다. 스프링 MVC는 Accept 헤더를 보고 반환값을 JSON이나 XML 가운데 변환할 수 있는 형식으로 보내고, 언어별 메시지 파일을 두면 기본으로 Accept-Language에 맞는 것을 쓴다. 사용자가 언어를 직접 고르게 할 때는 주소(/en/)나 쿠키로 정하기도 한다.</p>
 <p>같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.</p>
 <p>실행으로 대조 · 시험 서버(Node http + negotiator 1.0 + zlib)와 직접 만든 캐싱 프록시(http-cache-semantics 4.2)를 127.0.0.1에 띄워 88가지 조합을 실행해 대조. 압축 크기는 Node 24의 zlib·brotli 실제 결과</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,16 @@
 <dt>콘텐츠 협상(Accept와 Content-Type)</dt>
 <dd>응답 본문을 어떤 형식으로 받을지 클라이언트와 서버가 헤더로 맞추는 일이다. 클라이언트는 Accept 헤더로 받고 싶은 응답의 형식을 알리고, 서버는 그 가운데 만들 수 있는 형식을 골라 응답의 Content-Type 헤더에 적어 보낸다. 요청에 본문이 있을 때는 클라이언트가 그 본문의 형식을 요청의 Content-Type 헤더로 알리는데, 이것은 협상이 아니라 보내는 쪽이 알려 주는 것이다. 값은 application/json이나 text/html 같은 미디어 타입으로 적는다. 서버가 요청 본문의 형식을 읽지 못하면 415(Unsupported Media Type)로, 원하는 형식의 응답을 만들지 못하면 406(Not Acceptable)으로 응답한다. 스프링은 본문의 내용을 보고 형식을 짐작하지 않고 Content-Type 헤더를 따르므로, JSON을 보내면서 Content-Type을 다르게 적으면 읽지 못한다.</dd>
 <dt>q 값(선호도)</dt>
+<dd><b>왜 생겼나</b> — 후보를 적은 순서로만 선호를 나타내면 &quot;둘 다 똑같이 좋다&quot;나 &quot;이것은 받지 않겠다&quot;를 적을 방법이 없다. q 값은 후보마다 숫자를 붙여, 선호의 차이와 같음, 거부까지 한 헤더에 적게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 브라우저는 Accept-Language를 ko-KR,ko;q=0.9,en-US;q=0.8처럼 사용자가 정한 언어 순서에 따라 q를 붙여 보낸다. 서버 코드에서는 이 값을 직접 나누지 않고, 서블릿 컨테이너와 스프링 MVC가 q 순서로 정리해 준 결과를 쓴다.</dd>
 <dd>Accept, Accept-Language, Accept-Encoding 같은 요청 헤더에서 여러 후보 가운데 무엇을 더 원하는지 나타내는 0부터 1까지의 숫자다. &quot;en;q=0.5, ko;q=0.9&quot;처럼 후보 뒤에 ;q=로 적고, 적지 않은 후보는 1로 본다. 서버는 자신이 줄 수 있는 것 가운데 q가 가장 높은 것을 고르므로, 헤더에 먼저 적혔다고 먼저 선택되는 것이 아니다. q=0은 &quot;이것은 받지 않겠다&quot;는 뜻이다. 선호도가 같은 후보 사이에서 무엇을 고를지는 서버가 정한다.</dd>
 <dt>HTTP 압축과 Content-Encoding</dt>
+<dd><b>왜 생겼나</b> — HTML이나 JSON 같은 글자 본문은 같은 낱말과 태그가 되풀이되어, 그대로 보내면 느린 망에서 내려받는 데 시간이 걸린다. HTTP 압축은 보내는 쪽이 줄이고 받는 쪽이 풀게 해서, 내용은 그대로 두고 오가는 바이트 수만 줄인다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 서버나 CDN에서 켜 두어 HTML, CSS, JS, JSON 응답을 줄여 보낸다. 스프링 부트 내장 서버는 server.compression.enabled=true로 켜며, 따로 적지 않으면 꺼져 있다.</dd>
 <dd>서버가 응답 본문을 gzip이나 br(Brotli) 같은 방식으로 줄여서 보내는 것이다. 클라이언트가 요청의 Accept-Encoding 헤더로 자신이 풀 수 있는 방식을 알리면, 서버는 그중 하나로 압축하고 응답의 Content-Encoding 헤더에 쓴 방식을 적는다. 받는 쪽은 그 헤더를 보고 압축을 풀어 원래 본문을 얻으며, Content-Type은 압축과 상관없이 원래 형식 그대로다. HTML이나 JSON 같은 글자로 된 본문은 크게 줄지만, 아주 작은 본문이나 이미 압축된 그림과 동영상은 줄지 않고 오히려 조금 늘어난다. 그래서 서버는 보통 일정 크기 이상의 글자 형식만 압축하도록 설정한다.</dd>
 <dt>Vary 헤더</dt>
+<dd><b>왜 생겼나</b> — 캐시가 주소만 보고 응답을 고르면, 내용 협상으로 요청마다 달라지는 응답을 서로 구별하지 못한다. Vary 헤더는 캐시가 주소와 함께 비교할 요청 헤더를 서버가 알려 주게 해서, 내용 협상과 캐시를 함께 쓸 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 응답을 압축하는 서버는 Vary: Accept-Encoding을, Accept-Language로 언어를 고르는 페이지는 Vary: Accept-Language를 함께 보낸다. 사용자마다 다른 응답은 Vary 대신 Cache-Control: private으로 공유 캐시에 남지 않게 한다.</dd>
 <dd>이 응답이 요청의 어떤 헤더에 따라 달라지는지를 서버가 알려 주는 응답 헤더다. 예를 들어 Vary: Accept-Encoding은 같은 주소라도 요청의 Accept-Encoding 값에 따라 다른 응답이 나간다는 뜻이다. 응답을 보관했다가 다시 내주는 캐시는 주소가 같더라도 Vary에 적힌 헤더의 값이 처음 요청과 같을 때에만 보관한 응답을 쓴다. Vary가 빠지면 공유 캐시가 한 사용자에게 맞춘 응답(압축된 것, 다른 언어판)을 다른 사용자에게 그대로 줄 수 있다. 반대로 값이 사용자마다 제각각인 헤더를 Vary에 넣으면 캐시가 거의 쓰이지 못한다.</dd>
 <dt>캐시</dt>
 <dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
@@ -110,6 +118,10 @@ http.createServer((req, res) =&gt; {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +195,10 @@ http.createServer((req, res) =&gt; {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

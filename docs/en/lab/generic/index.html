@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Generics</h1>
 <p><b>What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</b></p>
+<p><b>Why it exists</b> — Collections without generics handled every element as an Object, so any type could be put in, and every time you took one out, you had to write a cast such as (String) yourself. A mistake of putting in the wrong type showed up only when you ran the program. Generics make you write the element type in the declaration, which moves that check to compile time, and the compiler inserts the cast when an element is taken out.</p>
+<p><b>Where it's used today</b> — They are used by default when you declare collections, as in List&lt;String&gt; and Map&lt;Long, String&gt;. Optional&lt;T&gt;, Spring's ResponseEntity&lt;T&gt;, and JpaRepository&lt;T, ID&gt; are also made generic so that they can be reused with only the handled type changed. If a parameter only reads values taken out of it, you use ? extends, and if it only puts values in, you use ? super, so that it accepts more types.</p>
 <p>Generics are the syntax for writing &quot;what type the elements of this list are&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.</p>
 <p>Checked against real execution · All 20 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,11 @@
 <dt>Raw type</dt>
 <dd>This is a generic class, one that lets you write a type as in List&lt;String&gt;, written as just List, without &lt;...&gt;. It is a form that was kept so that code from before Java 5, when there were no generics, can still be used. The compiler cannot check what is added through a raw type variable and gives only an unchecked warning, so even code that adds a String to the list that a List&lt;Integer&gt; refers to compiles. That mistake shows up later as a ClassCastException at the place where the value is taken out. It is not used in newly written code, and when the element type is unknown, List&lt;?&gt; is used.</dd>
 <dt>Type erasure</dt>
+<dd><b>Why it exists</b> — When generics were added to Java, code and libraries compiled before had to keep running together without being changed. Type erasure uses the type marks only for the compile-time check and then removes them, so that old code could be mixed with new code without creating a separate class for List&lt;String&gt;.</dd>
+<dd><b>Where it's used today</b> — Because of type erasure, an API that needs a type at run time takes a Class object as a separate argument. JPA's em.find receiving the class of the entity to find, and Jackson's readValue receiving the class to convert the JSON into, are examples.</dd>
 <dd>This is what the compiler does when it uses the type arguments of generics (the Integer in List&lt;Integer&gt;) only for the checks at compile time and does not keep them in the code that runs. As a result, at run time a List&lt;String&gt; and a List&lt;Integer&gt; are objects of the same class, and a list object does not remember what type it was meant to hold. At the places where values are taken out, the compiler inserts the casts for you. Because of this, you cannot ask a list for its element type at run time, and you cannot create an object from a type parameter, as in new T(). If you bypass the check of the compiler with a raw type and add a wrong value, nothing stops it at run time.</dd>
 <dt>Wildcard (? extends and ? super)</dt>
+<dd><b>Where it's used today</b> — You often see it in method declarations in the standard library. addAll(Collection&lt;? extends E&gt;) of Collection also accepts a collection of elements of a subtype, and Collections.copy(List&lt;? super T&gt;, List&lt;? extends T&gt;) uses super on the side that is put into and extends on the side that is taken from.</dd>
 <dd>This is the syntax that uses ? inside the &lt;&gt; of a generic type to express that &quot;the type is not fixed&quot;. List&lt;? extends Number&gt; accepts a list of Number or of any subtype of Number, and a value taken out of it can be used as a Number, but no value can be added to it. List&lt;? super Integer&gt; accepts a list of Integer or of any supertype of Integer, and an Integer can be added to it, but a value taken out of it can be received only as an Object. Because a List&lt;Integer&gt; cannot be assigned to a List&lt;Number&gt; variable, wildcards are needed when you write a method that accepts lists of several types. Use extends for a parameter that only has values taken out of it, and super for a parameter that only has values put into it.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +102,10 @@ System.out.println(&quot;last value: &quot; + last);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ System.out.println(&quot;last value: &quot; + last);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Enum classes</h1>
 <p><b>Why does an enum saved as a number come back as a different constant?</b></p>
+<p><b>Why it exists</b> — Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time.</p>
+<p><b>Where it's used today</b> — It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. Processing that differs for each constant is divided with switch or handled with methods placed in the enum. When saving to a database with JPA, you save the name with @Enumerated(EnumType.STRING) instead of the default ordinal number, or you save a code value you defined yourself by converting it with an AttributeConverter.</p>
 <p>An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.</p>
 <p>Checked against real execution · 45 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Enum class</dt>
 <dd>This is the syntax for creating a type that can have only a few fixed values. When you declare enum Status { ORDERED, PAID }, ORDERED and PAID each become an object of type Status, and these objects are created only once and no more can be created with new. There is only one object for each constant, so constants can be compared with == and can also be used in a switch. An enum is also a class, so it can have fields, constructors, and methods, which lets you attach a display name or a code value to each constant. Unlike representing a state with a string or a number, using a value that is not defined is a compile-time error, so enums are used to represent states and kinds.</dd>
 <dt>ordinal() and name()</dt>
+<dd><b>Why it exists</b> — To save an enum constant in a file or a database, you have to convert it to text or a number, and if you write conversion code for each constant, you have to edit it every time you add a constant. name() and ordinal() are methods that every enum inherits from java.lang.Enum, so you get the name and the position without writing anything yourself.</dd>
+<dd><b>Where it's used today</b> — Use name() when the exact name is needed, as when passing a constant as text to another system, and leave text to be shown in logs to toString(). The API documentation says that ordinal() is meant for data structures such as EnumSet and EnumMap, so it is rarely used directly in ordinary code.</dd>
 <dd>These are two methods that every enum constant has. ordinal() returns the position of the constant in the declaration, counted from 0, and name() returns the name of the constant, as written in the declaration, as a string. ordinal() is determined by the declaration order, so its value changes when a constant is inserted in the middle or the order is changed. For this reason, if you save ordinal() values in a database or a file, the same number can later be read as a different constant. When saving, use name() or the value of a field that you define separately in the enum.</dd>
 <dt>valueOf method of an enum class</dt>
+<dd><b>Why it exists</b> — To convert a value that came in as text to an enum, you have to write code that compares with if for each constant, and you have to edit that code every time you add a constant. valueOf is made by the compiler for every enum, so that a constant is found directly from its name alone.</dd>
+<dd><b>Where it's used today</b> — Use it to turn text read from a request parameter or a settings file, or a value saved by name in a database, back into an enum constant.</dd>
 <dd>This is a static method that takes a name string and returns the enum constant with that name, and it is declared automatically in every enum. Status.valueOf(&quot;PAID&quot;) returns Status.PAID. The name must match exactly, including case, and when there is no such constant, the method does not return null but throws an IllegalArgumentException. So when you pass a value that cannot be trusted, such as a string entered by a user, you must be prepared for the exception. values(), which returns an array containing all the constants in declaration order, is declared together with it.</dd>
 <dt>Identity and equality</dt>
 <dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
@@ -104,6 +110,10 @@ System.out.println(s == Status.PAID);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +187,10 @@ System.out.println(s == Status.PAID);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

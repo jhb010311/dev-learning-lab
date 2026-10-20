@@ -1,6 +1,8 @@
 Lab.register({
   id: 'etag', nav: 'HTTP 캐시와 ETag', cat: 'HTTP', mode: 'step',
   title: '같은 파일을 또 받을 필요가 있을까',
+  why: '브라우저가 페이지를 열 때마다 이미지, 스크립트, API 응답을 처음부터 다시 받으면, 바뀐 것이 없어도 전송량과 기다리는 시간이 매번 들고 서버도 같은 일을 되풀이한다. HTTP 캐시와 ETag는 서버가 응답마다 재사용 규칙과 버전 표시를 붙여 보내게 해서, 클라이언트가 바뀐 것만 새로 받게 한다.',
+  use: '이름에 해시를 붙인 JS·CSS 파일에는 max-age를 길게 주고, 배포할 때 이름을 바꿔 새 파일을 받게 한다. 자주 바뀌는 API 응답에는 ETag를 붙이며, 스프링에서는 ResponseEntity의 eTag()나 ShallowEtagHeaderFilter로 붙인다. 개인정보나 결제 화면처럼 남으면 안 되는 응답은 no-store로 저장을 막는다.',
   intro: '브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 "얼마 동안 그대로 써도 되는지"와 "내용의 버전 표시(ETag)"를 알려 주면, 브라우저는 요청을 아예 생략하거나 "바뀌었느냐"만 물어볼 수 있습니다.',
   terms: ['조건부 요청과 ETag', 'HTTP 상태 코드', '캐시', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [

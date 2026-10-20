@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
 <h1>Stock decrement and locks</h1>
 <p><b>What if many orders arrive at once for 3 items in stock?</b></p>
+<p><b>Why it exists</b> — When several requests do &quot;read the stock, subtract 1 if any is left, and save&quot; at the same time, two of them read the same number and each writes the value it subtracted, so one subtraction is lost. Pessimistic locking (SELECT ... FOR UPDATE) keeps other transactions from locking that row from the moment of reading, so they are processed one after another, and optimistic locking (@Version) makes the save fail if the version has changed, which prevents overwriting.</p>
+<p><b>Where it's used today</b> — It is used where several requests change the same row at the same time, such as stock deduction, first-come-first-served coupon issuing, and seat reservation. It is usual to choose pessimistic locking when conflicts are frequent and optimistic locking when they are rare, and when only subtraction is needed, a single UPDATE statement with the condition &quot;subtract 1 only when greater than 0&quot; will also do. When servers must queue up together for work outside the DB too, a Redis distributed lock is used.</p>
 <p>Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. A lock is the typical safeguard against such concurrent changes, and this lab compares the results of several ways of locking and of preventing the problem without a lock.</p>
 <p>Checked against real execution · All five methods were run in 45 combinations on MySQL 8.4.11 and Redis and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Pessimistic locking</dt>
 <dd>An approach that assumes a conflict will happen and locks the data first, at the time it is read. When you lock a row with SELECT ... FOR UPDATE, another transaction that tries to modify the row waits until the lock is released. It is reliable when conflicts are frequent, but it brings waiting and the possibility of deadlock.</dd>
 <dt>Optimistic locking (@Version)</dt>
+<dd><b>Where it's used today</b> — It is used for data that several people may edit but rarely edit at the same time, such as a post or a setting value. When there is a conflict, Spring throws ObjectOptimisticLockingFailureException, so you retry or tell the user to load the data again.</dd>
 <dd>An approach that assumes conflicts are rare and takes no database lock. Instead, at update time, it uses a version number to check whether another transaction updated the data first in the meantime. If you put a @Version field on an entity, the version is compared on update, and an exception is thrown if it has already changed. When conflicts are not frequent, it keeps data consistent without lock waits.</dd>
 <dt>Shared locks and exclusive locks</dt>
+<dd><b>Why it exists</b> — If there is only one kind of lock, even transactions that only read must wait for each other. When locks are split into shared and exclusive locks, reads proceed together, and turns are enforced only when a write is involved.</dd>
+<dd><b>Where it's used today</b> — In MySQL, SELECT ... FOR SHARE takes a shared lock, and FOR UPDATE, UPDATE, and DELETE take an exclusive lock. You use a shared lock to hold on to rows you read so that they do not change during the transaction, and an exclusive lock for rows you read and will modify soon.</dd>
 <dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
 <dt>Distributed lock</dt>
+<dd><b>Where it's used today</b> — It is used to run a scheduler job that runs on several servers only once, or to put requests that arrive all at once, such as coupon issuing, into a line. In Java, libraries such as Redisson's RLock and ShedLock, for schedulers, are commonly used.</dd>
 <dd>A lock that lets only one process at a time perform a specific task among processes that run on several servers. Java's synchronized is valid only inside one server, so with several servers it is implemented by placing a &quot;lock marker&quot; in a store that all of them access (such as Redis). It is given an expiration time so that it is released even if the side that took it runs into a problem.</dd>
 <dt>Race condition</dt>
 <dd>This is a situation in which two or more threads read and write the same data at the same time, and the result depends on the order of execution. count++ consists of three steps: read the value, add 1, and write it back. If the steps of two threads are interleaved, one of the increments is lost. It typically stays hidden in tests and appears under load.</dd>
@@ -92,6 +98,10 @@ public void order(long productId) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +175,10 @@ public void order(long productId) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Kinds of Set and Map</h1>
 <p><b>Why do the same values come out in a different order?</b></p>
+<p><b>Why it exists</b> — HashSet and HashMap choose a place by the hash value and so find things quickly, but the order in which things come out has nothing to do with either the insertion order or the sorted order. It is troublesome to sort separately every time you need an order, or to manage a List alongside to record the order. So Java provides LinkedHashSet and LinkedHashMap, which remember the insertion order, and TreeSet and TreeMap, which always stay sorted.</p>
+<p><b>Where it's used today</b> — If you only need to remove duplicates or look up by key regardless of order, you use HashSet and HashMap. The Linked family is used for lists that must be shown in insertion order and for caches that remove the least recently used entries first (LinkedHashMap's access-order mode), and the Tree family is used for lists in name order and for range searches such as ceilingKey and subMap.</p>
 <p>A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in.</p>
 <p>Checked against real execution · Checked by running 30 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,16 @@
 <dt>Hash table and HashMap</dt>
 <dd>This data structure decides the storage location (bucket) of a key from the value that a hash function produces for that key. The location can be computed directly from the key alone, so lookup, insertion, and removal are O(1) on average. Java's HashMap has this structure; it does not guarantee order and is not thread-safe.</dd>
 <dt>LinkedHashSet and LinkedHashMap</dt>
+<dd><b>Why it exists</b> — HashSet and HashMap do not guarantee iteration order, so to take elements out in insertion order you had to keep a separate List to record the order. LinkedHashSet and LinkedHashMap maintain an order link along with the entries, so one collection gives both fast lookup and insertion order.</dd>
+<dd><b>Where it's used today</b> — You use them to make a list that must remove duplicates but keep the order in which items first appeared (search terms, tags). LinkedHashMap is also used to make a small cache that discards the least recently used entries first, by setting accessOrder to true and overriding removeEldestEntry.</dd>
 <dd>These are a HashSet and a HashMap that remember insertion order. They put entries into a hash table in the same way, but they also maintain a linked list that connects the entries in insertion order, so iteration returns them in insertion order. Re-inserting an element or a key that is already present does not change the position where it was first inserted. Insertion and lookup are O(1) on average, the same as HashMap, and maintaining the linked list takes a little more memory. They are used for lists that must be shown in insertion order.</dd>
 <dt>TreeSet and TreeMap</dt>
+<dd><b>Why it exists</b> — To see the values put in a HashMap in order, you have to sort separately every time you take them out, and to pick only those at or above some value, you have to scan them all. TreeSet and TreeMap decide the position on each insertion and always keep the elements sorted, so taking elements out in order and searching a range can be done directly.</dd>
+<dd><b>Where it's used today</b> — You use them to show records by date in time order, or to find, with floorKey, &quot;the largest threshold that is at or below this score&quot; in a table of score bands. If order is not needed, you use the faster HashMap and HashSet.</dd>
 <dd>These are a Set and a Map that always keep their elements (for TreeMap, the keys) in sorted order. Internally each is a red-black tree, and on every insertion the position is decided by comparing with compareTo (or with the Comparator given to the constructor), so iteration returns the smallest first. Insertion, lookup, and removal are all O(log n), which is slower than HashMap, but the smallest value or the range of values greater than or equal to some value can be obtained directly. If no Comparator was given, or the given Comparator does not permit null, inserting null throws a NullPointerException. If no Comparator was given, inserting an object that does not implement Comparable throws a ClassCastException. Whether two values are the same is decided by whether the comparison result is 0, not by equals.</dd>
 <dt>Time complexity (big-O notation)</dt>
+<dd><b>Why it exists</b> — If you measure running time in seconds, the value differs by computer and by input, so it is hard to say which of two approaches is better. Big-O notation drops constants and small terms and keeps only the shape of the growth as the input gets larger, so it lets you compare approaches regardless of the environment.</dd>
+<dd><b>Where it's used today</b> — It is used when choosing a data structure (contains is O(n) for ArrayList and O(1) on average for HashSet), when judging whether a double loop can withstand growing data, and when estimating whether a solution will finish in time in a coding test.</dd>
 <dd>This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows.</dd>
 </dl>
 <h2>Try these</h2>
@@ -96,6 +104,10 @@ System.out.println(set.size());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +181,10 @@ System.out.println(set.size());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

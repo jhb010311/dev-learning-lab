@@ -1,6 +1,8 @@
 Lab.register({
   id: 'gc', nav: 'GC와 메모리 누수', cat: 'JVM', mode: 'step',
   title: '버려진 객체는 누가 언제 치우나',
+  why: 'C처럼 메모리를 직접 다루는 언어에서는 쓰고 난 메모리를 개발자가 직접 풀어 줘야 하고, 풀기를 잊거나 이미 푼 메모리를 다시 쓰는 실수가 프로그램을 망가뜨린다. 자바의 GC는 어디에서도 닿지 않는 객체를 JVM이 찾아 치우게 해서, 메모리를 돌려주는 코드를 개발자가 쓰지 않아도 되게 했다.',
+  use: '자바 프로그램은 따로 켜지 않아도 JVM이 필요할 때마다 GC를 돌린다. 개발자가 GC를 들여다보는 때는 응답이 가끔 멈칫하는 원인을 찾을 때, 힙 크기와 G1 같은 GC 종류를 정할 때, OutOfMemoryError가 나서 GC 로그와 힙 덤프로 계속 남는 객체를 찾을 때다.',
   intro: '더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 쓰지 않는데도 어딘가에서 계속 참조하고 있어 GC가 치우지 못하는 객체가 쌓이는 것이 메모리 누수이며, 누수가 있을 때 힙이 어떻게 되는지도 봅니다.',
   terms: ['가비지 컬렉션(GC)', '도달 가능성과 GC 루트', 'Young 세대와 Old 세대', 'Minor GC와 Full GC', 'Stop-the-world(STW)', '메모리 누수', 'StackOverflowError와 OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [

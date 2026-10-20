@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>HTTP 메서드</h1>
 <p><b>GET과 POST는 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 주소만으로 요청을 나누면 목록 보기와 글 올리기에 주소를 따로 지어야 하고, 브라우저는 이 요청을 다시 보내도 괜찮은지 알 수 없다. HTTP 메서드는 요청 첫 줄의 낱말로 하려는 일을 밝힌다. GET에는 서버의 것을 바꾸지 않는다는 약속이 있어서, 브라우저는 GET으로 연 화면을 새로 고칠 때는 그냥 다시 보내고 POST로 연 화면을 새로 고칠 때는 다시 보낼지 먼저 묻는다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링에서는 @GetMapping과 @PostMapping으로, 같은 주소라도 HTTP 메서드마다 다른 자바 메서드가 요청을 받게 한다. 목록이나 상세 화면을 보여 줄 때는 GET, 회원 가입이나 글쓰기 양식을 보낼 때는 POST를 쓴다. JSON을 주고받는 API에서는 고치기와 지우기에 PUT, PATCH, DELETE도 함께 쓰는 일이 많다.</p>
 <p>HTTP 요청의 첫 줄 맨 앞 낱말을 메서드라고 합니다. 메서드는 서버에게 &quot;그 주소에서 무엇을 해 달라&quot;는 요청인지를 알리는 낱말이어서, 같은 /memos 주소라도 GET을 보내는지 POST를 보내는지에 따라 서버가 하는 일이 다릅니다. GET은 서버에 있는 것을 가져오는 메서드로, 서버의 것을 바꿔 달라는 요청이 아닙니다. POST는 요청에 실어 보낸 내용(본문)을 서버가 처리해 달라는 메서드입니다. 서버는 자기가 맡을 메서드를 코드로 만들어 두고, 만들어 두지 않은 메서드로 요청이 오면 405 상태 코드로 답합니다. 이 실습은 메모 목록을 가진 서버에 요청을 보내면서 첫 줄의 메서드를 바꾸고, 같은 요청을 한 번 또는 두 번 보내, 서버의 메모가 어떻게 되는지를 봅니다. 코드 칸의 위쪽은 서버에 실제로 보낸 요청의 글자이고, # 으로 시작하는 줄은 서버에 보내지 않는 설명입니다(서버에 무엇을 만들어 두었는지, 보내는 횟수). 코드 칸은 서버 프로그램의 코드가 아니라 주고받은 것을 적은 것입니다. (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 http 서버에 요청 글자를 그대로 보내는 여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>HTTP 메서드</dt>
 <dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
 <dt>GET 메서드</dt>
+<dd><b>지금 어디에 쓰나</b> — 검색처럼 조건을 주어 목록을 볼 때 /search?q=java처럼 조건을 주소 뒤에 붙여 GET으로 보낸다. 그래서 그 결과 화면의 주소를 즐겨찾기에 넣거나 다른 사람에게 보내 같은 화면을 다시 열 수 있다.</dd>
 <dd>GET은 요청 대상(자원)의 현재 내용을 전달해 달라고 요청하는 HTTP 메서드다(RFC 9110 9.3.1절). GET은 읽기 전용의 의미로 정의된 &quot;안전한&quot; 메서드여서, 클라이언트는 GET을 보내면서 서버의 상태가 바뀌기를 요청하지도 기대하지도 않는다(9.2.1절). 그래서 같은 GET을 여러 번 보내도 서버에 남는 것은 달라지지 않는 것이 보통이다. GET 요청에 본문을 실어 보내도 그 본문에는 일반적으로 정해진 의미가 없다(9.3.1절).</dd>
 <dt>POST 메서드</dt>
+<dd><b>왜 생겼나</b> — 보낼 값을 GET처럼 주소 뒤에 붙이면 방문 기록과 서버 기록에 그대로 남고, 파일처럼 큰 값은 보내기 어렵다. POST는 값을 본문에 실어 보내서 이런 문제를 덜어 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 로그인 양식의 아이디와 비밀번호, 파일 올리기, 주문하기처럼 서버에 값을 넘겨 처리하게 할 때 쓴다.</dd>
 <dd>POST는 요청에 실어 보낸 본문(내용)을 요청 대상이 자기 규칙대로 처리해 달라고 요청하는 HTTP 메서드다(RFC 9110 9.3.3절). 대표적인 쓰임은 HTML 양식에 적은 값을 처리하는 프로그램에 넘기기, 게시판 같은 곳에 글 올리기, 아직 식별되지 않은 새 자원 만들기, 기존 자원의 내용 뒤에 데이터 덧붙이기다. POST는 안전한 메서드도 멱등한 메서드도 아니어서(9.2절), 같은 POST를 두 번 보내면 서버가 두 번 처리할 수 있다. 처리 결과 새 자원이 만들어졌다면 서버는 201 Created 상태 코드와 Location 헤더로 답하도록 권장된다(9.3.3절).</dd>
 <dt>405 Method Not Allowed와 Allow 헤더</dt>
+<dd><b>왜 생겼나</b> — 405와 Allow 헤더는 주소가 틀린 것(404)과 메서드만 틀린 것을 나누어 알려서, 보낸 쪽이 어느 메서드로 다시 보내면 되는지 바로 알게 하려는 방법이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링에서 @GetMapping만 붙은 주소에 POST를 보내면 스프링이 405와 Allow 헤더를 돌려준다. 이 응답을 받으면 주소가 아니라 보내는 메서드나 컨트롤러의 매핑을 확인한다.</dd>
 <dd>405 Method Not Allowed는 요청 줄의 메서드를 서버가 알고 있지만 그 요청 대상은 그 메서드를 지원하지 않는다는 뜻의 상태 코드다(RFC 9110 15.5.6절). 서버는 405 응답에 Allow 헤더를 반드시 붙여, 그 대상이 현재 지원하는 메서드를 알려 주어야 한다(15.5.6절, 10.2.1절). 예를 들어 Allow: GET, POST는 그 대상이 GET과 POST를 받는다는 뜻이다. 서버가 메서드 자체를 모르거나 구현하지 않았을 때는 405가 아니라 501 Not Implemented로 답하도록 권한다(9.1절).</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -85,6 +92,10 @@ Host: localhost:8080
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +169,10 @@ Host: localhost:8080
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

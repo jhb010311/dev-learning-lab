@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
 <h1>Arrays</h1>
 <p><b>Does assigning an array variable copy the array?</b></p>
+<p><b>Why it exists</b> — When there are several values, creating one variable each, such as score1, score2, and score3, means writing new variables and new code every time the count grows, and you cannot process them in turn with a loop. An array gives each value a number starting from 0, so you pick a value with one variable and a number, as in a[i], and one loop can process all the values.</p>
+<p><b>Where it's used today</b> — It is used for values whose count is fixed, such as totals by day of the week, for two-dimensional grids such as a game board, and for the command-line arguments received through main(String[] args). It is also used when you handle many primitive values, as with byte[] for bytes read from a file or the network. If the count grows and shrinks, ArrayList, whose length changes, is used instead.</p>
 <p>An array is a fixed number of elements of the same type placed side by side. The number of an element (its index) starts at 0, the length is set when the array is created and does not change, and every element is filled with a default value as soon as the array is created. An array is an object too, so a variable holds a reference to the array. That is why b = a does not copy the array, and why a two-dimensional array is &quot;an array whose elements hold arrays&quot;.</p>
 <p>Checked against real execution · Checked by running 72 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,7 @@
 <dt>Array</dt>
 <dd>This is an object that holds a fixed number of values of the same type side by side. You create one as in int[] a = new int[3], and the number of an element (its index) starts at 0 and goes up to length - 1. The length is set when the array is created, does not change, and is read with a.length. As soon as an array is created, every element is filled with a default value (0 for numbers, false for boolean, null for reference types), and using an index outside the range throws an ArrayIndexOutOfBoundsException at run time. An array is an object too, so an array variable holds a reference to the array, and when it is assigned to another variable, the two variables refer to the same array.</dd>
 <dt>Shallow copy and deep copy</dt>
+<dd><b>Where it's used today</b> — If you keep a received array in a field as it is, or return a field's array as it is, outside code can change the internal values, so you hand over and receive copies instead (defensive copy). When something must be kept completely separate from the original, such as saving the state of a game board and restoring it later, you make a deep copy.</dd>
 <dd>A shallow copy creates anew only the outermost level of an object or an array and copies the references inside it as they are. So the copy and the original refer to the same inner objects, and when an inner object is changed through one, the change is visible through the other too. clone() of an array and Arrays.copyOf make shallow copies, and when they are used on a two-dimensional array, only the outer array is newly created and the row arrays are shared. A deep copy creates anew everything down to the inner objects and so keeps the copy completely separate from the original, and for a two-dimensional array this means that each row must be cloned. If what the elements hold is primitive values or immutable objects, a shallow copy alone is enough for the two not to affect each other.</dd>
 <dt>Primitive types and reference types</dt>
 <dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
@@ -91,6 +94,10 @@ System.out.println(Arrays.toString(b));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +171,10 @@ System.out.println(Arrays.toString(b));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>요청 수 제한</h1>
 <p><b>초당 5건까지만 받는다는 것의 세 가지 의미</b></p>
+<p><b>왜 생겼나</b> — 요청 수를 제한하지 않으면 처리 능력을 넘는 요청이 몰릴 때 스레드와 DB 커넥션이 바닥나, 모든 요청이 함께 느려지거나 실패한다. 요청 수 제한은 들어오는 입구에서 요청을 세어 기준을 넘는 것을 일을 시작하기 전에 429로 돌려보내, 받아들인 요청만큼은 제대로 처리되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 공개 API에서 API 키나 사용자별로 분당 호출 수를 정할 때, 로그인이나 인증 문자 발송처럼 반복 시도를 막아야 하는 곳에 쓴다. 서버가 여러 대면 각자 센 수가 합쳐지지 않으므로 Redis 같은 공유 저장소나 API 게이트웨이에서 함께 센다(Spring Cloud Gateway의 RequestRateLimiter 필터는 Redis로 세는 토큰 버킷 구현을 제공한다).</p>
 <p>요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다.</p>
 <p>개념 모형 · 널리 쓰이는 알고리즘 정의대로 만든 모형</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>Rate Limiting</dt>
 <dd>일정 시간 동안 허용하는 요청의 수를 제한하는 것이다. 특정 사용자나 클라이언트가 과도한 요청을 보내 시스템 전체에 영향을 주는 것을 막고, 시스템이 감당할 수 있는 범위에서만 요청을 받도록 한다. 제한을 넘은 요청에는 보통 429 상태 코드로 응답한다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 <dt>API 게이트웨이</dt>
 <dd>클라이언트의 모든 요청을 가장 먼저 받아 알맞은 내부 서비스로 전달하는 단일 진입점이다. 인증, 요청 수 제한, 로깅 같은 공통 기능을 한곳에서 처리한다. 클라이언트는 내부 서비스의 구성과 주소를 알 필요가 없다.</dd>
@@ -92,6 +96,10 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +173,10 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

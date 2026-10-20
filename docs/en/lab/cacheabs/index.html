@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
 <h1>Cache abstraction</h1>
 <p><b>With @Cacheable on a method, when does the method body not run?</b></p>
+<p><b>Why it exists</b> — To keep a query result in a cache, you had to write the code &quot;look in the cache, and if it is not there, read from the database and put it in the cache&quot; in every method, and if you changed the cache store from server memory to Redis, you had to change all that code. Spring's cache abstraction shortens this sequence to an annotation such as @Cacheable and lets you choose the actual store in the CacheManager settings, so the business code does not need to know the kind of store.</p>
+<p><b>Where it's used today</b> — You use it for query results that are read often but rarely change, such as product information, category lists, and common code tables. With one server, you attach a memory cache such as Caffeine as the store, and when several servers must see the same values, you attach Redis. For data that must always be the latest value, such as stock and balances, you do not use a cache or you keep it only for a very short time.</p>
 <p>In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. The layer that Spring puts in between, so that the same annotations work with whatever cache store is used, is called the cache abstraction.</p>
 <p>Checked against real execution · All 40 combinations were run with @EnableCaching and ConcurrentMapCacheManager on Spring Framework 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>@Cacheable</dt>
 <dd>This annotation stores the result of a method in a cache so that, when the method is called again with the same arguments, the value in the cache is returned without running the body. A proxy receives the call and looks up the cache first, and only when the value is not there does it run the body and then store the result. By default, the cache key is the arguments of the method, and cacheNames sets which cache the result goes into. If you write a condition in unless, a result for which the condition is true is not stored (for example, when the result is null). Because this is the work of a proxy, it is not applied when the method is called with this from within the same class.</dd>
 <dt>@CacheEvict and @CachePut</dt>
+<dd><b>Why it exists</b> — If you put code that deletes or fixes the cache directly into every method that changes data, code that handles the cache store gets mixed with business code, and it is easy to miss. @CacheEvict and @CachePut let you do this with only the cache name and key written above the method.</dd>
+<dd><b>Where it's used today</b> — A common use is to put @CacheEvict on a method that edits or deletes product information. When a single key cannot point to the entries, as with a list cache, you empty that cache entirely with allEntries = true.</dd>
 <dd>These are two annotations used to keep the values in a cache in step with the source data. @CacheEvict removes the value for the given key from the cache when the method is called, so that the next lookup runs the body again. Unlike @Cacheable, @CachePut does not skip the body. It always runs the body and puts the returned value in the cache, overwriting the existing value. If neither of them is on a method that changes data, the value from before the change remains in the cache, and the code that looks it up receives the stale value.</dd>
 <dt>Cache</dt>
 <dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
@@ -100,6 +104,10 @@ class ProductService {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +181,10 @@ class ProductService {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cme', nav: 'Removing during iteration', cat: 'Data structures', mode: 'step',
   title: 'What happens when you remove elements inside a loop',
+  why: 'If the structure of a list changes during traversal, the position the iterator points to and the actual elements fall out of step, and errors such as skipping an element or seeing the same element twice can occur without any sign. The fail-fast iterator of a collection such as ArrayList throws ConcurrentModificationException when it notices that the structure changed during traversal, so that the problem shows up right where it occurs.',
+  use: 'An enhanced for statement also iterates with an iterator, so calling list.remove or add in its body usually raises this exception. When removing some elements while traversing, as when taking sold-out items out of a shopping cart, use Iterator\'s remove or removeIf. For collections that several threads traverse and modify, use something that does not throw an exception for changes during traversal, such as CopyOnWriteArrayList or ConcurrentHashMap.',
   intro: 'The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all.',
   terms: ['Fail-fast iterator', 'ArrayList', 'ConcurrentHashMap', 'Thread safety'], ranks: ['collection', 'exception'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>static and instance</h1>
 <p><b>Why does the value of a change when only b was touched?</b></p>
+<p><b>Why it exists</b> — A calculation that picks the larger of two numbers, or a constant that only needs to exist once in the whole program, has nothing to do with any particular object, but if you could create them only as instance members, you would have to create a useless object first every time you used them. static ties such members to the class instead of an object, so you can use them with only the class name, as in Math.max(3, 5).</p>
+<p><b>Where it's used today</b> — It is used for methods whose result is decided only by the values they receive, such as Math.max and Integer.parseInt, and for constants declared as static final, such as Integer.MAX_VALUE. A logger kept one per class (private static final Logger) is also a common example. A static field is shared by the whole program, so a value that differs for each request is not put in a static field.</p>
 <p>When you put static in front of a field, the field exists only once, in the class and not in an object, and all objects share that one field. An instance variable, which is a field without static, is created separately for each object. A static method is called without an object, so you cannot use instance variables or this inside it.</p>
 <p>Checked against real execution · All 30 combinations were compiled and run on JDK 21, and the compilation result and the output were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,10 @@
 <dt>Classes and objects</dt>
 <dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
 <dt>Instance members and static members</dt>
+<dd><b>Where it's used today</b> — State that differs for each object, such as a member's name or an order's amount, and the methods that handle that state, are made instance members. A static factory method that creates and returns an object, such as List.of or LocalDate.of, must be called when there is no object yet, so it is made a static member.</dd>
 <dd>Instance members are the fields and methods that are declared without static, and they belong to an object. An instance variable is created separately for each object, and an instance method must be called on an object, as in a.hit(). Static members belong to the class and are used without an object, as ClassName.member. A static method has no target object, so inside it you cannot use instance variables, instance methods, or this by name alone, and doing so is a compile-time error. In the other direction, an instance method can use static members freely.</dd>
 <dt>this</dt>
+<dd><b>Where it's used today</b> — You often see it in constructors and setters when a received value is put into a field, as in this.name = name. If a method returns its own object with return this, as the append of StringBuilder does, calls can be chained, as in sb.append(&quot;a&quot;).append(&quot;b&quot;).</dd>
 <dd>This keyword is a reference to the current object: inside an instance method or a constructor, it refers to the very object that is being worked on. Writing this.name tells a field apart from a parameter with the same name. Writing this(arguments) as the first statement of a constructor runs another constructor of the same class first. A static method has no target object, so this cannot be used in it.</dd>
 </dl>
 <h2>Try these</h2>
@@ -103,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

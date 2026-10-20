@@ -1,6 +1,8 @@
 Lab.register({
   id: 'webattack', nav: '웹 공격 세 가지', cat: '인증', mode: 'step',
   title: '입력값을 그대로 믿으면 생기는 일',
+  why: '사용자 입력을 SQL 문자열이나 HTML에 그대로 이어 붙이면 입력이 값이 아니라 명령이나 스크립트로 해석되고, 쿠키만으로 로그인을 확인하면 다른 사이트에서 일으킨 요청도 본인 요청처럼 처리된다. 파라미터 바인딩과 출력 이스케이프는 입력을 값과 글자로만 다루게 하고, CSRF 토큰은 요청이 그 사이트의 화면에서 나왔는지 확인하며, SameSite 쿠키는 그런 요청에 쿠키가 붙지 않게 한다.',
+  use: 'PreparedStatement, MyBatis의 #{} 바인딩, Thymeleaf의 th:text처럼 이스케이프하는 출력, 스프링 시큐리티의 CSRF 보호가 이 방어를 맡는다. MyBatis의 ${}나 th:utext에 사용자 입력을 넣는 곳에서 구멍이 생긴다. 쿠키 대신 Authorization 헤더로 토큰을 보내는 API는 브라우저가 토큰을 자동으로 붙이지 않아 CSRF 보호를 끄기도 한다.',
   intro: 'SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.',
   terms: ['SQL Injection', 'XSS(크로스 사이트 스크립팅)', 'CSRF(사이트 간 요청 위조)', 'HttpOnly, Secure, SameSite', '쿠키'], ranks: ['websec', 'auth'],
   controls: [

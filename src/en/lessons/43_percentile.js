@@ -1,6 +1,8 @@
 Lab.register({
   id: 'pct', nav: 'Averages and percentiles', cat: 'Monitoring', mode: 'step',
   title: 'The average response time looks fine, so why do users complain that it is slow?',
+  why: 'In the average response time, a small number of very slow requests are buried among the many fast ones, so even if a few users wait several seconds each, the number looks fine. When slow requests become numerous, the average can even become a time that no actual request took. A response time percentile shows the slow end separately instead of the average, as in "99% of requests finished within how many seconds".',
+  use: 'It is used to set a service objective such as "p99 response time of 1 second or less" and to have an alert sent when it is exceeded. In Spring Boot, request-time metrics are exported with Actuator and Micrometer, and p95 and p99 are viewed as graphs in Prometheus and Grafana. The results of load testing tools such as JMeter or k6 are also read by percentiles along with the average.',
   intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. The average is the sum of all the values divided by their number, and a percentile is the value at a given percentage point when the values are lined up in order (p99 is the value at the 99% point). This lab shows the same data as an average and as percentiles, and which of them reveals the slow requests.',
   terms: ['TPS and response time percentiles', 'Load testing', 'APM', 'Observability (logs, metrics, traces)'], ranks: ['monitor', 'tuning', 'traffic'],
   controls: [

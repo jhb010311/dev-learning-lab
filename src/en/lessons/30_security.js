@@ -1,6 +1,8 @@
 Lab.register({
   id: 'security', nav: 'Security filter chain', cat: 'Authentication', mode: 'step',
   title: 'Where is it decided whether the response is 401 or 403?',
+  why: 'If code that checks login status and permissions is put directly in each controller, missing just one place leaves that path open. Spring Security gathers this check in the filter stage in front of the controllers, so that when rules for each path are written in one place in the configuration, they are applied to all requests in the same way.',
+  use: 'It is used in web services and API servers that require login. This configuration is where you verify users with a JWT or a session, let only the ADMIN role through on admin paths, and decide the shape of the 401 and 403 responses sent when a request is denied. When checking permissions per controller method, annotations such as @PreAuthorize are used together.',
   intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.',
   terms: ['Authentication and authorization', 'Spring Security and SecurityFilterChain', 'SecurityContext', 'Servlet filter', 'HTTP status codes'], ranks: ['auth', 'websec', 'filter'],
   controls: [

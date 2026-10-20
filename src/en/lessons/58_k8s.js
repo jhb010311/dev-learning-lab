@@ -1,6 +1,8 @@
 Lab.register({
   id: 'k8s', nav: 'Kubernetes self-healing', cat: 'Deployment and operations', mode: 'step',
   title: 'When a container dies, what starts it again?',
+  why: 'When you run containers on several servers, every time a container dies or a server goes down, a person has to notice it, decide which server to start it on again, and issue the command. Handling night-time failures or dozens of containers by hand this way is difficult. Kubernetes has the cluster repeat that judgment and action by itself, so a person does not have to issue a command each time.',
+  use: 'It is used where services built as containers run spread across several servers. Common uses are rolling updates that replace Pods with the new version one after another at deployment, autoscaling that increases the number of copies according to load, and failure handling combined with the liveness and readiness probes of Spring Boot Actuator. For a small service running on one or two servers the operating burden is large, so a simpler tool such as Docker Compose is sometimes used instead.',
   intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Replacing a dead Pod with a new one without anyone stepping in, as happens here, is called self-healing.',
   terms: ['Kubernetes', 'Pod, Deployment, and Service', 'Health check (liveness, readiness)', 'Autoscaling', 'Containers and images'], ranks: ['container', 'deploy', 'cloud'],
   controls: [

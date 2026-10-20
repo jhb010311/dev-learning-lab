@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
 <h1>외부 API 호출과 타임아웃</h1>
 <p><b>다른 서버를 호출했는데 답이 오지 않으면 언제까지 기다리나</b></p>
+<p><b>왜 생겼나</b> — 호출한 쪽은 네트워크 너머의 서버가 느린 것인지, 꺼진 것인지, 패킷이 사라진 것인지 알 수 없다. 한도를 정하지 않은 HTTP 호출은 연결 단계에서는 운영체제가 포기할 때까지, 응답을 읽는 단계에서는 끝없이 기다릴 수 있다. 타임아웃은 이 기다림에 &quot;여기까지&quot;라는 끝을 정해, 답이 없는 호출을 실패로 마무리하고 스레드를 다른 요청에 돌려주게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 결제, 문자 발송, 지도 검색처럼 다른 회사의 API를 부르는 곳과 서비스끼리 HTTP로 서로 부르는 곳에는 연결 타임아웃과 읽기 타임아웃을 둘 다 정해 둔다. 값은 상대가 평소 답하는 시간보다 넉넉하게, 사용자가 기다릴 수 있는 시간보다는 짧게 잡는다. 실패가 이어지면 한동안 호출 자체를 멈추는 서킷 브레이커(Resilience4j 등)와 함께 쓰는 경우도 많다.</p>
 <p>주문 서버가 결제 서버의 API를 호출합니다. 호출한 스레드는 결과가 올 때까지 멈춰 서서 기다리는데, 얼마나 기다리다 포기할지를 정하는 것이 타임아웃입니다. 타임아웃은 두 가지입니다. 연결 타임아웃은 연결이 맺어지기까지, 읽기 타임아웃은 연결된 뒤 데이터가 오지 않은 채 기다리는 시간의 한도입니다. 정하지 않으면 클라이언트는 스스로 포기하지 않습니다. 상대 서버의 상태와 타임아웃을 바꿔 가며 어느 타임아웃이 언제 걸리는지 보세요. 화면에 나오는 2초, 3초, 10초는 예시 값입니다.</p>
 <p>일부만 실행으로 확인 · 스프링 7.0.9의 RestClient로 스물네 가지 조합을 실제 호출해 대조. 답이 없는 연결 네 가지는 네트워크 환경에 따라 다를 수 있음</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,20 @@
 <dt>연결 타임아웃과 읽기 타임아웃</dt>
 <dd>다른 서버를 호출할 때 얼마나 기다리다 포기할지를 정하는 두 가지 시간이다. 연결 타임아웃은 상대와 TCP 연결이 맺어지기까지 기다리는 한도이고, 읽기 타임아웃은 연결이 맺어진 뒤 응답 데이터가 오지 않는 채로 기다리는 한도다. 두 시간은 서로 다른 구간을 재므로, 연결 타임아웃만 정하면 연결은 됐는데 응답이 늦는 경우를 막지 못한다. 타임아웃을 정하지 않으면 느린 상대 때문에 호출한 스레드가 계속 묶이고, 스레드 풀이 바닥나면 장애가 호출한 쪽으로 번진다. 읽기 타임아웃이 났다고 해서 상대가 요청을 처리하지 않았다는 뜻은 아니므로, 같은 요청을 다시 보낼 때는 중복 처리를 조심해야 한다.</dd>
 <dt>RestClient</dt>
+<dd><b>왜 생겼나</b> — RestTemplate은 getForObject, exchange처럼 경우마다 다른 메서드에 인자를 길게 넘겨야 했고, 메서드를 이어 쓰는 WebClient는 리액티브 라이브러리가 필요했다. RestClient는 이어 쓰는 방식을 동기 호출에서 쓰게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트 서버에서 결제 API나 다른 서비스의 HTTP API를 부를 때 쓴다. 스프링 부트가 만들어 둔 RestClient.Builder를 주입받아 기본 주소와 헤더를 정해 쓰고, 많은 호출을 스레드를 묶지 않고 다뤄야 하면 WebClient를 쓴다.</dd>
 <dd>스프링에서 다른 서버의 HTTP API를 호출할 때 쓰는 클라이언트다. client.get().uri(주소).retrieve().body(타입)처럼 메서드를 이어 쓰는 방식으로 요청을 만들고, 응답 본문은 메시지 컨버터가 객체로 바꿔 돌려준다. 응답이 올 때까지 호출한 스레드가 기다리는 동기 방식이며, 예전부터 쓰이던 RestTemplate의 뒤를 잇는다. 4xx 응답은 HttpClientErrorException, 5xx 응답은 HttpServerErrorException, 연결 실패나 타임아웃은 ResourceAccessException으로 바뀌어 던져진다. 실제 통신은 요청 팩토리가 맡으며, 타임아웃도 요청 팩토리에 정한다.</dd>
 <dt>톰캣의 스레드 모델</dt>
+<dd><b>왜 생겼나</b> — 요청 하나를 스레드 하나가 끝까지 맡으면, DB 응답을 기다리는 코드도 콜백으로 나누지 않고 위에서 아래로 차례대로 적을 수 있다. 톰캣은 그 스레드를 미리 만든 풀에서 가져다 쓰고 수에 상한을 두어, 요청이 몰려도 스레드가 끝없이 늘지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 외부 호출이 느리거나 동시 요청이 많은 스프링 MVC 서비스는 server.tomcat.threads.max와 DB 커넥션 풀 크기를 함께 맞춘다. 요청이 멈춘 듯할 때는 스레드 덤프에서 http-nio-8080-exec-1 같은 요청 처리 스레드가 어느 줄에서 기다리는지 본다.</dd>
 <dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한된다. 쉬는 스레드가 없으면 자바 기본 ThreadPoolExecutor와 달리 최대 수까지 스레드를 먼저 늘리고, 모든 스레드가 사용 중일 때 새 요청이 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
 <dt>3-way handshake</dt>
+<dd><b>왜 생겼나</b> — 연결 확인 없이 바로 데이터를 보내면 상대가 받을 준비가 됐는지, 조각마다 붙일 번호를 어디서부터 셀지 모른 채 보내게 된다. 3-way handshake는 세 번의 주고받기로 양쪽이 서로의 시작 번호를 확인해, 이후 빠진 조각과 순서를 셀 기준을 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 개발자가 직접 부르지는 않지만, 연결 타임아웃은 이 과정이 끝나기를 기다리는 한도다. 방화벽이 SYN을 조용히 버리면 답이 없어 이 타임아웃까지 기다리고, 상대 포트에서 기다리는 프로그램이 없으면 곧바로 Connection refused가 난다.</dd>
 <dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -101,6 +111,10 @@ try {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +188,10 @@ try {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

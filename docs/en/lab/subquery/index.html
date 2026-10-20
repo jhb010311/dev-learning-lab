@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Subqueries</h1>
 <p><b>Why does NOT IN return no rows at all?</b></p>
+<p><b>Why it exists</b> — When you must use the result of another query as a condition and there is no subquery, you first had to run one query to get the value, and then put that value into a second query and send it. A subquery wraps that first query in parentheses and lets you write it in the place of a value or a list in the outer statement, so that the two steps finish in one SQL statement.</p>
+<p><b>Where it's used today</b> — You use it when the condition is another aggregate or the existence of rows, such as finding products more expensive than the average price, finding members who have never ordered, or attaching the most recent order date to each member. When you look for &quot;what does not exist&quot; and the subquery result may contain NULL, you use NOT EXISTS instead of NOT IN. If the same result can be written with JOIN, you sometimes rewrite it as a join.</p>
 <p>A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). This lab shows the result of each kind, and how NOT IN and NOT EXISTS differ when the result of the subquery contains a NULL.</p>
 <p>Checked against real execution · The SQL for the 36 combinations was run as is on MySQL 8.4.11, and the error numbers, every row of the results, the select_type in EXPLAIN, and the number of times a correlated subquery was run (EXPLAIN ANALYZE) were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,19 @@
 <dt>Subquery</dt>
 <dd>A SELECT statement that is contained inside another SQL statement. It can be used in the SELECT clause to compute a single value, in the FROM clause like a temporary table, and in the WHERE clause as the thing a condition compares against. A correlated subquery, which refers to columns of the outer query, can run once for each outer row, so watch its performance.</dd>
 <dt>Scalar subquery</dt>
+<dd><b>Where it's used today</b> — You use it to attach the number of comments as a column to each row of a post list, or to find the row that equals a single value obtained with MAX, such as the most recently registered member. A subquery in the SELECT list that uses an outer column is run again for each row and can be slow, so in that case you change it to a join and GROUP BY.</dd>
 <dd>A subquery that returns a single value (one row and one column). You can use it where a value is expected, as in WHERE id = (SELECT ...), and also where a column goes in the SELECT list. If it returns two or more rows, MySQL rejects the statement with error 1242 (Subquery returns more than 1 row). If it returns 0 rows, the result is NULL, not an error, so a comparison is never true and the result quietly becomes empty. Even if the current data gives one row, there is no guarantee that it always will, so write the condition so that only one row comes out, or use IN.</dd>
 <dt>Correlated subquery</dt>
+<dd><b>Why it exists</b> — A condition whose criterion differs for each outer row, such as &quot;employees who are paid more than the average of their own department&quot;, cannot be written with one fixed value. A correlated subquery receives the value of the outer row and gets the result that fits that row, so that such a condition can be written in one statement.</dd>
+<dd><b>Where it's used today</b> — You use it to check other rows related to each row, such as finding the highest-paid person in each department, or an EXISTS condition that picks only members who have orders. If it is slow, try changing it to a join or a window function (MySQL 8 or later).</dd>
 <dd>A subquery that uses a column of the outer query. The value of that column differs for each outer row, so the subquery cannot be run by itself. It is run again with that value every time an outer row is fixed. In MySQL EXPLAIN, its select_type is shown as DEPENDENT SUBQUERY. When there are many outer rows, the subquery is also run that many times and can be slow. However, the optimizer sometimes rewrites an EXISTS or IN subquery as a join, so a statement that has the shape of a correlated subquery is not necessarily run once for every row.</dd>
 <dt>IN and EXISTS</dt>
+<dd><b>Why it exists</b> — When you filter by whether related rows exist in another table, using a join makes an outer row with several matches appear that many times, so you have to add DISTINCT. IN and EXISTS filter by only &quot;does it exist&quot; without increasing the outer rows.</dd>
+<dd><b>Where it's used today</b> — You use them to pick only products that were sold at least once, or only products that belong to a particular category. IN is also commonly used to pick from a list of values without a subquery, as in WHERE id IN (1, 2, 3).</dd>
 <dd>Both are conditions that filter the outer rows by the result of a subquery. IN compares an outer value with the list that the subquery returns, and EXISTS only looks at whether the subquery returns even one row. Their negations, NOT IN and NOT EXISTS, handle NULL differently. If the list has even one NULL, NOT IN cannot be true for any row, so the result is 0 rows. NOT EXISTS only asks whether a row exists, so a NULL does not affect it. So for &quot;finding what is missing&quot;, use NOT EXISTS, or filter out the NULLs in the subquery of NOT IN.</dd>
 <dt>NULL and three-valued logic</dt>
+<dd><b>Why it exists</b> — If you put 0 or an empty string in a cell that has no value, you cannot tell &quot;0 won&quot; from &quot;not yet known&quot;. NULL lets you mark the absence of a value separately, and three-valued logic treats a comparison with an unknown value as neither true nor false, so that you do not wrongly decide on an unknown value.</dd>
+<dd><b>Where it's used today</b> — You put NULL in a cell that may have no value, such as a phone number not yet entered, or the withdrawal date of a member who has not withdrawn. A cell that must always have a value is made NOT NULL, and a default value to show on screen is filled in with COALESCE.</dd>
 <dd>NULL stands for &quot;no value&quot; or &quot;unknown&quot;, not for 0 or an empty string. A comparison with NULL (=, &lt;&gt;, &lt;, and so on) is neither true nor false but &quot;unknown&quot; (UNKNOWN), so a condition in SQL has three values: true, false, and unknown. WHERE and HAVING keep only the rows for which the condition is true, so a row for which it is unknown is removed, just like a row for which it is false. NOT applied to unknown is still unknown. To check for NULL, use IS NULL and IS NOT NULL, not = NULL.</dd>
 </dl>
 <h2>Try these</h2>
@@ -111,6 +120,10 @@ SELECT name
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -184,9 +197,10 @@ SELECT name
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

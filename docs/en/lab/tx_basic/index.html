@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>@Transactional</h1>
 <p><b>What does @Transactional group together?</b></p>
+<p><b>Why it exists</b> — To handle several saves as one unit without @Transactional, JDBC code alone has to write by hand in a try-catch, in every method, the code that gets a database connection, turns off autocommit, commits at the end, and rolls back if an exception occurs. This code repeats identically in every method, and if it is missing in even one place, a half-saved state can remain. @Transactional reduces this repetition to a single line above the method.</p>
+<p><b>Where it's used today</b> — It is commonly put on methods that write to the database two or more times in a Spring application. These are cases where only one of the writes must not be applied, such as saving an order while reducing inventory, or deleting a member while also deleting the posts that member wrote. For a method that only reads, you can also write @Transactional(readOnly = true) to indicate that it only reads.</p>
 <p>@Transactional is a marker (an annotation) that you put above a method. The order() method of OrderService, a class made up as an example for this lab, saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with a runtime exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.</p>
 <p>Checked against real execution · Ran all 4 combinations with a real @Transactional proxy on Spring 7.0.9 and H2 2.4.240, and checked the row counts and the facts behind the step sentences</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
 <dt>Commit and rollback</dt>
+<dd><b>Where it's used today</b> — You use them to apply everything or cancel everything for work that must change several things, such as a bank transfer. Even when you fix data by hand with a DB tool, you open a transaction, look at the result with SELECT, and send COMMIT if it is right and ROLLBACK if it is wrong.</dd>
 <dd>A commit makes all the data changes in a transaction final in the database, and a rollback cancels all of those changes and returns to the state before the transaction started. A transaction ends in one of the two, and a change that has already been committed cannot be undone by a rollback. In Spring, when a method with @Transactional ends normally, Spring commits, and when it ends with an exception, Spring looks at the rollback rules and rolls back. Under the default rule, it rolls back when a RuntimeException or an Error is thrown out of the method, and it does not roll back for a checked exception. Without a transaction, each save statement is committed immediately by auto-commit, which is the default setting of a JDBC connection, so even if an exception occurs later, the earlier save cannot be rolled back.</dd>
 <dt>Proxy</dt>
 <dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
@@ -98,6 +101,10 @@ public class OrderService {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -171,9 +178,10 @@ public class OrderService {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

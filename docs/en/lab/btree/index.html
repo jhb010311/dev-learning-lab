@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Binary search and B-trees</h1>
 <p><b>If the data is sorted, you can discard half at a time</b></p>
+<p><b>Why it exists</b> — If values are in no particular order, you have to compare them one by one from the start even to find a single one, and if the value is not there, you have to look at all of them to the end. Binary search, at the price of keeping the values sorted, removes half of the candidates with each comparison, and a B-tree splits each node into many branches to cut the number of reads from disk to a few.</p>
+<p><b>Where it's used today</b> — In Java, binary search is used when you search sorted arrays and lists with Arrays.binarySearch and Collections.binarySearch. The default indexes of MySQL (InnoDB) and PostgreSQL belong to the B-tree family, so conditions such as WHERE id = 5 or a range condition are handled without reading the whole table. If you do not need order and only search by an exact key, a hash-based method such as HashMap is used instead.</p>
 <p>You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once.</p>
 <p>Checked against real execution · The search on the screen is the result of actually running the algorithms</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Binary search</dt>
 <dd>This search method works on sorted data: it compares the target with the middle value and cuts the search range in half each time. Its time complexity is O(log n). It can be used only when the data is sorted. A B-tree index in a database uses the same principle of narrowing the range over sorted data.</dd>
 <dt>Time complexity (big-O notation)</dt>
+<dd><b>Why it exists</b> — If you measure running time in seconds, the value differs by computer and by input, so it is hard to say which of two approaches is better. Big-O notation drops constants and small terms and keeps only the shape of the growth as the input gets larger, so it lets you compare approaches regardless of the environment.</dd>
+<dd><b>Where it's used today</b> — It is used when choosing a data structure (contains is O(n) for ArrayList and O(1) on average for HashSet), when judging whether a double loop can withstand growing data, and when estimating whether a solution will finish in time in a coding test.</dd>
 <dd>This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows.</dd>
 <dt>B-tree index</dt>
+<dd><b>Why it exists</b> — A binary tree on disk has one key per node, so its height grows when there are many rows, and it is slow because every node read is a disk read. A B-tree puts many keys in one disk page, so it finds a value with a few page reads.</dd>
+<dd><b>Where it's used today</b> — In MySQL InnoDB and PostgreSQL, a B-tree index is created when you do not specify the kind with CREATE INDEX. For lookups that only look for the same value, you can also choose a hash index in PostgreSQL.</dd>
 <dd>The index structure that most relational databases use by default. It is a balanced tree that keeps values sorted, and each node holds many keys, so the height of the tree is low. You can find a value by going down only a few levels from the root. Because the values are sorted, it is used not only for equality lookups but also for range lookups and sorting.</dd>
 <dt>Full table scan</dt>
 <dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
@@ -93,6 +99,10 @@ SELECT * FROM orders WHERE amount = 230;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +176,10 @@ SELECT * FROM orders WHERE amount = 230;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

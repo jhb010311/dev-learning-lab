@@ -1,6 +1,8 @@
 Lab.register({
   id: 'conneg', nav: '내용 협상과 압축', cat: 'HTTP', mode: 'step',
   title: '같은 주소인데 왜 사람마다 다른 응답을 받나',
+  why: '같은 내용을 형식이나 언어, 압축 방식별로 따로 내보내려면 주소를 그 수만큼 나누고, 클라이언트가 자기에게 맞는 주소를 미리 알아야 한다. 내용 협상은 같은 주소로 들어온 요청이라도 요청 헤더에 적힌 조건을 보고 응답을 다르게 만들게 해서, 주소를 늘리지 않고도 받는 쪽에 맞는 응답을 보낼 수 있게 한다.',
+  use: '웹 서버가 Accept-Encoding을 보고 HTML·CSS·JS 파일을 gzip이나 br로 줄여 보내는 데 흔히 쓰인다. 스프링 MVC는 Accept 헤더를 보고 반환값을 JSON이나 XML 가운데 변환할 수 있는 형식으로 보내고, 언어별 메시지 파일을 두면 기본으로 Accept-Language에 맞는 것을 쓴다. 사용자가 언어를 직접 고르게 할 때는 주소(/en/)나 쿠키로 정하기도 한다.',
   intro: '같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.',
   terms: ['콘텐츠 협상(Accept와 Content-Type)', 'q 값(선호도)', 'HTTP 압축과 Content-Encoding', 'Vary 헤더', '캐시'],
   controls: [

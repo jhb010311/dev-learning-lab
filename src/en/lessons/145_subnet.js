@@ -1,6 +1,8 @@
 Lab.register({
   id: 'subnet', nav: 'IP addresses and subnets', cat: 'Networking', mode: 'step',
   title: 'Are two IP addresses with the same first three numbers on the same network?',
+  why: 'If IP addresses are handled one by one, computers and routers must know where to send for each destination separately, and if the size of a network is chosen only from a few fixed classes, many addresses are left over or too few are available. The subnet mask and CIDR set the first few bits of an address as the network number so that addresses with the same front part are handled as one block, and they let you choose the size of that block as needed with /number.',
+  use: 'A common use is to set a range such as 10.0.0.0/16 when you create a VPC in the cloud and divide it into several /24 subnets to place web servers and database servers separately. CIDR is also used to write a range when you specify "allow connections only from addresses in this range" in a firewall or security group.',
   intro: 'An IP address is divided into a front part that shows "which network" and a back part that shows "which device within it". A number after the address, such as /24, decides where the front part ends. A computer uses this number to judge whether the destination is on the same network, and so decides whether to send the data directly or to hand it to the default gateway (a home router or another router).',
   terms: ['IP address (IPv4)', 'Subnet mask and CIDR', 'Network address and broadcast address', 'Private IP address', 'NAT'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'inheritmap', nav: 'Inheritance mapping', cat: 'JPA', mode: 'step',
   title: 'In how many tables, and how, are inherited classes stored?',
+  why: 'To store a superclass with common fields and subclasses for each kind directly, you had to decide how to split the tables, and in the code, branch on which table to read for each SQL statement and which subclass object to create from the rows you read. With JPA\'s inheritance mapping, you only choose one strategy with @Inheritance, and it generates this SQL for you, and even when you query by the superclass type, it returns the right subclass objects.',
+  use: 'You use it for data that has many common fields and fields that differ a little by kind, such as splitting a product into book, album, and movie, or a payment into card and bank transfer. To make queries simple and fast, the single table strategy is commonly chosen, and to store without empty cells, the joined strategy. If you only want to pass down common fields and never query by the superclass type, use @MappedSuperclass instead of inheritance mapping.',
   intro: 'Java has inheritance, but the tables of a relational database do not. So you have to choose how to store a superclass Item and its subclasses Book, Album, and Movie in tables. JPA has three strategies, and the one you choose changes the number and shape of the tables, the number of INSERTs when you save, and the shape of the queries when you load.',
   terms: ['Inheritance mapping', 'Joined subclass strategy (JOINED)', 'Single table per class hierarchy strategy (SINGLE_TABLE)', 'Table per concrete class strategy (TABLE_PER_CLASS)', 'JOIN (INNER, OUTER)'],
   controls: [

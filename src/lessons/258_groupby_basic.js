@@ -1,6 +1,8 @@
 Lab.register({
   id: 'groupby_basic', nav: 'GROUP BY와 집계', cat: '기초개념', mode: 'step', basic: true, deep: ['join', 'windowfn', 'selectorder'],
   title: 'GROUP BY는 무엇을 묶고, COUNT와 SUM은 무엇을 세는가',
+  why: '회원별 주문 수와 합계를 알려고 행을 모두 자바로 가져와 반복문으로 회원마다 더하면, 행이 많을수록 옮기는 양이 늘고 코드도 길어진다. GROUP BY와 집계 함수는 이 계산을 DB에서 끝내고, 묶음마다 한 줄씩만 돌려주게 한다.',
+  use: '하루 매출 합계, 상품별 판매 개수, 게시판별 글 수처럼 통계나 관리자 화면의 숫자를 만들 때 쓴다. 주문이 3건 이상인 회원만 고르는 것처럼 묶은 결과에 조건을 걸 때는 WHERE가 아니라 HAVING을 쓴다.',
   intro: 'COUNT(*)와 SUM(price)는 여러 행을 값 하나로 줄이는 집계 함수입니다. COUNT(*)는 행이 몇 개인지, SUM(price)는 price를 모두 더하면 얼마인지를 돌려줍니다. GROUP BY member는 SELECT 문 뒤에 붙여서, member 값이 같은 행끼리 한 묶음으로 만들고 묶음마다 집계를 한 번씩 하게 합니다. 묶음 하나는 결과의 한 줄이 됩니다. 이 실습은 주문 5건이 든 orders 테이블에 같은 집계를 하면서, GROUP BY member를 지우고, 묶지 않은 열 id를 SELECT에 더 적고, WHERE 조건을 넣어 가며 결과가 몇 줄이고 어떤 모양인지를 봅니다.',
   terms: ['GROUP BY 절', '집계 함수', 'COUNT와 SUM', '묶지 않은 열과 ONLY_FULL_GROUP_BY'],
   controls: [

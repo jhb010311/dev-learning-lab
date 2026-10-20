@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>스레드의 생성과 상태</h1>
 <p><b>run()을 직접 부르면 왜 새 스레드가 생기지 않나</b></p>
+<p><b>왜 생겼나</b> — 실행 흐름이 하나뿐인 프로그램은 파일을 읽거나 다른 서버의 응답을 기다리는 동안 다른 일을 하지 못하고 멈춰 있다. 자바의 Thread는 한 프로그램에 실행 흐름을 여러 개 두어, 한 흐름이 기다리는 동안 다른 흐름이 일을 하게 한다. 새 흐름은 start()를 불러야 생기고, run()은 그 흐름이 실행할 작업을 적어 두는 메서드다.</p>
+<p><b>지금 어디에 쓰나</b> — 기본 설정의 톰캣은 요청마다 스레드 풀의 스레드 하나가 처리하므로, 스프링 MVC의 컨트롤러 코드도 여러 스레드에서 동시에 실행된다. 실제 코드에서는 new Thread를 직접 만들기보다 ExecutorService나 스프링의 @Async에 작업을 넘긴다. 스레드 상태는 멈춘 서버의 스레드 덤프에서 BLOCKED나 WAITING인 스레드를 찾을 때 본다.</p>
 <p>Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,10 +42,16 @@
 <dt>스레드의 상태</dt>
 <dd>자바의 스레드는 만들어져서 끝날 때까지 여섯 가지 상태 가운데 하나에 있으며, t.getState()로 확인할 수 있다. NEW는 Thread 객체만 만들고 아직 시작하지 않은 상태, RUNNABLE은 실행 중이거나 실행할 차례를 기다리는 상태, TERMINATED는 실행이 끝난 상태다. 그 사이에 다른 스레드가 쥔 락을 기다리면 BLOCKED, 기한 없이 기다리면 WAITING, 시간을 정해 두고 기다리면 TIMED_WAITING이 된다. 한 번 TERMINATED가 된 스레드는 다른 상태로 돌아가지 않는다.</dd>
 <dt>start()와 run()</dt>
+<dd><b>왜 생겼나</b> — 스레드를 만드는 방법은 운영체제마다 달라서 직접 만들려면 그 운영체제의 기능을 불러야 한다. start()는 이 일을 자바 가상 머신(JVM)에 맡기고, 할 일은 run()에 보통 메서드로 적게 해서 작업 코드와 스레드를 만드는 일을 나눴다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 짧은 예제나 테스트에서는 new Thread(작업).start()로 바로 스레드를 띄운다. 할 일을 Runnable이나 람다로 적어 두면 같은 코드를 ExecutorService에 넘겨 풀의 스레드에서 실행할 수도 있다.</dd>
 <dd>start()는 새 스레드를 만들어 그 스레드가 run()을 실행하게 하는 메서드이고, run()은 스레드가 할 일을 담은 보통의 메서드다. 그래서 run()을 직접 부르면 새 스레드가 생기지 않고, 부른 스레드가 그 코드를 순서대로 실행한다. start()는 Thread 객체 하나에 한 번만 부를 수 있으며, 두 번째로 부르면 IllegalThreadStateException이 발생한다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만든다.</dd>
 <dt>join()</dt>
+<dd><b>왜 생겼나</b> — join() 없이 다른 스레드가 끝나기를 기다리려면 끝났는지 계속 묻는 반복문이나 wait·notify 신호를 직접 짜거나, sleep으로 시간을 짐작해야 한다. join()은 그 스레드가 끝나자마자 다음 줄로 넘어가게 하고, 끝난 스레드가 바꾼 값이 그 뒤에 보이는 것도 보장한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 일을 여러 스레드에 나눠 맡긴 뒤 모두 끝나면 결과를 합칠 때, 테스트에서 스레드들이 끝난 뒤 결과를 확인할 때 쓴다. 스레드 풀에 맡긴 작업은 join() 대신 Future의 get()이나 CountDownLatch로 기다린다.</dd>
 <dd>다른 스레드가 끝날 때까지 지금 스레드를 기다리게 하는 메서드다. t.join()을 부른 스레드는 t가 끝날 때까지 다음 줄로 가지 않으므로, 다른 스레드가 만든 결과를 받아서 써야 할 때 쓴다. 기다리는 동안 부른 쪽 스레드의 상태는 WAITING이고, join(1000)처럼 시간을 주면 TIMED_WAITING이다. 이미 끝났거나 아직 시작하지 않은 스레드에 부르면 기다리지 않고 바로 돌아온다.</dd>
 <dt>인터럽트(interrupt)</dt>
+<dd><b>왜 생겼나</b> — 밖에서 스레드를 바로 멈추는 Thread.stop()은 하던 일을 아무 데서나 끊어 고치다 만 데이터를 남길 수 있어 쓰지 않게 되었다. 인터럽트는 그 대신 쓰는 방법으로, 스레드가 고치던 데이터를 마무리하거나 되돌린 뒤 스스로 끝낼 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — ExecutorService의 shutdownNow()나 Future의 cancel(true)가 실행 중인 작업에 보통 interrupt를 보내 취소를 요청한다. 오래 도는 반복 작업은 isInterrupted()로 인터럽트 표시를 확인해 이 요청에 응한다.</dd>
 <dd>기다리고 있는 스레드에게 그만 기다리라고 보내는 신호다. t.interrupt()를 부르면 t에 &quot;interrupt를 받았다&quot;는 표시가 켜지고, t가 sleep이나 join, wait로 기다리는 중이었다면 그 메서드가 InterruptedException을 던지며 바로 깨어난다. 스레드를 강제로 멈추는 기능은 아니어서, 신호를 받은 뒤 어떻게 할지는 그 스레드의 코드가 정한다. synchronized의 락을 기다리는 BLOCKED 상태의 스레드는 interrupt로 깨어나지 않는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -102,6 +110,10 @@ System.out.println(t.getState());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +187,10 @@ System.out.println(t.getState());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 데이터 접근과 트랜잭션</p>
 <h1>JdbcTemplate과 예외 변환</h1>
 <p><b>JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나</b></p>
+<p><b>왜 생겼나</b> — JDBC를 직접 쓰면 예외가 났을 때 close를 빠뜨려 커넥션이 풀에 돌아가지 않는 실수가 쉽게 생기고, 중복 키인지 SQL 문법 오류인지는 DB마다 다른 오류 코드를 보고 가려야 했다. JdbcTemplate은 커넥션과 Statement를 스스로 정리하고, 그 오류 코드를 DuplicateKeyException처럼 이름만 봐도 원인을 아는 예외로 바꿔서 DB가 달라도 같은 catch로 처리하게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — JPA를 쓰는 프로젝트에서도 대량 INSERT나 통계용 조회처럼 SQL을 직접 쓰는 편이 나은 곳에 함께 쓴다. 테이블이 몇 개 안 되는 작은 서비스나 배치 작업에서 SQL을 그대로 보며 다루고 싶을 때도 쓴다. 최근 스프링에서는 같은 일을 메서드를 이어 부르는 모양으로 쓰는 JdbcClient도 쓸 수 있다.</p>
 <p>JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, JDBC 드라이버가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9의 JdbcTemplate과 H2에서 열여덟 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,16 @@
 <dt>JdbcTemplate</dt>
 <dd>스프링이 제공하는 JDBC 도우미 클래스로, SQL을 실행할 때마다 반복되는 일을 대신 한다. 커넥션을 얻고, PreparedStatement를 만들어 값을 넣고, 실행하고, 결과를 읽고, 예외가 나든 안 나든 자원을 닫는 일을 안에서 처리하므로, 개발자는 SQL과 넣을 값, 결과를 담을 방법만 넘기면 된다. update는 추가·수정·삭제에, queryForObject는 결과가 정확히 1건인 조회에, query는 여러 건을 목록으로 받는 조회에 쓴다. queryForObject는 결과가 0건이면 EmptyResultDataAccessException을, 2건 이상이면 IncorrectResultSizeDataAccessException을 던지므로, 0건이 정상일 수 있는 조회에는 주의해서 쓴다.</dd>
 <dt>예외 변환과 DataAccessException</dt>
+<dd><b>왜 생겼나</b> — JDBC는 SQLException, JPA는 PersistenceException처럼 기술마다 예외가 달라서, 기술을 바꾸면 예외를 잡는 코드도 바꿔야 했다. 스프링의 예외 변환은 JDBC의 예외든 JPA의 예외든 DataAccessException 계층으로 맞춰 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JdbcTemplate을 쓰는 코드에서 DuplicateKeyException을 잡아 '이미 있는 아이디'로 알리는 식으로 쓴다. 스프링 부트에서는 @Repository를 붙인 빈의 메서드 밖으로 나오는 JPA 예외도 같은 계층으로 바뀐다.</dd>
 <dd>스프링이 데이터 접근 기술이 던지는 예외를 자신의 예외 계층으로 바꿔 주는 것이다. JDBC의 SQLException은 체크 예외이고 무슨 문제인지는 그 안의 코드(SQLState, 오류 번호)로만 알 수 있는데, 스프링은 이것을 DataAccessException의 하위 클래스로 바꿔 던진다. 중복 키는 DuplicateKeyException, 그 밖의 제약 조건 위반은 DataIntegrityViolationException, 잘못된 SQL은 BadSqlGrammarException이 된다. DataAccessException은 언체크 예외라서 throws를 적지 않아도 되고, 원래의 예외는 원인(cause)으로 보관된다. 예외 클래스의 이름으로 문제를 구분하므로, 서비스 코드가 특정 DB 제품의 오류 번호에 묶이지 않는다.</dd>
 <dt>커넥션 풀</dt>
 <dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다.</dd>
 <dt>Checked 예외와 Unchecked 예외</dt>
 <dd>Unchecked 예외는 RuntimeException과 그 하위 클래스로(명세상으로는 Error 계열도 unchecked에 속한다), 컴파일러가 처리 여부를 검사하지 않는다(NullPointerException, IllegalArgumentException 등). Checked 예외는 그 밖의 Exception으로, 반드시 catch로 처리하거나 throws로 선언해야 컴파일된다(IOException, SQLException 등). 스프링의 @Transactional은 기본적으로 RuntimeException과 Error에서만 롤백하고 Checked 예외에서는 커밋한다.</dd>
 <dt>템플릿 메서드 패턴</dt>
+<dd><b>왜 생겼나</b> — 여러 클래스가 준비, 각자 다른 처리, 정리라는 같은 순서를 따로 구현하면 정리 단계를 빠뜨리는 실수가 클래스마다 생길 수 있고, 순서를 바꿀 때 모두 고쳐야 한다. 템플릿 메서드 패턴은 순서를 상위 클래스 한곳에 두어 이런 실수를 막는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 자바 표준의 AbstractList는 get과 size만 구현하면 나머지 동작을 제공하고, 서블릿 API의 HttpServlet은 service 메서드가 요청 방식에 따라 doGet, doPost를 부른다. 상속 구조가 부담스러우면 달라지는 부분만 람다로 넘기는 방식을 대신 쓴다.</dd>
 <dd>작업의 전체 흐름은 상위 클래스에 정해 두고, 그 흐름 안에서 달라지는 일부 단계만 하위 클래스가 구현하게 하는 패턴이다. 공통된 절차의 중복을 없앤다. 스프링의 JdbcTemplate은 연결 획득, 예외 처리, 자원 정리의 흐름을 고정하고 달라지는 부분만 전달받는 같은 발상의 구조다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -99,6 +105,10 @@ public int insert(Long id, String name, String city) throws SQLException {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +182,10 @@ public int insert(Long id, String name, String city) throws SQLException {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

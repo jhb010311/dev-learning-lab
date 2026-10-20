@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
 <h1>JPQL과 페치 조인</h1>
 <p><b>join과 join fetch는 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 연관관계를 지연 로딩으로 두면 게시글 목록을 읽은 뒤 게시글마다 댓글 조회가 따로 나가고(N+1 문제), JPQL의 그냥 join은 조인한 대상을 SELECT에 넣지 않아 이 조회를 막지 못한다. fetch join은 조인한 엔티티의 컬럼까지 한 번에 읽어 연관 객체를 채워서, 뒤따르는 조회를 없앤다.</p>
+<p><b>지금 어디에 쓰나</b> — 게시글과 작성자, 주문과 회원처럼 함께 보여 줄 연관 엔티티를 한 번에 읽을 때 쓰고, 스프링 데이터 JPA에서는 @Query에 join fetch를 적거나 @EntityGraph를 붙인다. 컬렉션을 여러 개 읽거나 컬렉션 페치 조인의 페이징이 메모리에서 처리될 때(경고 HHH90003004)는 페치 조인 대신 @BatchSize나 hibernate.default_batch_fetch_size로 댓글을 묶어 읽는다.</p>
 <p>JPQL은 테이블이 아니라 엔티티를 대상으로 쓰는 쿼리입니다. 게시글을 조회하면서 댓글을 그냥 join할 때와 join fetch할 때, DB에서 읽어 오는 컬럼과 그 뒤에 따라 나가는 조회가 달라집니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열두 가지 조합을 실행해 결과 목록, 돌려받은 행 수, SQL의 행 수 제한 위치, 뒤따른 조회, 경고와 예외를 대조 (예전 버전의 동작은 문서 기준)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,7 @@
 <dt>JPQL</dt>
 <dd>테이블이 아니라 엔티티와 그 필드를 대상으로 작성하는 JPA의 쿼리 언어다. SQL과 문법이 비슷하며, 실행할 때 JPA 구현체가 사용 중인 데이터베이스에 맞는 SQL로 변환한다. 특정 데이터베이스의 문법에 의존하지 않는다는 장점이 있다.</dd>
 <dt>fetch join</dt>
+<dd><b>지금 어디에 쓰나</b> — 연관 관계는 지연 로딩으로 두고, 연관 엔티티까지 꼭 함께 써야 하는 조회에만 join fetch를 적은 쿼리를 따로 두는 방식이 흔하다. 그러면 같은 엔티티를 읽어도 연관 데이터가 필요 없는 곳에는 조인이 나가지 않는다.</dd>
 <dd>JPQL에서 엔티티를 조회하면서 연관된 엔티티를 SQL 조인으로 한 번에 함께 가져오게 하는 기능이다. 지연 로딩으로 설정된 연관 관계라도 이 쿼리에서는 즉시 함께 조회되어 N+1 문제를 해결한다. 컬렉션을 여러 개 함께 가져오면 결과 행이 곱으로 늘어나는 점에 주의한다.</dd>
 <dt>컬렉션 페치 조인과 페이징</dt>
 <dd>일대다 관계의 컬렉션을 페치 조인하면 SQL의 결과 행이 자식 수만큼 늘어나므로, 행 수를 세는 DB의 페이징(limit)을 그대로 걸면 부모를 기준으로 자를 수 없다. 그래서 예전 버전의 Hibernate는 이 경우 SQL에 행 수 제한을 넣지 않고 조건에 맞는 행을 전부 읽어 온 뒤 메모리에서 잘랐고, 그때 경고 HHH90003004를 로그에 남겼다. 데이터가 많으면 전부 메모리에 올라와 위험하다. Hibernate 7.4.5는 부모를 먼저 자르는 서브쿼리를 만들어 DB에서 처리하지만, 정렬 기준이 컬렉션 쪽에 있는 경우처럼 여전히 메모리에서 자르는 경우가 있다. 버전에 따라 동작이 다르므로 실제로 나가는 SQL을 확인해야 하며, 컬렉션은 지연 로딩과 배치 크기 설정으로 따로 가져오는 방법이 안전하다.</dd>
@@ -128,6 +131,10 @@ for (Post p : posts) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -201,9 +208,10 @@ for (Post p : posts) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

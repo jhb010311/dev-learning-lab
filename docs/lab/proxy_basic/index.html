@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>프록시 서버</h1>
 <p><b>프록시 서버는 무엇이고, 사이에 끼면 무엇이 달라지는가</b></p>
+<p><b>왜 생겼나</b> — 서버 프로그램을 인터넷에 바로 내놓으면, 서버를 여러 대로 늘리거나 바꿀 때 클라이언트가 접속하는 주소도 바뀌고, HTTPS 처리나 나쁜 접속 막기 같은 일도 서버 프로그램마다 따로 해야 한다. 리버스 프록시는 서버들 앞에 한 주소로 서서 요청을 받아 넘겨 주므로, 뒤의 서버가 바뀌어도 클라이언트는 같은 주소로 접속한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 서버 앞에 Nginx를 두어 80번과 443번 포트로 요청을 받고 8080번의 서버로 넘기는 구성이 흔하다. 이때 서버가 보는 상대는 프록시 서버이므로, 진짜 클라이언트의 IP 주소는 프록시 서버가 X-Forwarded-For 헤더에 적어 넘기도록 설정해서 전해 받는다. 회사 안에서 바깥 사이트로 나가는 요청을 한곳에 모아 거르는 프록시(포워드 프록시)도 있다.</p>
 <p>프록시 서버는 클라이언트(요청을 보내는 프로그램)와 진짜 서버 사이에 서서 요청을 대신 전달해 주는 서버입니다. 코드 칸은 세 가지를 적은 것입니다. 첫째는 클라이언트가 접속하는 주소(http://localhost:8080/hello)이고, 주소 중간의 8080은 포트 번호, 곧 한 컴퓨터에서 프로그램마다 나뉜 문의 번호입니다. 둘째는 8080번에서 기다리는 프록시 서버로, 받은 요청을 9000번의 서버에 넘깁니다. 셋째는 9000번에서 기다리는 진짜 서버로, &quot;안녕하세요&quot;를 돌려줍니다. 그래서 클라이언트는 프록시 서버에 연결하고, 프록시 서버가 진짜 서버에 다시 연결해 요청을 넘기고 응답을 돌려줍니다. 이 실습의 프록시 서버는 서버 앞에 서 있고 클라이언트는 그것을 서버로 알고 접속하는 모양(리버스 프록시)입니다. 이 실습은 접속하는 주소를 바꾸거나, 프록시 서버나 진짜 서버의 줄을 지워(그 서버를 켜지 않은 것) 같은 요청을 보내 가며, 클라이언트가 무엇을 받는지와 진짜 서버가 누구를 상대로 보는지를 봅니다. 코드 칸은 실행한 프로그램의 소스가 아니라 무엇이 어느 번호에서 기다리는지를 적은 것이고, 8080과 9000은 예시로 적은 번호입니다. 로드 밸런서, CDN, API 게이트웨이도 클라이언트와 서버 사이에 서는 서버입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 http 서버 둘(프록시 서버와 진짜 서버)과 http 클라이언트로 여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,11 @@
 <dt>진짜 서버(원 서버)</dt>
 <dd>진짜 서버는 요청받은 자원에 대해 최종적인 응답을 직접 만들어 낼 수 있는 프로그램으로, RFC 9110 3.6절은 origin server라고 부른다. 프록시 서버는 요청을 전달할 뿐이어서, 응답의 내용을 만드는 쪽은 이 서버다. 프록시 서버가 있으면 클라이언트는 이 서버에 직접 연결하지 않을 수 있고, 이 서버는 연결해 온 상대로 프록시 서버를 보게 된다.</dd>
 <dt>502 Bad Gateway</dt>
+<dd><b>지금 어디에 쓰나</b> — Nginx 뒤의 스프링 부트 서버가 꺼져 있거나 아직 시작 중일 때 브라우저에 502가 뜬다. 이때는 뒤쪽 서버가 떠 있는지, 프록시 설정에 적은 포트가 서버의 포트와 맞는지부터 확인한다.</dd>
 <dd>502는 서버가 게이트웨이나 프록시로 일하다가, 요청을 이루려고 접속한 안쪽 서버에게서 올바르지 않은 응답을 받았을 때 쓰는 상태 코드다(RFC 9110 15.6.3절). 이 응답을 만들어 보내는 것은 클라이언트가 연결한 프록시 서버이고, 그 뒤의 진짜 서버가 아니다. 그래서 클라이언트가 502를 받았다는 것은 연결한 상대인 프록시 서버까지는 닿았고, 문제가 프록시 서버와 그 뒤쪽 서버 사이에 있다는 뜻이다.</dd>
 <dt>리버스 프록시</dt>
+<dd><b>왜 생겼나</b> — 느린 클라이언트가 애플리케이션 서버에 바로 붙으면, 큰 요청 본문을 천천히 올리거나 응답을 천천히 받아 가는 동안 요청 처리 스레드가 그 연결에 묶인다. Nginx 같은 리버스 프록시는 기본 설정에서 요청과 응답을 버퍼에 받아 두고 뒤쪽 서버와는 빠르게 주고받아, 뒤쪽 서버의 스레드가 느린 연결에 오래 묶이지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 정적 파일 요청과 /api 요청을 경로로 나눠 다른 서버로 보내거나, Nginx의 client_max_body_size로 너무 큰 업로드를 앞단에서 거절할 때 쓴다. 쿠버네티스에서는 Ingress 컨트롤러가 이 역할을 맡는다.</dd>
 <dd>클라이언트의 요청을 대신 받아 내부의 서버로 전달하고 그 응답을 클라이언트에 돌려주는 서버다. 클라이언트는 실제 서버를 직접 알지 못한다. 여러 서버로의 요청 분산, TLS 처리, 캐싱, 내부 서버 보호 등의 역할을 한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -83,6 +88,10 @@ http://localhost:8080/hello
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -156,9 +165,10 @@ http://localhost:8080/hello
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

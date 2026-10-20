@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>TCP 연결</h1>
 <p><b>연결을 맺는다는 것은 무엇이고, 연결 없이 보내면 어떻게 되는가</b></p>
+<p><b>왜 생겼나</b> — 네트워크로 보낸 데이터는 도중에 없어지거나 차례가 뒤바뀌어 도착할 수 있다. TCP는 먼저 연결을 맺어 상대가 받을 준비가 되었는지 확인하고, 보낸 조각마다 받았다는 답을 받아 답이 없으면 다시 보내며, 조각에 붙인 번호로 차례를 맞춘다. 그래서 프로그램은 이런 확인을 직접 하지 않아도 된다.</p>
+<p><b>지금 어디에 쓰나</b> — 브라우저가 8080번 포트의 스프링 부트 서버에 요청을 보내는 것, 자바 프로그램이 MySQL의 3306번 포트에 붙는 것이 모두 TCP 연결 위에서 일어난다. 그래서 Connection refused 오류가 나면 그 포트에서 기다리는 프로그램이 없는지부터 본다. 온라인 게임처럼 보낸 것이 조금 없어지더라도 빨리 닿는 것이 중요한 곳에서는 UDP를 쓰기도 한다.</p>
 <p>두 프로그램이 네트워크로 글자(바이트)를 주고받는 규칙에는 TCP와 UDP가 있습니다. TCP로 보내려면 보내는 쪽 프로그램이 먼저 &quot;127.0.0.1의 9000번 포트에 연결한다&quot;는 줄을 실행해 받는 쪽과 연결을 맺어야 합니다. 연결은 받는 쪽 프로그램이 그 포트를 열고 기다리고 있을 때만 맺어지고, 맺어진 뒤에 보낸 글자는 보낸 차례대로 도착합니다. UDP에는 연결하는 줄이 없습니다. 글을 보내는 줄마다 보낼 곳을 적어 그냥 던집니다. 이 실습은 보내는 방식을 TCP와 UDP로 바꾸고, 받는 쪽 프로그램을 있게도 없게도 하며, 보내는 쪽이 무엇을 받고 받는 쪽이 무엇을 받는지를 봅니다. 코드 칸은 실제 프로그램이 아니라 두 프로그램이 하는 일을 말로 적은 것이고, 9000이라는 번호는 예시입니다. 포트는 한 컴퓨터 안에서 프로그램을 구분하는 번호이고, 127.0.0.1 주소는 이 컴퓨터 자신을 가리킵니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 net·dgram으로 127.0.0.1에서 네 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,7 @@
 <dt>TCP와 UDP</dt>
 <dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. HTTP/1.1과 HTTP/2, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>TCP 연결</dt>
+<dd><b>지금 어디에 쓰나</b> — HTTP/1.1에서 브라우저는 서버와 맺은 연결 하나로 여러 요청을 이어 보낸다. 스프링 부트 서버도 DB와 맺어 둔 연결 몇 개를 계속 다시 써서, 연결을 맺는 데 드는 시간을 아낀다.</dd>
 <dd>TCP 연결은 TCP로 글을 주고받기 전에 보내는 쪽과 받는 쪽 사이에 먼저 맺는 길이다(실제로 선이 놓이는 것이 아니라 양쪽이 서로의 상태를 기억해 두는 약속이다). 보내는 쪽이 상대의 IP 주소와 포트로 연결을 요청하고, 그 포트를 열고 기다리는 프로그램이 있으면 연결이 맺어진다. 연결을 맺는 절차는 3-way handshake이다(RFC 9293 3.5절). 연결이 맺어진 뒤에는 TCP가 바이트를 보낸 차례대로 빠짐없이 전해 주는 것을 맡는다(RFC 9293 2.2절은 TCP가 신뢰할 수 있고 순서가 지켜지는 바이트 스트림 서비스를 제공한다고 적는다). 연결이 없으면 글을 보낼 수 없고, HTTP/1.1도 이런 믿을 수 있는 연결 위에서 오가며 http 주소의 기본은 TCP이다(RFC 9112 9절).</dd>
 <dt>연결 거부 오류</dt>
 <dd>연결 거부 오류는 TCP로 연결을 요청했는데 그 포트를 열고 기다리는 프로그램이 없을 때 보내는 쪽이 받는 오류이다. Node.js에서는 이 경우 connect 이벤트 대신 error 이벤트가 오고 오류 코드가 ECONNREFUSED로 나타난다(net 문서는 연결에 문제가 있으면 connect 대신 error가 온다고 적고, ECONNREFUSED라는 이름은 문서에서 확인하지 못했으며 검증 실행(Node.js 24.18.0, Windows 11)에서 관찰했다). 연결이 맺어지지 않았으므로 글은 하나도 보내지지 않는다. TCP 표준은 연결이 없는 상태로 온 요청에 거부 신호(RST)를 보내도록 정한다(RFC 9293 3.5.2절).</dd>
@@ -87,6 +90,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +167,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

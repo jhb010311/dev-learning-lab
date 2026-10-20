@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Spring Boot</p>
 <h1>Actuator and health checks</h1>
 <p><b>What does the health check answer when the connection to the payment provider is lost?</b></p>
+<p><b>Why it exists</b> — To know whether a server is healthy, you had to search the logs or send a request by hand, and each service made its own address for checking status, so the shape of the answer also differed. Spring Boot Actuator collects the state of components such as the database connection and free disk space by itself and answers at a fixed address and in a fixed format, so a tool outside can ask any service in the same way.</p>
+<p><b>Where it's used today</b> — In Kubernetes, if you set the liveness address as the probe address, the container is restarted when it fails, and if you set the readiness address, requests are not sent to that instance while it fails. A load balancer also uses the health address to sort out a broken server. Details reveal the internal structure, so you do not open them to the outside, or you protect them with authorization.</p>
 <p>Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question &quot;is this server healthy?&quot;. The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request.</p>
 <p>Checked against real execution · Requests for 96 combinations were sent to a Spring Boot 4.1.1 server and checked against the responses</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,20 @@
 <dt>Actuator</dt>
 <dd>This module provides endpoints for checking the state of a Spring Boot application that is running in production. You can query health checks, various metrics (memory, threads, request counts, and so on), configuration information, and more, so it is connected to monitoring systems and to the health checks of load balancers.</dd>
 <dt>HealthIndicator and the overall health status</dt>
+<dd><b>Why it exists</b> — If you write all the health checks in one method, that code has to change whenever the things to check increase or change. HealthIndicator splits the checks into one bean per component and has Actuator combine the answers, so that to add or remove a check you only handle one bean.</dd>
+<dd><b>Where it's used today</b> — Besides the database and disk checks that Spring Boot provides, you add a bean that implements HealthIndicator when there is something, such as an external system you connected yourself, whose failure makes the server unusable.</dd>
 <dd>A HealthIndicator is an object that checks whether one component of an application is healthy and answers with a status. Its health() method returns one of UP (healthy), DOWN (failed), OUT_OF_SERVICE (taken down on purpose), and UNKNOWN (not known), and the bean name with HealthIndicator removed becomes the name of the component. /actuator/health collects the answers of the components and takes the most severe one as the overall status, and the severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. When the overall status is DOWN or OUT_OF_SERVICE, the response has the HTTP status code 503, and when it is UP or UNKNOWN, it has 200. Even a single component that is DOWN makes the overall status DOWN, so decide which checks to add by asking whether the whole server should be treated as unhealthy when that check fails.</dd>
 <dt>Health group</dt>
+<dd><b>Why it exists</b> — Without health groups, if the address is only /actuator/health, the same answer is given to the different questions &quot;Should it be restarted?&quot; and &quot;Can requests be sent now?&quot;, so Kubernetes may restart the server just because the database was briefly cut off. Health groups let you pick, for each question, the components to look at, and split the address.</dd>
+<dd><b>Where it's used today</b> — It is used when you connect /actuator/health/liveness to Kubernetes' liveness probe and /actuator/health/readiness to its readiness probe. You may put the database check that is essential for handling requests only in the readiness group.</dd>
 <dd>This is a named selection of only some of the components that are registered with the health endpoint. A request to /actuator/health/{group name} asks only the components in that group for their status and decides the overall status and the HTTP status code from those alone. Spring Boot 4 creates groups named liveness and readiness by default, and each contains only one component, livenessState or readinessState, which reports the state of the application itself. You decide what goes into a group by writing component names in management.endpoint.health.group.{group name}.include. A component that is not in a group is not reflected in the response of that group even when it is DOWN.</dd>
 <dt>Health check (liveness, readiness)</dt>
+<dd><b>Why it exists</b> — If you do the check in only one way, the server may be restarted just because the database was briefly slow, or conversely requests keep being sent to a server that cannot take requests. Separating liveness and readiness lets you decide separately whether to restart it and whether to send requests.</dd>
+<dd><b>Where it's used today</b> — Have Kubernetes' livenessProbe and readinessProbe call Spring Boot Actuator's /actuator/health/liveness and /actuator/health/readiness, and for an application that takes a long time to start, add a startupProbe so that it is not restarted while it is starting.</dd>
 <dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
 <dt>Exposing Actuator endpoints and controlling access</dt>
+<dd><b>Why it exists</b> — If all of Actuator's endpoints are open, information for looking into the server's inside, such as configuration values, the list of beans, and memory contents, is exposed to the outside, and the server can even be shut down with shutdown. The exposure and access settings block this by opening only health on the web by default and letting you choose which others to open.</dd>
+<dd><b>Where it's used today</b> — On a production server, you open only health and something like metrics, which a monitoring tool reads, and close the rest or leave them open only on a management port set with management.server.port.</dd>
 <dd>These are the two conditions that must both be met before an Actuator endpoint (a feature in charge of one kind of information, such as health, env, or beans) can be used from outside. Exposure decides whether a web path is created for the endpoint, and the default of management.endpoints.web.exposure.include is health alone. Access decides whether the endpoint itself can be used, and you change it with management.endpoint.{name}.access. If either of the two is blocked, no path is created and the response is 404. For shutdown, which shuts the server down, and heapdump, which lets the whole contents of memory be downloaded, access is not permitted by default, so no path appears even when the exposure setting exposes everything.</dd>
 </dl>
 <h2>Try these</h2>
@@ -105,6 +115,10 @@ class PayHealthIndicator implements HealthIndicator {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +192,10 @@ class PayHealthIndicator implements HealthIndicator {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

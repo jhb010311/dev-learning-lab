@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 배포와 운영</p>
 <h1>쿠버네티스 자가 치유</h1>
 <p><b>컨테이너가 죽으면 누가 다시 띄우나</b></p>
+<p><b>왜 생겼나</b> — 서버 여러 대에 컨테이너를 띄워 운영하면, 컨테이너가 죽거나 서버가 꺼질 때마다 사람이 알아채고 어느 서버에 다시 띄울지 정해 명령해야 한다. 밤중의 장애나 수십 개의 컨테이너를 이렇게 손으로 감당하기는 어렵다. 쿠버네티스는 그 판단과 조치를 클러스터가 스스로 반복하게 해서, 사람이 매번 명령하지 않아도 되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 컨테이너로 만든 서비스를 여러 서버에 나눠 운영하는 곳에서 쓴다. 배포 때 Pod를 차례로 새 버전으로 바꾸는 롤링 업데이트, 부하에 따라 개수를 늘리는 오토스케일링, 스프링 부트 액추에이터의 liveness·readiness 검사와 묶은 장애 대응이 흔한 쓰임이다. 서버 한두 대로 도는 작은 서비스에는 운영 부담이 커서 Docker Compose 같은 더 단순한 도구를 대신 쓰기도 한다.</p>
 <p>쿠버네티스에는 &quot;이 애플리케이션을 3개 띄워 둬라&quot;처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다. 죽은 Pod를 사람이 손대지 않아도 새것으로 바꿔 놓는 이런 동작을 자가 치유라고 합니다.</p>
 <p>문서·표준 대조 · 쿠버네티스 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>Kubernetes</dt>
 <dd>여러 서버에 걸쳐 컨테이너를 배치하고 관리하는 일을 자동화하는 플랫폼이다. 원하는 상태(예: 이 애플리케이션을 3개 실행)를 선언하면 실제 상태가 그와 같아지도록 계속 조정한다. 컨테이너가 죽으면 다시 띄우고, 부하에 따라 개수를 조절하며, 새 버전으로의 교체를 단계적으로 수행한다.</dd>
 <dt>Pod, Deployment, Service</dt>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트 애플리케이션을 쿠버네티스에 올릴 때 보통 Deployment 하나와 Service 하나를 YAML로 적어 kubectl apply로 반영한다. 다른 서비스는 Service 이름으로 부르고, 바깥 요청은 Ingress를 거쳐 Service로 들어온다.</dd>
 <dd>쿠버네티스의 기본 구성 요소다. Pod는 함께 실행되는 하나 이상의 컨테이너 묶음으로 배포의 최소 단위다. Deployment는 Pod를 몇 개 유지할지와 새 버전으로 교체하는 방법을 관리한다. Service는 수시로 바뀌는 Pod들에 대해 변하지 않는 접근 주소를 제공하고 요청을 분산한다.</dd>
 <dt>헬스 체크(Liveness, Readiness)</dt>
+<dd><b>왜 생겼나</b> — 확인을 하나로만 하면 DB가 잠깐 느려졌을 뿐인데 서버를 재시작해 버리거나, 반대로 요청을 못 받는 서버에 계속 요청을 보내게 된다. Liveness와 Readiness를 나누면 다시 띄울지와 요청을 보낼지를 따로 판단할 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쿠버네티스의 livenessProbe와 readinessProbe가 스프링 부트 Actuator의 /actuator/health/liveness, /actuator/health/readiness를 부르게 하고, 시작이 오래 걸리는 애플리케이션은 startupProbe를 더해 시작하는 동안 재시작되지 않게 한다.</dd>
 <dd>서버가 정상인지 주기적으로 확인하는 것이다. Liveness는 프로세스가 살아 있는지를 확인해 문제가 있으면 재시작하게 한다. Readiness는 요청을 받을 준비가 되었는지를 확인해 준비되지 않은 서버로는 트래픽을 보내지 않게 한다. 서버가 시작 중이거나 종료 중일 때 요청이 들어가는 것을 막는다.</dd>
 <dt>오토스케일링</dt>
+<dd><b>왜 생겼나</b> — 서버 수를 가장 바쁜 때에 맞춰 고정하면 한가한 시간에도 비용을 내고, 평소에 맞추면 요청이 몰릴 때 버티지 못한다. 오토스케일링은 지표를 보고 서버 수를 그때그때 바꿔, 둘 중 하나를 포기하지 않아도 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — AWS의 Auto Scaling 그룹이나 쿠버네티스의 HorizontalPodAutoscaler로 CPU 사용률이나 요청 수에 따라 서버나 Pod 수를 조절한다. 하루 중 이용량 차이가 큰 쇼핑몰이나 배달 서비스에서 흔히 쓴다.</dd>
 <dd>CPU 사용률이나 요청 수 같은 지표에 따라 서버의 수를 자동으로 늘리거나 줄이는 기능이다. 부하가 많을 때는 서버를 추가하고 적을 때는 줄여 비용을 아낀다. 서버가 추가되어 요청을 받을 수 있게 되기까지 시간이 걸리므로, 예고된 급증에는 미리 늘려 두는 것이 안전하다.</dd>
 <dt>컨테이너와 이미지</dt>
 <dd>컨테이너는 애플리케이션과 그 실행에 필요한 것들을 묶어, 호스트 운영체제의 커널을 공유하면서 다른 프로세스와 격리된 환경에서 실행하는 기술이다. 이미지는 컨테이너를 만드는 데 쓰는 읽기 전용 템플릿으로 애플리케이션과 라이브러리, 설정이 들어 있다. 같은 이미지로 실행하면 실행 환경의 차이로 생기는 문제를 크게 줄인다.</dd>
@@ -99,6 +106,10 @@ spec:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ spec:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

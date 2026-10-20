@@ -1,6 +1,8 @@
 Lab.register({
   id: 'git', nav: 'merge와 rebase', cat: 'Git', mode: 'step',
   title: '두 브랜치를 합치는 세 가지 모양',
+  why: '여러 사람이 각자 작업한 변경을 파일 복사로 맞추면 누가 무엇을 바꿨는지 잃어버리고 서로의 수정을 덮어쓰게 된다. Git의 merge와 rebase는 두 갈래의 변경을 자동으로 합치고 같은 곳을 고친 부분만 사람에게 묻게 해서, 합친 결과를 커밋 이력으로 남긴다.',
+  use: 'GitHub에서 Pull Request를 합칠 때 merge commit, squash, rebase 가운데 하나를 고르며, 팀마다 어느 모양으로 남길지 정해 둔다. 혼자 쓰는 작업 브랜치를 최신 main 위로 올릴 때는 rebase를, 이미 다른 사람과 공유한 브랜치를 합칠 때는 merge를 쓴다. 작업 중의 자잘한 커밋을 남기고 싶지 않으면 squash로 기능 하나를 커밋 하나로 남긴다.',
   intro: 'feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다.',
   terms: ['merge와 rebase', 'Git 충돌(Conflict)', 'Git의 fetch, pull, push', 'Git Flow와 GitHub Flow', '코드 리뷰와 Pull Request'], ranks: ['git'],
   controls: [

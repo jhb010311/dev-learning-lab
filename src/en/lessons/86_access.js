@@ -1,6 +1,8 @@
 Lab.register({
   id: 'access', nav: 'Access modifiers and encapsulation', cat: 'Java language', mode: 'step',
   title: 'How far do private, protected, and public open up access?',
+  why: 'If any code can change a field directly, code that breaks a condition that must be kept, such as a balance becoming negative, can appear anywhere, and to change one field you have to find and fix every place that uses it. Access modifiers have the compiler check the range in which a member can be used, so fields are hidden and values can be changed only through the methods you have decided on.',
+  use: 'The basic shape is to keep fields private and open with public only the methods that must be used from outside. A helper class used only in the same package omits the access modifier (package-private) so it is not exposed to other packages, and protected is used for methods left open for child classes to override. If test code is placed in the same package name, it can also test package-private members.',
   intro: 'The access modifier in front of a field or a method determines which code can use that member. The compiler looks at which class and which package the accessing code is in to decide whether to allow the access, and if the access is not allowed, the result is a compile-time error. protected is open to subclasses, but one more condition applies in a subclass in a different package.',
   terms: ['Access modifiers', 'Encapsulation', 'Package', 'protected', 'Inheritance'],
   controls: [

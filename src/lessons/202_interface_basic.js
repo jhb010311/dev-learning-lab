@@ -1,6 +1,8 @@
 Lab.register({
   id: 'interface_basic', nav: '인터페이스', cat: '기초개념', mode: 'step', basic: true, deep: ['absint'],
   title: '인터페이스는 코드에서 어떻게 생겼고 무엇을 정하는가',
+  why: '어떤 기능을 쓰는 코드가 특정 클래스 이름에 묶여 있으면, 그 기능을 다른 방식으로 바꿀 때마다 쓰는 쪽 코드도 함께 고쳐야 한다. 인터페이스는 "이런 메서드가 있다"는 것만 타입으로 정해 두어서, 쓰는 쪽은 그 타입만 보고 메서드를 부르고 실제로 어느 클래스의 객체가 오든 같은 코드로 다룰 수 있게 한다.',
+  use: '자바의 List와 Map이 인터페이스여서, List<String> names = new ArrayList<>();처럼 변수는 인터페이스 타입으로 적고 실제 객체는 ArrayList나 LinkedList 가운데 골라 만든다. 스프링 데이터 JPA에서는 JpaRepository를 이어받은 인터페이스만 선언하면 스프링이 그 구현 객체를 만들어 주고, 한 기능을 여러 방식으로 만들어 두고 골라 쓸 때도 인터페이스를 쓴다.',
   intro: '인터페이스는 interface로 선언하는 약속입니다. 이 실습은 예시로 지은 이름 Payable(인터페이스), Card(클래스), pay(메서드)를 씁니다. "Payable 타입이라면 pay 메서드를 갖춰야 한다"처럼 메서드의 이름만 적고 본문은 적지 않습니다. 클래스는 implements Payable로 그 약속을 지키겠다고 선언하고, 약속한 pay 메서드를 실제로 작성합니다. 그러면 Payable 타입 변수가 그 클래스의 객체를 가리킬 수 있습니다. 이 실습은 interface 선언, implements, pay 메서드를 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
   terms: ['인터페이스', 'implements', '추상 메서드', '타입'],
   controls: [

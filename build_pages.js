@@ -16,13 +16,13 @@ module.exports = function (o) {
     study: 'Learn', basics: 'Fundamentals', quiz: 'Quiz', quizAll: 'Quiz: all categories', lead: 'Pick a question, click Run, and watch how each concept behaves.',
     quizDesc: 'Questions at four levels: Basics, Beginner, Intermediate, and Applied. Questions you miss come back at spaced intervals.',
     concepts: 'Concepts in this lab', presets: 'Try these', run: 'Running with the default settings', result: 'Result of this run', code: 'Code', assume: 'Assumptions of this model',
-    prev: 'Previous lab', next: 'Next lab', nojs: 'The labs on this site need JavaScript to run. The same content is written out below.',
+    why: 'Why it exists', use: "Where it's used today", prev: 'Previous lab', next: 'Next lab', nojs: 'The labs on this site need JavaScript to run. The same content is written out below.',
     ver: { run: 'Checked against real execution', part: 'Partly checked against real execution', doc: 'Checked against documentation and standards', model: 'Conceptual model' },
   } : {
     study: '공부', basics: '기초개념', quiz: '테스트', quizAll: '전체 테스트', lead: '물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.',
     quizDesc: '기초, 초급, 중급, 응용 단계의 문제를 풉니다. 틀린 문제는 간격을 두고 다시 나옵니다.',
     concepts: '이 실습에 나오는 개념', presets: '이렇게 바꿔 보세요', run: '처음 설정으로 실행하면', result: '실행 결과', code: '코드', assume: '이 모형의 전제',
-    prev: '앞 실습', next: '다음 실습', nojs: '이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.',
+    why: '왜 생겼나', use: '지금 어디에 쓰나', prev: '앞 실습', next: '다음 실습', nojs: '이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.',
     ver: { run: '실행으로 대조', part: '일부만 실행으로 확인', doc: '문서·표준 대조', model: '개념 모형' },
   };
   const esc = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -59,6 +59,8 @@ module.exports = function (o) {
   const short = (s, n) => { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
   // 분야의 목차: 묶음 이름과 그 안의 실습(이름 — 물음)
   const toc = (c, up, h) => c.groups.map(g => '<h' + h + '>' + esc(g.name) + '</h' + h + '>\n<ul>\n' + g.items.map(it => it.id ? '<li>' + link(up, 'lab/' + it.id, it.t || byId(it.id).nav) + ' — ' + esc(byId(it.id).title) + '</li>' : '<li>' + esc(it.t) + '</li>').join('\n') + '\n</ul>').join('\n');
+  // 왜 생겼나·지금 어디에 쓰나: 실습(l.why, l.use)이나 설명집 항목의 네 번째 칸({ why, use })에 있는 것만 적는다
+  const whyUse = (o, wrap) => ['why', 'use'].filter(k => o && o[k]).map(k => wrap('<b>' + esc(T[k]) + '</b> — ' + esc(o[k])));
   const labsOf = c => { const had = new Set(); c.groups.forEach(g => g.items.forEach(it => { if (it.id) had.add(it.id); })); return [...had]; };
 
   // 기초개념은 분야 하나처럼 다룬다(묶음이 분야). 실습 페이지의 길 안내와 앞뒤 실습에 쓴다.
@@ -78,8 +80,8 @@ module.exports = function (o) {
   list.forEach(l => {
     const up = '../../', cat = (bcat && labsOf(bcat).includes(l.id) ? bcat : null) || curri.find(c => labsOf(c).includes(l.id)), parts = [];
     if (cat) { const g = cat.groups.find(x => x.items.some(it => it.id === l.id)); parts.push('<p>' + (cat.basic ? link(up, 'basics', cat.name) : link(up, 'study', T.study) + ' › ' + link(up, 'study/' + cat.id, cat.name)) + ' › ' + esc(g.name) + '</p>'); }
-    parts.push('<h1>' + esc(l.nav) + '</h1>', '<p><b>' + esc(l.title) + '</b></p>', '<p>' + esc(l.intro) + '</p>', '<p>' + esc(T.ver[ver[l.id][0]] + ' · ' + ver[l.id][1]) + '</p>');
-    parts.push('<h2>' + esc(T.concepts) + '</h2>\n<dl>\n' + l.terms.map(t => '<dt>' + esc(t) + '</dt>\n<dd>' + esc(kb.find(r => r[1] === t)[2]) + '</dd>').join('\n') + '\n</dl>');
+    parts.push('<h1>' + esc(l.nav) + '</h1>', '<p><b>' + esc(l.title) + '</b></p>', ...whyUse(l, x => '<p>' + x + '</p>'), '<p>' + esc(l.intro) + '</p>', '<p>' + esc(T.ver[ver[l.id][0]] + ' · ' + ver[l.id][1]) + '</p>');
+    parts.push('<h2>' + esc(T.concepts) + '</h2>\n<dl>\n' + l.terms.map(t => { const r = kb.find(x => x[1] === t); return '<dt>' + esc(t) + '</dt>\n' + whyUse(r[3], x => '<dd>' + x + '</dd>\n').join('') + '<dd>' + esc(r[2]) + '</dd>'; }).join('\n') + '\n</dl>');
     parts.push('<h2>' + esc(T.presets) + '</h2>\n<ul>\n' + l.presets.map(p => '<li><b>' + esc(p.t) + '</b> — ' + esc(p.d) + '</li>').join('\n') + '\n</ul>');
     const c = {}; l.controls.forEach(d => { c[d.id] = d.value; });
     try {

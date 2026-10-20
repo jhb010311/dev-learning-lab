@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
 <h1>From URL to response</h1>
 <p><b>What happens when you type a URL in the address bar and press Enter</b></p>
+<p><b>Why it exists</b> — To open one address, you need to turn the name into an IP address, make a connection, encrypt so that no one can snoop, send the request to the right server, and actually produce the result. A web request is processed in a structure where DNS, TCP, TLS, a reverse proxy, and an application server each take one of these jobs, so that moving servers, changing certificates, or adding servers does not require changing the other stages.</p>
+<p><b>Where it's used today</b> — It is used to break down at which stage time is spent when a page is slow. The Network tab of the browser's developer tools and curl's timing measurements show separately the DNS lookup, the connection, TLS, and the time to the first byte. When placing servers, this separation of stages is followed too, as in leaving static files to nginx or a CDN and requests whose result must be computed to the application server.</p>
 <p>While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.</p>
 <p>Partly checked against real execution · The order of the steps and connection reuse were checked with curl; the part behind the proxy was not verified</p>
 <h2>Concepts in this lab</h2>
@@ -38,14 +40,20 @@
 <dt>DNS</dt>
 <dd>The system that translates a domain name (example.com) into the IP address that computers use to communicate. When you enter an address in a browser, the browser first asks this system for the IP address of that name and then connects to that IP address. Lookup results are cached for a certain time.</dd>
 <dt>Web server and application server</dt>
+<dd><b>Why it exists</b> — If one application server takes on static file delivery and TLS handling in addition to running code, then every time you scale the application server to several machines or replace it, these settings also have to be adjusted on each server. If you put a web server in front, the shared work can be handled there, and the application server can concentrate on running code.</dd>
+<dd><b>Where it's used today</b> — A Spring Boot web application runs on embedded Tomcat by default, so it is itself an application server. In the cloud, a setup in which a load balancer or CDN takes TLS handling and static file delivery instead of a web server is also common.</dd>
 <dd>A web server is a program that receives HTTP requests and either responds with static files such as images and HTML or forwards the requests to another server (Nginx, Apache). An application server (web application server) is a program that runs program code and builds a result for each request (Tomcat). A common setup puts a web server in front and passes requests on to the application server.</dd>
 <dt>Reverse proxy</dt>
+<dd><b>Why it exists</b> — If slow clients connect straight to an application server, the request processing threads stay tied up with those connections while the clients slowly upload a large request body or slowly take a response. A reverse proxy such as Nginx, in its default configuration, buffers requests and responses and exchanges data quickly with the backend server, so the backend server's threads are not tied up for long by slow connections.</dd>
+<dd><b>Where it's used today</b> — It is used to split static file requests and /api requests by path and send them to different servers, or to reject too-large uploads at the front with Nginx's client_max_body_size. In Kubernetes, an Ingress controller takes this role.</dd>
 <dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
 <dt>CDN</dt>
 <dd>A network that keeps copies of content on servers placed in many regions around the world and has a server close to the user respond. Static files such as images, video, and scripts are delivered faster, and fewer requests go to the origin server.</dd>
 <dt>HTTPS and TLS</dt>
 <dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
 <dt>Three-way handshake</dt>
+<dd><b>Why it exists</b> — If data is sent right away without confirming the connection, it is sent without knowing whether the other side is ready to receive, or where to start counting the numbers attached to each piece. The three-way handshake lets both sides confirm each other's starting numbers in three exchanges, which sets the basis for counting missing pieces and order afterward.</dd>
+<dd><b>Where it's used today</b> — Developers do not call it directly, but the connection timeout is the limit on how long to wait for this process to finish. If a firewall silently drops the SYN, there is no reply and the wait lasts until this timeout, and if no program is waiting on the other side's port, Connection refused appears right away.</dd>
 <dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
 </dl>
 <h2>Try these</h2>
@@ -103,6 +111,10 @@ server {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +188,10 @@ server {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

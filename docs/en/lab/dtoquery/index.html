@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,22 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
 <h1>Querying directly into a DTO</h1>
 <p><b>What is the difference between querying entities and copying them, and querying directly into a DTO?</b></p>
+<p><b>Why it exists</b> — If you read values that are only for display as entities, the persistence context keeps each entity together with its original state for dirty checking, and even to take out one team name that is set to lazy loading, a separate query is sent. A JPQL constructor expression picks the values, even from joined tables, with one SELECT and creates DTO objects, and those DTOs are not managed, so they do not have this load.</p>
+<p><b>Where it's used today</b> — You use it for queries that only read and never modify, such as list screens and statistics, and for queries that collect a few columns each from several tables and send them out as an API response. In Spring Data JPA, you write the same new syntax in @Query, or use a projection that receives the data with an interface that has only the getters you need. If you must modify the values after querying and save them, query as entities.</p>
 <p>To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO.</p>
 <p>Checked against real execution · Twelve combinations were run on Hibernate 7.4.5 and H2, and the number of SELECT statements, the number of columns, the number of managed entities, and the number of UPDATE statements were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>DTO</dt>
+<dd><b>Why it exists</b> — If values are passed one at a time, the number of trips to the server increases, and the sender and the receiver each have to match the number and order of the values. A DTO groups the values to be exchanged at once into one class, so the values are gathered and sent in one trip and both sides only need to match the shape of that class.</dd>
+<dd><b>Where it's used today</b> — It is common to make the request body (JSON) that a controller receives and the response it returns into DTO classes. Since it only has to carry values, it is sometimes written briefly as a Java record.</dd>
 <dd>This is short for Data Transfer Object, a simple object made to carry values between layers or to a screen. Unlike an entity, it has no @Entity and is not connected to a table, so the persistence context does not manage it, and changing its values does not change the DB. If you put only the values the screen needs into it, the shape of the response does not change along with the structure of the entity, and you can also prevent values that must not be sent out from slipping out. You can query an entity and then copy its values into a DTO, or you can have the query pick only the values you need and receive them directly as a DTO.</dd>
 <dt>JPQL constructor expression</dt>
 <dd>This is the syntax in which you write new package.Class(value, value) in the select clause of JPQL to receive the query result directly as objects of a class that is not an entity. The SELECT clause of the SQL contains only the columns that correspond to the values passed to the constructor, and the constructor of that class is called for each row. The result is not an entity, so the persistence context does not manage it, and it is not a target of dirty checking. The JPA standard requires the class name to be written including the package, and the class must have a constructor whose number and types of parameters match the values you pass.</dd>
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>Dirty checking</dt>
+<dd><b>Where it's used today</b> — It is used when you finish an update in a @Transactional service method by loading an entity and only changing its values. A change made outside a transaction, or a change to a detached entity, is not applied, so in that case you modify an entity that you loaded again inside a transaction.</dd>
 <dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read at flush time (usually just before the commit), and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
 <dt>N+1 selects problem</dt>
 <dd>The problem where, after 1 query loads a list, 1 more query runs for each of the N results to load its associated data, so N more queries run in total. As the data grows, the number of queries grows in proportion and performance drops sharply. To solve it, load the associated data together in a single query (fetch join) or load several items in one batch (batch fetching).</dd>
@@ -119,6 +124,10 @@ public List&lt;MemberDto&gt; list() {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -192,9 +201,10 @@ public List&lt;MemberDto&gt; list() {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

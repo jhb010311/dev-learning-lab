@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Bulk update and delete operations</h1>
 <p><b>After one UPDATE changes many rows, why does the entity still have the old value?</b></p>
+<p><b>Why it exists</b> — If you want to change many rows that meet a condition by the same rule and you read the entities into memory one by one and change them, the time to read them and the memory load grow when there are tens of thousands of rows. A bulk operation, which runs a JPQL UPDATE or DELETE with executeUpdate(), lets the database change the rows directly without reading the entities, which removes this load.</p>
+<p><b>Where it's used today</b> — You use it for work that changes many rows with one condition, such as expiring all coupons past their period at once or raising the price of all products. In Spring Data JPA you run it with @Modifying and @Query, and if you give clearAutomatically = true, the persistence context is cleared after it runs. If you must put a different value in each row, or entity callbacks such as @PreUpdate must run, you change them one by one.</p>
 <p>An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed.</p>
 <p>Checked against real execution · 66 combinations were run on Hibernate 7.4.5 and H2, and the kind and order of the SQL, the value read, the value in the DB, and the exceptions were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,17 @@
 <dt>Bulk update and delete operations</dt>
 <dd>A way to change or delete many rows at once with a single UPDATE or DELETE statement, instead of changing entities one by one. You build the query in JPQL and run it with executeUpdate(), and the number of rows changed is returned. Changing entities one by one with dirty checking sends as many SQL statements as there are rows, but a bulk operation needs only one. However, this SQL runs directly on the database without going through the persistence context, so entities you already loaded keep their old values. So you run the bulk operation before you load the entities, or you empty the persistence context with em.clear() after it.</dd>
 <dt>em.clear and em.refresh</dt>
+<dd><b>Why it exists</b> — The persistence context does not reread an entity it already has from the database and overwrite it, so after a bulk operation or another program changes the database, you keep seeing the old values. em.clear and em.refresh give you a way to discard the mismatched entities or refill them with the database values.</dd>
+<dd><b>Where it's used today</b> — It is commonly used in batches that process large data in chunks: you call flush and clear every few hundred rows so that entities do not accumulate in the persistence context and memory does not grow. em.refresh is used to reread values that the database filled in, such as database triggers or default values, after flushing an INSERT or UPDATE.</dd>
 <dd>Two ways to bring the persistence context back in line with the database when they disagree. em.clear() empties the whole persistence context, so later queries read fresh values from the database. The entity objects you held before emptying become detached, so changing their values is not applied to the database. em.refresh(entity) reads only the entity you specify again from the database and overwrites the values of that object. If you call clear while there are changes that have not been sent to the database, those changes are lost.</dd>
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 <dt>Transactional write-behind and flush</dt>
+<dd><b>Why it exists</b> — If SQL were sent right away every time an entity changed, then even changing the same row several times would send that many UPDATE statements, and every statement would make a trip to the database. Transactional write-behind delays the SQL until the flush, sends it once with the final state, and, depending on the settings, lets several statements be grouped into a JDBC batch.</dd>
+<dd><b>Where it's used today</b> — In batch jobs that save many rows, you turn on hibernate.jdbc.batch_size to group INSERT statements (they are not grouped with the IDENTITY strategy). In tests, you send the SQL right away with em.flush() and em.clear() and read it back from the database to check.</dd>
 <dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
 </dl>
 <h2>Try these</h2>
@@ -101,6 +108,10 @@ System.out.println(first.getPrice());
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +185,10 @@ System.out.println(first.getPrice());
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

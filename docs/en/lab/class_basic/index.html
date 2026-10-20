@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Classes and objects</h1>
 <p><b>How is a class different from an object?</b></p>
+<p><b>Why it exists</b> — If you keep one member's name, age, and email as separate variables, the variables grow every time members are added, and the code cannot tell which name and which age belong to the same person. A class fixes the values that go together, and the methods that handle those values, as one shape, and makes as many objects of that shape as needed, so that one person's values are handled bundled into one object.</p>
+<p><b>Where it's used today</b> — Most of what Java provides, such as String for text and LocalDate for dates, is made as classes, so you use them by creating an object, or receiving one, and calling its methods. When you build a Spring server, you write a class for each thing you handle, such as member, order, and product, and you handle one member read from the DB as one object of that class.</p>
 <p>A class is a blueprint that you write with class. It only states which values (fields) and methods something has, and declaring a class does not create anything. An object is the real thing that new creates from that blueprint. Each time new runs, one object is created, and each object has its own values for the fields. A variable is not the object itself but something that refers to an object, so if it refers to no object, you cannot call a method of that object. In this lab you remove the class declaration and new, or replace new with null. Each time, the same code is compiled and run, so you can see what the compiler reports and how many Card objects are created.</p>
 <p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21, run, and checked against the results; the number of objects created was measured by adding a counting line</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Classes and objects</dt>
 <dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
 <dt>Field</dt>
+<dd><b>Why it exists</b> — If a value is kept only in a variable inside a method, the variable disappears when the method ends. A field attaches the value to the object, so that while the object exists, several methods can read and change the same value again.</dd>
+<dd><b>Where it's used today</b> — Values that the object must keep remembering, such as the name and age of a member object or the product list of a shopping cart object, are made fields. In Spring, an object to delegate work to is received and kept in a field.</dd>
 <dd>A field is a variable that is declared inside a class. In class Card { String owner; }, owner is a field of type String. A field without static is also called an instance variable, and one is created separately for each object whenever a new object of that class is created. So even objects created from the same class can have different values in their fields. If you do not give a value, the field gets a default value, and for a field of a reference type it is null.</dd>
 <dt>new</dt>
+<dd><b>Why it exists</b> — How many objects are needed, such as how many sign-up requests will come in, is known only when the program runs. new lets you create objects one at a time as needed at run time, so you do not have to decide the number in advance.</dd>
+<dd><b>Where it's used today</b> — It is also used to create objects of classes that Java provides, as in new ArrayList&lt;&gt;() and new StringBuilder(). In Spring, Spring creates controller and service objects for you, so developers do not create such classes with new.</dd>
 <dd>new is the operator that creates an object from a class. When new Card() runs, a new object is created according to the class Card, and a reference to that object becomes the value of the expression. Usually you store this reference in a variable, as in Card a = new Card();. This expression creates a new object each time it runs, so if new runs twice, two objects are created. Declaring a class does not create an object. An object is created only when new runs.</dd>
 <dt>Default values of fields</dt>
 <dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
@@ -101,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

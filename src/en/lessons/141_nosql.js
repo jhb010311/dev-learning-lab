@@ -1,6 +1,8 @@
 Lab.register({
   id: 'nosql', nav: 'NoSQL and the document model', cat: 'Database', mode: 'step',
   title: 'Split an order into three tables, or put it in one document?',
+  why: 'A relational database splits data into separate tables, so showing one order requires joining several tables, and even to add a new item you must first change the table structure. A NoSQL database such as a document database stores the data that is read together as one document and accepts documents of different shapes, which makes reads simpler and lets you add items without a structure change.',
+  use: 'Use a document database such as MongoDB for data that is read and written as one block and whose shape changes often, such as a product list where each product has different attributes, logs and event records, and per-user settings. Data that several places share and change often, such as a product name, and payment and inventory data that must change several tables at once, mostly stay in a relational database.',
   intro: 'Store the same data (orders and order items) in two ways. The relational way splits products, orders, and order items into three tables and joins them when reading. The document model is the way used by document databases such as MongoDB: it treats one order as one document and puts the array of items and even the product names inside it.',
   terms: ['NoSQL', 'Document model (document database)', 'Fixed schema and flexible schema', 'Normalization and denormalization', 'JOIN (INNER, OUTER)'],
   controls: [

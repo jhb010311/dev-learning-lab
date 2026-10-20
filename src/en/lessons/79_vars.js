@@ -1,6 +1,8 @@
 Lab.register({
   id: 'vars', nav: 'Variables and types', cat: 'Java language', mode: 'step',
   title: 'What is copied when you assign one variable to another?',
+  why: 'If even a single number were made into an object, each value would need its own object and would have to be read through a reference, which makes calculation slower and uses more memory. Primitive types are types such as int and double for calculating small values directly without an object, and reference types make it so that when a large object is assigned or passed to a method, only the reference is copied instead of the whole object.',
+  use: 'int, long, and boolean are used when handling a single value, such as a count, a number of repetitions, or a true/false flag, and String, List, and classes you write yourself are all handled as reference types. When you pass an object to a method, that method can modify the same object, so if you must protect the original, pass a copy or an immutable object. Primitive types cannot be used inside angle brackets (<>), as in List<Integer>, so the wrapper class Integer is used instead of int.',
   intro: 'A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference type such as a class type holds a reference that points to where an object is. Whether you assign a variable or pass it to a method, what is copied is always "what the variable holds". So with a primitive type the original variable stays the same when you change the copy, and with a reference type the two variables end up looking at the same single object.',
   terms: ['Primitive types and reference types', 'Pass by value', 'Immutable object', 'Heap memory'],
   controls: [

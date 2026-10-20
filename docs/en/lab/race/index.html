@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Race condition</h1>
 <p><b>Why does count++ lose increments?</b></p>
+<p><b>Why it exists</b> — When several threads read and change the same value, another thread can step in before one thread finishes its work, so the result cannot be trusted. synchronized lets only one thread at a time run a section guarded by the same lock, which prevents this interference. AtomicInteger gets the same result without a lock: it repeats &quot;change the value only if the value you read is still the same&quot; until it succeeds.</p>
+<p><b>Where it's used today</b> — You use these for numbers that several requests increase together, such as a view count, and for caches and lists that several threads share. To count a single number, use AtomicInteger or AtomicLong. To change several values together, use synchronized or ReentrantLock. When there are several servers, a lock in one JVM cannot block the other servers, so you use a database lock or add to the value directly with a single UPDATE statement.</p>
 <p>Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. A situation like this, where the result depends on the order in which the threads run, is called a race condition.</p>
 <p>Checked against real execution · The same code was run on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,14 +40,20 @@
 <dt>Race condition</dt>
 <dd>This is a situation in which two or more threads read and write the same data at the same time, and the result depends on the order of execution. count++ consists of three steps: read the value, add 1, and write it back. If the steps of two threads are interleaved, one of the increments is lost. It typically stays hidden in tests and appears under load.</dd>
 <dt>Critical section and mutual exclusion</dt>
+<dd><b>Where it's used today</b> — You wrap a section that reads a value and writes it back, such as reducing stock or changing a balance, with synchronized or ReentrantLock. With several servers, you get the same effect with a database row lock (SELECT … FOR UPDATE) or a distributed lock that uses Redis.</dd>
 <dd>A critical section is a section of code that causes problems if several threads run it at the same time. Mutual exclusion guarantees that only one thread at a time runs that section, and it is implemented with a lock. While one thread holds the lock, the other threads wait.</dd>
 <dt>synchronized</dt>
+<dd><b>Why it exists</b> — If you acquire and release a lock yourself, you may forget to release it when an exception occurs, and other threads can wait forever. synchronized prevents this mistake with a language syntax in which the JVM releases the lock automatically the moment execution leaves the block, even if an exception was thrown.</dd>
+<dd><b>Where it's used today</b> — It is used to protect a short section such as incrementing a counter or updating a shared collection. If you need a time limit on waiting or a fair order, use ReentrantLock, and if you change only one number, use AtomicInteger.</dd>
 <dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
 <dt>volatile</dt>
+<dd><b>Why it exists</b> — If you read a shared variable without synchronization, a value changed by another thread may never become visible, but taking a lock with synchronized on every read adds waiting. volatile makes only the reads and writes of that variable immediately visible to all threads, without a lock.</dd>
+<dd><b>Where it's used today</b> — It is used for a termination flag that stops a worker thread, for a setting value that several threads read once it has been changed, and for the instance field of a singleton built with double-checked locking.</dd>
 <dd>This keyword, when placed on a variable, guarantees that a value written by one thread is always read as the latest value by other threads (a visibility guarantee). However, it does not combine a read-modify-write compound operation into one, so it does not make an operation such as count++ safe. It suits a status flag that one thread writes and several threads read.</dd>
 <dt>Visibility</dt>
 <dd>This refers to whether a value changed by one thread can be seen by other threads. Without synchronization, CPU caches and compiler optimizations can let another thread keep seeing the value from before the change. synchronized, volatile, and the tools in java.util.concurrent guarantee it.</dd>
 <dt>Atomicity and CAS (compare-and-swap)</dt>
+<dd><b>Where it's used today</b> — The request counter built with AtomicInteger and AtomicLong, and ConcurrentHashMap putting the first value into an empty slot, use CAS. The version comparison in JPA optimistic locking (UPDATE … WHERE version = ?) uses the same idea in the database.</dd>
 <dd>Atomicity is the property that an operation made of several steps runs as one, with no gap for anything to cut in. CAS (compare-and-swap) performs &quot;change to the new value only if the current value equals the value I read&quot; as a single atomic operation, which makes safe updates possible without locks. AtomicInteger and similar classes use it.</dd>
 <dt>Thread safety</dt>
 <dd>This is the property of working correctly even when several threads use something at the same time. Code is thread-safe if there is no shared state, if the state is immutable, or if access is properly synchronized. A Spring singleton bean is used by many request threads together, so it must be made thread-safe (usually by keeping no state).</dd>
@@ -111,6 +119,10 @@ for (int t = 0; t &lt; 2; t++) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -184,9 +196,10 @@ for (int t = 0; t &lt; 2; t++) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

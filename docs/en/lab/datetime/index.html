@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>Dates and times</h1>
 <p><b>What date do you get when you add one month to January 31?</b></p>
+<p><b>Why it exists</b> — Date and Calendar, from before java.time, could change the contents of the object, so a date you passed on was sometimes changed by other code, and months were counted from 0, so January was 0. java.time separates a date only, a date and time, and a time with a time zone into different immutable classes and counts months from 1, which reduces the room for these mistakes.</p>
+<p><b>Where it's used today</b> — When only a date is needed, such as a birthday or a deadline, LocalDate is used, and a moment that actually happened, such as the time of an order, is handled with Instant or ZonedDateTime. In Spring Boot, JPA and Jackson convert these types directly to database columns and JSON. A service used by people in several countries stores times in UTC and converts them to the user's time zone only when showing them on screen.</p>
 <p>Like a String, the date and time objects of java.time (LocalDate, ZonedDateTime, and so on) do not change their contents. A method such as plusMonths returns a new object, and because the months have different numbers of days, the result of &quot;one month later&quot; is sometimes not what you expect. The same instant is written as a different date and time in each time zone, and the amount of time between two points in time is measured separately in date-based units (Period) and in time-based units (Duration).</p>
 <p>Checked against real execution · The 135 combinations (11 distinct cases) were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>java.time (Date-Time API)</dt>
 <dd>This is the set of date and time classes that has been part of Java since Java 8. It includes LocalDate, which holds only a date; LocalDateTime, which holds a date and a time; ZonedDateTime, which holds a time zone as well; and Instant, which holds a single point in time that does not depend on any time zone. All of these objects are immutable, so methods such as plusDays and plusMonths do not change the original object. They return a new object. You therefore have to assign the return value to a variable to use the result. When the result of adding months is a date that is not in the calendar (for example, February 31), no exception is thrown, and the date is adjusted to the last day of that month.</dd>
 <dt>Time zone and UTC</dt>
+<dd><b>Why it exists</b> — If every region used only its own clock, you could not directly compare which of two times written in different regions came first. With a common reference called UTC and a time zone rule for each region, a time from any region can be converted to the same reference and compared.</dd>
+<dd><b>Where it's used today</b> — Use it to line up the log times of servers in several countries on one line, or to tell an overseas user a booking or deadline time in that country's time. If each server has a different time zone setting, the same moment is recorded as different times, so the time zone of the servers and the database is sometimes set to UTC.</dd>
 <dd>UTC is the time that the whole world uses as its reference, and a time zone is the set of rules for how far the time used in a region differs from UTC. Korea (Asia/Seoul) is 9 hours ahead of UTC. The same instant is written as a different time in each time zone, and sometimes the date is different as well. In a region that uses daylight saving time, the offset from UTC changes with the season, so it is safer to specify a time zone by a region name such as America/New_York than by a fixed offset. The usual practice is to store a point in time as a value that does not depend on a time zone (an Instant) and to convert it to the time zone of the viewer when it is displayed.</dd>
 <dt>Period and Duration</dt>
+<dd><b>Why it exists</b> — If an interval is carried around as one number of milliseconds, you cannot tell the unit from the code alone, and an interval such as &quot;one month&quot;, whose length differs from month to month, cannot be expressed. Period and Duration prevent this confusion by splitting an interval counted on the calendar and a length of time into different types.</dd>
+<dd><b>Where it's used today</b> — Use Period when counting in calendar units, such as a full age or &quot;expires one month after sign-up&quot;, and Duration when handling a length of time, such as a request timeout, how long to keep a cache, or how long processing took. A time value written like 30s in the Spring Boot settings can also be received as a Duration type.</dd>
 <dd>These are the two classes in java.time that represent the amount of time between two points in time. A Period expresses the amount in calendar years, months, and days, as in &quot;1 year, 2 months, and 3 days&quot;, and a Duration expresses the length of the elapsed time in seconds, as in &quot;90 minutes&quot;. The length of a month differs from month to month, so a Period cannot be converted to a fixed length of time, and a Duration has no unit such as a month or a year. The getDays() method of Period returns only the value of the days part, not the total number of days, so get the total number of days with ChronoUnit.DAYS.between. Duration.between must be given values that have a time, and passing LocalDate values, which have only a date, throws an exception at run time.</dd>
 <dt>Immutable object</dt>
 <dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
@@ -91,6 +97,10 @@ System.out.println(d == first);      // same object?</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ System.out.println(d == first);      // same object?</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

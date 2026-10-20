@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,11 +31,15 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>병렬 스트림과 공용 풀</h1>
 <p><b>남의 병렬 스트림 때문에 내 코드가 느려진다</b></p>
+<p><b>왜 생겼나</b> — 큰 컬렉션을 여러 코어로 나눠 계산하려면 스레드 풀을 만들고, 데이터를 쪼개 넘기고, 결과를 모으는 코드를 직접 써야 했다. 병렬 스트림은 stream()을 parallelStream()으로 바꾸는 것만으로 나누기와 합치기를 ForkJoinPool에 맡기고, 코드마다 스레드를 새로 만들지 않도록 JVM의 공용 풀 하나를 함께 쓰게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 원소가 아주 많은 숫자 집계나 데이터 변환처럼 기다림 없이 CPU만 쓰는 계산을 배치 작업에서 빠르게 끝낼 때 쓴다. DB 조회나 외부 API 호출처럼 기다리는 작업을 동시에 돌리려면 공용 풀 대신 크기를 따로 정한 ExecutorService나 가상 스레드를 쓴다. 웹 요청을 처리하는 코드에서는 쓸 일이 드물다.</p>
 <p>parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다.</p>
 <p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>ForkJoinPool과 공용 풀</dt>
+<dd><b>왜 생겼나</b> — 큰 일을 잘게 나눠 여러 스레드에 주면 스레드마다 끝나는 시간이 달라 먼저 끝난 스레드가 놀게 된다. ForkJoinPool은 스레드마다 작업 줄을 두고, 할 일이 없는 스레드가 다른 스레드의 줄에서 작업을 가져가게(작업 훔치기) 해서 일을 고르게 나눈다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Arrays.parallelSort나 병렬 스트림처럼 CPU만 쓰는 큰 계산을 여러 코어에 나눠 돌릴 때 쓰인다. DB나 외부 API를 기다리는 작업은 공용 풀을 붙잡지 않도록 따로 만든 ExecutorService에서 돌린다.</dd>
 <dd>큰 작업을 작은 작업으로 나눠 여러 스레드에서 처리하고 결과를 합치는 데 쓰는 스레드 풀이다. JVM에는 모두가 함께 쓰는 공용 풀(commonPool)이 있으며 병렬 스트림은 기본적으로 이 풀에서 실행된다. 여기서 오래 걸리는 작업을 실행하면 같은 풀을 쓰는 다른 작업까지 느려진다.</dd>
 <dt>Stream API</dt>
 <dd>컬렉션 등의 데이터에 대해 필터링, 변환, 집계를 선언적으로 표현하는 API다. filter, map 같은 중간 연산을 이어 붙이고 collect, forEach 같은 최종 연산으로 마무리한다. 중간 연산은 최종 연산이 호출될 때까지 실행되지 않으며(지연 평가), 스트림은 원본 데이터를 변경하지 않고 한 번만 사용할 수 있다.</dd>
@@ -84,6 +88,10 @@ items.parallelStream().forEach(this::resize);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +165,10 @@ items.parallelStream().forEach(this::resize);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

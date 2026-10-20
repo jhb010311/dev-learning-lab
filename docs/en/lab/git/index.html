@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Collaboration</p>
 <h1>Merge and rebase</h1>
 <p><b>Three ways to combine two branches</b></p>
+<p><b>Why it exists</b> — If several people combine the changes they made separately by copying files, they lose track of who changed what and overwrite each other's edits. Git's merge and rebase combine the changes of two branches automatically and ask a person only about the parts where the same place was edited, and they leave the combined result in the commit history.</p>
+<p><b>Where it's used today</b> — When you combine a Pull Request on GitHub, you choose one of a merge commit, squash, or rebase, and each team decides which shape to leave in the history. You use rebase to move your own working branch on top of the latest main, and merge to combine a branch that is already shared with other people. If you do not want to keep the small commits made during the work, you use squash to leave one commit per feature.</p>
 <p>While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict.</p>
 <p>Checked against real execution · Checked by creating a temporary repository with git 2.55</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,15 @@
 <dt>Merge conflict</dt>
 <dd>A situation in which two branches changed the same part of the same file in different ways, so Git cannot combine them automatically. A person looks at the parts marked as conflicting, decides which side to keep or how to combine the two, edits the file, and then completes the merge.</dd>
 <dt>Git fetch, pull, and push</dt>
+<dd><b>Why it exists</b> — A central repository system like SVN puts a commit on the server right away, so you cannot commit without a network, and others can take the commit as soon as you make it. Git first keeps the commit in the repository on your own computer, and lets people decide when to exchange with the remote repository using fetch, pull, and push.</dd>
+<dd><b>Where it's used today</b> — At the start of work, you get the team's latest changes with pull, and when the work is finished, you push and then open a Pull Request. To see the differences before merging, you fetch and then check with git log or git diff.</dd>
 <dd>The fetch command downloads new changes from the remote repository but does not apply them to your working branch. The pull command does a fetch and then also merges the downloaded changes into the current branch. The push command uploads your local commits to the remote repository.</dd>
 <dt>Git-flow and GitHub Flow</dt>
+<dd><b>Why it exists</b> — Without branch rules, people create branches by their own standards, and it becomes unclear which branch is what is deployed now and where to branch an urgent fix from. Git-flow and GitHub Flow decide in advance the kinds of branches and the direction of merging, so the team works in the same order.</dd>
 <dd>Strategies for managing branches. Git-flow keeps a branch for releases and a branch that integrates development, and it manages features, release preparation, and urgent fixes on their own separate branches. It suits products that release versions on a fixed schedule. GitHub Flow is a simple approach in which you create a short-lived working branch from a single base branch, merge it after review, and deploy right away. It suits services that deploy at any time.</dd>
 <dt>Code review and pull requests</dt>
+<dd><b>Why it exists</b> — If everyone pushes changes straight to the base branch, others use that code without knowing what changed, and mistakes show up only after they reach production. A pull request adds a step before merging in which you see the changes on one screen, exchange opinions in comments, and check the automated test results.</dd>
+<dd><b>Where it's used today</b> — On GitHub and GitLab (where it is called a Merge Request), you protect the base branch so that only changes with review approval can be merged, and sometimes a CODEOWNERS file automatically sets who reviews each path. So that reviews do not drag on, split the work so that one pull request is a small change of about one feature.</dd>
 <dd>A pull request (PR) is a request to merge the changes on a working branch into the base branch. Code review is the process in which other developers examine the changes before they are merged. It finds defects early, keeps the code consistent, and shares knowledge within the team.</dd>
 </dl>
 <h2>Try these</h2>
@@ -80,6 +87,10 @@ git merge feature</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +164,10 @@ git merge feature</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

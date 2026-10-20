@@ -1,6 +1,8 @@
 Lab.register({
   id: 'kafka', nav: 'Kafka partitions and consumers', cat: 'Message queues', mode: 'step',
   title: 'I added consumers, so why is the throughput the same?',
+  why: 'In an ordinary message queue, the consumer deletes a message once it is processed, so it is hard for another system to read the same message again, and attaching several consumers mixes up the processing order. Kafka divides a topic into several partitions, keeps the order within each partition while consumers divide the reading among themselves, and does not delete a message just because it was read, so that each consumer group can read separately.',
+  use: 'It is used in structures where one order event is received and processed by the payment, shipping, and notification services separately, and where records that pile up many per second, such as clicks and logs, are collected. Messages whose order matters, such as events of the same order, are sent to the same partition with the same key. When there are few messages and only task distribution is needed, a queue such as RabbitMQ is sometimes used.',
   intro: 'A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer.',
   terms: ['Kafka topics, partitions, and offsets', 'Consumer groups and rebalancing', 'Consumer lag', 'Message delivery guarantees', 'Message queue', 'Idempotency and idempotency keys'], ranks: ['mq', 'msa'],
   controls: [

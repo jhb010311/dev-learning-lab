@@ -75,6 +75,11 @@ button, input, select { font: inherit; color: inherit; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
 
+.whyuse { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 44px; padding-bottom: 10px; }
+.whyuse > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.wu-l { font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-right: .45em; }
+.term p + p { margin-top: 4px; }
+
 
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl ctl" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
 .p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
@@ -293,6 +298,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 .glpop .glhead b { font-size: 1rem; }
 .glpop .glfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .glpop .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); }
+#glpop-wu { display: flex; flex-direction: column; gap: 8px; }
 
 
 .tabs { align-self: flex-start; }
@@ -358,6 +364,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .p-bar .clock { font-size: .78rem; margin-left: 0; }
   .p-bar .log { max-height: 138px; font-size: .9rem; }
   .headcols { grid-template-columns: minmax(0, 1fr); }
+  .whyuse { grid-template-columns: minmax(0, 1fr); order: -2; padding-bottom: 0; }
   .terms { columns: 1; }
   .about { order: -1; padding-left: 0; margin-left: 0; border-left: 0; }
   .p-bar .stale { margin-left: 0; flex-basis: 100%; }

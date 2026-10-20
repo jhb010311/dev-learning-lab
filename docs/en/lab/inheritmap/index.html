@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>Inheritance mapping</h1>
 <p><b>In how many tables, and how, are inherited classes stored?</b></p>
+<p><b>Why it exists</b> — To store a superclass with common fields and subclasses for each kind directly, you had to decide how to split the tables, and in the code, branch on which table to read for each SQL statement and which subclass object to create from the rows you read. With JPA's inheritance mapping, you only choose one strategy with @Inheritance, and it generates this SQL for you, and even when you query by the superclass type, it returns the right subclass objects.</p>
+<p><b>Where it's used today</b> — You use it for data that has many common fields and fields that differ a little by kind, such as splitting a product into book, album, and movie, or a payment into card and bank transfer. To make queries simple and fast, the single table strategy is commonly chosen, and to store without empty cells, the joined strategy. If you only want to pass down common fields and never query by the superclass type, use @MappedSuperclass instead of inheritance mapping.</p>
 <p>Java has inheritance, but the tables of a relational database do not. So you have to choose how to store a superclass Item and its subclasses Book, Album, and Movie in tables. JPA has three strategies, and the one you choose changes the number and shape of the tables, the number of INSERTs when you save, and the shape of the queries when you load.</p>
 <p>Checked against real execution · 27 combinations were run on Hibernate 7.4.5 and H2, and the tables, the number of INSERTs, the numbers of joins and UNIONs in the find queries, and the rows left were checked</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,10 @@
 <dt>Inheritance mapping</dt>
 <dd>The choice of how to store the inheritance structure of Java classes in tables. A relational database has no inheritance, so you have to choose which tables the fields of a superclass and its subclasses go into. In JPA, you put @Inheritance on the root entity and specify one of three strategies: joined subclass, single table, and table per concrete class. If you do not specify one, the single table strategy is used. The strategy changes the number of tables, the number of INSERTs when you save, and the shape of the query when you load.</dd>
 <dt>Joined subclass strategy (JOINED)</dt>
+<dd><b>Where it's used today</b> — Choose it when you must protect values in the database too by putting a constraint such as NOT NULL on a column that only the child has. In the single table strategy, those columns must allow null, so NOT NULL cannot be put on them.</dd>
 <dd>An inheritance mapping strategy that creates a separate table for the superclass and for each subclass, and makes the primary key of a subclass table a foreign key that points to the primary key of the superclass table. The fields of the superclass are stored in the superclass table and the fields that only the subclass has are stored in the subclass table, so no value is repeated and no empty cells appear. In exchange, saving one object sends two INSERTs, and loading requires joins. If you find by the superclass type, it cannot tell which subclass the row belongs to, so it joins all the subclass tables.</dd>
 <dt>Single table per class hierarchy strategy (SINGLE_TABLE)</dt>
+<dd><b>Where it's used today</b> — Choose it when there are few kinds of children, the children have only a few fields of their own, and lists are often queried by the parent type.</dd>
 <dd>An inheritance mapping strategy that puts the fields of the superclass and all the subclasses into one table. A discriminator column (named DTYPE by default) is created along with it, and it records which subclass each row belongs to. No join is needed, so the queries for saving and loading are simple. In exchange, the columns of the other subclasses are left as null, so the columns of the subclasses must allow null, and the table gets wider as subclasses are added.</dd>
 <dt>Table per concrete class strategy (TABLE_PER_CLASS)</dt>
 <dd>An inheritance mapping strategy that has no superclass table and creates one table for each subclass, repeating the superclass fields in every subclass table. It is simple when you save and load just one subclass type, because you need only that one table. But if you find by the superclass type, it cannot tell which table has the row, so it has to combine all the subclass tables with UNION. That is why this strategy is best avoided when you need to work with objects through the superclass type.</dd>
@@ -110,6 +114,10 @@ em.persist(book);
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -183,9 +191,10 @@ em.persist(book);
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

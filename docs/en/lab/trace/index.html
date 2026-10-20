@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Observability</p>
 <h1>Distributed tracing</h1>
 <p><b>One request is slow, but which service is to blame?</b></p>
+<p><b>Why it exists</b> — A request handled on a single server could be followed through that server's logs alone, but once services were split and began calling each other over the network, one request passes through several servers and the time it takes is divided among them. Distributed tracing ties together the span records that each service leaves, using the same ID, and lays them out on a time axis, so you can see which span is slow across service boundaries.</p>
+<p><b>Where it's used today</b> — It is used in systems split into several services (microservice architecture) to find a slow request or the service that caused an error. In Spring Boot, Micrometer Tracing passes the trace ID along automatically and also prints it in the logs, and the collected records are viewed with tools such as Zipkin, Jaeger, and Grafana Tempo. Recording every request produces a large amount of stored data, so usually only a portion is collected as a sample.</p>
 <p>One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went.</p>
 <p>Checked against documentation and standards · The W3C Trace Context standard and the OpenTelemetry documentation</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,16 @@
 <dt>Observability (logs, metrics, traces)</dt>
 <dd>The ability to understand the internal state of a system from its external outputs alone. Logs are records of individual events, metrics are values aggregated as numbers, such as request counts and response times, and traces are records of the path one request takes through several services and the time spent in each segment. You need all three together to detect problems and find their causes.</dd>
 <dt>MDC</dt>
+<dd><b>Why it exists</b> — If you attach a request ID to each log statement by hand, some places get missed, and there is no way to attach it to the logs that libraries write. MDC makes the log format print the request ID, so that the same value appears on every line without changing the code that writes the logs.</dd>
+<dd><b>Where it's used today</b> — In a filter, you set the request ID with MDC.put when a request comes in, and print it with %X{key name} in the Logback or Log4j2 log format. When logs from several servers are gathered in one place for searching, you use this value to see the logs of one request together.</dd>
 <dd>A logging feature that automatically prints context information about the current request (such as the request ID and the user ID) with each log entry. It keeps values per thread: if you put the values in when a request starts, the same values appear in every log entry written by the thread that processes that request. Even when the logs of many requests are mixed together, you can pick out the logs of a single request.</dd>
 <dt>APM</dt>
+<dd><b>Why it exists</b> — To find the cause of slowness from logs alone, you have to repeat the work of adding code that measures time at each suspect place and redeploying. An APM keeps collecting the time spent in methods, queries, and external calls from the running application, so you can look at the record from that time even after a problem has occurred.</dd>
+<dd><b>Where it's used today</b> — It is used when a certain API suddenly becomes slow in production: you pick one slow request and trace which query or external call took the time, and compare response times and error rates before and after a deployment.</dd>
 <dd>A tool that monitors the performance of an application. It collects and shows the response time of each request, which methods or queries took the time, the errors that occurred, and more. In Java, it is usually applied as an agent, with no code changes. Examples are Pinpoint, Scouter, and Datadog.</dd>
 <dt>Monolithic architecture and microservice architecture</dt>
+<dd><b>Why it exists</b> — An application that has grown to hold many features has to be rebuilt and redeployed as a whole even for a small change, and several teams that share the same code and deployment schedule end up waiting for each other. Microservice architecture is a way to split the system into services so that each team changes and releases its own service separately.</dd>
+<dd><b>Where it's used today</b> — Organizations in which several teams share the work on a large service use microservice architecture. Small teams and new services often start as a monolith and split off services when the boundaries to split on become clear and the need arises.</dd>
 <dd>A monolithic architecture builds all features as one application and deploys them together. A microservice architecture splits the features into small services, and each one is developed, deployed, and scaled independently. With microservices, each service can be deployed and scaled separately and failures are isolated, but the complexity of communication between services, data consistency, and operations grows a lot.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +100,10 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +177,10 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

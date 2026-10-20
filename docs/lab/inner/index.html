@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>내부 클래스와 익명 클래스</h1>
 <p><b>클래스 안에 만든 클래스는 바깥 객체와 어떻게 이어져 있나</b></p>
+<p><b>왜 생겼나</b> — 한 클래스를 돕는 데만 쓰는 작은 클래스를 따로 최상위 클래스로 꺼내 두면, 다른 코드도 쓸 수 있게 드러나고 두 클래스의 관계도 코드에서 잘 보이지 않는다. 중첩 클래스는 그런 클래스를 바깥 클래스의 본문에 선언해 관계를 드러내고 private을 붙여 바깥 클래스만 쓰게 할 수도 있으며, 익명 클래스와 람다는 한 번 쓰고 말 구현을 이름 없이 쓰는 자리에서 바로 만들게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 빌더 패턴의 빌더 클래스처럼 한 클래스와 함께만 쓰는 작은 클래스는 static 중첩 클래스로 만들며, HashMap도 원소 하나를 나타내는 Node를 static 중첩 클래스로 둔다. 정렬 기준이나 버튼 클릭 처리처럼 한 번 넘길 동작은 예전에는 익명 클래스로 적었고, 구현할 메서드가 하나뿐인 인터페이스라면 지금은 람다로 적는다.</p>
 <p>클래스 안에 또 클래스를 선언할 수 있습니다. static을 붙이지 않은 내부 클래스의 객체는 만들 때 정한 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체 없이는 만들 수 없습니다. 이름 없이 그 자리에서 만드는 익명 클래스와 람다는 주변의 지역 변수를 쓸 수 있지만 그 변수의 값을 바꾸면 컴파일 오류가 나고, 둘 안에서 this가 가리키는 것도 서로 다릅니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합의 코드를 그대로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>내부 클래스와 중첩 클래스</dt>
 <dd>다른 클래스 안에 선언한 클래스다. static을 붙이지 않은 것을 내부 클래스(인스턴스 내부 클래스), static을 붙인 것을 static 중첩 클래스라고 부른다. 내부 클래스의 객체는 바깥 객체 하나에 딸려 만들어지고 그 바깥 객체를 가리키는 참조를 가지므로, 바깥 객체의 필드와 메서드를 바로 쓸 수 있다. static 중첩 클래스의 객체는 바깥 객체 없이 만들 수 있고, 바깥 객체의 인스턴스 필드는 그냥 쓸 수 없다. 내부 클래스의 객체가 남아 있는 동안에는 그 참조 때문에 바깥 객체도 메모리에서 치워지지 않을 수 있으므로, 바깥 객체를 쓰지 않는 클래스에는 static을 붙이는 것이 좋다.</dd>
 <dt>익명 클래스</dt>
+<dd><b>지금 어디에 쓰나</b> — 메서드가 둘 이상인 인터페이스나 추상 클래스를 한 번만 쓸 곳에서 바로 구현할 때, 필드를 가진 구현이 필요할 때 쓴다. 추상 메서드가 하나뿐인 인터페이스라면 지금은 대개 람다로 쓴다.</dd>
 <dd>이름을 붙이지 않고, 선언하는 자리에서 바로 객체를 하나 만드는 클래스다. new Runnable() { ... }처럼 인터페이스나 클래스 이름 뒤에 중괄호로 내용을 적으며, 그 인터페이스를 구현하거나 그 클래스를 상속한 객체가 만들어진다. 한 번만 쓸 작은 구현을 따로 파일로 만들지 않아도 되는 것이 장점이다. 익명 클래스 안의 this는 새로 만든 그 객체를 가리키며, 이 점이 this가 바깥 객체를 가리키는 람다와 다르다. 컴파일하면 Outer$1처럼 바깥 클래스 이름에 번호가 붙은 클래스 파일이 따로 만들어진다.</dd>
 <dt>사실상 final(effectively final)</dt>
+<dd><b>왜 생겼나</b> — 예전에는 익명 클래스에서 바깥 지역 변수를 쓰려면 final을 꼭 적어야 해서, 바꾸지도 않는 변수마다 final이 붙었다. 사실상 final은 다시 대입하지 않는 변수를 final로 쳐 주어, 람다와 익명 클래스를 final 없이 짧게 쓰게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 람다를 forEach나 스레드에 넘길 때 바깥 지역 변수를 쓰면 이 규칙이 걸린다. 값을 바꿔 가며 쓰는 변수는 반복할 때마다 새 지역 변수에 복사해 넘긴다.</dd>
 <dd>final을 적지 않았지만 처음 값을 넣은 뒤 한 번도 다시 대입하지 않은 지역 변수를 말한다. 익명 클래스와 람다는 자기를 둘러싼 메서드의 지역 변수 가운데 final이거나 사실상 final인 것만 안에서 쓸 수 있다. 이들은 변수 자체가 아니라 그 값을 복사해 가져가므로, 원본을 바꿀 수 있게 두면 복사본과 달라져 혼란이 생기기 때문이다. 변수에 다시 대입하는 줄이 하나라도 있으면 컴파일 오류가 난다. 변수가 가리키는 배열이나 객체의 내용을 바꾸는 것은 다시 대입하는 것이 아니므로 허용된다.</dd>
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
@@ -95,6 +100,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -168,9 +177,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

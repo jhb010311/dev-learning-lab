@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 저장과 복구</p>
 <h1>버퍼 풀과 페이지</h1>
 <p><b>행 하나를 읽는데 왜 16KB를 통째로 읽나</b></p>
+<p><b>왜 생겼나</b> — 행을 읽고 고칠 때마다 디스크에 직접 가면, 자주 쓰는 행일수록 같은 자리를 몇 번이고 다시 읽고 고칠 때마다 데이터 파일의 그 자리에 바로 써야 한다. InnoDB의 버퍼 풀은 이렇게 되풀이되는 디스크 일을 메모리 한곳에서 받아 내어, 자주 쓰는 데이터일수록 디스크까지 가는 횟수가 줄어들게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — MySQL 서버를 설정할 때 innodb_buffer_pool_size를 정하는 것이 가장 직접적인 쓰임으로, DB만 돌리는 서버라면 메모리의 큰 몫을 버퍼 풀에 준다. 자주 쓰는 데이터가 버퍼 풀에 다 남지 못하면 같은 쿼리도 디스크 읽기가 늘어 느려지므로, 쿼리가 느린 원인을 찾을 때 디스크에서 읽은 횟수를 함께 확인한다.</p>
 <p>InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.</p>
 <p>일부만 실행으로 확인 · MySQL 8.4.11에서 밀려남이 없는 여섯 조합의 디스크 읽기와 쓰기를 실행으로 대조. 칸 수와 밀려나는 순서는 개념 모형</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>버퍼 풀</dt>
 <dd>InnoDB가 디스크에서 읽은 페이지를 올려 두는 메모리 영역이다. 필요한 페이지가 버퍼 풀에 있으면 디스크에 가지 않고 메모리에서 읽고, 없으면 디스크에서 읽어 와 버퍼 풀에 넣는다. 크기는 innodb_buffer_pool_size로 정하며, 가득 차면 오래 쓰이지 않은 페이지부터 내보내 자리를 만든다. 디스크는 메모리보다 훨씬 느리므로, 자주 쓰는 데이터가 버퍼 풀에 들어갈 만큼 크기를 주는 것이 성능에 큰 영향을 준다.</dd>
 <dt>페이지(InnoDB)</dt>
+<dd><b>왜 생겼나</b> — 디스크는 작은 조각을 여러 번 따로 읽는 것보다 이어진 덩어리를 한 번에 읽는 편이 대개 더 빠르다. InnoDB는 행과 인덱스를 페이지 단위로 묶어 읽고 써서, 디스크를 오가는 횟수를 줄인다.</dd>
 <dd>InnoDB가 데이터를 디스크에 저장하고 읽고 쓰는 기본 단위다. 기본 크기는 16KB이며, 한 페이지 안에 여러 행이 함께 들어 있다. 행 하나만 필요해도 그 행이 든 페이지를 통째로 읽어 오므로, 같은 페이지에 있는 다른 행들도 함께 메모리에 올라온다. 테이블의 행뿐 아니라 인덱스도 페이지 단위로 저장된다. 그래서 가까이 저장된 행을 이어서 읽는 작업은 디스크를 덜 읽고, 흩어진 행을 읽는 작업은 행마다 다른 페이지를 읽게 된다.</dd>
 <dt>더티 페이지와 플러시</dt>
+<dd><b>왜 생겼나</b> — 같은 페이지를 짧은 사이에 여러 번 고칠 때마다 데이터 파일에 쓰면 쓰기가 고친 횟수만큼 생긴다. InnoDB가 고친 페이지를 더티 페이지로 두었다가 나중에 플러시하면 여러 번의 변경을 한 번의 쓰기로 묶을 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쓰기가 많은 MySQL 서버에서 innodb_io_capacity, innodb_max_dirty_pages_pct 같은 설정으로 플러시 속도와 더티 페이지가 쌓일 수 있는 비율을 조절한다.</dd>
 <dd>더티 페이지는 버퍼 풀에서 내용을 고쳤지만 아직 디스크의 데이터 파일에는 쓰지 않은 페이지다. InnoDB는 행을 고칠 때 메모리의 페이지만 바꾸고, 데이터 파일에 쓰는 일(플러시)은 백그라운드 스레드가 나중에 모아서 한다. 커밋은 플러시를 기다리지 않으며, 그 사이에 서버가 꺼지면 Redo 로그로 변경을 다시 적용해 복구한다. 더티 페이지를 버퍼 풀에서 내보내려면 먼저 디스크에 써야 한다.</dd>
 <dt>캐시 제거(Eviction) 정책</dt>
+<dd><b>왜 생겼나</b> — 메모리가 찼을 때 무엇을 버릴지 정해 두지 않으면 새 값을 넣을 수 없다. 제거 정책은 버릴 순서를 정해 두어, 캐시가 가득 차도 덜 쓰는 값부터 지우고 새 값을 계속 받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Redis를 캐시로만 쓸 때는 allkeys-lru나 allkeys-lfu로 두고, 지워지면 안 되는 값과 함께 쓸 때는 TTL이 있는 키만 지우는 volatile-lru를 고른다. 기본값 noeviction은 maxmemory에 이르면 아무것도 지우지 않고 쓰기 명령을 오류로 돌려준다.</dd>
 <dd>캐시의 메모리가 가득 찼을 때 어떤 데이터를 지울지 정하는 규칙이다. 가장 오래 사용되지 않은 것을 지우는 LRU, 사용 횟수가 가장 적은 것을 지우는 LFU 등이 있다. Redis에서는 maxmemory-policy 설정으로 지정한다.</dd>
 <dt>Undo 로그와 Redo 로그</dt>
 <dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때 쓰이며, InnoDB에서는 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC)도 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
@@ -97,6 +104,10 @@ SELECT name FROM item WHERE id = 1;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +181,10 @@ SELECT name FROM item WHERE id = 1;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

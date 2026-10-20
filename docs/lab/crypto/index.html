@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 암호 기술</p>
 <h1>해시·암호화·서명</h1>
 <p><b>숨기는 것, 확인하는 것, 되돌릴 수 없는 것</b></p>
+<p><b>왜 생겼나</b> — 평문으로 주고받는 데이터는 오가는 길목에서 엿보거나 고칠 수 있고, 비밀번호를 그대로 저장하면 DB가 유출되는 순간 모두 드러난다. 해시, 암호화, 서명은 이 문제를 나눠 맡는 도구로, 해시는 원래 값을 남기지 않고 같은지만 비교하게 하고, 암호화는 키가 있는 사람만 읽게 하며, HMAC과 전자서명은 내용이 바뀌었거나 남이 만든 것을 알아채게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — HTTPS는 공개키 방식으로 서버를 확인하고 대칭키를 정한 뒤 HTTP 메시지를 대칭키로 암호화한다. 회원 비밀번호는 스프링 시큐리티의 BCryptPasswordEncoder처럼 일부러 느리게 만든 해시에 솔트를 붙여 저장하고, JWT 로그인 토큰과 외부 서비스가 보내는 웹훅 요청은 HMAC이나 전자서명으로 위조 여부를 확인한다. 모두 직접 구현하지 않고 검증된 라이브러리를 쓴다.</p>
 <p>보안 이야기에 늘 나오는 해시, 대칭키 암호화, 비대칭키 암호화, 서명은 서로 다른 일을 합니다. &quot;주문 100원&quot;이라는 메시지에 다섯 가지 도구를 각각 써 보고, 내용을 바꾸거나 다른 키를 썼을 때 무슨 일이 생기는지 확인하세요. 화면의 값은 모두 실제로 계산한 값입니다.</p>
 <p>실행으로 대조 · Node.js 암호 라이브러리로 실제 계산·검증</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>해시 함수와 솔트</dt>
 <dd>해시 함수는 입력을 고정된 길이의 값으로 바꾸는 함수로, 결과에서 원래 입력을 되돌릴 수 없다. 비밀번호는 원문 대신 해시 값을 저장해 유출되더라도 원문이 드러나지 않게 한다. 솔트는 비밀번호마다 다르게 덧붙이는 무작위 값으로, 같은 비밀번호라도 다른 해시가 되게 해 미리 계산해 둔 해시 목록을 이용한 공격을 막는다.</dd>
 <dt>대칭키 암호화와 비대칭키 암호화</dt>
+<dd><b>지금 어디에 쓰나</b> — HTTPS(TLS)에서는 연결을 맺을 때 서버 인증서의 서명 확인과 키 교환에 비대칭키 방식을 쓰고, 이어지는 HTTP 데이터는 AES 같은 대칭키로 암호화한다. DB에 저장하는 카드번호 같은 값은 대칭키로 암호화하고, SSH 로그인에 쓰는 키 쌍은 비대칭키다.</dd>
 <dd>대칭키 암호화는 암호화와 복호화에 같은 키를 쓰는 방식으로 빠르지만 키를 상대와 안전하게 공유해야 하는 문제가 있다(AES). 비대칭키 암호화는 공개키와 개인키의 쌍을 쓰는 방식으로, 공개키로 암호화한 것은 개인키로만 풀 수 있어 키 공유 문제가 없지만 느리다(RSA). 실제로는 비대칭키로 대칭키를 안전하게 교환한 뒤 대칭키로 데이터를 암호화한다.</dd>
 <dt>HMAC과 전자서명</dt>
+<dd><b>왜 생겼나</b> — 해시 값만 붙여 보내면 중간에서 내용을 바꾸고 해시도 새로 계산해 붙일 수 있어 위조를 알아챌 수 없다. HMAC과 전자서명은 키가 있어야만 만들 수 있는 값을 붙여, 키가 없는 쪽이 고친 메시지를 받는 쪽이 가려내게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JWT의 서명(HS256은 HMAC, RS256은 전자서명), GitHub 웹훅처럼 요청 헤더에 붙여 보내는 서명, HTTPS 인증서 검증에 쓰인다.</dd>
 <dd>메시지가 중간에 바뀌지 않았고 정당한 상대가 보냈음을 확인하는 기술이다. HMAC은 양쪽이 공유한 비밀키와 메시지를 함께 해시해 인증 코드를 만든다. 전자서명은 보내는 쪽이 개인키로 서명하고 받는 쪽이 공개키로 검증하며, 서명한 쪽만 만들 수 있으므로 보낸 사실을 부인할 수 없다.</dd>
 <dt>JWT(JSON Web Token)</dt>
 <dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
@@ -81,6 +86,10 @@ byte[] digest = md.digest(message.getBytes(UTF_8));
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -154,9 +163,10 @@ byte[] digest = md.digest(message.getBytes(UTF_8));
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

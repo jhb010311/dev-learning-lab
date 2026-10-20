@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
 <h1>Proxies and lazy fetching</h1>
 <p><b>Is an object received through lazy fetching a real entity?</b></p>
+<p><b>Why it exists</b> — If you always read associated entities together, then even when you want to see only one order, you also query a member you will not use and even that member's team. Hibernate puts, in the place of the associated object, a proxy that knows only the identifier, and postpones the query until the values of that object are really used, so data that is not used is not read.</p>
+<p><b>Where it's used today</b> — @ManyToOne is eager by default, so if many order queries do not use the member, you write FetchType.LAZY. It is common to leave associations lazy and read them with a fetch join or @EntityGraph only when you show them together. For a save that only fills in the foreign key, you connect the association without a SELECT by using em.getReference (getReferenceById in Spring Data JPA).</p>
 <p>A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed.</p>
 <p>Checked against real execution · 20 combinations were run on Hibernate 7.4.5 and H2, and whether m is a proxy, when the query SQL was sent, and the result values and exceptions were checked</p>
 <h2>Concepts in this lab</h2>
@@ -44,6 +46,7 @@
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +95,10 @@ String name = m.getName();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +172,10 @@ String name = m.getName();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

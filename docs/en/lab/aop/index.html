@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › AOP and proxies</p>
 <h1>AOP: advice and pointcuts</h1>
 <p><b>Which methods does advice apply to, and in what order does it run?</b></p>
+<p><b>Why it exists</b> — If you put code such as timing execution or recording calls directly into every method, the same lines repeat at the start and end of each body, and to make sure they run even when an exception occurs, you have to write try-finally every time. Spring AOP moves this code out of the methods, and a proxy receives the call and runs it before and after, so you can attach or remove it without changing the original method.</p>
+<p><b>Where it's used today</b> — @Transactional, @Cacheable, and method authorization checks (@PreAuthorize), which Spring provides, all work with this proxy structure. Writing an aspect yourself is mostly for work that several services need in the same way, such as recording requests, measuring execution time, and retrying. Work that applies to whole HTTP requests is often handled with a servlet filter or a Spring MVC interceptor instead of AOP.</p>
 <p>When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut.</p>
 <p>Checked against real execution · All 72 combinations were run on Spring Framework 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Aspect-oriented programming (AOP)</dt>
 <dd>This programming technique separates additional behavior that appears repeatedly in many places (crosscutting concerns), such as logging, transactions, and permission checks, from the core business code and gathers it in one place. You write the additional behavior only once and specify separately &quot;where to apply it&quot;, so the core code stays clean and a change to that behavior is made in one place.</dd>
 <dt>Advice</dt>
+<dd><b>Why it exists</b> — To decide on your own whether common code runs only when an exception occurs or always runs when finishing, whether normal or exceptional, you would have to write try-catch-finally in each method. Advice lets you pick this timing of execution with one annotation such as @AfterThrowing or @After.</dd>
+<dd><b>Where it's used today</b> — @Before is often used for checking arguments before execution, @AfterThrowing for recording exceptions, and @Around for measuring execution time and retrying, which need both before and after.</dd>
 <dd>In AOP, this is the code to be added to a method call, defined together with when that code runs. In Spring, you create it by putting one of these annotations on a method of an aspect class: @Before (before the method runs), @AfterReturning (after it returns a value normally), @AfterThrowing (after an exception goes out), @After (after it finishes, whether normally or with an exception), or @Around (wraps the method execution before and after). With @Around, the target method runs only when proceed() of ProceedingJoinPoint is called, and when it is not called, the target method does not run. @AfterThrowing only observes the exception passing through and does not remove it, so the exception is passed on to the caller as it is.</dd>
 <dt>Pointcut</dt>
+<dd><b>Why it exists</b> — If you specify one by one the methods to attach common code to, the list has to be fixed every time a new method is created. A pointcut lets you select targets by conditions such as package, name pattern, and annotation, so a method that meets the conditions becomes a target automatically when it is created.</dd>
+<dd><b>Where it's used today</b> — To apply it across a whole layer, such as &quot;all public methods in the service package&quot;, you use an execution expression. An expression that depends on the shape of names drops a method from the targets when its name changes, so to make the targets clear, attach an annotation you made yourself and select with @annotation.</dd>
 <dd>This is the condition expression that selects which methods advice is applied to. The form execution(return-type package.class.method(parameters)) is used most often, where * means any single name and (..) means any number of parameters. Empty parentheses () match only a method that takes no parameters. @annotation(annotation type) matches the methods annotated with that annotation. When an expression matches no method at all, there is no error and the advice simply does not run, so after writing an expression you must check that it is actually applied.</dd>
 <dt>Aspect and @Order</dt>
+<dd><b>Why it exists</b> — If pointcuts and advice are scattered, you have to look in several places to fix one common feature. An aspect bundles the two needed for one feature in one class, and @Order lets you set the wrapping order when several aspects overlap.</dd>
+<dd><b>Where it's used today</b> — You create one aspect per feature, such as request logging and execution time measurement. A retry aspect must wrap outside the transaction so that each retry runs in a new transaction, so in cases like this you set the order with @Order.</dd>
 <dd>An aspect is a class that gathers pointcuts and advice in one place, and in Spring you create one by putting @Aspect on a class that is registered as a bean. When several aspects apply to one method, the aspect with the lower @Order value wraps on the outside. The outer aspect runs first on the way in and last on the way out. The order among aspects that have no @Order is undefined, so always specify it when the order affects the result.</dd>
 <dt>Proxy</dt>
 <dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
@@ -140,6 +148,10 @@ class MemberService {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -213,9 +225,10 @@ class MemberService {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

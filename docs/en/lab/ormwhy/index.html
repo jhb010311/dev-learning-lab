@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Getting started</p>
 <h1>What JPA solves</h1>
 <p><b>When you write the SQL yourself, what do you have to fill in by hand?</b></p>
+<p><b>Why it exists</b> — When you work with JDBC directly, you take the columns of each row you read one by one and move them into the fields of an object, fill in connected objects by writing more SQL, and when one field is added, you have to find and fix every SQL statement that field passes through. With JPA, you write the correspondence between classes and tables once, and it generates this moving code and the SQL for you, and within one transaction it returns the same row as the same object.</p>
+<p><b>Where it's used today</b> — In web services built with Spring, saving and querying entities with Spring Data JPA is common. It suits places where you often read one object, change it, and save it, such as members, orders, and posts. For work where the shape of the SQL matters, such as statistics that combine several tables or bulk updates, you use it together with tools where you write SQL directly, such as JdbcTemplate or MyBatis.</p>
 <p>Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects.</p>
 <p>Checked against real execution · JDBC code and Hibernate 7.4.5 were run on H2 in 12 combinations and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -42,8 +44,11 @@
 <dt>Object/relational impedance mismatch</dt>
 <dd>The gap that arises because Java objects and the tables of a relational database represent data in different ways. An object points to other objects with references and moves along those references, but a table row points to other rows with numbers called foreign keys and links them with joins. Each time you use new, you get a different object, but in a table, rows with the same primary key are the same row. Objects have inheritance, but tables do not. If you write the SQL yourself, the developer writes the conversion code that bridges this difference, and an ORM takes over that conversion. It is often also called the paradigm mismatch.</dd>
 <dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd><b>Why it exists</b> — If you use an ORM library through its own API, you must change all the code when you switch to another implementation. JPA standardizes the mapping annotations and the way to use EntityManager, so your code follows the standard and an implementation such as Hibernate handles the actual behavior.</dd>
+<dd><b>Where it's used today</b> — In Spring Boot, adding spring-boot-starter-data-jpa means you use all three together, and the implementation is Hibernate by default.</dd>
 <dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 </dl>
 <h2>Try these</h2>
@@ -118,6 +123,10 @@ System.out.println(order.getMember().getName());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -191,9 +200,10 @@ System.out.println(order.getMember().getName());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

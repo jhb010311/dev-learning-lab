@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>스트림 지연 평가</h1>
 <p><b>스트림은 적힌 순서대로 실행되지 않는다</b></p>
+<p><b>왜 생겼나</b> — 컬렉션을 for 문으로 가공하면 거르기, 바꾸기, 모으기를 임시 리스트와 if 문으로 직접 엮어야 해서 코드가 길어지고 의도가 잘 보이지 않았다. Stream API는 할 일을 filter, map 같은 단계 이름으로 이어 적게 하고 원소를 하나씩 꺼내 돌리는 반복은 라이브러리가 맡게 해서, findFirst처럼 앞의 값만 필요할 때는 거기서 멈출 수 있게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 목록에서 조건에 맞는 것만 골라 DTO로 바꾸기, 주문 금액 합계 구하기, 회원을 등급별로 묶기(groupingBy)처럼 컬렉션을 가공하는 곳에 흔히 쓴다. 단계마다 예외 처리나 바깥 변수 수정이 필요한 로직은 for 문이 더 읽기 쉽고, DB에 있는 데이터는 다 꺼내 스트림으로 거르기보다 WHERE로 DB에서 거른다.</p>
 <p>filter와 map 같은 중간 연산은 호출한 순간에는 아무 일도 하지 않고, 최종 연산이 호출될 때 비로소 실행됩니다. 그것도 연산별로 한꺼번에가 아니라 원소 하나씩 끝까지 흘려보내는 방식입니다.</p>
 <p>실행으로 대조 · JDK 21에서 12가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>Stream API</dt>
 <dd>컬렉션 등의 데이터에 대해 필터링, 변환, 집계를 선언적으로 표현하는 API다. filter, map 같은 중간 연산을 이어 붙이고 collect, forEach 같은 최종 연산으로 마무리한다. 중간 연산은 최종 연산이 호출될 때까지 실행되지 않으며(지연 평가), 스트림은 원본 데이터를 변경하지 않고 한 번만 사용할 수 있다.</dd>
 <dt>지연 평가(Lazy Evaluation)</dt>
+<dd><b>왜 생겼나</b> — 계산을 즉시 하면 결국 쓰이지 않을 값까지 만들고, 단계마다 중간 결과를 모두 저장해야 한다. 지연 평가는 실제로 쓰일 때까지 계산을 미뤄 그 낭비를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Optional의 orElseGet은 값이 없을 때만 Supplier를 실행하고, java.util.logging의 Logger는 Supplier를 받으면 그 수준의 로그가 꺼져 있을 때 메시지 문자열을 만들지 않는다.</dd>
 <dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 비로소 실행되고 원소가 하나씩 파이프라인을 지나가며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
@@ -91,6 +95,10 @@ List.of(5, 2, 8, 1, 9, 4).stream()
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +172,10 @@ List.of(5, 2, 8, 1, 9, 4).stream()
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

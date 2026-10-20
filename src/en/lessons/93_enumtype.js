@@ -1,6 +1,8 @@
 Lab.register({
   id: 'enumtype', nav: 'Enum classes', cat: 'Java language', mode: 'step',
   title: 'Why does an enum saved as a number come back as a different constant?',
+  why: 'Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time.',
+  use: 'It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. Processing that differs for each constant is divided with switch or handled with methods placed in the enum. When saving to a database with JPA, you save the name with @Enumerated(EnumType.STRING) instead of the default ordinal number, or you save a code value you defined yourself by converting it with an AttributeConverter.',
   intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.',
   terms: ['Enum class', 'ordinal() and name()', 'valueOf method of an enum class', 'Identity and equality'],
   controls: [

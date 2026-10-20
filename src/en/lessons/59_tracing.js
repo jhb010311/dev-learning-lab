@@ -1,6 +1,8 @@
 Lab.register({
   id: 'trace', nav: 'Distributed tracing', cat: 'Monitoring', mode: 'step',
   title: 'One request is slow, but which service is to blame?',
+  why: 'A request handled on a single server could be followed through that server\'s logs alone, but once services were split and began calling each other over the network, one request passes through several servers and the time it takes is divided among them. Distributed tracing ties together the span records that each service leaves, using the same ID, and lays them out on a time axis, so you can see which span is slow across service boundaries.',
+  use: 'It is used in systems split into several services (microservice architecture) to find a slow request or the service that caused an error. In Spring Boot, Micrometer Tracing passes the trace ID along automatically and also prints it in the logs, and the collected records are viewed with tools such as Zipkin, Jaeger, and Grafana Tempo. Recording every request produces a large amount of stored data, so usually only a portion is collected as a sample.',
   intro: 'One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went.',
   terms: ['Distributed tracing (trace ID, span)', 'Observability (logs, metrics, traces)', 'MDC', 'APM', 'Monolithic architecture and microservice architecture'], ranks: ['monitor', 'msa'],
   controls: [

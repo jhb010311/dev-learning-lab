@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>File I/O</h1>
 <p><b>What do you exchange when you write to and read from a file?</b></p>
+<p><b>Why it exists</b> — A value held in a program's variable disappears when the program ends. Writing to and reading from a file leaves the value as bytes in a file on disk, so the same content can be read after the program is started again, and by other programs too. Characters become bytes under a set rule such as UTF-8, so if the writing side and the reading side use the same rule, they get the same characters.</p>
+<p><b>Where it's used today</b> — It is used to read and write configuration files or log files, or to read in a CSV file that a user has uploaded. When the characters in a file look garbled, the rule used to write often differs from the rule used to read, so the rule is stated in both the writing code and the reading code, as in StandardCharsets.UTF_8. Data that many people must modify and search at the same time is kept in a DB rather than in a file.</p>
 <p>Code that writes text to a file and reads it back is made of three methods of the Files class. The Files.writeString method writes text to a file, the Files.readAllBytes method reads the bytes stored in the file as they are, and the Files.readString method turns the bytes of the file back into text. A file stores not text but bytes (values you can see as numbers from 0 to 255). So when you write text, it is turned into bytes by a set rule (character encoding), and when you read, the bytes are turned back into text by a rule. The StandardCharsets.UTF_8 part of the code is where that rule is written, and you write it on the writing line and on the reading line. In this lab you change the text to write and the way to read, and the same code is compiled and run, to show the bytes actually stored in the file and the text that was read. (Path.of(&quot;memo.txt&quot;) is taken to mean the file memo.txt in the folder where the program was run, and other path rules are not covered.)</p>
 <p>Checked against real execution · Compiled 9 combinations with javax.tools on JDK 21 and ran each in a new Java process, then checked the stored file bytes against the characters and exceptions that were read</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Byte</dt>
 <dd>A byte is the basic unit that makes up what is stored in a file, and it is one 8-bit value. The Java byte type shows values from -128 to 127, but the same 8 bits can also be read as a value from 0 to 255 (Byte.toUnsignedInt). A file stores not the text or the picture itself but such bytes one after another, and which character they become depends on the rule by which you read those bytes. In Java, a byte[] array is a container that holds the contents of a file as they are, with no rule, and Files.readAllBytes reads the bytes of a file into this array. The size of a file is also counted in bytes, not in characters.</dd>
 <dt>Character encoding and UTF-8</dt>
+<dd><b>Why it exists</b> — If every country uses a different encoding (Korea uses EUC-KR and others), characters are garbled when you open a file written in another encoding, and it is hard to mix characters of several countries in one text. UTF-8 writes every Unicode character by one rule, and keeps English letters as 1 byte, the same as ASCII.</dd>
+<dd><b>Where it's used today</b> — It is commonly used as the encoding of web pages, JSON, and Java source files. To store even emoji in MySQL, specify the character set as utf8mb4, not utf8.</dd>
 <dd>A character encoding is a rule that defines which bytes each character is converted to when it is stored. UTF-8 is the most widely used encoding, and the length of a character varies from 1 byte to 4 bytes depending on the character. English letters and digits take 1 byte, and one Korean character takes 3 bytes. Text is garbled when the encoding used for writing differs from the one used for reading, or when the bytes are cut off in the middle of a character, so it is safer to state the encoding explicitly in code that reads and writes text.</dd>
 <dt>ISO_8859_1</dt>
 <dd>ISO_8859_1 is one of the character encodings that the Java StandardCharsets class provides as a constant, and the documentation describes it as ISO Latin Alphabet No. 1 (ISO-LATIN-1). When all 256 byte values from 0 to 255 were read on this JDK, one byte became one character, and the number of that character was the same as the byte value. So any sequence of bytes turns into characters without an error, but text in which one character is several bytes, such as Korean stored as UTF-8, breaks because each byte becomes a wrong character. The bytes from 0x00 to 0x7F become the same English letters and digits as in UTF-8.</dd>
@@ -94,6 +98,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +175,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dns', nav: 'DNS', cat: 'Networking', mode: 'step',
   title: 'Who knows the IP address of a domain name, and when does a change show up?',
+  why: 'An IP address is hard for people to remember, and when a server is moved and its address changes, every user and program that knows the address must learn the new one. DNS keeps the pairs of names and addresses on servers managed by the owner of the name and lets anyone ask them, so that people remember only the name, and when the address changes only one record on that server needs to be changed.',
+  use: 'It is used everywhere you connect by name, from typing an address in a browser to the address with which a Spring application connects to a database or an external API. When you move a server, shorten the TTL beforehand and then change the record, so that the old address left in caches disappears quickly. The mail-receiving server (MX) and the value for verifying domain ownership (TXT) are also announced as DNS records.',
   intro: 'A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again.',
   terms: ['DNS', 'DNS record', 'Recursive resolver and authoritative name server', 'DNS cache and TTL'],
   controls: [

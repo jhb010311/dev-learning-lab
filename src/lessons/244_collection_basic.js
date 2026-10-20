@@ -1,6 +1,8 @@
 Lab.register({
   id: 'collection_basic', nav: 'List와 Map', cat: '기초개념', mode: 'step', basic: true, deep: ['list', 'hashmap', 'setmap'],
   title: 'List와 Map은 무엇을 담고, 어떻게 꺼내는가',
+  why: '배열은 만들 때 칸 수를 정해야 해서, 값이 더 생기면 더 큰 배열을 새로 만들어 옮겨 적는 코드를 직접 짜야 하고, 이름으로 값을 찾으려면 처음부터 하나씩 비교해야 한다. 자바가 주는 List와 Map(ArrayList, HashMap 등)은 이 일을 대신 해서, List는 add 한 줄로 값을 뒤에 이어 붙이고 Map은 키 하나로 짝지은 값을 바로 꺼내게 해 준다.',
+  use: 'DB에서 읽어 온 회원 여러 명이나 장바구니의 상품들처럼 순서대로 늘어놓을 값은 List로 다룬다. 회원 번호로 회원 찾기, 설정 이름으로 설정값 찾기처럼 무엇으로 찾을지가 정해진 값은 Map으로 다룬다. 같은 값이 두 번 있으면 안 되는 것(이미 쓴 아이디 목록 등)은 Set을 쓴다.',
   intro: '값을 여러 개 담아 두는 그릇을 컬렉션이라고 부릅니다. List는 값을 넣은 순서대로 줄 세워 담고, 0부터 시작하는 번호로 꺼냅니다. Map은 키와 값을 짝지어 담고, 키로 꺼냅니다. 코드에서는 List<String> names = new ArrayList<>();처럼 왼쪽에 그릇의 종류(꺾쇠 안은 담을 값의 종류)를 적고, 오른쪽의 new로 빈 그릇을 만듭니다. 괄호에 크기를 적지 않아도 add나 put으로 담는 만큼 담긴 개수가 늘어납니다. 이 실습은 List와 Map을 바꿔 가며 같은 모양의 코드를 컴파일하고 실행해, 있는 것을 꺼낼 때, 없는 것을 꺼낼 때, 같은 것을 한 번 더 넣을 때 무엇이 출력되는지를 봅니다. (담긴 개수를 먼저 출력하는 것은, 꺼내다 멈춰도 그 개수를 볼 수 있게 하려는 것입니다.)',
   terms: ['List, Set, Map', 'List의 add와 get', 'Map의 put과 get', 'IndexOutOfBoundsException'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'gaplock', nav: 'Gap locks and next-key locks', cat: 'Database', mode: 'step',
   title: 'Why is an INSERT blocked when I queried a row that does not exist?',
+  why: 'If only rows are locked, existing rows are protected, but another transaction can still insert a new row that matches the condition, so querying the same range again with FOR UPDATE can return more results. InnoDB\'s gap locks and next-key locks widen the locked target from the rows to the place in the index where the value would be inserted, so that no new row slips into the query result until the transaction ends.',
+  use: 'When MySQL InnoDB runs at REPEATABLE READ, these locks apply to SELECT ... FOR UPDATE, UPDATE, and DELETE whose condition is a range or a value that does not exist. You meet them when you implement "insert only if the same value does not exist" with a locking read, or when you modify several rows by a range. If INSERT waits or deadlocks are frequent, you add a unique constraint and handle the duplicate error, or lower the isolation level to READ COMMITTED.',
   intro: 'Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between.',
   terms: ['Record locks, gap locks, and next-key locks', 'Shared locks and exclusive locks', 'Transaction isolation level', 'Phantom read', 'Pessimistic locking', 'Deadlock'], ranks: ['dbengine', 'isolation'],
   controls: [

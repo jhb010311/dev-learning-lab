@@ -1,6 +1,8 @@
 Lab.register({
   id: 'joinalgo', nav: 'Join algorithms', cat: 'Database', mode: 'step',
   title: 'How does the database find matching rows when the join column has no index?',
+  why: 'If you look for pairs with a nested loop when the join column has no index, for each row of the table read first you have to read the other table again from beginning to end, so when both tables grow, the amount read grows by their product. A hash join builds a hash table of the join column values from one table, then scans the other table once and finds the matches directly, so even without an index it removes the need to reread a table for every row.',
+  use: 'MySQL chooses it by itself in statistics and report queries that join columns without indexes, or in cleanup queries that run only once, and it appears in Extra of EXPLAIN as Using join buffer (hash join). For joins that run often, such as screen requests, and find only some rows, you do not rely on a hash join but create an index on the join column of the table read later, so that only the rows needed are read.',
   intro: 'A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join.',
   terms: ['Nested-loop join', 'Hash join', 'Driving table', 'Optimizer', 'Query execution plan (EXPLAIN)'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
 <h1>N+1</h1>
 <p><b>Why are many queries sent when you load the order list only once?</b></p>
+<p><b>Why it exists</b> — Lazy fetching, which loads an associated entity only when it is actually used, reduces unneeded queries. But if you go through a list and touch the associated entity of each item one by one, a separate query is sent for every associated entity that has not been read yet. A fetch join joins the associated table to the query that reads the list and reads it together from the start. Batch fetching collects the ids of unread associated entities up to a set number and loads them with one query. Either way, the number of queries does not grow with the number of items in the list.</p>
+<p><b>Where it's used today</b> — You use these for queries that read many items and also use the associated entity of each item, such as a list API. For an association that attaches one entity to each item, such as @ManyToOne, load it with a fetch join or @EntityGraph. When you read a @OneToMany collection page by page, the batch size setting (@BatchSize, hibernate.default_batch_fetch_size) is commonly used instead of a fetch join, because with a fetch join the paging can be done in memory.</p>
 <p>You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. When one query loads the list and N more queries are then sent to load the associated data, it is called the N+1 selects problem.</p>
 <p>Checked against real execution · The number of SQL statements for 112 combinations was checked against Hibernate 7.4.5 and H2</p>
 <h2>Concepts in this lab</h2>
@@ -40,12 +42,18 @@
 <dt>Lazy fetching and eager fetching</dt>
 <dd>Settings for when to load an associated entity. Eager fetching (EAGER) loads the associated entities together when the entity is loaded. Lazy fetching (LAZY) puts a proxy object in the place of the associated entity and loads it when its values are actually used. Eager fetching always loads data even when it is not needed and produces queries that are hard to predict, so using lazy fetching as the default is recommended.</dd>
 <dt>Fetch join</dt>
+<dd><b>Where it's used today</b> — A common approach is to keep associations on lazy fetching and to keep a separate query with join fetch only for the lookups that must use the associated entities together. Then, even when the same entity is read, no join is sent where the associated data is not needed.</dd>
 <dd>A JPQL feature that loads an entity and its associated entities together in one go with a SQL join. Even an association configured for lazy fetching is loaded immediately in this query, which solves the N+1 selects problem. Be careful: if you load several collections together, the number of result rows multiplies.</dd>
 <dt>@EntityGraph</dt>
+<dd><b>Why it exists</b> — A fetch join requires you to write JPQL yourself, so it could not be used as it is with findAll() or with query methods created from method names. @EntityGraph lets you write only the names of the associated fields to read together, so such methods also read the associated entities in one go.</dd>
+<dd><b>Where it's used today</b> — You put it on a repository's findAll() or on a query method and write the associated field names in attributePaths, to prevent the N+1 selects problem in list queries.</dd>
 <dd>A feature for specifying, with an annotation, which associations to load together in a query. When you put it on a Spring Data JPA repository method, you get the same effect as a fetch join without writing JPQL yourself.</dd>
 <dt>Batch fetching (batch size)</dt>
-<dd>A setting that loads lazy fetching targets several at a time, grouped in an IN condition, instead of one by one. For example, with a size of 100, 100 pieces of associated data are loaded in a single query, so a query that used to run N times runs N/100 times. In Hibernate 7.3 and earlier, where pagination is done in memory when you fetch join a collection, this is the solution that lets you use collection associations together with pagination (from 7.4, the combination of fetch join and pagination is also handled in the database).</dd>
+<dd><b>Why it exists</b> — A fetch join multiplies the result rows through the join, which makes it hard to read two or more collection associations together. Batch fetching does not join and leaves lazy fetching as it is, gathering several records into one query, so it reduces the number of queries without multiplying the result rows.</dd>
+<dd><b>Where it's used today</b> — In Spring Boot, it is often turned on globally with spring.jpa.properties.hibernate.default_batch_fetch_size, and when you apply it to only one association, you put @BatchSize on it.</dd>
+<dd>A setting that loads lazy fetching targets several at a time, grouped in an IN condition, instead of one by one. For example, with a size of 100, 100 pieces of associated data are loaded in a single query, so a query that used to run N times runs N/100 times. Because Hibernate can cut the page in memory when you fetch join a collection and apply pagination (this depends on the version and on the sort key), this is a common way to use collection associations together with pagination.</dd>
 <dt>First-level cache</dt>
+<dd><b>Where it's used today</b> — It works without any extra configuration when you look up the same id again with em.find() or findById() within the same transaction. When you query with JPQL or a query method, the SQL goes to the database even for an entity that is already managed.</dd>
 <dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
 </dl>
 <h2>Try these</h2>
@@ -105,6 +113,10 @@ for (Order o : orders) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +190,10 @@ for (Order o : orders) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

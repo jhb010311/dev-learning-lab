@@ -1,6 +1,8 @@
 Lab.register({
   id: 'fetchjoin', nav: 'JPQL and fetch joins', cat: 'JPA', mode: 'step',
   title: 'What is the difference between join and join fetch?',
+  why: 'If you leave an association lazy, after you read a list of posts a separate query for the comments is sent for each post (the N+1 problem), and a plain join in JPQL does not put the joined target in the SELECT, so it does not prevent these queries. A fetch join reads even the columns of the joined entity at once and fills in the associated objects, which removes the queries that follow.',
+  use: 'You use it to read associated entities that you will show together, such as a post and its author, or an order and its member, at once, and in Spring Data JPA you write join fetch in @Query or attach @EntityGraph. When you read several collections, or when the paging of a collection fetch join is done in memory (warning HHH90003004), you read the comments in groups with @BatchSize or hibernate.default_batch_fetch_size instead of a fetch join.',
   intro: 'JPQL is a query language written against entities, not tables. When you load posts together with their comments, a plain join and a join fetch differ in which columns are read from the database and in which queries are sent afterward.',
   terms: ['JPQL', 'Fetch join', 'Collection fetch joins and pagination', 'MultipleBagFetchException', 'Cartesian product'],
   controls: [

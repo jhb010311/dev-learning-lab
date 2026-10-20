@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cascade', nav: '영속성 전이와 고아 객체', cat: 'JPA', mode: 'step',
   title: '부모만 저장하거나 지우면 자식은 어떻게 되나',
+  why: '게시글과 댓글처럼 함께 생기고 함께 사라지는 엔티티를 다룰 때 cascade가 없으면, 자식마다 em.persist나 em.remove를 따로 불러야 하고 하나만 빠뜨려도 저장이 빠지거나 삭제가 실패한다. cascade는 부모를 저장하거나 지울 때 자식에게도 같은 일이 일어나게 하고, orphanRemoval은 컬렉션에서 뺀 자식의 행을 지워서, 부모 객체만 다루어도 자식의 행이 맞춰지게 한다.',
+  use: '주문과 주문 상품, 게시글과 첨부 파일처럼 자식이 그 부모 하나에만 딸린 관계에서 CascadeType.ALL과 orphanRemoval = true를 함께 쓰는 경우가 많다. 화면에서 목록의 항목 하나를 지울 때 컬렉션에서 빼는 것만으로 DELETE가 나가게 하는 데에도 쓴다. 상품처럼 여러 주문이 함께 가리키는 엔티티에는 걸지 않고 저장과 삭제를 따로 한다.',
   intro: '게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.',
   terms: ['영속성 전이(cascade)', '고아 객체 제거(orphanRemoval)', '영속성 컨텍스트', '쓰기 지연과 flush', '엔티티'],
   controls: [

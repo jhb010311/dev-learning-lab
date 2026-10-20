@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>GC와 메모리 누수</h1>
 <p><b>버려진 객체는 누가 언제 치우나</b></p>
+<p><b>왜 생겼나</b> — C처럼 메모리를 직접 다루는 언어에서는 쓰고 난 메모리를 개발자가 직접 풀어 줘야 하고, 풀기를 잊거나 이미 푼 메모리를 다시 쓰는 실수가 프로그램을 망가뜨린다. 자바의 GC는 어디에서도 닿지 않는 객체를 JVM이 찾아 치우게 해서, 메모리를 돌려주는 코드를 개발자가 쓰지 않아도 되게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바 프로그램은 따로 켜지 않아도 JVM이 필요할 때마다 GC를 돌린다. 개발자가 GC를 들여다보는 때는 응답이 가끔 멈칫하는 원인을 찾을 때, 힙 크기와 G1 같은 GC 종류를 정할 때, OutOfMemoryError가 나서 GC 로그와 힙 덤프로 계속 남는 객체를 찾을 때다.</p>
 <p>더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 쓰지 않는데도 어딘가에서 계속 참조하고 있어 GC가 치우지 못하는 객체가 쌓이는 것이 메모리 누수이며, 누수가 있을 때 힙이 어떻게 되는지도 봅니다.</p>
 <p>일부만 실행으로 확인 · JDK 21에서 방향만 확인(수치는 모형)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>가비지 컬렉션(GC)</dt>
 <dd>프로그램이 더 이상 사용하지 않는 객체를 찾아 그 메모리를 자동으로 회수하는 JVM의 기능이다. 개발자가 직접 메모리를 해제하지 않아도 되어 해제 실수로 인한 오류를 막아 준다. 대신 수집하는 동안 애플리케이션이 잠시 멈출 수 있고, 참조가 남아 있는 객체는 회수하지 못한다.</dd>
 <dt>도달 가능성과 GC 루트</dt>
+<dd><b>왜 생겼나</b> — 참조 개수를 세어 0이 되면 지우는 방식은 서로를 참조하는 객체들이 고리를 이루면 아무도 쓰지 않아도 개수가 0이 되지 않아 남는다. 도달 가능성 기준은 GC 루트에서 닿는지만 보므로 이런 고리도 통째로 회수한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메모리 누수를 찾을 때 Eclipse MAT 같은 힙 덤프 분석 도구로 객체에서 GC 루트까지의 참조 경로를 따라가, 무엇이 그 객체를 붙잡고 있는지 확인한다.</dd>
 <dd>GC는 어떤 객체가 아직 쓰이는지를 &quot;도달 가능한가&quot;로 판단한다. 실행 중인 스레드의 지역 변수, static 변수처럼 항상 살아 있는 출발점(GC 루트)에서 참조를 따라갈 수 있는 객체는 살아 있는 것으로 보고, 따라갈 수 없는 객체는 회수 대상으로 본다.</dd>
 <dt>Young 세대와 Old 세대</dt>
 <dd>대부분의 객체는 만들어진 직후 금방 쓸모없어진다는 관찰에 따라 힙을 나눈 구조다. 새 객체는 Young 세대(Eden 영역)에 만들어지고, Young 세대의 수집에서 여러 번 살아남은 객체는 Old 세대로 옮겨진다. 금방 죽는 객체가 모인 Young 세대만 자주 수집하면 적은 비용으로 많은 메모리를 회수할 수 있다.</dd>
@@ -152,6 +156,10 @@ record Event(long id, long tick) {}</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -225,9 +233,10 @@ record Event(long id, long tick) {}</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

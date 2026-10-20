@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Messaging and asynchronous processing</p>
 <h1>Kafka partitions and consumers</h1>
 <p><b>I added consumers, so why is the throughput the same?</b></p>
+<p><b>Why it exists</b> — In an ordinary message queue, the consumer deletes a message once it is processed, so it is hard for another system to read the same message again, and attaching several consumers mixes up the processing order. Kafka divides a topic into several partitions, keeps the order within each partition while consumers divide the reading among themselves, and does not delete a message just because it was read, so that each consumer group can read separately.</p>
+<p><b>Where it's used today</b> — It is used in structures where one order event is received and processed by the payment, shipping, and notification services separately, and where records that pile up many per second, such as clicks and logs, are collected. Messages whose order matters, such as events of the same order, are sent to the same partition with the same key. When there are few messages and only task distribution is needed, a queue such as RabbitMQ is sometimes used.</p>
 <p>A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer.</p>
 <p>Checked against documentation and standards · Checked against the official Apache Kafka documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Kafka topics, partitions, and offsets</dt>
 <dd>A topic is a name that separates messages by kind. A topic is divided into one or more partitions, and a partition is a record (log) to which messages are appended at the end in the order they arrive. An offset is a number that shows the position of each message within a partition, and a consumer uses offsets to record how far it has read. Order is guaranteed only within the same partition.</dd>
 <dt>Consumer groups and rebalancing</dt>
+<dd><b>Why it exists</b> — If you only add more consumers reading the same topic, several consumers may process the same message twice. A consumer group assigns the partitions among the consumers in the group, so that even when you add consumers to raise throughput, normally only one consumer in the group processes each message.</dd>
+<dd><b>Where it's used today</b> — When you run several servers that process order events, you give them the same group.id to divide the work, and services that must each receive the same event, such as settlement and notification, get different group.id values. If there are more consumers than partitions, the extra consumers sit idle.</dd>
 <dd>A consumer group is a set of consumers that share the work of processing one topic. Within the group, each partition is assigned to only one consumer, so the consumers divide the messages among them. Rebalancing is the process of dividing up the partition assignments again when a consumer is added or stops, and processing can be delayed briefly while it is in progress.</dd>
 <dt>Consumer lag</dt>
 <dd>The difference between the position of the last message that producers wrote and the position that the consumer has processed. In other words, it is the amount of messages that are piled up and not yet processed. If the value keeps growing, the consuming speed is not keeping up with the producing speed.</dd>
@@ -46,6 +50,7 @@
 <dt>Message queue</dt>
 <dd>An intermediate store that sits between the sending side (the producer) and the receiving side (the consumer), holds messages, and then delivers them. The producer puts a message in and moves straight on to its next work, and the consumer takes messages out and processes them at its own pace. The two systems do not call each other directly, so coupling is lower, and a sudden burst of requests can be piled up and processed later.</dd>
 <dt>Idempotency and idempotency keys</dt>
+<dd><b>Where it's used today</b> — In payment approval, money transfer, and order creation APIs, the client sends a key in a header such as Idempotency-Key, and the server records that key using a database unique key or Redis and filters out requests with the same key. Message consumers also use it to filter out duplicates.</dd>
 <dd>Idempotency is the property that performing the same request several times gives the same result as performing it once. A network problem can cause the same request to be sent again, so operations that must not be duplicated, such as payments, must be made idempotent. An idempotency key is a unique value that the client attaches to each request. When a request arrives with a key that the server has already processed, the server does not process it again and returns the earlier result.</dd>
 </dl>
 <h2>Try these</h2>
@@ -93,6 +98,10 @@ while (true) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +175,10 @@ while (true) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'stream', nav: 'Lazy evaluation in streams', cat: 'Java language', mode: 'step',
   title: 'A stream does not run in the order in which it is written',
+  why: 'When you process a collection with a for loop, you must string together filtering, transforming, and collecting by hand with temporary lists and if statements, so the code gets long and its intent is hard to see. The Stream API lets you write what to do as a chain of step names such as filter and map, and has the library take on the iteration that takes out elements one by one and runs them, so that when only the first values are needed, as with findFirst, it can stop there.',
+  use: 'It is commonly used where you process a collection, such as picking only the items that match a condition from a list and converting them to DTOs, getting the total of order amounts, and grouping members by grade (groupingBy). For logic that needs exception handling at each step or changes to outside variables, a for loop is easier to read, and for data in a database, filter it in the database with WHERE rather than fetching everything and filtering with a stream.',
   intro: 'Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time.',
   terms: ['Stream API', 'Lazy evaluation', 'Lambda expression', 'Optional'], ranks: ['stream', 'javaver'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,25 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP messages and status codes</h1>
 <p><b>This is what a request and a response look like as text</b></p>
+<p><b>Why it exists</b> — For a browser, an app, and a server made by different people to communicate, the shape of asking and answering must be fixed in advance. An HTTP message fixes the format of the first line, the headers, and the body, and the meaning of the methods and status codes, so any program can decide in the same way, without reading the body, whether the request succeeded, whether to go to a different address, or whether to try again a little later.</p>
+<p><b>Where it's used today</b> — The status code and headers of the ResponseEntity returned by a Spring controller become the response message as they are. When you design a REST API, you choose the status code that fits the result, such as 201 for creation, 400 for an input error, and 403 for no permission, and when a problem occurs, you find the cause by reading the messages that were actually exchanged in the browser developer tools Network tab or with curl -v.</p>
 <p>In HTTP/1.1, the HTTP messages that a browser and a server exchange are text with a fixed shape (HTTP/2 and HTTP/3 send the same content split up in a binary format). A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first line, and a response has &quot;how it went&quot; (the status code) on its first line.</p>
 <p>Partly checked against real execution · The message structure was checked against real raw text, and the status codes are based on the standard</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>HTTP as a stateless protocol</dt>
+<dd><b>Why it exists</b> — If the server had to remember the earlier conversation for each request, the resources needed to keep that memory would grow with the number of users, and a conversation could not continue once a connection was cut. HTTP is defined so that a request can be handled by looking at that request alone, so the server does not have to remember anything between requests.</dd>
+<dd><b>Where it's used today</b> — Receiving web pages and images, a mobile app calling a server API, and a server calling another service's API are all done over HTTP. For features like chat, in which the server also has to send data first at any time, WebSocket is used together with it.</dd>
 <dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
 <dt>HTTP methods</dt>
 <dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 <dt>REST</dt>
+<dd><b>Why it exists</b> — If every API names actions in its own way in the address, such as /getUser and /deleteUserById, people who use the APIs have to learn new rules for each API. REST makes the address point only to a resource and express the action with an HTTP method, so even an API you see for the first time can be read with the same rules.</dd>
+<dd><b>Where it's used today</b> — It is commonly followed when designing APIs through which web screens or mobile apps read and change a server's data, and APIs that are open to the public outside a company. Sometimes GraphQL is used instead to pick only the fields each screen needs, and gRPC to call between servers quickly.</dd>
 <dd>An architectural style in which resources on the web are identified by URIs, actions on those resources are expressed with HTTP methods, and representations of the resources (such as JSON) are exchanged. Its characteristics are that it is stateless, meaning the server does not store the client's state, and that it has a uniform interface. In practice, an HTTP API designed according to these principles is called a REST API.</dd>
 <dt>URI and URL</dt>
 <dd>A URI is a string that identifies a resource, and a URL is a URI that identifies the resource by its location (how to access it and its address). Most addresses used on the web are URLs, and every URL is a URI.</dd>
@@ -87,6 +95,10 @@ OrderDto get(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +172,10 @@ OrderDto get(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

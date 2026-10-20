@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jvm_basic', nav: '컴파일과 JVM', cat: '기초개념', mode: 'step', basic: true, deep: ['classload', 'jit'],
   title: '자바 코드는 어떻게 실행되는가',
+  why: 'C 언어처럼 소스를 그 컴퓨터가 바로 실행하는 명령(기계어)으로 바꾸는 방식은, 윈도우, 맥, 리눅스마다 따로 컴파일한 실행 파일을 만들어야 한다. 자바는 javac가 어느 컴퓨터에서든 같은 .class 파일(바이트코드)을 만들고 컴퓨터마다 설치된 JVM이 그 파일을 실행해서, 한 번 컴파일한 파일을 JVM이 있는 곳 어디서나 돌릴 수 있게 했다.',
+  use: '스프링 부트 프로젝트도 Gradle이나 Maven 같은 빌드 도구가 자바 컴파일러로 .class 파일을 만들고, 그것을 묶은 jar 파일을 java -jar 명령으로 JVM에서 실행한다. IntelliJ 같은 개발 도구의 실행 버튼도 컴파일과 실행을 차례로 해 준다. 코틀린으로 쓴 코드도 .class 파일로 바뀌어 같은 JVM에서 실행된다.',
   intro: '우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. java Hello로 실행하는 방식에서는 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.',
   terms: ['컴파일과 javac', '.class 파일', 'JVM(자바 가상 머신)', '바이트코드'],
   controls: [

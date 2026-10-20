@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Views, stored procedures, and triggers</h1>
 <p><b>Why did the stock go down when you ran one INSERT line?</b></p>
+<p><b>Why it exists</b> — When several programs share the same database, you have to write a long query or a rule such as &quot;when an order comes in, reduce the stock&quot; separately in each program, and if even one place is missed, the data goes out of step. Views, stored procedures, and triggers store that query and rule only once on the database side, so the same statement runs no matter which program calls them or changes the data.</p>
+<p><b>Where it's used today</b> — You use a view to call a join of several tables briefly in reports or statistics, and to show other users only the result without sensitive columns. You use a trigger for work that must not be skipped no matter which program makes the change, such as recording the change history whenever a row changes. If the same rule is placed in both a trigger and application code, it can run twice, so put it in only one of them.</p>
 <p>A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens.</p>
 <p>Checked against real execution · The same view, procedure, and trigger were created on MySQL 8.4, and orders for all 12 combinations were run and checked against the screen</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>View</dt>
 <dd>A SELECT statement that is saved under a name so that you can query it like a table. It does not store data separately. The defined query runs each time you query it. Use it to make complex queries simpler to write or to restrict access by showing only some columns.</dd>
 <dt>Stored procedure</dt>
+<dd><b>Why it exists</b> — If an application sends statements one at a time and receives the result and chooses the next statement, each statement must go to the DB server and back over the network once. A stored procedure stores the statements and the conditional handling between them on the DB server and lets you run them by calling its name once, which reduces the number of round trips.</dd>
+<dd><b>Where it's used today</b> — You use it when you connect to an existing system that gathers business rules on the DB side, or in a batch job that processes many rows at once every night. In Spring, you can call it with SimpleJdbcCall or with @Procedure, which you put on a Spring Data JPA repository method.</dd>
 <dd>This is a set of SQL statements that is given a name and stored inside the database. The application only has to call it with CALL name(values), and the statements inside run one after another on the database server. Several statements can be handled in one call. But the business rules then live in the database rather than in the application code, so you cannot tell the behavior just by reading the code, and version control and testing become harder. The statements inside a procedure do not automatically become one transaction, so if they must succeed together or be rolled back together, you have to group them in a transaction.</dd>
 <dt>Trigger</dt>
+<dd><b>Where it's used today</b> — You use it to update a total or count column of another table in step with changes to rows. pt-online-schema-change, a tool that changes the structure of a MySQL table without stopping the service, also uses triggers to write the changes of the original table into the new table.</dd>
 <dd>This is a statement that you attach to a table so that the database activates it automatically when an INSERT, UPDATE, or DELETE happens. You create it by choosing the table, the kind of change, and whether it runs before (BEFORE) or after (AFTER) the change, and inside it you can read the values of the row being changed with NEW and OLD. You can hand over processing that must not be forgotten, such as recording changes, but nothing about it shows up in the code of whoever sent the statement. That can make it hard to find out why another table changed or why an error occurred, and if a trigger fails, the original statement that activated it fails too.</dd>
 <dt>CHECK constraint</dt>
+<dd><b>Why it exists</b> — Without a CHECK constraint, a condition on values such as &quot;stock is 0 or more&quot; would have to be checked separately in application code or a trigger. A CHECK constraint lets you write that condition in one line of the table definition, so that the rule can be seen just by looking at the table structure.</dd>
+<dd><b>Where it's used today</b> — You use it to keep stock and amounts from becoming negative, to make a status column take only fixed values, or to keep an end date from coming before a start date. It is used together with Bean Validation: you screen input first with Bean Validation and also put the same condition on the DB.</dd>
 <dd>This is a constraint, written in the table definition, that states a condition the values of a column must meet. For example, if you define CHECK (stock &gt;= 0), an INSERT or UPDATE that would make the stock negative is rejected with an error. Its advantage is that, whichever program changes the value, the database stops it as a last line of defense. MySQL actually enforces this constraint from 8.0.16, and earlier versions accepted the syntax but did not check it.</dd>
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
@@ -107,6 +114,10 @@ SELECT stock FROM stock_copy;     -- Query the copy</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +191,10 @@ SELECT stock FROM stock_copy;     -- Query the copy</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

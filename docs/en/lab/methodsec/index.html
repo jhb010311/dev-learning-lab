@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authorization</p>
 <h1>Method security</h1>
 <p><b>When does an authorization check on a method run, and when is it skipped?</b></p>
+<p><b>Why it exists</b> — If you check permissions only with URL rules, then when the same function is called from several addresses, you have to write the same rule for every address without missing any, and if you miss even one, that address runs without a check. Method security writes the permission condition directly on the method, so whichever address the request came through, when another bean calls that method, it goes through the same check.</p>
+<p><b>Where it's used today</b> — It is used to put @PreAuthorize(&quot;hasRole('ADMIN')&quot;) on a service method that only administrators may use, or to write &quot;is the logged-in user the author of the post?&quot; as an expression on a method that edits or deletes a post. Checks that are enough at the address level, such as blocking a whole admin area, stay in the URL rules of SecurityFilterChain, and method security is used for fine conditions in the service layer, so the two are used together.</p>
 <p>Method security is a way to write &quot;who may run this method&quot; on a method instead of on a URL. @PreAuthorize evaluates its expression before the method runs, and @PostAuthorize evaluates its expression after the method returns a value. If the expression is false, the call is denied. But these annotations sometimes do nothing just because you added them.</p>
 <p>Checked against real execution · All 36 combinations were run on Spring Security 7.1.1, and whether the check ran, whether the body ran, and the value or exception received were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -44,6 +46,8 @@
 <dt>Self-invocation</dt>
 <dd>This means that an object directly calls another of its own methods from inside the same object. Proxy-based features apply only to calls that come in from outside through the proxy, so settings such as @Transactional, @Async, and @Cacheable do not apply to a method that is called internally through this. The usual fix is to move that method to another bean.</dd>
 <dt>SecurityContext</dt>
+<dd><b>Why it exists</b> — To pass the user identified in a filter on to the controller and the service, you would have to pass the user information as a parameter of every method. With a SecurityContext, you can get the current user through SecurityContextHolder in any layer that handles the same request, without passing it that way.</dd>
+<dd><b>Where it's used today</b> — The @AuthenticationPrincipal parameter of a controller and the @PreAuthorize check on a method use the authentication information held here. When execution moves to another thread, as with @Async, it is not carried over by default, so you must pass it separately.</dd>
 <dd>The place where Spring Security keeps the authentication information of the user who sent the current request (who the user is and what permissions the user has). When authentication succeeds, the information is stored here. Later, controllers and services read it from here to look up the current user. By default, it is kept per thread.</dd>
 </dl>
 <h2>Try these</h2>
@@ -107,6 +111,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +188,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

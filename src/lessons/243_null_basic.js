@@ -1,6 +1,8 @@
 Lab.register({
   id: 'null_basic', nav: 'null', cat: '기초개념', mode: 'step', basic: true, deep: ['optional'],
   title: 'null은 무엇이고, 왜 NullPointerException이 나는가',
+  why: '"아직 가리킬 객체가 없다"를 나타낼 방법이 따로 없다면, 빈 문자열 같은 값을 "없음"의 뜻으로 정해 써야 하고, 그러면 정말로 글자가 0개인 값과 구별되지 않는다. null은 String이든 직접 만든 클래스든 객체를 가리키는 변수라면 모두 쓸 수 있는 "없음" 표시여서, 찾는 회원이 없을 때나 아직 정하지 않은 값을 진짜 값과 섞이지 않게 나타낸다.',
+  use: 'Map의 get이 없는 키에 null을 돌려주는 것처럼, 자바의 여러 메서드는 "찾는 것이 없음"을 null로 알린다. 그래서 받은 값을 쓰기 전에 if (x != null)로 먼저 확인하는 코드를 자주 본다. 스프링 데이터 JPA의 findById처럼, 없을 수도 있는 값을 null 대신 Optional로 돌려주어 부르는 쪽이 확인을 빠뜨리지 않게 하는 방법도 쓴다.',
   intro: '변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 "아무 객체도 가리키지 않는다"를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 name이 가리키는 객체에게 일을 시킨다는 표시인데, null이면 시킬 객체가 없어서 NullPointerException이라는 예외가 납니다. if (name != null)은 name이 객체를 가리키는지 먼저 묻는 확인입니다. 글자가 하나도 없는 빈 문자열 ""는 null이 아니라 글자가 0개인 문자열 객체입니다. 이 실습은 name에 담는 값을 "kim", null, ""로 바꾸고 if 확인을 붙였다 떼며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 예외가 나는지를 봅니다.',
   terms: ['null', 'NullPointerException', 'null 검사', '빈 문자열'],
   controls: [

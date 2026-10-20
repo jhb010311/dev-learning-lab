@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>Load balancers and scale out</h1>
 <p><b>How far does adding servers get you?</b></p>
+<p><b>Why it exists</b> — Raising the specifications of one server cannot go beyond the largest machine you can buy, and if that one server fails, the whole service stops. Scaling out puts several of the same server in place and lets a load balancer split requests among them, so that adding servers raises the throughput, and even if one drops out, the remaining servers take over the requests.</p>
+<p><b>Where it's used today</b> — In a web service where requests come in a rush, such as a sale event or ticket booking, run several application servers with a load balancer in front. In the cloud, it is used together with autoscaling, which changes the number of servers automatically according to load. For a database that is hard to split across several machines, reduce the load separately with scale up, read-only replicas, and a cache.</p>
 <p>Scaling out means adding more servers to share the load instead of making one server bigger. A load balancer distributes requests across several servers, and each request uses the database once. This lab shows how far the throughput grows as you add servers, and which part becomes the bottleneck first.</p>
 <p>Conceptual model · Example numbers chosen to show the relationships</p>
 <h2>Concepts in this lab</h2>
@@ -42,6 +44,8 @@
 <dt>Bottleneck</dt>
 <dd>The slowest part of a system, which limits the processing performance of the whole. No matter how much you improve the other parts, overall performance does not improve while this part stays the same. Performance improvement starts with finding it by measurement.</dd>
 <dt>Autoscaling</dt>
+<dd><b>Why it exists</b> — If you fix the number of servers for the busiest time, you pay even in quiet hours, and if you fix it for ordinary times, the system cannot hold up when requests surge. Autoscaling changes the number of servers as needed according to metrics, so you do not have to give up either one.</dd>
+<dd><b>Where it's used today</b> — An AWS Auto Scaling group or a Kubernetes HorizontalPodAutoscaler adjusts the number of servers or Pods according to CPU utilization or request count. It is commonly used in shopping services and delivery services where usage differs greatly during the day.</dd>
 <dd>A feature that automatically increases or decreases the number of servers according to metrics such as CPU utilization or request count. It adds servers when load is high and removes them when load is low to save cost. It takes time for an added server to become able to take requests, so for a surge that is known in advance it is safer to add servers ahead of time.</dd>
 <dt>TPS and response time percentiles</dt>
 <dd>TPS is the number of requests (transactions) a system handles in 1 second. For response time, the average hides the few slow requests, so you look at percentiles. A p95 of 1 second means that 95% of requests are handled within 1 second, and p99 is the same measure taken at 99%. The few slow requests shape the user experience, so manage p95 and p99 together.</dd>
@@ -93,6 +97,10 @@ server {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +174,10 @@ server {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

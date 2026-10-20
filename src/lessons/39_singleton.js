@@ -1,6 +1,8 @@
 Lab.register({
   id: 'singleton', nav: '싱글톤 빈과 상태', cat: '스프링', mode: 'step',
   title: '내 주문에 다른 사람 이름이 찍혔다',
+  why: '싱글톤 빈의 필드는 모든 요청 스레드가 함께 보므로 요청별 값을 둘 수 없고, 그렇다고 현재 사용자 같은 값을 모든 메서드의 매개변수로 넘기면 호출하는 곳마다 인자가 늘어난다. ThreadLocal은 같은 변수라도 스레드마다 값을 따로 갖게 해, 한 요청을 처리하는 스레드가 실행하는 코드라면 어디서든 그 요청의 값을 꺼내 쓰게 한다.',
+  use: 'Spring Security의 SecurityContextHolder, 스프링의 트랜잭션 동기화(지금 쓰는 DB 커넥션 기억하기), 로그에 요청 번호를 함께 찍는 SLF4J의 MDC가 기본적으로 ThreadLocal에 값을 둔다. 스레드 풀이 스레드를 다시 쓰므로 요청이 끝날 때 remove로 지워야 하고, @Async처럼 다른 스레드에서 이어 실행되는 곳에는 따로 넘기지 않으면 값이 따라가지 않는다.',
   intro: '스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.',
   terms: ['싱글톤 빈과 무상태(Stateless)', '빈 스코프', 'ThreadLocal', '스레드 안전(Thread-safe)', '경쟁 상태(Race Condition)'], ranks: ['bean', 'di', 'concurrency'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 저장과 복구</p>
 <h1>Undo와 Redo 로그</h1>
 <p><b>커밋 직후 전원이 꺼져도 데이터가 남는 이유</b></p>
+<p><b>왜 생겼나</b> — 변경을 데이터 파일에 곧바로 쓰는 방식이라면 커밋할 때마다 디스크 여러 곳을 고쳐야 해서 느리고, 쓰는 도중에 서버가 꺼지면 어디까지 반영됐는지 알 길이 없다. Undo 로그와 Redo 로그는 바꾸기 전 값과 바꾼 내용을 따로 적어 두어, 데이터 파일 반영은 미루면서도 장애 뒤에 커밋된 것은 다시 채우고 커밋되지 않은 것은 되돌릴 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — MySQL InnoDB에서 롤백과 MVCC의 이전 버전 읽기는 Undo 로그를, 서버가 꺼진 뒤의 복구는 두 로그를 모두 쓰며, 개발자가 따로 남길 필요는 없다. 운영에서는 innodb_flush_log_at_trx_commit처럼 커밋마다 Redo 로그를 디스크에 확실히 쓸지 정하는 설정으로 만나는데, 1이 아닌 값으로 바꾸면 쓰기는 빨라지지만 장애 때 최근 커밋 일부를 잃을 수 있다.</p>
 <p>DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다.</p>
 <p>문서·표준 대조 · MySQL 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>ACID</dt>
 <dd>트랜잭션이 보장해야 하는 네 가지 성질이다. 원자성(Atomicity)은 전부 성공하거나 전부 실패하는 것, 일관성(Consistency)은 트랜잭션 전후로 데이터가 정해진 규칙을 만족하는 것, 격리성(Isolation)은 동시에 실행되는 트랜잭션이 서로 간섭하지 않는 것, 지속성(Durability)은 커밋된 결과가 장애가 나도 유지되는 것이다.</dd>
 <dt>MVCC(다중 버전 동시성 제어)</dt>
+<dd><b>왜 생겼나</b> — 잠금만으로 격리를 지키면, 한 트랜잭션이 행을 고치는 동안 그 행을 읽으려는 트랜잭션도 끝날 때까지 기다려야 한다. MVCC는 고치기 전 버전을 남겨 두고 읽는 쪽에 그 버전을 보여 주는 방법으로 이 대기를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL InnoDB의 기본 격리 수준에서 FOR UPDATE 없이 실행하는 평범한 SELECT가 이 방식으로 읽어서, 긴 통계 조회가 돌아도 주문 저장이 막히지 않는다. 읽은 값을 바탕으로 고칠 때는 FOR UPDATE나 @Version으로 따로 지킨다.</dd>
 <dd>데이터를 변경할 때 이전 버전을 보존해 두어, 읽는 트랜잭션이 자신의 스냅샷 시점에 맞는 버전을 볼 수 있게 하는 방식이다. 스냅샷 시점은 격리 수준에 따라 달라서, MySQL의 REPEATABLE READ는 트랜잭션의 첫 읽기 시점, READ COMMITTED는 문장을 실행할 때마다 새로 잡는다. 읽기 작업이 쓰기 작업을 기다리지 않고 쓰기 작업도 읽기 작업을 기다리지 않아 동시 처리 성능이 높다. MySQL InnoDB, PostgreSQL, Oracle이 모두 이 방식을 쓴다.</dd>
 <dt>트랜잭션</dt>
 <dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
@@ -85,6 +89,10 @@ COMMIT;
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +166,10 @@ COMMIT;
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

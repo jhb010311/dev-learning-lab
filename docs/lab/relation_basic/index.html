@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>연관관계</h1>
 <p><b>연관관계는 무엇이고, @ManyToOne은 무엇을 해 주는가</b></p>
+<p><b>왜 생겼나</b> — 테이블은 번호를 적어 다른 행을 가리키고, 자바 객체는 다른 객체를 바로 가리킨다. 둘을 잇는 장치가 없으면 저장할 때마다 객체에서 번호를 꺼내 적고, 읽을 때마다 그 번호로 상대를 다시 찾아 붙이는 코드를 우리가 써야 한다. @ManyToOne 같은 연관관계 표시는 이 옮기는 일을 JPA에 맡겨, 자바 코드에서는 객체를 따라가기만 하면 되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문과 주문한 회원, 글과 글쓴이, 댓글과 그 댓글이 달린 글처럼 &quot;여러 개가 하나를 가리키는&quot; 관계에 흔히 쓴다. 반대쪽에서 목록으로 보고 싶으면 @OneToMany를 함께 쓴다. 다른 서비스의 DB에 있는 대상처럼 JPA가 직접 찾을 수 없는 것은 번호만 필드로 둔다.</p>
 <p>주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다(Order와 Member는 이 실습에서 예시로 만든 엔티티 클래스입니다). 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @ManyToOne을 적으면 JPA가 둘 사이를 이어 줍니다. 저장할 때는 Member 객체에서 id를 꺼내 외래 키 열에 넣고, 읽을 때는 그 번호로 Member 객체를 만들어 필드가 가리키게 해 줍니다. 그래서 order.getMember().getName()처럼 객체를 따라가면 됩니다. 이 실습은 member 테이블에 (1, 김철수)가 미리 들어 있는 DB에서, 주문을 저장했다가 다시 읽는 같은 코드를 필드 선언만 바꿔 실행합니다. @ManyToOne을 지우면 어떻게 되는지, 객체 대신 번호(Long memberId)만 필드로 두면 무엇이 달라지는지를 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 소스째 컴파일해 JPA를 실제로 시작하고 저장하고 다시 읽어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>연관관계</dt>
 <dd>연관관계는 한 엔티티가 다른 엔티티를 가리키는 관계다. 테이블에서는 한 행이 다른 테이블 행의 기본 키 값을 열 하나(외래 키)에 적어 그 행을 가리키고, 자바 객체에서는 한 엔티티의 필드가 다른 엔티티의 객체를 직접 가리킨다. JPA는 이 두 표현을 이어 준다. 저장할 때는 가리키는 객체에서 기본 키를 꺼내 외래 키 열에 넣고, 읽을 때는 외래 키 값으로 상대 엔티티를 찾아 필드에 넣는다. JPA 명세는 연관관계를 나타내는 필드나 프로퍼티에 @OneToOne, @OneToMany, @ManyToOne, @ManyToMany 가운데 하나를 붙이도록 정한다. 상대의 객체가 아니라 번호만 필드로 두면 연관관계가 아니라 평범한 숫자 필드이고, 상대 엔티티는 그 번호로 직접 찾아야 한다.</dd>
 <dt>@ManyToOne</dt>
+<dd><b>지금 어디에 쓰나</b> — 주문 쪽에서 회원을, 댓글 쪽에서 글을 가리키는 필드처럼 &quot;여럿&quot; 쪽 엔티티의 필드에 붙인다. 기본으로는 주문을 읽을 때 회원도 함께 읽으므로, 필요할 때만 읽도록 fetch = FetchType.LAZY를 함께 적는 일이 흔하다.</dd>
 <dd>@ManyToOne은 필드 위에 붙여 &quot;이 필드는 다른 엔티티 하나를 가리키고, 이 엔티티 여러 개가 같은 상대 하나를 가리킬 수 있다&quot;고 표시하는 애너테이션이다. 주문 여러 개가 회원 한 명을 가리키는 경우가 대표적이다. 가리키는 대상의 타입은 필드의 타입에서 알아낸다. 테이블에서는 이 필드를 가진 엔티티의 테이블에 상대의 기본 키 값을 담는 외래 키 열이 생기고, 열 이름을 따로 정하지 않으면 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 이름(Member 타입의 member 필드면 member_id)이 된다. 다른 엔티티 타입의 필드에 이런 연관관계 표시가 없으면, Hibernate 7.4.5는 그 필드를 열에 담을 방법을 찾지 못해 시작하다가 오류를 낸다.</dd>
 <dt>@JoinColumn</dt>
+<dd><b>왜 생겼나</b> — 외래 키 열의 이름을 적을 곳이 없으면 JPA가 규칙으로 지은 이름만 쓸 수 있어서, 이미 만들어진 테이블에 맞추려면 필드 이름까지 그 열에 맞춰 지어야 한다. @JoinColumn은 열 이름을 필드 이름과 따로 적게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 이미 있는 테이블의 외래 키 열 이름이 규칙과 다를 때, 또는 팀이 정한 열 이름을 코드에 분명히 적어 두려고 쓴다. nullable = false를 함께 적으면 JPA가 테이블을 만들 때 그 열을 비워 둘 수 없게 만든다.</dd>
 <dd>@JoinColumn은 연관관계의 외래 키 열을 지정하는 애너테이션이며, @ManyToOne 같은 연관관계 표시와 함께 쓴다. name에 열 이름을 적고, 적지 않으면 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 이름이 된다. 예를 들어 @JoinColumn(name = &quot;buyer_id&quot;)를 붙이면 외래 키 열이 member_id가 아니라 buyer_id가 된다. 바뀌는 것은 테이블의 열 이름이고, 엔티티 코드에서 객체를 따라가는 방법은 달라지지 않는다.</dd>
 <dt>기본 키, 유니크 키, 외래 키</dt>
 <dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
@@ -96,6 +101,10 @@ System.out.println(o.getMember().getName());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +178,10 @@ System.out.println(o.getMember().getName());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

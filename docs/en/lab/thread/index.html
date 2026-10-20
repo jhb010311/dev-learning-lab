@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Creating threads and thread states</h1>
 <p><b>Why does calling run() directly not create a new thread?</b></p>
+<p><b>Why it exists</b> — A program with only one flow of execution stops and cannot do other work while it reads a file or waits for a response from another server. Java's Thread puts several flows of execution in one program, so that while one flow waits, another flow does work. A new flow is created only when you call start(), and run() is the method in which you write the task that flow will execute.</p>
+<p><b>Where it's used today</b> — With default settings, Tomcat handles each request with one thread from a thread pool, so even Spring MVC controller code runs on several threads at the same time. In real code, instead of creating new Thread directly, you hand the work to an ExecutorService or to Spring's @Async. You look at thread states when you search for BLOCKED or WAITING threads in the thread dump of a stopped server.</p>
 <p>Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates.</p>
 <p>Checked against real execution · The 24 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,10 +42,16 @@
 <dt>Thread states</dt>
 <dd>These are the six states that a Java thread can be in from the time it is created until it terminates. A thread is in exactly one of them at any moment, and you can check which one with t.getState(). NEW is the state in which only the Thread object has been created and the thread has not started yet, RUNNABLE is the state in which it is running or waiting for its turn to run, and TERMINATED is the state in which it has completed execution. In between, a thread becomes BLOCKED when it waits for a lock that another thread holds, WAITING when it waits with no time limit, and TIMED_WAITING when it waits for a specified time. A thread that has become TERMINATED never returns to another state.</dd>
 <dt>start() and run()</dt>
+<dd><b>Why it exists</b> — The way to create a thread differs for each operating system, so to create one yourself you would have to call that operating system's features. start() leaves this job to the Java virtual machine (JVM), and the work to do is written in run() as an ordinary method, so that the task code and the creation of a thread are separated.</dd>
+<dd><b>Where it's used today</b> — In a short example or a test, you start a thread right away with new Thread(task).start(). If you write the work as a Runnable or a lambda, you can also hand the same code to an ExecutorService and run it on a thread of a pool.</dd>
 <dd>These are two methods of Thread: start() creates a new thread and has that thread execute run(), and run() is an ordinary method that holds the work the thread is to do. So if you call run() directly, no new thread is created, and the calling thread runs that code in order. start() can be called only once on a Thread object, and a second call throws an IllegalThreadStateException. To run the same task again, create a new Thread object.</dd>
 <dt>join()</dt>
+<dd><b>Why it exists</b> — To wait for another thread to finish without join(), you would have to write a loop that keeps asking whether it has finished, write wait/notify signals yourself, or guess the time with sleep. join() lets you move on to the next line as soon as that thread finishes, and it also guarantees that the values the finished thread changed are visible afterward.</dd>
+<dd><b>Where it's used today</b> — You use it when you hand work out to several threads and combine the results after all finish, and when you check the result in a test after the threads finish. For tasks handed to a thread pool, you wait with get() of the Future or with CountDownLatch instead of join().</dd>
 <dd>This method makes the current thread wait until another thread terminates. A thread that calls t.join() does not go on to the next line until t terminates, so it is used when the caller needs to receive and use a result that another thread produces. While it waits, the state of the calling thread is WAITING, and when a time is given, as in join(1000), it is TIMED_WAITING. When it is called on a thread that has already terminated or has not started yet, it returns right away without waiting.</dd>
 <dt>Interrupt</dt>
+<dd><b>Why it exists</b> — Thread.stop(), which stops a thread directly from outside, cuts off what it is doing anywhere and can leave half-modified data, so it stopped being used. Interrupt is what is used instead, and it lets the thread finish or undo the data it was modifying and then end by itself.</dd>
+<dd><b>Where it's used today</b> — shutdownNow() of ExecutorService and cancel(true) of Future usually send an interrupt to a running task to request cancellation. A long-running loop checks the interrupt mark with isInterrupted() and responds to this request.</dd>
 <dd>This is a signal sent to a waiting thread to tell it to stop waiting. When t.interrupt() is called, the interrupt status of t, the mark that says &quot;this thread was interrupted&quot;, is set, and if t was waiting in sleep, join, or wait, that method throws an InterruptedException and the thread wakes up right away. It is not a feature that forces a thread to stop, so what to do after receiving the signal is decided by the code of that thread. A thread in the BLOCKED state, waiting for the lock of synchronized, is not woken up by an interrupt.</dd>
 </dl>
 <h2>Try these</h2>
@@ -102,6 +110,10 @@ System.out.println(t.getState());</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +187,10 @@ System.out.println(t.getState());</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

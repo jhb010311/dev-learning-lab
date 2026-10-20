@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Beans</h1>
 <p><b>What is a bean, and how does it differ from an object you just created?</b></p>
+<p><b>Why it exists</b> — If you create an object with new everywhere you use it, then an object that needs to exist only once in the whole program gets created several times in various places, and the side that uses it also has to create and connect the other objects it uses, one by one. A Spring bean is an object that Spring creates when it starts and hands the same object to every place that needs it, so that Spring, instead of our code, takes care of creating and connecting.</p>
+<p><b>Where it's used today</b> — On a Spring server, the controller that receives requests, the service that handles business rules, and the repository objects that work with the DB are usually beans. @Controller, @Service, and @Repository are also annotations built on @Component, so attaching them makes a bean. On the other hand, values that are newly created each time, such as one member read from the DB or an object that received a request body, are not made into beans.</p>
 <p>A bean is an object that Spring creates and keeps. In code it is an ordinary class. If you write @Component above the class, then when Spring starts it scans the app package, finds that class, creates one object, and puts it in a place for keeping objects called the container. We do not use new. Where we need the object, we ask Spring for it with context.getBean(Greeter.class), and however many times we ask, Spring gives us the same one object it was keeping. In this lab you run the same code while removing @Component or creating the object with new Greeter() instead of getBean, and see how many objects Spring created, how many objects our code created with new, and whether a == b is true or false.</p>
 <p>Checked against real execution · Ran 4 combinations with real component scanning on Spring Framework 7.0.9, measured the number of objects, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Spring bean</dt>
 <dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
 <dt>IoC container (ApplicationContext)</dt>
+<dd><b>Where it's used today</b> — In Spring Boot, SpringApplication.run creates and returns an ApplicationContext, and @SpringBootTest also starts a context for a test and injects beans. It is rare to take a bean out directly with getBean in code.</dd>
 <dd>This is the core Spring component that is responsible for creating beans, wiring their dependencies, and managing their lifecycle. BeanFactory is the most basic container interface, and ApplicationContext extends it and adds features such as event publication, message internationalization, and environment configuration. When people say &quot;the container&quot;, they usually mean ApplicationContext.</dd>
 <dt>@Component</dt>
+<dd><b>Why it exists</b> — If you write the classes to hand over to Spring one by one in a configuration file, the configuration file has to be changed together every time you create a new class. @Component lets you attach that marker directly above the class, so that once you create the class, Spring finds it.</dd>
+<dd><b>Where it's used today</b> — You attach it to turn into a bean a helper class that you wrote and that is not a controller, service, or repository. It cannot be attached to classes you cannot modify, such as a library's classes, so you register those with a method annotated with @Bean instead.</dd>
 <dd>@Component is an annotation that you put above a class so that Spring knows the class and treats it as something it creates objects of and manages (a bean). With component scanning, Spring scans the classes under a specified package, finds the classes with @Component, and creates objects of those classes and keeps them in the container. If you do not give the bean a name, the class name with its first letter in lowercase is used (greeter for Greeter). @Repository, @Service, and @Controller are specializations of @Component, so they are found in the same way. A class without this annotation is not found even if it is in the same package, so if you ask Spring for an object of that class, an exception saying that there is no such bean is thrown.</dd>
 <dt>Component scanning</dt>
+<dd><b>Why it exists</b> — If you register beans one by one with XML or @Bean methods for each class, the registration list must also be changed every time you create a class. Component scanning lets Spring find and register classes when you only put an annotation on them.</dd>
+<dd><b>Where it's used today</b> — Services, repositories, and controllers that you write yourself are usually registered this way. So you place the @SpringBootApplication class in the topmost package of the project, and to make scanning reach other packages, you specify them with the scanBasePackages attribute.</dd>
 <dd>This feature finds the classes under a given package that carry @Component or one of its related annotations (such as @Service, @Repository, and @Controller) and registers them as beans automatically. In Spring Boot, the default target is the package of the class annotated with @SpringBootApplication and its subpackages.</dd>
 </dl>
 <h2>Try these</h2>
@@ -112,6 +119,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -185,9 +196,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

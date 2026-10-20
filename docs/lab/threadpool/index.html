@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>스레드 풀</h1>
 <p><b>스레드를 늘리면 무엇이 달라지나</b></p>
+<p><b>왜 생겼나</b> — 작업이 생길 때마다 스레드를 새로 만들면 요청이 한꺼번에 몰릴 때 스레드가 요청 수만큼 늘어나고, 스레드마다 쓰는 메모리와 번갈아 실행하는 부담 때문에 서버 전체가 느려지거나 멈출 수 있다. 스레드 풀은 만들어 둔 스레드를 다시 쓰면서 그 수에 상한을 두고, 넘치는 작업은 줄을 세우거나 거절해서 서버가 감당할 만큼만 동시에 처리하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 톰캣 같은 서블릿 컨테이너는 들어온 요청을 스레드 풀로 처리하고, 애플리케이션 코드에서는 여러 외부 API를 동시에 불러 결과를 모으거나 오래 걸리는 일을 따로 돌릴 때 ExecutorService로 풀을 만들어 쓴다. 대부분의 시간을 기다리며 보내는 작업이 아주 많을 때는 풀을 두지 않고 작업마다 가상 스레드를 만드는 방식을 쓰기도 한다.</p>
 <p>스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레드를 더 만들며, 그래도 넘치면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.</p>
 <p>실행으로 대조 · ThreadPoolExecutor의 실제 실행 결과와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>ThreadPoolExecutor의 동작 순서</dt>
 <dd>자바의 스레드 풀 구현은 작업이 들어오면 다음 순서로 처리한다. 실행 중인 스레드가 corePoolSize보다 적으면 새 스레드를 만든다. 그 이상이면 작업을 큐에 넣는다. 큐가 가득 차면 maximumPoolSize까지 스레드를 더 만든다. 그것도 넘으면 작업을 거부한다. 크기가 정해진 큐일 때는 큐가 가득 찬 뒤에야 스레드가 늘어나며(무제한 큐면 늘지 않는다) 이 점이 직관과 다르다.</dd>
 <dt>톰캣의 스레드 모델</dt>
+<dd><b>왜 생겼나</b> — 요청 하나를 스레드 하나가 끝까지 맡으면, DB 응답을 기다리는 코드도 콜백으로 나누지 않고 위에서 아래로 차례대로 적을 수 있다. 톰캣은 그 스레드를 미리 만든 풀에서 가져다 쓰고 수에 상한을 두어, 요청이 몰려도 스레드가 끝없이 늘지 않게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 외부 호출이 느리거나 동시 요청이 많은 스프링 MVC 서비스는 server.tomcat.threads.max와 DB 커넥션 풀 크기를 함께 맞춘다. 요청이 멈춘 듯할 때는 스레드 덤프에서 http-nio-8080-exec-1 같은 요청 처리 스레드가 어느 줄에서 기다리는지 본다.</dd>
 <dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한된다. 쉬는 스레드가 없으면 자바 기본 ThreadPoolExecutor와 달리 최대 수까지 스레드를 먼저 늘리고, 모든 스레드가 사용 중일 때 새 요청이 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
 <dt>블로킹과 논블로킹</dt>
 <dd>블로킹은 호출한 작업이 끝날 때까지 호출한 스레드가 멈춰서 다른 일을 하지 못하는 것이다. 논블로킹은 작업이 끝나지 않았어도 호출이 바로 반환되어 스레드가 다른 일을 할 수 있는 것이다. 일반적인 JDBC 호출은 DB 응답이 올 때까지 스레드가 멈추는 블로킹 호출이다.</dd>
@@ -101,6 +105,10 @@ for (int i = 1; i &lt;= 10; i++) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +182,10 @@ for (int i = 1; i &lt;= 10; i++) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

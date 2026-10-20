@@ -1,6 +1,8 @@
 Lab.register({
   id: 'pc', nav: 'Persistence context', cat: 'JPA', mode: 'step',
   title: 'When does JPA send SQL?',
+  why: 'When you work with JDBC directly, every time you change an object\'s value you have to write and run an UPDATE statement, and if you read the same row twice, two queries are sent and two different objects are created. The persistence context manages the entities read during one transaction, one for each id, and compares them with their state when first read. It sends an UPDATE by itself for an entity whose value changed, and it does not go to the database when you look up the same entity by id again.',
+  use: 'In a service that uses Spring Data JPA, when a @Transactional method loads an entity and only changes a value, an UPDATE is sent at commit without calling save, and this behavior is the reason. When you insert or modify a lot of data at once, the number of managed entities keeps growing, so you call flush and clear from time to time, or use JdbcTemplate or a bulk UPDATE query instead.',
   intro: 'JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed.',
   terms: ['Persistence context', 'First-level cache', 'Dirty checking', 'Transactional write-behind and flush', 'Entity'], ranks: ['jpaorm'],
   controls: [

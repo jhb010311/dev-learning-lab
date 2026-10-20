@@ -77,6 +77,12 @@ button, input, select { font: inherit; color: inherit; }
 .term b { display: block; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
+/* 왜 생겼나 · 지금 어디에 쓰나: 실습 머리에서는 두 칸의 위에 나란히 둔다(실습에 why나 use가 있을 때만 보인다).
+   개념 설명과 용어 풀이에서는 설명 앞의 문단으로 두고, 문단 첫머리에 작은 제목을 붙인다. */
+.whyuse { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 44px; padding-bottom: 10px; }
+.whyuse > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.wu-l { font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-right: .45em; }
+.term p + p { margin-top: 4px; }
 
 /* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 전체 단계 기록 → 실행 비교 → 코드 → 예시("이렇게 바꿔 보세요").
    그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
@@ -297,6 +303,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 .glpop .glhead b { font-size: 1rem; }
 .glpop .glfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .glpop .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); }
+#glpop-wu { display: flex; flex-direction: column; gap: 8px; }
 
 /* 개념 테스트 */
 .tabs { align-self: flex-start; }
@@ -362,6 +369,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .p-bar .clock { font-size: .78rem; margin-left: 0; }
   .p-bar .log { max-height: 138px; font-size: .9rem; }
   .headcols { grid-template-columns: minmax(0, 1fr); }
+  .whyuse { grid-template-columns: minmax(0, 1fr); order: -2; padding-bottom: 0; }
   .terms { columns: 1; }
   .about { order: -1; padding-left: 0; margin-left: 0; border-left: 0; }
   .p-bar .stale { margin-left: 0; flex-basis: 100%; }
@@ -397,6 +405,10 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -470,6 +482,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
@@ -480,6 +493,9 @@ var Lab = (function () {
   var LANG = 'ko'; // 영어판을 만들 때는 build.js가 이 값을 바꾼다
   var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: '개발 학습 실습실', feedback: '' };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  // 왜 생겼나 · 지금 어디에 쓰나: 설명집 항목의 네 번째 칸 { why, use }에 있는 것만 설명 앞의 문단으로 만든다(작은 제목을 문단 첫머리에 붙인다)
+  var WU = { why: '왜 생겼나', use: '지금 어디에 쓰나' };
+  function wuParas(o, ctx, gs, skip) { return ['why', 'use'].filter(function (k) { return o && o[k]; }).map(function (k) { var p = el('p'), t = el('span'); p.appendChild(el('span', 'wu-l', WU[k])); glossInto(t, o[k], ctx, gs, skip); p.appendChild(t); return p; }); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
   var RE = /(\/\/.*$|--.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(import|public|private|static|final|class|record|void|int|long|boolean|new|return|for|if|else|try|catch|finally|throw|throws|synchronized|volatile|instanceof|this|SELECT|FROM|WHERE|JOIN|LEFT|INNER|ON|IN|AND|UPDATE|SET|INSERT|INTO|VALUES|DELETE|ORDER|GROUP|BY|LIMIT)\b|(@\w+)|\b(\d[\d_.]*)\b|\b([A-Z][a-z]\w*)\b/gm;
@@ -902,11 +918,17 @@ var Lab = (function () {
   }
   function drawExplain() {
     var box = $('terms'); box.textContent = ''; box._open = false; setTimeout(fitTerms, 0);
-    (cur.explain || []).forEach(function (t) { var d = el('div', 'term'); var b = el('b', null, t.name + ' '); d.appendChild(b); d.appendChild(glossEl('p', null, t.book, cur.id, {}, t.name)); box.appendChild(d); });
+    (cur.explain || []).forEach(function (t) { var d = el('div', 'term'), gs = {}; var b = el('b', null, t.name + ' '); d.appendChild(b); wuParas(t, cur.id, gs, t.name).forEach(function (p) { d.appendChild(p); }); d.appendChild(glossEl('p', null, t.book, cur.id, gs, t.name)); box.appendChild(d); });
+  }
+  // 실습의 why, use: 있는 것만 머리의 두 칸 위에 보인다. 둘 다 없으면 자리째 숨긴다.
+  function drawWhyUse() {
+    var any = false;
+    ['why', 'use'].forEach(function (k) { var has = !!cur[k]; $(k + '-box').hidden = !has; if (has) { glossInto($(k), cur[k], cur.id); any = true; } else $(k).textContent = ''; });
+    $('whyuse').hidden = !any;
   }
   function open(id) {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
-    $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
+    $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); drawWhyUse(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     drawPath();
     var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic && LANG !== 'en' ? '' : ' qwide') : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
@@ -1142,7 +1164,8 @@ var Lab = (function () {
   function glDraw() {
     var e = gloss[glOpen.g], ctx = glOpen.ctx, pop = $('glpop'), title = e.kb || e.t, k = e.kb ? kbTerms.filter(function (x) { return x[1] === e.kb; })[0] : null;
     $('glpop-t').textContent = title;
-    glossInto($('glpop-d'), k ? k[2] : e.d, ctx, {}, title);
+    var wu = $('glpop-wu'), gs = {}; wu.textContent = ''; wuParas(k && k[3], ctx, gs, title).forEach(function (p) { wu.appendChild(p); }); wu.hidden = !wu.children.length;
+    glossInto($('glpop-d'), k ? k[2] : e.d, ctx, gs, title);
     var f = $('glpop-f'); f.textContent = '';
     if (k) {
       var lid = termLesson[e.kb], mine = tab !== 'quiz' && cur && (cur.explain || []).some(function (x) { return x.name === e.kb; });

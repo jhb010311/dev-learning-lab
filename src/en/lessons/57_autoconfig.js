@@ -1,6 +1,8 @@
 Lab.register({
   id: 'autoconf', nav: 'Spring Boot auto-configuration', cat: 'Spring', mode: 'step',
   title: 'Why do beans appear when all you did was add a dependency?',
+  why: 'With Spring alone, you had to register beans such as DataSource, EntityManagerFactory, and the transaction manager yourself in configuration classes or XML, and register the DispatcherServlet yourself in a place such as web.xml, so every project repeated almost the same configuration. Spring Boot\'s auto-configuration prepares this configuration in advance on the library side and applies it only when its conditions are met, so developers register by hand only the parts they want to change.',
+  use: 'Every application annotated with @SpringBootApplication receives its default beans through this feature. Once you add a starter and write only the connection address, the connection pool, JPA, and embedded Tomcat are ready, and anything you want to differ from the defaults you change with settings in application.yml or by registering beans such as DataSource and JsonMapper yourself with @Bean. When you build an in-house library shared by several projects, you sometimes write your own auto-configuration for it.',
   intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean.',
   terms: ['Spring Boot auto-configuration', 'Starter', 'Embedded server', '@Configuration and @Bean', 'Component scanning'], ranks: ['boot', 'bean', 'di'],
   controls: [

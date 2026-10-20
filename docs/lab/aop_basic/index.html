@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>AOP와 프록시</h1>
 <p><b>프록시는 무엇이고, 스프링은 어떻게 내 메서드 앞뒤에 끼어드는가</b></p>
+<p><b>왜 생겼나</b> — 로그 남기기, 트랜잭션 시작과 끝내기 같은 일을 메서드마다 직접 적으면 같은 줄이 여러 곳에 흩어지고, 빠뜨리거나 고칠 때 모두 찾아다녀야 한다. 스프링의 AOP는 그 일을 한 클래스에 모아 적게 하고, 스프링이 만든 프록시가 호출을 먼저 받아 앞뒤에 그 일을 끼워 넣어서, 원래 메서드의 코드는 손대지 않게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링에서 @Transactional을 붙인 메서드가 트랜잭션으로 묶여 실행되는 것, @Cacheable을 붙인 메서드가 저장해 둔 결과를 돌려주는 것이 이 프록시로 동작한다. 직접 쓸 때는 메서드 실행 시간 재기나 호출 기록 남기기에 @Aspect를 쓴다. new로 만든 객체를 부르거나 같은 객체 안에서 자기 메서드를 부르면 프록시를 거치지 않아 끼어들지 못한다.</p>
 <p>@Transactional 같은 애너테이션을 메서드에 붙이면, 우리가 쓰지 않은 일이 그 메서드를 부를 때 앞뒤에서 일어납니다. 스프링이 우리가 쓴 클래스로 만든 객체를 그대로 쓰지 않고, 그 객체 대신 호출을 받을 대리 객체(프록시)를 만들어 보관해 두기 때문입니다. 이 실습은 같은 일을 @Transactional 대신 직접 쓴 LogAspect로 보입니다(LogAspect, OrderService, Caller는 이 실습에서 예시로 지은 클래스 이름입니다). LogAspect는 @Aspect가 붙은 클래스로, 여러 메서드에 공통으로 끼워 넣을 일(여기서는 로그 한 줄)을 따로 적어 두는 곳입니다. @Before 안의 execution(* OrderService.order(..))는 OrderService 클래스의 order() 메서드를 고르는 식입니다. 이렇게 공통으로 끼워 넣을 일을 따로 적어 두는 방식을 AOP라고 합니다. 부르는 쪽 Caller의 orderService 칸에 @Autowired가 붙어 있으면, 스프링이 이 칸이 자기가 보관한 객체를 가리키게 합니다. 이 실습은 LogAspect를 지우거나 그 칸이 new OrderService()로 직접 만든 객체를 가리키게 바꿔 가며, 같은 order() 호출이 무엇을 찍는지와 호출을 받은 객체가 무엇인지를 봅니다.</p>
 <p>실행으로 대조 · Spring 7.0.9와 AspectJ weaver 1.9.25.1에서 네 가지 조합을 실제 @Aspect 프록시로 실행해 찍힌 줄과 부른 객체의 클래스를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,12 @@
 <dt>AOP(관점 지향 프로그래밍)</dt>
 <dd>로깅, 트랜잭션, 권한 검사처럼 여러 곳에 반복해서 나타나는 부가 기능(횡단 관심사)을 핵심 비즈니스 코드에서 분리해 한곳에 모아 두는 프로그래밍 기법이다. 부가 기능을 한 번만 작성하고 &quot;어디에 적용할지&quot;를 따로 지정하므로, 핵심 코드가 깔끔해지고 부가 기능의 수정이 한곳에서 끝난다.</dd>
 <dt>@Aspect와 @Before</dt>
+<dd><b>왜 생겼나</b> — 끼워 넣을 일과 그 대상을 설정 파일에 따로 적으면, 코드만 보고는 무엇이 언제 끼어드는지 알기 어렵다. @Aspect와 @Before는 그것을 클래스와 메서드 위에 바로 적게 해서, 한 클래스만 보면 언제 무엇이 실행되는지 알 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메서드가 불릴 때마다 기록을 남기거나, 실행하기 전에 넘어온 값을 확인하는 일에 쓴다. 메서드가 끝난 뒤에 할 일은 @After나 @AfterReturning을, 앞뒤 모두에 할 일은 @Around를 대신 쓴다.</dd>
 <dd>@Aspect는 클래스 위에 붙여, 그 클래스가 애스펙트(여러 메서드에 공통으로 끼워 넣을 일을 적어 둔 클래스)라고 표시하는 애너테이션이다. 애스펙트도 스프링이 관리하는 빈이어야 하므로, 클래스패스 스캔으로 찾게 하려면 @Aspect만으로는 부족하고 @Component 같은 애너테이션을 따로 붙여야 한다. @Before는 애스펙트의 메서드 위에 붙이고 괄호 안에 포인트컷 식을 적는다. 그 식이 고른 메서드가 실행되기 전에 이 메서드가 먼저 실행된다. 스프링이 어떤 빈에 애스펙트가 걸렸다고 판단하면 그 빈의 프록시를 자동으로 만든다(auto-proxying). 이 기능을 쓰려면 @AspectJ 지원을 켜야 하고 aspectjweaver 라이브러리가 클래스패스에 있어야 한다.</dd>
 <dt>@Autowired</dt>
+<dd><b>왜 생겼나</b> — 어느 자리에 어떤 빈을 넣을지를 설정 파일에 하나하나 적으면, 클래스를 고칠 때마다 설정 파일도 함께 고쳐야 한다. @Autowired는 넣어 받을 자리에 표시만 하면 스프링이 타입을 보고 맞는 빈을 골라 넣게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 오래된 코드나 테스트 코드에서는 필드 위에 붙인 모양을 흔히 본다. 새로 짜는 코드는 필드 대신 생성자로 빈을 받는 방식을 더 많이 쓴다.</dd>
 <dd>@Autowired는 필드나 생성자에 붙여, 스프링이 그 자리에 들어갈 타입에 맞는 빈을 컨테이너에서 찾아 넣어 주게 하는 애너테이션이다. 필드에 붙이면 그 필드에는 우리 코드가 값을 넣는 줄이 없어도 스프링이 객체를 채워 준다. 맞는 빈이 없으면 기본적으로 주입에 실패한다. 스프링이 찾는 곳은 컨테이너가 보관한 빈이므로, 코드에서 new로 직접 만든 객체는 컨테이너가 보관한 빈과 다른 객체다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -108,6 +114,10 @@ class Caller {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -181,9 +191,10 @@ class Caller {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

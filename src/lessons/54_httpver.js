@@ -1,6 +1,8 @@
 Lab.register({
   id: 'httpver', nav: 'HTTP/1.1, 2, 3', cat: 'HTTP', mode: 'step',
   title: '파일 30개를 받을 때 버전마다 무엇이 다른가',
+  why: '페이지 하나가 파일 수십 개로 늘면서, 응답을 하나씩 차례로 받는 HTTP/1.1에서는 이미지를 한 장으로 합치거나 도메인을 여러 개로 나누는 편법까지 써야 했다. HTTP/2는 요청마다 번호 붙은 스트림을 두어 앞의 응답을 기다리지 않게 했고, HTTP/3는 스트림을 전송 단계에서도 따로 다루도록 UDP 위의 QUIC으로 옮겼다.',
+  use: '주요 브라우저와 CDN, nginx는 HTTP/2를 지원하고, HTTP/3도 큰 사이트와 CDN에서 쓰인다. 스프링 부트는 server.http2.enabled로 HTTP/2를 켜지만, 앞단에 nginx나 로드밸런서가 있으면 브라우저와의 HTTP/2·3은 거기서 처리하고 뒤쪽 서버는 HTTP/1.1로 받는 구성이 흔하다. 서버끼리 호출하는 gRPC도 HTTP/2 위에서 동작한다.',
   intro: '웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.',
   terms: ['HTTP/1.1, HTTP/2, HTTP/3', 'TCP와 UDP', '3-way handshake'], ranks: ['http', 'network'],
   controls: [

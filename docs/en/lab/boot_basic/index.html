@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Spring Boot</h1>
 <p><b>What does Spring Boot do for you?</b></p>
+<p><b>Why it exists</b> — When you build a web program with Spring without Spring Boot, you usually had to install a web server such as Tomcat first, package your program into a war file, and deploy it onto that server before you could run it. For each library you use, the settings that register beans also had to be written at length in an XML file or a configuration class. Spring Boot packages even the server into one jar file so that one java command runs it, and fills common settings with predefined values.</p>
+<p><b>Where it's used today</b> — A new Spring project usually starts with Spring Boot. It is used to build API servers that give data to web pages or apps, and batch programs that do work at fixed times, and you create the project by choosing the libraries you need on the start.spring.io site. If you must deploy to a web server that a company already operates, you can also package it as a war file and deploy it.</p>
 <p>A Spring Boot application is an ordinary Java class (named App in this example) that has a main method. It starts when the main method calls one line, SpringApplication.run(App.class, args). This one line starts Spring (it scans the classes and makes beans), starts a web server (Tomcat) inside the program, and gets ready to receive requests. We do not install Tomcat separately, and we do not write code that starts a server. @SpringBootApplication above App is a marker that tells Spring Boot to scan from the package of this class and configure what is needed automatically, and it decides what to configure by looking at the libraries in the project. If a web library is there, it starts Tomcat, and if not, it does not. In this lab, you remove the run line, @SpringBootApplication, and the web library one at a time and run the program with the java command, to see whether the program keeps running, whether Tomcat starts, and whether it answers a request from the browser.</p>
 <p>Checked against real execution · Compiled the source for each of the 8 combinations on Spring Boot 4.1.1 and ran it as a child java process, observed the listening port and HTTP requests from outside, and checked against them (the classpath without the web library was decided from the dependencies in the poms)</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Spring Boot</dt>
 <dd>Spring Boot is a Spring library that reduces the configuration needed to build and run a Spring application. An application starts when the main method calls SpringApplication.run(App.class, args), and this call starts Spring and makes the beans, and, if it is a web application, starts a web server (Tomcat by default) inside the program and gets ready to receive requests. Spring Boot decides what to configure by looking at the libraries in the project, so with the same code, a web server starts if there is a web library and does not if there is not. The feature of this approach is that you do not have to install a web server separately or write code that starts a server.</dd>
 <dt>@SpringBootApplication</dt>
+<dd><b>Why it exists</b> — A Spring Boot start class almost always ends up with annotations that turn on auto-configuration, scan classes, and mark a configuration class. @SpringBootApplication combines these three annotations into one, so only one line is needed above the start class.</dd>
+<dd><b>Where it's used today</b> — When you create a new Spring Boot project, it is already attached to the start class that has the main method. You must put the start class in a higher package than the other classes, such as com.example, so that all classes under it are scanned.</dd>
 <dd>@SpringBootApplication is an annotation that you put above the start class of a Spring Boot application. It combines @EnableAutoConfiguration (turns on the auto-configuration of Spring Boot), @ComponentScan (scans for classes of the @Component family, starting from the package that holds this class), and @SpringBootConfiguration (makes it possible to register extra beans or import other configuration classes) into one. Without this annotation, neither class scanning nor auto-configuration happens, so even in a project with a web library, there is no configuration that creates a web server and it fails to start.</dd>
 <dt>Starter</dt>
+<dd><b>Where it's used today</b> — For a new project, you start by choosing starters such as web, data-jpa, and security at start.spring.io. Spring Boot manages the versions, so you usually do not write a version on a starter.</dd>
 <dd>This is a Spring Boot set of dependencies that groups the libraries needed for a particular feature in versions that are compatible with each other. Adding just the web one (spring-boot-starter-web up to Spring Boot 3, spring-boot-starter-webmvc since Spring Boot 4) brings in Spring MVC, JSON processing, embedded Tomcat, and more. It saves you the work of resolving version conflicts between libraries yourself.</dd>
 <dt>Embedded server</dt>
+<dd><b>Where it's used today</b> — It suits deployment where a single jar file is made into a Docker image and run, and you change the port with the server.port setting. You can also switch to Jetty instead of the default, Tomcat.</dd>
 <dd>This is a web server (Tomcat by default) that is included inside a Spring Boot application and runs together with it. You can run the application with a single java -jar command, without the steps of installing a server separately and deploying the application to it.</dd>
 </dl>
 <h2>Try these</h2>
@@ -101,6 +107,10 @@ public class HelloController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class HelloController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

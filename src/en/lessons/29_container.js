@@ -1,6 +1,8 @@
 Lab.register({
   id: 'container', nav: 'Containers and virtual machines', cat: 'Deployment and operations', mode: 'step',
   title: 'Why are containers lightweight and quick to start?',
+  why: 'If Java and libraries are installed directly on a server and run, versions and settings differ slightly from server to server, and dividing servers with virtual machines gives isolation but is heavy. A container makes Java and the libraries into one image so that it starts in the same environment on any server, and it separates processes with the Linux kernel\'s namespaces and cgroups and limits the resources they can use, creating an isolated execution environment without running a separate operating system.',
+  use: 'A Spring Boot application is made into a Docker image and run the same way on a development PC, a test server, and a production server, and Kubernetes starts these containers on several servers and starts them again when they die. Java uses memory besides the heap, so the heap is set comfortably smaller than the container\'s memory limit. If you need to run a different operating system, use a virtual machine.',
   intro: 'When you start several copies of the same application, a virtual machine loads a whole operating system for every instance, while containers share the kernel of the host. Change the type and the number, and compare what gets loaded and how much memory is used. Also see what happens when you put a memory limit on a container.',
   terms: ['Containers and images', 'Containers versus virtual machines', 'Namespaces and cgroups'], ranks: ['container', 'cloud', 'deploy'],
   controls: [

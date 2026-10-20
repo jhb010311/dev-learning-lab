@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Information leakage</h1>
 <p><b>What do error responses and login failure messages tell the outside world?</b></p>
+<p><b>Why it exists</b> — If every controller builds its own error response with try-catch, it is easy for one of them to make the mistake of sending out the exception message as it is, and the shape of the responses also becomes inconsistent. @ControllerAdvice and @ExceptionHandler let you receive the exceptions raised in many controllers in one place and decide what to send as the response, so the details go to the log, and only a short message and a status code decided in advance go outside.</p>
+<p><b>Where it's used today</b> — In a REST API, it is used to return an error body of the same shape for each kind of exception, such as 400 for a validation failure, 404 for a missing resource, and 500 for an unexpected error. A login failure message also does not tell a nonexistent ID from a wrong password, and by default Spring Security converts a nonexistent ID into the same BadCredentialsException as a wrong password and reports it.</p>
 <p>The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells &quot;unknown user ID&quot; apart from &quot;wrong password&quot;, it also tells which IDs are registered.</p>
 <p>Checked against real execution · Checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 20 combinations. What was compared is which items are in the response and whether the two responses are the same, not the message texts</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,17 @@
 <dt>Error responses and information leakage</dt>
 <dd>Information leakage through error responses is when the response a server returns on failure carries information from inside the server and sends it outside. An exception message can contain the SQL that was about to run or a file path, and a stack trace shows the framework in use and the structure of the code, so they give an attacker clues for the next attempt. The default error response of Spring Boot does not include the exception message or the stack trace. Information leaks when a setting is changed to always or when code puts the exception message into the response as it is. The basic rule is to put only a fixed message and an error ID in the response and to keep the details in the server log.</dd>
 <dt>Stack trace</dt>
+<dd><b>Why it exists</b> — One line of an exception message cannot tell you in which method and through which calls the problem occurred. A stack trace leaves that order of calls, down to line numbers, so that you can find the place of the problem without running it again.</dd>
+<dd><b>Where it's used today</b> — When writing a log, if you pass the exception object as the last argument, as in log.error(&quot;Order failed&quot;, e), it is recorded together. For an error that occurred in production, you find the cause by looking at this record.</dd>
 <dd>A stack trace is a record of which methods were being called, and in what order, at the moment an exception occurred. The first line has the class name and the message of the exception, and below it comes one line per method with the class name, method name, file name, and line number. If another exception was the cause, it is added with Caused by. It is the first thing a developer looks at to find the cause of an error. Because it shows the inner structure of a program in such detail, it is not put in the response to the user and is kept only in the log.</dd>
 <dt>Account enumeration</dt>
 <dd>Account enumeration is finding out which user IDs or email addresses are registered by using differences in the server's responses. If the login failure message tells &quot;unknown user ID&quot; apart from &quot;wrong password&quot;, or if the sign-up and password recovery screens reveal whether an account exists, an attacker can request with different IDs and build a list of registered IDs. That list becomes the target of password guessing or of deceptive emails. To prevent it, make the responses for the two cases the same, down to the message and the status code, and reduce the difference in response time too. Spring Security by default treats the two cases as the same exception.</dd>
 <dt>@ControllerAdvice and @ExceptionHandler</dt>
+<dd><b>Where it's used today</b> — With @RestControllerAdvice, you decide the status code and error body for each exception, such as 400 for an input validation failure (MethodArgumentNotValidException) and 404 when the requested resource does not exist. The error body is sometimes made to follow the standard format with Spring's ProblemDetail.</dd>
 <dd>This feature lets you handle the exceptions raised in several controllers in one place. If you put an @ExceptionHandler method for each kind of exception inside an @ControllerAdvice class, an exception raised while a controller runs is passed to that method, which can build an error response in a consistent format.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -96,6 +103,10 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +180,10 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

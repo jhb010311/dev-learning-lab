@@ -1,6 +1,8 @@
 Lab.register({
   id: 'sessionfix', nav: 'Session hijacking and session fixation', cat: 'Authentication', mode: 'step',
   title: 'Whoever knows the session ID is that user',
+  why: 'Anyone who gets hold of just the session ID can become that user without the password, so you have to block separately the ways an ID can be decided in advance by someone else or taken along the way. Session fixation protection, which changes the session ID to a new value at login, makes an ID that was known in advance useless. The HttpOnly and Secure cookie attributes block the way a script on the page reads the ID and the way the ID is sent over an unencrypted HTTP connection.',
+  use: 'Spring Security changes the session ID when login succeeds, even if you configure nothing (changeSessionId), and the embedded Tomcat of Spring Boot adds HttpOnly to the session cookie. On a production server, you add Secure with server.servlet.session.cookie.secure, clear the session at logout, and keep the session lifetime short to reduce the time during which a leaked ID can be used.',
   intro: 'The server decides "whose request this is" only from the session ID that arrives in the request\'s cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session.',
   terms: ['Session', 'Session hijacking', 'Session fixation', 'HttpOnly, Secure, and SameSite', 'Cookie'],
   controls: [

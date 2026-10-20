@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 트랜잭션과 잠금</p>
 <h1>DB의 교착 상태</h1>
 <p><b>두 트랜잭션이 서로를 기다리면 DB는 어떻게 끝내나</b></p>
+<p><b>왜 생겼나</b> — 두 트랜잭션이 서로가 잠근 행을 기다리면 어느 쪽도 스스로 풀 수 없어서, 락 대기 시간 제한이 다 될 때까지 두 연결이 멈춘 채 다른 요청까지 붙잡는다. InnoDB의 교착 감지는 기다리는 관계에 고리가 생기는 순간 이를 찾아내, 되돌릴 일이 적은 트랜잭션 하나를 롤백시키고 오류를 돌려주어 나머지 하나가 바로 이어서 진행하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 계좌 이체나 재고 차감처럼 한 트랜잭션에서 여러 행을 고치는 곳에서, 교착 오류를 받으면 트랜잭션을 처음부터 다시 실행하도록 재시도를 둔다. 스프링에서는 이 오류가 PessimisticLockingFailureException 계열의 예외로 바뀌어 올라온다. 고리가 아예 생기지 않게 하려면 여러 행을 잠글 때 계좌 번호가 작은 쪽부터처럼 항상 같은 순서로 잠근다.</p>
 <p>트랜잭션 A는 계좌 1에서 2로 100을, 트랜잭션 B는 계좌 2에서 1로 50을 옮깁니다. 둘이 행을 서로 반대 순서로 잠그면 서로를 기다리게 됩니다. 자바 스레드라면 그대로 멈춰 버리지만, MySQL InnoDB는 이 상황을 스스로 찾아내 한쪽을 롤백시키고 오류를 돌려줍니다.</p>
 <p>실행으로 대조 · MySQL 8.4.11에서 세션 두 개로 열 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>교착 상태(Deadlock)</dt>
 <dd>둘 이상의 스레드(또는 트랜잭션)가 서로 상대가 가진 자원을 기다리느라 영원히 진행하지 못하는 상태다. A가 자원 1을 잡고 2를 기다리는데 B가 자원 2를 잡고 1을 기다리는 경우가 전형적이다. 자원을 항상 같은 순서로 잡도록 하면 예방할 수 있다.</dd>
 <dt>교착 감지와 희생 트랜잭션</dt>
+<dd><b>지금 어디에 쓰나</b> — MySQL InnoDB에서 교착 오류가 나면 SHOW ENGINE INNODB STATUS의 LATEST DETECTED DEADLOCK 부분에서 어느 락을 기다렸는지 본다. 같은 락을 기다리는 연결이 아주 많으면 innodb_deadlock_detect로 감지를 끄고 대기 시간 초과에 맡기기도 한다.</dd>
 <dd>데이터베이스가 서로의 락을 기다리는 트랜잭션들의 고리를 스스로 찾아내어 그중 하나를 강제로 롤백시키는 기능이다. MySQL InnoDB는 트랜잭션이 락을 기다리게 될 때 누가 누구를 기다리는지를 따라가 고리가 있는지 검사하고, 고리가 있으면 한 트랜잭션을 골라 통째로 롤백시킨 뒤 오류 1213(Deadlock found)을 돌려준다. 이때 롤백되는 쪽을 희생 트랜잭션이라고 부르며, InnoDB는 고친 행이 적은 작은 트랜잭션을 고르려 한다. 살아남은 쪽은 오류 없이 계속 진행한다. 희생된 트랜잭션이 한 일은 모두 취소됐으므로, 애플리케이션이 그 트랜잭션을 처음부터 다시 실행해야 한다.</dd>
 <dt>락 대기 시간 초과</dt>
 <dd>다른 트랜잭션이 쥔 락이 풀리기를 정해진 시간까지 기다렸는데도 얻지 못해 그 문장이 실패하는 것이다. MySQL InnoDB에서는 innodb_lock_wait_timeout(기본 50초)이 지나면 오류 1205(Lock wait timeout exceeded)를 돌려준다. 교착과 달리 서로 기다리는 고리가 없어도 생기며, 상대가 트랜잭션을 오래 열어 두는 것이 흔한 원인이다. 기본 설정에서는 기다리던 문장 하나만 취소되고 트랜잭션은 그대로 살아 있으므로, 앞에서 고친 내용과 락이 남는다. 그래서 이 오류를 받으면 직접 롤백한 뒤 다시 시도할지 정해야 한다.</dd>
 <dt>공유 락과 배타 락</dt>
+<dd><b>왜 생겼나</b> — 잠금이 한 종류뿐이면 읽기만 하는 트랜잭션끼리도 서로 기다려야 한다. 공유 락과 배타 락으로 나누면 읽기끼리는 함께 진행하고, 쓰기가 낄 때만 차례를 지키게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — MySQL에서 SELECT ... FOR SHARE는 공유 락을, FOR UPDATE와 UPDATE, DELETE는 배타 락을 건다. 읽은 행이 트랜잭션 동안 바뀌지 않게 붙잡을 때는 공유 락을, 읽고 곧 고칠 행에는 배타 락을 쓴다.</dd>
 <dd>공유 락(S)은 읽기를 위한 잠금으로 여러 트랜잭션이 동시에 가질 수 있다. 배타 락(X)은 쓰기를 위한 잠금으로 한 트랜잭션만 가질 수 있으며, 배타 락이 걸린 데이터에는 다른 트랜잭션이 공유 락도 배타 락도 걸 수 없다.</dd>
 <dt>트랜잭션</dt>
 <dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
@@ -103,6 +108,10 @@ ROLLBACK;                          -- 하고 끝낸다</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@ ROLLBACK;                          -- 하고 끝낸다</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

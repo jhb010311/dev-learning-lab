@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>람다와 함수형 인터페이스</h1>
 <p><b>람다에 적은 코드는 언제 실행되나</b></p>
+<p><b>왜 생겼나</b> — 람다가 없을 때는 정렬 기준이나 버튼을 눌렀을 때 할 일처럼 동작 하나를 넘기려 해도, 익명 클래스로 인터페이스를 구현하는 여러 줄을 적어야 했다. 람다는 추상 메서드가 하나뿐인 인터페이스의 구현을 (매개변수) -&gt; 본문 모양으로 줄여서, 넘길 동작 자체만 적게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 스트림의 filter와 map, 리스트의 sort와 removeIf, Map의 computeIfAbsent처럼 동작을 받는 표준 메서드에 넘길 때 쓴다. Optional의 orElseGet처럼 필요할 때만 값을 만들게 미뤄 둘 때나, 스레드에 넘길 Runnable을 만들 때도 쓴다. 본문이 길어지면 이름 있는 메서드로 빼고 메서드 참조로 넘긴다.</p>
 <p>람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,11 @@
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
 <dt>함수형 인터페이스</dt>
+<dd><b>왜 생겼나</b> — 자바에는 함수만 따로 나타내는 타입이 없어서, 람다를 받을 변수나 매개변수에 붙일 타입이 필요했다. 함수형 인터페이스는 추상 메서드가 하나뿐인 인터페이스를 그 타입으로 삼아, Runnable이나 Comparator 같은 기존 인터페이스도 그대로 람다를 받게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스트림의 filter가 Predicate를, map이 Function을 받는 것처럼 동작을 매개변수로 받는 메서드를 만들 때 쓴다. 직접 정의할 때는 @FunctionalInterface를 붙여 추상 메서드가 하나인지 컴파일러가 검사하게 한다.</dd>
 <dd>추상 메서드가 하나뿐인 인터페이스로(equals처럼 Object의 메서드를 다시 선언한 것은 세지 않고, default·static 메서드는 여러 개 있어도 된다), 람다 표현식이나 메서드 참조를 대입할 수 있는 타입이다. java.util.function 패키지에 Function(입력을 받아 결과 반환), Supplier(값 공급), Consumer(값 소비), Predicate(조건 판별) 등이 미리 정의되어 있다.</dd>
 <dt>메서드 참조</dt>
+<dd><b>지금 어디에 쓰나</b> — 스트림과 정렬에서 map(String::trim), forEach(System.out::println), Comparator.comparing(String::length) 같은 모양으로 흔히 본다. 인자를 가공하거나 메서드를 두 번 부르는 경우에는 람다로 쓴다.</dd>
 <dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
 <dt>익명 클래스와 람다의 차이</dt>
 <dd>익명 클래스는 인터페이스나 클래스를 그 자리에서 구현하면서 이름 없이 객체를 만드는 문법으로, new 인터페이스이름() { 메서드 구현 } 형태로 쓴다. 람다는 추상 메서드가 하나뿐인 함수형 인터페이스에 한해 같은 일을 (매개변수) -&gt; 실행문 형태로 짧게 쓰는 문법이다. 함수형 인터페이스를 구현할 때 this를 쓰지 않는 단순한 본문이면 둘 중 어느 것으로 써도 호출한 결과가 같다. 다만 익명 클래스는 메서드가 여러 개인 인터페이스도 구현할 수 있고 필드를 가질 수 있으며, 그 안의 this는 익명 클래스의 객체 자신을 가리킨다. 람다 안의 this는 람다를 적은 바깥 객체를 가리킨다.</dd>
@@ -103,6 +108,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -176,9 +185,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

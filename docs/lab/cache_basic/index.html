@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 구조와 운영</p>
 <h1>캐시</h1>
 <p><b>캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가</b></p>
+<p><b>왜 생겼나</b> — DB 조회나 다른 서버 호출처럼 시간이 드는 일을, 같은 답이 나올 것을 알면서도 요청마다 다시 하면 사용자는 매번 기다리고 원본 쪽에는 같은 일이 쌓인다. 캐시는 한 번 얻은 답을 빨리 꺼낼 수 있는 곳에 두었다가 다시 쓰게 해서, 느린 일을 되풀이하지 않게 한다. 그 대가로 원본이 바뀌면 캐시의 값을 언제 버릴지를 따로 챙겨야 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 자주 읽히지만 잘 바뀌지 않는 상품 정보, 카테고리 목록, 설정값 같은 것을 캐시에 둔다. 스프링에서는 메서드에 @Cacheable 애너테이션을 붙여 결과를 캐시에 두고, 여러 서버가 같은 캐시를 보게 하려면 Redis 같은 따로 띄운 저장소를 쓴다. 남은 재고나 계좌 잔액처럼 늘 지금 값이어야 하는 것은 캐시에 두지 않거나, 값이 바뀔 때 캐시의 값을 바로 지운다.</p>
 <p>캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린 조회(slowLoad)를 한 뒤 적어 둔다&quot;는 일을 합니다. slowLoad는 원본(source)에서 값을 읽어 오는 느린 일이고, 부른 횟수를 slowCount로 셉니다. 실제 시간은 재지 않고 slowLoad가 불린 횟수로 &quot;얼마나 느린 일을 했는가&quot;를 보입니다. 이 실습은 cache 줄을 지워 보고, 두 번 찾는 사이에 원본의 값을 바꾸거나 cache.remove(1) 줄로 캐시의 값을 지워 가며 같은 코드를 컴파일해 실행하고, 느린 조회가 몇 번 일어나는지와 두 번째로 받은 값이 원본과 같은지를 봅니다. (static은 main이 객체를 만들지 않고 바로 부를 수 있게 붙인 것으로 보고, 이 실습에서는 다루지 않습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 다섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,7 @@
 <dt>캐시 적중과 미스</dt>
 <dd>캐시에서 값을 찾을 때 두 가지 일이 일어난다. 찾는 것이 캐시에 이미 적혀 있으면 적중(hit)이라고 하며, 적어 둔 값을 그대로 돌려주고 원본까지 가지 않는다. 적혀 있지 않으면 미스(miss)라고 하며, 원본에서 값을 읽어 와 캐시에 적어 두고 돌려준다. 스프링의 캐시 추상화도 같은 순서로, 같은 인자로 이미 호출한 적이 있으면 메서드를 실행하지 않고 캐시된 결과를 돌려주고, 아니면 메서드를 실행해 그 결과를 캐시에 넣어 돌려준다. 처음 찾는 것은 늘 미스이고, 적중이 많을수록 원본까지 가는 느린 일이 줄어든다.</dd>
 <dt>Cache-Aside 패턴</dt>
+<dd><b>지금 어디에 쓰나</b> — 상품 상세나 회원 프로필처럼 읽기가 쓰기보다 훨씬 많은 데이터에 Redis와 함께 쓴다. Spring의 @Cacheable과 @CacheEvict를 붙이면 이 순서로 동작한다.</dd>
 <dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
 <dt>캐시의 옛 값(Stale)</dt>
 <dd>캐시에 적어 둔 뒤 원본의 값이 바뀌어, 원본과 달라진 채 캐시에 남아 있는 값이다. 캐시를 쓰는 쪽은 적중하면 원본을 보지 않으므로 바뀐 줄 모르고 옛 값을 받는다. 원본을 바꿀 때 캐시에 적어 둔 그 값도 함께 지우면, 다음에 찾을 때 미스가 되어 바뀐 값을 새로 읽어 온다(대신 그 한 번은 느리다). 적어 둔 값에 유효 시간을 두는 방법도 있다. HTTP 캐시 명세(RFC 9111 4.2절)는 저장한 응답이 정해진 유효 기간을 넘기면 stale이라고 부르며, 이 말은 시간이 지난 응답을 가리키는 명세의 용어이다.</dd>
@@ -115,6 +118,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -188,9 +195,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
 <h1>Calling external APIs and timeouts</h1>
 <p><b>When a call to another server gets no answer, how long does it wait?</b></p>
+<p><b>Why it exists</b> — The caller cannot tell whether the server on the other side of the network is slow, is down, or has lost a packet. An HTTP call with no limit can wait until the operating system gives up in the connect phase, and can wait forever in the phase of reading the response. A timeout puts an end, &quot;up to here&quot;, on this waiting, so a call that gets no answer finishes as a failure and the thread is returned to other requests.</p>
+<p><b>Where it's used today</b> — Where you call another company's API, such as payment, text messaging, and map search, and where services call each other over HTTP, you set both a connect timeout and a read timeout. You set the values more generously than the time the other side usually takes to answer, and shorter than the time the user can wait. They are also often used together with a circuit breaker (Resilience4j and others), which stops calling for a while when failures continue.</p>
 <p>The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout is the limit on how long it waits, after the connection is established, while no data arrives. If you do not set them, the client never gives up on its own. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.</p>
 <p>Partly checked against real execution · All 24 combinations were actually called with the RestClient of Spring 7.0.9 and checked against the results. The 4 combinations with a connection that gets no answer can differ depending on the network environment</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,20 @@
 <dt>Connect timeout and read timeout</dt>
 <dd>These are the two time limits that set how long a call to another server waits before giving up. The connect timeout is the limit on waiting until the TCP connection to the remote server is established, and the read timeout is the limit on waiting with no response data arriving after the connection is established. The two measure different intervals, so setting only the connect timeout does not protect against the case where the connection is made but the response is late. If no timeout is set, a slow remote server keeps the calling thread occupied, and when the thread pool runs out, the failure spreads to the calling side. A read timeout does not mean that the remote server did not handle the request, so you must watch out for duplicate handling when you send the same request again.</dd>
 <dt>RestClient</dt>
+<dd><b>Why it exists</b> — RestTemplate required passing long arguments to different methods for different cases, such as getForObject and exchange, and WebClient, which chains methods, needed a reactive library. RestClient lets you use the chaining style in synchronous calls.</dd>
+<dd><b>Where it's used today</b> — You use it when a Spring Boot server calls a payment API or the HTTP API of another service. You get the RestClient.Builder that Spring Boot has prepared injected, set the base URL and headers, and use it; if you need to handle many calls without tying up threads, you use WebClient.</dd>
 <dd>This is the client that Spring provides for calling the HTTP API of another server. You build a request by chaining methods, as in client.get().uri(url).retrieve().body(type), and a message converter converts the response body to an object and returns it. It is synchronous, which means that the calling thread waits until the response arrives, and it is the successor to RestTemplate, which has been in use for a long time. A 4xx response is turned into an HttpClientErrorException, a 5xx response into an HttpServerErrorException, and a connection failure or a timeout into a ResourceAccessException, and that exception is thrown. The actual communication is done by a request factory, and timeouts are also set on the request factory.</dd>
 <dt>Tomcat's threading model</dt>
+<dd><b>Why it exists</b> — If one thread handles a request all the way through, even code that waits for a database response can be written from top to bottom in order, without being split into callbacks. Tomcat takes those threads from a pool created in advance and sets an upper limit on their number, so threads do not grow endlessly even when requests pile up.</dd>
+<dd><b>Where it's used today</b> — A Spring MVC service with slow external calls or many concurrent requests tunes server.tomcat.threads.max together with the size of the database connection pool. When requests seem to be stuck, you look in a thread dump to see at which line a request processing thread such as http-nio-8080-exec-1 is waiting.</dd>
 <dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default). Unlike the standard Java ThreadPoolExecutor, when no thread is idle it adds threads up to the maximum first, and new requests wait only when all of them are in use. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
 <dt>Three-way handshake</dt>
+<dd><b>Why it exists</b> — If data is sent right away without confirming the connection, it is sent without knowing whether the other side is ready to receive, or where to start counting the numbers attached to each piece. The three-way handshake lets both sides confirm each other's starting numbers in three exchanges, which sets the basis for counting missing pieces and order afterward.</dd>
+<dd><b>Where it's used today</b> — Developers do not call it directly, but the connection timeout is the limit on how long to wait for this process to finish. If a firewall silently drops the SYN, there is no reply and the wait lasts until this timeout, and if no program is waiting on the other side's port, Connection refused appears right away.</dd>
 <dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -101,6 +111,10 @@ try {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +188,10 @@ try {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

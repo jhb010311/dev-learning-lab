@@ -1,6 +1,8 @@
 Lab.register({
   id: 'mapping', nav: 'Entity mapping and primary keys', cat: 'JPA', mode: 'step',
   title: 'How do the annotations on an entity change the table and the values that are stored?',
+  why: 'The field name and the column name, a Java enum and the value stored in the database, and who decides the primary key all go out of step unless they are matched, and with JDBC this correspondence was scattered through the SQL strings and the moving code. JPA\'s mapping annotations let you write this correspondence together above the fields of the entity class, so you can learn the column name, how the value is stored, and how the key is decided by looking at one place.',
+  use: 'You attach @Enumerated(EnumType.STRING) to an enum field so that the values do not go out of step when the order changes, and for the primary key, you often leave it to the database with the IDENTITY strategy for MySQL or the SEQUENCE strategy for a database that has sequences. You attach @Transient to a field for calculation that is not to be stored. If you create the tables separately with a tool such as Flyway, constraints such as the length limit and unique must be written in the SQL of that tool for the database to enforce them.',
   intro: 'JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.',
   terms: ['@Column', '@Enumerated', '@Transient', 'Primary key generation strategy (@GeneratedValue)', 'Entity'],
   controls: [

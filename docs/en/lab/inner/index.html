@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Inner classes and anonymous classes</h1>
 <p><b>How is a class declared inside a class connected to the outer object?</b></p>
+<p><b>Why it exists</b> — If a small class that is used only to help one class is taken out as a separate top-level class, it becomes visible for other code to use, and the relationship between the two classes is hard to see in the code. A nested class declares such a class in the body of the outer class to show the relationship, and can also be made private so that only the outer class uses it, and anonymous classes and lambdas let you create an implementation that is used once, without a name, right where it is needed.</p>
+<p><b>Where it's used today</b> — A small class used only together with one class, such as the builder class of the builder pattern, is made as a static nested class, and HashMap also keeps Node, which represents one element, as a static nested class. An action passed once, such as a sort order or a button click handler, used to be written as an anonymous class, and if the interface has only one method to implement, it is now written as a lambda.</p>
 <p>You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object chosen when it was created, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.</p>
 <p>Checked against real execution · The code of the 24 combinations was compiled and run as it is on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Inner classes and nested classes</dt>
 <dd>These are classes declared inside another class. One declared without static is called an inner class (a non-static nested class), and one declared with static is called a static nested class. An object of an inner class is created in association with one outer object and holds a reference to that outer object, so it can use the fields and methods of the outer object directly. An object of a static nested class can be created without an outer object, and it cannot simply use the instance variables of an outer object. While an object of an inner class remains, that reference can also keep the outer object from being removed from memory, so it is better to add static to a class that does not use the outer object.</dd>
 <dt>Anonymous class</dt>
+<dd><b>Where it's used today</b> — Use it when you implement an interface or abstract class with two or more methods right on the spot where it is used only once, or when you need an implementation that has fields. For an interface with only one abstract method, a lambda is usually used now.</dd>
 <dd>This is a class that is given no name and from which one object is created right where the class is declared. You write its body in braces after the name of an interface or a class, as in new Runnable() { ... }, and the result is an object that implements that interface or extends that class. Its advantage is that you do not have to create a separate file for a small implementation that is used only once. Inside an anonymous class, this refers to that newly created object, which is different from a lambda expression, where this refers to the outer object. When the code is compiled, a separate class file is produced whose name is the name of the outer class followed by a number, such as Outer$1.</dd>
 <dt>Effectively final</dt>
+<dd><b>Why it exists</b> — In the past, to use a local variable of the outside in an anonymous class, you had to write final, so final was attached even to variables that were never changed. Effectively final treats a variable that is not assigned again as final, so that lambdas and anonymous classes can be written short without final.</dd>
+<dd><b>Where it's used today</b> — When you pass a lambda to forEach or a thread and use a local variable of the outside, this rule applies. For a variable whose value keeps changing, copy it into a new local variable on each iteration and pass that.</dd>
 <dd>This describes a local variable that is not declared final but is never assigned again after it is given its first value. Of the local variables of the method that encloses them, an anonymous class and a lambda expression can use only those that are final or effectively final. This is because they take a copy of the value, not the variable itself, so if the original could be changed, it would differ from the copy and cause confusion. Even one line that assigns to the variable again causes a compile-time error. Changing the contents of the array or object that the variable refers to is not assigning to the variable again, so it is allowed.</dd>
 <dt>Lambda expression</dt>
 <dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
@@ -95,6 +100,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -168,9 +177,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

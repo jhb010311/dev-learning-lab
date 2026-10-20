@@ -1,6 +1,8 @@
 Lab.register({
   id: 'eqhash', nav: 'equals와 hashCode', cat: '자바 언어', mode: 'step',
   title: 'equals만 고치면 왜 HashMap에서 못 찾나',
+  why: 'Object의 기본 equals는 두 변수가 같은 객체를 가리키는지만 따지고 기본 hashCode도 대개 객체마다 다른 값을 내므로, 필드 값이 모두 같은 두 객체도 다르게 취급된다. 값으로 같은지 판단하려고 equals만 고치면 해시값으로 자리부터 고르는 컬렉션이 그 판단과 어긋나는데, equals와 hashCode 규약은 equals로 같은 두 객체가 같은 해시값을 내도록 요구해 이 어긋남을 막는다.',
+  use: '좌표나 금액처럼 값이 같으면 같은 것으로 봐야 하는 객체를 HashMap의 키나 HashSet의 원소로 쓸 때 두 메서드를 함께 재정의한다. JPA의 복합 키 클래스도 equals와 hashCode를 재정의해야 한다. 필드를 바꾸지 않는 값 객체라면 record로 선언해 컴파일러가 두 메서드를 만들게 한다.',
   intro: '내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 HashMap과 HashSet에서 찾지 못합니다.',
   terms: ['equals와 hashCode 규약', '동일성과 동등성', '해시 테이블과 HashMap', '해시 충돌', 'record'],
   controls: [

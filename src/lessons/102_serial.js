@@ -1,6 +1,8 @@
 Lab.register({
   id: 'serial', nav: '직렬화', cat: '자바 언어', mode: 'step',
   title: '저장한 객체를 되살리면 무엇이 돌아오나',
+  why: '객체를 파일에 저장하거나 다른 JVM으로 보내려면, 필드를 하나씩 정해진 순서로 쓰고 다시 읽어 조립하는 코드를 클래스마다 적어야 한다. 자바 기본 직렬화는 클래스에 Serializable만 표시하면 ObjectOutputStream이 필드 값과 참조하는 객체까지 따라가며 바이트로 바꾸고, ObjectInputStream이 그 바이트로 객체를 다시 만들게 했다.',
+  use: '웹 API의 요청과 응답은 Jackson으로 JSON을 만들어 주고받는 것이 보통이고, 자바 기본 직렬화는 Serializable을 요구하는 곳에서 만난다. 세션을 남기도록 설정한 톰캣이 종료할 때 세션을 파일로 저장하거나 Spring Session이 기본 설정으로 세션을 Redis에 저장할 때, 세션 속성 객체가 Serializable이어야 한다. 저장하면 안 되는 필드에는 transient를 붙인다.',
   intro: '자바의 기본 직렬화는 객체를 바이트로 바꿔 파일에 쓰고(writeObject), 그 바이트로 객체를 다시 만들어 냅니다(readObject). 그런데 객체의 모든 것이 저장되는 것은 아니고, 아무 객체나 저장할 수 있는 것도 아닙니다. point 값을 50으로 두고 저장한 다음 70으로 바꾸고 나서 되살려 보면서, 무엇이 저장되고 무엇이 저장되지 않는지 확인합니다.',
   terms: ['직렬화와 역직렬화', 'Serializable', 'transient', 'serialVersionUID', 'static'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>스레드 수와 컨텍스트 스위칭</h1>
 <p><b>스레드를 늘린다고 계속 빨라지지는 않는다</b></p>
+<p><b>왜 생겼나</b> — 작업이 올 때마다 스레드를 새로 만들면 요청이 몰릴 때 스레드 수가 끝없이 늘어난다. CPU가 이미 꽉 찬 뒤에 늘어난 스레드는 처리량을 보태지 못하고 메모리만 차지하며, 스레드를 만들고 없애는 비용도 작업마다 든다. 스레드 풀은 정해 둔 수의 스레드를 만들어 두고 돌려 쓰게 해서, 동시에 실행되는 스레드 수를 작업의 성격에 맞게 묶어 둘 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 톰캣은 요청을 스레드 풀의 스레드로 처리하고(server.tomcat.threads.max), 자바 코드에서는 ExecutorService로 이미지 변환이나 외부 API 호출 같은 작업을 풀에 맡긴다. 계산 위주 작업은 코어 수 근처로, DB나 외부 응답을 기다리는 작업은 그보다 훨씬 많이 잡는다. 기다림이 대부분인 작업에는 가상 스레드를 대신 쓰기도 한다.</p>
 <p>CPU 코어 하나는 한순간에 스레드 하나만 실행합니다. 실행하려는 스레드가 코어보다 많으면 운영체제가 짧은 시간씩 번갈아 실행시킵니다(컨텍스트 스위칭). 그러면 처리량은 더 늘지 않고 작업 하나가 끝나는 시간만 길어집니다. 작업이 계산 위주인지 기다림 위주인지에 따라 적당한 스레드 수가 완전히 달라집니다.</p>
 <p>일부만 실행으로 확인 · JDK 21 실측과 방향이 같음(수치는 모형)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -87,6 +89,10 @@ for (Photo photo : photos) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +166,10 @@ for (Photo photo : photos) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

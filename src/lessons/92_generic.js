@@ -1,6 +1,8 @@
 Lab.register({
   id: 'generic', nav: '제네릭', cat: '자바 언어', mode: 'step',
   title: 'List<Integer>의 <Integer>는 무엇을 막아 주나',
+  why: '제네릭이 없던 컬렉션은 원소를 모두 Object로 다뤄서, 아무 타입이나 넣을 수 있었고 꺼낼 때마다 (String)처럼 캐스팅을 직접 적어야 했다. 타입을 잘못 넣은 실수는 실행해 봐야 드러났다. 제네릭은 원소의 타입을 선언에 적게 해서 그 검사를 컴파일 시점으로 옮기고, 꺼낼 때의 캐스팅은 컴파일러가 대신 넣게 했다.',
+  use: 'List<String>, Map<Long, String>처럼 컬렉션을 선언할 때 기본으로 쓴다. Optional<T>, 스프링의 ResponseEntity<T>, JpaRepository<T, ID>도 다루는 타입만 바꿔 재사용하도록 제네릭으로 만들어져 있다. 매개변수가 값을 꺼내 읽기만 하면 ? extends, 넣기만 하면 ? super를 써서 더 여러 타입을 받는다.',
   intro: '제네릭은 List<Integer>처럼 "이 리스트의 원소가 어떤 타입인지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.',
   terms: ['제네릭', '로 타입(raw type)', '타입 소거', '와일드카드(? extends와 ? super)'],
   controls: [

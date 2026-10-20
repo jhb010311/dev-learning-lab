@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
 <h1>Checked and unchecked exceptions</h1>
 <p><b>Why do some exceptions keep the code from even compiling unless you handle them?</b></p>
+<p><b>Why it exists</b> — If the fact that a method can fail is written only in the documentation, the caller easily forgets the cases where the file is missing or the connection is lost. Java's checked exceptions make you write such failures in the throws of the method declaration, and the compiler tells you if the caller does not handle them. Mistakes that require fixing the code (a null reference, a wrong argument) are left as unchecked exceptions, so the code does not force handling at every call.</p>
+<p><b>Where it's used today</b> — You meet them in standard APIs that fail because of circumstances outside the program, such as IOException (file and network input and output) and SQLException (calling the database through JDBC). Spring's JdbcTemplate converts SQLException into the DataAccessException family of unchecked exceptions, so that throws does not spread through service code. If there is nothing to do at that point, you wrap the original exception as the cause and throw it as an unchecked exception.</p>
 <p>Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all.</p>
 <p>Checked against real execution · All 24 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Exception and Error</dt>
 <dd>Both are subtypes of Throwable that represent abnormal situations while a program runs. An Exception is a situation that the application can catch and handle (such as invalid input or a missing file). An Error is a serious problem at the JVM level, such as running out of memory or a stack overflow, and applications usually do not try to recover from it.</dd>
 <dt>throws clause</dt>
+<dd><b>Why it exists</b> — If there were no way to pass a checked exception outward, even a method with nothing to do about it at that spot would be forced to catch it, and it would be easy to hide the error with an empty catch. A throws clause defers handling to the caller, so that the exception is caught in code that can handle it appropriately.</dd>
+<dd><b>Where it's used today</b> — You often see throws IOException in the declarations of standard APIs that handle files and networks, such as Files.readString. JUnit test methods are sometimes given throws Exception so that a checked exception raised during a test is not caught but shows up as a test failure.</dd>
 <dd>This is the syntax, written at the end of a method declaration as in throws IOException, that announces that the method can throw that exception to its caller. You must write it if you do not catch a checked exception inside the method, and the code then compiles only if the caller of that method in turn catches the exception or declares it with throws. It does not handle the exception. It passes the obligation to handle it on to the caller. For an unchecked exception you do not have to write it, and even if you do, it creates no obligation for the caller. It is a different word from throw, the statement that actually throws an exception.</dd>
 <dt>Wrapped exception</dt>
+<dd><b>Why it exists</b> — If you throw a low-level exception upward as it is, the upper code is also tied to the exception of a technical detail such as SQLException, and for a checked exception, throws is added to every method it passes through. Wrapping an exception turns it into an exception that fits that layer while keeping the original exception as the cause, so the first cause is not lost.</dd>
+<dd><b>Where it's used today</b> — It is used to wrap an IOException in an UncheckedIOException and throw it in a place where a checked exception cannot be thrown, such as a lambda passed to Stream's map. Spring also wraps JDBC's SQLException in exceptions of the DataAccessException family and passes it on.</dd>
 <dd>This means creating a new exception of another kind that refers to the caught exception as its cause, and throwing the new one. It is called wrapping, but the original exception does not go inside the new one. The new exception only holds a reference to it. If you catch a checked exception and throw it again as an unchecked exception, as in throw new RuntimeException(e), the code compiles without a throws clause on every method that the exception passes through. When you pass the original exception to the constructor, the new exception refers to it as its cause, and it appears in the error output under Caused by. If you do not pass the original exception, there is no way to tell what went wrong in the first place, so always pass it. Wrapping does not make the exception go away, so if nothing catches it anywhere, execution stops.</dd>
 </dl>
 <h2>Try these</h2>
@@ -92,6 +98,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +175,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

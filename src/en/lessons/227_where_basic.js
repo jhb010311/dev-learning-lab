@@ -1,6 +1,8 @@
 Lab.register({
   id: 'where_basic', nav: 'WHERE', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['selectorder'],
   title: 'What does WHERE decide, and what happens without it?',
+  why: 'Thousands or tens of thousands of rows pile up in a table, but what you need at one time is usually a few of them. Without WHERE, you would have to read every row into the program and pick the needed rows yourself, and there would be no way to change only one person\'s information. WHERE leaves the picking to the database, so that only the needed rows are picked and handled.',
+  use: 'Attach it when you handle only specific rows, such as finding one member by id at login, changing only one person\'s password, or deleting only records older than 30 days. To prevent the whole table from being changed by accidentally leaving out WHERE, some people make a habit of first checking the target rows with a SELECT with the same condition and then running UPDATE or DELETE.',
   intro: 'WHERE is the "WHERE condition" that you add after an SQL statement. It decides which of the rows in a table an UPDATE, DELETE, or SELECT applies to. The database looks at the rows one by one, checks whether the condition is met, and applies the statement to, or reads, only the rows that match. In this lab you change the kind of statement and the WHERE condition and run the same SQL on the same table each time. You see how many rows the statement applies to and which rows are left at the end. You also see what happens when you remove WHERE.',
   terms: ['WHERE clause', 'UPDATE and DELETE', 'Rows and columns'],
   controls: [

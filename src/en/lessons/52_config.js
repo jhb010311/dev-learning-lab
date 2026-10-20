@@ -1,6 +1,8 @@
 Lab.register({
   id: 'config', nav: 'Configuration precedence', cat: 'Spring', mode: 'step',
   title: 'When the same property is set in several places, which value wins?',
+  why: 'If setting values are written in the code, then when the database address differs between the development, test, and production servers, the code has to be changed and rebuilt for each environment, and passwords are left in the code repository. Spring Boot\'s externalized configuration reads values from outside the code, so whoever deploys can change values per server without rebuilding, and passwords can be kept out of the code repository.',
+  use: 'Locally the application runs with the defaults in application.yml, and on production servers the prod profile is turned on, or the database address and password are supplied through environment variables injected by containers and Kubernetes. To change a value briefly and check the effect, you use a command-line argument (--key=value). When several servers must share the same settings, a separate config server such as Spring Cloud Config is sometimes set up.',
   intro: 'Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins.',
   terms: ['Externalized configuration and profiles', 'Spring Boot auto-configuration', 'CI/CD'], ranks: ['boot', 'deploy'],
   controls: [

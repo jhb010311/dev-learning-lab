@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ctx', nav: 'Thread count and context switching', cat: 'Concurrency', mode: 'step',
   title: 'Adding threads does not keep making things faster',
+  why: 'If a new thread is created every time a task arrives, the number of threads grows without limit when requests pile up. Threads added after the CPU is already fully busy add no throughput and only take up memory, and creating and destroying threads costs something for every task. A thread pool creates a fixed number of threads in advance and reuses them, so the number of threads running at the same time can be capped to suit the kind of work.',
+  use: 'Tomcat handles requests with threads from a thread pool (server.tomcat.threads.max), and in Java code, tasks such as image conversion or external API calls are handed to a pool with ExecutorService. For computation-heavy tasks the pool size is set near the number of cores, and for tasks that wait for a database or an external response it is set much larger. For tasks that mostly wait, virtual threads are sometimes used instead.',
   intro: 'A CPU core runs only one thread at any given moment. When more threads want to run than there are cores, the operating system runs them in turn, each for a short time (context switching). Throughput then stops growing, and only the time for one task to finish gets longer. The right number of threads is completely different depending on whether the tasks mostly compute or mostly wait.',
   terms: ['Processes and threads', 'Context switching', 'Thread pool', 'Blocking and non-blocking'], ranks: ['os', 'threadpool', 'concurrency'],
   controls: [

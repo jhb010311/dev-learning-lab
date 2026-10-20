@@ -1,6 +1,8 @@
 Lab.register({
   id: 'controller_basic', nav: '컨트롤러', cat: '기초개념', mode: 'step', basic: true, deep: ['mvc'],
   title: '어떤 클래스를 컨트롤러라고 부르는가',
+  why: '서블릿으로 웹 요청을 받으려면 보통 주소마다 HttpServlet을 상속한 클래스를 따로 만들고, 요청 값을 꺼내고 응답을 쓰는 코드도 매번 직접 적어야 했다. 컨트롤러는 클래스와 메서드 위에 @RestController, @GetMapping 같은 표시만 붙이면 스프링이 주소에 맞는 메서드를 찾아 불러 주고, 메서드가 return한 값을 응답으로 바꿔 보내 주게 한다.',
+  use: '스프링 부트로 만드는 웹 서비스와 REST API에서 요청을 처음 받는 자리로 쓴다. 회원 가입, 상품 목록 조회 같은 기능마다 메서드를 하나씩 두고, JSON 같은 데이터를 돌려줄 때는 @RestController를, HTML 화면을 돌려줄 때는 @Controller를 쓴다. 계산이나 DB 저장 같은 실제 처리는 보통 서비스 클래스에 맡기고, 컨트롤러는 요청과 응답을 다루는 일만 한다.',
   intro: '컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping("/hello")는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. @RestController와 @GetMapping을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.',
   terms: ['컨트롤러 클래스', '@RestController', '@GetMapping', 'DispatcherServlet과 프론트 컨트롤러'],
   controls: [

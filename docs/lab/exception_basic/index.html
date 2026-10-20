@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>예외</h1>
 <p><b>예외는 무엇이고, try-catch는 무엇을 해 주는가</b></p>
+<p><b>왜 생겼나</b> — 예외가 없으면 메서드는 문제를 알리려고 -1 같은 특별한 값을 돌려주곤 하는데, 부른 쪽이 그 값을 확인하지 않으면 문제가 조용히 넘어가 엉뚱한 결과로 이어진다. 자바의 예외는 문제가 생긴 자리에서 실행을 바로 멈추고 try-catch로 잡은 곳으로 건너가게 해서, 문제를 모르고 지나가지 않게 하고 처리하는 코드를 평소의 코드와 떼어 적게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 숫자가 아닌 글자를 Integer.parseInt로 바꾸려 할 때, 열려는 파일이 없을 때, 네트워크 연결이 끊겼을 때 자바가 예외를 던진다. &quot;잘못된 입력&quot;이라고 알려 주는 것처럼 그 자리에서 할 일이 있으면 catch로 처리하고, 없으면 잡지 않고 부른 쪽으로 넘긴다. 스프링 서버에서는 처리하지 못한 예외를 @ExceptionHandler를 붙인 메서드에서 오류 응답으로 바꾸곤 한다.</p>
 <p>예외는 프로그램을 실행하는 중에 계속할 수 없는 일이 생겼을 때 자바가 던지는 객체입니다. 예를 들어 정수를 0으로 나누면 자바가 ArithmeticException이라는 예외를 던지고, 던지는 순간 하던 일을 그 자리에서 멈춥니다. 아무도 잡지 않으면 프로그램은 거기서 끝나고 그 뒤의 줄은 실행되지 않습니다. try { }의 중괄호 안에는 문제가 날 수 있는 코드를 쓰고, 뒤에 붙인 catch (예외의 종류 e) { }는 그 종류의 예외가 났을 때 실행이 건너와 처리하는 곳입니다. 처리가 끝나면 try-catch 아래의 줄을 계속 실행합니다. 이 실습은 try-catch를 지우고, b의 값을 바꾸고, catch가 잡는 종류를 바꿔 가며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 프로그램이 어떻게 끝나는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 자식 java 프로세스로 실행해, 표준 출력·표준 오류·종료 코드를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>예외(Exception)와 Error</dt>
 <dd>둘 다 프로그램 실행 중의 비정상 상황을 나타내는 Throwable의 하위 타입이다. Exception은 애플리케이션이 잡아서 처리할 수 있는 상황(잘못된 입력, 파일 없음 등)이고, Error는 메모리 부족이나 스택 오버플로처럼 JVM 수준의 심각한 문제라 애플리케이션이 복구를 시도하지 않는 것이 일반적이다.</dd>
 <dt>try-catch</dt>
+<dd><b>왜 생겼나</b> — 예외를 잡는 곳이 없으면 그 스레드가 그대로 끝나, 문제 하나로 하던 일이 모두 멈춘다. try-catch는 문제가 생겼을 때 대신 실행할 코드를 정해 두어, 예외가 난 뒤에도 프로그램이 이어서 돌 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 파일 여러 개를 차례로 읽다가 한 파일에서 예외가 나도 나머지는 계속 읽으려면, 반복문 안에 try-catch를 둔다. 파일처럼 다 쓰면 닫아야 하는 것은 try 뒤 괄호에 적어(try-with-resources) 예외가 나도 닫히게 한다.</dd>
 <dd>try-catch는 예외가 났을 때 실행이 건너가 처리할 곳을 정하는 문장이다. 문제가 날 수 있는 코드를 try { }로 감싸고, 뒤에 catch (예외의 종류 e) { }를 붙인다. try 안에서 예외가 던져지면 실행이 거기서 멈추고, 던져진 예외의 종류가 catch에 적은 종류이거나 그 하위 종류일 때 catch 안으로 건너가 실행한 뒤, try-catch 아래의 줄로 이어 간다. catch가 여러 개면 위에서부터 맞는 첫 번째 것이 쓰이고, 맞는 catch가 없으면 예외는 try-catch 밖으로 계속 전달되어 아무도 잡지 않으면 그 스레드가 끝난다. 예외가 나지 않으면 catch 안은 실행되지 않는다.</dd>
 <dt>예외를 던진다(throw)</dt>
+<dd><b>왜 생겼나</b> — 잘못된 값을 받은 메서드가 그냥 계속하면, 엉뚱한 값이 여러 메서드를 거쳐 퍼진 뒤에야 문제가 드러나 원인을 찾기 어렵다. throw는 잘못을 알아챈 그 자리에서 멈추게 해서, 오류 메시지가 문제가 생긴 곳을 가리키게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 메서드 첫머리에서 매개변수를 검사해 음수 금액이나 빈 이름이 들어오면 IllegalArgumentException을 던지고, 객체가 그 일을 하기에 맞지 않은 상태이면 IllegalStateException을 던진다.</dd>
 <dd>예외를 던진다는 것은 예외 객체를 만들어 지금 하던 일을 멈추고, 그것을 잡는 곳으로 실행을 옮기는 것이다. 정수를 0으로 나누는 것처럼 자바의 규칙을 어기는 일이 생기면 자바가 스스로 예외를 던지고, throw new IllegalStateException()처럼 throw 문으로 코드에서 직접 던질 수도 있다. 던져지면 던진 곳으로 되돌아가 이어서 실행하지 않는다. 호출한 쪽으로 차례로 올라가며 이 예외를 잡을 수 있는 try-catch를 찾고, 끝까지 없으면 그 스레드가 끝난다.</dd>
 <dt>NullPointerException</dt>
 <dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. null인지 아닌지는 실행 중의 값에 달려 있어서 컴파일러가 미리 잡아 주지 못하고, 실행해 봐야 드러난다(Unchecked 예외라 처리를 강제하지도 않는다). null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
@@ -93,6 +99,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -166,9 +176,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

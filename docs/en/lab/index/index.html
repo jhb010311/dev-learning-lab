@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Indexes and full table scans</h1>
 <p><b>Why is the index not used even though it exists?</b></p>
+<p><b>Why it exists</b> — Without something arranged separately, even if only a few rows match the condition, the database must check every row one by one, so lookups get slower as the table grows. An index builds a B-tree from the values of a column and lets the search narrow down from the top, so that even with 10 million rows it finds the position of the wanted row after only a few levels.</p>
+<p><b>Where it's used today</b> — Create it on columns that often appear in WHERE, JOIN, and ORDER BY, such as finding a member by email, looking up an order by order number, and cutting an order list by period. MySQL and PostgreSQL create an index automatically for a primary key and a UNIQUE constraint. For a column with few distinct values, where each value matches about half of the rows, the optimizer tends to choose a full table scan even if there is an index, so the effect is small.</p>
 <p>There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics.</p>
 <p>Conceptual model · A cost model fitted to a rule of thumb</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>Index</dt>
 <dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
 <dt>B-tree index</dt>
+<dd><b>Why it exists</b> — A binary tree on disk has one key per node, so its height grows when there are many rows, and it is slow because every node read is a disk read. A B-tree puts many keys in one disk page, so it finds a value with a few page reads.</dd>
+<dd><b>Where it's used today</b> — In MySQL InnoDB and PostgreSQL, a B-tree index is created when you do not specify the kind with CREATE INDEX. For lookups that only look for the same value, you can also choose a hash index in PostgreSQL.</dd>
 <dd>The index structure that most relational databases use by default. It is a balanced tree that keeps values sorted, and each node holds many keys, so the height of the tree is low. You can find a value by going down only a few levels from the root. Because the values are sorted, it is used not only for equality lookups but also for range lookups and sorting.</dd>
 <dt>Full table scan</dt>
 <dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
 <dt>Query execution plan (EXPLAIN)</dt>
 <dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
 <dt>Optimizer</dt>
+<dd><b>Why it exists</b> — If developers had to decide which index to read and in what order to join for every query, they would have to rewrite queries whenever the amount and distribution of data change. With an optimizer, the SQL states only the result that is wanted, and the database chooses how to read based on the statistics at that time.</dd>
+<dd><b>Where it's used today</b> — You usually do not think about it, but when an EXPLAIN result differs from what you expect, in MySQL you collect fresh statistics with ANALYZE TABLE or correct the choice with a hint such as FORCE INDEX.</dd>
 <dd>The database component that chooses, among the several ways a SQL statement can be executed, the one that is expected to cost the least. It decides based on statistics such as the number of rows in a table and the distribution of values. If the statistics differ from the real data, it can choose an inefficient way.</dd>
 <dt>Cardinality and selectivity</dt>
 <dd>Cardinality is the number of distinct values in a column. The more distinct values there are (for example, a national ID number or an email address), the fewer rows one condition leaves and the more effective an index is. The fewer kinds of values there are (for example, gender), the more rows match a condition and the less effective an index is. Selectivity is the cardinality divided by the number of rows in the table; the closer it is to 1, the better a single condition narrows down the rows.</dd>
@@ -89,6 +95,10 @@ SELECT *
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +172,10 @@ SELECT *
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

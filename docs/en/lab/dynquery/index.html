@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,24 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Dynamic queries and Querydsl</h1>
 <p><b>How do you add a search condition to where only when it is given?</b></p>
+<p><b>Why it exists</b> — If you join JPQL strings for each condition, the compiler sees them only as text, so even a query whose pieces were joined wrongly shows its error only when that combination is actually run. With the Criteria API and Querydsl, you pass the conditions as Java objects and the tool attaches where and and for you, and Querydsl points to fields with Q classes generated from entities, so it catches even a typo in a field name at compile time.</p>
+<p><b>Where it's used today</b> — You use it for search features where only the items that were entered become conditions, such as a member search on an admin screen or a product filter in a shop. In projects that use Spring Data JPA, using Querydsl together is common, and sometimes the Criteria API is wrapped and used with Spring Data's Specification. For a query whose conditions are always the same, a query method or @Query is enough.</p>
 <p>On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.</p>
 <p>Partly checked against real execution · The 16 combinations of the string methods and the Criteria API were run on Hibernate 7.4.5 and H2 and checked against the results. The 4 Querydsl combinations follow the official documentation because the library is not available</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Dynamic query</dt>
+<dd><b>Why it exists</b> — If there are several conditions that can be entered, you cannot prepare a query for every combination in advance (with 5 conditions, there are 32 combinations). A dynamic query picks only the conditions that came in at run time and assembles one query, so that a separate query is not kept for each combination.</dd>
+<dd><b>Where it's used today</b> — It is needed for queries where the user chooses the sort order or the search fields on a list screen. In a project that uses MyBatis, only the conditions that came in are attached with the &lt;if&gt; and &lt;where&gt; tags in XML.</dd>
 <dd>A query built at run time from whichever conditions were supplied, so its shape changes with the input. It is needed when only the conditions that were entered must go into where, as on a search screen. If you build it by joining strings, mistakes happen: only where is left when there is no condition, an and ends up in the wrong place, or a space is missing. Such errors show up not at compile time but only when a request with that combination arrives. So you use the Criteria API or Querydsl, which assemble the conditions as objects. With any approach, values are bound as parameters instead of being put directly into the string.</dd>
 <dt>JPQL</dt>
 <dd>The JPA query language that you write against entities and their fields, not tables. Its syntax is similar to SQL, and when a query runs, the JPA provider translates it into SQL for the database in use. Its advantage is that it does not depend on the syntax of a specific database.</dd>
 <dt>Criteria API</dt>
+<dd><b>Where it's used today</b> — Use it when you must build a dynamic query without adding a library such as Querydsl. Because it is a JPA standard, the same code runs even if you switch to a JPA implementation other than Hibernate.</dd>
 <dd>An API in the JPA standard that builds a query as Java objects instead of a string. You create condition objects (Predicate) with a CriteriaBuilder, collect them in a list, and pass them to where, and then where and and are created to match the number of conditions. With 0 conditions, no where clause is created. You can use it without a separate library, but the code is long and it is hard to read what query it is. If you write a property name as a string, a wrong name still compiles and throws an exception while running.</dd>
 <dt>Querydsl</dt>
+<dd><b>Why it exists</b> — A query built with the Criteria API has long code, and it is hard to read at a glance what SQL will be sent. Querydsl lets you chain select, from, and where as methods in an order similar to SQL, so that the shape of the query can be read even though you write it in Java code.</dd>
+<dd><b>Where it's used today</b> — It is used not only for assembling conditions but also when writing queries whose JPQL string would become long, such as joins, group by aggregation, and queries that receive the result directly as a DTO, in Java code.</dd>
 <dd>A library that lets you build queries in Java code. It generates Q classes (for example QMember) in advance by looking at your entity classes, and you write the properties and conditions as methods, as in m.name.eq(&quot;Alice&quot;). A wrong property name or type is a compile error, so you can find the mistake before running. If you pass several conditions to where, they are combined with and and null conditions are skipped, so you can write a dynamic query briefly by making condition methods that return null when there is no value. You can also stack conditions one at a time in a BooleanBuilder. It is not a JPA standard, so you have to add the dependency and the build setting that generates the Q classes separately.</dd>
 <dt>SQL injection</dt>
 <dd>An attack in which user input is interpreted as part of a SQL statement, so a query that the attacker intended is executed. It happens when SQL is built by concatenating input values as strings. Parameterized queries with bind variables (PreparedStatement) separate the SQL structure from the values, so input is always treated only as a value, which prevents the attack.</dd>
@@ -97,6 +104,10 @@ search(null, 20);   // the name is not entered, the age is 20 or older</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +181,10 @@ search(null, 20);   // the name is not entered, the age is 20 or older</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'redis', nav: 'Redis single-threaded execution', cat: 'High traffic', mode: 'step',
   title: 'If one command is slow, everyone waits',
+  why: 'If frequently read values are fetched from the database every time, the disk and query costs add up, and if each application server keeps them in its own memory, the servers see different values when there are several of them. Redis is an in-memory store that several servers connect to together over the network. It returns a value directly from a single key, which is lighter than a database query, and lets all servers see the same value.',
+  use: 'It is commonly used as a cache that keeps product information or query results for a few minutes to reduce database queries, as a session store where several servers see the same login information, and as a counter that counts views or likes with INCR. Original data that must not be lost and searches that mix several conditions stay in the relational database, and Redis usually holds values that can be created again.',
   intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.',
   terms: ['Redis', 'Cache', 'Atomicity and CAS (compare-and-swap)', 'Event loop'], ranks: ['nosql', 'cache'],
   controls: [

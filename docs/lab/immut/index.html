@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>불변과 방어적 복사</h1>
 <p><b>final을 붙였는데 값이 바뀌었다</b></p>
+<p><b>왜 생겼나</b> — 객체를 여러 곳에 넘겨 쓰다 보면, 한쪽에서 내용을 바꿨을 때 같은 객체를 쓰던 다른 코드가 모르는 사이에 영향을 받고, 언제 어디서 바뀌었는지 찾기 어렵다. 불변 객체는 만든 뒤 상태를 바꾸는 길을 모두 막고, 리스트 같은 가변 객체는 들어올 때와 나갈 때 복사해서, 한 번 확인한 값이 나중에 달라지는 일이 없게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — String, Integer, LocalDate처럼 자바가 주는 값 클래스와 List.of로 만든 리스트가 불변이다. 금액이나 기간 같은 값 객체, 요청·응답 DTO를 record로 만들 때 이 방식을 쓴다. 필드가 리스트를 가리키면 생성자에서 List.copyOf로 복사해 두어야 record라도 밖에서 내용을 바꾸지 못한다.</p>
 <p>예시로 만든 Order 클래스의 final 필드 items가 상품 리스트를 가리킵니다. final은 &quot;items가 다른 리스트를 가리키게 바꿀 수 없다&quot;는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 필드가 가리키는 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적 복사라고 합니다. 생성자와 getter에서 복사를 하느냐에 따라 밖의 코드가 주문의 내용을 바꿀 수 있는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,19 @@
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 <dt>방어적 복사</dt>
+<dd><b>지금 어디에 쓰나</b> — 생성자로 받은 리스트를 필드에 저장할 때와 getter로 그 리스트나 배열을 돌려줄 때 쓴다. 날짜는 java.util.Date 대신 LocalDate처럼 처음부터 불변인 타입을 쓰면 복사할 필요가 없다.</dd>
 <dd>객체가 리스트, 배열, Date처럼 내용을 바꿀 수 있는 객체를 필드로 가질 때, 밖에서 받은 것을 그대로 저장하지 않고 복사해서 저장하고, 안에 가진 것을 그대로 돌려주지 않고 복사해서 돌려주는 것이다. 그대로 주고받으면 밖의 코드와 이 객체가 같은 리스트를 가리키게 되어, 밖에서 그 리스트를 고치는 것만으로 이 객체의 내부 상태가 바뀐다. 복사본에 넣고 빼는 것은 내부 상태에 영향을 주지 않는다(원소 객체 자체가 가변이면 그것은 따로 막아야 한다). 돌려줄 때는 복사하는 대신 Collections.unmodifiableList 같은 수정할 수 없는 뷰를 줄 수도 있는데, 뷰는 원본 리스트가 바뀌면 함께 바뀐다.</dd>
 <dt>final</dt>
+<dd><b>왜 생겼나</b> — 다시 대입하면 안 되는 변수나 재정의하면 안 되는 메서드를 주석으로만 알리면, 실수로 바꾸는 코드를 막을 수 없다. final은 그 약속을 컴파일러가 검사하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — static final 상수, 생성자에서 한 번만 정하는 필드(스프링이 생성자로 주입하는 의존 객체 등), String 같은 불변 클래스에 쓴다. 람다 안에서 쓰는 지역 변수도 final이거나 다시 대입하지 않은 변수여야 한다.</dd>
 <dd>더 이상 변경할 수 없음을 나타내는 키워드다. 변수에 붙이면 값을 다시 대입할 수 없고, 메서드에 붙이면 하위 클래스에서 재정의할 수 없으며, 클래스에 붙이면 상속할 수 없다. 참조 변수에 final을 붙이면 다른 객체를 가리키도록 바꿀 수 없을 뿐, 그 객체의 내부 상태는 바뀔 수 있다.</dd>
 <dt>캡슐화</dt>
+<dd><b>왜 생겼나</b> — 필드를 공개해 두면 값을 바꾸는 코드가 프로그램 곳곳에 생겨, 값이 잘못됐을 때 어디서 바꿨는지 찾기 어렵다. 캡슐화는 값을 바꾸는 길을 객체의 메서드로 좁혀 검사와 변경을 한곳에서 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 엔티티나 도메인 클래스에 setter를 모두 열지 않고, 주문 취소나 입금처럼 뜻이 있는 동작만 메서드로 공개할 때 쓴다. String이 내부 배열을 감추고 메서드로만 내용을 보여 주는 것도 같은 예다.</dd>
 <dd>객체의 상태(필드)와 그 상태를 다루는 메서드를 하나로 묶고, 내부 구현을 외부에서 직접 접근하지 못하게 숨기는 것이다. 필드를 private으로 두고 공개 메서드로만 값을 바꾸게 하면, 잘못된 값이 들어오는 것을 메서드에서 막을 수 있고 내부 구조를 바꿔도 외부 코드에 영향이 없다.</dd>
 <dt>record</dt>
+<dd><b>왜 생겼나</b> — 값만 묶어 넘기는 클래스도 생성자, 접근자, equals, hashCode, toString을 손으로 적어야 해서, 필드 하나를 더하면 여러 곳을 고쳐야 했고 빠뜨리기 쉬웠다. record는 이 코드를 컴파일러가 필드 목록에 맞춰 만들게 해 고칠 곳을 한 줄로 줄였다.</dd>
+<dd><b>지금 어디에 쓰나</b> — API 요청·응답 DTO, 메서드가 값 여러 개를 한 번에 돌려줄 때의 반환 타입, Map의 키로 쓸 값 묶음에 쓴다. 기본 생성자와 바꿀 수 있는 필드가 필요한 JPA 엔티티로는 쓸 수 없다.</dd>
 <dd>데이터를 담는 용도의 (얕은) 불변 클래스를 간결하게 선언하는 문법으로 Java 16에서 정식 도입되었다. 필드 목록만 적으면 생성자, 접근자 메서드, equals, hashCode, toString이 자동으로 만들어진다. 필드는 모두 final이지만, 필드가 가변 객체(List 등)를 가리키면 그 내용은 바뀔 수 있다. DTO나 값 객체를 정의할 때 쓴다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -102,6 +111,10 @@ class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +188,10 @@ class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

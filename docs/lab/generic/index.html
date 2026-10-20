@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
 <h1>제네릭</h1>
 <p><b>List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나</b></p>
+<p><b>왜 생겼나</b> — 제네릭이 없던 컬렉션은 원소를 모두 Object로 다뤄서, 아무 타입이나 넣을 수 있었고 꺼낼 때마다 (String)처럼 캐스팅을 직접 적어야 했다. 타입을 잘못 넣은 실수는 실행해 봐야 드러났다. 제네릭은 원소의 타입을 선언에 적게 해서 그 검사를 컴파일 시점으로 옮기고, 꺼낼 때의 캐스팅은 컴파일러가 대신 넣게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — List&lt;String&gt;, Map&lt;Long, String&gt;처럼 컬렉션을 선언할 때 기본으로 쓴다. Optional&lt;T&gt;, 스프링의 ResponseEntity&lt;T&gt;, JpaRepository&lt;T, ID&gt;도 다루는 타입만 바꿔 재사용하도록 제네릭으로 만들어져 있다. 매개변수가 값을 꺼내 읽기만 하면 ? extends, 넣기만 하면 ? super를 써서 더 여러 타입을 받는다.</p>
 <p>제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트의 원소가 어떤 타입인지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.</p>
 <p>실행으로 대조 · JDK 21에서 스무 가지 조합을 실제로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,8 +42,11 @@
 <dt>로 타입(raw type)</dt>
 <dd>List&lt;String&gt;처럼 타입을 적을 수 있는 제네릭 클래스를 &lt;...&gt; 없이 List라고만 쓴 것이다. 제네릭이 없던 Java 5 이전의 코드와 함께 쓸 수 있도록 남겨 둔 방식이다. 컴파일러는 로 타입 변수에 무엇을 넣는지 검사하지 못하고 unchecked 경고만 내므로, List&lt;Integer&gt;가 가리키는 리스트에 String을 넣는 코드도 컴파일된다. 그 잘못은 나중에 값을 꺼내는 자리에서 ClassCastException으로 드러난다. 새로 쓰는 코드에서는 쓰지 않으며, 원소 타입을 모를 때는 List&lt;?&gt;를 쓴다.</dd>
 <dt>타입 소거</dt>
+<dd><b>왜 생겼나</b> — 자바에 제네릭을 더할 때 그 전에 컴파일된 코드와 라이브러리가 고치지 않고 함께 돌아가야 했다. 타입 소거는 타입 표시를 컴파일 검사에만 쓰고 지워서, List&lt;String&gt;용 클래스를 따로 만들지 않고도 옛 코드와 섞어 쓰게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 타입 소거 때문에, 실행 중에 타입이 필요한 API는 Class 객체를 인자로 따로 받는다. JPA의 em.find가 찾을 엔티티의 클래스를, Jackson의 readValue가 JSON을 바꿀 대상 클래스를 함께 넘겨받는 것이 그 예다.</dd>
 <dd>컴파일러가 제네릭의 타입 표시(List&lt;Integer&gt;의 Integer)를 컴파일할 때의 검사에만 쓰고, 실행되는 코드에는 남기지 않는 것이다. 그래서 실행 중에는 List&lt;String&gt;과 List&lt;Integer&gt;가 같은 클래스의 객체이고, 리스트 객체는 자신이 어떤 타입을 담기로 했는지 기억하지 않는다. 값을 꺼내는 자리에는 컴파일러가 형 변환 코드를 대신 넣어 둔다. 이 때문에 실행 중에 리스트의 원소 타입을 물어볼 수 없고, new T()처럼 타입 매개변수로 객체를 만들 수도 없다. 로 타입으로 컴파일러의 검사를 피해 잘못된 값을 넣으면 실행 중에는 막아 줄 것이 없다.</dd>
 <dt>와일드카드(? extends와 ? super)</dt>
+<dd><b>지금 어디에 쓰나</b> — 표준 라이브러리의 메서드 선언에서 자주 본다. Collection의 addAll(Collection&lt;? extends E&gt;)은 하위 타입 원소의 컬렉션도 받고, Collections.copy(List&lt;? super T&gt;, List&lt;? extends T&gt;)는 넣을 쪽에 super, 꺼낼 쪽에 extends를 쓴다.</dd>
 <dd>제네릭 타입의 &lt;&gt; 안에 ?를 써서 &quot;어떤 타입인지 정해 두지 않았다&quot;는 것을 나타내는 문법이다. List&lt;? extends Number&gt;는 Number나 그 하위 타입의 리스트를 모두 받을 수 있고, 꺼낸 값을 Number로 쓸 수 있지만 값을 넣을 수는 없다. List&lt;? super Integer&gt;는 Integer나 그 상위 타입의 리스트를 모두 받을 수 있고, Integer를 넣을 수 있지만 꺼낸 값은 Object로만 받을 수 있다. List&lt;Integer&gt;를 List&lt;Number&gt; 변수에 대입할 수 없기 때문에, 여러 타입의 리스트를 받는 메서드를 만들 때 필요하다. 값을 꺼내 쓰기만 하는 매개변수에는 extends를, 값을 넣기만 하는 매개변수에는 super를 쓴다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -97,6 +102,10 @@ System.out.println(&quot;마지막 값: &quot; + last);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +179,10 @@ System.out.println(&quot;마지막 값: &quot; + last);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

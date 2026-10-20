@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 스프링 부트</p>
 <h1>액추에이터와 헬스 체크</h1>
 <p><b>결제사 연결이 끊겼을 때 헬스 체크는 무엇이라고 답하나</b></p>
+<p><b>왜 생겼나</b> — 서버가 정상인지 알려면 로그를 뒤지거나 직접 요청을 보내 봐야 했고, 서비스마다 상태 확인용 주소를 따로 만들어 답의 모양도 제각각이었다. 스프링 부트 액추에이터는 DB 연결, 디스크 여유 공간 같은 구성 요소의 상태를 스스로 모아 정해진 주소와 형식으로 답하게 해서, 바깥의 도구가 어느 서비스에나 같은 방식으로 물을 수 있게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 쿠버네티스에 liveness 주소를 검사 주소로 적어 두면 실패할 때 컨테이너를 다시 시작하고, readiness 주소를 적어 두면 실패하는 동안 그 인스턴스로 요청을 보내지 않는다. 로드밸런서도 헬스 주소로 고장 난 서버를 가려낸다. 세부 정보에는 내부 구성이 드러나므로 바깥에는 열지 않거나 권한을 건다.</p>
 <p>액추에이터는 떠 있는 스프링 부트 애플리케이션의 상태를 밖에서 물어볼 수 있게 주소를 만들어 주는 라이브러리입니다. 그 가운데 /actuator/health는 &quot;이 서버가 정상인가&quot;에 답합니다. 답은 애플리케이션 안의 여러 구성 요소가 각자 보고한 상태를 합쳐서 정해지고, 어느 주소로 묻느냐에 따라 살펴보는 구성 요소가 달라집니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 아흔여섯 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,20 @@
 <dt>Actuator</dt>
 <dd>운영 중인 Spring Boot 애플리케이션의 상태를 확인할 수 있는 엔드포인트를 제공하는 모듈이다. 헬스 체크, 각종 지표(메모리, 스레드, 요청 수 등), 설정 정보 등을 조회할 수 있어 모니터링 시스템이나 로드밸런서의 상태 확인과 연동한다.</dd>
 <dt>HealthIndicator와 상태 합치기</dt>
+<dd><b>왜 생겼나</b> — 상태 확인을 한 메서드에 모두 적으면 점검할 것이 늘거나 바뀔 때마다 그 코드를 고쳐야 한다. HealthIndicator는 점검을 구성 요소마다 빈 하나로 나누고 액추에이터가 답을 합치게 해서, 점검을 더하거나 뺄 때 빈 하나만 다루면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트가 미리 주는 DB·디스크 점검 말고, 직접 연결한 외부 시스템처럼 고장 나면 서버를 쓸 수 없게 되는 대상이 있을 때 HealthIndicator를 구현한 빈을 더한다.</dd>
 <dd>HealthIndicator는 애플리케이션의 구성 요소 하나가 정상인지 점검해 상태로 답하는 객체이다. health() 메서드가 UP(정상), DOWN(고장), OUT_OF_SERVICE(일부러 내려 둠), UNKNOWN(알 수 없음) 가운데 하나를 돌려주며, 빈 이름에서 HealthIndicator를 뗀 것이 구성 요소의 이름이 된다. /actuator/health는 구성 요소들의 답을 모아 가장 심각한 것 하나를 전체 상태로 삼는데, 심각한 순서는 DOWN, OUT_OF_SERVICE, UP, UNKNOWN이다. 전체 상태가 DOWN이나 OUT_OF_SERVICE이면 HTTP 상태 코드 503으로, UP이나 UNKNOWN이면 200으로 응답한다. 구성 요소 하나만 DOWN이어도 전체가 DOWN이 되므로, 어떤 점검을 넣을지는 그것이 고장 나면 서버 전체를 비정상으로 볼 것인지를 기준으로 정한다.</dd>
 <dt>헬스 그룹</dt>
+<dd><b>왜 생겼나</b> — 헬스 그룹 없이 주소가 /actuator/health 하나뿐이면 &quot;다시 시작해야 하나&quot;와 &quot;지금 요청을 보내도 되나&quot;라는 다른 물음에 같은 답을 하게 되어, DB가 잠깐 끊겼을 뿐인데 쿠버네티스가 서버를 다시 시작할 수 있다. 헬스 그룹은 물음마다 볼 구성 요소를 따로 골라 주소를 나누게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쿠버네티스의 liveness 프로브에 /actuator/health/liveness를, readiness 프로브에 /actuator/health/readiness를 연결할 때 쓴다. 요청 처리에 꼭 필요한 DB 점검을 readiness 그룹에만 넣기도 한다.</dd>
 <dd>헬스 엔드포인트에 등록된 구성 요소 가운데 일부만 골라 묶고 이름을 붙인 것이다. /actuator/health/그룹이름으로 요청하면 그 그룹에 든 구성 요소에게만 상태를 묻고 그것만으로 전체 상태와 HTTP 상태 코드를 정한다. 스프링 부트 4는 liveness와 readiness라는 그룹을 기본으로 만들어 두며, 각각 애플리케이션 자신의 상태를 알려 주는 livenessState와 readinessState 하나씩만 들어 있다. management.endpoint.health.group.그룹이름.include에 구성 요소 이름을 적어 그룹에 넣을 것을 정한다. 그룹에 들지 않은 구성 요소는 DOWN이어도 그 그룹의 응답에 반영되지 않는다.</dd>
 <dt>헬스 체크(Liveness, Readiness)</dt>
+<dd><b>왜 생겼나</b> — 확인을 하나로만 하면 DB가 잠깐 느려졌을 뿐인데 서버를 재시작해 버리거나, 반대로 요청을 못 받는 서버에 계속 요청을 보내게 된다. Liveness와 Readiness를 나누면 다시 띄울지와 요청을 보낼지를 따로 판단할 수 있다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쿠버네티스의 livenessProbe와 readinessProbe가 스프링 부트 Actuator의 /actuator/health/liveness, /actuator/health/readiness를 부르게 하고, 시작이 오래 걸리는 애플리케이션은 startupProbe를 더해 시작하는 동안 재시작되지 않게 한다.</dd>
 <dd>서버가 정상인지 주기적으로 확인하는 것이다. Liveness는 프로세스가 살아 있는지를 확인해 문제가 있으면 재시작하게 한다. Readiness는 요청을 받을 준비가 되었는지를 확인해 준비되지 않은 서버로는 트래픽을 보내지 않게 한다. 서버가 시작 중이거나 종료 중일 때 요청이 들어가는 것을 막는다.</dd>
 <dt>액추에이터 엔드포인트의 노출과 접근</dt>
+<dd><b>왜 생겼나</b> — 액추에이터의 엔드포인트가 모두 열려 있으면 설정값, 빈 목록, 메모리 내용처럼 서버 내부를 들여다볼 정보가 밖에 드러나고, shutdown으로 서버를 끌 수도 있다. 노출과 접근 설정은 웹에는 기본으로 health만 열고 나머지는 골라서 열게 해 이를 막는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 운영 서버에서 health와 모니터링 도구가 읽어 갈 metrics 정도만 열고, 나머지는 닫거나 management.server.port로 정한 관리용 포트에서만 열어 두는 데 쓴다.</dd>
 <dd>액추에이터의 엔드포인트(health, env, beans처럼 정보를 하나씩 맡은 기능)를 밖에서 쓸 수 있으려면 두 가지 조건이 모두 맞아야 한다. 노출(exposure)은 그 엔드포인트에 웹 주소를 만들어 줄지를 정하며, management.endpoints.web.exposure.include의 기본값은 health 하나뿐이다. 접근(access)은 그 엔드포인트 자체를 쓸 수 있게 할지를 정하며 management.endpoint.이름.access로 바꾼다. 둘 중 하나라도 막혀 있으면 주소가 만들어지지 않아 404로 응답한다. 서버를 종료시키는 shutdown과 메모리 내용을 통째로 내려받게 하는 heapdump는 접근이 기본으로 막혀 있어서, 노출 설정에서 전부 열어도 주소가 생기지 않는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -105,6 +115,10 @@ class PayHealthIndicator implements HealthIndicator {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -178,9 +192,10 @@ class PayHealthIndicator implements HealthIndicator {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>빈</h1>
 <p><b>빈은 무엇이고, 그냥 만든 객체와 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 객체를 쓰는 곳마다 new로 만들면, 프로그램 전체에 하나만 있으면 되는 객체가 여기저기서 여러 개 생기고, 그 객체가 쓰는 다른 객체까지 쓰는 쪽에서 일일이 만들어 이어 줘야 한다. 스프링 빈은 이런 객체를 스프링이 시작할 때 만들어 두고 필요한 곳마다 같은 객체를 건네게 해서, 만들고 잇는 일을 우리 코드 대신 스프링이 맡게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 서버에서 요청을 받는 컨트롤러, 업무 규칙을 처리하는 서비스, DB를 다루는 리포지토리 객체가 보통 빈이다. @Controller, @Service, @Repository도 @Component를 바탕으로 만든 애너테이션이어서 붙이면 빈이 된다. 반대로 DB에서 읽어 온 회원 한 명이나 요청 본문을 받은 객체처럼 그때그때 새로 생기는 값은 빈으로 만들지 않는다.</p>
 <p>빈은 스프링이 만들어서 보관하는 객체입니다. 코드로는 평범한 클래스이고, 클래스 위에 @Component를 적어 두면 스프링이 시작할 때 app 패키지를 훑어 그 클래스를 찾아 객체를 하나 만들고, 컨테이너라는 보관하는 곳에 넣어 둡니다. 우리는 new를 쓰지 않고 필요한 곳에서 context.getBean(Greeter.class)로 스프링에게 객체를 달라고 하며, 몇 번을 달라고 해도 스프링은 보관하던 같은 객체 하나를 줍니다. 이 실습은 @Component를 지우거나 getBean 대신 new Greeter()로 만들어 가며 같은 코드를 실행해, 스프링이 만든 객체와 우리 코드가 new로 만든 객체가 각각 몇 개인지, a == b가 true인지 false인지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9에서 네 가지 조합을 실제 컴포넌트 스캔으로 실행하고 객체 수를 재어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>스프링 빈(Bean)</dt>
 <dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
 <dt>IoC 컨테이너(ApplicationContext)</dt>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot에서는 SpringApplication.run이 ApplicationContext를 만들어 돌려주고, @SpringBootTest도 테스트를 위해 컨텍스트를 띄워 빈을 주입한다. 코드에서 getBean으로 빈을 직접 꺼내는 일은 드물다.</dd>
 <dd>빈의 생성, 의존성 연결, 생명주기 관리를 담당하는 스프링의 핵심 구성 요소다. BeanFactory가 가장 기본적인 컨테이너 인터페이스이고, ApplicationContext는 이를 확장해 이벤트 발행, 메시지 국제화, 환경 설정 등의 기능을 더한 것이다. 보통 컨테이너라고 하면 ApplicationContext를 가리킨다.</dd>
 <dt>@Component</dt>
+<dd><b>왜 생겼나</b> — 스프링에게 맡길 클래스를 설정 파일에 하나씩 적으면, 클래스를 새로 만들 때마다 설정 파일도 함께 고쳐야 한다. @Component는 그 표시를 클래스 위에 바로 붙이게 해서, 클래스만 만들면 스프링이 찾아가게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 직접 만든 클래스 가운데 컨트롤러, 서비스, 리포지토리가 아닌 도우미 클래스를 빈으로 만들 때 붙인다. 라이브러리의 클래스처럼 고칠 수 없는 클래스에는 붙일 수 없어서, 대신 @Bean을 붙인 메서드로 등록한다.</dd>
 <dd>@Component는 클래스 위에 붙여, 스프링이 그 클래스를 알고 객체를 만들어 관리하는 대상(빈)으로 삼게 하는 애너테이션이다. 스프링은 컴포넌트 스캔으로 지정한 패키지 아래의 클래스를 훑어 @Component가 붙은 클래스를 찾고, 그 클래스의 객체를 만들어 컨테이너에 보관한다. 빈의 이름을 따로 정하지 않으면 클래스 이름의 첫 글자를 소문자로 바꾼 것이 쓰인다(Greeter는 greeter). @Repository, @Service, @Controller는 @Component를 특수화한 것이어서 같은 방식으로 찾아진다. 이 애너테이션이 없는 클래스는 같은 패키지에 있어도 찾아지지 않으므로, 스프링에게 그 클래스의 객체를 달라고 하면 그런 빈이 없다는 예외가 난다.</dd>
 <dt>컴포넌트 스캔</dt>
+<dd><b>왜 생겼나</b> — 빈을 클래스마다 XML이나 @Bean 메서드로 하나씩 등록하면, 클래스를 만들 때마다 등록 목록도 함께 고쳐야 한다. 컴포넌트 스캔은 클래스에 애너테이션만 붙이면 스프링이 찾아 등록하게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 직접 만든 서비스·리포지토리·컨트롤러는 보통 이 방식으로 등록한다. 그래서 @SpringBootApplication 클래스는 프로젝트의 가장 위 패키지에 두고, 그 밖의 패키지까지 찾게 하려면 scanBasePackages 속성으로 지정한다.</dd>
 <dd>지정한 패키지 아래에서 @Component 계열 애너테이션(@Service, @Repository, @Controller 등)이 붙은 클래스를 찾아 자동으로 빈으로 등록하는 기능이다. Spring Boot에서는 @SpringBootApplication이 붙은 클래스의 패키지와 그 하위 패키지가 기본 대상이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -112,6 +119,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -185,9 +196,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

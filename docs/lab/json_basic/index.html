@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › 네트워크</p>
 <h1>JSON</h1>
 <p><b>JSON은 어떻게 생긴 글이고, 무엇이 틀리면 읽히지 않는가</b></p>
+<p><b>왜 생겼나</b> — 프로그램마다 제멋대로 정한 글 모양으로 데이터를 보내면, 받는 쪽은 상대마다 그 모양을 읽는 코드를 따로 짜야 한다. XML처럼 값마다 여는 태그와 닫는 태그를 쓰는 형식은 글이 길어지기 쉽다. JSON은 중괄호, 대괄호, 큰따옴표, 쉼표 몇 가지 규칙만으로 적어서 사람이 읽기 쉽고, 거의 모든 언어가 같은 규칙으로 읽고 쓴다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링의 @RestController가 돌려준 자바 객체는 스프링 부트가 Jackson으로 JSON 글로 바꿔 보내고, 요청 본문으로 온 JSON 글도 @RequestBody를 붙인 매개변수로 받으면 객체로 바꿔 준다. 지도, 날씨, 결제 같은 외부 서비스와 데이터를 주고받을 때도 대개 JSON을 쓴다. 주석을 달아야 하는 설정 파일에는 주석을 쓸 수 있는 YAML(application.yml)을 대신 쓴다.</p>
 <p>프로그램끼리 데이터를 주고받을 때(예: 서버가 브라우저에 회원 정보를 보낼 때), 메모리 안의 객체를 그대로 보낼 수는 없습니다. 그래서 정해진 약속대로 글자로 적어 보내고, 받는 쪽은 그 글자를 읽어 다시 자기 언어의 객체로 만듭니다. JSON은 가장 널리 쓰이는 그 약속입니다. 코드 칸에 보이는 것이 JSON 글 그대로입니다. { } 안에 &quot;이름&quot;: 값을 쉼표로 이어 적고, 이름과 글자 값은 큰따옴표로 감싸며, 숫자는 따옴표 없이 적습니다. [ ]는 값 여러 개의 목록입니다. 따옴표가 있고 없고가 값의 종류를 정해서 30은 숫자, &quot;30&quot;은 글자입니다. 이 실습은 이름의 따옴표, age의 값, 쉼표를 하나씩 바꿔 가며 같은 글을 두 가지 해석기(글을 읽어 객체로 만드는 프로그램), 곧 Node.js의 JSON.parse와 자바의 Jackson에 넣어, 읽히는지와 읽은 age가 어떤 종류인지를 봅니다. JSON에는 주석을 적는 문법이 없어서, 코드 칸에는 설명 없이 글만 보입니다.</p>
 <p>실행으로 대조 · Node.js 24.18.0의 JSON.parse와 Jackson 3.1.5(기본 설정)에 열여덟 가지 조합의 글자를 그대로 넣어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,8 @@
 <dt>JSON의 값의 종류</dt>
 <dd>JSON의 값은 객체, 목록(배열), 숫자, 글자(문자열), 그리고 false, null, true라는 세 낱말 중 하나이다(RFC 8259 3절). 글자는 큰따옴표로 감싸고(7절), 숫자는 따옴표 없이 10진수 숫자로 적고(6절), false, null, true도 따옴표 없이 소문자로 적는다(3절). 따옴표가 있고 없고가 종류를 가르므로 30은 숫자이고 &quot;30&quot;은 글자이다. 읽은 뒤의 계산도 종류를 따라가서, 자바스크립트에서 숫자 30에 1을 더하면 31이지만 글자 &quot;30&quot;에 1을 더하면 글자 &quot;301&quot;이 된다.</dd>
 <dt>파싱(parsing)</dt>
+<dd><b>왜 생겼나</b> — 글자로 온 데이터는 그대로는 글자가 늘어선 것일 뿐이어서, 값 하나를 꺼낼 때마다 글을 처음부터 뒤져야 한다. 파싱은 글을 한 번 문법대로 읽어 객체로 바꿔 두어, 그 뒤에는 이름으로 값을 바로 꺼내게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 글자 &quot;42&quot;를 Integer.parseInt로 숫자로, &quot;2026-10-20&quot;을 LocalDate.parse로 날짜로 바꿀 때 쓴다. 스프링 부트가 요청 본문의 JSON을 객체로 바꾸거나 application.yml 설정 파일을 읽을 때도 파싱한다.</dd>
 <dd>파싱은 글자로 적힌 데이터를 문법에 따라 앞에서부터 읽어, 프로그램이 다룰 수 있는 구조(객체 등)로 바꾸는 일이고, 그 일을 하는 프로그램을 해석기(파서)라고 한다. RFC 8259 9절은 JSON 해석기를 JSON 글을 다른 표현으로 바꾸는 것으로 설명하고, JSON 문법에 맞는 글은 모두 받아야 한다고 정한다. 문법에 어긋난 글을 만나면 해석기는 오류를 낸다. 같은 절은 해석기가 JSON이 아닌 형식이나 확장을 받아 줄 수도 있다고 하므로, 어떤 해석기는 설정에 따라 작은따옴표나 마지막 쉼표 같은 것을 받아 주기도 한다.</dd>
 <dt>직렬화와 역직렬화</dt>
 <dd>객체를 저장하거나 전송할 수 있는 형태(바이트열, JSON 등)로 바꾸는 것이 직렬화, 그것을 다시 객체로 복원하는 것이 역직렬화다. 웹 API에서는 객체와 JSON 사이의 변환(Jackson 등)이 대표적이다. 자바 기본 직렬화(Serializable)는 클래스 구조가 바뀌면 호환성 문제가 생기고 보안 위험이 있어 지금은 JSON 등의 형식을 주로 쓴다.</dd>
@@ -89,6 +93,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +170,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

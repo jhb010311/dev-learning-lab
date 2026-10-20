@@ -1,6 +1,8 @@
 Lab.register({
   id: 'servlet', nav: 'Servlets', cat: 'Spring', mode: 'step',
   title: 'How an HTTP request reaches Java code',
+  why: 'To handle a web request in Java without servlets, you had to accept the connection with a socket and parse the HTTP text yourself, and the CGI approach, which starts the program as a new process for every request, became expensive as requests increased. A servlet leaves connection management and HTTP parsing to the container and calls a method of a servlet object, created once, on a thread for each request, so developers only need to write what to do for each address.',
+  use: 'It is rare to write a servlet directly, but a Spring MVC application runs through the servlet API on top of Spring Boot\'s embedded Tomcat. The filters that apply logging or authentication checks to every request, and the HttpServletRequest and HttpServletResponse that you receive as controller parameters, are the servlet API itself. When you must handle a very large number of connections with few threads, Spring WebFlux is sometimes used instead of Spring MVC.',
   intro: 'What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that "receives a request object and writes to a response object".',
   terms: ['Servlet and servlet container', 'DispatcherServlet and the front controller pattern', 'Embedded server', 'Web server and application server', 'Tomcat\'s threading model', 'HTTP methods'], ranks: ['mvc', 'was'],
   controls: [

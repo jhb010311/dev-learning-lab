@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Sequential and parallel calls</h1>
 <p><b>Several external calls: one after another, or all at once?</b></p>
+<p><b>Why it exists</b> — If several unrelated external calls are made one after another, the waiting times of all the calls add up. Creating threads directly or waiting for each with Future.get makes collecting results and handling exceptions troublesome. CompletableFuture lets you start several tasks at the same time and lets you combine results and decide the substitute value for failure or timeout by chaining methods.</p>
+<p><b>Where it's used today</b> — It is used when building one screen, such as a product detail page or a user's account page, requires calling several services together, such as member, stock, and reviews. allOf waits for all of them to finish, and completeOnTimeout replaces a late call with a default value. If no thread pool is passed to supplyAsync, it usually runs in the shared ForkJoinPool, so for tasks that wait, such as external calls, it is usual to specify a dedicated thread pool.</p>
 <p>To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call.</p>
 <p>Checked against real execution · Checked by running code on JDK 21</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>CompletableFuture</dt>
 <dd>This object represents the result of an asynchronous task. You can attach actions that run next when the task finishes, and you can combine the results of several asynchronous tasks. The flow is built in the style of &quot;when it finishes, do this&quot;, so no thread is stopped while waiting for the result.</dd>
 <dt>Synchronous and asynchronous</dt>
+<dd><b>Why it exists</b> — If every call is synchronous, you must wait for even a task that takes long but whose result is not needed right away, such as sending an email, so the response becomes slow. The asynchronous approach hands off the work, moves on to the next thing first, and receives the result later.</dd>
+<dd><b>Where it's used today</b> — A call whose result decides the next step, such as payment approval, is made synchronously, and work that may finish later, such as sending a notification or aggregating statistics, is handled asynchronously with a message queue or @Async.</dd>
 <dd>Synchronous means that the side that requests a task waits until it receives the result and only then moves on. Asynchronous means that the requester starts the task and moves on to the next work without waiting for the result, and the result is delivered later through a callback, a Future, or a similar means.</dd>
 <dt>Thread pool</dt>
 <dd>This structure keeps a fixed number of threads and reuses them, so that threads are not created and destroyed every time they are needed. It reduces the cost of creating threads, and by limiting the number of threads that run at the same time, it prevents excessive memory use and context switching. Tasks to be processed pile up in a queue, and an idle thread takes one and runs it. Tomcat's request handling and a DB connection pool follow the same idea.</dd>
 <dt>ForkJoinPool and the common pool</dt>
+<dd><b>Why it exists</b> — If you split a large task into small pieces and give them to several threads, the threads finish at different times, and a thread that finishes first sits idle. ForkJoinPool gives each thread its own queue of tasks and lets a thread with nothing to do take tasks from another thread's queue (work stealing), so the work is divided evenly.</dd>
+<dd><b>Where it's used today</b> — It is used when a large CPU-only computation is spread over several cores, as with Arrays.parallelSort and parallel streams. Tasks that wait for a database or an external API are run on a separately created ExecutorService so that they do not hold on to the common pool.</dd>
 <dd>This is a thread pool used to split a large task into small tasks, process them on several threads, and combine the results. The JVM has a common pool (commonPool) that everything shares, and parallel streams run in it by default. If you run a long task there, other tasks that use the same pool also slow down.</dd>
 </dl>
 <h2>Try these</h2>
@@ -89,6 +95,10 @@ return new ProductPage(product, stock, reviews, recommend);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +172,10 @@ return new ProductPage(product, stock, reviews, recommend);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

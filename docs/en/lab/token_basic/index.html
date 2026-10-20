@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Security</p>
 <h1>Tokens</h1>
 <p><b>What is a token, and what does the server look at to trust it?</b></p>
+<p><b>Why it exists</b> — In the session approach, the login record exists only on the server that holds it, so when you increase the number of servers, extra preparation is needed so that a request going to any server finds the same record. A token sends &quot;who the user is&quot; together with a signature that vouches for it with every request, so any server that has the key to verify the signature checks it on the spot, without asking anywhere else.</p>
+<p><b>Where it's used today</b> — It is commonly used for login checks when a mobile app or the JavaScript screens of a browser call the API of a Spring server. It is also used to make several servers trust together a token received once in a system divided into several services. A token that has been issued is hard for the server to revoke midway, so it is used together with a method of setting a short validity time and receiving a new token again.</p>
 <p>When a login succeeds, the server writes down &quot;this person is kim&quot; as text, attaches a signature calculated with a secret key that only the server knows, and gives it to the client. This text is called a token, and the most common format is the JWT. A token is three pieces joined by dots (.): the header, the payload, and the signature. The client holds the token and sends it in the Authorization: Bearer token header with every request. The server does not keep a separate list of logged-in people. Instead, it recalculates the signature from the header and the payload of the token it received, and checks whether it is the same as the signature that came with the token. If it is the same, the server trusts that the token was made by the server and has not been changed, and reads the payload. In this lab, you change the payload of the token, remove the signature, sign with a different key, or take the token away, and also make the server skip the signature check, and you see whom the server trusts and what response it gives. The code panel shows the request the client sends and the token decoded, and it is not Java code. The signature is long, so it is written as (signature). The server in this lab is built to answer a GET /me request with &quot;Hello, user name&quot;, and its server code is not shown on the screen.</p>
 <p>Checked against real execution · Sent 10 combinations of tokens as real HTTP requests to an http server on Node.js 24.18.0 and checked against the results. The implementation that makes the tokens was checked against the example in RFC 7515 Appendix A.1 and the verification of the JWT library jose4j 0.9.5</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>JSON Web Token (JWT)</dt>
 <dd>A token that carries content such as user information (claims) and has a signature attached. It has three parts: a header, a payload, and a signature. The server verifies the signature to confirm that the token was not forged, and it does not need to look up a separate store. The payload is encoded, not encrypted, so anyone can read its contents. Do not put sensitive information in it.</dd>
 <dt>Signature (token)</dt>
+<dd><b>Why it exists</b> — The contents of a token are text that anyone can read and rewrite, so without a signature there would be no way for the server to notice if kim was changed to admin and sent. A signature adds a value that cannot be made correctly without the secret key, so that the server trusts only a token that is exactly as it issued it.</dd>
+<dd><b>Where it's used today</b> — In a JWT you receive after login, the part after the last dot (.) is the signature, and each time it receives a request, the server checks it first and trusts the contents only if it is correct. If you use the JWT features of Spring Security, the library does this check.</dd>
 <dd>The signature of a token is a value calculated from the header and the payload of the token with a secret key that only the server knows, and it is attached at the very end of the token. In the HS256 method of a JWT, the text of the base64url header and payload joined with a dot (.) is calculated with HMAC-SHA256 (RFC 7515 section 2, Appendix A.1). The server does the same calculation again from the header and the payload of the token it received and compares it with the signature that came with it, and if even one character of the payload changed, the calculated value differs and does not match. The premise is that a party that does not know the key cannot make a matching signature, so only the server should know the key. A signature vouches that the payload has not changed, but it does not hide the payload.</dd>
 <dt>Authorization: Bearer</dt>
+<dd><b>Why it exists</b> — If every service decided on its own where to send a token, the receiving servers and tools would have to agree each time on where to find it. Authorization: Bearer fixes one place and form for writing the token, so that any server finds the token in the same place.</dd>
+<dd><b>Where it's used today</b> — You write the token in this header when an app or web screen requests data from the server after login, and when you test an API with curl or Postman. If you put the token in the address query, it remains in the browsing history and the server records, so you use this header.</dd>
 <dd>Authorization is an HTTP request header that carries credentials in a request, and Bearer is the name of the method that tells the credentials are a token. The client sends the token to the server by writing one line of the form Authorization: Bearer token (RFC 6750 section 2.1). A Bearer token means a token that anyone who holds it can use (section 1.2). If the request has no such header or the token cannot be accepted, the server usually returns a 401 response, and it is defined that the name of the method, Bearer, is then written in the WWW-Authenticate header (section 3).</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +97,10 @@ signature check: yes</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ signature check: yes</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

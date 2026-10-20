@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,27 +31,41 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Spring MVC request flow</h1>
 <p><b>How one request reaches the controller, and how it goes back</b></p>
+<p><b>Why it exists</b> — If you build a web application with servlets alone, you need one servlet for each URL, and every servlet repeats the common code that takes out request values, converts their types, and builds the response. Spring MVC gathers the entry point for requests into one DispatcherServlet. The framework takes care of finding the method that matches the URL, turning request values into method arguments, and turning return values into responses, so only the handling that differs from request to request is left in the controller.</p>
+<p><b>Where it's used today</b> — In an application built with Spring MVC, both @Controller, which returns pages, and @RestController, which returns JSON, work with this structure. Work that applies to every request, such as checking login, goes into a filter or an interceptor, and turning exceptions into responses is gathered in one place with @RestControllerAdvice. When there are very many requests that spend most of their time waiting for external calls, some applications use Spring WebFlux, which is non-blocking, instead.</p>
 <p>MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab shows at which step along the path of one request the controller, the model, and the view each do their work, and which of them are absent with an @RestController that returns JSON.</p>
 <p>Checked against real execution · Checked by sending 16 kinds of requests to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>MVC (Model-View-Controller)</dt>
+<dd><b>Why it exists</b> — If the code that draws the screen and the code that handles data are mixed in one place, you end up touching the processing logic too when you only want to change how the screen looks. MVC lets different code take charge of the data, the display, and the input, so that fixing one side touches the other side less.</dd>
+<dd><b>Where it's used today</b> — In Spring MVC, a @Controller class plays the controller and a template such as Thymeleaf plays the view. Where the server returns only JSON and the browser's JavaScript draws the screen, the work of the view moves to the browser side.</dd>
 <dd>A software design pattern that divides a program into three roles: model, view, and controller. The model manages the data and the logic that works on it, the view handles how the data is displayed, and the controller takes the incoming input and updates the model and the view. Spring MVC is a web framework that follows this pattern. DispatcherServlet receives every request and calls the matching controller method; the controller puts the data to be shown into the model and returns it together with a view name, and the view renders the response from that data. In a REST API that responds with JSON, an HttpMessageConverter writes the return value of the controller to the response body instead of a view rendering a page.</dd>
 <dt>DispatcherServlet and the front controller pattern</dt>
+<dd><b>Where it's used today</b> — Spring Boot registers it automatically so that it receives requests for every path, so you almost never create it yourself. When you follow in a debugger which controller a request goes to, the doDispatch method is the starting point.</dd>
 <dd>This is the servlet in Spring MVC that receives every HTTP request first. It coordinates the whole flow: it finds and calls the controller that handles the request, and it turns the result into a response. A structure like this, in which a single entry point receives all requests, does the common processing, and then hands each request to the part responsible for it, is called the front controller pattern.</dd>
 <dt>HandlerMapping and HandlerAdapter</dt>
+<dd><b>Why it exists</b> — There are several ways to create a handler, such as @RequestMapping methods and HttpRequestHandler implementations, so if DispatcherServlet handled all of them itself, its code would have to change every time a new way appeared. Splitting finding and running into these two means a new way needs only an added implementation.</dd>
+<dd><b>Where it's used today</b> — Normally RequestMappingHandlerMapping reads mappings such as @GetMapping, so you rarely create these yourself. Functional endpoints (RouterFunction) also run on the same DispatcherServlet with their own HandlerMapping and HandlerAdapter.</dd>
 <dd>These are components that DispatcherServlet uses when it processes a request. HandlerMapping finds the handler (controller method) that matches the request URL and method. HandlerAdapter actually runs the handler that was found: it converts the request data to fit the method's parameters, passes it in, and processes the return value.</dd>
 <dt>HandlerMethodArgumentResolver</dt>
+<dd><b>Where it's used today</b> — Spring Data's Pageable and the parameters of Spring Security's @AuthenticationPrincipal are also filled in by it. When you write one yourself, you implement HandlerMethodArgumentResolver and register it with addArgumentResolvers of WebMvcConfigurer.</dd>
 <dd>This component takes a value out of the request and builds it so that it can be passed to a parameter of a controller method. Parameters annotated with @RequestParam, @PathVariable, @RequestBody, and so on are filled in through it. If you implement your own, a controller can receive a recurring value, such as the logged-in user's information, directly as a parameter.</dd>
 <dt>HttpMessageConverter</dt>
 <dd>This component converts an HTTP request body to a Java object, and a Java object to an HTTP response body. @RequestBody and @ResponseBody use it. For JSON, a converter that uses the Jackson library does the conversion.</dd>
 <dt>Servlet filter</dt>
+<dd><b>Where it's used today</b> — In Spring Boot, you apply one by extending OncePerRequestFilter and registering it as a bean. Use it for work unrelated to controllers, such as request logging or attaching a request number, and if you need to know which controller method is involved, an interceptor is the right choice.</dd>
 <dd>This component intercepts and processes requests and responses at the servlet container level, and it is part of the Servlet standard. It acts before a request reaches DispatcherServlet and on the way back of the response, and it is used for work that spans all requests, such as setting the encoding, handling CORS, and authentication. Spring Security also works as a group of these components.</dd>
 <dt>Interceptor (HandlerInterceptor)</dt>
+<dd><b>Why it exists</b> — If code such as login checks is put at the start of every controller, it is repeated and easy to forget. An interceptor keeps that work outside the controllers and lets you decide the URL patterns it applies to when you register it.</dd>
+<dd><b>Where it's used today</b> — You register it with addInterceptors of WebMvcConfigurer and use it for login checks, recording execution time per controller, and checking only the handlers that carry a particular annotation.</dd>
 <dd>This component runs before and after controller execution, inside Spring MVC. It can step in at three points: before the controller runs (preHandle), after it runs (postHandle), and after request processing is complete (afterCompletion). It can also know which controller method will run. A filter is a feature of the servlet container, while this component is a feature of Spring.</dd>
 <dt>@ControllerAdvice and @ExceptionHandler</dt>
+<dd><b>Where it's used today</b> — With @RestControllerAdvice, you decide the status code and error body for each exception, such as 400 for an input validation failure (MethodArgumentNotValidException) and 404 when the requested resource does not exist. The error body is sometimes made to follow the standard format with Spring's ProblemDetail.</dd>
 <dd>This feature lets you handle the exceptions raised in several controllers in one place. If you put an @ExceptionHandler method for each kind of exception inside an @ControllerAdvice class, an exception raised while a controller runs is passed to that method, which can build an error response in a consistent format.</dd>
 <dt>ViewResolver</dt>
+<dd><b>Why it exists</b> — If a controller writes the template file path and the view technology itself, every controller must be changed when you change the template location or the engine. ViewResolver lets the controller return only a name, and it gathers the job of linking that name to the actual template in one place in the configuration.</dd>
+<dd><b>Where it's used today</b> — When you use Thymeleaf in Spring Boot, a ViewResolver that looks for templates/home.html when a controller returns the name home is registered automatically. It is used for pages where the server renders HTML, such as an admin screen.</dd>
 <dd>This component turns the view name (a string) returned by a controller into the view object that actually renders the page. It is used when the server builds HTML and sends it as the response, and it is not used in a REST API that responds with JSON directly.</dd>
 </dl>
 <h2>Try these</h2>
@@ -107,6 +121,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -180,9 +198,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

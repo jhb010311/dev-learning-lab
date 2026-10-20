@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
 <h1>연관관계의 주인</h1>
 <p><b>팀의 목록에 회원을 넣었는데 왜 DB의 외래 키는 비어 있나</b></p>
+<p><b>왜 생겼나</b> — 객체는 회원의 team과 팀의 members처럼 서로를 가리키는 참조를 둘 가질 수 있지만, 테이블에서 이 연결을 나타내는 것은 외래 키 하나다. 두 참조의 값이 서로 어긋날 때 어느 쪽을 따를지 정해 두지 않으면 같은 연결을 두 곳에 따로 저장하게 된다. mappedBy는 한쪽 참조를 읽기 전용으로 표시해서, 외래 키를 쓰는 쪽을 하나로 정한다.</p>
+<p><b>지금 어디에 쓰나</b> — 팀에서 회원 목록을, 주문에서 주문 상품 목록을 꺼내 쓰고 싶을 때 @OneToMany(mappedBy = ...)로 양방향을 만든다. 값은 외래 키를 가진 @ManyToOne 쪽에 넣고, 목록 쪽에도 함께 넣어 주는 연관관계 편의 메서드를 흔히 둔다. 반대쪽 목록이 꼭 필요하지 않으면 @ManyToOne 단방향만 두고 목록은 JPQL로 조회한다.</p>
 <p>팀과 회원이 서로를 가리키면 자바 객체에는 참조가 두 개(회원의 team, 팀의 members) 생깁니다. 하지만 DB에서 둘을 잇는 것은 member 테이블의 외래 키 team_id 하나뿐입니다. JPA는 두 참조 가운데 한쪽만 보고 외래 키를 씁니다. 그쪽을 연관관계의 주인이라고 합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열두 가지 조합을 실행해 테이블, 나간 SQL, 외래 키 값, 목록의 크기를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,16 @@
 <dt>연관관계의 주인과 mappedBy</dt>
 <dd>양방향 연관관계에서 외래 키를 실제로 관리하는 쪽을 연관관계의 주인이라고 한다. JPA는 주인 쪽 참조에 들어 있는 값만 보고 외래 키를 INSERT하거나 UPDATE한다. 주인이 아닌 쪽에는 mappedBy에 주인 쪽 필드 이름을 적어 읽기만 한다고 표시하며, 여기에 값을 넣어도 DB에는 반영되지 않는다. 외래 키가 있는 테이블에 대응하는 엔티티, 곧 다대일에서 &quot;다&quot; 쪽이 주인이다(JPA 명세는 양방향 일대다·다대일 연관관계에서 &quot;다&quot; 쪽이 주인이어야 한다고 정해 두었고, 그래서 @ManyToOne에는 mappedBy가 없다). 양방향인데 mappedBy를 빠뜨리면 두 참조가 서로 다른 연관관계로 취급되어 뜻하지 않은 연결 테이블이 생긴다.</dd>
 <dt>단방향과 양방향 연관관계</dt>
+<dd><b>왜 생겼나</b> — 회원에서 팀으로 가는 참조만 있으면, 팀에서 그 팀의 회원들을 보려면 JPQL로 따로 조회해야 한다. 양방향 연관관계는 반대쪽에도 참조를 두어 팀 객체에서 회원 목록으로 바로 찾아가게 하고, 단방향은 참조를 하나만 두어 맞춰야 할 값을 줄인다.</dd>
 <dd>엔티티가 다른 엔티티를 참조하는 방향을 말한다. 회원만 팀을 필드로 가지면 단방향이고, 팀도 회원 목록을 필드로 가져 서로를 가리키면 양방향이다. 테이블은 외래 키 하나로 양쪽에서 조인할 수 있어서 방향이 따로 없지만, 객체는 참조를 가진 쪽에서만 상대를 찾아갈 수 있다. 그래서 객체의 양방향은 사실 서로 다른 단방향 참조 두 개이고, 둘 가운데 어느 쪽이 외래 키를 관리할지 정해 주어야 한다.</dd>
 <dt>기본 키, 유니크 키, 외래 키</dt>
 <dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
 <dt>1차 캐시</dt>
+<dd><b>지금 어디에 쓰나</b> — 같은 트랜잭션 안에서 em.find()나 findById()로 같은 id를 다시 찾을 때 따로 설정하지 않아도 동작한다. JPQL이나 쿼리 메서드로 조회하면 이미 관리 중인 엔티티라도 SQL은 DB로 나간다.</dd>
 <dd>영속성 컨텍스트 안에 엔티티를 식별자 기준으로 보관하는 저장소다. 같은 트랜잭션 안에서 같은 식별자로 다시 조회하면 DB에 쿼리를 보내지 않고 보관된 엔티티를 돌려준다. 그 결과 같은 트랜잭션 안에서 같은 식별자의 엔티티는 항상 같은 객체다. 기본적으로 트랜잭션이 끝나면 사라지므로(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다) 애플리케이션 전체의 캐시와는 다르다.</dd>
 <dt>쓰기 지연과 flush</dt>
+<dd><b>왜 생겼나</b> — 엔티티를 바꿀 때마다 SQL을 바로 보내면 같은 행을 여러 번 고쳐도 UPDATE가 그만큼 나가고 문장마다 DB를 오간다. 쓰기 지연은 SQL을 flush 때까지 미뤄, 마지막 상태로 한 번만 보내고 설정에 따라 여러 문장을 JDBC 배치로 묶게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 많은 행을 저장하는 일괄 작업에서 hibernate.jdbc.batch_size를 켜 INSERT를 묶는다(IDENTITY 전략이면 묶이지 않는다). 테스트에서는 em.flush()와 em.clear()로 SQL을 바로 보내고 DB에서 다시 읽어 확인한다.</dd>
 <dd>쓰기 지연은 INSERT, UPDATE, DELETE 문을 바로 DB에 보내지 않고 모아 두었다가 한꺼번에 보내는 것이다. 단, 기본 키를 IDENTITY 전략(MySQL의 AUTO_INCREMENT 등)으로 생성하는 엔티티는 식별자를 얻기 위해 저장을 요청한 시점에 INSERT가 바로 실행된다. flush는 모아 둔 변경 내용을 DB에 보내는 동작으로, 트랜잭션 커밋 직전이나 JPQL 쿼리 실행 직전에 자동으로 일어난다. flush는 SQL을 DB에 전송할 뿐 트랜잭션을 커밋하는 것은 아니다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -115,6 +121,10 @@ int size = found.getMembers().size();
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -188,9 +198,10 @@ int size = found.getMembers().size();
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

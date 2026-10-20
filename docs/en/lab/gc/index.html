@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>GC and memory leaks</h1>
 <p><b>Who reclaims discarded objects, and when?</b></p>
+<p><b>Why it exists</b> — In a language where you handle memory directly, such as C, the developer must release memory after use, and mistakes such as forgetting to release it or using memory that has already been released break the program. Java's GC lets the JVM find and clear objects that cannot be reached from anywhere, so that developers do not have to write code that returns memory.</p>
+<p><b>Where it's used today</b> — A Java program runs GC whenever the JVM needs it, without your turning it on. Developers look into GC when they search for the cause of an occasional pause in responses, when they decide the heap size and the kind of GC such as G1, and when an OutOfMemoryError occurs and they use the GC log and a heap dump to find objects that keep staying in memory.</p>
 <p>Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. A memory leak is the buildup of objects that are no longer needed but cannot be collected because something still refers to them, and this lab also shows what happens to the heap when there is a leak.</p>
 <p>Partly checked against real execution · Only the direction was checked on JDK 21 (the numbers are from the model)</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Garbage collection (GC)</dt>
 <dd>This JVM feature finds objects that the program no longer uses and reclaims their memory automatically. Developers do not have to free memory themselves, which prevents errors caused by mistakes in freeing it. In return, the application may pause briefly during a collection, and objects that are still referenced cannot be reclaimed.</dd>
 <dt>Reachability and GC roots</dt>
+<dd><b>Why it exists</b> — A method that counts references and deletes an object when the count reaches 0 leaves objects that form a cycle by referring to each other, because their counts never reach 0 even though no one uses them. The reachability criterion looks only at whether an object can be reached from a GC root, so it reclaims such a cycle as a whole.</dd>
+<dd><b>Where it's used today</b> — When looking for a memory leak, you use a heap dump analysis tool such as Eclipse MAT to follow the reference path from an object to a GC root and see what is holding on to that object.</dd>
 <dd>The GC decides whether an object is still in use by asking &quot;is it reachable?&quot;. An object that can be reached by following references from starting points that are always alive (GC roots), such as the local variables of running threads and static variables, is treated as live, and an object that cannot be reached is treated as a candidate for reclamation.</dd>
 <dt>Young generation and old generation</dt>
 <dd>This structure divides the heap based on the observation that most objects become useless soon after they are created. New objects are created in the young generation (in eden), and objects that survive several collections of the young generation are moved to the old generation. Collecting only the young generation often, where short-lived objects gather, reclaims a lot of memory at low cost.</dd>
@@ -152,6 +156,10 @@ record Event(long id, long tick) {}</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -225,9 +233,10 @@ record Event(long id, long tick) {}</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

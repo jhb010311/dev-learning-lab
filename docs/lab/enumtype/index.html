@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
 <h1>열거형(enum)</h1>
 <p><b>enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나</b></p>
+<p><b>왜 생겼나</b> — enum이 없을 때는 주문 상태 같은 값을 int 상수나 문자열로 나타냈다. 그러면 정해 두지 않은 숫자나 오타 난 문자열을 넘겨도 컴파일러가 막지 못했고, 같은 숫자를 쓰는 다른 종류의 상수와 섞여도 알아채기 어려웠다. enum은 가능한 값을 하나의 타입으로 묶어서, 그 밖의 값이나 다른 종류의 상수를 넘기는 코드를 컴파일 단계에서 막는다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문 상태, 결제 수단, 회원 등급처럼 종류가 미리 정해진 값을 나타낼 때 쓴다. 상수마다 다른 처리는 switch로 나누거나 enum에 메서드를 두어 처리한다. JPA로 DB에 저장할 때는 기본값인 순서 번호 대신 @Enumerated(EnumType.STRING)으로 이름을 저장하거나, 직접 정한 코드 값을 AttributeConverter로 바꿔 저장한다.</p>
 <p>enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 마흔다섯 가지 조합을 실제로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>열거형(enum)</dt>
 <dd>정해진 몇 개의 값만 가질 수 있는 타입을 만드는 문법이다. enum Status { ORDERED, PAID }처럼 선언하면 ORDERED와 PAID가 각각 Status 타입의 객체가 되고, 이 객체들은 한 번만 만들어지며 new로 더 만들 수 없다. 상수마다 객체가 하나뿐이라 ==로 비교할 수 있고 switch에도 쓸 수 있다. enum도 클래스이므로 필드, 생성자, 메서드를 가질 수 있어서 상수마다 표시 이름이나 코드 값을 붙여 둘 수 있다. 문자열이나 숫자로 상태를 나타낼 때와 달리, 정해지지 않은 값을 쓰면 컴파일 오류가 나므로 상태나 종류를 나타내는 데 쓴다.</dd>
 <dt>ordinal()과 name()</dt>
+<dd><b>왜 생겼나</b> — enum 상수를 파일이나 DB에 남기려면 글자나 숫자로 바꿔야 하는데, 상수마다 바꾸는 코드를 짜면 상수를 늘릴 때마다 고쳐야 한다. name()과 ordinal()은 모든 enum이 java.lang.Enum에서 물려받는 메서드라서, 따로 짜지 않아도 이름과 순번을 얻게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — name()은 다른 시스템에 상수를 글자로 넘길 때처럼 정확한 이름이 필요할 때 쓰고, 로그에 보일 글은 toString()에 맡긴다. ordinal()은 API 문서가 EnumSet, EnumMap 같은 자료구조용이라고 밝혀 두어, 보통 코드에서 직접 쓸 일은 드물다.</dd>
 <dd>모든 enum 상수가 가지고 있는 두 메서드다. ordinal()은 그 상수가 선언에서 몇 번째인지를 0부터 센 번호를 돌려주고, name()은 선언에 적은 상수의 이름을 문자열로 돌려준다. ordinal()은 선언 순서로 정해지므로 상수를 중간에 끼워 넣거나 순서를 바꾸면 값이 달라진다. 그래서 ordinal() 값을 DB나 파일에 저장해 두면 나중에 같은 숫자가 다른 상수로 읽힐 수 있다. 저장할 때는 name()이나, enum에 따로 만들어 둔 필드의 값을 쓴다.</dd>
 <dt>enum의 valueOf</dt>
+<dd><b>왜 생겼나</b> — 글자로 들어온 값을 enum으로 바꾸려면 상수마다 if로 비교하는 코드를 짜야 하고, 상수를 늘릴 때마다 그 코드도 고쳐야 한다. valueOf는 컴파일러가 모든 enum에 만들어 주어, 이름만으로 상수를 바로 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 요청 파라미터나 설정 파일에서 읽은 글자, DB에 이름으로 저장해 둔 값을 enum 상수로 되돌릴 때 쓴다.</dd>
 <dd>이름 문자열을 받아 그 이름을 가진 enum 상수를 돌려주는 static 메서드로, 모든 enum에 자동으로 만들어진다. Status.valueOf(&quot;PAID&quot;)는 Status.PAID를 돌려준다. 이름은 대소문자까지 정확히 같아야 하고, 그런 상수가 없으면 null을 돌려주는 것이 아니라 IllegalArgumentException을 던진다. 그래서 사용자가 입력한 문자열처럼 믿을 수 없는 값을 넘길 때는 예외에 대비해야 한다. 모든 상수를 선언 순서대로 담은 배열을 돌려주는 values()도 함께 만들어진다.</dd>
 <dt>동일성과 동등성</dt>
 <dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
@@ -104,6 +110,10 @@ System.out.println(s == Status.PAID);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -177,9 +187,10 @@ System.out.println(s == Status.PAID);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

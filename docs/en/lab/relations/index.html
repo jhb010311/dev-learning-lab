@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>Many-to-one, one-to-many, one-to-one, many-to-many</h1>
 <p><b>How do the tables and foreign keys change depending on the kind of relationship?</b></p>
+<p><b>Why it exists</b> — A table connects rows with foreign key values, and an object points to another object with a reference, so when you work with JDBC directly, you had to keep the other side's id value in the object and query again every time you needed it. @ManyToOne, @OneToMany, @OneToOne, and @ManyToMany tell JPA how to turn an object's reference into a foreign key or a join table when storing it, so that in code you only follow the reference.</p>
+<p><b>Where it's used today</b> — The most basic one is @ManyToOne, where an order points to a member and a member points to a team, and when you need the list on the other side, you add @OneToMany with mappedBy. When things connect only one to one, such as a member and a locker, you use @OneToOne. If the join table needs columns such as a quantity or a date, you do not use @ManyToMany but make the join table an entity and split it into two many-to-one relationships.</p>
 <p>The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save.</p>
 <p>Checked against real execution · All 14 combinations were run on Hibernate 7.4.5 and H2, and the tables, the foreign key and unique constraints, the SQL that was sent, and the values left were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Many-to-one and one-to-many relationships</dt>
 <dd>When many members belong to one team, the relationship is a many-to-one (@ManyToOne) seen from the member, and a one-to-many (@OneToMany) seen from the team. In tables, whichever side you look from, the foreign key sits in the table of the &quot;many&quot; side (member). In a many-to-one, the entity that holds the foreign key manages that value directly, so it is saved with a single INSERT. In a unidirectional one-to-many, the list in the entity on the other side manages the foreign key, so after the rows are inserted, an additional UPDATE that fills in the foreign key is sent.</dd>
 <dt>One-to-one relationship</dt>
+<dd><b>Why it exists</b> — If you put values that always come in pairs, such as a member and the member's detail information, all in one table, you must always handle together even the columns that are rarely used or are often empty. A one-to-one relationship lets you split such values into another table while, in objects, still following to the other side through one field.</dd>
+<dd><b>Where it's used today</b> — It is used when you keep data that has only one counterpart separately, such as a member and a profile, or an order and delivery information. In Hibernate, it is hard to fetch the other side lazily from the side that has no foreign key, so you usually put the foreign key on the entity that you mainly query.</dd>
 <dd>This is a relationship in which an entity is connected to only one other entity, and it is mapped with @OneToOne. The foreign key can be placed in either of the two tables, and the entity of the table that holds the foreign key becomes the owning side of the relationship. A unique constraint is placed on the foreign key column as well, so two rows cannot point to the same counterpart. The table shape is the same as in a many-to-one, and the only difference is this unique constraint.</dd>
 <dt>Many-to-many relationships and join tables</dt>
+<dd><b>Where it's used today</b> — It is used for relationships in which both sides have several counterparts, such as students and the courses they take, posts and tags, and users and roles. For relationships where nothing else is attached to the link, such as tags or roles, @ManyToMany is sometimes left as it is.</dd>
 <dd>A many-to-many is a relationship in which each side has several counterparts. For example, a member can pick several products, and a product can be picked by several members. It cannot be expressed with the foreign keys of two tables alone, so you put in the middle a join table that holds the primary keys of both sides as foreign keys. If you use @ManyToMany, JPA creates and manages this join table automatically. A join table created automatically holds only two foreign keys, so if you need more values such as a quantity or a date, make the join table an entity and solve it with a one-to-many and a many-to-one.</dd>
 <dt>Owning side and mappedBy</dt>
 <dd>In a bidirectional relationship, the side that actually manages the foreign key is called the owning side. JPA inserts or updates the foreign key by looking only at the value in the reference on the owning side. On the other side, which is not the owning side (the inverse side), you write the name of the field on the owning side in mappedBy to mark it as read-only, and values you put there are not reflected in the database. The owning side is the entity that corresponds to the table that holds the foreign key, that is, the &quot;many&quot; side of a many-to-one relationship. (The JPA specification says that the &quot;many&quot; side of a bidirectional one-to-many or many-to-one relationship must be the owning side, which is why @ManyToOne has no mappedBy.) If you leave out mappedBy in a bidirectional relationship, the two references are treated as different relationships, and an unintended join table is created.</dd>
@@ -114,6 +119,10 @@ for (int i = 1; i &lt;= 2; i++) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -187,9 +196,10 @@ for (int i = 1; i &lt;= 2; i++) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

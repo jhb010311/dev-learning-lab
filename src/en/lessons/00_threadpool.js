@@ -1,6 +1,8 @@
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
+  why: 'If a new thread is created every time a task arrives, the number of threads grows with the number of requests when many requests come at once. Each thread uses memory, and switching between threads has a cost, so the whole server can slow down or stop. A thread pool reuses threads it has already created and puts an upper limit on their number. Extra tasks wait in a queue or are rejected, so the server handles only as many tasks at the same time as it can bear.',
+  use: 'A servlet container such as Tomcat handles incoming requests with a thread pool. In application code, you create a pool with ExecutorService to call several external APIs at the same time and collect the results, or to run long tasks separately. When there are very many tasks that spend most of their time waiting, some applications use no pool and create a virtual thread for each task instead.',
   intro: 'A thread pool reuses the threads it has created, up to a set number, instead of creating and discarding a thread for every request. When a request comes in, one thread handles it from start to finish. When all the core threads are busy, requests wait in a queue; when the queue is full, more threads are created up to the maximum; and requests beyond that are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [

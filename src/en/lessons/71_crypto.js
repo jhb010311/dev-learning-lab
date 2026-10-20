@@ -1,6 +1,8 @@
 Lab.register({
   id: 'crypto', nav: 'Hashing, encryption, and signatures', cat: 'Authentication', mode: 'step',
   title: 'What hides, what checks, and what cannot be undone',
+  why: 'Data exchanged in plain text can be read or altered along the way, and if passwords are stored as they are, all of them are exposed the moment the database leaks. Hashing, encryption, and signatures are tools that divide this problem among them: a hash lets you check only whether values are the same without keeping the original value, encryption lets only someone with the key read the data, and HMAC and digital signatures let you notice that the content was changed or that someone else made it.',
+  use: 'HTTPS verifies the server with public-key cryptography, settles on a symmetric key, and then encrypts HTTP messages with the symmetric key. Member passwords are stored with a salt added to a deliberately slow hash, as in Spring Security\'s BCryptPasswordEncoder, and JWT login tokens and the webhook requests sent by external services are checked for forgery with HMAC or digital signatures. None of these is implemented by hand; a verified library is used.',
   intro: 'Hash functions, symmetric-key cryptography, public-key cryptography, and signatures come up all the time in security, and each does a different job. Try each of the five tools on the message "Order 100 won", then change the content or use a different key and see what happens. All values on screen were actually computed.',
   terms: ['Hash function and salt', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures', 'JSON Web Token (JWT)'], ranks: ['websec', 'auth', 'network'],
   controls: [

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jdbc_basic', nav: 'JDBC', cat: '기초개념', mode: 'step', basic: true, deep: ['jdbctmpl', 'connpool', 'ormwhy'],
   title: '자바 코드는 어떻게 DB에 SQL을 보내는가',
+  why: 'DB마다 자바 프로그램과 주고받는 방법이 다르면, 다른 DB로 옮길 때 연결하고 SQL을 보내는 코드를 모두 새로 써야 한다. JDBC는 연결 맺기, SQL 보내기, 결과 읽기를 자바가 정한 같은 메서드로 하게 하고, DB마다 다른 부분은 그 DB에 맞춰 나온 드라이버(jar 파일)가 맡게 한다.',
+  use: '스프링 프로젝트의 build.gradle에 적는 mysql-connector-j가 MySQL의 JDBC 드라이버이고, spring.datasource.url에 적는 jdbc:mysql:// 주소가 JDBC 연결 주소다. 코드는 JdbcTemplate이나 JPA로 쓰는 일이 많지만 이 둘도 밑에서는 JDBC로 SQL을 보내므로, DB 오류의 원인을 찾을 때 이 흐름을 알아야 한다.',
   intro: 'DB는 자바 프로그램과 따로 일하는 프로그램입니다. (MySQL 같은 DB는 아예 다른 프로그램이고, 이 실습의 H2는 자바 프로그램 안에서 돌지만 코드가 하는 일은 같습니다.) 자바 코드가 DB에 일을 시키려면 JDBC라는 약속대로 세 가지를 합니다. 먼저 DB와 연결(Connection)을 맺습니다. 그 연결로 SQL을 글자로 보냅니다. 돌아온 결과(ResultSet)를 한 행씩 읽습니다. 연결이 없으면 SQL을 보낼 수 없고, SQL 글자가 틀리면 DB가 오류로 답해서 자바에서는 SQLException(오류가 났다는 신호인 예외)이 됩니다. 이 실습은 member 테이블에서 id가 1인 회원의 name을 읽는 코드에 conn.close() 줄을 넣거나 SQL 글자를 바꿔 가며, DB가 받은 SQL과 자바가 출력한 값과 예외를 봅니다. (화면의 코드는 main 메서드 안에 있다고 보고 import 줄과 main 선언은 줄였습니다. 이 반복되는 코드를 대신 써 주는 JdbcTemplate과 JPA는 세부 동작 실습에서 다룹니다.)',
   terms: ['JDBC', 'Connection과 DriverManager', 'Statement와 executeQuery', 'ResultSet과 SQLException'],
   controls: [

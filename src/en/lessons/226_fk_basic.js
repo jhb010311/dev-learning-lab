@@ -1,6 +1,8 @@
 Lab.register({
   id: 'fk_basic', nav: 'Foreign keys', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['constraints'],
   title: 'What is a foreign key, and what changes without one?',
+  why: 'Without a foreign key, the program code must check by itself every time it saves whether "that member really exists." If even one place of code misses the check, or if a person runs SQL directly on the database, an order with no owner is created. A foreign key leaves this check to the database, so that the same rule is kept whichever program writes by whichever path.',
+  use: 'Put it where a row of one table points to a row of another table, such as an order and a member, or a comment and a post. To delete the child rows together when you delete the parent row, add ON DELETE CASCADE. In places where there are very many writes and speed matters, or where tables are divided across several database servers, the program sometimes does the check without foreign keys.',
   intro: 'The member_id column of the orders table holds "the number of the member who placed this order." When you write the line FOREIGN KEY (member_id) REFERENCES member(id) for this column, it becomes a foreign key. It is a promise to the database that the value in member_id must be an id that really exists in the member table, so the database rejects any INSERT or DELETE that breaks the promise. In this lab you remove that line, or change the member_id of the second order, and run the same SQL each time. You see whether the database accepts each statement and whether an order that points to a missing member is left at the end.',
   terms: ['Primary key, unique key, foreign key', 'Constraint', 'Referential integrity', 'Parent table and child table'],
   controls: [

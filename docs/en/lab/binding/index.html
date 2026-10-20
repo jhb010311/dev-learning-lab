@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Request mapping and parameter binding</h1>
 <p><b>How does a value sent in a request become a method parameter?</b></p>
+<p><b>Why it exists</b> — When you receive requests with servlets alone, you have to decide by hand which code to call for each address, and in every method you have to write the code that converts the text taken out with request.getParameter into a number and the handling for when the value is missing. Request mapping and parameter binding in Spring MVC replace this with a few annotations, so that from the method declaration alone you can tell which request it receives and which values it uses as which types.</p>
+<p><b>Where it's used today</b> — The controllers of an API built with Spring MVC receive values with these annotations. A common division is: a number that points to a target, such as /orders/{id}, with @PathVariable; optional conditions such as a search word or a page number, with @RequestParam; and a JSON body with several fields, with @RequestBody. On a page that submits an HTML form, @ModelAttribute receives several values into one object.</p>
 <p>Request mapping decides which controller method receives a request, based on its URL and HTTP method, and parameter binding puts the values carried by the request into the parameters of that method. An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides &quot;which of these places the value is taken from&quot;. If the place that carries the value and the place the value is taken from do not match, the value does not come in.</p>
 <p>Checked against real execution · Checked by sending requests for 48 combinations to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,18 @@
 <dt>@RequestParam and @PathVariable</dt>
 <dd>These are annotations that let a controller method receive a single value carried in the request as a method parameter. @RequestParam takes the value from the request parameters (the name=value pairs of the query string and of form data in the body), and @PathVariable takes it from a {name} placeholder declared in the path of the URL, as in /orders/{id}. The value taken is text, so Spring converts it to the type of the parameter (int, for example), and when text that cannot be converted arrives, Spring does not run the controller and responds with 400. By default, @RequestParam gives 400 when the value is missing; with required = false, null is passed in instead, and with defaultValue, that value is passed in instead. When you use required = false, declare the parameter with an object type such as Integer, not int, so that it can hold null.</dd>
 <dt>@ModelAttribute and @RequestBody</dt>
+<dd><b>Why it exists</b> — When there are many values, receiving parameters one by one makes the method declaration long, and the declaration has to change whenever a value to receive is added. @ModelAttribute and @RequestBody let you receive several values as one object, so when values increase, you only add a field to that class.</dd>
+<dd><b>Where it's used today</b> — It is common to receive a list query with several search conditions with @ModelAttribute, and a create or update request that a frontend or app sends as JSON with @RequestBody. You also attach @Valid to the receiving object to validate the values.</dd>
 <dd>These are two ways of receiving several values of a request as one object. @ModelAttribute creates the object first and then uses the setters to set the request parameters (query string and form data in the body) whose names match the fields (for a class that takes its values through a constructor, such as a record, the values are passed as constructor arguments when the object is created). @RequestBody passes the whole request body to the message converter that matches the Content-Type, which converts it into an object, and it is mostly used to receive a JSON body. The two look at different places, so a value sent in a JSON body does not come in through @ModelAttribute, and a value sent in the query string does not come in through @RequestBody. @ModelAttribute leaves a field with no value as it is and does not treat it as an error, so a value that is required has to be validated separately.</dd>
 <dt>Query string and form data</dt>
+<dd><b>Where it's used today</b> — Values for which the same result must be viewable again from the address alone, such as a search term, sort order, and page number, go in the query string. Values that must not remain in the address and in access logs, such as a password, or long values, such as the content of a post, go in the body of a POST form.</dd>
 <dd>The query string is the part of a URL after the ? in which name=value pairs are joined with &amp;, and form data is text of the same shape sent in the request body. When form data is sent, the Content-Type header is set to application/x-www-form-urlencoded. When an HTML form is submitted with GET, the values are carried in the query string, and when it is submitted with POST, they are carried as form data in the body. The servlet container combines the two and provides them as &quot;request parameters&quot;, so server code takes the values in the same way without telling which of the two they came from. A JSON body is not included in the request parameters.</dd>
 <dt>HandlerMethodArgumentResolver</dt>
+<dd><b>Where it's used today</b> — Spring Data's Pageable and the parameters of Spring Security's @AuthenticationPrincipal are also filled in by it. When you write one yourself, you implement HandlerMethodArgumentResolver and register it with addArgumentResolvers of WebMvcConfigurer.</dd>
 <dd>This component takes a value out of the request and builds it so that it can be passed to a parameter of a controller method. Parameters annotated with @RequestParam, @PathVariable, @RequestBody, and so on are filled in through it. If you implement your own, a controller can receive a recurring value, such as the logged-in user's information, directly as a parameter.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -96,6 +104,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +181,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

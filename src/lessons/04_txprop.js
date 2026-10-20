@@ -1,6 +1,8 @@
 Lab.register({
   id: 'txprop', nav: '트랜잭션 전파', cat: '스프링', mode: 'step',
   title: '예외가 나면 어디까지 롤백되나',
+  why: '트랜잭션을 여는 메서드가 다른 트랜잭션 메서드를 부를 때, 둘을 한 트랜잭션으로 묶을지 따로 커밋할지를 직접 처리하려면 커넥션을 메서드 사이에 넘기고 커밋과 롤백 시점을 손으로 맞춰야 한다. 스프링의 트랜잭션 전파 속성은 이 관계를 @Transactional의 값 하나로 정하게 해서, 함께 성공하고 실패할 일과 따로 남길 일을 메서드마다 선언하게 한다.',
+  use: '대부분의 서비스 메서드는 기본값 REQUIRED로 바깥 트랜잭션에 합류시키고, 주문이 실패해도 실패 기록이나 감사 로그는 남겨야 할 때 REQUIRES_NEW로 따로 커밋한다. REQUIRES_NEW는 커넥션을 하나 더 쓰므로 커넥션 풀이 작으면 조심해야 하고, 체크 예외에도 롤백해야 하면 rollbackFor를 지정한다.',
   intro: '주문을 저장하는 메서드가 로그를 저장하는 다른 빈의 메서드를 부릅니다. 둘 다 @Transactional입니다. 전파 속성, 예외가 나는 위치와 종류, 예외를 잡는지에 따라 주문과 로그 중 무엇이 DB에 남는지 달라집니다.',
   terms: ['@Transactional', '트랜잭션 전파(Propagation)', '롤백 규칙과 rollbackFor', '세이브포인트', 'Checked 예외와 Unchecked 예외'], ranks: ['txspring', 'exception'],
   controls: [

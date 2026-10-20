@@ -1,6 +1,8 @@
 Lab.register({
   id: 'dbdeadlock', nav: 'Deadlocks in the database', cat: 'Database', mode: 'step',
   title: 'When two transactions wait for each other, how does the database end it?',
+  why: 'When two transactions each wait for a row that the other has locked, neither can resolve the wait by itself. Both connections stay stopped until the lock wait timeout runs out, and they also hold up other requests. InnoDB\'s deadlock detection finds the moment a cycle forms in the waiting relationships, rolls back one transaction that has less to roll back, and returns an error, so that the other transaction can go on right away.',
+  use: 'In places that change several rows in one transaction, such as an account transfer or an inventory decrease, add a retry so that the transaction runs again from the beginning when it receives a deadlock error. In Spring, this error is converted and thrown as an exception of the PessimisticLockingFailureException family. To prevent a cycle from forming at all, lock multiple rows in the same order every time, for example starting with the lower account number.',
   intro: 'Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error.',
   terms: ['Deadlock', 'Deadlock detection and the victim', 'Lock wait timeout', 'Shared locks and exclusive locks', 'Transaction'],
   controls: [

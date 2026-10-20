@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cicd', nav: 'CI/CD pipelines', cat: 'Deployment and operations', mode: 'step',
   title: 'You push code, and a machine checks and deploys it for you',
+  why: 'If code changed by several people is combined all at once only now and then, conflicts between the changes show up late, and code that works only on a developer\'s PC can go out to the production server as it is. CI/CD runs the build, tests, and deployment by a fixed procedure in a clean build environment every time code is pushed, so the change that caused a problem is found right after it is pushed.',
+  use: 'When a Pull Request is opened, GitHub Actions or Jenkins runs the build and tests, and the repository is set up so that the change can be merged into the main branch only if they pass. After the merge, the process continues through creating a Docker image and deploying it to a server or Kubernetes, and if applying to production needs a person\'s confirmation, only the step just before deployment is left as a manual approval.',
   intro: 'Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently.',
   terms: ['CI/CD', 'Unit tests and integration tests', 'Code review and pull requests', 'Health check (liveness, readiness)', 'Rolling, blue-green, and canary deployments'], ranks: ['deploy', 'test'],
   controls: [

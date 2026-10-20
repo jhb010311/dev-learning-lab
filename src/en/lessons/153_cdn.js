@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cdn', nav: 'CDN', cat: 'Networking', mode: 'step',
   title: 'The origin was changed, so why do users still get the old file?',
+  why: 'If a single origin server sends files directly to every user, users who are far away wait for the distance the data travels, and when users crowd in, that server and its network line carry the load alone. A CDN has servers in several regions share the sending of the same file, so it reduces both the delay caused by distance and the requests piling up at the origin.',
+  use: 'It is mainly used to deliver files that every user receives in the same form, such as images, videos, and CSS and JS files. For these files, you add a hash or a version to the file name so that the address changes whenever the content changes, and you set a long freshness lifetime. Screens that differ for each logged-in user, and API responses that change often, are usually not copied, and the origin answers them directly.',
   intro: 'A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy.',
   terms: ['CDN', 'Origin server and edge server', 'Cache key', 'Cache invalidation (purge)', 'TTL (time to live)'],
   controls: [

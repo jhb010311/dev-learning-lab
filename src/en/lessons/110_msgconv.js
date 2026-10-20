@@ -1,6 +1,8 @@
 Lab.register({
   id: 'msgconv', nav: 'REST APIs and message converters', cat: 'Spring', mode: 'step',
   title: 'Where does the object returned by a controller become JSON?',
+  why: 'To send a Java object as an HTTP response, someone has to turn it into text such as JSON. If every controller does this conversion by hand, code that joins strings or calls a conversion library is repeated and the formats easily become inconsistent. Spring\'s HttpMessageConverter moves this conversion out of the controller, so the controller only receives and returns Java objects.',
+  use: 'It is used in a JSON API built with @RestController to receive the request body as an object and return an object as the response. Spring Boot registers a JSON converter that uses Jackson by default, and the shape of the JSON, such as the date format and whether to leave out fields that are null, is changed with Jackson settings. For a response that sends bytes as they are, such as a file download, you return byte[] or Resource so that a converter that fits takes it.',
   intro: 'A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406.',
   terms: ['HttpMessageConverter', '@Controller and @RestController', 'Content negotiation (Accept and Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [

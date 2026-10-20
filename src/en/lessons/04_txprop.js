@@ -1,6 +1,8 @@
 Lab.register({
   id: 'txprop', nav: 'Transaction propagation', cat: 'Spring', mode: 'step',
   title: 'How far does a rollback reach when an exception is thrown?',
+  why: 'When a method that opens a transaction calls another transactional method, deciding by hand whether the two share one transaction or commit separately means passing the connection between the methods and matching the commit and rollback points yourself. Spring\'s transaction propagation setting lets you decide this relationship with one value of @Transactional, so that each method declares what succeeds or fails together and what is kept separately.',
+  use: 'Most service methods use the default REQUIRED and join the outer transaction. When a failure record or an audit log must be kept even if the order fails, you commit it separately with REQUIRES_NEW. REQUIRES_NEW uses one more connection, so be careful when the connection pool is small. If you need a rollback for a checked exception as well, specify rollbackFor.',
   intro: 'A method that saves an order calls a method of another bean that saves a log. Both are @Transactional. Which of the two, the order and the log, stays in the database depends on the propagation setting, on where the exception is thrown and what kind it is, and on whether the exception is caught.',
   terms: ['@Transactional', 'Transaction propagation', 'Rollback rules and rollbackFor', 'Savepoint', 'Checked and unchecked exceptions'], ranks: ['txspring', 'exception'],
   controls: [

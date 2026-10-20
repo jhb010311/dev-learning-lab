@@ -1,6 +1,8 @@
 Lab.register({
   id: 'collect', nav: 'Collecting a stream', cat: 'Java language', mode: 'step',
   title: 'Into what shape do you collect the result of a stream?',
+  why: 'Without streams, to group a list by customer or to count, you had to write the same code every time: create an empty Map, loop with a for statement, and put values in while checking whether the key already exists. collect and Collectors let you choose "what shape to collect into" by names such as groupingBy, toMap, and joining, which reduces that repeated code.',
+  use: 'It is used to group a list read from the database by category (groupingBy), to turn it into a Map that you can look up directly by id (toMap), and to join names with commas into one line (joining). If you need totals or averages after grouping, you pass a Collector such as summingInt or averagingInt to groupingBy.',
   intro: 'The elements that come out of a stream must be received at the end by a terminal operation such as collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
   terms: ['Stream API', 'Collector and collect', 'groupingBy and partitioningBy', 'Method reference', 'List, Set, Map'],
   controls: [

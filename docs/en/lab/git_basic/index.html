@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Git commits and branches</h1>
 <p><b>What is a commit, and what does a branch point to?</b></p>
+<p><b>Why it exists</b> — If a copy is left each time a file is edited, as in memo_final.txt and memo_really_final.txt, it is hard to tell which one changed what and when, and when several people edit together, they easily overwrite each other's changes. Git leaves the state of the files at each point in order as commits, and lets you create branches, separate lines to try changes on without touching the original trunk, so that you can go back to an earlier state at any time, compare two lines, and merge them.</p>
+<p><b>Where it's used today</b> — From studying alone to team development at a company, Git is the most widely used tool for managing source code. A new feature is built on a branch rather than main, and when it is finished, a colleague reviews the changed parts in a place such as GitHub before it is merged into main. When a problem arises, you find in the commit history when and what changed and go back to an earlier state.</p>
 <p>In Git, a commit stores the whole state of the files at one moment, and it points to the commit right before it. A branch is not a separate copy of commits. It is a label that points to one commit. When you commit on a branch, only that label moves to the new commit, and the other branches stay as they are. When you move to another branch with git switch, the files in the folder change to the state of the commit that branch points to. This lab shows the result of running the commands in the code box one line at a time in a new empty folder with real Git. You remove the second commit line and the line that goes back to main, one at a time, and you see how the commit each label points to and the memo.txt in the folder change. A commit number is a long string that is different on every run, so I wrote them as commit 1 and commit 2 in the order they were made. In the code box, a line that starts with # is a comment, echo is a command that writes text to a file, and cat is a command that shows the contents of a file.</p>
 <p>Checked against real execution · Ran four combinations line by line in new empty folders with git 2.55.0 and checked the state against the model</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Git commit</dt>
 <dd>A Git commit is one save that you leave in the repository. Git does not store the differences of the changed parts. It stores the state of the files at that moment (a snapshot), and the commit points to that state. A commit also points to the commit right before it (its parent). The very first commit has no parent, and a normal commit has one parent. So commits are linked by lines that point to the previous commit (Pro Git section 3.1). git commit makes a new commit from what you staged (with git add), and that commit becomes a child of the commit the branch you are on pointed to, and the branch is updated to point to the new commit (git-commit documentation). A change that you only edited and did not commit is not recorded in any commit.</dd>
 <dt>Git branch</dt>
+<dd><b>Why it exists</b> — If you are making a new feature in one folder and an urgent fix comes up, then without branches what you were making and the urgent fix get mixed together. A Git branch lets you commit what you were making on that branch, move to another branch, and do the urgent fix.</dd>
+<dd><b>Where it's used today</b> — Create one branch for each new feature or fix, commit separately, and merge it into the main branch when it is done. When several people work together, each fixes things on their own branch so that their work does not get mixed.</dd>
 <dd>A Git branch is a lightweight movable pointer (a label) to one commit. It is not a copy of commits. A branch is a simple file that holds the 40-character SHA-1 checksum of the commit it points to, so it costs little to create and delete (Pro Git section 3.1). When you commit on a branch, only the label of that branch moves to the new commit, and other branches that pointed to the same commit stay as they are. If you only create a branch and do not commit, the commits do not increase.</dd>
 <dt>git switch</dt>
+<dd><b>Why it exists</b> — One command, git checkout, handles both moving between branches and restoring files, so it is easy to be confused about what the command is meant to do. git switch is the command that separates out only the job of moving between branches.</dd>
+<dd><b>Where it's used today</b> — Use it when you create a branch while starting a new feature, or when you move to a branch that someone else pushed to check it. Restoring edited files is handled separately by git restore.</dd>
 <dd>git switch is a command that changes the branch you are on to another branch (since Git 2.23). Written like git switch main, it moves you to main, and the files in the folder change to the state of the commit that branch points to (Pro Git section 3.1). git switch -c feature creates a new branch named feature and then moves to it (the -c option in the git-switch documentation). You can move even when the folder is not clean (when there are uncommitted changes), but it aborts if moving would make you lose those changes (DESCRIPTION in the git-switch documentation). In our test run (git 2.55.0), when the file was the same in the two branches you move between, the edited content came along unchanged, and when the file was different in the two branches, the move was blocked.</dd>
 <dt>HEAD (Git)</dt>
+<dd><b>Where it's used today</b> — What git status tells you at the top as On branch main is the result of reading HEAD. HEAD is also used when pointing to &quot;the commit just before the current commit&quot;, as in git diff HEAD~1.</dd>
 <dd>HEAD is a special pointer with which Git remembers which branch you are on, and it usually points to the branch you are on, though it can also point to a commit directly (Pro Git section 3.1). So git commit moves the label of the branch HEAD points to onto the new commit, and git switch changes HEAD to another branch. In our test run (git 2.55.0), the .git/HEAD file of a new repository held the name of the branch you are on in the form ref: refs/heads/main.</dd>
 </dl>
 <h2>Try these</h2>
@@ -100,6 +107,10 @@ cat memo.txt</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -173,9 +184,10 @@ cat memo.txt</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

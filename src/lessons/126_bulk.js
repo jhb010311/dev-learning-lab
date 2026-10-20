@@ -1,6 +1,8 @@
 Lab.register({
   id: 'bulk', nav: '벌크 연산', cat: 'JPA', mode: 'step',
   title: '한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가',
+  why: '조건에 맞는 많은 행을 같은 규칙으로 고치려고 엔티티를 하나씩 메모리로 읽어 바꾸면, 행이 수만 개일 때 읽어 오는 시간과 메모리 부담이 커진다. JPQL의 UPDATE와 DELETE를 executeUpdate()로 실행하는 벌크 연산은 엔티티를 읽지 않고 DB가 직접 행을 고치게 해서 이 부담을 없앤다.',
+  use: '기간이 지난 쿠폰을 한꺼번에 만료시키기, 전 상품 가격 올리기처럼 조건 하나로 많은 행을 바꾸는 작업에 쓴다. 스프링 데이터 JPA에서는 @Modifying과 @Query로 실행하고, clearAutomatically = true를 주면 실행 뒤에 영속성 컨텍스트를 비운다. 행마다 다른 값을 넣거나 @PreUpdate 같은 엔티티 콜백이 돌아야 하면 하나씩 고친다.',
   intro: 'executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다.',
   terms: ['벌크 연산', 'em.clear와 em.refresh', '영속성 컨텍스트', '1차 캐시', '쓰기 지연과 flush'],
   controls: [

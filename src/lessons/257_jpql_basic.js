@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jpql_basic', nav: 'JPQL', cat: '기초개념', mode: 'step', basic: true, deep: ['fetchjoin', 'bulk', 'dynquery'],
   title: 'JPQL은 무엇이고, SQL과 무엇이 다른가',
+  why: 'SQL을 글자로 직접 쓰면 테이블과 열 이름이 코드 곳곳에 퍼지고, 돌아온 행을 객체로 옮기는 일도 손으로 해야 한다. JPQL은 자바 코드에서 쓰는 엔티티 클래스와 필드 이름으로 조건을 적게 하고, SQL로 바꾸는 일과 결과를 엔티티 객체로 만드는 일은 JPA가 맡는다.',
+  use: '조건에 맞는 목록 찾기, 정렬, 개수 세기처럼 번호 하나로 한 건을 찾는 것 말고 다른 조회에 쓴다. 스프링 데이터 JPA에서는 리포지토리 메서드 위의 @Query 애너테이션에 JPQL을 적는다. 특정 DB에만 있는 기능이 꼭 필요하면 @Query에 nativeQuery = true를 붙여 SQL을 직접 적는다.',
   intro: 'em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수에 담은 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어 list에 담습니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.',
   terms: ['JPQL', 'em.createQuery와 getResultList', '엔티티 이름과 필드 이름', '@Table'],
   controls: [

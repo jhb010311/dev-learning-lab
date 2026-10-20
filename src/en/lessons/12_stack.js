@@ -1,6 +1,8 @@
 Lab.register({
   id: 'stack', nav: 'Stack and heap', cat: 'JVM', mode: 'step',
   title: 'What happens in memory each time a method is called',
+  why: 'In method calls, the one called later finishes first, and even when the same method is called in layers, as in recursion, each call needs its own local variables. The Java Virtual Machine stack matches this order by pushing a frame at each call and discarding it right when the method returns, so there is no need to clean up local variables separately. An object created with new may still be used after the call ends, so it is placed on the heap, and when no variable can reach it by following references, the garbage collector collects it.',
+  use: 'When a StackOverflowError occurs, you look for recursion that never ends or calls nested too deep, and when a heap shortage causes an OutOfMemoryError, you check with a heap dump whether too many objects remain on the heap. If deep recursion is really needed, you change it to a loop or increase the stack size with -Xss. Local variables cannot be touched by other threads, but objects on the heap can be seen by several threads together, so you also use this distinction when you think about concurrency problems.',
   intro: 'When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it.',
   terms: ['Run-time data areas', 'Java Virtual Machine stack', 'Heap memory', 'StackOverflowError and OutOfMemoryError'], ranks: ['jvm'],
   controls: [

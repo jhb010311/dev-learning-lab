@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,27 +31,41 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>MVC 요청 흐름</h1>
 <p><b>요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지</b></p>
+<p><b>왜 생겼나</b> — 서블릿만으로 웹 애플리케이션을 만들면 URL마다 서블릿을 두고, 요청 값을 꺼내 형을 바꾸고 응답을 만드는 공통 코드를 서블릿마다 되풀이해야 한다. 스프링 MVC는 요청을 받는 입구를 DispatcherServlet 하나로 모으고, URL에 맞는 메서드 찾기, 요청 값을 메서드 인자로 바꾸기, 반환값을 응답으로 바꾸기를 프레임워크가 맡아서, 컨트롤러에는 요청마다 다른 처리만 남게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 MVC로 만든 애플리케이션에서는 화면을 돌려주는 @Controller와 JSON을 돌려주는 @RestController가 모두 이 구조로 동작한다. 로그인 확인처럼 모든 요청에 걸 일은 필터나 인터셉터로, 예외를 응답으로 바꾸는 일은 @RestControllerAdvice로 한곳에 모은다. 외부 호출을 기다리는 시간이 대부분인 요청이 아주 많으면 논블로킹 방식인 스프링 WebFlux를 대신 쓰기도 한다.</p>
 <p>MVC는 프로그램을 모델(Model, 데이터), 뷰(View, 화면), 컨트롤러(Controller, 요청을 받아 처리하는 곳)로 나누는 방식이고, 스프링 MVC는 이 방식으로 웹 요청을 처리합니다. HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 요청 하나가 지나가는 길에서 컨트롤러, 모델, 뷰가 각각 몇 번째 단계에서 일하는지, JSON을 돌려주는 @RestController에서는 그중 무엇이 빠지는지 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 열여섯 가지 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>MVC(Model-View-Controller)</dt>
+<dd><b>왜 생겼나</b> — 화면을 그리는 코드와 데이터를 처리하는 코드가 한곳에 섞이면, 화면 모양만 바꾸려 해도 처리 로직을 함께 건드리게 된다. MVC는 데이터, 보여 주기, 입력 받기를 서로 다른 코드가 맡게 해서 한쪽을 고칠 때 다른 쪽을 덜 건드리게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 MVC에서는 @Controller 클래스가 컨트롤러를, Thymeleaf 같은 템플릿이 뷰를 맡는다. 서버는 JSON만 돌려주고 화면은 브라우저의 JavaScript가 그리는 곳에서는 뷰의 일이 브라우저 쪽으로 옮겨 간다.</dd>
 <dd>프로그램을 모델(Model), 뷰(View), 컨트롤러(Controller) 세 역할로 나누는 설계 방식이다. 모델은 데이터와 그 데이터를 다루는 로직을 맡고, 뷰는 데이터를 화면으로 보여 주는 일을 맡으며, 컨트롤러는 들어온 입력을 받아 모델과 뷰를 움직인다. 스프링 MVC는 이 방식을 따르는 웹 프레임워크다. DispatcherServlet이 모든 요청을 받아 알맞은 컨트롤러 메서드를 부르고, 컨트롤러가 화면에 보여 줄 데이터를 모델에 담아 뷰 이름과 함께 돌려주면, 뷰가 그 데이터로 응답 화면을 만든다. JSON을 응답하는 REST API에서는 뷰가 화면을 그리는 대신 HttpMessageConverter가 컨트롤러의 반환값을 응답 본문으로 바꾼다.</dd>
 <dt>DispatcherServlet과 프론트 컨트롤러</dt>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot가 자동으로 등록해 모든 경로의 요청을 받게 하므로 직접 만들 일은 거의 없다. 요청이 어느 컨트롤러로 가는지 디버거로 따라갈 때 doDispatch 메서드가 출발점이 된다.</dd>
 <dd>Spring MVC에서 모든 HTTP 요청을 가장 먼저 받는 서블릿이다. 요청을 처리할 컨트롤러를 찾아 호출하고 그 결과를 응답으로 만드는 전체 흐름을 조율한다. 이렇게 하나의 진입점이 모든 요청을 받아 공통 처리를 한 뒤 각 담당에게 넘기는 구조를 프론트 컨트롤러 패턴이라 한다.</dd>
 <dt>HandlerMapping과 HandlerAdapter</dt>
+<dd><b>왜 생겼나</b> — 핸들러를 만드는 방식이 @RequestMapping 메서드, HttpRequestHandler 구현 등 여럿이라 DispatcherServlet이 모두를 직접 다루면 새 방식이 생길 때마다 그 코드를 고쳐야 한다. 찾는 일과 실행하는 일을 이 둘로 떼어, 새 방식은 구현체만 더하면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 평소에는 @GetMapping 같은 매핑을 RequestMappingHandlerMapping이 읽어 주므로 직접 만들 일이 드물다. 함수형 엔드포인트(RouterFunction)도 자기 HandlerMapping과 HandlerAdapter로 같은 DispatcherServlet 위에서 돈다.</dd>
 <dd>DispatcherServlet이 요청을 처리할 때 쓰는 구성 요소다. HandlerMapping은 요청 URL과 메서드에 맞는 핸들러(컨트롤러 메서드)를 찾는다. HandlerAdapter는 찾은 핸들러를 실제로 실행하며, 요청 데이터를 메서드의 매개변수에 맞게 변환해 넣고 반환값을 처리한다.</dd>
 <dt>ArgumentResolver</dt>
+<dd><b>지금 어디에 쓰나</b> — Spring Data의 Pageable, Spring Security의 @AuthenticationPrincipal 매개변수도 이것으로 채워진다. 직접 만들 때는 HandlerMethodArgumentResolver를 구현해 WebMvcConfigurer의 addArgumentResolvers로 등록한다.</dd>
 <dd>컨트롤러 메서드의 매개변수에 넣을 값을 요청에서 꺼내 만들어 주는 구성 요소다. @RequestParam, @PathVariable, @RequestBody 등이 붙은 매개변수가 이를 통해 채워진다. 직접 구현하면 로그인한 사용자 정보처럼 반복되는 값을 컨트롤러 매개변수로 바로 받을 수 있다.</dd>
 <dt>HttpMessageConverter</dt>
 <dd>HTTP 요청 본문을 자바 객체로, 자바 객체를 HTTP 응답 본문으로 변환하는 구성 요소다. @RequestBody와 @ResponseBody가 이를 사용한다. JSON의 경우 Jackson 라이브러리를 이용한 컨버터가 변환을 맡는다.</dd>
 <dt>필터(Filter)</dt>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트에서는 OncePerRequestFilter를 상속해 만들고 빈으로 등록하면 적용된다. 요청 로그나 요청 번호 붙이기처럼 컨트롤러와 무관한 일에 쓰고, 어느 컨트롤러 메서드인지 알아야 하면 인터셉터가 맞다.</dd>
 <dd>서블릿 컨테이너 수준에서 요청과 응답을 가로채 처리하는 구성 요소로 서블릿 표준에 속한다. 요청이 DispatcherServlet에 도달하기 전과 응답이 돌아가는 길에 동작하며, 인코딩 설정, CORS 처리, 인증 같은 모든 요청에 걸친 작업에 쓴다. Spring Security도 필터들의 묶음으로 동작한다.</dd>
 <dt>인터셉터(HandlerInterceptor)</dt>
+<dd><b>왜 생겼나</b> — 로그인 확인 같은 코드를 컨트롤러마다 첫머리에 넣으면 되풀이되고 빠뜨리기 쉽다. 인터셉터는 그 일을 컨트롤러 밖에 두고, 적용할 주소 패턴을 등록할 때 정하게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — WebMvcConfigurer의 addInterceptors로 등록해 로그인 확인, 컨트롤러별 실행 시간 기록, 특정 애너테이션이 붙은 핸들러만 검사하는 일에 쓴다.</dd>
 <dd>Spring MVC 안에서 컨트롤러 실행 전후에 동작하는 구성 요소다. 컨트롤러 실행 전(preHandle), 실행 후(postHandle), 요청 처리 완료 후(afterCompletion)의 세 시점에 끼어들 수 있고, 어떤 컨트롤러 메서드가 실행될지 알 수 있다. 필터가 서블릿 컨테이너의 기능이라면 인터셉터는 스프링의 기능이다.</dd>
 <dt>@ControllerAdvice와 @ExceptionHandler</dt>
+<dd><b>지금 어디에 쓰나</b> — @RestControllerAdvice로 입력 검증 실패(MethodArgumentNotValidException)는 400, 찾는 자원이 없으면 404처럼 예외별 상태 코드와 오류 본문을 정한다. 오류 본문을 스프링의 ProblemDetail로 표준 형식에 맞추기도 한다.</dd>
 <dd>여러 컨트롤러에서 발생한 예외를 한곳에서 처리하게 하는 기능이다. @ControllerAdvice 클래스 안에 예외 종류별로 @ExceptionHandler 메서드를 두면, 컨트롤러 실행 중 발생한 예외가 그 메서드로 전달되어 일관된 형식의 오류 응답을 만들 수 있다.</dd>
 <dt>ViewResolver</dt>
+<dd><b>왜 생겼나</b> — 컨트롤러가 템플릿 파일 경로와 화면 기술을 직접 적으면, 템플릿 위치나 엔진을 바꿀 때 컨트롤러를 모두 고쳐야 한다. ViewResolver는 컨트롤러가 이름만 돌려주게 하고, 그 이름을 실제 템플릿으로 잇는 일을 설정 한곳에 모았다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot에서 Thymeleaf를 쓰면 컨트롤러가 home이라는 이름을 돌려줄 때 templates/home.html을 찾는 ViewResolver가 자동으로 등록된다. 관리자 화면처럼 서버에서 HTML을 그리는 페이지에 쓴다.</dd>
 <dd>컨트롤러가 반환한 뷰 이름(문자열)을 실제 화면을 그릴 뷰 객체로 바꿔 주는 구성 요소다. 서버에서 HTML을 만들어 응답하는 방식에서 사용하며, JSON을 직접 응답하는 REST API에서는 사용되지 않는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -106,6 +120,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -179,9 +197,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Partitioning</h1>
 <p><b>When a table is cut into pieces, which pieces does a query read?</b></p>
+<p><b>Why it exists</b> — A table that keeps growing, such as orders or logs, ends up with a huge number of rows, and even deleting old data requires running a DELETE that removes many rows one by one for a long time, and the table stays under load meanwhile. Partitioning divides a table into pieces according to a base value, so that a query reads only the pieces that match its condition, and an old piece can be thrown away whole with a single DROP PARTITION.</p>
+<p><b>Where it's used today</b> — A common use is to divide a table that keeps piling up by date and from which old rows are deleted periodically, such as logs, order records, and payment history, into RANGE partitions by month or year. If query conditions rarely use the partition key, all partitions are read, which is a loss instead, and if the problem is that one server's capacity or write performance is short, use sharding, which divides the data across several servers.</p>
 <p>Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them.</p>
 <p>Checked against real execution · On MySQL 8.4.11, 32 combinations were run, and the error codes and the partitions in EXPLAIN were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>RANGE partitioning and HASH partitioning</dt>
 <dd>The two main ways to divide a table into partitions. The column (or expression) that decides which partition a row goes to is called the partitioning key. RANGE assigns a range of values to each partition. It suits queries that look for a continuous range such as dates, and it suits dropping old data one partition at a time. A value that does not belong to any of the ranges cannot be inserted, so you must add the partition for the next period in advance. HASH decides the partition by the remainder of the partitioning key divided by the number of partitions. It spreads rows evenly, but a range condition can hardly reduce the partitions to read.</dd>
 <dt>Partition pruning</dt>
+<dd><b>Where it's used today</b> — It makes a query that asks for a date range, such as the orders of the last month or yesterday's logs, read only the partitions of that period in a table divided by date. So the partitioning key is chosen from the column that is used most often in query conditions.</dd>
 <dd>An optimization that does not read a partition at all when the condition shows that the row cannot be in it. Pruning means cutting away what is not needed. It works only when the condition compares the partitioning key column as it is with a value or a range, and in MySQL you can check the partitions actually read in the partitions column of EXPLAIN. If the condition has no partitioning key, or if a function or a calculation is applied to the partitioning key column, all the partitions are read. Most of the query performance gained by partitioning comes from this pruning.</dd>
 <dt>Query execution plan (EXPLAIN)</dt>
 <dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
@@ -102,6 +105,10 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +182,10 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

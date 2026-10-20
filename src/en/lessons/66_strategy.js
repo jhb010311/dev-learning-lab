@@ -1,6 +1,8 @@
 Lab.register({
   id: 'strategy', nav: 'Strategy pattern', cat: 'Design', mode: 'step',
   title: 'What you have to change when one more payment method is added',
+  why: 'If a feature with several ways of processing is split with if-else, then every time one more way is added, you have to find and change every method that has the branch, and you have to check again the other ways that were already working well. The Strategy pattern separates each way into its own class that implements the same interface, so that adding a new way is done by adding one class.',
+  use: 'It is used where there are several ways to do the same job and more may be added, such as discount policies (fixed amount, percentage), notification channels (email, text message, app push), and file storage locations (local disk, cloud). Passing a sort order to Java as a Comparator has the same structure, and in Spring the implementation classes are registered as beans and injected. If the cases are fixed at two or three, if-else or switch is simpler.',
   intro: 'Each payment method (card, bank transfer, Kakao Pay) is processed in a different way. One way to write this is to branch with if-else. Another is to keep a separate implementation for each payment method and swap the implementations in and out (the Strategy pattern).',
   terms: ['Strategy pattern', 'Design pattern', 'Polymorphism', 'SOLID', 'Interface', 'Dependency injection (DI)'], ranks: ['pattern', 'oop', 'di'],
   controls: [

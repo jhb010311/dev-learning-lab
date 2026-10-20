@@ -1,6 +1,8 @@
 Lab.register({
   id: 'scale', nav: 'Load balancers and scale out', cat: 'High traffic', mode: 'step',
   title: 'How far does adding servers get you?',
+  why: 'Raising the specifications of one server cannot go beyond the largest machine you can buy, and if that one server fails, the whole service stops. Scaling out puts several of the same server in place and lets a load balancer split requests among them, so that adding servers raises the throughput, and even if one drops out, the remaining servers take over the requests.',
+  use: 'In a web service where requests come in a rush, such as a sale event or ticket booking, run several application servers with a load balancer in front. In the cloud, it is used together with autoscaling, which changes the number of servers automatically according to load. For a database that is hard to split across several machines, reduce the load separately with scale up, read-only replicas, and a cache.',
   intro: 'Scaling out means adding more servers to share the load instead of making one server bigger. A load balancer distributes requests across several servers, and each request uses the database once. This lab shows how far the throughput grows as you add servers, and which part becomes the bottleneck first.',
   terms: ['Scale up and scale out', 'Load balancer', 'Bottleneck', 'Autoscaling', 'TPS and response time percentiles'], ranks: ['traffic', 'cloud'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>교착 상태</h1>
 <p><b>서로 기다리다 둘 다 멈춘다</b></p>
+<p><b>왜 생겼나</b> — synchronized는 락을 얻을 때까지 끝없이 기다리고 도중에 포기할 방법이 없어서, 두 스레드가 서로의 락을 기다리면 프로그램을 다시 시작하기 전까지 풀리지 않는다. ReentrantLock의 tryLock은 기다릴 시간을 정하고 그 안에 못 얻으면 false를 돌려주게 해서, 가진 락을 내려놓고 다시 시도할 길을 열었다.</p>
+<p><b>지금 어디에 쓰나</b> — 락 순서를 하나로 정하는 규칙과 tryLock은 두 계좌 사이 이체처럼 락을 여러 개 잡는 코드에서 쓴다. 기본은 번호가 작은 계좌부터 잡듯 순서를 정하는 것이고, 순서를 정하기 어려울 때 tryLock을 보탠다. DB 트랜잭션끼리 교착 상태가 나면 MySQL InnoDB나 PostgreSQL이 알아채 한쪽을 롤백시키므로, 애플리케이션은 그 실패를 받아 다시 시도한다.</p>
 <p>스레드 1은 계좌 A에서 B로, 스레드 2는 B에서 A로 이체합니다. 이체하려면 두 계좌의 락을 모두 잡아야 합니다. 락을 잡는 순서와 타이밍에 따라 두 스레드가 서로의 락을 기다리며 영원히 멈출 수 있습니다.</p>
 <p>실행으로 대조 · JDK 21에서 실행해 확인</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>교착 상태(Deadlock)</dt>
 <dd>둘 이상의 스레드(또는 트랜잭션)가 서로 상대가 가진 자원을 기다리느라 영원히 진행하지 못하는 상태다. A가 자원 1을 잡고 2를 기다리는데 B가 자원 2를 잡고 1을 기다리는 경우가 전형적이다. 자원을 항상 같은 순서로 잡도록 하면 예방할 수 있다.</dd>
 <dt>임계 영역과 상호 배제</dt>
+<dd><b>지금 어디에 쓰나</b> — 재고 차감이나 잔액 변경처럼 값을 읽고 고쳐 쓰는 구간을 synchronized나 ReentrantLock으로 묶는다. 서버가 여러 대면 DB 행 잠금(SELECT … FOR UPDATE)이나 Redis를 이용한 분산 락으로 같은 효과를 낸다.</dd>
 <dd>임계 영역은 여러 스레드가 동시에 실행하면 문제가 생기는 코드 구간이다. 상호 배제는 그 구간을 한 번에 하나의 스레드만 실행하도록 보장하는 것으로, 락(잠금)을 이용해 구현한다. 한 스레드가 락을 가진 동안 다른 스레드는 기다린다.</dd>
 <dt>synchronized</dt>
+<dd><b>왜 생겼나</b> — 락을 직접 얻고 풀면 예외가 났을 때 풀기를 빠뜨려 다른 스레드가 끝없이 기다릴 수 있다. synchronized는 블록을 벗어나는 순간 예외가 났더라도 JVM이 락을 자동으로 풀어 주는 언어 문법으로 이 실수를 막는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 카운터 증가나 공유 컬렉션 갱신처럼 짧은 구간을 보호할 때 쓴다. 기다릴 시간 제한이나 공정한 순서가 필요하면 ReentrantLock, 숫자 하나만 바꾸면 AtomicInteger를 쓴다.</dd>
 <dd>자바에서 임계 영역을 지정하는 키워드다. synchronized가 붙은 메서드나 블록은 한 번에 한 스레드만 실행할 수 있으며, 실행하려는 스레드는 해당 객체의 모니터 락을 얻어야 한다. 간단하지만 락을 기다리는 스레드는 멈춰 있게 되므로 범위를 필요한 만큼만 잡아야 한다.</dd>
 <dt>힙 덤프와 스레드 덤프</dt>
+<dd><b>왜 생겼나</b> — 운영 중인 서버는 디버거로 세워 놓고 볼 수 없어서, 메모리가 왜 차는지나 스레드가 어디서 멈췄는지를 로그만 보고 짐작해야 했다. 덤프는 그 순간의 상태를 파일로 남겨, 문제가 지나간 뒤에도 따로 열어 살펴보게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — -XX:+HeapDumpOnOutOfMemoryError로 OutOfMemoryError가 나는 순간의 힙 덤프를 자동으로 남기고, 요청이 멈춘 듯하면 jcmd나 jstack으로 스레드 덤프를 몇 초 간격으로 여러 번 떠 비교한다.</dd>
 <dd>힙 덤프는 특정 시점에 힙에 있는 모든 객체의 정보를 파일로 저장한 것으로, 어떤 객체가 메모리를 많이 차지하고 무엇이 그것을 참조하는지 분석해 메모리 누수의 원인을 찾는 데 쓴다. 스레드 덤프는 그 시점의 모든 스레드가 무엇을 실행 중인지(스택)를 기록한 것으로, 응답 없음이나 교착 상태의 원인을 찾는 데 쓴다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -89,6 +96,10 @@ void transfer(Account from, Account to, long amount) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -162,9 +173,10 @@ void transfer(Account from, Account to, long amount) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

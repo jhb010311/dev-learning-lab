@@ -1,6 +1,8 @@
 Lab.register({
   id: 'array', nav: 'Arrays', cat: 'Java language', mode: 'step',
   title: 'Does assigning an array variable copy the array?',
+  why: 'When there are several values, creating one variable each, such as score1, score2, and score3, means writing new variables and new code every time the count grows, and you cannot process them in turn with a loop. An array gives each value a number starting from 0, so you pick a value with one variable and a number, as in a[i], and one loop can process all the values.',
+  use: 'It is used for values whose count is fixed, such as totals by day of the week, for two-dimensional grids such as a game board, and for the command-line arguments received through main(String[] args). It is also used when you handle many primitive values, as with byte[] for bytes read from a file or the network. If the count grows and shrinks, ArrayList, whose length changes, is used instead.',
   intro: 'An array is a fixed number of elements of the same type placed side by side. The number of an element (its index) starts at 0, the length is set when the array is created and does not change, and every element is filled with a default value as soon as the array is created. An array is an object too, so a variable holds a reference to the array. That is why b = a does not copy the array, and why a two-dimensional array is "an array whose elements hold arrays".',
   terms: ['Array', 'Shallow copy and deep copy', 'Primitive types and reference types', 'ArrayList'],
   controls: [

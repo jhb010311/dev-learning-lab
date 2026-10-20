@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>Cookies</h1>
 <p><b>What is a cookie, and who stores it and who sends it?</b></p>
+<p><b>Why it exists</b> — To make a server recognize the same person without cookies, you would have to attach that person's identifier to every link and address on the page and pass it along, which is troublesome, and if you send the address to someone else, the identifier goes with it. A cookie has the browser remember a value that the server handed over once and send it back automatically, so that the identifier is not lost even as you move between pages.</p>
+<p><b>Where it's used today</b> — It is commonly used to pass the session ID that keeps a logged-in state (such as Tomcat's JSESSIONID). It is also used to hold small values that must carry over to the next visit, such as &quot;remember my ID,&quot; the choice of display language, and &quot;don't show again today.&quot; Because a user can see and change a cookie value in the browser, keep important information such as who the user is on the server side (the session) and put only its ID in the cookie.</p>
 <p>In HTTP, each request stands on its own, so the server cannot tell by itself whether a second request came from the same person as before. A cookie is a small value made to solve this. The code box shows the response text that the server sends back to the first request, and the Set-Cookie: visitor=alice line in it is the line that hands over a cookie. With this line, the server asks, &quot;Keep this value, and show it to me when you come next time.&quot; It is the browser that stores the value and the browser that sends it back. The browser adds the stored value to the next request to the same server as a Cookie: visitor=alice header. The server in this lab is made to send back &quot;Welcome back, value&quot; when the value of visitor comes in the Cookie header of a request, and &quot;Hello, new visitor&quot; when it does not, and this server code is not shown on the screen. You remove the Set-Cookie line, delete the cookie before the second request, or send the requests with a program that does not store cookies, and see whether the server recognizes the second request when the same server is requested twice. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
 <p>Checked against real execution · Ran 6 combinations with a net server on Node.js 24.18.0 and the cookie engine of curl 8.21.0, and checked against the results (not run in a browser)</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Cookie</dt>
 <dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
 <dt>Set-Cookie header</dt>
+<dd><b>Where it's used today</b> — When the server creates a new session, as at login, Tomcat adds a Set-Cookie header to the response that sends a cookie named JSESSIONID. Important cookies are written with attributes such as HttpOnly, which keeps scripts from reading them, and Secure, which makes them be sent only over HTTPS.</dd>
 <dd>Set-Cookie is a response header that a server adds to a response to send a cookie to the client (a user agent such as a browser) (RFC 6265 section 4.1). It starts with one &quot;name=value&quot;, as in Set-Cookie: visitor=alice, and attributes such as expiry and path can be added after it. It means &quot;Keep this value, and show it to me when you come next time.&quot; It is the receiving side that decides whether to store the value and return it on requests to the same server, so a program that does not store cookies does not use this line even when it receives it.</dd>
 <dt>Cookie header</dt>
+<dd><b>Where it's used today</b> — The server reads the JSESSIONID value from the Cookie header of the request to find which session the request belongs to. In Spring you do not split the header yourself; you write the name, as in @CookieValue(&quot;visitor&quot;), to receive one cookie value.</dd>
 <dd>Cookie is a header that a client adds to a request when it returns a cookie it has stored to the server (RFC 6265 section 4.2). It writes only the stored &quot;name=value&quot;, as in Cookie: visitor=alice, and does not carry attributes such as expiry or path (section 4.2.1). A browser adds this header to requests that meet the conditions for sending the cookie, so a developer does not write it in the code that sends requests. The server can read this header to tell which cookie the client of a request has, and it can also ignore the header (section 3).</dd>
 <dt>HTTP as a stateless protocol</dt>
+<dd><b>Why it exists</b> — If the server had to remember the earlier conversation for each request, the resources needed to keep that memory would grow with the number of users, and a conversation could not continue once a connection was cut. HTTP is defined so that a request can be handled by looking at that request alone, so the server does not have to remember anything between requests.</dd>
+<dd><b>Where it's used today</b> — Receiving web pages and images, a mobile app calling a server API, and a server calling another service's API are all done over HTTP. For features like chat, in which the server also has to send data first at any time, WebSocket is used together with it.</dd>
 <dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
 </dl>
 <h2>Try these</h2>
@@ -85,6 +91,10 @@ Hello, new visitor</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +168,10 @@ Hello, new visitor</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

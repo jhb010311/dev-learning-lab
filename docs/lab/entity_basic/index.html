@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › JPA</p>
 <h1>엔티티</h1>
 <p><b>엔티티는 무엇이고, 일반 클래스와 무엇이 다른가</b></p>
+<p><b>왜 생겼나</b> — 엔티티 없이 자바 객체를 DB에 저장하려면 INSERT 문을 직접 쓰고, 필드 값을 하나씩 꺼내 문장에 채워 넣어야 한다. 읽을 때도 결과의 칸마다 값을 꺼내 객체에 하나씩 넣어야 하고, 필드를 하나 늘리면 관련된 SQL을 모두 고쳐야 한다. 엔티티는 클래스와 테이블의 짝을 표시로 알려 두어, 이렇게 옮겨 적는 일을 JPA가 맡게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링으로 DB를 쓰는 프로그램에서 회원, 주문, 상품, 게시글처럼 테이블에 저장할 대상을 엔티티 클래스로 만든다. 보통 스프링 데이터 JPA의 리포지토리와 함께 써서 저장하고 찾는다. 여러 테이블을 엮는 통계처럼 SQL을 직접 다듬어야 하는 곳에서는 MyBatis나 JdbcTemplate으로 SQL을 직접 쓰기도 한다.</p>
 <p>엔티티는 데이터베이스 테이블과 짝이 되는 자바 클래스이고, 그 객체 하나가 테이블의 한 행과 짝이 됩니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘겨 두면 커밋할 때 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 여덟 가지 조합을 소스째 컴파일해 JPA를 실제로 시작하고 저장해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,15 @@
 <dt>엔티티</dt>
 <dd>데이터베이스 테이블의 행에 대응하는 자바 객체다. @Entity를 붙인 클래스로 정의하며 식별자(@Id)를 가진다. JPA는 엔티티의 상태 변화를 추적해 그에 맞는 SQL을 실행한다.</dd>
 <dt>@Entity</dt>
+<dd><b>지금 어디에 쓰나</b> — JPA를 쓰는 프로젝트에서 테이블과 짝지을 클래스마다 맨 위에 붙인다. 스프링 부트는 켜질 때 이 애너테이션이 붙은 클래스를 찾아 엔티티로 등록하고, 테이블 이름을 클래스 이름과 다르게 하려면 @Table(name = &quot;...&quot;)을 함께 붙인다.</dd>
 <dd>@Entity는 클래스 위에 붙여 &quot;이 클래스의 객체는 데이터베이스 테이블의 한 행으로 저장된다&quot;고 표시하는 애너테이션이다. JPA 명세는 엔티티 클래스가 이 애너테이션을 갖거나 XML 설정 파일에 엔티티로 선언되어야 한다고 정하며, 클래스는 인자 없는 생성자(public 또는 protected)를 가져야 하고 final이어서는 안 된다. 이름을 따로 적지 않으면 클래스 이름이 엔티티 이름이 되고, 테이블 이름도 기본으로 이 이름을 따른다. @Entity가 없는 클래스는 JPA에 등록해도 엔티티로 받아들여지지 않으므로, 그 클래스의 객체를 em.persist로 넘기면 오류가 난다.</dd>
 <dt>@Id</dt>
+<dd><b>왜 생겼나</b> — 객체 여러 개 가운데 어느 것이 DB의 어느 행인지 모르면, 값을 고치거나 지울 때 어느 행을 바꿀지 정할 수 없다. @Id는 그 짝을 맞추는 기준이 될 필드를 정해서, JPA가 그 값으로 행을 찾게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 보통 Long 타입의 id 필드에 붙이고, @GeneratedValue를 함께 붙여 번호를 직접 정하지 않고 저절로 매기게 한다. 리포지토리의 findById로 찾을 때 넘기는 값이 이 필드의 값이다.</dd>
 <dd>@Id는 엔티티의 필드(또는 getter) 위에 붙여 &quot;이 값이 기본 키&quot;라고 표시하는 애너테이션이다. JPA 명세는 모든 엔티티에 기본 키가 있어야 한다고 정하며, 한 필드로 이루어진 단순한 기본 키는 그 필드에 @Id를 붙여 선언한다. 기본 키는 엔티티의 객체 하나를 구별하는 값이므로, 객체를 저장한 뒤에는 바꾸지 않아야 한다. @Id를 필드에 붙이면 JPA가 필드로 값을 읽고 쓰고(필드 접근), getter에 붙이면 getter로 읽고 쓴다(프로퍼티 접근). @Entity가 붙은 클래스에 @Id가 없으면 JPA는 시작할 때 오류를 내고 멈춘다.</dd>
 <dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd><b>왜 생겼나</b> — ORM 라이브러리를 그 라이브러리만의 API로 쓰면 다른 구현으로 바꿀 때 코드를 모두 고쳐야 한다. JPA는 매핑 애너테이션과 EntityManager 사용법을 표준으로 정해, 코드는 표준을 따르고 실제 동작은 Hibernate 같은 구현이 맡게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot에서 spring-boot-starter-data-jpa를 추가하면 셋을 함께 쓰게 되고 구현은 Hibernate가 기본이다.</dd>
 <dd>JPA는 자바의 ORM 표준 명세로, 어떤 기능을 어떻게 사용할지 정한 규칙(인터페이스)이다. Hibernate는 그 명세를 실제로 구현한 라이브러리다. Spring Data JPA는 JPA를 더 쉽게 쓰도록 리포지토리 인터페이스를 제공하는 스프링의 모듈이며 내부적으로 JPA(Hibernate)를 사용한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -101,6 +108,10 @@ em.getTransaction().commit();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +185,10 @@ em.getTransaction().commit();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

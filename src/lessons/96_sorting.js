@@ -1,6 +1,8 @@
 Lab.register({
   id: 'sorting', nav: '정렬과 Comparator', cat: '자료구조', mode: 'step',
   title: '정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나',
+  why: '정렬 코드를 원소의 타입이나 기준마다 새로 적으면, 회원을 나이순으로, 상품을 가격순으로 정렬할 때마다 비슷한 정렬 코드를 또 만들어야 한다. Comparable과 Comparator는 비교 기준만 따로 떼어 내는 인터페이스다. List.sort, Arrays.sort 같은 정렬 메서드는 정렬 절차를 한 벌만 두고 두 원소의 앞뒤만 compareTo나 compare로 물어서, 정렬 코드를 고치지 않고 기준만 바꿔 끼울 수 있게 한다.',
+  use: '목록을 금액순, 날짜순으로 보여 줄 때 list.sort나 스트림의 sorted에 Comparator.comparing으로 만든 기준을 넘긴다. 기준이 둘 이상이면 thenComparing으로 잇고, 내림차순은 reversed로 만든다. TreeMap, TreeSet, PriorityQueue에 순서를 정해 줄 때도 Comparator를 넘긴다.',
   intro: '정렬은 "둘 가운데 어느 것이 앞인가"를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator).',
   terms: ['Comparable과 Comparator', '안정 정렬', '정수 오버플로', '메서드 참조', '람다 표현식'],
   controls: [

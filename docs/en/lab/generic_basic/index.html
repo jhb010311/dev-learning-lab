@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Generics</h1>
 <p><b>What does the &lt;String&gt; in List&lt;String&gt; do?</b></p>
+<p><b>Why it exists</b> — To use the same list class for both String and Integer, you would have to make it accept any object, but then the compiler cannot check what you meant to put in. If you make a separate list for each kind, you have to repeat the same code. Generics let you write a class such as ArrayList only once and let the side that uses it write the kind, like &lt;String&gt;, so one piece of code handles several kinds while the compiler still checks.</p>
+<p><b>Where it's used today</b> — You see them almost every time you use Java collections, such as List&lt;String&gt; and Map&lt;String, Integer&gt;. They also appear in Spring in forms such as ResponseEntity&lt;String&gt;, which is used when returning a response. A raw type, which is written without &lt;&gt;, remains for use with old code from before generics existed, so you do not use it in new code.</p>
 <p>The &lt;String&gt; in List&lt;String&gt; is a marker that tells the compiler, &quot;this list holds only String.&quot; With this marker, the compiler blocks any line that tries to add something that is not a String, and it also knows that what you take out of the list is a String, so it lets you store it straight into a String variable. Without the marker, the list accepts any object, and the compiler does not know what you take out. So you must write (String) yourself every time you take something out, and a wrong item is not found when you compile but only at run time, at the moment you take it out. In this lab you change &lt;String&gt;, the value you add, and (String), then compile and run the same code, and you see what the compiler reports and what is printed.</p>
 <p>Checked against real execution · Eight combinations were compiled with javax.tools on JDK 21, run, and checked</p>
 <h2>Concepts in this lab</h2>
@@ -94,6 +96,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -167,9 +173,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

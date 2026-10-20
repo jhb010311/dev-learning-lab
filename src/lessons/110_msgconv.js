@@ -1,6 +1,8 @@
 Lab.register({
   id: 'msgconv', nav: 'REST API와 메시지 컨버터', cat: '스프링', mode: 'step',
   title: '컨트롤러가 돌려준 객체는 어디서 JSON이 되나',
+  why: '자바 객체를 HTTP 응답으로 보내려면 누군가 그것을 JSON 같은 글자로 바꿔야 하는데, 컨트롤러마다 이 변환을 직접 하면 문자열을 이어 붙이거나 변환 라이브러리를 부르는 코드가 반복되고 형식도 어긋나기 쉽다. 스프링의 HttpMessageConverter는 이 변환을 컨트롤러 밖으로 빼서, 컨트롤러는 자바 객체만 받고 돌려주면 되게 했다.',
+  use: '@RestController로 만든 JSON API에서 요청 본문을 객체로 받고 객체를 응답으로 돌려줄 때 쓰인다. 스프링 부트는 Jackson을 쓰는 JSON 컨버터를 기본으로 등록하며, 날짜를 적는 형식이나 null인 필드를 뺄지 같은 JSON 모양은 Jackson 설정으로 바꾼다. 파일 내려받기처럼 바이트를 그대로 보내는 응답은 byte[]나 Resource를 돌려주어 그에 맞는 컨버터가 맡게 한다.',
   intro: '컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다.',
   terms: ['HttpMessageConverter', '@Controller와 @RestController', '콘텐츠 협상(Accept와 Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [

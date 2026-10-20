@@ -1,6 +1,8 @@
 Lab.register({
   id: 'iso', nav: 'Isolation levels', cat: 'Database', mode: 'step',
   title: 'How does data that another transaction is changing look to me?',
+  why: 'Lining up all concurrently running transactions in one line and running them one after another is the safest, but it greatly reduces the amount that can be processed at the same time. The transaction isolation level sets in steps how far to allow phenomena such as reading a value before it is committed, a value changing when it is read again, and a row appearing that was not there, so that it blocks only as much as needed and lets the rest run concurrently.',
+  use: 'Usually you use the database\'s default isolation level as it is, and in Spring you change it with @Transactional(isolation = ...) only for the transactions that really need it. Consider the isolation level when values read several times in one transaction must agree with each other, as in settlement or statistics. A problem where the same row is changed concurrently, such as an inventory decrease, is prevented with a lock or an UPDATE with a condition rather than by relying on the isolation level.',
   intro: 'While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.',
   terms: ['Transaction isolation level', 'Dirty read', 'Non-repeatable read', 'Phantom read', 'MVCC (multiversion concurrency control)', 'Undo log and redo log', 'Shared locks and exclusive locks'], ranks: ['isolation', 'dbengine'],
   controls: [

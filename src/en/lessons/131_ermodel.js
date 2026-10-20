@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ermodel', nav: 'ER modeling', cat: 'Database', mode: 'step',
   title: 'How do you turn the relationships between entities into tables?',
+  why: 'If you create tables right away, you easily end up with structures that work for now but are hard to search and add to, such as a tag column joined with commas or columns like tag1 to tag3. The ER model has you first sort out what to store and how things are connected, in what ratio, so that you can choose the foreign keys and join tables that fit the kind of relationship.',
+  use: 'When you design the database of a new service, you draw the entities and relationships, such as member, order, and product, as an ERD and review it together, and from that diagram you create CREATE TABLE statements or JPA entities. When features are added, you also first think in the ERD about how a new entity will connect to the existing tables. When you take over an existing database for the first time, you also look at the ERD first to understand the relationships between the tables.',
   intro: 'You turn three relationships into tables: members and posts (one-to-many), posts and tags (many-to-many), and members and profiles (one-to-one). For each relationship, a common design is placed next to a design that looks plausible but goes wrong. Give both the same job (finding what is connected, or connecting one more), and the query results differ.',
   terms: ['Entity-relationship model (entities, attributes, relationships)', 'Types of relationships (one-to-one, one-to-many, many-to-many)', 'Associative table', 'Primary key, unique key, foreign key'],
   controls: [

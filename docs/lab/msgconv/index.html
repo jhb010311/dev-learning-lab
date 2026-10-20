@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>REST API와 메시지 컨버터</h1>
 <p><b>컨트롤러가 돌려준 객체는 어디서 JSON이 되나</b></p>
+<p><b>왜 생겼나</b> — 자바 객체를 HTTP 응답으로 보내려면 누군가 그것을 JSON 같은 글자로 바꿔야 하는데, 컨트롤러마다 이 변환을 직접 하면 문자열을 이어 붙이거나 변환 라이브러리를 부르는 코드가 반복되고 형식도 어긋나기 쉽다. 스프링의 HttpMessageConverter는 이 변환을 컨트롤러 밖으로 빼서, 컨트롤러는 자바 객체만 받고 돌려주면 되게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — @RestController로 만든 JSON API에서 요청 본문을 객체로 받고 객체를 응답으로 돌려줄 때 쓰인다. 스프링 부트는 Jackson을 쓰는 JSON 컨버터를 기본으로 등록하며, 날짜를 적는 형식이나 null인 필드를 뺄지 같은 JSON 모양은 Jackson 설정으로 바꾼다. 파일 내려받기처럼 바이트를 그대로 보내는 응답은 byte[]나 Resource를 돌려주어 그에 맞는 컨버터가 맡게 한다.</p>
 <p>컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 열여섯 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,12 +40,18 @@
 <dt>HttpMessageConverter</dt>
 <dd>HTTP 요청 본문을 자바 객체로, 자바 객체를 HTTP 응답 본문으로 변환하는 구성 요소다. @RequestBody와 @ResponseBody가 이를 사용한다. JSON의 경우 Jackson 라이브러리를 이용한 컨버터가 변환을 맡는다.</dd>
 <dt>@Controller와 @RestController</dt>
+<dd><b>왜 생겼나</b> — JSON API를 만들 때 @Controller만 쓰면 메서드마다 @ResponseBody를 붙여야 했다. @RestController는 클래스에 한 번만 붙이면 모든 메서드의 반환값이 응답 본문이 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JSON을 주고받는 API 서버는 @RestController를, Thymeleaf 같은 템플릿으로 HTML 화면을 그리는 곳은 @Controller를 쓴다.</dd>
 <dd>@Controller의 메서드가 반환한 문자열은 기본적으로 뷰 이름으로 해석된다. @RestController는 @Controller에 @ResponseBody를 더한 것으로, 메서드가 반환한 객체가 JSON 등으로 변환되어 응답 본문에 바로 쓰인다.</dd>
 <dt>콘텐츠 협상(Accept와 Content-Type)</dt>
 <dd>응답 본문을 어떤 형식으로 받을지 클라이언트와 서버가 헤더로 맞추는 일이다. 클라이언트는 Accept 헤더로 받고 싶은 응답의 형식을 알리고, 서버는 그 가운데 만들 수 있는 형식을 골라 응답의 Content-Type 헤더에 적어 보낸다. 요청에 본문이 있을 때는 클라이언트가 그 본문의 형식을 요청의 Content-Type 헤더로 알리는데, 이것은 협상이 아니라 보내는 쪽이 알려 주는 것이다. 값은 application/json이나 text/html 같은 미디어 타입으로 적는다. 서버가 요청 본문의 형식을 읽지 못하면 415(Unsupported Media Type)로, 원하는 형식의 응답을 만들지 못하면 406(Not Acceptable)으로 응답한다. 스프링은 본문의 내용을 보고 형식을 짐작하지 않고 Content-Type 헤더를 따르므로, JSON을 보내면서 Content-Type을 다르게 적으면 읽지 못한다.</dd>
 <dt>ResponseEntity</dt>
+<dd><b>왜 생겼나</b> — 객체만 돌려주는 컨트롤러에서 상태 코드를 경우마다 바꾸거나 헤더를 붙이려면 HttpServletResponse를 따로 받아 손대야 한다. ResponseEntity는 이것까지 반환값 하나로 정하게 해서, return 문만 보고 응답의 모양을 알 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 글을 새로 만든 뒤 201과 Location 헤더를 보내거나, 대상이 없을 때 ResponseEntity.notFound().build()로 404를 보낼 때 쓴다. 상태 코드가 늘 같으면 객체를 그대로 돌려주고 필요하면 @ResponseStatus를 붙인다.</dd>
 <dd>응답의 상태 코드와 헤더, 본문을 한꺼번에 담아 컨트롤러가 돌려주는 객체다. 객체만 돌려주면 상태 코드는 200으로 정해지지만, ResponseEntity.status(201).body(객체)나 ResponseEntity.created(주소).body(객체)처럼 쓰면 상태 코드와 헤더를 컨트롤러가 직접 정할 수 있다. 본문으로 담은 객체는 그냥 돌려줄 때와 똑같이 메시지 컨버터가 JSON 등으로 바꾼다. 경우에 따라 다른 상태 코드를 돌려줘야 하는 메서드나 @ExceptionHandler에서 주로 쓴다.</dd>
 <dt>ViewResolver</dt>
+<dd><b>왜 생겼나</b> — 컨트롤러가 템플릿 파일 경로와 화면 기술을 직접 적으면, 템플릿 위치나 엔진을 바꿀 때 컨트롤러를 모두 고쳐야 한다. ViewResolver는 컨트롤러가 이름만 돌려주게 하고, 그 이름을 실제 템플릿으로 잇는 일을 설정 한곳에 모았다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Spring Boot에서 Thymeleaf를 쓰면 컨트롤러가 home이라는 이름을 돌려줄 때 templates/home.html을 찾는 ViewResolver가 자동으로 등록된다. 관리자 화면처럼 서버에서 HTML을 그리는 페이지에 쓴다.</dd>
 <dd>컨트롤러가 반환한 뷰 이름(문자열)을 실제 화면을 그릴 뷰 객체로 바꿔 주는 구성 요소다. 서버에서 HTML을 만들어 응답하는 방식에서 사용하며, JSON을 직접 응답하는 REST API에서는 사용되지 않는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -101,6 +109,10 @@ class OrderController {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +186,10 @@ class OrderController {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

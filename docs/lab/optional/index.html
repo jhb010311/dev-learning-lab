@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
 <h1>Optional</h1>
 <p><b>값이 있는데도 orElse의 기본값 코드는 왜 실행되나</b></p>
+<p><b>왜 생겼나</b> — null을 돌려주는 메서드는 반환 타입만 봐서는 값이 없을 수 있다는 것을 알 수 없어서, 부르는 쪽이 null 검사를 빠뜨리면 한참 뒤의 다른 줄에서 NullPointerException이 났다. Optional은 &quot;없을 수 있음&quot;을 반환 타입에 드러내고, 값이 없을 때 쓸 기본값이나 처리를 orElse·map 같은 메서드로 꺼내는 자리에 바로 적게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 조회 결과가 없을 수 있는 메서드의 반환 타입에 쓴다. 스프링 데이터 JPA의 findById, 스트림의 findFirst와 max가 Optional을 돌려주는 대표적인 예다. 필드나 메서드 매개변수의 타입으로는 쓰지 않는 것이 일반적이고, 결과가 여러 개인 메서드는 Optional 대신 빈 리스트를 돌려준다.</p>
 <p>Optional은 값이 있을 수도 없을 수도 있다는 것을 나타내는 객체입니다. 값이 있으면 그 값을 가리키고, 없으면 비어 있습니다. 만드는 방법(of, ofNullable, empty)과 꺼내는 방법(get, orElse, orElseGet, map)에 따라, 값이 없을 때 예외가 나기도 하고 기본값이 쓰이기도 합니다. orElse와 orElseGet은 결과가 같아 보여도 기본값을 만드는 코드가 실행되는 때가 다릅니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 출력과 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,14 @@
 <dt>Optional</dt>
 <dd>값이 있을 수도 없을 수도 있음을 타입으로 표현하는 컨테이너 클래스다. 메서드가 null을 반환하는 대신 Optional을 반환하면 호출하는 쪽이 값이 없는 경우를 처리하도록 유도할 수 있다. 주로 메서드의 반환 타입으로 사용한다.</dd>
 <dt>orElse와 orElseGet</dt>
+<dd><b>왜 생겼나</b> — Optional에서 값을 꺼낼 때마다 isPresent()로 확인하고 get()을 부르는 if문을 쓰면 코드가 길어지고, 확인 없이 get()을 부르는 실수도 생긴다. orElse와 orElseGet은 &quot;비었으면 이것&quot;을 한 번의 호출로 적게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 설정값이 없으면 정해 둔 기본값을 쓰는 곳에는 orElse를, 비었을 때 DB를 다시 조회하거나 새 객체를 만들어 저장해야 하는 곳에는 orElseGet을 쓴다. 비었을 때 기본값 대신 예외를 던지려면 orElseThrow를 쓴다.</dd>
 <dd>Optional이 비어 있을 때 대신 쓸 기본값을 정하는 두 메서드다. orElse(값)은 기본값 자체를 인자로 받고, orElseGet(함수)는 기본값을 만들어 내는 함수(람다)를 받는다. 자바는 메서드를 호출하기 전에 인자를 먼저 계산하므로, orElse(makeDefault())라고 쓰면 Optional에 값이 있어도 makeDefault()가 실행된다. orElseGet은 비어 있을 때에만 넘겨받은 함수를 실행한다. 그래서 기본값을 만드는 데 시간이 걸리거나 저장, 기록 같은 다른 일이 함께 일어난다면 orElseGet을 쓴다.</dd>
 <dt>NullPointerException</dt>
 <dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. null인지 아닌지는 실행 중의 값에 달려 있어서 컴파일러가 미리 잡아 주지 못하고, 실행해 봐야 드러난다(Unchecked 예외라 처리를 강제하지도 않는다). null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
 <dt>지연 평가(Lazy Evaluation)</dt>
+<dd><b>왜 생겼나</b> — 계산을 즉시 하면 결국 쓰이지 않을 값까지 만들고, 단계마다 중간 결과를 모두 저장해야 한다. 지연 평가는 실제로 쓰일 때까지 계산을 미뤄 그 낭비를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Optional의 orElseGet은 값이 없을 때만 Supplier를 실행하고, java.util.logging의 Logger는 Supplier를 받으면 그 수준의 로그가 꺼져 있을 때 메시지 문자열을 만들지 않는다.</dd>
 <dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 비로소 실행되고 원소가 하나씩 파이프라인을 지나가며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
 <dt>람다 표현식</dt>
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
@@ -101,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

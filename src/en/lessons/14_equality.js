@@ -1,6 +1,8 @@
 Lab.register({
   id: 'eq', nav: '== and equals', cat: 'Java language', mode: 'step',
   title: 'Why is == false when the values are the same?',
+  why: 'If the equality of objects is judged only by whether they are the same object, as with ==, there is no way to treat as the same the same string or the same member number created at different times. equals is the method that lets a class decide for itself "what counts as the same," and standard classes such as String and Integer have already overridden it to compare by content.',
+  use: 'Use equals to compare values that are objects, such as a string or an id received as a Long, and use == for primitive values, enums, and when you really want to check whether it is the same object. To use a class you made yourself as a key of a HashMap or an element of a HashSet, override equals and hashCode together, and compare values that may be null with Objects.equals.',
   intro: '== compares whether two variables refer to the same object, and equals compares whether the contents are the same. Depending on how they are created, strings and Integer objects are sometimes reused and sometimes created anew, so the result of == can differ even when the values are the same.',
   terms: ['Identity and equality', 'String pool', 'Boxing and unboxing', 'Immutable object'], ranks: ['string', 'equals'],
   controls: [

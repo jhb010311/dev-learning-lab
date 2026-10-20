@@ -1,6 +1,8 @@
 Lab.register({
   id: 'thread', nav: 'Creating threads and thread states', cat: 'Concurrency', mode: 'step',
   title: 'Why does calling run() directly not create a new thread?',
+  why: 'A program with only one flow of execution stops and cannot do other work while it reads a file or waits for a response from another server. Java\'s Thread puts several flows of execution in one program, so that while one flow waits, another flow does work. A new flow is created only when you call start(), and run() is the method in which you write the task that flow will execute.',
+  use: 'With default settings, Tomcat handles each request with one thread from a thread pool, so even Spring MVC controller code runs on several threads at the same time. In real code, instead of creating new Thread directly, you hand the work to an ExecutorService or to Spring\'s @Async. You look at thread states when you search for BLOCKED or WAITING threads in the thread dump of a stopped server.',
   intro: 'Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates.',
   terms: ['Processes and threads', 'Thread states', 'start() and run()', 'join()', 'Interrupt'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Inside HashMap</h1>
 <p><b>Where does a HashMap put a key, and how does it find it?</b></p>
+<p><b>Why it exists</b> — If you keep data in a list and search it, you have to compare from the beginning, one item at a time, on every search, so it gets slower as the number of items grows. A HashMap decides the slot where an item is stored directly from the hash code calculated from its key, so even as the number of items grows, it usually finds a value after a few comparisons.</p>
+<p><b>Where it's used today</b> — It is most commonly used where you often need to get &quot;the value for this key&quot;. Examples are finding member information by member number, counting each word, and a table that holds data briefly while a request is being handled. If you need the order of insertion, use LinkedHashMap instead. If you need sorted order, use TreeMap.</p>
 <p>A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.</p>
 <p>Checked against real execution · Checked against the internals of a real HashMap on JDK 21 over 360 steps</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Hash collision</dt>
 <dd>This happens when different keys are assigned to the same bucket. It cannot be avoided because the number of buckets is finite. Java's HashMap links the entries of the same bucket in a linked list, and when too many entries gather in one bucket, it converts the list to a red-black tree to shorten the search time. More collisions mean lower performance, so hashCode must spread values evenly.</dd>
 <dt>Load factor and resizing</dt>
+<dd><b>Why it exists</b> — If the number of buckets is fixed, the more entries there are, the more of them crowd into one bucket, and lookups take longer. The load factor sets the point at which to add buckets before that happens, so each bucket keeps few entries.</dd>
+<dd><b>Where it's used today</b> — Usually the default of 0.75 is left as it is. When you know how many entries you will add, new HashMap&lt;&gt;(count) alone may not avoid resizing, so give a capacity larger than the count divided by 0.75.</dd>
 <dd>The load factor is the ratio that decides how full a hash table can get before its size is increased. The default for HashMap is 0.75: when the number of stored entries exceeds 75% of the number of buckets, the number of buckets is doubled and the entries are placed again (resizing). Resizing is expensive, so if you know how much you will add, it is better to set the initial capacity in advance.</dd>
 <dt>Red-black tree</dt>
+<dd><b>Why it exists</b> — An ordinary binary search tree grows to only one side if you insert values in sorted order, becomes like a list, and takes O(n) to search. A red-black tree limits the height with rotations and color changes on insertion and removal, so it keeps O(log n) even for such input.</dd>
+<dd><b>Where it's used today</b> — You rarely implement it yourself; you use it indirectly through TreeMap and TreeSet, when you take keys out in sorted order or look for the first key greater than some value.</dd>
 <dd>This is a kind of self-balancing binary search tree. On every insertion and removal, it adjusts its structure by a set of rules so that it does not lean to one side, so lookup, insertion, and removal are always O(log n). It is used in Java's TreeMap and TreeSet, and in HashMap buckets that have many collisions.</dd>
 <dt>equals and hashCode contract</dt>
 <dd>This is the rule that two objects that are equal according to equals() must return the same hashCode() value. A HashMap or HashSet first uses the hash value to find the storage location and then compares with equals inside it, so if you override only equals, an object with the same contents cannot be found. For this reason, always override both methods together, based on the same fields.</dd>
@@ -116,6 +122,10 @@ map.get(new MemberKey(ids[0]));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -189,9 +199,10 @@ map.get(new MemberKey(ids[0]));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

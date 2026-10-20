@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Servlets</h1>
 <p><b>Which class is called a servlet?</b></p>
+<p><b>Why it exists</b> — To answer a web request in Java, you originally have to write everything yourself: accepting the network connection, reading the incoming text and splitting it into the address and headers, and building and sending the response text. A servlet is the standard Java web way of dividing this work so that a servlet container such as Tomcat handles these tasks, and the developer only writes a method (doGet) that says &quot;when a GET request comes to this address, answer like this.&quot;</p>
+<p><b>Where it's used today</b> — These days you rarely write a servlet class yourself, and you use a Spring controller instead. Even so, when Spring Boot runs, it registers one servlet (DispatcherServlet) with Tomcat and has it receive all requests, so you often see the name servlet in error messages and logs.</p>
 <p>A servlet is a Java class declared with class. It differs from an ordinary class in two places. extends HttpServlet is what qualifies the class to receive web requests, and @WebServlet(&quot;/hello&quot;) registers that a request the browser sends to the path /hello is handed to this class. You remove these two one at a time and send the same request, to see whether Tomcat calls the doGet of this class.</p>
 <p>Checked against real execution · Deployed all 12 combinations on Tomcat 11.0.24, sent requests, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Servlet class</dt>
 <dd>A servlet class is a Java class that implements the Servlet interface. Instead of implementing the interface directly, you usually extend HttpServlet, which already implements it. The developer does not create an object of a servlet class with new. The servlet container creates it, and when a request arrives, the container calls a method of that object. The container creates only one object for each servlet declaration and keeps using it. Both the class and the object that the container created are called a servlet.</dd>
 <dt>HttpServlet</dt>
+<dd><b>Why it exists</b> — The Servlet interface is not made only for HTTP, so if you implement it as it is, you must first sort out whether the request is GET or POST yourself. HttpServlet does that in advance, so you write only doGet or doPost to make a servlet that answers HTTP requests.</dd>
+<dd><b>Where it's used today</b> — DispatcherServlet, which Spring registers in Tomcat, is also a class that extends HttpServlet, so in the error log of a Spring server you often see the line HttpServlet.service. When you receive requests with only servlets without Spring, you extend this class and override doGet and doPost.</dd>
 <dd>HttpServlet is an abstract class in the servlet API that you extend to make a servlet that receives HTTP requests. It already implements the Servlet interface that every servlet must implement, so the developer only writes extends HttpServlet and overrides methods such as doGet or doPost. When a request arrives, the service method of HttpServlet looks at the HTTP method of the request and calls the matching doXxx method. If a request comes in for a doXxx method that was not overridden, an error response saying that the HTTP method is not supported is sent.</dd>
 <dt>@WebServlet</dt>
+<dd><b>Why it exists</b> — When there were no annotations, the name and address of each servlet had to be written separately in the web.xml file, so a class and the address it handles were split across different files. @WebServlet lets you write the address right above the class, so that you can tell from the code alone which address it handles.</dd>
+<dd><b>Where it's used today</b> — You use it when you build a small web program with only servlets without Spring, or when you learn servlets. In a Spring Boot project, instead of this, you decide the address by attaching an annotation such as @GetMapping to a controller method.</dd>
 <dd>@WebServlet is an annotation that declares a class as a servlet and writes the paths (URL patterns) that the servlet handles. When the servlet container deploys the application, it reads this annotation and pairs the paths with the servlet. At least one path must be written, and a class with this annotation must extend HttpServlet. Adding the annotation does not turn an ordinary class into a servlet. The same registration can also be written in a configuration file called web.xml.</dd>
 <dt>Servlet and servlet container</dt>
 <dd>A servlet is the Java standard interface that receives an HTTP request, processes it, and produces a response. A servlet container (such as Tomcat) accepts network connections, parses requests, calls the right servlet, and manages the servlet lifecycle and the request-handling threads. Spring MVC runs on top of a single servlet called DispatcherServlet.</dd>
@@ -91,6 +97,10 @@ public class Hello extends HttpServlet {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ public class Hello extends HttpServlet {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Redirection</h1>
 <p><b>When a server says &quot;go to another address&quot;, how does the next request go out?</b></p>
+<p><b>Why it exists</b> — When a page's address changes, links and bookmarks that point to the old address get a 404. Also, if the response that handles a form shows the result page right away, refreshing the page can submit the same form again. With redirection, the server only tells the client the new address and leaves the trip to that address to the client, so the old address can stay alive, and handling a form and viewing the result can be split into separate requests.</p>
+<p><b>Where it's used today</b> — It is used to send requests that came in over http to https, to connect an old address to a new one after a site has moved, to send users who have not logged in to the login page, and to move on to a result page after a form is handled. In Spring MVC, when a method of a @Controller returns &quot;redirect:/orders&quot; as the view name, a 302 response is sent. When you only need to hand the request to another handler on the same server, use a forward, which does not go through the client.</p>
 <p>Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client &quot;send the request again to this address&quot;. This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept.</p>
 <p>Checked against real execution · Ran 30 combinations against a test server (127.0.0.1) with fetch in Node 24 and curl 8.21 (-L) and checked them against the model. The permanent and temporary distinction and the wording of the standard follow RFC 9110 section 15.4</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Redirection and the Location header</dt>
 <dd>A redirection is a response in which the server, instead of handling the request itself, tells the client to send the request again to another address. Its status code is 3xx, and the next address to request is written in the Location header of the response. It is the client, not the server, that sends the request to that address again, and the client also decides whether to follow it. 301 and 308 mean a permanent redirect, 302 and 307 mean a temporary redirect, and 307 and 308 do not allow the method and the body of the next request to change. If two addresses point to each other, the redirection never ends, so a client reports an error and stops when it goes past a limit it has set.</dd>
 <dt>Post-Redirect-Get pattern</dt>
+<dd><b>Where it's used today</b> — It is used on screens that send a form with POST, such as sign-up, orders, and writing a post. In Spring MVC, you return an address that starts with &quot;redirect:&quot;, and pass a message to be shown only once on the result screen with addFlashAttribute() of RedirectAttributes.</dd>
 <dd>This is an approach in which a server that receives a form with POST does not return the result page right away, but redirects to the address where the result can be seen. The browser requests that address with GET, so the last request that remains on the screen is a GET. Because of this, if the user presses refresh, the POST is not sent again, which prevents an order or a payment from being processed twice. The right status code for this redirect is 303 See Other, which means &quot;retrieve the result from another address with GET&quot;, and 302 is also widely used by convention.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 <dt>HTTP methods</dt>
 <dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
@@ -99,6 +104,10 @@ await fetch('http://shop.example/order', {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +181,10 @@ await fetch('http://shop.example/order', {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

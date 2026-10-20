@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Messaging and asynchronous processing</p>
 <h1>Message queue basics</h1>
 <p><b>Leave a note instead of calling directly</b></p>
+<p><b>Why it exists</b> — If one server calls another server directly and waits until it finishes, the response is delayed as much as the other side is slow, and if the other side is stopped, the request fails too. A message queue puts a place between the two servers where messages are stored, so the sending side responds without waiting for the result, and the receiving side, after stopping and coming back, processes the backed-up messages starting with the oldest.</p>
+<p><b>Where it's used today</b> — It is used to hand off follow-up work that the response does not immediately need, such as sending a confirmation email after an order or creating a thumbnail of an uploaded image, and tools such as RabbitMQ, Kafka, and Amazon SQS do this job. It is also used when several services must each receive and process one event. For work where you must receive the result before going to the next step, such as payment approval, a direct call is kept.</p>
 <p>When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says &quot;send the email&quot; in a queue and respond right away.</p>
 <p>Conceptual model · A conceptual model (not checked against a real message queue)</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>Message queue</dt>
 <dd>An intermediate store that sits between the sending side (the producer) and the receiving side (the consumer), holds messages, and then delivers them. The producer puts a message in and moves straight on to its next work, and the consumer takes messages out and processes them at its own pace. The two systems do not call each other directly, so coupling is lower, and a sudden burst of requests can be piled up and processed later.</dd>
 <dt>Synchronous and asynchronous</dt>
+<dd><b>Why it exists</b> — If every call is synchronous, you must wait for even a task that takes long but whose result is not needed right away, such as sending an email, so the response becomes slow. The asynchronous approach hands off the work, moves on to the next thing first, and receives the result later.</dd>
+<dd><b>Where it's used today</b> — A call whose result decides the next step, such as payment approval, is made synchronously, and work that may finish later, such as sending a notification or aggregating statistics, is handled asynchronously with a message queue or @Async.</dd>
 <dd>Synchronous means that the side that requests a task waits until it receives the result and only then moves on. Asynchronous means that the requester starts the task and moves on to the next work without waiting for the result, and the result is delivered later through a callback, a Future, or a similar means.</dd>
 <dt>Pub/Sub</dt>
+<dd><b>Why it exists</b> — If the sender knows each receiver and calls them directly, the sending code has to change every time a receiver is added. With Pub/Sub, publishing once to a topic delivers the message to everyone subscribed, so the sender stays the same even when receivers increase.</dd>
+<dd><b>Where it's used today</b> — It is used to send a message to chat users who are connected across several servers, or to send a notice of a configuration change or a cache deletion to all servers. For messages that must not be missed, use Kafka or Redis Streams, which keep a record.</dd>
 <dd>A messaging approach in which a publisher sends a message to a specific topic (channel) and every subscriber that is subscribed to that topic receives the message. Publishers and subscribers do not need to know each other. The Redis version does not store messages, so a subscriber that is not connected at that moment does not receive the message.</dd>
 <dt>Message delivery guarantees</dt>
 <dd>The level of guarantee about how many times a message is delivered. With at-most-once, a message is delivered at most one time, so there are no duplicates but messages can be lost. With at-least-once, a message is delivered at least one time, so nothing is lost but duplicates can occur. With exactly-once, a message is delivered exactly one time. In practice, systems often use at-least-once and make the consumer handle duplicates (idempotent).</dd>
@@ -87,6 +93,10 @@ OrderDto order(@RequestBody OrderRequest req) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +170,10 @@ OrderDto order(@RequestBody OrderRequest req) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

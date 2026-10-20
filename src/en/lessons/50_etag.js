@@ -1,6 +1,8 @@
 Lab.register({
   id: 'etag', nav: 'HTTP caching and ETag', cat: 'HTTP', mode: 'step',
   title: 'Do we have to fetch the same file again?',
+  why: 'If a browser downloads images, scripts, and API responses from scratch every time it opens a page, it spends transfer volume and waiting time on every visit even when nothing has changed, and the server repeats the same work. HTTP caching and the ETag have the server attach a reuse rule and a version tag to each response, so the client downloads only what has changed.',
+  use: 'JS and CSS files with a hash in their names get a long max-age, and the name changes at deployment so that clients fetch the new file. Frequently changing API responses get an ETag, which Spring adds through eTag() on ResponseEntity or through ShallowEtagHeaderFilter. Responses that must not be kept, such as personal information or payment pages, are protected with no-store, which prevents them from being stored.',
   intro: 'A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, "how long it may use the response as it is" and "a tag for the version of the content (the ETag)", the browser can skip the request altogether or ask only "has it changed?".',
   terms: ['Conditional requests and ETag', 'HTTP status codes', 'Cache', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [

@@ -14,6 +14,9 @@ module.exports = [
   [`aria-pressed="false">테스트</button>`, `aria-pressed="false">Quiz</button>`],
   // ── lab page (HTML)
   [`<h3>이 실습에서 보는 것</h3>`, `<h3>What this lab shows</h3>`],
+  [`<h3>왜 생겼나</h3>`, `<h3>Why it exists</h3>`],
+  [`<h3>지금 어디에 쓰나</h3>`, `<h3>Where it's used today</h3>`],
+  [`var WU = { why: '왜 생겼나', use: '지금 어디에 쓰나' };`, `var WU = { why: 'Why it exists', use: "Where it's used today" };`],
   [`'개념 설명 접기'`, `'Show fewer concepts'`],
   [`'개념 ' + (cur.explain || []).length + '개 모두 보기'`, `'Show all ' + (cur.explain || []).length + ' concepts'`],
   [`<h3>이 실습에 나오는 개념</h3>`, `<h3>Concepts in this lab</h3>`],

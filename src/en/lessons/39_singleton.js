@@ -1,6 +1,8 @@
 Lab.register({
   id: 'singleton', nav: 'Singleton beans and state', cat: 'Spring', mode: 'step',
   title: 'My order shows someone else\'s name',
+  why: 'A singleton bean\'s fields are seen by all request threads, so a per-request value cannot be put there, and passing a value such as the current user as a parameter of every method makes the arguments grow at every call site. ThreadLocal gives each thread its own value even for the same variable, so that code running in the thread that handles one request can take that request\'s value from anywhere.',
+  use: 'Spring Security\'s SecurityContextHolder, Spring\'s transaction synchronization (remembering the DB connection currently in use), and SLF4J\'s MDC, which prints a request ID together with the log, keep their values in ThreadLocal by default. Because a thread pool reuses threads, the value must be cleared with remove when the request ends, and in places that continue in another thread, such as @Async, the value does not follow unless it is passed separately.',
   intro: 'By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value.',
   terms: ['Stateless singleton beans', 'Bean scope', 'ThreadLocal', 'Thread safety', 'Race condition'], ranks: ['bean', 'di', 'concurrency'],
   controls: [

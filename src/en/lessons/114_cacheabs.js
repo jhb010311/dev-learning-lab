@@ -1,6 +1,8 @@
 Lab.register({
   id: 'cacheabs', nav: 'Cache abstraction', cat: 'Spring', mode: 'step',
   title: 'With @Cacheable on a method, when does the method body not run?',
+  why: 'To keep a query result in a cache, you had to write the code "look in the cache, and if it is not there, read from the database and put it in the cache" in every method, and if you changed the cache store from server memory to Redis, you had to change all that code. Spring\'s cache abstraction shortens this sequence to an annotation such as @Cacheable and lets you choose the actual store in the CacheManager settings, so the business code does not need to know the kind of store.',
+  use: 'You use it for query results that are read often but rarely change, such as product information, category lists, and common code tables. With one server, you attach a memory cache such as Caffeine as the store, and when several servers must see the same values, you attach Redis. For data that must always be the latest value, such as stock and balances, you do not use a cache or you keep it only for a very short time.',
   intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. The layer that Spring puts in between, so that the same annotations work with whatever cache store is used, is called the cache abstraction.',
   terms: ['@Cacheable', '@CacheEvict and @CachePut', 'Cache', 'Proxy', 'Self-invocation'],
   controls: [

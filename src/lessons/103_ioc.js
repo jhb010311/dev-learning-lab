@@ -1,6 +1,8 @@
 Lab.register({
   id: 'ioc', nav: '스프링 컨테이너와 빈', cat: '스프링', mode: 'step',
   title: 'new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나',
+  why: '객체가 쓸 객체를 직접 new로 만들면, 구현을 바꾸거나 테스트에서 가짜 객체로 바꾸려 할 때마다 그 객체를 쓰는 코드를 고쳐야 했다. 스프링 컨테이너는 무엇을 만들어 어디에 연결할지를 @Component나 @Bean 같은 설정으로 따로 정하게 하고, 기동할 때 그 설정대로 객체를 만들어 연결한다. 쓰는 쪽 코드는 인터페이스만 알면 된다.',
+  use: '스프링 애플리케이션의 컨트롤러, 서비스, 리포지토리는 보통 빈으로 등록하고 생성자 주입으로 서로 연결한다. 직접 작성한 클래스는 @Service, @Repository 같은 @Component 계열로, 외부 라이브러리의 객체는 @Configuration 클래스의 @Bean 메서드로 등록한다. 같은 인터페이스의 구현이 여럿이면 @Primary나 @Qualifier로 고른다.',
   intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 이 실습의 OrderService, DiscountPolicy, FixedDiscountPolicy, RateDiscountPolicy, AppConfig는 예시로 만든 클래스와 인터페이스입니다.',
   terms: ['IoC(제어의 역전)', '스프링 빈(Bean)', '@Configuration과 @Bean', '@Primary와 @Qualifier', 'NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException'],
   controls: [

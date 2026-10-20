@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
 <h1>Kubernetes self-healing</h1>
 <p><b>When a container dies, what starts it again?</b></p>
+<p><b>Why it exists</b> — When you run containers on several servers, every time a container dies or a server goes down, a person has to notice it, decide which server to start it on again, and issue the command. Handling night-time failures or dozens of containers by hand this way is difficult. Kubernetes has the cluster repeat that judgment and action by itself, so a person does not have to issue a command each time.</p>
+<p><b>Where it's used today</b> — It is used where services built as containers run spread across several servers. Common uses are rolling updates that replace Pods with the new version one after another at deployment, autoscaling that increases the number of copies according to load, and failure handling combined with the liveness and readiness probes of Spring Boot Actuator. For a small service running on one or two servers the operating burden is large, so a simpler tool such as Docker Compose is sometimes used instead.</p>
 <p>In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Replacing a dead Pod with a new one without anyone stepping in, as happens here, is called self-healing.</p>
 <p>Checked against documentation and standards · The official Kubernetes documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,15 @@
 <dt>Kubernetes</dt>
 <dd>A platform that automates placing and managing containers across several servers. You declare a desired state (for example, run 3 copies of this application), and it keeps adjusting so that the actual state matches it. It restarts containers that die, adjusts their number according to load, and replaces them with a new version step by step.</dd>
 <dt>Pod, Deployment, and Service</dt>
+<dd><b>Where it's used today</b> — When you deploy a Spring Boot application to Kubernetes, you usually write one Deployment and one Service in YAML and apply them with kubectl apply. Other services call it by the Service name, and outside requests reach the Service through an Ingress.</dd>
 <dd>The basic building blocks of Kubernetes. A Pod is a group of one or more containers that run together and is the smallest unit of deployment. A Deployment manages how many Pods to keep and how to replace them with a new version. A Service provides an unchanging access address for Pods that change often, and it distributes requests among them.</dd>
 <dt>Health check (liveness, readiness)</dt>
+<dd><b>Why it exists</b> — If you do the check in only one way, the server may be restarted just because the database was briefly slow, or conversely requests keep being sent to a server that cannot take requests. Separating liveness and readiness lets you decide separately whether to restart it and whether to send requests.</dd>
+<dd><b>Where it's used today</b> — Have Kubernetes' livenessProbe and readinessProbe call Spring Boot Actuator's /actuator/health/liveness and /actuator/health/readiness, and for an application that takes a long time to start, add a startupProbe so that it is not restarted while it is starting.</dd>
 <dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
 <dt>Autoscaling</dt>
+<dd><b>Why it exists</b> — If you fix the number of servers for the busiest time, you pay even in quiet hours, and if you fix it for ordinary times, the system cannot hold up when requests surge. Autoscaling changes the number of servers as needed according to metrics, so you do not have to give up either one.</dd>
+<dd><b>Where it's used today</b> — An AWS Auto Scaling group or a Kubernetes HorizontalPodAutoscaler adjusts the number of servers or Pods according to CPU utilization or request count. It is commonly used in shopping services and delivery services where usage differs greatly during the day.</dd>
 <dd>A feature that automatically increases or decreases the number of servers according to metrics such as CPU utilization or request count. It adds servers when load is high and removes them when load is low to save cost. It takes time for an added server to become able to take requests, so for a surge that is known in advance it is safer to add servers ahead of time.</dd>
 <dt>Containers and images</dt>
 <dd>A container is a technology that packages an application with the things it needs to run and runs it in an environment isolated from other processes, while sharing the kernel of the host operating system. An image is a read-only template used to create a container, and it holds the application, libraries, and configuration. Running the same image greatly reduces problems caused by differences between environments.</dd>
@@ -99,6 +106,10 @@ spec:
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -172,9 +183,10 @@ spec:
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

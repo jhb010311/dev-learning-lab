@@ -1,6 +1,8 @@
 Lab.register({
   id: 'classload', nav: '클래스 로딩과 초기화', cat: 'JVM', mode: 'step',
   title: '클래스의 static 블록은 언제 실행되나',
+  why: '프로그램을 시작할 때 쓸지도 모르는 클래스를 모두 읽고 static 블록까지 모두 실행하면, 시작이 느려지고 쓰지 않는 클래스까지 메모리를 차지한다. 그래서 JVM은 static 초기화를 미뤄 두었다가 new, static 메서드 호출, 상수가 아닌 static 필드 사용처럼 명세가 정한 사용이 처음 일어날 때 클래스마다 한 번만 실행한다.',
+  use: 'static 필드로 객체 하나를 늦게 만드는 holder 방식의 싱글톤이 이 규칙과, 클래스 초기화를 JVM이 한 스레드만 하게 보장하는 성질에 기댄다. static 블록에서 예외가 나면 ExceptionInInitializerError가 나고 그 뒤로 그 클래스를 쓸 때마다 NoClassDefFoundError가 나므로, 이런 오류의 원인을 찾을 때도 이 순서를 따라간다.',
   intro: '클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 "제대로" 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다.',
   terms: ['클래스 로더', '클래스 초기화', 'static 초기화 블록', '컴파일 시점 상수', 'static'],
   controls: [

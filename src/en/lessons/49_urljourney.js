@@ -1,6 +1,8 @@
 Lab.register({
   id: 'journey', nav: 'From URL to response', cat: 'Networking', mode: 'step',
   title: 'What happens when you type a URL in the address bar and press Enter',
+  why: 'To open one address, you need to turn the name into an IP address, make a connection, encrypt so that no one can snoop, send the request to the right server, and actually produce the result. A web request is processed in a structure where DNS, TCP, TLS, a reverse proxy, and an application server each take one of these jobs, so that moving servers, changing certificates, or adding servers does not require changing the other stages.',
+  use: 'It is used to break down at which stage time is spent when a page is slow. The Network tab of the browser\'s developer tools and curl\'s timing measurements show separately the DNS lookup, the connection, TLS, and the time to the first byte. When placing servers, this separation of stages is followed too, as in leaving static files to nginx or a CDN and requests whose result must be computed to the application server.',
   intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.',
   terms: ['DNS', 'Web server and application server', 'Reverse proxy', 'CDN', 'HTTPS and TLS', 'Three-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Caches</h1>
 <p><b>What is a cache, and what do you gain and lose by using one?</b></p>
+<p><b>Why it exists</b> — If something that takes time, such as a DB query or a call to another server, is done again for every request even though the same answer is known to come out, the user waits every time and the same work piles up on the original source. A cache keeps an answer, once obtained, in a place from which it can be fetched quickly and reuses it, so that slow work is not repeated. In return, when the original changes, you have to separately take care of when to discard the value in the cache.</p>
+<p><b>Where it's used today</b> — Things that are read often but change rarely, such as product information, category lists, and settings, are put in a cache. In Spring, the @Cacheable annotation on a method puts its result in a cache, and to let several servers see the same cache, a separately run store such as Redis is used. Things that must always have the current value, such as remaining stock or an account balance, are not put in a cache, or the value in the cache is deleted immediately when the value changes.</p>
 <p>A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is asked for again. In the code of this lab, the Map named cache is the place where results are written down, and the cache lines inside the find method do this: &quot;if there is a written-down value, give it, and only if there is none, do the slow lookup (slowLoad) and write the result down.&quot; slowLoad is the slow job of reading a value from the source, and slowCount counts how many times it was called. The lab does not measure real time. It shows &quot;how much slow work was done&quot; by the number of calls to slowLoad. In this lab you remove the cache lines, change the value in the source between the two lookups, or erase the cached value with the cache.remove(1) line. The same code is compiled and run, and you see how many slow lookups happen and whether the second value you receive is the same as the value in the source. (static is read as a keyword that lets main call these without creating an object, and it is not covered here.)</p>
 <p>Checked against real execution · Compiled five combinations on JDK 21 with javax.tools, ran them, and checked against the model</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,7 @@
 <dt>Cache hits and misses</dt>
 <dd>When you look for a value in a cache, one of two things happens. If what you look for is already written in the cache, it is called a hit (cache hit), and the written-down value is returned as it is without going to the source. If it is not written, it is called a miss (cache miss), and the value is read from the source, written in the cache, and returned. The cache abstraction of Spring works in the same order: if the method was already called with the same arguments, it returns the cached result without executing the method, and otherwise it executes the method and puts the result in the cache and returns it. The first lookup is always a miss, and the more hits there are, the less slow work goes all the way to the source.</dd>
 <dt>Cache-aside pattern</dt>
+<dd><b>Where it's used today</b> — It is used with Redis for data that is read far more often than it is written, such as a product detail or a member profile. Adding Spring's @Cacheable and @CacheEvict makes it work in this order.</dd>
 <dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
 <dt>Stale data in a cache</dt>
 <dd>Stale data in a cache is a value that stays in the cache after the value in the source has changed, so that it differs from the source. The side that uses the cache does not look at the source when there is a hit, so it receives the old value without knowing that it changed. If you also erase the value written in the cache when you change the source, the next lookup is a miss and reads the changed value again (only that one lookup is slow). Another way is to give a written-down value a validity time. The HTTP caching specification (RFC 9111, section 4.2) calls a stored response stale when it is past its determined freshness lifetime, and this word is the term of the specification for a response whose time has passed.</dd>
@@ -115,6 +118,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -188,9 +195,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

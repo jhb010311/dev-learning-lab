@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,17 +31,25 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP 메시지와 상태 코드</h1>
 <p><b>요청과 응답은 이렇게 생긴 글자다</b></p>
+<p><b>왜 생겼나</b> — 브라우저, 앱, 서버를 서로 다른 사람이 만들어도 대화가 되려면 묻고 답하는 모양이 미리 정해져 있어야 한다. HTTP 메시지는 첫 줄, 헤더, 본문의 형식과 메서드, 상태 코드의 뜻을 정해 두어서, 본문을 읽지 않고도 성공했는지, 다른 주소로 가야 하는지, 잠시 뒤 다시 시도할지를 어느 프로그램이든 같은 방식으로 판단하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 컨트롤러가 돌려주는 ResponseEntity의 상태 코드와 헤더가 그대로 응답 메시지가 된다. REST API를 설계할 때 생성은 201, 입력 오류는 400, 권한 없음은 403처럼 결과에 맞는 상태 코드를 고르고, 문제가 생기면 브라우저 개발자 도구의 Network 탭이나 curl -v로 실제로 오간 메시지를 읽어 원인을 찾는다.</p>
 <p>브라우저와 서버가 주고받는 HTTP 메시지는 HTTP/1.1에서는 정해진 모양의 글자입니다(HTTP/2와 HTTP/3은 같은 내용을 이진 형식으로 나눠 보냅니다). 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.</p>
 <p>일부만 실행으로 확인 · 메시지 구조는 실제 원문과 대조, 상태 코드는 표준 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>HTTP와 무상태(Stateless)</dt>
+<dd><b>왜 생겼나</b> — 서버가 요청마다 앞선 대화를 기억해야 하는 방식이면, 사용자가 늘수록 그 기억을 쌓아 둘 자원이 늘고 연결이 끊기면 대화를 이어 갈 수 없다. HTTP는 요청 하나만 보고 처리할 수 있게 정해, 서버가 요청 사이에 아무것도 기억하지 않아도 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 페이지와 이미지를 받는 일, 모바일 앱이 서버 API를 부르는 일, 서버가 다른 서비스의 API를 부르는 일이 모두 HTTP로 이뤄진다. 서버 쪽에서도 수시로 먼저 보내야 하는 채팅 같은 기능에는 WebSocket을 함께 쓴다.</dd>
 <dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
 <dt>HTTP 메서드</dt>
 <dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
 <dt>HTTP 상태 코드</dt>
+<dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
 <dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
 <dt>REST</dt>
+<dd><b>왜 생겼나</b> — API마다 /getUser, /deleteUserById처럼 주소에 동작 이름을 제각각 지으면, 쓰는 쪽은 API마다 규칙을 새로 익혀야 한다. REST는 주소는 자원만 가리키고 동작은 HTTP 메서드로 나타내게 해서, 처음 보는 API도 같은 규칙으로 읽게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 화면이나 모바일 앱이 서버의 데이터를 조회하고 바꾸는 API, 회사 밖에 공개하는 API를 설계할 때 흔히 따른다. 화면마다 필요한 필드만 골라 받으려면 GraphQL을, 서버끼리 빠르게 부르려면 gRPC를 대신 쓰기도 한다.</dd>
 <dd>웹의 자원을 URI로 식별하고, 그 자원에 대한 행위를 HTTP 메서드로 표현하며, 자원의 표현(JSON 등)을 주고받는 아키텍처 스타일이다. 서버가 클라이언트의 상태를 저장하지 않는 무상태성과 일관된 인터페이스를 특징으로 한다. 실무에서는 이 원칙에 따라 설계한 HTTP API를 REST API라고 부른다.</dd>
 <dt>URI와 URL</dt>
 <dd>URI는 자원을 식별하는 문자열이고, URL은 그중 자원의 위치(접근 방법과 주소)로 식별하는 것이다. 웹에서 쓰는 주소는 대부분 URL이며 URL은 URI에 포함되는 개념이다.</dd>
@@ -87,6 +95,10 @@ OrderDto get(@PathVariable long id) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +172,10 @@ OrderDto get(@PathVariable long id) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

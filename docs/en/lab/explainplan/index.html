@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Reading the execution plan</h1>
 <p><b>What should you read in one line of EXPLAIN?</b></p>
+<p><b>Why it exists</b> — When a query is slow and you do not know what the database reads and how, all you can do is create more indexes or change the statement and measure the time. EXPLAIN shows, without running the query, the index the database chose, the number of rows it expects to read, and whether it sorts separately or uses a temporary table, so that you look for the reason a query is slow in the plan and not by guessing.</p>
+<p><b>Where it's used today</b> — You use it to find the cause of a query caught in the slow query log, and to check whether a query actually uses a newly created index. When you use JPA, you also take the SQL printed in the log and put EXPLAIN in front of it. If you need the number of rows actually read and the time taken instead of estimates, in MySQL you use EXPLAIN ANALYZE, which actually runs the query.</p>
 <p>Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries.</p>
 <p>Checked against real execution · All 50 combinations were run with EXPLAIN on MySQL 8.4 and checked against type, possible_keys, key, and Extra (for rows, only the size was checked)</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,16 @@
 <dt>Query execution plan (EXPLAIN)</dt>
 <dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
 <dt>EXPLAIN join types (type column)</dt>
+<dd><b>Where it's used today</b> — In the execution plan of a slow query, look first for tables whose type is ALL or index, and use this to decide whether to add an index to the condition column. In a query with joins, look at whether the later tables are read as eq_ref or ref to estimate whether the index on the join column is used.</dd>
 <dd>The column in MySQL EXPLAIN output that shows the method used to read the table. Roughly from the fewest rows read to the most, the values are const (one row through a primary key or unique index), eq_ref (in a join, one row for each row of the previous table), ref (the rows with the same value in a non-unique index), range (one range of an index), index (the whole index), and ALL (the whole table). Despite its name, index means that the index is read from beginning to end, so it is an access that reads everything, like ALL. Which value appears is decided by the optimizer based on statistics, so even the same query can differ depending on the amount and distribution of the data.</dd>
 <dt>EXPLAIN Extra information (Extra column)</dt>
+<dd><b>Where it's used today</b> — When a query with ORDER BY or GROUP BY is slow, check whether Using filesort or Using temporary appears, and decide whether to create an index that matches the sort order. Whether an index made to aim at a covering index is used properly can also be checked by whether Using index appears.</dd>
 <dd>The column in MySQL EXPLAIN output that lists work done in addition to the way the table is read. Using where means that the rows that were read are filtered again by the condition, and Using index means that the query finishes by reading only the index, without going to the table. Using filesort means that a separate sort is done for ORDER BY, and Using temporary means that a temporary table is created for GROUP BY and the like. If the column is empty, no extra work is added. Using filesort and Using temporary can cause slowness when many rows are read, so look at them together with the value of the rows column.</dd>
 <dt>Full table scan</dt>
 <dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
 <dt>Covering index</dt>
+<dd><b>Why it exists</b> — Even when a secondary index finds the rows, if the columns the query needs are not in the index, the table has to be read again for every row found, so the query gets slower as the result grows. A covering index makes the columns the query uses part of the index columns, which removes this extra read.</dd>
+<dd><b>Where it's used today</b> — It is used when designing an index around a query that often reads only a few columns, such as a list or a count. The deferred join, which first picks only the ids through the index on a list with a large OFFSET and then reads just those rows, also relies on it.</dd>
 <dd>An index that contains every column a query needs, so the result can be produced from the index alone without reading the table rows. Skipping the table access makes the read faster. In a MySQL execution plan, it appears as Using index in the Extra column.</dd>
 </dl>
 <h2>Try these</h2>
@@ -91,6 +97,10 @@ SELECT *
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +174,10 @@ SELECT *
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Storage and recovery</p>
 <h1>Undo and redo logs</h1>
 <p><b>Why does the data survive even if the power goes out right after a commit?</b></p>
+<p><b>Why it exists</b> — If changes were written straight to the data files, every commit would have to modify several places on disk, which is slow, and if the server went down in the middle of writing, there would be no way to know how far the changes had been applied. The undo log and redo log record the value before the change and the content of the change separately, so that writing to the data files can be postponed, while after a failure, committed changes can be filled in again and uncommitted changes can be rolled back.</p>
+<p><b>Where it's used today</b> — In MySQL InnoDB, rollback and the reading of earlier versions in MVCC use the undo log, and recovery after the server goes down uses both logs, and developers do not need to record either of them separately. In operation you meet them in settings such as innodb_flush_log_at_trx_commit, which decide whether the redo log is reliably written to disk at every commit. A value other than 1 makes writes faster, but some recent commits can be lost in a failure.</p>
 <p>When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo).</p>
 <p>Checked against documentation and standards · Checked against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -40,6 +42,8 @@
 <dt>ACID</dt>
 <dd>The four properties that a transaction must guarantee. Atomicity means everything succeeds or everything fails. Consistency means the data satisfies the defined rules before and after the transaction. Isolation means transactions that run at the same time do not interfere with each other. Durability means committed results are kept even if a failure occurs.</dd>
 <dt>MVCC (multiversion concurrency control)</dt>
+<dd><b>Why it exists</b> — If you keep isolation with locks alone, while one transaction modifies a row, a transaction that wants to read that row must also wait until it finishes. MVCC removes this waiting by keeping the version from before the change and showing that version to the reading side.</dd>
+<dd><b>Where it's used today</b> — In MySQL InnoDB's default isolation level, an ordinary SELECT run without FOR UPDATE reads this way, so saving an order is not blocked even while a long statistics query is running. When you modify data based on a value you read, you protect it separately with FOR UPDATE or @Version.</dd>
 <dd>A method that keeps earlier versions of data when the data changes, so that a reading transaction can see the version that matches the time of its snapshot. The snapshot time depends on the isolation level: in MySQL, REPEATABLE READ takes it at the first read of the transaction, and READ COMMITTED takes a new one each time a statement runs. Reads do not wait for writes and writes do not wait for reads, so concurrent performance is high. MySQL InnoDB, PostgreSQL, and Oracle all use this method.</dd>
 <dt>Transaction</dt>
 <dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
@@ -85,6 +89,10 @@ COMMIT;
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -158,9 +166,10 @@ COMMIT;
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

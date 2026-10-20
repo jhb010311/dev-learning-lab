@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Libraries and dependencies</h1>
 <p><b>What is a library, and what happens when it is missing?</b></p>
+<p><b>Why it exists</b> — Writing common tasks such as turning JSON text into objects or running tests from scratch in every project takes time and also causes mistakes. A library provides the classes that do these tasks as a jar file, which you take in and use with import. The troublesome work of downloading jars by hand and writing them in -cp is handled by a build tool such as Gradle or Maven.</p>
+<p><b>Where it's used today</b> — You see this when you write the name of a library, such as spring-boot-starter-web or JUnit, in the dependencies section of build.gradle in a Spring Boot project. Gradle also downloads the libraries that the library itself uses and puts them on the class path. What is needed only for tests is written as testImplementation, so that it does not go onto the class path used when the program runs.</p>
 <p>A library is a set of classes that someone else has made. In this lab, one class, lib.Greeter, is packed into a jar file (a file that bundles class files) named greet.jar. My code, App.java, uses that class with import lib.Greeter;, but Greeter is not inside App.java. So both when compiling and when running, the compiler (javac) and the JVM (java) have to find Greeter on the class path (a list of places to look for class files), and in the command you write that list after -cp. The libraries that my project uses are called dependencies, and in the build tool Gradle, a dependency declared with implementation goes into the class path for both compiling and running. In this lab you take greet.jar out of the javac command and the java command one at a time, and the real compile and run happen, to show which error occurs at which step. (Gradle is not run in this lab.)</p>
 <p>Checked against real execution · Built greet.jar on JDK 21 and ran the javac and java commands exactly as shown in 4 combinations, then checked the results against them</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Libraries and JAR files</dt>
 <dd>A library is a set of classes that someone else has made, which my code uses with import. In Java it is common to bundle compiled class files into one jar file and hand it out. For example, if you compile Greeter.java and bundle it with the jar tool, jar tf greet.jar shows the list of files inside, including lib/Greeter.class. When you compile or run my code and need a class inside the jar, you have to write that jar on the class path. Being in the same folder as my source does not put the jar among the places to look.</dd>
 <dt>Class path (-cp)</dt>
+<dd><b>Why it exists</b> — If the JVM searched every folder of the computer for classes, it would be slow, and when classes with the same name exist in several places, it could not decide which one to use. The class path lets a person decide where to look and in what order.</dd>
+<dd><b>Where it's used today</b> — Usually IntelliJ or Gradle gathers the dependency jars and builds the class path, so you rarely write it yourself. If an error says that a class could not be found at run time, first check whether the jar that has that class is on the class path.</dd>
 <dd>The class path is the list of places where the compiler (javac) and the JVM (java) look for user class files. In the command you write it after -cp (or --class-path, -classpath), and each place in the list is a directory or a JAR file, separated by a semicolon (;) on Windows and a colon (:) on other systems. If you do not write -cp and there is no CLASSPATH environment variable, both javac and java use the current folder. javac and java each receive the class path of their own command separately, so the -cp you gave when compiling does not carry over by itself to the run. If you write only a jar, as in -cp greet.jar, the current folder is not among the places to look, so to use the class files in the current folder too, you have to write the dot (.) with it, as in greet.jar;.</dd>
 <dt>NoClassDefFoundError</dt>
 <dd>NoClassDefFoundError is an error thrown when the JVM or a class loader tries to load the definition of a class and cannot find that definition. The API documentation describes it as the case where the definition of the class being looked for existed when the currently running class was compiled but can no longer be found. It occurs if you put a library jar on the class path when compiling and leave it out when running. It differs in timing from a compile error such as &quot;package lib does not exist&quot;, which occurs when the jar is missing at compile time. The compiler reports a compile error before the program runs, and this error occurs while the program is running, at the place where that class becomes needed.</dd>
 <dt>Dependencies and implementation</dt>
+<dd><b>Why it exists</b> — If everyone downloads and uses jar files on their own, team members easily end up using different versions. If you write the coordinates and version in build.gradle, the same library in the same version is downloaded whoever builds on whichever computer.</dd>
+<dd><b>Where it's used today</b> — A library that your code imports is written in implementation. A DB driver that your code does not call directly and that is needed only at run time is written in runtimeOnly.</dd>
 <dd>A dependency is a library that my project uses. In Gradle you write it inside the dependencies block as group:name:version coordinates. Among the places to write them, implementation is where you write a dependency that is needed both when compiling and when running the main source. According to the Gradle documentation, a dependency declared with implementation is included in both compileClasspath, used for compiling, and runtimeClasspath, used for running. That is, the job of writing -cp by hand in the javac and java commands is done by the build tool with one line of configuration.</dd>
 </dl>
 <h2>Try these</h2>
@@ -102,6 +108,10 @@ java -cp greet.jar;. App</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +185,10 @@ java -cp greet.jar;. App</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

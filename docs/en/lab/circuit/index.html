@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
 <h1>Circuit breaker</h1>
 <p><b>If you keep calling a dead service, you go down too</b></p>
+<p><b>Why it exists</b> — With only a timeout, every call to a service that does not respond must wait for that whole time, and adding retries makes more requests pile onto a service that is already overloaded. A circuit breaker looks at the record of recent failed calls and decides not to call for a while, failing right away without waiting or returning a fallback response, which gives the other side time to recover.</p>
+<p><b>Where it's used today</b> — It is placed on each target being called when one service calls another by HTTP in a microservice architecture, or when calling an outside service such as an external payment provider or a map API. In Java and Spring, Resilience4j is commonly used, and the fallback response to return when calls are blocked (an empty recommendation list, a &quot;try again later&quot; message, and so on) is decided together with it.</p>
 <p>The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate reaches a set level (the threshold) or goes above it, a circuit breaker blocks the calls themselves. This stops threads from being tied up waiting for a service that does not respond.</p>
 <p>Checked against real execution · The call sequences of the 27 combinations were fed to Resilience4j 2.4.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Circuit breaker</dt>
 <dd>A mechanism that blocks calls to a service that has failed, so that callers do not keep calling it and waiting. When failures pass a certain level, it moves to the open state, which blocks calls, and makes later calls fail immediately. After a certain time, it lets some calls through as a trial to check whether the service has recovered. It stops a failure in one service from spreading to the services that call it.</dd>
 <dt>Monolithic architecture and microservice architecture</dt>
+<dd><b>Why it exists</b> — An application that has grown to hold many features has to be rebuilt and redeployed as a whole even for a small change, and several teams that share the same code and deployment schedule end up waiting for each other. Microservice architecture is a way to split the system into services so that each team changes and releases its own service separately.</dd>
+<dd><b>Where it's used today</b> — Organizations in which several teams share the work on a large service use microservice architecture. Small teams and new services often start as a monolith and split off services when the boundaries to split on become clear and the need arises.</dd>
 <dd>A monolithic architecture builds all features as one application and deploys them together. A microservice architecture splits the features into small services, and each one is developed, deployed, and scaled independently. With microservices, each service can be deployed and scaled separately and failures are isolated, but the complexity of communication between services, data consistency, and operations grows a lot.</dd>
 <dt>Bottleneck</dt>
 <dd>The slowest part of a system, which limits the processing performance of the whole. No matter how much you improve the other parts, overall performance does not improve while this part stays the same. Performance improvement starts with finding it by measurement.</dd>
@@ -129,6 +133,10 @@ PaymentResult payLater(Order order, Throwable t) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -202,9 +210,10 @@ PaymentResult payLater(Order order, Throwable t) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

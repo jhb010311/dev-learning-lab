@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
 <h1>배열</h1>
 <p><b>배열 변수를 대입하면 배열이 복사되나</b></p>
+<p><b>왜 생겼나</b> — 값이 여러 개일 때 score1, score2, score3처럼 변수를 하나씩 만들면 개수가 늘 때마다 변수와 코드를 새로 적어야 하고, 반복문으로 차례로 처리할 수도 없다. 배열은 값마다 0부터 붙는 번호를 주어 a[i]처럼 변수 하나와 번호로 고르게 해서, 반복문 하나로 모든 값을 처리할 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 요일별 합계처럼 개수가 정해진 값, 바둑판 같은 2차원 격자, main(String[] args)로 받는 실행 인자에 쓴다. 파일이나 네트워크에서 읽은 바이트를 다루는 byte[]처럼 기본형 값을 많이 다룰 때도 쓴다. 개수가 늘었다 줄었다 하면 길이가 바뀌는 ArrayList를 대신 쓴다.</p>
 <p>배열은 같은 타입의 칸을 정해진 개수만큼 나란히 붙여 놓은 것입니다. 칸의 번호(인덱스)는 0부터 시작하고, 길이는 만들 때 정해져 바뀌지 않으며, 만들자마자 모든 칸이 기본값으로 채워집니다. 배열도 객체라서 변수에는 배열을 가리키는 참조가 들어갑니다. 그래서 b = a는 배열을 복사하지 않고, 2차원 배열은 &quot;배열을 칸에 담은 배열&quot;이 됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 일흔두 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,7 @@
 <dt>배열</dt>
 <dd>같은 타입의 값을 정해진 개수만큼 나란히 담는 객체다. int[] a = new int[3]처럼 만들며, 칸의 번호(인덱스)는 0부터 시작해 길이 - 1까지다. 길이는 만들 때 정해지고 바뀌지 않으며 a.length로 읽는다. 만들자마자 모든 칸이 기본값(숫자는 0, boolean은 false, 참조형은 null)으로 채워지고, 범위를 벗어난 번호를 쓰면 실행 중에 ArrayIndexOutOfBoundsException이 발생한다. 배열도 객체이므로 배열 변수에는 배열의 참조가 들어 있고, 다른 변수에 대입하면 두 변수가 같은 배열을 가리키게 된다.</dd>
 <dt>얕은 복사와 깊은 복사</dt>
+<dd><b>지금 어디에 쓰나</b> — 받은 배열을 필드에 그대로 두거나 필드의 배열을 그대로 돌려주면 바깥 코드가 내부 값을 바꿀 수 있어서, 복사본을 대신 주고받는 데 쓴다(방어적 복사). 게임 판의 상태를 저장했다가 되돌리기처럼 원본과 완전히 따로 두어야 하면 깊은 복사를 한다.</dd>
 <dd>얕은 복사는 객체나 배열의 겉 한 겹만 새로 만들고, 그 안에 든 참조는 그대로 옮겨 담는 것이다. 그래서 복사본과 원본이 안쪽 객체를 함께 가리키고, 한쪽에서 안쪽 객체를 바꾸면 다른 쪽에서도 바뀐 것이 보인다. 배열의 clone()과 Arrays.copyOf가 얕은 복사이며, 2차원 배열에 쓰면 바깥 배열만 새로 만들어지고 행 배열은 함께 쓰게 된다. 깊은 복사는 안쪽 객체까지 모두 새로 만들어 원본과 완전히 따로 두는 것으로, 2차원 배열이라면 행마다 clone을 해야 한다. 칸에 든 것이 기본형 값이거나 불변 객체라면 얕은 복사만으로도 서로 영향을 주지 않는다.</dd>
 <dt>기본형과 참조형</dt>
 <dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
@@ -91,6 +94,10 @@ System.out.println(Arrays.toString(b));</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -164,9 +171,10 @@ System.out.println(Arrays.toString(b));</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

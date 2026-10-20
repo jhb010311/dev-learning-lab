@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Spring</p>
 <h1>Configuration files</h1>
 <p><b>What is a configuration file, and how is it different from writing values in the code?</b></p>
+<p><b>Why it exists</b> — When the same program runs on your own computer, a test server, and the real server, the DB address and the port differ from place to place. Spring Boot's configuration file takes such values out of the code, so that one jar file, built once, is left as it is and only the settings are changed for each place.</p>
+<p><b>Where it's used today</b> — It holds values such as the DB connection address (spring.datasource.url), the server port (server.port), and how detailed the logs are. When development and production values differ, the file is split by profile, as in application-dev.properties, and values that must not be put in a code repository, such as passwords, are often passed as environment variables.</p>
 <p>A configuration file is a text file kept separate from the code. In Spring Boot it is named application.properties, and you write &quot;name=value&quot; lines in it (shop.name=kim-shop). If you write values that differ between environments, such as a port number or a connection address, directly in the code, you have to change the code and compile it again every time a value changes. So you keep the value in this file, and the code writes only the name. If you write an @Value(&quot;${name}&quot;) line above a field that needs a value, then when Spring creates the object, it looks for the value of that name in the configuration file and puts it in the field. If you write a default value after a : in the form ${name:default}, that value is used when the settings have no such name. In this lab you change or delete the shop.name line of the configuration file, and add or remove a default value on @Value, and run the program with the java command, to see what value comes into the name field and whether the program starts properly. (ShopInfo, App, and shop.name are names made up for this lab as examples.)</p>
 <p>Checked against real execution · Compiled the source for each of the six combinations on Spring Boot 4.1.1, ran it as a child java process, and checked against the standard output, exit code, and exception observed from outside the process</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,12 @@
 <dt>application.properties</dt>
 <dd>application.properties is the name of the configuration file that Spring Boot finds and reads automatically when it starts. It is not Java code but a text file that collects &quot;name=value&quot; lines (for example shop.name=kim-shop), and a line that starts with # is read as a note, not as a setting. Spring Boot looks for this file at the root of the class path (usually src/main/resources), in /config of the class path, in the folder where the program was run, and in the config folder of that folder, and the values it reads go into the Spring Environment as a property source (PropertySource). You can also write the same content as application.yaml in the YAML format. To change a value, you change only this file without changing the code, so it is used as the place for values that differ between environments.</dd>
 <dt>@Value</dt>
+<dd><b>Why it exists</b> — To use a value from a settings file in code, you have to write code at every place of use that looks up the value by name and converts the text to a number. With @Value, you write only the name, and Spring finds the value, converts it to the type of the field such as int, and puts it in.</dd>
+<dd><b>Where it's used today</b> — Use it to use a few setting values directly in a class, such as the number of items to show on one page or the address of another server. If there are several values that share the same beginning, such as shop.name and shop.phone, it is better to receive them all at once in one object with @ConfigurationProperties.</dd>
 <dd>@Value is an annotation that marks a field or a constructor parameter so that Spring puts a value in it when it creates the object. If you write the name of a setting inside ${ } as in @Value(&quot;${shop.name}&quot;), Spring finds the value of that name in the settings and puts it in. We do not have to write code that puts a value in that field. In Spring Boot, if the settings do not have that name and no default value is written, the object cannot be created and the application stops while starting. To be ready for a missing name, write a default value after a : as in ${shop.name:no-name}.</dd>
 <dt>${...} placeholder</dt>
+<dd><b>Why it exists</b> — If the same value is written repeatedly in several places in the settings, it is easy to miss one place when you change it. ${name} lets you write the value in only one place and refer to it by name in other places, so that only one place has to be fixed when the value changes.</dd>
+<dd><b>Where it's used today</b> — Writing spring.datasource.password=${DB_PASSWORD} makes the password come from an environment variable when the program runs, so you do not write it in the file. This works because Spring Boot also reads environment variables as a source of settings.</dd>
 <dd>${name} is a piece of text that marks &quot;the value of that name in the settings goes here&quot;. Before Spring uses the value, it finds the name in the settings and replaces this part with the value, and it can be used not only in @Value(&quot;${name}&quot;) but also inside a value in application.properties (for example app.description=${app.name} is an app). The value written after a : as in ${name:default} is used only when the settings do not have that name, and it is not used when the name exists. Spring Boot registers by default a configurer (PropertySourcesPlaceholderConfigurer) so that startup fails if this part cannot be resolved. If you use only Spring Framework and do not put in this configurer, the unresolved ${name} text goes in as the value as it is.</dd>
 <dt>Externalized configuration and profiles</dt>
 <dd>Externalized configuration means supplying setting values such as a DB address through configuration files, environment variables, command-line arguments, and so on, without putting them in the code. It lets you run the same build artifact with different settings in different environments. A profile is a feature that keeps groups of settings separated by environment, such as development and production, and lets you select one at run time.</dd>
@@ -101,6 +107,10 @@ public class App {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -174,9 +184,10 @@ public class App {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

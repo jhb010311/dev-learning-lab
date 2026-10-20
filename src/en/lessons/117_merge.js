@@ -1,6 +1,8 @@
 Lab.register({
   id: 'merge', nav: 'Detached entities and merge', cat: 'JPA', mode: 'step',
   title: 'Why were other values erased when I only fixed the name with merge?',
+  why: 'An object made from values received from a screen, or an entity taken out in an earlier transaction, is an object the persistence context does not know, so it is not a target of dirty checking as it is. The JPA merge operation gets the entity with the same id from the persistence context or the database and then copies all the field values of the object passed in, so it is a way to apply the contents of such an object to the database all at once.',
+  use: 'Spring Data JPA\'s save calls merge instead of persist for an object it judges not to be a new entity (when there is no @Version field, an object whose id is not null), so if you pass an object made from a request body to save in an update API, a merge happens. To keep fields that are left out from being overwritten with null when you update only some fields, it is common to use dirty checking: load the entity again and put in only the values to change.',
   intro: 'A detached object, which the persistence context does not manage, is not applied to the DB even if you change its values. There are several ways to apply it, and this lab compares two of them. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Member in this lab is an entity class made for this example.',
   terms: ['Detached entity', 'Merge operation', 'Dirty checking', 'Persistence context', 'The four entity states'],
   controls: [

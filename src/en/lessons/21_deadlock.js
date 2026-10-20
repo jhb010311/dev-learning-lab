@@ -1,6 +1,8 @@
 Lab.register({
   id: 'deadlock', nav: 'Deadlock', cat: 'Concurrency', mode: 'step',
   title: 'Two threads wait for each other, and both stop',
+  why: 'synchronized waits endlessly until it gets the lock and has no way to give up midway, so when two threads wait for each other\'s locks, it is not resolved until the program is restarted. ReentrantLock\'s tryLock sets a time to wait and returns false if it cannot get the lock within that time, which opens a way to put down the locks it holds and try again.',
+  use: 'The rule of fixing one lock order and tryLock are used in code that takes several locks, such as a transfer between two accounts. The basic approach is to fix an order, like taking the account with the smaller number first, and you add tryLock when it is hard to fix an order. When a deadlock occurs between database transactions, MySQL InnoDB or PostgreSQL notices it and rolls back one side, so the application receives that failure and tries again.',
   intro: 'Thread 1 transfers money from account A to B, and thread 2 transfers from B to A. To make a transfer, a thread must acquire the locks of both accounts. Depending on the order in which the locks are acquired and on the timing, the two threads can stop forever, each waiting for the lock that the other holds.',
   terms: ['Deadlock', 'Critical section and mutual exclusion', 'synchronized', 'Heap dump and thread dump'], ranks: ['concurrency', 'os', 'javasync'],
   controls: [

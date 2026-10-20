@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>Cascade and orphan removal</h1>
 <p><b>What happens to the children when you save or delete only the parent?</b></p>
+<p><b>Why it exists</b> — When you handle entities that are created together and disappear together, such as a post and its comments, without cascade you have to call em.persist or em.remove separately for each child, and if you miss even one, a save is skipped or a delete fails. Cascade makes the same operation happen to the children when you save or delete the parent, and orphanRemoval deletes the rows of children removed from the collection, so that just working with the parent object keeps the rows of the children in line.</p>
+<p><b>Where it's used today</b> — In a relationship where a child belongs to only that one parent, such as an order and its order items, or a post and its attached files, CascadeType.ALL and orphanRemoval = true are often used together. It is also used so that when you delete one item of a list on a screen, just removing it from the collection sends a DELETE. You do not set it on an entity that several orders point to together, such as a product, and you save and delete it separately.</p>
 <p>A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.</p>
 <p>Checked against real execution · 24 combinations were run on Hibernate 7.4.5 and H2, and the number and order of the SQL statements, the exceptions, and the rows left in the DB were checked</p>
 <h2>Concepts in this lab</h2>
@@ -42,6 +44,8 @@
 <dt>Persistence context</dt>
 <dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it.</dd>
 <dt>Transactional write-behind and flush</dt>
+<dd><b>Why it exists</b> — If SQL were sent right away every time an entity changed, then even changing the same row several times would send that many UPDATE statements, and every statement would make a trip to the database. Transactional write-behind delays the SQL until the flush, sends it once with the final state, and, depending on the settings, lets several statements be grouped into a JDBC batch.</dd>
+<dd><b>Where it's used today</b> — In batch jobs that save many rows, you turn on hibernate.jdbc.batch_size to group INSERT statements (they are not grouped with the IDENTITY strategy). In tests, you send the SQL right away with em.flush() and em.clear() and read it back from the database to check.</dd>
 <dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
 <dt>Entity</dt>
 <dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
@@ -121,6 +125,10 @@ em.persist(post);                      // persists only the post
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -194,9 +202,10 @@ em.persist(post);                      // persists only the post
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

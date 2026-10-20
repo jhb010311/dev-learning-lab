@@ -1,6 +1,8 @@
 Lab.register({
   id: 'tcp', nav: 'TCP connections and retransmission', cat: 'Networking', mode: 'step',
   title: 'When a packet is lost, who notices and sends it again?',
+  why: 'An IP network only delivers packets on a best-effort basis, and does not tell you if they vanish on the way, change order, or arrive in duplicate. TCP has the operating system handle numbering, acknowledgments, retransmission, and reordering, so that an application can exchange data like reading and writing a file, without taking care of loss.',
+  use: 'When you open a Socket in Java, connect to a DB with JDBC, or call another server with RestClient, a TCP connection is made underneath. Making a connection takes a round-trip time, so connections made earlier are reused through a connection pool or keep-alive. Voice calls and real-time games, where arriving late is worse than losing a little, mainly use UDP.',
   intro: 'TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
   terms: ['TCP and UDP', 'Three-way handshake', 'Flow control and congestion control'], ranks: ['network', 'os'],
   controls: [

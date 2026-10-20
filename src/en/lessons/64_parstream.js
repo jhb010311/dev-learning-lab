@@ -1,6 +1,8 @@
 Lab.register({
   id: 'parstream', nav: 'Parallel streams and the common pool', cat: 'Concurrency', mode: 'step',
   title: 'Someone else\'s parallel stream slows down my code',
+  why: 'To split a calculation on a large collection across several cores, you used to have to write the code yourself to create a thread pool, split up the data, and collect the results. A parallel stream leaves the splitting and combining to the ForkJoinPool just by changing stream() to parallelStream(), and so that each piece of code does not create new threads, it makes them all share the one common pool of the JVM.',
+  use: 'It is used to finish calculations that only use the CPU without waiting, such as aggregating or transforming a very large number of elements, quickly in batch jobs. To run tasks that wait, such as database queries or external API calls, at the same time, use an ExecutorService with its own chosen size, or virtual threads, instead of the common pool. It is rarely needed in code that handles web requests.',
   intro: 'parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too.',
   terms: ['ForkJoinPool and the common pool', 'Stream API', 'Thread pool', 'Blocking and non-blocking'], ranks: ['stream', 'threadpool', 'concurrency'],
   controls: [

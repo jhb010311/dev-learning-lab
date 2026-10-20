@@ -1,6 +1,8 @@
 Lab.register({
   id: 'pwhash', nav: 'Password hashing', cat: 'Authentication', mode: 'step',
   title: 'How well do passwords hold up when the database leaks?',
+  why: 'If passwords are kept in plain text, they are exposed as they are the moment the DB leaks, and even if they are stored converted with a fast hash such as SHA-256, an attacker tries common passwords very quickly. bcrypt automatically attaches a different salt for each member and deliberately raises the computation cost, which increases the time each guess takes and slows down brute-force attacks.',
+  use: 'It is used to store passwords in a service that has sign-up and login. In Spring Security, passwords are converted and stored with a PasswordEncoder and compared with matches at login, and BCryptPasswordEncoder is a common choice. Information that must later be turned back into its original value (such as external API keys) is stored encrypted, not hashed.',
   intro: 'Two members happen to use the same password (password123). How the passwords are stored in the database greatly changes how long an attacker needs to recover the original passwords after the database leaks. A hash is a value computed from the original in a way that cannot be reversed. This lab compares plain text, a hash, a salted hash, and a deliberately slow hash (bcrypt).',
   terms: ['Hash function and salt', 'bcrypt', 'Symmetric-key cryptography and public-key cryptography'], ranks: ['websec', 'auth'],
   controls: [

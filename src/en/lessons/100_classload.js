@@ -1,6 +1,8 @@
 Lab.register({
   id: 'classload', nav: 'Class loading and initialization', cat: 'JVM', mode: 'step',
   title: 'When does the static initializer of a class run?',
+  why: 'If a program read every class it might use and ran every static block when it started, startup would be slow and even classes that are never used would take memory. So the JVM postpones static initialization and runs it only once per class, when a use defined by the specification happens for the first time, such as new, a call to a static method, or the use of a static field that is not a constant.',
+  use: 'The holder style of singleton, which creates one object late in a static field, relies on this rule and on the property that the JVM guarantees that only one thread initializes a class. When an exception occurs in a static block, an ExceptionInInitializerError occurs, and after that, a NoClassDefFoundError occurs every time the class is used. So you follow this order when you look for the cause of such errors.',
   intro: 'A static initializer written in a class does not run when the program starts. It runs once, when the class is first "really" used. But not every appearance of the class name in the code counts as that kind of use.',
   terms: ['Class loader', 'Class initialization', 'Static initializer', 'Compile-time constant', 'static'],
   controls: [

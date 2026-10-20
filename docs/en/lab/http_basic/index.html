@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>HTTP requests</h1>
 <p><b>What does an HTTP request look like as text?</b></p>
+<p><b>Why it exists</b> — A browser and a server are programs made by different people, so if the way of writing a request differed from program to program, they could not read what the other sent. HTTP fixes the order and shape of the request line, the headers, and the empty line that marks the end, so any server reads a request sent by any browser in the same way.</p>
+<p><b>Where it's used today</b> — HTTP requests go back and forth when you open a web page in a browser and when a phone app gets data from a server. On a Spring Boot server, Tomcat usually reads this text and Spring finds and calls the method that matches the path, so developers rarely have to read these lines themselves. When a request is not handled as you expected, you check the method, path, and headers that were actually sent with curl -v or the Network tab of the browser's developer tools.</p>
 <p>An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, and the version. Below it come lines called headers, in the form &quot;name: value&quot;, and an empty line, a line with no text at all, tells the server that the headers are over (a request with no body ends here). The server reads this text to find out what the request asks for. In this lab you change or remove the first line, the Host line, and the last empty line one at a time, and send the text exactly as it is to the same server (a server that has only the /hello address), to see whether the server reads the text as a request, what response it sends back, and whether the request reaches the server code we wrote. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
 <p>Checked against real execution · Sent the text of all 12 combinations exactly as it is to an http server on Node.js 24.18.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Request line</dt>
 <dd>The request line is the very first line of an HTTP request, and it holds the method, the request target (usually a path), and the HTTP version in order, separated by spaces. For example, GET /hello HTTP/1.1 means &quot;send GET (a request to get something) for /hello, by the rules of HTTP/1.1&quot;. The server uses this line to find out what the request asks for. If the three parts do not have the right shape, the server cannot read the text as a request, and RFC 9112 recommends answering a wrong request line with a 400 response (section 3.2).</dd>
 <dt>Host header</dt>
+<dd><b>Why it exists</b> — A request line usually has only the path, so if one server handles several sites, you cannot tell which site /index.html belongs to. The Host header sends the site name along, so that several sites can be run on one IP address.</dd>
+<dd><b>Where it's used today</b> — A web hosting company uses it when it puts many people's websites on one server, and a server such as Nginx also looks at the Host value and distributes requests to the right program.</dd>
 <dd>Host is a header that says which site (host name and port) a request came to, and its value is written like localhost:8080. One server can serve several sites, so the server uses it to tell which site a request is for. RFC 9112 says that a client must send a Host header in every HTTP/1.1 request, and that a server must respond with 400 (Bad Request) to an HTTP/1.1 request that has no Host (section 3.2). The http module of Node.js also answers with 400, without passing the request to the application code, when Host is missing.</dd>
 <dt>End of an HTTP request (the empty line)</dt>
 <dd>An HTTP request is written in the order of the request line, the header lines, and an empty line with no text at all, and the empty line is the mark that the headers have ended (RFC 9112 section 2.1). Line breaks are written as CRLF (the two characters carriage return and line feed). The server starts to handle the request only after this empty line arrives and it knows the request has come in full, so if the empty line does not come, the server waits, thinking more text will follow. In a request with a body, the body starts after the empty line.</dd>
 <dt>HTTP status codes</dt>
+<dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
+<dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
 <dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
 </dl>
 <h2>Try these</h2>
@@ -84,6 +90,10 @@ Host: localhost:8080
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -157,9 +167,10 @@ Host: localhost:8080
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

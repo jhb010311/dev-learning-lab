@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
 <h1>JOIN과 GROUP BY</h1>
 <p><b>조건을 ON에 쓰느냐 WHERE에 쓰느냐</b></p>
+<p><b>왜 생겼나</b> — 데이터를 회원, 주문처럼 테이블로 나눠 저장하면 중복은 줄지만, 화면에는 둘을 합친 결과가 필요하다. 애플리케이션에서 테이블마다 따로 조회해 짝을 맞추면 코드와 DB 왕복 횟수가 늘어나므로, JOIN은 이 짝 맞추기를 SQL 한 문장으로 DB가 하게 한다. OUTER JOIN은 짝이 없는 행까지 결과에 남겨 &quot;주문이 없는 회원&quot; 같은 경우도 볼 수 있게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문 목록에 회원 이름 붙이기, 회원별 주문 수와 금액 합계 내기(GROUP BY와 함께), 한 번도 주문하지 않은 회원 찾기(LEFT JOIN 후 짝이 NULL인 행) 같은 조회에 쓴다. JPA를 쓸 때도 JPQL의 join과 fetch join은 결국 SQL JOIN으로 바뀌어 실행된다.</p>
 <p>회원 3명과 주문 4건을 조인합니다. 조인 종류, 조건을 쓰는 위치, 집계 방식에 따라 결과 행이 달라집니다. SQL은 FROM/JOIN → WHERE → GROUP BY → HAVING 순으로 처리되며, 단계마다 남는 행을 따라가 보면 이유가 보입니다.</p>
 <p>실행으로 대조 · SQLite에서 18가지 조합의 SQL을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>JOIN (INNER, OUTER)</dt>
 <dd>두 테이블의 행을 조건에 따라 결합하는 연산이다. INNER JOIN은 양쪽에서 조건이 맞는 행만 결과에 포함한다. LEFT OUTER JOIN은 왼쪽 테이블의 모든 행을 포함하고 오른쪽에 짝이 없으면 NULL로 채운다. 짝이 없는 데이터도 결과에 남겨야 하는지에 따라 선택한다.</dd>
 <dt>GROUP BY, WHERE, HAVING</dt>
+<dd><b>왜 생겼나</b> — GROUP BY가 없으면 그룹별 합계를 구하려고 모든 행을 애플리케이션으로 가져와 직접 세고 더해야 한다. GROUP BY와 HAVING은 묶고 세고 거르는 일을 DB에서 끝내, 결과 몇 줄만 받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 일별 매출, 카테고리별 상품 수, 주문이 세 번 넘은 회원 찾기처럼 통계와 관리자 화면의 조회에 쓴다.</dd>
 <dd>GROUP BY는 지정한 컬럼의 값이 같은 행들을 묶어 그룹별 집계(합계, 개수 등)를 구한다. WHERE는 그룹으로 묶기 전에 개별 행을 걸러내고, HAVING은 묶은 뒤에 그룹을 걸러낸다. 따라서 집계 결과에 대한 조건은 HAVING에, 그 외의 조건은 WHERE에 쓴다.</dd>
 <dt>기본 키, 유니크 키, 외래 키</dt>
 <dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
@@ -80,6 +84,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -153,9 +161,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

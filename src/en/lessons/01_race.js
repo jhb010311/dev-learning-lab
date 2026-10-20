@@ -1,6 +1,8 @@
 Lab.register({
   id: 'race', nav: 'Race condition', cat: 'Concurrency', mode: 'step',
   title: 'Why does count++ lose increments?',
+  why: 'When several threads read and change the same value, another thread can step in before one thread finishes its work, so the result cannot be trusted. synchronized lets only one thread at a time run a section guarded by the same lock, which prevents this interference. AtomicInteger gets the same result without a lock: it repeats "change the value only if the value you read is still the same" until it succeeds.',
+  use: 'You use these for numbers that several requests increase together, such as a view count, and for caches and lists that several threads share. To count a single number, use AtomicInteger or AtomicLong. To change several values together, use synchronized or ReentrantLock. When there are several servers, a lock in one JVM cannot block the other servers, so you use a database lock or add to the value directly with a single UPDATE statement.',
   intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. A situation like this, where the result depends on the order in which the threads run, is called a race condition.',
   terms: ['Race condition', 'Critical section and mutual exclusion', 'synchronized', 'volatile', 'Visibility', 'Atomicity and CAS (compare-and-swap)', 'Thread safety'], ranks: ['javasync', 'concurrency'],
   controls: [

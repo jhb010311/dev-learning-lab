@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>상속</h1>
 <p><b>extends는 무엇을 물려주는가</b></p>
+<p><b>왜 생겼나</b> — 개와 고양이처럼 비슷한 클래스를 따로 만들면 먹기, 잠자기처럼 똑같은 코드를 클래스마다 베껴 적어야 하고, 고칠 때도 모든 클래스를 고쳐야 한다. 상속은 공통 코드를 부모 클래스에 한 번만 적고 자식 클래스가 extends로 물려받게 해서, 자식 클래스에는 그 클래스만의 코드를 덧붙이거나 달라지는 메서드만 다시 적게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 자바의 모든 클래스는 extends를 적지 않아도 Object를 물려받아서, toString이나 equals를 어느 객체에서나 부를 수 있다. Exception을 물려받아 우리 프로그램에 맞는 예외 클래스를 만들 때도 쓴다. 부모를 고치면 모든 자식이 영향을 받으므로, 다른 클래스의 기능을 빌려 쓰기만 하려면 상속 대신 그 객체를 필드로 두고 메서드를 부르기도 한다.</p>
 <p>상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름과 같은 매개변수로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,13 @@
 <dt>상속</dt>
 <dd>기존 클래스(상위 클래스)의 필드와 메서드를 물려받아 새 클래스(하위 클래스)를 정의하는 것이다. 공통 코드를 재사용하고 하위 클래스에서 필요한 부분만 추가하거나 재정의한다. 자바의 클래스는 단일 상속만 가능하며, 상위 클래스 변경이 하위 클래스 전체에 영향을 주므로 &quot;is-a&quot; 관계가 분명할 때만 쓰는 것이 좋다.</dd>
 <dt>extends</dt>
+<dd><b>지금 어디에 쓰나</b> — 직접 예외 클래스를 만들 때 새 클래스 이름 뒤에 extends RuntimeException처럼 자바가 주는 예외 클래스를 적어 물려받는다. 클래스가 인터페이스를 따를 때는 extends가 아니라 implements를 쓴다.</dd>
 <dd>extends는 클래스 선언에서 그 클래스가 어느 클래스를 물려받는지 밝히는 키워드이다. class Dog extends Animal처럼 클래스 이름 뒤에 쓰고, 뒤에 적은 클래스(Animal)가 부모 클래스, 선언하는 클래스(Dog)가 자식 클래스가 된다. 클래스는 extends 뒤에 하나만 적을 수 있다. final이 붙은 클래스는 extends로 물려받을 수 없다. extends를 쓰면 부모 클래스가 자식 클래스의 상위 타입이 되어, 자식의 객체를 부모 타입의 변수에 담을 수 있다. extends를 쓰지 않은 클래스는 Object를 부모 클래스로 한다.</dd>
 <dt>부모 클래스와 자식 클래스</dt>
 <dd>부모 클래스(상위 클래스, superclass)는 다른 클래스가 extends로 물려받는 클래스이고, 자식 클래스(하위 클래스, subclass)는 extends로 부모를 밝힌 클래스이다. class Dog extends Animal에서 Animal이 Dog의 부모 클래스이다. 자식 클래스는 부모 클래스에 적힌 메서드 가운데 접근할 수 있는 것을 물려받아, 자식에 적지 않아도 자식의 객체로 부를 수 있다. 자식에서 같은 이름과 같은 매개변수의 메서드를 다시 적으면 물려받지 않고 그것으로 바꾸어 쓰는데, 이것이 재정의(오버라이딩)이다. 부모의 부모처럼 위로 이어진 모든 클래스도 자식의 부모 클래스(상위 클래스)라고 부른다.</dd>
 <dt>오버라이딩</dt>
+<dd><b>왜 생겼나</b> — 물려받은 메서드가 하위 클래스에 맞지 않을 때 다른 이름의 메서드를 새로 만들면, 상위 타입으로 부르는 코드는 여전히 물려받은 옛 동작을 실행한다. 오버라이딩은 같은 시그니처로 다시 정의해 상위 타입으로 불러도 새 동작이 실행되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 클래스에 맞게 다시 쓸 때와 인터페이스의 메서드를 구현할 때 쓴다. @Override를 붙이면 이름이나 매개변수를 잘못 적어 새 메서드가 되는 실수를 컴파일러가 잡는다.</dd>
 <dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -102,6 +107,10 @@ public class Main {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -175,9 +184,10 @@ public class Main {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

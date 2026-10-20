@@ -1,6 +1,8 @@
 Lab.register({
   id: 'gc', nav: 'GC and memory leaks', cat: 'JVM', mode: 'step',
   title: 'Who reclaims discarded objects, and when?',
+  why: 'In a language where you handle memory directly, such as C, the developer must release memory after use, and mistakes such as forgetting to release it or using memory that has already been released break the program. Java\'s GC lets the JVM find and clear objects that cannot be reached from anywhere, so that developers do not have to write code that returns memory.',
+  use: 'A Java program runs GC whenever the JVM needs it, without your turning it on. Developers look into GC when they search for the cause of an occasional pause in responses, when they decide the heap size and the kind of GC such as G1, and when an OutOfMemoryError occurs and they use the GC log and a heap dump to find objects that keep staying in memory.',
   intro: 'Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. A memory leak is the buildup of objects that are no longer needed but cannot be collected because something still refers to them, and this lab also shows what happens to the heap when there is a leak.',
   terms: ['Garbage collection (GC)', 'Reachability and GC roots', 'Young generation and old generation', 'Minor GC and full GC', 'Stop-the-world (STW)', 'Memory leak', 'StackOverflowError and OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [

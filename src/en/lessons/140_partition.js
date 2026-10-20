@@ -1,6 +1,8 @@
 Lab.register({
   id: 'partition', nav: 'Partitioning', cat: 'Database', mode: 'step',
   title: 'When a table is cut into pieces, which pieces does a query read?',
+  why: 'A table that keeps growing, such as orders or logs, ends up with a huge number of rows, and even deleting old data requires running a DELETE that removes many rows one by one for a long time, and the table stays under load meanwhile. Partitioning divides a table into pieces according to a base value, so that a query reads only the pieces that match its condition, and an old piece can be thrown away whole with a single DROP PARTITION.',
+  use: 'A common use is to divide a table that keeps piling up by date and from which old rows are deleted periodically, such as logs, order records, and payment history, into RANGE partitions by month or year. If query conditions rarely use the partition key, all partitions are read, which is a loss instead, and if the problem is that one server\'s capacity or write performance is short, use sharding, which divides the data across several servers.',
   intro: 'Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them.',
   terms: ['Sharding and partitioning', 'RANGE partitioning and HASH partitioning', 'Partition pruning', 'Query execution plan (EXPLAIN)', 'Primary key, unique key, foreign key'],
   controls: [

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Clickjacking and open redirects</h1>
 <p><b>How do you stop your page from being hidden inside another site's page, or your URL from sending users to another site?</b></p>
+<p><b>Why it exists</b> — Without a mark that forbids it, a browser draws any page inside another site's iframe, and a script put in the page to break out of a frame did not work when the side showing the page blocked scripts with the sandbox attribute of the iframe. X-Frame-Options and the frame-ancestors of CSP state, in a response header, which sites may show this page in a frame, so that the browser does not draw it for any other site.</p>
+<p><b>Where it's used today</b> — Spring Security adds X-Frame-Options: DENY to responses even if you configure nothing, and if some screen uses frames within the same site, such as the H2 console, you change it to sameOrigin. When you have to let a partner site show a payment or map screen in a frame, you write that origin in frame-ancestors. Code that takes the address to return to after login from the request checks that it is a path of the same site, or accepts only names decided in advance.</p>
 <p>Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the &quot;URL to return to after login&quot; from the request and redirects to it without checking, so a link that starts with your site's address ends up on another site. In both cases the server is not broken into. Instead, people's trust in your site is exploited, and clickjacking is blocked by the browser according to the response header the server sends, and an open redirect is blocked by the server checking the URL.</p>
 <p>Checked against real execution · Response headers were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 24 combinations, and browser behavior was checked with Chromium 151. Other browsers follow the documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Clickjacking</dt>
 <dd>An attack in which another site puts a page of your site in a frame (iframe) and makes it invisible, so that the user believes they are clicking something else but actually clicks a button on your page. The click is made by the user's own browser, so the request the server receives cannot be told apart from a normal click. So instead of picking out requests, the server blocks the attack by telling the browser in a response header not to put the page in a frame. It is the browser that actually enforces this, so a page without the header can be put in a frame by anyone.</dd>
 <dt>X-Frame-Options and frame-ancestors</dt>
+<dd><b>Why it exists</b> — The ALLOW-FROM value in X-Frame-Options, meant to allow a specific other site, is not supported by several major browsers, so the only values you could actually rely on were DENY and SAMEORIGIN. frame-ancestors of CSP lets you write the origins to allow as a list, which fills this gap.</dd>
+<dd><b>Where it's used today</b> — To cover old browsers as well, send X-Frame-Options with the same meaning as frame-ancestors together with it. A browser ignores frame-ancestors when it is written in an HTML meta tag, so send it as a response header.</dd>
 <dd>Two ways to tell the browser that receives a response who may put the page in a frame. One is the X-Frame-Options header, and the other is the frame-ancestors directive written inside the Content-Security-Policy header. X-Frame-Options takes one of two values, DENY (no page may frame it) and SAMEORIGIN (only pages with the same origin may), while frame-ancestors lists the origins that may frame the page, so it can allow specific other sites. Spring Security adds X-Frame-Options: DENY even if you configure nothing. When both come together, current browsers follow frame-ancestors and ignore X-Frame-Options, so the two should be set so that they do not disagree.</dd>
 <dt>Open redirect</dt>
 <dd>A vulnerability in which the server redirects to an address taken from the request without checking it. It arises in features added for convenience, such as a &quot;URL to return to after login&quot;, and it makes a link that starts with your site's address a passage to another site. Users trust the first part of the address, so this is used to lure them to a fake login page. To prevent it, accept only values that are acceptable, such as paths on the same site, and also check that an address that starts with // points to a different host. A more reliable way is to accept a predefined name instead of an address and have the server look up the address in its own list.</dd>
 <dt>Spring Security and SecurityFilterChain</dt>
+<dd><b>Why it exists</b> — If you wrote security checks yourself as Servlet filters, you had to arrange by hand, in every project, the order and the URLs of the filters for login checks, permission checks, and CSRF checks. Spring Security provides such filters in a fixed order, and SecurityFilterChain lets you choose which check to use for which URL.</dd>
+<dd><b>Where it's used today</b> — You configure form login, JWT verification, social login, and restrictions on admin URLs in a SecurityFilterChain bean. For groups with different rules, such as /api/** URLs and page URLs, you use more than one chain to split them.</dd>
 <dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
 <dt>CORS and the same-origin policy</dt>
 <dd>The same-origin policy is a browser security policy that stops a script from one origin (the combination of scheme, host, and port) from reading responses from another origin. CORS is a way to relax this restriction: the server uses response headers to say that it allows access from specific origins. The browser applies this policy, so it does not apply to calls between servers or to calls made with tools.</dd>
@@ -96,6 +102,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +179,10 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate and exception translation', cat: 'Spring', mode: 'step',
   title: 'What does JdbcTemplate do for you, and what does it translate exceptions to?',
+  why: 'When you use JDBC directly, it is easy to forget close when an exception occurs, so the connection does not return to the pool, and you had to tell a duplicate key from an SQL syntax error by looking at error codes that differ from database to database. JdbcTemplate cleans up the connection and the Statement by itself and translates those error codes into exceptions such as DuplicateKeyException, whose names tell you the cause, so the same catch works even when the database is different.',
+  use: 'Even in a project that uses JPA, it is used together for places where writing SQL directly is better, such as bulk INSERT and queries for statistics. It is also used in small services with only a few tables or in batch jobs, when you want to see and handle the SQL as it is. In recent versions of Spring, you can also use JdbcClient, which does the same work in a style of chained method calls.',
   intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the JDBC driver into a Spring exception (one from the DataAccessException hierarchy).',
   terms: ['JdbcTemplate', 'Exception translation and DataAccessException', 'Connection pool', 'Checked and unchecked exceptions', 'Template Method pattern'],
   controls: [

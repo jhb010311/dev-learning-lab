@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Database</p>
 <h1>Indexes</h1>
 <p><b>What is an index, and what changes when there is none?</b></p>
+<p><b>Why it exists</b> — When there are only a few rows, scanning from beginning to end finishes quickly, but when there are millions of members, even finding one person is slow because every row is read. If many such lookups come in at once, the whole database slows down. An index keeps a separate list in which values are arranged in advance, so that the time to find does not grow much even as rows increase.</p>
+<p><b>Where it's used today</b> — Create it on columns that are often used in the condition of WHERE or a join, such as the email used at login or the member number used to see an order list. Most databases create one automatically on columns with a primary key or UNIQUE. The more indexes you make, the slower inserting or deleting rows becomes, so you do not create them even on columns that are not searched often.</p>
 <p>An index is a list that keeps the values of a column in order and points to the rows that hold each value. The database builds it separately from the table, and it works like the index at the back of a book. CREATE INDEX idx_name ON member(name) is the statement that builds an index on the name column. Without an index, the database has to read the rows of the table from the first to the last to find the rows that match a condition. With an index, it looks up the value in the index and reads only the rows it needs. In this lab, you remove CREATE INDEX or change the column you search by, run the same SELECT, and see how the number of rows the database reads changes even though the rows it finds stay the same. This lab does not cover how an index organizes its values or what it costs to build one.</p>
 <p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked them (rows read is scanCount minus 1 from EXPLAIN ANALYZE), and checked the rules against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>Index</dt>
 <dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
 <dt>CREATE INDEX</dt>
+<dd><b>Why it exists</b> — When you create a table, it is hard to know in advance which columns you will often search by. CREATE INDEX lets you add an index later, even to a table that already has data, without recreating the table.</dd>
+<dd><b>Where it's used today</b> — When you find a slow query while running a service, you add an index with this statement to the column used in its condition. If there are very many rows, building an index takes time, so it is sometimes run at a time when there are few users.</dd>
 <dd>CREATE INDEX is the SQL statement that adds an index to a column of a table that already exists, in the form CREATE INDEX index_name ON table(column). For example, CREATE INDEX idx_name ON member(name) builds an index on the values of the name column of the member table. The index is stored separately from the table and does not change the rows of the table. An index is used mainly when you search by the column it was built on, so to search by another column quickly, that column needs an index of its own (without one the search still works, but it scans everything). The database builds an index automatically on a column with PRIMARY KEY, so you do not need CREATE INDEX for it (in MySQL, the primary key itself is created not with CREATE INDEX but with CREATE TABLE or ALTER TABLE).</dd>
 <dt>Full table scan</dt>
 <dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
@@ -90,6 +94,10 @@ SELECT * FROM member WHERE name = 'user777';</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +171,10 @@ SELECT * FROM member WHERE name = 'user777';</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

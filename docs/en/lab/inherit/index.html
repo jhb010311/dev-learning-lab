@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Inheritance and overriding</h1>
 <p><b>When does the superclass constructor run when a subclass object is created?</b></p>
+<p><b>Why it exists</b> — If several similar classes each hold their own copies of the same fields and methods, then to change the common part you have to find every class and make the same change, and if even one is missed, the behavior differs. Inheritance puts the common part in one place, the parent class, and has the children take it over with extends, and for behavior that differs per child, overriding lets you write only that method again.</p>
+<p><b>Where it's used today</b> — Every class inherits from Object, so you override toString or equals when you use them, and you inherit from RuntimeException to create an exception class that fits your program. In JPA, common fields such as the creation time are placed in a parent class annotated with @MappedSuperclass, and the entities inherit them. When you only want to borrow functionality, you use composition instead of inheritance, keeping another object in a field and handing the work to it.</p>
 <p>Creating a subclass object with new makes just one object, and that object has both the fields inherited from the superclass and the fields that the subclass declares. No separate superclass object is created. When you use new, the superclass constructor finishes first, and only then do the field initializers and the constructor body of the subclass run. Because of this order, there are cases in which you must write super(...), and when the superclass constructor calls an overridden method, that method sees subclass fields that are still empty.</p>
 <p>Checked against real execution · All 36 combinations were compiled and run on JDK 21, and the compilation result and the output were checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,14 @@
 <dt>Inheritance</dt>
 <dd>This means defining a new class (the subclass) that receives the fields and methods of an existing class (the superclass). It reuses common code, and the subclass adds or overrides only the parts it needs. A Java class supports single inheritance only, and a change to the superclass affects every subclass, so it is best used only when there is a clear &quot;is-a&quot; relationship.</dd>
 <dt>Overriding</dt>
+<dd><b>Why it exists</b> — When an inherited method does not fit a subclass, creating a new method with a different name means that code calling through the supertype still runs the old inherited behavior. Overriding redefines the method with the same signature so that the new behavior runs even when it is called through the supertype.</dd>
+<dd><b>Where it's used today</b> — It is used when you rewrite toString, equals, and hashCode to suit a class, and when you implement the methods of an interface. If you add @Override, the compiler catches the mistake of writing the name or parameters wrongly and ending up with a new method.</dd>
 <dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
 <dt>Constructor</dt>
 <dd>This is code that runs once when an object is created with new and puts the fields into their initial state. Its name is the same as the class name, and it has no return type. A class can have several of them as long as they take different arguments, and the one that matches the arguments passed to new is selected. Its body runs after the fields have been set to their default values and the field initializers and initializer blocks have run.</dd>
 <dt>super</dt>
+<dd><b>Why it exists</b> — If a child overrides a method, it can no longer call the parent's version by the same name, and a child cannot fill in the parent's private fields directly. super calls the parent's constructor and the overridden method, so that you can add onto the parent's code without rewriting it.</dd>
+<dd><b>Where it's used today</b> — Use it when filling the parent's fields with super(name) in a child constructor, and when overriding toString and adding the child's information to the result of super.toString().</dd>
 <dd>This keyword refers, inside a subclass, to things that belong to the superclass. Writing super(arguments) as the first statement of a constructor calls the superclass constructor that matches those arguments, and if you do not write it, the compiler automatically inserts super() with no arguments. So when the superclass has no no-argument constructor, you must write super(arguments) yourself in the subclass constructor, and not writing it is a compile-time error. Writing super.method() inside a method calls the overridden method of the superclass.</dd>
 <dt>Default values of fields</dt>
 <dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
@@ -121,6 +127,10 @@ d.describe();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -194,9 +204,10 @@ d.describe();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

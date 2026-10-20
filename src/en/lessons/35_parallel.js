@@ -1,6 +1,8 @@
 Lab.register({
   id: 'parallel', nav: 'Sequential and parallel calls', cat: 'Concurrency', mode: 'time',
   title: 'Several external calls: one after another, or all at once?',
+  why: 'If several unrelated external calls are made one after another, the waiting times of all the calls add up. Creating threads directly or waiting for each with Future.get makes collecting results and handling exceptions troublesome. CompletableFuture lets you start several tasks at the same time and lets you combine results and decide the substitute value for failure or timeout by chaining methods.',
+  use: 'It is used when building one screen, such as a product detail page or a user\'s account page, requires calling several services together, such as member, stock, and reviews. allOf waits for all of them to finish, and completeOnTimeout replaces a late call with a default value. If no thread pool is passed to supplyAsync, it usually runs in the shared ForkJoinPool, so for tasks that wait, such as external calls, it is usual to specify a dedicated thread pool.',
   intro: 'To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call.',
   terms: ['CompletableFuture', 'Synchronous and asynchronous', 'Thread pool', 'ForkJoinPool and the common pool'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [

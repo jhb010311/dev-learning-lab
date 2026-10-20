@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>TCP connections and retransmission</h1>
 <p><b>When a packet is lost, who notices and sends it again?</b></p>
+<p><b>Why it exists</b> — An IP network only delivers packets on a best-effort basis, and does not tell you if they vanish on the way, change order, or arrive in duplicate. TCP has the operating system handle numbering, acknowledgments, retransmission, and reordering, so that an application can exchange data like reading and writing a file, without taking care of loss.</p>
+<p><b>Where it's used today</b> — When you open a Socket in Java, connect to a DB with JDBC, or call another server with RestClient, a TCP connection is made underneath. Making a connection takes a round-trip time, so connections made earlier are reused through a connection pool or keep-alive. Voice calls and real-time games, where arriving late is worse than losing a little, mainly use UDP.</p>
 <p>TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.</p>
 <p>Checked against documentation and standards · Checked against the TCP specification (RFC 9293)</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,8 @@
 <dt>TCP and UDP</dt>
 <dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 <dt>Three-way handshake</dt>
+<dd><b>Why it exists</b> — If data is sent right away without confirming the connection, it is sent without knowing whether the other side is ready to receive, or where to start counting the numbers attached to each piece. The three-way handshake lets both sides confirm each other's starting numbers in three exchanges, which sets the basis for counting missing pieces and order afterward.</dd>
+<dd><b>Where it's used today</b> — Developers do not call it directly, but the connection timeout is the limit on how long to wait for this process to finish. If a firewall silently drops the SYN, there is no reply and the wait lasts until this timeout, and if no program is waiting on the other side's port, Connection refused appears right away.</dd>
 <dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
 <dt>Flow control and congestion control</dt>
 <dd>Both are TCP functions that adjust the sending rate. Flow control adjusts the amount sent to match what the receiver can handle, so that the receiver does not overflow. Congestion control senses how congested the network is and decreases or increases the amount sent, to prevent congestion across the whole network.</dd>
@@ -86,6 +90,10 @@ socket.close();                                // close the connection</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +167,10 @@ socket.close();                                // close the connection</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

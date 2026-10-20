@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,19 +31,25 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 엔티티 매핑</p>
 <h1>값 타입과 임베디드 타입</h1>
 <p><b>주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나</b></p>
+<p><b>왜 생겼나</b> — 주소의 도시·거리·우편번호를 엔티티마다 낱개 필드로 늘어놓으면 회원, 주문, 가게에 같은 필드 묶음과 검사 코드가 반복된다. 그렇다고 주소를 엔티티로 만들면 id와 별도 테이블, 조인이 따라붙는다. JPA의 임베디드 타입은 이 묶음을 클래스 하나로 다루게 하면서도 id 없이 그것을 가진 엔티티의 행에 함께 저장해서, 두 불편을 함께 덜어 준다.</p>
+<p><b>지금 어디에 쓰나</b> — 주소, 기간(시작일과 종료일), 금액(액수와 통화)처럼 여러 값이 함께 있어야 뜻이 되는 것을 엔티티의 필드로 둘 때 쓴다. 값을 바꿀 때는 setter로 고치지 않고 새 객체로 통째로 바꾼다. 값 타입 여러 개를 @OrderColumn 없는 List로 둔 @ElementCollection은 하나만 바꿔도 컬렉션 테이블에서 그 엔티티에 딸린 행을 전부 지우고 다시 넣으므로, 개수가 많거나 하나씩 조회·수정해야 하면 엔티티와 일대다 관계로 바꾼다.</p>
 <p>도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔티티의 테이블에 컬럼으로 들어가고, 여러 개를 담은 컬렉션은 그 엔티티의 id를 외래 키로 가진 별도 테이블에 들어갑니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다. 이 실습의 Address와 Member는 예시로 만든 클래스입니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 쉰여섯 가지 조합을 실행해 테이블, 나간 SQL, 남은 값, 시작할 때의 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>값 타입</dt>
+<dd><b>지금 어디에 쓰나</b> — 어떤 것을 엔티티로 만들지 값 타입으로 둘지 정할 때 쓰는 구분이다. 다른 엔티티가 따로 가리키거나 그것만 따로 조회해야 하면 엔티티로, 그것을 가진 엔티티와 함께 만들어지고 지워지면 되는 값이면 값 타입으로 둔다.</dd>
 <dd>식별자(id) 없이, 들어 있는 값만으로 의미가 정해지는 타입이다. 숫자나 문자열 같은 기본 값, 주소처럼 여러 값을 묶은 임베디드 타입, 그것들을 여러 개 담은 값 타입 컬렉션이 여기에 든다. 엔티티는 id로 구분되어 값이 바뀌어도 같은 것으로 추적되지만, 값 타입은 그것을 가진 엔티티에 딸려 저장되고 엔티티가 지워지면 함께 사라진다. 여러 엔티티가 같은 값 타입 객체를 함께 가리키면 한쪽에서 고친 값이 다른 쪽에도 보이므로, 값 타입은 불변 객체로 만드는 것이 원칙이다.</dd>
 <dt>임베디드 타입(@Embeddable)</dt>
 <dd>도시와 거리처럼 함께 쓰이는 값을 클래스 하나로 묶어 엔티티의 필드로 쓰는 값 타입이다. 클래스에 @Embeddable을, 그것을 쓰는 필드에 @Embedded를 붙인다. 따로 테이블이 만들어지지 않고, 안에 든 필드가 엔티티 테이블의 컬럼으로 펼쳐져 저장된다. 그래서 테이블 모양과 SQL은 필드를 그대로 둔 경우와 같고, 자바 코드에서만 관련된 값과 메서드가 한곳에 모인다. 한 엔티티에서 같은 임베디드 타입을 두 번 쓰면 컬럼 이름이 겹치므로 @AttributeOverride로 이름을 바꿔 준다.</dd>
 <dt>값 타입 컬렉션(@ElementCollection)</dt>
+<dd><b>왜 생겼나</b> — 값 몇 개를 한 컬럼에 쉼표로 이어 넣으면 그중 하나로 검색하거나 하나만 고치기 어렵고, 엔티티로 만들면 id를 두고 따로 관리할 대상이 하나 더 생긴다. @ElementCollection은 값마다 한 행씩 따로 저장하면서도 엔티티 없이 필드처럼 다루게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 회원의 별명 목록, 상품의 이미지 주소 목록처럼 그 엔티티를 거쳐서만 읽고 개수가 적은 값에 쓴다.</dd>
 <dd>값 타입을 여러 개 담은 List나 Set을 엔티티의 필드로 두는 것이다. 한 행의 컬럼에 값을 여러 개 넣을 수는 없으므로, 엔티티의 id를 외래 키로 가진 별도의 테이블에 값마다 한 행씩 저장된다. 값 타입에는 id가 없어서 DB의 어느 행이 바뀐 것인지 집어내기 어렵다. 그래서 컬렉션이 바뀌면 그 엔티티의 행을 모두 지우고 다시 넣는 SQL이 나갈 수 있다. 값이 몇 개 안 되고 잘 바뀌지 않을 때 쓰고, 그렇지 않으면 엔티티로 만들어 일대다 관계로 푼다.</dd>
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 <dt>변경 감지(Dirty Checking)</dt>
+<dd><b>지금 어디에 쓰나</b> — @Transactional 서비스 메서드에서 엔티티를 조회하고 값만 바꿔 수정을 끝낼 때 쓴다. 트랜잭션 밖에서 바꾼 값이나 준영속 엔티티의 변경은 반영되지 않으므로, 그때는 트랜잭션 안에서 다시 조회한 엔티티를 고친다.</dd>
 <dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 플러시할 때(보통 커밋 직전) JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -113,6 +119,10 @@ member1.getAddress().setCity(&quot;부산&quot;);
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -186,9 +196,10 @@ member1.getAddress().setCity(&quot;부산&quot;);
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

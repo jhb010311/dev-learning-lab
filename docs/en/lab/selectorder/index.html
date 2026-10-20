@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>SELECT processing order</h1>
 <p><b>Why can't you use an alias or an aggregate function in WHERE?</b></p>
+<p><b>Why it exists</b> — In SQL, SELECT is written first, but to decide what to select you must first gather rows with FROM and filter them with WHERE. The logical processing order is a standard that regards each clause as receiving the result of the previous step and passing it to the next, and you reason about the result of a statement and the names you can use in each clause by this standard.</p>
+<p><b>Where it's used today</b> — When an error such as &quot;Unknown column&quot; or &quot;Invalid use of group function&quot; occurs in MySQL, you use it to decide whether to put the condition in WHERE or HAVING, or whether to wrap it one level in a subquery. The habit of writing a condition that filters each row in WHERE, and a condition that filters by a total or a count after grouping in HAVING, also comes from this order.</p>
 <p>You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes.</p>
 <p>Checked against real execution · The SQL for the 32 combinations was run as is on MySQL 8.4.11, and the error numbers and messages and every row of the final results were checked against the results. Differences from standard SQL follow the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
@@ -38,10 +40,16 @@
 <dt>Logical processing order of the SELECT statement</dt>
 <dd>The order in which the clauses of a SELECT statement are considered to be processed when you work out its result. It is FROM (including JOIN) → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT, which differs from the order in which you write the clauses. The only names you can use in a clause are those that were created at a step processed before that clause. So an alias given in SELECT cannot be used in WHERE but can be used in ORDER BY, and an aggregate function can be used from HAVING on, after the groups have been made. This does not mean that the database actually runs the statement in this order. The optimizer changes the execution order as long as the result stays the same.</dd>
 <dt>GROUP BY, WHERE, HAVING</dt>
+<dd><b>Why it exists</b> — Without GROUP BY, you would have to bring every row into the application and count and add them yourself to get a total per group. GROUP BY and HAVING finish the grouping, counting, and filtering in the database, so the application receives only a few result rows.</dd>
+<dd><b>Where it's used today</b> — It is used in queries for statistics and admin screens, such as daily sales, the number of products per category, and finding members who have ordered more than three times.</dd>
 <dd>GROUP BY groups rows that have the same value in the specified columns and computes an aggregate (such as a sum or a count) for each group. WHERE filters individual rows before they are grouped, and HAVING filters groups after grouping. So put conditions on aggregate results in HAVING and all other conditions in WHERE.</dd>
 <dt>Column alias (AS)</dt>
+<dd><b>Why it exists</b> — Without an alias, the column name of a calculation or aggregate result is the expression itself or a name the DB decided, so it is hard for a program to get the value by that name. An alias lets you give the result column a convenient name.</dd>
+<dd><b>Where it's used today</b> — When you join two tables and select columns with the same name together, you tell them apart as in m.name AS member_name, and when you move the result into an object, you use it to match column names to field names.</dd>
 <dd>Another name that you give to a column or an expression in the SELECT list. You write it as SUM(amount) AS total, and it becomes the column name in the result. An alias is created at the SELECT step, so it can be used in ORDER BY, which is processed after SELECT, but not in WHERE, which is processed before it. MySQL also accepts an alias in GROUP BY and HAVING, but this is an extension that standard SQL does not have, so it can cause an error in other databases. To filter on the same value in WHERE, write the expression again instead of the alias.</dd>
 <dt>Aggregate function</dt>
+<dd><b>Why it exists</b> — If you bring all the rows to the application and add them with a loop to get a total or a count, a lot of data has to be moved over the network. An aggregate function finishes the calculation in the DB and returns only the result value.</dd>
+<dd><b>Where it's used today</b> — You use it together with GROUP BY when you produce statistics such as the number of orders, the monthly sales total, and the average rating by product. In JPQL of JPA too, you can use COUNT, SUM, AVG, MAX, and MIN as they are.</dd>
 <dd>A function that takes the values of several rows and returns a single value. COUNT (number of rows), SUM (total), AVG (average), MAX (largest value), and MIN (smallest value) are typical. With GROUP BY, it is computed once for each group. Without GROUP BY, all the rows that satisfy the condition are treated as one group. An aggregate function can be computed only after the groups are made, so it cannot be used in WHERE. You use it in HAVING, SELECT, and ORDER BY. Aggregate functions other than COUNT(*) skip NULL values when they compute.</dd>
 </dl>
 <h2>Try these</h2>
@@ -97,6 +105,10 @@ SELECT member, SUM(amount) AS total
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -170,9 +182,10 @@ SELECT member, SUM(amount) AS total
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

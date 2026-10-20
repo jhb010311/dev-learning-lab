@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Bean lifecycle callbacks</h1>
 <p><b>Why is an injected field null when you use it in the constructor?</b></p>
+<p><b>Why it exists</b> — If you put preparation work in the constructor, the dependencies that are injected through fields or setters are still empty and cannot be used, and there was also no separate place to clean up resources when the application ends. Bean lifecycle callbacks make the container call methods you designate right after dependency injection is finished and right before the container is closed, so you can do preparation and cleanup at the right time.</p>
+<p><b>Where it's used today</b> — You use them for tasks such as reading frequently used code tables or setting values in advance when the application starts, opening a connection to an external server and closing it at shutdown, and stopping a thread pool you created yourself. Usually you use @PostConstruct and @PreDestroy, and for a class from an external library whose source you cannot change, you use initMethod and destroyMethod of @Bean.</p>
 <p>The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed.</p>
 <p>Checked against real execution · All 20 combinations were run on Spring Boot 4.1.1 and the order of the calls was checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,12 +40,19 @@
 <dt>Bean lifecycle</dt>
 <dd>This is the process from the creation of a bean to its end. It proceeds in this order: object creation, dependency injection, the initialization callback, use, and the destruction callback when the container shuts down. Put initialization work that must run after all dependencies are injected in @PostConstruct, and put cleanup work before shutdown in @PreDestroy.</dd>
 <dt>@PostConstruct and @PreDestroy</dt>
+<dd><b>Why it exists</b> — If you implement an interface of Spring to specify the setup and cleanup methods, the class becomes tied to Spring. @PostConstruct and @PreDestroy make a method do the same job just by attaching a standard annotation to it, so the class does not need to know any type of Spring.</dd>
+<dd><b>Where it's used today</b> — It is used to check at startup whether an injected setting value is empty or out of range. For a singleton bean that is created in advance at startup, an exception thrown in @PostConstruct keeps the application from starting, so a wrong setting is noticed early in the run.</dd>
 <dd>These are annotations that mark the methods to be called when a bean is initialized and when it is destroyed. The container calls the method annotated with @PostConstruct after it creates the object and finishes dependency injection, and it calls the method annotated with @PreDestroy when the container is closed. So setup work that needs an object injected through a field or a setter belongs in a @PostConstruct method, not in the constructor (an object injected through the constructor can also be used inside the constructor). They are not annotations of Spring but annotations from the jakarta.annotation package. For a prototype-scoped bean, @PreDestroy is not called.</dd>
 <dt>InitializingBean and DisposableBean</dt>
+<dd><b>Why it exists</b> — For the container to call the setup and cleanup methods, it has to know which methods they are. InitializingBean and DisposableBean fix those methods in interfaces, so that the container calls them when a class just implements the interfaces, with no annotation or separately written configuration.</dd>
+<dd><b>Where it's used today</b> — Today they are seen mostly in classes of Spring itself and in libraries made for Spring. The Spring documentation recommends @PostConstruct and @PreDestroy, or initMethod and destroyMethod of @Bean, instead of these interfaces.</dd>
 <dd>These are two interfaces of Spring that define the methods to be called when a bean is initialized and when it is destroyed. If a class implements InitializingBean, afterPropertiesSet() is called after dependency injection finishes, and if it implements DisposableBean, destroy() is called when the container is closed. Because the class must implement interfaces of Spring, the code is coupled to Spring. The same work can also be done with @PostConstruct and @PreDestroy, or with initMethod and destroyMethod of @Bean. When all three are used together, they are called in this order: the annotations, the interfaces, and then the methods specified in @Bean.</dd>
 <dt>Constructor injection, setter injection, and field injection</dt>
+<dd><b>Where it's used today</b> — For Spring code you write from scratch, constructor injection is the default, and if there is only one constructor, Spring injects through it even without @Autowired. Lombok's @RequiredArgsConstructor is often used to have the constructor generated.</dd>
 <dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
 <dt>@Configuration and @Bean</dt>
+<dd><b>Why it exists</b> — XML configuration writes class names as text, so a typo or a type error was found only by running the application. @Configuration and @Bean let you write bean definitions in Java code, so the compiler checks them and you can jump to them directly in the IDE.</dd>
+<dd><b>Where it's used today</b> — They are used to register library objects that must be created with configuration values, such as ObjectMapper and RestClient, and configuration objects such as Spring Security's SecurityFilterChain.</dd>
 <dd>@Configuration marks a configuration class that contains bean definitions, and the object returned by each @Bean method inside it is registered as a bean. Use them when you need to make a bean from a class in an external library that you cannot modify, or when you need to control the creation process yourself. Classes that you write yourself are usually registered with @Component or a related annotation.</dd>
 </dl>
 <h2>Try these</h2>
@@ -108,6 +117,10 @@ context.close();                              // closes the container</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -181,9 +194,10 @@ context.close();                              // closes the container</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

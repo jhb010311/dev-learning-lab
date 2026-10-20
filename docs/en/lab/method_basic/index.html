@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Methods</h1>
 <p><b>What is a method, and how is declaring it different from calling it?</b></p>
+<p><b>Why it exists</b> — When the same calculation is needed in several places, if you copy that code into each place, then when you need to fix it you have to find and fix every copy, and if you miss even one, the results differ from place to place. A method writes the code only once under a name and lets each place that needs it call it by that name, so it gathers the place to fix into one.</p>
+<p><b>Where it's used today</b> — main, where a program starts, is also a method, and features that Java has already made, such as System.out.println and Math.max, are also used by calling methods. If you divide the work into methods and give each a name, such as handling member sign-up or calculating a price, you can tell what that code does just from the name on the line that calls it.</p>
 <p>A method is a block of code that has a name. In the code, the part written with a name, parentheses, and braces, such as static int add(int a, int b) { ... }, is the declaration of the method. A declaration only states that &quot;there is a block of code named add,&quot; so the code inside does not run just because it is declared. The code runs when you call the method by putting parentheses after its name, as in add(2, 3). The values 2 and 3 that you pass in the parentheses are stored in the variables a and b (the parameters) in the parentheses of the declaration, and return gives the calculated value back to the place that called the method. In this lab you delete the declaration and the calling line one at a time, and change how many times you call and how many values you pass. Each time, the same code is compiled and run, so you can see what the compiler reports and how many times add runs. (static is added so that main can call add without creating an object. This lab does not cover it.)</p>
 <p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -40,8 +42,12 @@
 <dt>Method invocation</dt>
 <dd>A method invocation, or calling a method, is an expression that runs the body of a method. You write the method name, then parentheses, and inside the parentheses the values to pass, as in add(2, 3). For each call the compiler looks for a method with that name and, for a method with a fixed number of arguments, checks that the number of values passed is the same as the number of parameters. If there is no method with that name, or the numbers do not match so that no method can be called at all, it is a compile-time error. At run time the values passed are evaluated in order from the left, they are stored in newly created parameter variables, and then the body runs. If you call the same method twice, the body also runs twice.</dd>
 <dt>Parameters and arguments</dt>
+<dd><b>Why it exists</b> — Without parameters, a method always calculates with the same values, so you would have to make one method that adds 2 and 3 and another that adds 5 and 7. A parameter receives the values to use in the calculation each time the method is called, so that one method handles many values.</dd>
+<dd><b>Where it's used today</b> — Methods that Java provides also receive what to do and how as arguments, as in passing the two numbers to compare to Math.max(3, 7) and the positions to cut at to &quot;hello&quot;.substring(0, 2). When you make a method yourself, too, you make the values that change with each call into parameters.</dd>
 <dd>A parameter is a variable written in the parentheses of a method declaration, and an argument is a value passed in the parentheses when the method is called. In add(int a, int b), a and b are parameters, and in add(2, 3), 2 and 3 are arguments. When the method is called, the values of the arguments are stored in order in parameter variables that are newly created for each call, and then the body runs. Inside the body, you use the name of a parameter like a variable. Declaring two parameters with the same name in one method is a compile-time error.</dd>
 <dt>Return value (return)</dt>
+<dd><b>Why it exists</b> — If a method has no way to give back its result, the only choices are to print the calculated value on the screen or to put it in another variable, so it is hard for the caller to receive the value right away and keep using it. return gives the result back to the place of the call, so that the value can be received in a variable or used right away in another calculation.</dd>
+<dd><b>Where it's used today</b> — It is used in methods that report the result of a calculation or a lookup, as Math.max(3, 7) gives back 7 and &quot;hello&quot;.length() gives back 5. Writing only return; without a value can end a void method partway, so it is also used to leave early when there is nothing more to do.</dd>
 <dd>A return value is the value that a method gives back to the place that called it, and the return statement is what gives it back. return ends the running of the method and sends control back to the place that called it. If you add an expression, as in return a + b, the expression is calculated first, and that value becomes the value of the call and takes the place of add(2, 3) in int sum = add(2, 3);. Using a return with a value in a method declared void, or in a constructor, is a compile-time error, and the type of the expression must fit the declared return type. When a return is used inside a try, the finally block runs first, and then control is passed back.</dd>
 </dl>
 <h2>Try these</h2>
@@ -96,6 +102,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +179,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

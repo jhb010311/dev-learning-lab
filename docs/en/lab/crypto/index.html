@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Cryptography</p>
 <h1>Hashing, encryption, and signatures</h1>
 <p><b>What hides, what checks, and what cannot be undone</b></p>
+<p><b>Why it exists</b> — Data exchanged in plain text can be read or altered along the way, and if passwords are stored as they are, all of them are exposed the moment the database leaks. Hashing, encryption, and signatures are tools that divide this problem among them: a hash lets you check only whether values are the same without keeping the original value, encryption lets only someone with the key read the data, and HMAC and digital signatures let you notice that the content was changed or that someone else made it.</p>
+<p><b>Where it's used today</b> — HTTPS verifies the server with public-key cryptography, settles on a symmetric key, and then encrypts HTTP messages with the symmetric key. Member passwords are stored with a salt added to a deliberately slow hash, as in Spring Security's BCryptPasswordEncoder, and JWT login tokens and the webhook requests sent by external services are checked for forgery with HMAC or digital signatures. None of these is implemented by hand; a verified library is used.</p>
 <p>Hash functions, symmetric-key cryptography, public-key cryptography, and signatures come up all the time in security, and each does a different job. Try each of the five tools on the message &quot;Order 100 won&quot;, then change the content or use a different key and see what happens. All values on screen were actually computed.</p>
 <p>Checked against real execution · Actually computed and verified with the cryptography library of Node.js</p>
 <h2>Concepts in this lab</h2>
@@ -38,8 +40,11 @@
 <dt>Hash function and salt</dt>
 <dd>A hash function turns an input into a fixed-length value, and the original input cannot be recovered from the result. For passwords, the hash value is stored instead of the plain text, so the plain text is not exposed even if the data leaks. A salt is a random value that is added to each password and is different for each one. It makes the same password produce a different hash, which blocks attacks that use precomputed lists of hashes.</dd>
 <dt>Symmetric-key cryptography and public-key cryptography</dt>
+<dd><b>Where it's used today</b> — In HTTPS (TLS), public-key cryptography is used when the connection is set up, to verify the signature of the server certificate and to exchange keys, and the HTTP data that follows is encrypted with a symmetric key such as AES. Values stored in a database, such as card numbers, are encrypted with a symmetric key, and the key pair used for SSH login is a public-key one.</dd>
 <dd>Symmetric-key cryptography uses the same key to encrypt and to decrypt. It is fast, but it has the problem that the key must be shared safely with the other party (AES). Public-key cryptography uses a pair of keys, a public key and a private key. Data encrypted with the public key can be decrypted only with the private key, so there is no key-sharing problem, but it is slow (RSA). In practice, public-key cryptography is used to exchange a symmetric key safely, and then the symmetric key encrypts the data.</dd>
 <dt>HMAC and digital signatures</dt>
+<dd><b>Why it exists</b> — If you send only a hash value, someone in the middle can change the content, compute a new hash, and attach it, so the forgery cannot be noticed. HMAC and digital signatures attach a value that can be created only with a key, so the receiving side can tell apart a message modified by a party that does not have the key.</dd>
+<dd><b>Where it's used today</b> — They are used for the signature of a JWT (HS256 is HMAC, RS256 is a digital signature), for signatures sent in a request header as with GitHub webhooks, and for verifying HTTPS certificates.</dd>
 <dd>Techniques for confirming that a message was not changed on the way and that the legitimate party sent it. HMAC hashes the message together with a secret key that both sides share to produce an authentication code. With a digital signature, the sender signs with a private key and the receiver verifies with the public key. Only the signer can create the signature, so the sender cannot deny having sent the message.</dd>
 <dt>JSON Web Token (JWT)</dt>
 <dd>A token that carries content such as user information (claims) and has a signature attached. It has three parts: a header, a payload, and a signature. The server verifies the signature to confirm that the token was not forged, and it does not need to look up a separate store. The payload is encoded, not encrypted, so anyone can read its contents. Do not put sensitive information in it.</dd>
@@ -81,6 +86,10 @@ byte[] digest = md.digest(message.getBytes(UTF_8));
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -154,9 +163,10 @@ byte[] digest = md.digest(message.getBytes(UTF_8));
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

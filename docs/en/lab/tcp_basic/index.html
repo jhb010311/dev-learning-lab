@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=00f3cd281a">
+<link rel="stylesheet" href="../../app.css?v=5a1657045c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">Fundamentals</a> › Networking</p>
 <h1>TCP connections</h1>
 <p><b>What does it mean to open a connection, and what happens if you send without one?</b></p>
+<p><b>Why it exists</b> — Data sent over a network can be lost on the way or arrive out of order. TCP first opens a connection to check that the other side is ready to receive, gets an acknowledgment for each piece sent and resends if there is none, and puts the pieces in order by the numbers attached to them. So the program does not have to do these checks itself.</p>
+<p><b>Where it's used today</b> — A browser sending a request to a Spring Boot server on port 8080, and a Java program connecting to MySQL on port 3306, both happen over a TCP connection. So when a Connection refused error appears, first check whether no program is waiting on that port. Where it matters more that data arrives quickly even if a little of it is lost, as in online games, UDP is sometimes used.</p>
 <p>TCP and UDP are two sets of rules for two programs to send text (bytes) to each other over a network. To send with TCP, the sending program must first run a line that says &quot;connect to port 9000 of 127.0.0.1&quot; and open a connection to the receiving program. The connection is opened only when the receiving program has that port open and is waiting, and the text sent after that arrives in the order it was sent. UDP has no line for connecting. Each line that sends text names where to send it and just throws it out. In this lab you switch the way of sending between TCP and UDP, add or remove the receiving program, and see what the sender gets and what the receiver gets. The code box is not a real program; it describes in words what the two programs do, and the number 9000 is an example. A port is a number that tells programs apart inside one computer, and the address 127.0.0.1 points to this computer itself.</p>
 <p>Checked against real execution · Ran all 4 combinations on 127.0.0.1 with net and dgram of Node.js 24.18.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
@@ -38,6 +40,7 @@
 <dt>TCP and UDP</dt>
 <dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. HTTP/1.1, HTTP/2, and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
 <dt>TCP connection</dt>
+<dd><b>Where it's used today</b> — In HTTP/1.1, a browser sends several requests one after another over one connection opened with a server. A Spring Boot server also keeps reusing a few connections opened with the DB, saving the time it takes to open a connection.</dd>
 <dd>A TCP connection is the path that the sender and the receiver open between them before they exchange text with TCP (it is not a line that is actually laid down, but an agreement in which the two sides remember the state of each other). The sender asks for a connection to the IP address and the port of the other side, and if a program has that port open and is waiting, the connection is opened. The procedure for opening a connection is the 3-way handshake (RFC 9293 section 3.5). After the connection is opened, TCP takes care of delivering the bytes in the order they were sent, with nothing missing (RFC 9293 section 2.2 says that TCP provides a reliable, in-order, byte-stream service). Without a connection, text cannot be sent. HTTP/1.1 also goes over such a reliable connection, and the default for an http address is TCP (RFC 9112 section 9).</dd>
 <dt>Connection refused error</dt>
 <dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
@@ -87,6 +90,10 @@ Send text: &quot;C&quot;</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>Why it exists</h3><p id="why"></p></div>
+        <div id="use-box"><h3>Where it's used today</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>Concepts in this lab</h3>
         <div class="terms" id="terms"></div>
@@ -160,9 +167,10 @@ Send text: &quot;C&quot;</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=00f3cd281a"></script>
+<script src="../../app.js?v=5a1657045c"></script>
 </body>
 </html>

@@ -75,6 +75,12 @@ button, input, select { font: inherit; color: inherit; }
 .term b { display: block; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
+/* 왜 생겼나 · 지금 어디에 쓰나: 실습 머리에서는 두 칸의 위에 나란히 둔다(실습에 why나 use가 있을 때만 보인다).
+   개념 설명과 용어 풀이에서는 설명 앞의 문단으로 두고, 문단 첫머리에 작은 제목을 붙인다. */
+.whyuse { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 44px; padding-bottom: 10px; }
+.whyuse > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.wu-l { font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-right: .45em; }
+.term p + p { margin-top: 4px; }
 
 /* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 전체 단계 기록 → 실행 비교 → 코드 → 예시("이렇게 바꿔 보세요").
    그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
@@ -295,6 +301,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 .glpop .glhead b { font-size: 1rem; }
 .glpop .glfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .glpop .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); }
+#glpop-wu { display: flex; flex-direction: column; gap: 8px; }
 
 /* 개념 테스트 */
 .tabs { align-self: flex-start; }
@@ -360,6 +367,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .p-bar .clock { font-size: .78rem; margin-left: 0; }
   .p-bar .log { max-height: 138px; font-size: .9rem; }
   .headcols { grid-template-columns: minmax(0, 1fr); }
+  .whyuse { grid-template-columns: minmax(0, 1fr); order: -2; padding-bottom: 0; }
   .terms { columns: 1; }
   .about { order: -1; padding-left: 0; margin-left: 0; border-left: 0; }
   .p-bar .stale { margin-left: 0; flex-basis: 100%; }

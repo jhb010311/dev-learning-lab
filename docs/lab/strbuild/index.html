@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
 <h1>String, StringBuilder</h1>
 <p><b>문자열 메서드를 불렀는데 왜 원본이 그대로인가</b></p>
+<p><b>왜 생겼나</b> — String을 고칠 수 있다면, 같은 글자의 리터럴을 여러 곳이 한 객체로 함께 쓰는 문자열 상수 풀에서 한 곳의 수정이 다른 곳까지 바꾸고, 이미 검사를 마친 파일 경로나 접속 주소도 나중에 다른 코드가 바꿀 수 있다. String을 바꿀 수 없는 객체로 두면 이런 일이 생기지 않고, 글자를 여러 번 이어 붙여 만드는 일은 한 객체를 고쳐 쓰는 StringBuilder가 따로 맡는다.</p>
+<p><b>지금 어디에 쓰나</b> — String은 이름, 주소, 메시지처럼 한 번 만든 뒤 읽기만 하는 글자에 쓰고, 반복문에서 조각을 여러 번 이어 붙여 긴 글을 만들 때는 StringBuilder를 쓴다. 여러 스레드가 한 객체에 함께 이어 붙여야 할 때만 동기화된 StringBuffer를 쓴다. a + b + c처럼 한 식에서 붙이는 정도는 그냥 +로 써도 된다.</p>
 <p>String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는 객체 하나의 내용을 직접 고쳐 씁니다. 두 변수가 같은 객체를 가리키는지를 ==로 확인하면서 차이를 살펴봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 열여덟 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -40,6 +42,7 @@
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 <dt>StringBuilder와 StringBuffer</dt>
+<dd><b>지금 어디에 쓰나</b> — CSV 한 줄이나 긴 안내 문구처럼 조각을 차례로 붙이고 때로는 끝을 지워 가며(setLength, deleteCharAt) 글을 만들 때 StringBuilder를 쓴다. 구분자를 사이에 넣어 잇기만 하면 String.join이나 Collectors.joining이 더 간단하다.</dd>
 <dd>내용을 바꿀 수 있는 가변 문자열 클래스다. String은 불변이라 연결할 때마다 새 객체가 만들어지지만, 이 둘은 내부 버퍼에 이어 붙여 객체 생성을 줄인다. StringBuffer는 메서드가 동기화되어 여러 스레드에서 안전하고, StringBuilder는 동기화가 없어 단일 스레드에서 더 빠르다.</dd>
 <dt>동일성과 동등성</dt>
 <dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
@@ -90,6 +93,10 @@ System.out.println(s == first);   // 같은 객체인가</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -163,9 +170,10 @@ System.out.println(s == first);   // 같은 객체인가</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

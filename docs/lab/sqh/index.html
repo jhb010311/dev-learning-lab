@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
 <h1>스택·큐·우선순위 큐</h1>
 <p><b>넣은 순서와 꺼내는 순서</b></p>
+<p><b>왜 생겼나</b> — 값을 리스트 하나에 모아 두고 꺼낼 때마다 어느 것을 꺼낼지 직접 찾으면, 꺼내는 규칙이 코드 곳곳에 흩어지고 가장 작은 값을 찾을 때는 매번 전체를 훑어야 한다. 스택·큐·우선순위 큐는 꺼내는 순서를 자료구조가 정해, 나중 것부터·먼저 것부터·가장 작은 것부터 꺼내는 일을 메서드 하나로 끝내게 한다. 우선순위 큐는 힙을 써서 넣고 뺄 때 전체를 다시 정렬하지 않는다.</p>
+<p><b>지금 어디에 쓰나</b> — 스택은 되돌리기 기록, 괄호 짝 검사, 깊이 우선 탐색에, 큐는 들어온 순서대로 처리할 작업 대기열과 너비 우선 탐색에 쓴다. 우선순위 큐는 마감이 가까운 작업부터 처리하거나, 상위 N개를 고르거나, 최단 경로(다익스트라)를 구할 때 쓴다. 여러 스레드가 함께 넣고 빼는 대기열에는 LinkedBlockingQueue 같은 BlockingQueue 구현을 쓴다.</p>
 <p>같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다.</p>
 <p>실행으로 대조 · JDK 21의 실제 ArrayDeque·PriorityQueue와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>스택, 큐, 덱</dt>
 <dd>스택은 나중에 넣은 것을 먼저 꺼내는(LIFO) 구조, 큐는 먼저 넣은 것을 먼저 꺼내는(FIFO) 구조, 덱은 양쪽 끝에서 넣고 뺄 수 있는 구조다. 자바에서는 스택과 큐 모두 ArrayDeque로 구현하는 것이 권장된다.</dd>
 <dt>힙과 우선순위 큐</dt>
+<dd><b>왜 생겼나</b> — 우선순위대로 꺼낼 값을 정렬된 배열로 두면 넣을 때마다 뒤 원소를 밀어야 해서 O(n)이 들고, 정렬 없이 두면 꺼낼 때마다 O(n)이 든다. 힙은 전체를 정렬하지 않고 부모가 자식보다 앞선다는 순서만 지켜, 넣기와 꺼내기를 모두 O(log n)으로 맞춘다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 실행 시각이 가장 이른 예약 작업을 고르는 스케줄러(자바의 ScheduledThreadPoolExecutor도 힙을 쓴다)나, 정렬된 목록 여러 개를 하나로 합치는 일에 쓴다. 맨 앞 하나가 아니라 전체를 순서대로 훑거나 중간의 값을 지워야 하면 TreeSet이나 TreeMap이 낫다.</dd>
 <dd>힙은 부모 노드가 자식 노드보다 항상 작거나 같은(최소 힙), 또는 크거나 같은(최대 힙) 완전 이진 트리다. 가장 작은(큰) 값을 O(1)에 확인하고 O(log n)에 꺼낼 수 있어 우선순위 큐를 구현하는 데 쓰인다. 자바의 PriorityQueue가 힙으로 구현되어 있다. JVM의 메모리 영역인 힙과는 이름만 같다.</dd>
 <dt>시간 복잡도(Big-O)</dt>
+<dd><b>왜 생겼나</b> — 실행 시간을 초로 재면 컴퓨터와 입력에 따라 값이 달라서, 두 방식 중 어느 쪽이 나은지 말하기 어렵다. Big-O 표기는 상수와 작은 항을 버리고 입력이 커질 때 늘어나는 모양만 남겨, 환경과 관계없이 방식끼리 비교하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 자료구조를 고를 때(ArrayList의 contains는 O(n), HashSet은 평균 O(1)), 이중 반복문이 데이터 증가를 버틸지 따질 때, 코딩 테스트에서 풀이가 시간 안에 끝날지 가늠할 때 쓴다.</dd>
 <dd>입력 크기 n이 커질 때 알고리즘의 연산 횟수가 얼마나 빠르게 늘어나는지를 나타내는 표기다. O(1)은 크기와 무관하게 일정, O(log n)은 크기가 두 배가 되어도 한 단계만 늘어남, O(n)은 크기에 비례, O(n²)은 크기의 제곱에 비례함을 뜻한다. 데이터가 많아질 때 어떤 방식이 버티는지 판단하는 기준이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -86,6 +92,10 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -159,9 +169,10 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

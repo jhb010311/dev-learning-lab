@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 입출력</p>
 <h1>직렬화</h1>
 <p><b>저장한 객체를 되살리면 무엇이 돌아오나</b></p>
+<p><b>왜 생겼나</b> — 객체를 파일에 저장하거나 다른 JVM으로 보내려면, 필드를 하나씩 정해진 순서로 쓰고 다시 읽어 조립하는 코드를 클래스마다 적어야 한다. 자바 기본 직렬화는 클래스에 Serializable만 표시하면 ObjectOutputStream이 필드 값과 참조하는 객체까지 따라가며 바이트로 바꾸고, ObjectInputStream이 그 바이트로 객체를 다시 만들게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 웹 API의 요청과 응답은 Jackson으로 JSON을 만들어 주고받는 것이 보통이고, 자바 기본 직렬화는 Serializable을 요구하는 곳에서 만난다. 세션을 남기도록 설정한 톰캣이 종료할 때 세션을 파일로 저장하거나 Spring Session이 기본 설정으로 세션을 Redis에 저장할 때, 세션 속성 객체가 Serializable이어야 한다. 저장하면 안 되는 필드에는 transient를 붙인다.</p>
 <p>자바의 기본 직렬화는 객체를 바이트로 바꿔 파일에 쓰고(writeObject), 그 바이트로 객체를 다시 만들어 냅니다(readObject). 그런데 객체의 모든 것이 저장되는 것은 아니고, 아무 객체나 저장할 수 있는 것도 아닙니다. point 값을 50으로 두고 저장한 다음 70으로 바꾸고 나서 되살려 보면서, 무엇이 저장되고 무엇이 저장되지 않는지 확인합니다.</p>
 <p>실행으로 대조 · JDK 21에서 열다섯 가지 조합을 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,10 +40,16 @@
 <dt>직렬화와 역직렬화</dt>
 <dd>객체를 저장하거나 전송할 수 있는 형태(바이트열, JSON 등)로 바꾸는 것이 직렬화, 그것을 다시 객체로 복원하는 것이 역직렬화다. 웹 API에서는 객체와 JSON 사이의 변환(Jackson 등)이 대표적이다. 자바 기본 직렬화(Serializable)는 클래스 구조가 바뀌면 호환성 문제가 생기고 보안 위험이 있어 지금은 JSON 등의 형식을 주로 쓴다.</dd>
 <dt>Serializable</dt>
+<dd><b>왜 생겼나</b> — 어떤 객체든 바이트로 저장할 수 있게 하면, 열린 파일처럼 되살려도 쓸 수 없는 것이나 비밀 값처럼 밖에 나가면 안 되는 것까지 저장된다. Serializable은 저장해도 되는 클래스인지를 그 클래스를 만든 사람이 직접 밝히게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 세션이나 캐시에 저장하는 객체처럼 Serializable을 요구하는 곳에서 구현한다. 믿을 수 없는 곳에서 온 바이트를 역직렬화하면 보안 문제가 생길 수 있어, 바깥과 주고받는 데이터는 JSON 같은 형식을 쓴다.</dd>
 <dd>자바의 기본 직렬화로 저장할 수 있는 클래스임을 표시하는 인터페이스다. 구현할 메서드가 하나도 없고, 클래스 선언에 implements Serializable을 붙이는 것만으로 표시가 된다. 이 표시가 없는 객체를 ObjectOutputStream으로 쓰려고 하면 NotSerializableException이 발생한다. 객체를 저장할 때는 그 객체가 필드로 가리키는 객체들도 함께 저장되므로, 그 객체들의 클래스도 모두 Serializable이어야 한다.</dd>
 <dt>transient</dt>
+<dd><b>왜 생겼나</b> — 기본 직렬화는 static이 아닌 필드를 모두 저장하므로, 필드 하나만 빼는 방법이 없으면 클래스 전체의 저장 방식을 writeObject로 직접 짜야 한다. transient는 필드 선언에 키워드 하나만 붙여 그 필드를 저장에서 빼게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 되살린 뒤 다시 만들 수 있는 필드에 붙이고, 그 값은 클래스에 readObject 메서드를 정의해 되살릴 때 다시 채운다.</dd>
 <dd>직렬화할 때 이 필드는 저장하지 말라고 표시하는 키워드다. transient를 붙인 필드는 파일이나 네트워크로 나가는 바이트에 들어가지 않고, 되살린 객체에서는 그 타입의 기본값(숫자는 0, 참조형은 null)이 된다. 비밀번호처럼 밖에 남기면 안 되는 값, 다시 계산하면 되는 값, Serializable이 아니어서 저장할 수 없는 객체를 가리키는 필드에 쓴다. 되살린 뒤에 그 필드가 비어 있다는 점을 코드에서 고려해야 한다.</dd>
 <dt>serialVersionUID</dt>
+<dd><b>왜 생겼나</b> — 저장한 데이터와 지금 클래스가 같은 버전인지 따질 기준이 없으면, 모양이 바뀐 클래스로 예전 데이터를 잘못 읽을 수 있다. serialVersionUID는 클래스 쪽에서 버전 번호를 밝혀, 맞지 않는 데이터는 읽기 전에 거절하게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 필드를 하나 더하는 것처럼 예전 데이터를 읽어도 되는 변경이면 번호를 그대로 두고, 더는 읽으면 안 되게 바뀌면 번호를 바꾼다. javac의 -Xlint:serial 옵션은 이 필드가 없는 Serializable 클래스를 경고한다.</dd>
 <dd>직렬화된 데이터가 어떤 버전의 클래스로 만들어졌는지를 나타내는 번호다. 객체를 저장할 때 이 번호가 함께 기록되고, 되살릴 때 지금 클래스의 번호와 다르면 InvalidClassException이 발생한다. 클래스에 private static final long serialVersionUID = 1L;처럼 직접 적지 않으면 자바가 클래스의 이름, 필드, 메서드 등으로부터 값을 계산하는데, 클래스를 조금만 고쳐도 이 값이 달라질 수 있다. 그래서 Serializable 클래스에는 이 번호를 직접 적어 두는 것이 권장된다.</dd>
 <dt>static</dt>
 <dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
@@ -106,6 +114,10 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -179,9 +191,10 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

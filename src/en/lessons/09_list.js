@@ -1,6 +1,8 @@
 Lab.register({
   id: 'list', nav: 'ArrayList and LinkedList', cat: 'Data structures', mode: 'step',
   title: 'The same operation takes a different amount of work',
+  why: 'A Java array has a fixed length when it is created, so if you do not know the number of elements in advance, you have to write the code that creates a larger array and moves the elements yourself. ArrayList takes care of this length management. You can get elements directly by index as with an array and still keep adding elements. LinkedList links nodes together, so adding and removing at either end is fast regardless of the number of elements.',
+  use: 'ArrayList is the most commonly used list when you collect items and go through them in order or get them by index, such as a list of query results or items to show on a screen. When you need a queue or a stack that adds and removes at both ends, the ArrayDeque class is more commonly used than LinkedList.',
   intro: 'An ArrayList stores its elements next to each other in a single array, and a LinkedList creates a node for each element and links each node to the ones before and after it. Try getting, inserting, and removing at different positions, and you see that one does its work shifting elements and the other does its work following nodes.',
   terms: ['ArrayList', 'LinkedList', 'Time complexity (big-O notation)', 'Amortized analysis'], ranks: ['collection', 'ds'],
   controls: [

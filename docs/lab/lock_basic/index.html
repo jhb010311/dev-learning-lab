@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>락(synchronized)</h1>
 <p><b>락은 무엇이고, 없으면 무슨 일이 생기는가</b></p>
+<p><b>왜 생겼나</b> — 여러 스레드가 같은 값을 고치는 프로그램에서, 다른 스레드가 언제 끼어들지를 프로그래머가 일일이 따지기는 어렵고, 틀린 결과도 가끔씩만 나와 찾아내기 힘들다. 자바의 synchronized는 &quot;이 구역은 한 번에 한 스레드만&quot;이라는 락을 키워드 하나로 걸게 해서, 여러 스레드가 동시에 돌아도 그 구역만큼은 한 스레드씩 차례로 실행되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 여러 요청이 동시에 오는 서버에서, 같은 객체의 값을 여러 스레드가 함께 고치는 곳을 지킬 때 쓴다. 단순히 수를 세는 일에는 AtomicInteger를, 여러 스레드가 함께 쓰는 Map에는 ConcurrentHashMap을 대신 쓰는 일이 많다. synchronized는 한 프로그램(JVM)의 스레드끼리만 막으므로, 서버가 여러 대이면 DB의 락 같은 다른 방법을 쓴다.</p>
 <p>락은 &quot;한 번에 한 스레드만 이 구역을 실행한다&quot;는 표시입니다. 이 코드에서 락을 거는 부분은 add 메서드 선언 앞의 synchronized입니다. add가 하는 일은 count++ 한 줄인데, 이 한 줄은 count의 값을 읽고, 1을 더하고, 더한 값을 count에 쓰는 세 동작입니다. 스레드 두 개가 같은 count를 동시에 고치면, 한 스레드가 값을 읽은 뒤 쓰기 전에 다른 스레드가 count를 바꿔 놓아 한쪽의 증가가 사라질 수 있습니다. synchronized가 붙으면 스레드는 add에 들어가기 전에 락을 잡아야 하고, 락은 한 번에 한 스레드만 잡을 수 있어서 다른 스레드는 앞 스레드가 add를 나올 때까지 기다립니다. 이 실습은 synchronized를 붙였다 떼고 스레드를 2개와 1개로 바꿔 가며 같은 코드를 컴파일하고 실제로 실행해, 마지막에 출력되는 count를 봅니다. (스레드를 만들어 start와 join으로 다루는 것은 &quot;스레드&quot; 실습에서 다룹니다. static은 count와 add가 프로그램에 하나씩만 있다는 뜻으로 보고, 이 실습에서는 자세히 다루지 않습니다.)</p>
 <p>실행으로 대조 · JDK 21에서 네 가지 조합을 javax.tools로 컴파일하고 자식 java 프로세스로 30번씩 실행해, 마지막 count를 대조(락 없이 스레드 2개이면 30번 모두 200000보다 작음)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,6 +40,8 @@
 <dt>락(lock)과 모니터</dt>
 <dd>자바의 모든 객체에는 모니터가 하나 딸려 있고, 스레드는 그 모니터를 잠그거나(lock) 풀 수(unlock) 있다. 이 잠금을 흔히 락이라고 부른다. 한 모니터를 한 번에 잠글 수 있는 스레드는 하나뿐이고, 같은 모니터를 잠그려는 다른 스레드는 잠글 수 있을 때까지 막혀서 기다린다. synchronized 메서드는 실행하기 전에 모니터를 얻는데, 인스턴스 메서드는 this에 딸린 모니터를, static 메서드는 그 클래스의 Class 객체에 딸린 모니터를 쓴다. 메서드에서 나올 때는 락이 자동으로 풀린다.</dd>
 <dt>synchronized</dt>
+<dd><b>왜 생겼나</b> — 락을 직접 얻고 풀면 예외가 났을 때 풀기를 빠뜨려 다른 스레드가 끝없이 기다릴 수 있다. synchronized는 블록을 벗어나는 순간 예외가 났더라도 JVM이 락을 자동으로 풀어 주는 언어 문법으로 이 실수를 막는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 카운터 증가나 공유 컬렉션 갱신처럼 짧은 구간을 보호할 때 쓴다. 기다릴 시간 제한이나 공정한 순서가 필요하면 ReentrantLock, 숫자 하나만 바꾸면 AtomicInteger를 쓴다.</dd>
 <dd>자바에서 임계 영역을 지정하는 키워드다. synchronized가 붙은 메서드나 블록은 한 번에 한 스레드만 실행할 수 있으며, 실행하려는 스레드는 해당 객체의 모니터 락을 얻어야 한다. 간단하지만 락을 기다리는 스레드는 멈춰 있게 되므로 범위를 필요한 만큼만 잡아야 한다.</dd>
 <dt>count++의 세 동작</dt>
 <dd>count++처럼 변수의 값을 바꿔 다시 쓰는 식은 한 줄이어도 한 동작이 아니다. 현재 값을 읽고, 읽은 값에 1을 더하고, 더한 값을 변수에 쓰는 세 단계로 나뉜다. JDK 21의 javap로 static int 필드의 count++를 보면 getstatic, iconst_1과 iadd, putstatic의 순서이다. 두 스레드의 세 단계가 섞여서 한 스레드가 읽어 둔 오래된 값에 1을 더해 쓰면, 그사이 다른 스레드가 올려 놓은 증가가 덮어써져 사라질 수 있다. 세 단계를 락으로 묶어 한 스레드가 끝낼 때까지 다른 스레드가 들어오지 못하게 하면 사라지지 않는다.</dd>
@@ -109,6 +113,10 @@
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -182,9 +190,10 @@
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

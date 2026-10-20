@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>쿠키</h1>
 <p><b>기억하지 못하는 서버에게 매번 이름표를 내민다</b></p>
+<p><b>왜 생겼나</b> — 쿠키가 없으면 로그인 상태를 이어 가기 위해 식별 값을 모든 링크의 주소나 폼의 숨은 칸에 일일이 붙여야 하고, 주소에 붙은 값은 링크를 공유하거나 기록에 남을 때 함께 새어 나간다. 쿠키는 이 값을 주소가 아닌 요청 헤더로 오가게 하고 브라우저가 알아서 붙이게 해서, 페이지를 만드는 쪽이 링크마다 값을 챙기지 않아도 되게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 로그인 뒤 세션 ID(톰캣의 JSESSIONID 쿠키 등)를 보내 같은 사용자임을 알리는 데 주로 쓰고, 언어 같은 설정을 기억하는 데도 쓴다. 로그인용 쿠키에는 HttpOnly, Secure, SameSite를 붙여 스크립트로 읽기, 평문 HTTP로 보내기, 다른 사이트의 요청에 딸려 가기를 막거나 줄인다. 모바일 앱은 쿠키 대신 Authorization 헤더로 토큰을 보내기도 한다.</p>
 <p>HTTP는 요청과 요청을 이어 주지 않습니다. 서버는 앞서 온 요청이 같은 브라우저에서 왔는지 알 수 없습니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다.</p>
 <p>일부만 실행으로 확인 · 브라우저와 시험 서버로 확인(브라우저 종료 시 삭제는 미확인)</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -38,8 +40,12 @@
 <dt>쿠키</dt>
 <dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
 <dt>HTTP와 무상태(Stateless)</dt>
+<dd><b>왜 생겼나</b> — 서버가 요청마다 앞선 대화를 기억해야 하는 방식이면, 사용자가 늘수록 그 기억을 쌓아 둘 자원이 늘고 연결이 끊기면 대화를 이어 갈 수 없다. HTTP는 요청 하나만 보고 처리할 수 있게 정해, 서버가 요청 사이에 아무것도 기억하지 않아도 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 웹 페이지와 이미지를 받는 일, 모바일 앱이 서버 API를 부르는 일, 서버가 다른 서비스의 API를 부르는 일이 모두 HTTP로 이뤄진다. 서버 쪽에서도 수시로 먼저 보내야 하는 채팅 같은 기능에는 WebSocket을 함께 쓴다.</dd>
 <dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
 <dt>HttpOnly, Secure, SameSite</dt>
+<dd><b>왜 생겼나</b> — 쿠키는 원래 페이지의 스크립트가 읽을 수 있었고, 암호화되지 않은 HTTP 연결에도, 다른 사이트에서 시작된 요청에도 함께 실려 갔다. 이 속성들은 서버가 Set-Cookie 헤더에 쿠키마다 붙여, 이 길을 골라 막게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 로그인 세션 쿠키에는 셋을 함께 붙이는 것이 보통이다. Spring Boot에서는 server.servlet.session.cookie 아래의 http-only, secure, same-site 설정으로 세션 쿠키에 붙인다.</dd>
 <dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄인다.</dd>
 <dt>세션</dt>
 <dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 내용을 고칠 수 없다(세션 ID를 빼앗기는 것은 다른 문제다). 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
@@ -96,6 +102,10 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -169,9 +179,10 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>

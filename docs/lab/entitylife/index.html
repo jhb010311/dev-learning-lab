@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f660794e7">
+<link rel="stylesheet" href="../../app.css?v=a460a62996">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,6 +31,8 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 영속성 관리</p>
 <h1>엔티티의 생명주기</h1>
 <p><b>같은 setName인데 왜 어떤 때는 DB에 반영되지 않나</b></p>
+<p><b>왜 생겼나</b> — JDBC로는 객체의 값을 바꾼 뒤 UPDATE 문을 직접 써서 보내야 했고, 무엇을 바꿨는지도 개발자가 기억해야 했다. JPA의 영속성 컨텍스트는 조회하거나 persist한 엔티티를 맡아 두고 처음 모습과 비교해, 바뀐 엔티티를 커밋할 때 찾아 UPDATE를 보낸다. 그래서 어떤 객체가 지금 이 관리를 받고 있는지를 상태로 나누어 따지게 되었다.</p>
+<p><b>지금 어디에 쓰나</b> — 서비스 메서드에서 엔티티를 조회해 setter로 값을 바꾸기만 하고 저장 메서드를 따로 부르지 않는 수정 코드가 이 관리 덕분에 동작한다. 반대로 트랜잭션이 끝난 뒤에 엔티티를 고치거나 요청 값으로 new 해서 만든 객체를 고치면 반영되지 않으므로, 수정은 트랜잭션이 걸린 서비스 메서드에서 엔티티를 조회해 고치는 모양으로 짠다.</p>
 <p>엔티티 객체는 비영속, 영속, 준영속, 삭제라는 네 가지 상태 가운데 하나에 있습니다. JPA가 값의 변화를 지켜보고 DB에 반영해 주는 것은 영속 상태일 때뿐입니다. 이 실습의 Member는 예시로 만든 엔티티 클래스입니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열네 가지 조합을 실행해 줄마다 나간 SQL까지 대조</p>
 <h2>이 실습에 나오는 개념</h2>
@@ -42,8 +44,11 @@
 <dt>영속성 컨텍스트</dt>
 <dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다.</dd>
 <dt>변경 감지(Dirty Checking)</dt>
+<dd><b>지금 어디에 쓰나</b> — @Transactional 서비스 메서드에서 엔티티를 조회하고 값만 바꿔 수정을 끝낼 때 쓴다. 트랜잭션 밖에서 바꾼 값이나 준영속 엔티티의 변경은 반영되지 않으므로, 그때는 트랜잭션 안에서 다시 조회한 엔티티를 고친다.</dd>
 <dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 플러시할 때(보통 커밋 직전) JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
 <dt>쓰기 지연과 flush</dt>
+<dd><b>왜 생겼나</b> — 엔티티를 바꿀 때마다 SQL을 바로 보내면 같은 행을 여러 번 고쳐도 UPDATE가 그만큼 나가고 문장마다 DB를 오간다. 쓰기 지연은 SQL을 flush 때까지 미뤄, 마지막 상태로 한 번만 보내고 설정에 따라 여러 문장을 JDBC 배치로 묶게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 많은 행을 저장하는 일괄 작업에서 hibernate.jdbc.batch_size를 켜 INSERT를 묶는다(IDENTITY 전략이면 묶이지 않는다). 테스트에서는 em.flush()와 em.clear()로 SQL을 바로 보내고 DB에서 다시 읽어 확인한다.</dd>
 <dd>쓰기 지연은 INSERT, UPDATE, DELETE 문을 바로 DB에 보내지 않고 모아 두었다가 한꺼번에 보내는 것이다. 단, 기본 키를 IDENTITY 전략(MySQL의 AUTO_INCREMENT 등)으로 생성하는 엔티티는 식별자를 얻기 위해 저장을 요청한 시점에 INSERT가 바로 실행된다. flush는 모아 둔 변경 내용을 DB에 보내는 동작으로, 트랜잭션 커밋 직전이나 JPQL 쿼리 실행 직전에 자동으로 일어난다. flush는 SQL을 DB에 전송할 뿐 트랜잭션을 커밋하는 것은 아니다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
@@ -92,6 +97,10 @@ em.getTransaction().commit();</pre>
     <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
     <div class="headcols">
+      <div class="whyuse" id="whyuse" hidden>
+        <div id="why-box"><h3>왜 생겼나</h3><p id="why"></p></div>
+        <div id="use-box"><h3>지금 어디에 쓰나</h3><p id="use"></p></div>
+      </div>
       <div class="concept" id="explain">
         <h3>이 실습에 나오는 개념</h3>
         <div class="terms" id="terms"></div>
@@ -165,9 +174,10 @@ em.getTransaction().commit();</pre>
 </div>
 <div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
   <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <div id="glpop-wu" hidden></div>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f660794e7"></script>
+<script src="../../app.js?v=a460a62996"></script>
 </body>
 </html>
