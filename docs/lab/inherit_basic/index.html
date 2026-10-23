@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>상속: extends는 무엇을 물려주는가 · 개발 학습 실습실</title>
-<meta name="description" content="상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog…">
+<meta name="description" content="상속은 클래스 이름 뒤에 extends와 다른 클래스 이름을 적어, 그 클래스(부모 클래스)에 적힌 메서드와 필드를 물려받는 문법입니다. 가장 먼저 만나는 상속은 눈에 보이지 않습니다. extends를 적지 않은 클래스도 자바가 주는 Object 클래스를 부모로 가져서, 직접…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="상속: extends는 무엇을 물려주는가 · 개발 학습 실습실">
-<meta property="og:description" content="상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog…">
+<meta property="og:description" content="상속은 클래스 이름 뒤에 extends와 다른 클래스 이름을 적어, 그 클래스(부모 클래스)에 적힌 메서드와 필드를 물려받는 문법입니다. 가장 먼저 만나는 상속은 눈에 보이지 않습니다. extends를 적지 않은 클래스도 자바가 주는 Object 클래스를 부모로 가져서, 직접…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/inherit_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,71 +31,89 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>상속</h1>
 <p><b>extends는 무엇을 물려주는가</b></p>
-<p><b>왜 생겼나</b> — 개와 고양이처럼 비슷한 클래스를 따로 만들면 먹기, 잠자기처럼 똑같은 코드를 클래스마다 베껴 적어야 하고, 고칠 때도 모든 클래스를 고쳐야 한다. 상속은 공통 코드를 부모 클래스에 한 번만 적고 자식 클래스가 extends로 물려받게 해서, 자식 클래스에는 그 클래스만의 코드를 덧붙이거나 달라지는 메서드만 다시 적게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 자바의 모든 클래스는 extends를 적지 않아도 Object를 물려받아서, toString이나 equals를 어느 객체에서나 부를 수 있다. Exception을 물려받아 우리 프로그램에 맞는 예외 클래스를 만들 때도 쓴다. 부모를 고치면 모든 자식이 영향을 받으므로, 다른 클래스의 기능을 빌려 쓰기만 하려면 상속 대신 그 객체를 필드로 두고 메서드를 부르기도 한다.</p>
-<p>상속은 class Dog extends Animal처럼 클래스 이름 뒤에 extends와 다른 클래스를 적어서 쓰는 문법입니다. extends 뒤의 Animal이 부모 클래스, Dog가 자식 클래스이고, Dog는 Animal에 적힌 메서드와 필드를 물려받습니다. 그래서 Dog에 적지 않은 eat()을 Dog 객체로 부를 수 있습니다. 물려받은 메서드를 Dog에 같은 이름과 같은 매개변수로 다시 적으면 Dog 객체에서는 Dog의 것이 실행되는데, 이것이 재정의(오버라이딩)입니다. 그리고 extends를 썼기 때문에 Dog 객체를 Animal 타입 변수에 담을 수 있습니다. 이 실습은 extends를 지우거나 eat()을 다시 적고 변수의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 어느 eat이 실행되는지를 봅니다.</p>
-<p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
+<p><b>왜 생겼나</b> — 비슷한 클래스를 따로 만들면 같은 코드를 클래스마다 베껴 적어야 하고, 고칠 때도 모든 클래스를 고쳐야 한다. 상속은 공통 코드를 부모 클래스에 한 번만 적고 자식 클래스가 extends로 물려받게 해서, 자식 클래스에는 그 클래스만의 코드를 덧붙이거나 달라지는 메서드만 다시 적게 한다. 자바는 모든 클래스가 Object를 물려받게 정해서, toString이나 equals 같은 기본 메서드를 어느 객체에서나 부를 수 있게 했다.</p>
+<p><b>지금 어디에 쓰나</b> — 개발자가 가장 자주 하는 상속은 Object에게서 물려받은 toString이나 equals를 @Override로 다시 적는 것과, 프로그램에 맞는 예외 클래스를 extends RuntimeException으로 만드는 것이다. 서블릿을 직접 만들 때는 톰캣 같은 서블릿 컨테이너가 주는 HttpServlet을 extends하고 doGet 같은 메서드를 다시 적는다. 부모를 고치면 모든 자식이 영향을 받으므로, 다른 클래스의 기능을 빌려 쓰기만 하려면 상속 대신 그 객체를 필드로 두고 메서드를 부르기도 한다.</p>
+<p>상속은 클래스 이름 뒤에 extends와 다른 클래스 이름을 적어, 그 클래스(부모 클래스)에 적힌 메서드와 필드를 물려받는 문법입니다. 가장 먼저 만나는 상속은 눈에 보이지 않습니다. extends를 적지 않은 클래스도 자바가 주는 Object 클래스를 부모로 가져서, 직접 적지 않은 toString() 같은 메서드를 부를 수 있습니다. 물려받은 메서드를 같은 이름, 같은 매개변수로 다시 적으면 그 클래스의 객체에서는 다시 적은 것이 실행되는데, 이것이 재정의(오버라이딩)이고 @Override는 그것을 컴파일러에게 확인받는 표시입니다. 두 번째로 자주 쓰는 상속은 extends RuntimeException으로 예외 클래스를 만드는 것입니다. 이 실습은 예시로 만든 Member 클래스와 MemberNotFoundException 클래스로, toString()을 다시 적거나 extends를 지우고 변수와 catch의 타입을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 화면의 코드 스무 가지 조합(Object와 toString 12, extends RuntimeException 예외 클래스 8)을 javax.tools로 컴파일하고 java로 실행해 대조, Object·RuntimeException·Throwable의 상속 관계와 메서드가 적힌 클래스는 리플렉션으로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>상속</dt>
 <dd>기존 클래스(상위 클래스)의 필드와 메서드를 물려받아 새 클래스(하위 클래스)를 정의하는 것이다. 공통 코드를 재사용하고 하위 클래스에서 필요한 부분만 추가하거나 재정의한다. 자바의 클래스는 단일 상속만 가능하며, 상위 클래스 변경이 하위 클래스 전체에 영향을 주므로 &quot;is-a&quot; 관계가 분명할 때만 쓰는 것이 좋다.</dd>
 <dt>extends</dt>
-<dd><b>지금 어디에 쓰나</b> — 직접 예외 클래스를 만들 때 새 클래스 이름 뒤에 extends RuntimeException처럼 자바가 주는 예외 클래스를 적어 물려받는다. 클래스가 인터페이스를 따를 때는 extends가 아니라 implements를 쓴다.</dd>
-<dd>extends는 클래스 선언에서 그 클래스가 어느 클래스를 물려받는지 밝히는 키워드이다. class Dog extends Animal처럼 클래스 이름 뒤에 쓰고, 뒤에 적은 클래스(Animal)가 부모 클래스, 선언하는 클래스(Dog)가 자식 클래스가 된다. 클래스는 extends 뒤에 하나만 적을 수 있다. final이 붙은 클래스는 extends로 물려받을 수 없다. extends를 쓰면 부모 클래스가 자식 클래스의 상위 타입이 되어, 자식의 객체를 부모 타입의 변수에 담을 수 있다. extends를 쓰지 않은 클래스는 Object를 부모 클래스로 한다.</dd>
-<dt>부모 클래스와 자식 클래스</dt>
-<dd>부모 클래스(상위 클래스, superclass)는 다른 클래스가 extends로 물려받는 클래스이고, 자식 클래스(하위 클래스, subclass)는 extends로 부모를 밝힌 클래스이다. class Dog extends Animal에서 Animal이 Dog의 부모 클래스이다. 자식 클래스는 부모 클래스에 적힌 메서드 가운데 접근할 수 있는 것을 물려받아, 자식에 적지 않아도 자식의 객체로 부를 수 있다. 자식에서 같은 이름과 같은 매개변수의 메서드를 다시 적으면 물려받지 않고 그것으로 바꾸어 쓰는데, 이것이 재정의(오버라이딩)이다. 부모의 부모처럼 위로 이어진 모든 클래스도 자식의 부모 클래스(상위 클래스)라고 부른다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 직접 예외 클래스를 만들 때 extends RuntimeException처럼 자바가 주는 예외 클래스를 적어 물려받고, 서블릿을 만들 때 extends HttpServlet을 적는다. 클래스가 인터페이스를 따를 때는 extends가 아니라 implements를 쓴다.</dd>
+<dd>extends는 클래스 선언에서 그 클래스가 어느 클래스를 물려받는지 밝히는 키워드이다. class MemberNotFoundException extends RuntimeException처럼 클래스 이름 뒤에 쓰고, 뒤에 적은 클래스(자바가 주는 RuntimeException)가 부모 클래스, 선언하는 클래스(예시로 지은 MemberNotFoundException)가 자식 클래스가 된다. 클래스는 extends 뒤에 하나만 적을 수 있고, String처럼 final이 붙은 클래스는 extends로 물려받을 수 없다. extends를 쓰면 부모 클래스가 자식 클래스의 상위 타입이 되어, 부모 타입의 변수가 자식의 객체를 가리킬 수 있다. extends를 쓰지 않은 클래스는 Object를 부모 클래스로 한다.</dd>
+<dt>Object 클래스</dt>
+<dd><b>왜 생겼나</b> — 모든 객체가 공통으로 가져야 하는 기능(글자로 나타내기, 같은지 비교하기, 해시 코드, 자기 클래스 알아내기)을 클래스마다 따로 적지 않게, 하나의 맨 위 부모에 두었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 객체를 글자로 찍거나(println, 로그), 컬렉션이 원소가 같은지 비교할 때(equals, hashCode) 쓰이는 메서드가 모두 Object에서 온다. 개발자는 필요할 때 이 메서드들을 자기 클래스에서 다시 적는다.</dd>
+<dd>Object는 자바가 java.lang 패키지에 주는 클래스로, 모든 클래스의 맨 위 부모 클래스이다. 클래스 선언에 extends를 적지 않으면 그 클래스의 부모는 Object가 되고, extends로 다른 클래스를 물려받아도 위로 거슬러 올라가면 Object에 닿는다. 그래서 어떤 객체로든 Object에 적힌 toString(), equals(Object), hashCode(), getClass() 같은 메서드를 부를 수 있고, Object 타입 변수는 어떤 클래스의 객체든 가리킬 수 있다.</dd>
+<dt>toString()</dt>
+<dd><b>지금 어디에 쓰나</b> — 로그나 디버거, 오류 메시지에 객체가 읽기 좋게 나오도록 DTO나 엔티티 클래스에서 toString()을 다시 적는다. 자바의 record는 toString()을 자동으로 만들어 준다.</dd>
+<dd>toString()은 객체를 글자로 나타낸 String을 돌려주는 메서드로, Object에 적혀 있어 모든 객체가 물려받는다. Object에 적힌 본문은 getClass().getName() + &quot;@&quot; + Integer.toHexString(hashCode())이어서, 다시 적지 않으면 Member@279f2327처럼 클래스 이름, @, 해시 코드를 16진수로 적은 글자가 나온다. System.out.println(객체)와 문자열 + 객체는 그 객체의 toString()을 불러 얻은 글자를 쓴다. 클래스에서 @Override를 붙여 public String toString()을 다시 적으면 그 글자를 바꿀 수 있다.</dd>
 <dt>오버라이딩</dt>
 <dd><b>왜 생겼나</b> — 물려받은 메서드가 하위 클래스에 맞지 않을 때 다른 이름의 메서드를 새로 만들면, 상위 타입으로 부르는 코드는 여전히 물려받은 옛 동작을 실행한다. 오버라이딩은 같은 시그니처로 다시 정의해 상위 타입으로 불러도 새 동작이 실행되게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 클래스에 맞게 다시 쓸 때와 인터페이스의 메서드를 구현할 때 쓴다. @Override를 붙이면 이름이나 매개변수를 잘못 적어 새 메서드가 되는 실수를 컴파일러가 잡는다.</dd>
 <dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
+<dt>@Override</dt>
+<dd><b>왜 생겼나</b> — 재정의는 이름과 매개변수가 맞으면 조용히 이루어져서, 부모 메서드의 이름이 나중에 바뀌면 자식 메서드는 아무 오류 없이 재정의가 아닌 별개의 메서드로 남는다. @Override는 재정의하려는 뜻을 코드에 적어 이런 어긋남이 컴파일 오류로 드러나게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 재정의하거나 인터페이스의 메서드를 구현할 때 붙인다. 개발 도구(IDE)가 재정의 코드를 만들어 줄 때도 함께 적어 준다.</dd>
+<dd>바로 아래 메서드가 상위 클래스나 인터페이스의 메서드를 재정의한 것임을 나타내는 애너테이션이다. 컴파일러가 이 표시를 읽고 실제로 재정의가 맞는지 확인하며, 아니면 컴파일 오류를 낸다. 메서드 이름이나 매개변수를 잘못 적어 재정의가 아닌 새 메서드를 만들어 버리는 실수를 잡아 준다. 붙이지 않아도 재정의는 되고 프로그램의 동작도 달라지지 않지만, 실수를 막기 위해 재정의하는 메서드에는 항상 붙인다. 소스 코드까지만 남는 애너테이션이라 class 파일에는 적히지 않는다.</dd>
+<dt>RuntimeException</dt>
+<dd><b>지금 어디에 쓰나</b> — class MemberNotFoundException extends RuntimeException처럼 프로그램에 맞는 예외 클래스를 만들 때 부모로 가장 많이 쓴다. 생성자를 적고 super(message)로 메시지를 넘기며, 생성자는 물려받지 않으므로 직접 적어야 한다. 스프링도 데이터 접근 예외(DataAccessException)를 RuntimeException을 물려받는 클래스로 만들어 두었다.</dd>
+<dd>RuntimeException은 자바가 java.lang 패키지에 주는 예외 클래스로, Exception을 물려받고 Exception은 Throwable을 물려받는다. RuntimeException과 그 자식 클래스는 메서드 선언에 throws를 적거나 catch로 잡으라고 컴파일러가 요구하지 않는 예외(unchecked 예외)이다. NullPointerException, IllegalArgumentException, ArithmeticException이 모두 RuntimeException의 자식이다. 생성자 RuntimeException(String message)로 만든 예외는 getMessage()로 그 메시지를 돌려준다. getMessage()는 Throwable에 적혀 있다.</dd>
+<dt>부모 클래스와 자식 클래스</dt>
+<dd>부모 클래스(상위 클래스, superclass)는 다른 클래스가 extends로 물려받는 클래스이고, 자식 클래스(하위 클래스, subclass)는 extends로 부모를 밝힌 클래스이다. class MemberNotFoundException extends RuntimeException에서 RuntimeException이 부모 클래스이다. 자식 클래스는 부모 클래스에 적힌 메서드 가운데 접근할 수 있는 것을 물려받아, 자식에 적지 않아도 자식의 객체로 부를 수 있다. 생성자는 물려받지 않는다. 자식에서 같은 이름과 같은 매개변수의 메서드를 다시 적으면 자식의 객체에서는 그것이 실행되는데, 이것이 재정의(오버라이딩)이다. 부모의 부모처럼 위로 이어진 모든 클래스도 상위 클래스라고 부른다. RuntimeException은 Exception을, Exception은 Throwable을, Throwable은 Object를 물려받는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — Dog는 Animal을 물려받습니다. 컴파일에 성공하고 Animal에 적힌 eat이 실행됩니다.</li>
-<li><b>extends Animal을 지우면</b> — Dog에는 자기가 적은 것만 있어서 eat()을 부를 수 없고, 컴파일 오류가 납니다.</li>
-<li><b>Dog에 eat()을 다시 적으면</b> — Dog 객체에서는 Dog에 적힌 eat이 실행됩니다.</li>
-<li><b>Animal 타입 변수에 담으면</b> — extends가 있어서 담을 수 있고, 이 변수로 Animal에 적힌 eat을 부릅니다.</li>
-<li><b>extends를 지우고 Animal 변수에 담으면</b> — Dog는 Animal 타입이 아니어서 담을 수 없고, 컴파일 오류가 납니다.</li>
-<li><b>다시 적고 Animal 변수에 담으면</b> — 변수의 타입이 Animal이어도 객체가 Dog이므로 Dog에 적힌 eat이 실행됩니다.</li>
+<li><b>처음 설정으로</b> — Member는 extends를 적지 않아도 자바의 Object를 물려받습니다. Object에 적힌 toString()이 실행되어 Member@279f2327처럼 클래스 이름과 해시 코드가 출력됩니다.</li>
+<li><b>toString()을 다시 적으면</b> — Member에 다시 적은 toString()이 실행되어 Member(민수)가 출력됩니다. println도 그 toString()을 부릅니다.</li>
+<li><b>Object 타입 변수로 가리키면</b> — Member는 Object의 자식이라 Object 타입 변수가 가리킬 수 있습니다. 실행되는 toString()은 여전히 Member에 다시 적은 것입니다.</li>
+<li><b>String 타입 변수로 가리키면</b> — Member는 String을 물려받지 않았으므로 String 타입이 아닙니다. 컴파일 오류가 납니다.</li>
+<li><b>이름을 잘못 적고 @Override를 붙이면</b> — tostring은 부모에 없는 메서드라 재정의가 아닙니다. @Override 때문에 컴파일러가 오류로 알려 줍니다.</li>
+<li><b>이름을 잘못 적고 @Override가 없으면</b> — 컴파일은 되지만 tostring은 새 메서드일 뿐이어서, 출력은 Object의 toString()이 만든 Member@279f2327 그대로입니다.</li>
+<li><b>예외 클래스를 만들면</b> — RuntimeException을 물려받아 예외 객체가 되므로 throw와 catch에 쓸 수 있고, 적지 않은 getMessage()도 부를 수 있습니다.</li>
+<li><b>RuntimeException 타입으로 받으면</b> — MemberNotFoundException은 RuntimeException의 자식이라, 부모 타입 변수 e가 그 객체를 받습니다.</li>
+<li><b>extends RuntimeException을 지우면</b> — 부모가 Object인 보통 클래스가 되어 super(message), throw, catch, getMessage()에서 컴파일 오류가 납니다.</li>
+<li><b>생성자를 적지 않으면</b> — 생성자는 물려받지 않습니다. 메시지를 받는 생성자가 없어 컴파일 오류가 납니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog extends Animal 줄을 읽고, Dog가 Animal의 자식이며 Animal에 적힌 것을 물려받는다고 기억해 둡니다. extends 뒤에 적은 Animal이 부모 클래스입니다. Dog 안에는 bark 메서드를 직접 적었습니다.</li>
-<li>컴파일러가 Dog d = new Dog(); 줄을 확인합니다. Dog 객체를 Dog 타입 변수에 담는 줄이므로 문제가 없습니다. 변수 d의 타입이 Dog이므로, d로 부르는 메서드는 Dog 타입에서 찾습니다.</li>
-<li>컴파일러가 d.eat(); 줄을 확인합니다. d의 타입이 Dog이므로 Dog에서 eat 메서드를 찾는데, Dog 안에는 eat이 없습니다. Dog는 Animal을 물려받으므로 Animal에서 이어서 찾고, Animal에 적힌 eat을 찾아 통과합니다. Dog에 적지 않은 eat을 Dog 객체로 부를 수 있는 이유가 이것입니다.</li>
-<li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다. 여기까지는 컴파일러가 줄마다 쓸 수 있는지 확인한 것이고, 아직 eat은 한 번도 실행되지 않았습니다.</li>
-<li>java Main으로 실행합니다. main이 시작되고, new Dog()가 Dog 객체를 만들어 변수 d에 담습니다.</li>
-<li>d.eat(); 줄이 실행됩니다. d가 가리키는 객체는 Dog 객체이므로, 실행할 eat을 그 객체의 클래스인 Dog에서 먼저 찾습니다. Dog에는 eat이 없으므로 Animal에서 찾아, Animal에 적힌 eat이 실행되어 &quot;먹는다&quot;를 출력합니다.</li>
-<li>d.bark(); 줄이 실행됩니다. Dog 객체의 bark는 Dog에 직접 적은 메서드이므로 그대로 실행되어 &quot;멍멍&quot;을 출력합니다.</li>
+<li>컴파일러가 class Member { 줄을 읽습니다. Member는 이 실습에서 예시로 만든 클래스이고, 클래스 이름 뒤에 extends가 없습니다. extends를 적지 않은 클래스는 자바가 주는 Object 클래스를 부모로 갖는다고 자바 명세가 정해 두었습니다. 그래서 Member는 Object에 적힌 toString(), equals(), hashCode(), getClass() 같은 메서드를 물려받습니다. Member 안에 직접 적은 것은 필드 name과 생성자입니다.</li>
+<li>Member에는 toString()이 적혀 있지 않습니다. 그러면 Member 객체로 부르는 toString()은 Object에 적힌 것입니다. 자바가 적어 둔 그 본문은 return getClass().getName() + &quot;@&quot; + Integer.toHexString(hashCode()); 한 줄로, 클래스 이름, @, 그 객체의 해시 코드를 16진수로 적은 글자를 이어 붙여 돌려줍니다.</li>
+<li>컴파일러가 Member m = new Member(&quot;민수&quot;); 줄을 확인합니다. 오른쪽의 new Member(&quot;민수&quot;)는 Member 객체를 만드는 식이고, 왼쪽의 변수 m은 Member 타입입니다. 타입이 같으므로 통과합니다.</li>
+<li>컴파일러가 m.toString()과 System.out.println(m) 줄을 확인합니다. toString()은 Object에서 물려받은 메서드라 부를 수 있고, println은 어떤 객체든 받습니다. 이 두 줄은 오류가 아닙니다.</li>
+<li>컴파일이 성공해 Main 클래스 파일이 만들어집니다.</li>
+<li>java Main으로 실행합니다. new Member(&quot;민수&quot;)가 Member 객체를 만들고, 변수 m이 그 객체를 가리킵니다.</li>
+<li>m.toString()이 실행됩니다. 실행할 toString()은 m이 가리키는 객체의 클래스 Member에서 먼저 찾습니다. Member에는 toString()이 없으므로 부모 Object에 적힌 toString()이 실행되어 Member@279f2327을 돌려주고, 그 글자가 출력됩니다. 앞의 Member는 클래스 이름이고, @ 뒤의 279f2327은 이 객체의 해시 코드를 16진수로 적은 것입니다. 이 값은 이 실습의 환경에서 실행했을 때 나온 것입니다. 자바는 해시 코드가 실행마다 같다고 정해 두지 않았으므로 다른 값이 나올 수 있습니다.</li>
+<li>System.out.println(m) 줄이 실행됩니다. println은 자바가 주는 메서드로, 객체를 받으면 String.valueOf(m)을 거쳐 그 객체의 toString()을 불러 돌려받은 글자를 출력합니다. 그래서 m.toString()을 적은 앞 줄과 같은 글자(Member@279f2327)가 한 번 더 출력됩니다. 객체를 println으로 찍었을 때 무엇이 나오는지는 그 클래스의 toString()이 정합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>extends Animal을 쓰면 Dog는 Animal에 적힌 메서드를 물려받습니다. Dog에 적지 않은 eat()을 Dog 객체로 불렀는데 컴파일에 성공했고, Dog에 없으니 Animal에 적힌 eat이 실행되어 &quot;먹는다&quot;가 출력됐습니다.</li>
-<li>같은 Dog 객체로 d.bark()와 d.eat()을 불렀습니다. bark는 Dog에 직접 적은 메서드이고 eat은 Animal에서 물려받은 메서드인데, 부르는 쪽에서는 구별이 없습니다.</li>
+<li>Member는 extends를 적지 않았지만 자바의 Object를 물려받아서, Member에 적지 않은 toString()을 부를 수 있었습니다. 실행된 것은 Object에 적힌 toString()이고, 클래스 이름과 해시 코드를 이은 Member@279f2327이 출력됐습니다.</li>
+<li>자바의 모든 클래스는 이렇게 Object를 물려받습니다. 상속은 extends를 직접 적기 전부터 이미 쓰고 있던 것입니다. println(m)도 그 toString()을 불러 같은 글자를 출력했습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class Animal {
-    void eat() {
-        System.out.println(&quot;먹는다&quot;);
-    }
-}
+<pre>// Member는 이 실습에서 예시로 만든 클래스 (extends를 적지 않았다)
+class Member {
+    String name;
 
-// 상속: Dog는 Animal에 적힌 것을 물려받는다
-class Dog extends Animal {
-    void bark() {
-        System.out.println(&quot;멍멍&quot;);
+    Member(String name) {
+        this.name = name;
     }
 }
 
 public class Main {
     public static void main(String[] args) {
-        Dog d = new Dog();
-        d.eat();
-        d.bark();
+        // 변수 m의 타입은 Member, 오른쪽에서 만드는 것은 Member 객체
+        Member m = new Member(&quot;민수&quot;);
+        // Member에 적지 않은 toString()을 m으로 부른다
+        System.out.println(m.toString());
+        // println은 받은 객체의 toString()을 불러 그 결과를 출력한다
+        System.out.println(m);
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location.args와 compiler.err.prob.found.req를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. &quot;실행된 eat&quot;은 짐작이 아니라 출력으로 가렸습니다. Animal의 eat은 &quot;먹는다&quot;를, Dog의 eat은 &quot;개가 먹는다&quot;를 출력하게 써 두고, 실제 출력이 어느 쪽인지 읽었습니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. Animal 타입 변수로 Dog에만 적은 bark()를 부르면 컴파일 오류가 나는 것(그래서 Animal 변수 코드에는 d.bark() 줄이 없습니다), Dog에 eat을 다시 적어도 Animal 객체로 부르는 eat은 여전히 &quot;먹는다&quot;를 출력하는 것, extends가 없을 때도 Dog에 직접 적은 bark는 문제없이 쓸 수 있는 것입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. extends 절이 직접 부모 클래스를 정하고 자식 클래스(subclass)라 부른다는 것은 8.1.4절, 클래스가 부모 클래스의 접근할 수 있는 메서드 가운데 자기가 같은 시그니처로 다시 적지 않은 것을 물려받는다는 것은 8.4.8절, 자식 클래스가 부모의 메서드를 같은 시그니처로 다시 적은 것이 재정의(overrides)라는 것은 8.4.8.1절, 부모 클래스가 자식 클래스의 상위 타입이라는 것은 4.10.2절(그래서 자식 객체를 부모 타입 변수에 담을 수 있습니다), 실행할 때는 변수의 타입이 아니라 대상 객체의 실제 클래스에서 시작해 위로 올라가며 재정의한 메서드를 찾는다는 것은 15.12.4.4절을 따랐습니다. 명세 5.1.5절과 5.2절(대입 문맥에서 자식 타입의 값을 부모 타입 변수에 담는 변환)은 이 실습에서 열어 확인하지 못했습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. extends 없이 Animal 변수에 담을 때는 Dog에 eat을 다시 적었는지와 상관없이 같은 줄에서 같은 오류가 하나 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 접근 제어자는 줄였으며, @Override는 쓰지 않았습니다. 모든 클래스는 extends를 쓰지 않아도 Object를 물려받지만 이 실습은 다루지 않았고, &quot;extends가 없으면 Dog에는 자기가 적은 것만 있다&quot;는 Animal에 적힌 것에 대해서 한 말입니다. 클래스가 부모의 접근할 수 있는 필드도 물려받는다는 것은 8.3절에서 확인했지만 이 실습은 메서드만 실행으로 보였습니다. 부모의 필드 쓰기, 생성자, super 키워드, private 멤버가 물려지지 않는 것, 자식이 부모 생성자를 부르는 순서도 이 실습은 다루지 않았습니다. 부모 생성자가 실행되는 순서와 super는 &quot;세부 동작 실습: 상속과 오버라이딩&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 스무 가지 조합(Object 장면 12가지, 예외 장면 8가지)을 모두, 화면의 코드와 같은 글(code 함수가 만든 소스를 그대로 파일로 쓴 것)을 javax.tools로 컴파일하고, 컴파일에 성공한 것은 java -cp로 따로 실행해 표준 출력, 표준 오류, 종료 코드를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드와 영어 메시지(화면의 오류 설명은 이것을 한국어로 옮긴 것입니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 오류의 개수와 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 예를 들어 생성자를 적지 않았을 때는 extends가 없어도 throw 줄의 오류가 생성자 오류 하나로만 나왔습니다. 단계 문장이 기대는 사실도 리플렉션으로 확인했습니다. extends를 적지 않은 Member의 부모가 java.lang.Object이고 toString, equals, hashCode, getClass가 Object에 적힌 것이라는 것, toString을 다시 적으면 Member의 것이 되고 tostring으로 잘못 적으면 toString은 Object의 것 그대로라는 것, MemberNotFoundException이 RuntimeException, Exception, Throwable, Object로 이어지고 getMessage가 Throwable에 적혀 있다는 것, RuntimeException에 RuntimeException(String) 생성자가 있다는 것, 생성자를 적지 않은 예외 클래스에는 인자 없는 생성자 하나만 생긴다는 것입니다. Member@279f2327의 279f2327은 이 환경에서 같은 프로그램을 네 번 실행해 네 번 모두 같게 나온 값입니다. 자바의 Object.hashCode 설명은 이 값이 실행마다 같을 필요가 없다고 하므로, 다른 환경에서는 다른 값이 나올 수 있습니다. 자바 API의 동작은 이 JDK에 딸린 소스(lib/src.zip)를 열어 확인했습니다. Object.toString의 본문이 getClass().getName() + &quot;@&quot; + Integer.toHexString(hashCode())라는 것, PrintStream.println(Object)가 String.valueOf로 글자를 얻고 String.valueOf가 null이 아니면 toString()을 부른다는 것, RuntimeException(String message)가 받은 메시지를 getMessage()로 다시 꺼낼 수 있게 저장한다는 것입니다. 명세는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. extends 절이 직접 부모 클래스를 정하고, extends를 적지 않은 보통 클래스의 직접 부모는 Object라는 것은 8.1.4절, 클래스가 직접 부모 클래스의 메서드를 물려받는다는 것은 8.2절과 8.4.8절, 생성자는 멤버가 아니어서 물려받지 않는다는 것은 8.2절과 8.8절, 생성자를 하나도 적지 않으면 인자 없는 기본 생성자가 생긴다는 것은 8.8.9절, @Override를 붙인 메서드가 부모의 메서드를 재정의하지 않으면 컴파일 오류라는 것은 9.6.4.4절, throw의 식은 Throwable에 대입할 수 있는 타입이어야 한다는 것은 14.18절, catch에 적는 타입은 Throwable이나 그 자식이어야 한다는 것은 14.20절, 던져진 객체의 실제 클래스가 catch의 타입에 대입될 수 있으면 그 catch가 고른다는 것은 14.20.1절, 자식 타입의 값을 부모 타입 변수에 대입할 수 있다는 것은 5.1.5절과 5.2절, 실행할 때 메서드를 객체의 실제 클래스에서부터 위로 찾는다는 것은 15.12.4.4절을 따랐습니다. 화면의 코드는 클래스를 한 파일에 둔 모양이고 접근 제어자는 줄였습니다. 예외 클래스를 만들 때 쓰는 생성자의 super(message)는 메시지를 넘기는 데까지만 다루었고, 부모 생성자가 실행되는 순서와 super의 자세한 규칙은 &quot;세부 동작 실습: 상속과 오버라이딩&quot;에서 다룹니다. equals와 hashCode를 함께 재정의하는 규칙, 필드의 상속, private 멤버가 물려지지 않는 것, extends Exception으로 만드는 체크 예외, 서블릿의 extends HttpServlet은 이 실습에서 실행하지 않았습니다. HttpServlet을 물려받는 서블릿은 기초개념 &quot;서블릿&quot;에서 톰캣에 실제로 배치해 봅니다.</p>
 <p>앞 실습: <a href="../../lab/static_basic/">static</a> · 다음 실습: <a href="../../lab/interface_basic/">인터페이스</a></p>
   </div>
 
@@ -188,6 +206,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

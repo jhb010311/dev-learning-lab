@@ -1,4 +1,6 @@
+// (옛 판) 2026-10-22 실습이 스프링 RestClient 중심으로 바뀌어 이 대조는 옛 Node.js 판의 기록이다. 새 대조는 verify/spring/cmp_remote_basic.js.
 // 기초개념 "다른 서버 부르기" 실습의 모형 결과를 실제 실행 결과(remote_basic_probe.out.txt)와 대조한다.
+if (require.main === module) { console.log('옛 Node.js 판의 대조입니다. 지금 실습은 verify/spring/cmp_remote_basic.js로 대조합니다.'); process.exit(0); }
 // 대조: 결과 표 세 열(클라이언트가 받은 응답, 걸린 시간, 주문 서버가 겪은 일), 단계 문장이 기대는 사실
 //       (결제 서버가 요청을 받았는지, 오류의 종류, 결제 서버가 결제를 끝낸 때와 그때 연결이 끊겨 있었는지,
 //        기다리는 시간을 정하지 않고 결제 서버가 답하지 않을 때 4초 동안 포기하지 않는지),

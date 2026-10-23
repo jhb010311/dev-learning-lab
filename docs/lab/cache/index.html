@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실</title>
-<meta name="description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.">
+<title>캐시와 TTL: @Cacheable에 TTL을 주면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실</title>
+<meta name="description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 조회 메서드 getProduct에는 스프링의 @Cacheable을 적었고, 캐시 저장소는 Redis입니다(스프링 데이터 Redis가 주는 RedisCacheManager). @Cacheable은 캐시를 먼저 보고, 값이 없을 때…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실">
-<meta property="og:description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.">
+<meta property="og:title" content="캐시와 TTL: @Cacheable에 TTL을 주면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실">
+<meta property="og:description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 조회 메서드 getProduct에는 스프링의 @Cacheable을 적었고, 캐시 저장소는 Redis입니다(스프링 데이터 Redis가 주는 RedisCacheManager). @Cacheable은 캐시를 먼저 보고, 값이 없을 때…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,67 +30,115 @@
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 대용량 트래픽</p>
 <h1>캐시와 TTL</h1>
-<p><b>캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</b></p>
-<p><b>왜 생겼나</b> — 같은 상품 정보를 볼 때마다 DB에서 다시 읽으면 결과가 매번 같은데도 DB가 같은 일을 되풀이하고, 요청이 늘면 DB가 먼저 버티지 못한다. 캐시는 한 번 읽은 결과를 메모리 저장소에 잠시 남겨 두고 다음 요청부터 거기서 돌려주게 해서, DB까지 가는 요청을 줄인다.</p>
-<p><b>지금 어디에 쓰나</b> — 상품 상세, 인기 게시글 목록, 공통 코드처럼 자주 읽고 가끔 바뀌는 데이터를 Redis나 애플리케이션 메모리에 두고, 스프링에서는 @Cacheable로 메서드 결과를 저장해 두는 방식을 흔히 쓴다. 결제 직전의 재고나 잔액처럼 늘 최신이어야 하는 값은 캐시를 거치지 않고 DB에서 읽는다.</p>
-<p>인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.</p>
-<p>개념 모형 · 동작 방식을 보이는 모형</p>
+<p><b>@Cacheable에 TTL을 주면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</b></p>
+<p><b>왜 생겼나</b> — 같은 상품 정보를 볼 때마다 DB에서 다시 읽으면 결과가 매번 같은데도 DB가 같은 일을 되풀이하고, 요청이 늘면 DB가 먼저 버티지 못한다. 캐시는 한 번 읽은 결과를 메모리 저장소에 잠시 남겨 두고 다음 요청부터 거기서 돌려주게 해서, DB까지 가는 요청을 줄인다. 다만 값을 영원히 두면 원본이 바뀐 것을 모르게 되므로 값을 얼마 뒤에 버릴지(TTL)를 정하게 되었고, 그 TTL이 끝나는 순간 요청이 한꺼번에 DB로 몰리는 문제가 따라 생겼다.</p>
+<p><b>지금 어디에 쓰나</b> — 상품 상세, 인기 게시글 목록, 공통 코드처럼 자주 읽고 가끔 바뀌는 데이터에 쓴다. 스프링에서는 조회 메서드에 @Cacheable을 적고, 여러 서버가 같은 캐시를 봐야 하면 저장소로 Redis를 붙여 RedisCacheManager의 entryTtl로 TTL을 정한다. 요청이 몰리는 키에는 @Cacheable(sync = true)와 잠그는 RedisCacheWriter로 한 요청만 DB를 조회하게 한다. 결제 직전의 재고나 잔액처럼 늘 최신이어야 하는 값은 캐시를 거치지 않고 DB에서 읽는다.</p>
+<p>인기 상품 하나를 30초 동안 계속 조회합니다. 조회 메서드 getProduct에는 스프링의 @Cacheable을 적었고, 캐시 저장소는 Redis입니다(스프링 데이터 Redis가 주는 RedisCacheManager). @Cacheable은 캐시를 먼저 보고, 값이 없을 때만 메서드 본문(DB 조회)을 실행해 결과를 캐시에 저장합니다. 저장한 값은 RedisCacheConfiguration의 entryTtl로 정한 시간(TTL)이 지나면 Redis에서 사라집니다. 이 실습은 그 뒤에 생기는 운영 문제를 봅니다. TTL이 끝나는 순간 요청이 DB로 몰리는 일(캐시 스탬피드)과, 원본이 바뀌어도 TTL 동안 옛 값을 주는 일입니다.</p>
+<p>일부만 실행으로 확인 · @Cacheable과 sync = true의 동작(스레드 20개 동시 호출 때 본문 실행 횟수, unless와 함께 쓸 때의 예외)은 스프링 7.0.9에서 실행해 확인. Redis 쪽(entryTtl, 잠그는 writer, 3.4부터 기본 writer가 잠그지 않음)은 공식 문서·소스와 대조했고 시간과 횟수는 모형</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
-<dt>캐시</dt>
-<dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
-<dt>Cache-Aside 패턴</dt>
-<dd><b>지금 어디에 쓰나</b> — 상품 상세나 회원 프로필처럼 읽기가 쓰기보다 훨씬 많은 데이터에 Redis와 함께 쓴다. Spring의 @Cacheable과 @CacheEvict를 붙이면 이 순서로 동작한다.</dd>
-<dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
 <dt>TTL(Time To Live)</dt>
 <dd><b>지금 어디에 쓰나</b> — Redis에서는 EXPIRE나 SET의 EX 옵션으로 정한다. 캐시 말고도 휴대폰 인증번호, 세션, 분산 락처럼 일정 시간 뒤 저절로 사라져야 하는 값에 쓴다.</dd>
 <dd>데이터가 유효한 시간이다. 캐시에 값을 넣을 때 TTL을 지정하면 그 시간이 지난 뒤 자동으로 삭제된다. 원본과 어긋난 값이 캐시에 무기한 남는 것을 막는 기본적인 안전장치다.</dd>
+<dt>RedisCacheManager와 entryTtl</dt>
+<dd><b>왜 생겼나</b> — 스프링의 캐시 애너테이션은 저장소를 모르게 짜여 있어서, 실제 저장소를 정하는 CacheManager가 따로 있어야 한다. 서버 한 대의 메모리 캐시(ConcurrentMapCacheManager)는 서버마다 값이 따로 놓이고 TTL도 없어서, 여러 서버가 같은 값을 보고 값이 일정 시간 뒤 사라지게 하려면 Redis 같은 저장소와 만료 설정이 필요했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 여러 서버가 함께 쓰는 캐시를 Redis에 두는 스프링 애플리케이션에서 cacheManager 빈으로 등록한다. 스프링 부트에서는 RedisCacheManager가 자동으로 만들어지고 spring.cache.redis.time-to-live 속성으로 모든 캐시의 TTL을 정할 수 있으며, 캐시마다 다르게 하려면 위처럼 빈을 직접 만들거나 RedisCacheManagerBuilderCustomizer 빈에서 withCacheConfiguration을 부른다.</dd>
+<dd>RedisCacheManager는 스프링 데이터 Redis(spring-data-redis)가 주는 CacheManager 구현으로, @Cacheable 같은 스프링 캐시 애너테이션이 Redis를 저장소로 쓰게 한다. RedisCacheManager.builder(connectionFactory)로 만들고, 캐시마다의 설정은 RedisCacheConfiguration으로 정한다. RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofSeconds(10))처럼 entryTtl을 주면 그 캐시에 저장한 값이 그 시간 뒤 Redis에서 사라진다. entryTtl을 주지 않으면 defaultCacheConfig()의 기본값대로 만료되지 않는다. 캐시 이름별로 다르게 주려면 builder의 withCacheConfiguration(&quot;product&quot;, 설정)을 쓴다. Redis에 저장되는 키는 기본으로 캐시 이름과 ::을 앞에 붙인 모양(product::1)이다.</dd>
 <dt>캐시 스탬피드</dt>
 <dd>많이 조회되는 캐시 항목이 만료되는 순간, 동시에 들어온 다수의 요청이 모두 캐시에서 값을 찾지 못하고 한꺼번에 데이터베이스를 조회하는 현상이다. 순간적으로 데이터베이스에 부하가 몰려 장애로 이어질 수 있다. 한 요청만 원본을 조회하게 잠그거나 만료 시간을 분산하는 방법으로 완화한다.</dd>
+<dt>@Cacheable(sync = true)</dt>
+<dd><b>왜 생겼나</b> — @Cacheable은 기본으로 아무것도 잠그지 않아서, 캐시가 빈 순간 같은 키를 동시에 찾는 호출이 모두 본문을 실행해 같은 값을 여러 번 계산했다. 이 경우를 위해 캐시 구현에게 &quot;한 호출만 계산하게 해 달라&quot;고 맡기는 속성이 생겼다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 조회가 몰리고 계산이나 DB 조회가 비싼 메서드에 적는다. 실제로 막히는지는 캐시 구현에 달려 있으므로 Redis를 저장소로 쓰면 lockingRedisCacheWriter를 함께 설정해야 하고, 서버 메모리 캐시(ConcurrentMapCacheManager, Caffeine)에서는 서버마다 따로 막힌다.</dd>
+<dd>@Cacheable의 sync 속성을 true로 두면, 스프링은 캐시를 먼저 보고 없을 때 본문을 실행하는 대신 캐시 구현의 get(key, valueLoader)를 부르고 본문 실행을 valueLoader로 넘긴다. 같은 키를 동시에 찾는 호출들 가운데 한 호출만 본문을 실행하고 나머지는 저장될 때까지 기다리게 하는 일은 그 캐시 구현이 한다. 스프링이 주는 ConcurrentMapCacheManager에서는 빈 캐시에 스레드 20개가 같은 키로 동시에 불러도 본문이 1번만 실행되었다(sync가 없으면 20번). 반대로 get(key, valueLoader)를 잠그지 않는 구현이면 sync = true여도 20번 실행된다. 스프링 데이터 Redis는 3.3까지 RedisCache가 자바의 ReentrantLock으로 서버(JVM) 한 대 안에서만 막았고, 3.4부터는 이 일을 RedisCacheWriter에 맡기는데 기본 writer는 잠그지 않는다. sync = true는 unless와 함께 쓸 수 없다(IllegalStateException).</dd>
+<dt>RedisCacheWriter의 잠금</dt>
+<dd><b>왜 생겼나</b> — 캐시에 값을 넣는 일 가운데 Redis 명령을 여러 번 보내야 하는 것(putIfAbsent, 지우기)이 서로 겹치지 않게 하려고 잠그는 writer가 생겼고, Spring Data Redis 3.4부터는 @Cacheable(sync = true)의 &quot;한 호출만 계산&quot;도 이 잠금으로 하게 되었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 여러 서버가 Redis 캐시를 함께 쓰면서 캐시 스탬피드를 막아야 할 때 @Cacheable(sync = true)와 함께 쓴다. 잠금이 캐시 전체에 걸리는 비용이 크면, 몰리는 키만 따로 Redisson의 RLock 같은 키별 분산 락으로 직접 막는다.</dd>
+<dd>RedisCacheWriter는 RedisCacheManager가 Redis에 값을 읽고 쓸 때 쓰는 부품이다. RedisCacheManager.builder(connectionFactory)가 쓰는 기본 writer(nonLockingRedisCacheWriter)는 잠그지 않는다. RedisCacheWriter.lockingRedisCacheWriter(connectionFactory)로 만든 writer를 builder에 넘기면, 값을 계산해 넣는 동안 Redis에 잠금 키(캐시 이름 뒤에 ~lock을 붙인 키, 예: product~lock)를 SET NX로 두고, 다른 호출은 그 키가 사라질 때까지 기본 50밀리초마다 확인하며 기다린다. 잠금 키가 Redis에 있으므로 서버가 여러 대여도 함께 막힌다. 다만 잠금은 키마다가 아니라 캐시 전체에 걸려서, 잠금이 걸린 동안에는 같은 캐시의 다른 키를 읽는 요청도 기다린다.</dd>
+<dt>캐시의 옛 값(Stale)</dt>
+<dd>캐시에 적어 둔 뒤 원본의 값이 바뀌어, 원본과 달라진 채 캐시에 남아 있는 값이다. 캐시를 쓰는 쪽은 적중하면 원본을 보지 않으므로 바뀐 줄 모르고 옛 값을 받는다. 원본을 바꿀 때 캐시에 적어 둔 그 값도 함께 지우면, 다음에 찾을 때 미스가 되어 바뀐 값을 새로 읽어 온다(대신 그 한 번은 느리다). 적어 둔 값에 유효 시간을 두는 방법도 있다. HTTP 캐시 명세(RFC 9111 4.2절)는 저장한 응답이 정해진 유효 기간을 넘기면 stale이라고 부르며, 이 말은 시간이 지난 응답을 가리키는 명세의 용어이다.</dd>
+<dt>@Cacheable</dt>
+<dd>메서드의 결과를 캐시에 넣어 두고, 같은 인자로 다시 부르면 본문을 실행하지 않고 캐시의 값을 돌려주게 하는 애너테이션이다. 프록시가 호출을 받아 캐시를 먼저 찾아보고, 값이 없을 때만 본문을 실행한 뒤 결과를 저장한다. 캐시의 키는 기본으로 메서드의 인자이며, cacheNames로 어느 캐시에 넣을지 정한다. unless에 조건을 쓰면 그 조건이 참인 결과는 저장하지 않는다(예: 결과가 null일 때). 프록시가 하는 일이므로 같은 클래스 안에서 this로 부르면 적용되지 않는다.</dd>
 <dt>Redis</dt>
 <dd>데이터를 메모리에 저장하는 키-값 저장소다. 문자열뿐 아니라 리스트, 해시, 집합, 정렬된 집합 등의 자료구조를 제공한다. 메모리에서 동작해 매우 빠르며 캐시, 세션 저장소, 분산 락, 순위표, 요청 수 제한 등에 쓰인다. 명령을 하나의 스레드에서 차례로 실행한다.</dd>
 <dt>분산 락</dt>
 <dd><b>지금 어디에 쓰나</b> — 여러 서버에서 함께 도는 스케줄러 작업을 한 번만 실행하거나, 쿠폰 발급처럼 동시에 몰리는 요청을 줄 세울 때 쓴다. 자바에서는 Redisson의 RLock이나 스케줄러용 ShedLock 같은 라이브러리를 흔히 쓴다.</dd>
 <dd>여러 서버에서 실행되는 프로세스들 사이에서 한 번에 하나만 특정 작업을 수행하도록 하는 잠금이다. 자바의 synchronized는 한 서버 안에서만 유효하므로, 서버가 여러 대일 때는 모두가 함께 접근하는 저장소(Redis 등)에 &quot;잠금 표시&quot;를 두는 방식으로 구현한다. 잠금을 건 쪽에 문제가 생겨도 풀리도록 만료 시간을 둔다.</dd>
+<dt>Cache-Aside 패턴</dt>
+<dd><b>지금 어디에 쓰나</b> — 상품 상세나 회원 프로필처럼 읽기가 쓰기보다 훨씬 많은 데이터에 Redis와 함께 쓴다. Spring의 @Cacheable과 @CacheEvict를 붙이면 이 순서로 동작한다.</dd>
+<dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
+<dt>RedisTemplate</dt>
+<dd><b>왜 생겼나</b> — Redis 클라이언트(Lettuce, Jedis)를 직접 쓰면 연결을 얻고 돌려주는 일과 자바 객체를 바이트로 바꾸는 일을 매번 써야 했다. RedisTemplate은 이 일을 맡아, 명령에 해당하는 메서드만 부르면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — @Cacheable로 나타내기 어려운 캐시(조건에 따라 TTL을 바꾸거나 여러 키를 한꺼번에 다루는 것), 조회수 집계, 요청 수 제한, 순위표처럼 Redis 자료구조를 직접 쓰는 곳에 쓴다.</dd>
+<dd>RedisTemplate은 스프링 데이터 Redis가 주는 클래스(RedisTemplate&lt;K, V&gt;)로, 자바 코드에서 Redis 명령을 보내게 한다. opsForValue()가 돌려주는 ValueOperations로 문자열 값 명령을 쓰며, get(key)는 값을 읽고(없으면 null), set(key, value, Duration.ofSeconds(10))은 TTL을 주어 저장한다. 키와 값을 바이트로 바꾸는 직렬화 방식을 정해 두고 쓰며, 스프링 부트는 키와 값이 Object인 RedisTemplate 빈과 문자열 전용 StringRedisTemplate 빈을 만들어 준다. @Cacheable과 달리 언제 읽고 언제 저장할지를 코드에 직접 쓴다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — TTL 10초. 만료될 때마다 여러 요청이 한꺼번에 DB로 갑니다.</li>
-<li><b>캐시가 없다면</b> — 모든 요청이 DB를 조회합니다.</li>
-<li><b>요청이 많고 DB가 느릴 때</b> — 만료 순간 수십 개의 요청이 동시에 DB를 때립니다(캐시 스탬피드).</li>
-<li><b>같은 상황에 락 적용</b> — 한 요청만 DB에 가고 나머지는 그 결과를 기다립니다.</li>
-<li><b>TTL을 5초로 줄이면</b> — 데이터는 더 최신이지만 DB 조회가 늘어납니다.</li>
-<li><b>TTL을 길게</b> — DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.</li>
+<li><b>처음 설정으로</b> — TTL 10초. 값이 사라질 때마다, 다시 채워지기 전에 들어온 요청 여러 건이 한꺼번에 DB로 갑니다.</li>
+<li><b>캐시가 없다면</b> — 모든 요청이 메서드 본문을 실행해 DB를 조회합니다.</li>
+<li><b>요청이 많고 DB가 느릴 때</b> — 값이 사라진 순간부터 다시 채워질 때까지 들어온 요청 40건이 모두 DB를 조회합니다(캐시 스탬피드).</li>
+<li><b>sync = true만 적으면</b> — 몰림이 그대로입니다. sync = true는 잠그는 일을 캐시 구현에 맡기는데, 기본 RedisCacheWriter는 잠그지 않습니다.</li>
+<li><b>잠그는 writer와 함께</b> — Redis의 잠금 키 덕분에 한 요청만 DB를 조회하고, 나머지는 그 결과를 기다립니다.</li>
+<li><b>원본이 바뀌면</b> — 캐시의 값이 사라져 다시 읽을 때까지 요청들이 바뀌기 전의 가격을 받습니다.</li>
+<li><b>TTL을 5초로 줄이면</b> — 옛 값을 받는 요청은 줄지만 DB 조회가 늘어납니다.</li>
+<li><b>entryTtl을 적지 않으면</b> — DB 조회는 처음 캐시를 채울 때뿐이지만, 바뀐 뒤의 요청은 모두 옛 가격을 받습니다.</li>
+<li><b>속에서는 이렇게 동작한다</b> — @Cacheable이 프록시에서 하던 일을 메서드 본문에 직접 씁니다. 결과는 @Cacheable과 같고, 몰림도 똑같이 생깁니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>0.0초: 캐시에 값이 없습니다(첫 요청). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>1.0초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 0.0초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(1.8초)부터 셉니다.</li>
-<li>11.8초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
-<li>11.8초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>12.8초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 11.8초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(13.6초)부터 셉니다.</li>
-<li>23.6초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
-<li>23.6초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>24.6초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 23.6초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(25.4초)부터 셉니다.</li>
+<li>0.0초: 캐시에 값이 없습니다(첫 요청). 요청이 메서드 본문을 실행해 DB를 조회합니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>1.0초: DB에서 읽은 값을 Redis의 캐시 product에 저장했습니다(TTL 10초). 저장되기 전까지 0.0초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 메서드 본문을 실행하고 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 키에 다시 저장하므로, TTL은 마지막 저장(1.8초)부터 셉니다.</li>
+<li>11.8초: TTL이 지나 Redis에서 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
+<li>11.8초: 캐시에 값이 없습니다(만료 직후). 요청이 메서드 본문을 실행해 DB를 조회합니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>12.8초: DB에서 읽은 값을 Redis의 캐시 product에 저장했습니다(TTL 10초). 저장되기 전까지 11.8초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 메서드 본문을 실행하고 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 키에 다시 저장하므로, TTL은 마지막 저장(13.6초)부터 셉니다.</li>
+<li>23.6초: TTL이 지나 Redis에서 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
+<li>23.6초: 캐시에 값이 없습니다(만료 직후). 요청이 메서드 본문을 실행해 DB를 조회합니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>24.6초: DB에서 읽은 값을 Redis의 캐시 product에 저장했습니다(TTL 10초). 저장되기 전까지 23.6초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 메서드 본문을 실행하고 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 키에 다시 저장하므로, TTL은 마지막 저장(25.4초)부터 셉니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>캐시가 비어 있는 순간부터 다시 채워지기 전까지(1초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락이나 만료 전에 미리 갱신하기로 줄입니다. 여러 키가 한꺼번에 만료되는 경우에는 키마다 TTL에 약간의 차이를 줍니다.</li>
-<li>TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.</li>
+<li>캐시가 비어 있는 순간부터 다시 채워지기 전까지(1초 동안) 들어온 요청이 모두 메서드 본문을 실행해 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드이며, @Cacheable만으로는 막지 못합니다. 스프링에서는 @Cacheable(sync = true)를 적고, 저장소가 Redis라면 RedisCacheManager를 lockingRedisCacheWriter로 만들어 한 요청만 조회하게 합니다. 여러 키가 한꺼번에 만료되는 경우에는 키마다 TTL에 약간의 차이를 줍니다.</li>
+<li>entryTtl이 길수록 DB 조회는 줄지만, 원본이 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 메서드 하나만 보임 (클래스·필드 선언, import, 예시로 만든 타입과 메서드의 선언은 생략)
-public Product getProduct(long id) {
-    String key = &quot;product:&quot; + id;
-    Product cached = redis.get(key);
-    if (cached != null) return cached;          // 캐시 적중
+<pre>// import 줄은 생략했다.
+// 스프링 데이터 Redis(spring-data-redis)가 주는 것: RedisConnectionFactory, RedisCacheManager, RedisCacheConfiguration
+// 예시로 만든 것(선언 생략): Product, ProductRepository
 
-    Product p = productRepository.findById(id); // DB 조회 (1초)
-    redis.set(key, p, Duration.ofSeconds(10));  // TTL 10초
-    return p;
+// 캐시 기능을 켜고, 캐시 저장소로 Redis를 쓰는 RedisCacheManager를 빈으로 등록한다
+@Configuration
+@EnableCaching
+class CacheConfig {
+    // connectionFactory: 스프링 부트가 Redis 접속 설정(spring.data.redis.host 등)으로 만들어 주는 빈
+    @Bean
+    RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        // 캐시 product의 값은 저장하고 10초가 지나면 Redis에서 사라진다
+        RedisCacheConfiguration product = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(10));
+        // builder(connectionFactory)가 쓰는 기본 writer는 잠그지 않는다
+        return RedisCacheManager.builder(connectionFactory)
+                .withCacheConfiguration(&quot;product&quot;, product)
+                .build();
+    }
+}
+
+// 예시로 만든 상품 서비스
+@Service
+class ProductService {
+    private final ProductRepository productRepository;
+
+    ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    // 캐시 product에서 키 id로 값을 찾고, 없을 때만 본문을 실행해 결과를 저장한다
+    @Cacheable(cacheNames = &quot;product&quot;, key = &quot;#id&quot;)
+    public Product getProduct(long id) {
+        // DB 조회 (1초)
+        return productRepository.findById(id).orElseThrow();
+    }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>한 개의 키(인기 상품 하나)만 다루고, 요청은 일정한 간격으로 들어온다고 가정했습니다. 캐시 응답 시간은 0.01초로 두었습니다. 캐시 크기가 가득 차서 오래된 키를 밀어내는 제거(eviction) 정책은 여기서 다루지 않습니다. 락을 건 경우 기다리는 요청은 조회가 끝나는 순간 캐시의 값을 받는다고 단순화했습니다. 숫자는 동작 방식을 보이기 위한 모형이며 실제 Redis를 측정한 값이 아닙니다.</p>
+<p>한 개의 키(인기 상품 하나)만 다루고, 요청은 일정한 간격으로 들어온다고 가정했습니다. 캐시 응답 시간은 0.01초로 두었습니다. 잠그는 writer에서 기다리는 요청은 조회가 끝나는 순간 값을 받는다고 단순화했습니다(실제로는 잠금 키가 사라졌는지 기본 50밀리초마다 다시 확인합니다). 캐시가 가득 차서 키를 밀어내는 제거(eviction) 정책은 다루지 않습니다. 실제로 실행해 확인한 것은 스프링(spring-context 7.0.9) 쪽입니다. 빈 캐시에 스레드 20개가 같은 키로 동시에 부르면 @Cacheable은 본문을 20번, sync = true와 ConcurrentMapCacheManager는 1번 실행했고, sync = true여도 get(key, valueLoader)를 잠그지 않는 캐시 구현에서는 20번 실행했습니다(verify/spring/cache_probe.out.txt). Redis 서버와 spring-data-redis는 실행하지 않았습니다. entryTtl, 그 기본값이 만료 없음인 것, lockingRedisCacheWriter의 잠금 키와 잠금 범위(캐시 전체), Spring Data Redis 3.4부터 기본 writer가 잠그지 않는 것은 공식 문서와 소스(RedisCache, DefaultRedisCacheWriter)와 대조했습니다. 시간과 횟수는 동작 방식을 보이기 위한 모형이며 실제 Redis를 측정한 값이 아닙니다.</p>
 <p>앞 실습: <a href="../../lab/scale/">로드밸런서와 스케일 아웃</a> · 다음 실습: <a href="../../lab/redis/">Redis의 한 줄 처리</a></p>
   </div>
 
@@ -183,6 +231,6 @@ public Product getProduct(long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

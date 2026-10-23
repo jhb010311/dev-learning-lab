@@ -42,7 +42,7 @@ Lab.register({
     step('Client → Server', 'Segment 1 "Hello," (seq=101, 6 bytes)', 'It splits the data into segments, numbers them, and sends them.', ''); got.push('Hello,'); ev[ev.length - 1].snap.got = got.slice();
     step('Server → Client', 'ACK (ack=107)', 'The server acknowledges: "I have received up to 106, so send 107 next."', '');
     if (c.loss === 'data') {
-      step('Client → (lost)', 'Segment 2 " world" (seq=107, 6 bytes)', 'The second segment was lost in the network.', 'bad');
+      step('Client → (lost)', 'Segment 2 " world" (seq=107, 6 B)', 'The second segment was lost in the network.', 'bad');
       step('Client → Server', 'Segment 3 "!!!" (seq=113, 3 bytes)', 'The third segment arrived. The server expects 107 but received 113, so it is out of order. It keeps this segment and does not pass it to the application.', '');
       step('Server → Client', 'ACK (ack=107) again', 'The server sends the same acknowledgment again, saying "I am still waiting for 107."', '');
       re++; step('Client → Server', 'Segment 2 " world" retransmitted (seq=107)', 'The client sees that no acknowledgment for 107 has arrived, or that the same acknowledgment keeps arriving, and concludes that segment 2 was lost, so it sends it again.', 'hot'); got.push(' world'); got.push('!!!'); ev[ev.length - 1].snap.got = got.slice();

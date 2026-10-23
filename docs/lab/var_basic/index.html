@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>타입</dt>
 <dd><b>왜 생겼나</b> — 값의 종류를 정하지 않으면 글자에 곱셈을 하거나 없는 메서드를 부르는 실수가 프로그램을 실행해 그 줄에 닿아야 드러난다. 자바의 타입은 이런 실수를 실행 전, 컴파일할 때 찾아 준다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 변수, 매개변수, 메서드가 돌려주는 값을 선언할 때 적는다. 인텔리제이 같은 편집기는 타입을 보고 그 값에 부를 수 있는 메서드 목록을 보여 준다.</dd>
-<dd>타입은 변수에 담을 수 있는 값의 종류를 정하는 이름이다. 자바의 타입은 기본형과 참조형으로 나뉘고, 참조형에는 클래스 타입, 인터페이스 타입, 타입 변수, 배열 타입이 있다. class Card나 interface Payable 선언을 쓰면 Card, Payable이라는 타입을 쓸 수 있게 된다. 컴파일러는 값을 변수에 담는 줄마다, 그 값의 타입이 변수의 타입과 같거나 그 하위 타입인지 확인한다. 클래스가 implements로 밝힌 인터페이스는 그 클래스의 상위 타입이다. 선언하지 않은 이름을 타입으로 쓰면 컴파일러가 그 타입을 찾지 못해 오류를 낸다.</dd>
+<dd>타입은 변수가 가리키거나 가질 수 있는 값의 종류를 정하는 이름이다. 자바의 타입은 기본형과 참조형으로 나뉘고, 참조형에는 클래스 타입, 인터페이스 타입, 타입 변수, 배열 타입이 있다. class나 interface 선언이 있어야 그 이름을 타입으로 쓸 수 있다. 자바가 주는 List(인터페이스)와 ArrayList(클래스)도 그렇게 선언된 타입이다. 컴파일러는 변수에 값을 넣는 줄마다, 그 값의 타입이 변수의 타입과 같거나 그 하위 타입인지 확인하고, 변수로 부를 수 있는 메서드도 변수의 타입에서 찾는다. 그래서 List 타입 변수로는 실제 객체가 ArrayList여도 ArrayList에만 있는 trimToSize를 부를 수 없다.</dd>
 <dt>기본형과 참조형</dt>
 <dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
 </dl>
@@ -176,6 +176,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

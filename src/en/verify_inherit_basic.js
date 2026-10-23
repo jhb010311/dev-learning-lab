@@ -1,1 +1,1 @@
-Lab.verify({ inherit_basic: ['run', 'Eight combinations were compiled with javax.tools and run on JDK 21, and the results were checked against the model'] });
+Lab.verify({ inherit_basic: ['run', 'Twenty combinations of the code on the screen (12 for Object and toString, 8 for the exception class made with extends RuntimeException) were compiled with javax.tools and run with java on JDK 21 and checked against the model, and the inheritance relations of Object, RuntimeException, and Throwable and the classes in which the methods are written were checked by reflection'] });

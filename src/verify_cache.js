@@ -1,0 +1,1 @@
+Lab.verify({ cache: ['part', '@Cacheable과 sync = true의 동작(스레드 20개 동시 호출 때 본문 실행 횟수, unless와 함께 쓸 때의 예외)은 스프링 7.0.9에서 실행해 확인. Redis 쪽(entryTtl, 잠그는 writer, 3.4부터 기본 writer가 잠그지 않음)은 공식 문서·소스와 대조했고 시간과 횟수는 모형'] });

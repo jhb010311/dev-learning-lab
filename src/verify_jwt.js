@@ -1,1 +1,1 @@
-Lab.verify({ jwt: ['run', 'Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들어 열여섯 가지 조합의 검증 결과를 대조했고, 화면의 자바 코드도 JDK 21에서 실행해 대조'] });
+Lab.verify({ jwt: ['part', '토큰과 서명 값은 JDK 21의 Mac과 Node.js 24의 crypto로 실제로 계산해 대조했고, "속에서 하는 일" 코드는 JDK 21에서 그대로 실행해 대조. NimbusJwtDecoder는 이 환경에 없어 실행하지 않았고, 판단 순서와 예외 이름·메시지(60초 만료 여유 포함)는 Spring Security 7.1.1과 nimbus-jose-jwt 10.9.1 소스와 대조, 표준 코드는 시그니처 대역과 함께 컴파일만 확인'] });

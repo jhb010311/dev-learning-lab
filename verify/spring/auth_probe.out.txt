@@ -1,0 +1,6 @@
+# spring boot 4.1.1 | java 21.0.12.1
+exception class => org.springframework.web.server.ResponseStatusException | statusCode=401 | jar=spring-web-7.0.9.jar
+no cookie GET /me => status=401
+POST /login => status=200 | Set-Cookie=JSESSIONID=…; Path=/; HttpOnly
+with cookie GET /me => status=200 | body=회원 7
+unknown session id GET /me => status=401

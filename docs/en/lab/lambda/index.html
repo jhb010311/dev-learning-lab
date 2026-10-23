@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lambda expressions and functional interfaces: When does the code in a lambda expression run? · Dev Learning Lab</title>
-<meta name="description" content="A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another meth…">
+<title>Lambda expressions and functional interfaces: When does the code written in a lambda run? · Dev Learning Lab</title>
+<meta name="description" content="A lambda is syntax that turns &quot;an action to run later&quot; into an object. The body is not run on the line where the lambda is written; it runs when the side…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Lambda expressions and functional interfaces: When does the code in a lambda expression run? · Dev Learning Lab">
-<meta property="og:description" content="A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another meth…">
+<meta property="og:title" content="Lambda expressions and functional interfaces: When does the code written in a lambda run? · Dev Learning Lab">
+<meta property="og:description" content="A lambda is syntax that turns &quot;an action to run later&quot; into an object. The body is not run on the line where the lambda is written; it runs when the side…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,11 +30,11 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lambda expressions and functional interfaces</h1>
-<p><b>When does the code in a lambda expression run?</b></p>
-<p><b>Why it exists</b> — Before lambdas, to pass a single action, such as a sort order or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the form (parameters) -&gt; body, so you write only the action to pass.</p>
-<p><b>Where it's used today</b> — It is used when you pass an action to standard methods that accept one, such as filter and map of a stream, sort and removeIf of a list, and computeIfAbsent of a Map. It is also used when you postpone creating a value until it is needed, as with orElseGet of Optional, and when you create a Runnable to pass to a thread. When the body gets long, you move it out into a named method and pass it as a method reference.</p>
-<p>A lambda expression is syntax that turns &quot;an action to run later&quot; into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.</p>
-<p>Checked against real execution · Checked by running 36 combinations on JDK 21</p>
+<p><b>When does the code written in a lambda run?</b></p>
+<p><b>Why it exists</b> — Without lambdas, even to pass just one action, such as the rule for sorting or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the shape (parameters) -&gt; body, so that you write only the action to pass.</p>
+<p><b>Where it's used today</b> — You use it when you pass an action to a standard method that takes one, such as filter and map of a stream, forEach, removeIf, and sort of a list, and computeIfAbsent of a Map. You also use it to put off creating a value until it is needed, as with orElseGet of Optional, and to make the Runnable you pass to a thread. When the body gets long, you move it out to a named method and pass it with a method reference.</p>
+<p>A lambda is syntax that turns &quot;an action to run later&quot; into an object. The body is not run on the line where the lambda is written; it runs when the side that received the object calls it. In this lab you pass lambdas to Java standard methods (forEach, removeIf, and sort of ArrayList, filter and map of a stream, Comparator.comparing, and orElseGet of Optional) and see when and how many times a standard method calls the lambda. The type of a lambda is decided by the parameter type of the method that receives it. Here they are all Consumer, Predicate, Function, and Supplier, which Java provides in the java.util.function package.</p>
+<p>Checked against real execution · On the PC used to write this lab, the code on the screen was compiled and run as is on JDK 21 for each of 16 combinations, the order of output, the number of times the lambda body ran, and the result were checked, and the parameter types of the standard methods (reflection) and the lines of JDK source that were copied into this lab were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Lambda expression</dt>
@@ -43,60 +43,69 @@
 <dd><b>Why it exists</b> — Java has no separate type that represents just a function, so a type was needed for the variables and parameters that receive a lambda. A functional interface uses an interface with only one abstract method as that type, so existing interfaces such as Runnable and Comparator can receive a lambda as they are.</dd>
 <dd><b>Where it's used today</b> — It is used when you write a method that receives behavior as a parameter, as the stream's filter receives a Predicate and map receives a Function. When you define one yourself, you add @FunctionalInterface so that the compiler checks that there is only one abstract method.</dd>
 <dd>This is an interface with only one abstract method (a redeclared method of Object such as equals is not counted, and any number of default and static methods is allowed), and it is a type to which a lambda expression or a method reference can be assigned. The java.util.function package predefines types such as Function (takes an input and returns a result), Supplier (supplies a value), Consumer (consumes a value), and Predicate (tests a condition).</dd>
+<dt>Standard methods that take a lambda</dt>
+<dd><b>Why it exists</b> — In common jobs such as repeating, filtering, sorting, and creating a default value, the only part that changes is &quot;what to do with one element&quot;. The standard library takes care of the rest (the repetition and its order, and when to run), and takes only the changing part as a lambda, so that you do not write the same loop again every time.</dd>
+<dd><b>Where it's used today</b> — You use them every day in shapes such as list.forEach(System.out::println), list.removeIf(s -&gt; s.isBlank()), list.sort(Comparator.comparing(String::length)), map.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()), optional.orElseGet(() -&gt; loadDefault()), and new Thread(() -&gt; …) (loadDefault is a method name chosen for this example). The parameter type of a method tells you what shape of lambda you have to pass.</dd>
+<dd>These are the methods in the Java standard library whose parameter type is a functional interface, so that you can pass a lambda or a method reference. forEach of ArrayList takes a Consumer and calls accept for each element, and removeIf takes a Predicate and calls test for each element and removes the elements for which true came back. filter of a stream takes a Predicate and map takes a Function, and the terminal operation (toList and so on) calls those lambdas when it sends the elements through. Comparator.comparing takes a Function that takes out a key and makes a Comparator, and that Function is called each time sort compares. orElseGet of Optional takes a Supplier and calls get only when there is no value. When and how many times a lambda is called is decided by these methods that received it.</dd>
 <dt>Method reference</dt>
 <dd><b>Where it's used today</b> — You often see it in streams and sorting in forms such as map(String::trim), forEach(System.out::println), and Comparator.comparing(String::length). When you process the argument or call a method twice, write a lambda instead.</dd>
 <dd>This is a syntax that refers to an existing method by name in place of a lambda. You write it by joining a class (or an object) and a method name with ::, as in String::length or System.out::println. It is a shorter way to write a lambda that does nothing but call one method.</dd>
+<dt>Stream API</dt>
+<dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
+<dt>Lazy evaluation</dt>
+<dd><b>Why it exists</b> — If a computation is done immediately, it produces values that end up unused, and every step must store its whole intermediate result. Lazy evaluation removes that waste by delaying the computation until the value is actually used.</dd>
+<dd><b>Where it's used today</b> — Optional's orElseGet runs the Supplier only when there is no value, and the Logger of java.util.logging, when given a Supplier, does not build the message string if logging at that level is turned off.</dd>
+<dd>This approach delays a computation until its result is actually needed. The intermediate operations of a stream do not run as soon as they are called. They run only when the terminal operation is called, and each element passes through the pipeline one at a time. The stream can process only as much as it needs and then stop. Lazy fetching in JPA follows the same idea: associated data is queried when it is actually used.</dd>
+<dt>orElse and orElseGet</dt>
+<dd><b>Why it exists</b> — If every time you take a value out of an Optional you write an if statement that checks with isPresent() and then calls get(), the code gets long, and mistakes also happen, such as calling get() without checking. orElse and orElseGet let you write &quot;if it is empty, this&quot; in a single call.</dd>
+<dd><b>Where it's used today</b> — Use orElse where a fixed default value is used when the setting value is missing, and orElseGet where the DB has to be queried again or a new object has to be created and saved when it is empty. To throw an exception instead of a default value when it is empty, use orElseThrow.</dd>
+<dd>These are the two methods that set the default value to use in its place when an Optional is empty. orElse(value) takes the default value itself as its argument, and orElseGet(function) takes a function (a lambda expression) that produces the default value. Java evaluates the arguments before it calls a method, so if you write orElse(makeDefault()), makeDefault() runs even when the Optional has a value. orElseGet runs the function that it was given only when the Optional is empty. So use orElseGet when creating the default value takes time or when other work, such as saving or logging, happens along with it.</dd>
+<dt>Comparable and Comparator</dt>
+<dd>These are the two ways to define the order of objects. Comparable is an interface that a class implements itself, and its single method, compareTo, defines the natural ordering of that class. A Comparator is a way of comparing that is created separately, outside the class, and it lets you sort the same objects by a different sort key each time. Both return a negative number if the first object comes first, 0 if the order cannot be decided, and a positive number if it comes later. Returning the difference of two numbers as it is can flip the sign through overflow, so use Integer.compare or Comparator.comparingInt.</dd>
 <dt>Differences between anonymous classes and lambda expressions</dt>
 <dd>An anonymous class is syntax that implements an interface or a class right where it is used and creates an object without giving the class a name, and it is written in the form new InterfaceName() { method implementations }. A lambda expression is syntax that does the same thing more briefly, in the form (parameters) -&gt; statement, but only for a functional interface, which has exactly one abstract method. When you implement a functional interface with a simple body that does not use this, the result of a call is the same whichever of the two you use. However, an anonymous class can also implement an interface that has several methods, and it can have fields, and this inside it refers to the object of the anonymous class itself. this inside a lambda expression refers to the enclosing object in which the lambda expression is written.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — Nothing happens on the line that creates the lambda expression, and the body runs each time run calls it.</li>
-<li><b>Receiving it without calling it</b> — The lambda expression is created and passed, but the body never runs.</li>
-<li><b>Writing it as an anonymous class</b> — The code gets longer, but the result is the same as with the lambda expression.</li>
-<li><b>Writing it as a method reference</b> — It refers to an existing method by name. The result is the same.</li>
-<li><b>Passing a Supplier and calling get later</b> — The work of creating a value is put off and runs when the value is needed.</li>
-<li><b>Predicate</b> — It passes a condition check. true or false comes back.</li>
-<li><b>Consumer</b> — It takes a value, only uses it, and returns nothing.</li>
+<li><b>Default settings</b> — On the line that calls forEach, the lambda object is created and passed, and forEach calls accept for each element, so the body runs three times.</li>
+<li><b>forEach on an empty list</b> — There are no elements, so forEach never calls accept. Even though a lambda was passed, the body does not run.</li>
+<li><b>Pass a method reference</b> — It is the same Consumer as n -&gt; System.out.println(n). forEach calls it for each element, and three names are printed.</li>
+<li><b>Pass a condition to removeIf</b> — removeIf calls test for each element and removes only fig, for which true came back. What remains is [kiwi, banana].</li>
+<li><b>filter and map of a stream</b> — When toList is called, the elements pass through filter one at a time, and an element that passes goes to map before the next element does. filter is called 3 times and map 2 times.</li>
+<li><b>Without a terminal operation</b> — The stream is only built and no elements are sent through it, so the lambdas of filter and map never run.</li>
+<li><b>Sort with Comparator.comparing</b> — Each time sort compares two elements, the Comparator calls the key lambda twice. For these three elements on JDK 21, there were 3 comparisons and 6 calls of the key lambda.</li>
+<li><b>Pass a method call to orElse</b> — It does. Java evaluates the argument defaultName() before it calls orElse. The result is Alice, but &quot;Default created&quot; is printed.</li>
+<li><b>Pass a lambda to orElseGet</b> — If there is a value, orElseGet does not call get, so defaultName does not run.</li>
+<li><b>orElseGet on an empty Optional</b> — There is no value, so orElseGet calls get once, the lambda runs, and the Guest that defaultName returned becomes the result.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): This creates an object that can run the action written to the right of the arrow token (-&gt;), and the variable f refers to that object. The length method is not called yet. Nothing is printed.</li>
-<li>System.out.println(&quot;after creation&quot;): &quot;after creation&quot; is printed. Execution has already passed the line that creates the action, but &quot;body runs&quot; has not been printed even once.</li>
-<li>run(f): The action object that the variable f refers to is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.</li>
-<li>System.out.println(&quot;run starts&quot;): Execution enters run, and &quot;run starts&quot; is printed.</li>
-<li>f.apply(&quot;hello&quot;): This is where the action finally runs. The length method is called, and &quot;body runs: length(hello)&quot; is printed. The returned value 5 is printed as &quot;result 5&quot;.</li>
-<li>f.apply(&quot;hi&quot;): The same action runs one more time. The length method is called, and &quot;body runs: length(hi)&quot; is printed. The returned value 2 is printed as &quot;result 2&quot;.</li>
-<li>System.out.println(&quot;run ends&quot;): &quot;run ends&quot; is printed. &quot;body runs&quot; was printed 2 times in all.</li>
+<li>List&lt;String&gt; names = new ArrayList&lt;&gt;(List.of(&quot;kiwi&quot;, &quot;fig&quot;, &quot;banana&quot;)): this creates a Java standard ArrayList whose elements are kiwi, fig, and banana in that order.</li>
+<li>System.out.println(&quot;Before calling forEach&quot;): the line printed is &quot;Before calling forEach&quot;.</li>
+<li>names.forEach(n -&gt; …): the lambda creates a Consumer&lt;String&gt; object and passes it to forEach. The parameter type of forEach is Consumer&lt;? super E&gt;, so this lambda implements accept of Consumer. The body does not run at the moment it is passed.</li>
+<li>action.accept(&quot;kiwi&quot;): The standard ArrayList.forEach calls accept for each element, and only here does the body run. The line printed is &quot;Lambda ran: kiwi&quot;.</li>
+<li>action.accept(&quot;fig&quot;): The same body runs once more with the next element. The line printed is &quot;Lambda ran: fig&quot;.</li>
+<li>action.accept(&quot;banana&quot;): The same body runs once more with the next element. The line printed is &quot;Lambda ran: banana&quot;.</li>
+<li>System.out.println(&quot;forEach done&quot;): the line printed is &quot;forEach done&quot;. The body ran 3 times in all.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Nothing ran on the line that creates the action. The body ran each time the apply method was called inside run. The code inside a lambda expression runs when it is called, not when it is created.</li>
-<li>Function&lt;T, R&gt; is an action that takes one value of type T and returns a value of type R, and it is called with apply. It is used to turn a value into another value (conversion).</li>
-<li>The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference.</li>
+<li>The body ran not on the line that passed the lambda, but each time the standard forEach called accept. How many times it is called is decided by forEach, from the number of elements.</li>
 </ul>
 <h2>Code</h2>
-<pre>class Demo {
-    static int length(String s) {                    // what the action to pass does
-        System.out.println(&quot;body runs: length(&quot; + s + &quot;)&quot;);
-        return s.length();
-    }
+<pre>import java.util.ArrayList;
+import java.util.List;
 
-    static void run(Function&lt;String, Integer&gt; f) {      // the method that receives the action and calls it
-        System.out.println(&quot;run starts&quot;);
-        System.out.println(&quot;result &quot; + f.apply(&quot;hello&quot;));
-        System.out.println(&quot;result &quot; + f.apply(&quot;hi&quot;));
-        System.out.println(&quot;run ends&quot;);
-    }
-
+public class Main {
     public static void main(String[] args) {
-        Function&lt;String, Integer&gt; f = s -&gt; length(s);        // creates the action (it does not run yet)
-        System.out.println(&quot;after creation&quot;);
-        run(f);                                   // passes the action like a value
+        List&lt;String&gt; names = new ArrayList&lt;&gt;(List.of(&quot;kiwi&quot;, &quot;fig&quot;, &quot;banana&quot;));
+        System.out.println(&quot;Before calling forEach&quot;);
+        names.forEach(n -&gt; System.out.println(&quot;Lambda ran: &quot; + n));   // Consumer&lt;String&gt;
+        System.out.println(&quot;forEach done&quot;);
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The output order, the number of times the body ran, and the returned values of the 36 combinations were checked against the result of running code with the same structure on JDK 21 in our test environment. The name of the method that each interface calls, the number of values it takes, and the type it returns were also checked against values read from the real interfaces. Saying that an anonymous class, a lambda expression, and a method reference are the same means that the results seen in this lab (the output and the returned values) are the same. How the object is created internally and what this refers to differ among them. When a lambda expression uses a local variable of the enclosing scope, it can use only a variable whose value does not change, and this rule is explained in the &quot;Inner classes and anonymous classes&quot; lab.</p>
+<p>For each of the sixteen combinations (8 standard methods × has values or empty), the code on the screen was written as is to Main.java, compiled and run with JDK 21 in the verification environment, and the printed lines and their order, the number of times the body ran, and the result were checked (verify/plain/lambda_probe.js, cmp_lambda.js). The parameter types of the standard methods were checked with reflection, and the lines of code copied into &quot;where the standard method's code calls it&quot; were checked by whether that text is in the JDK 21 source (src.zip). The order and number of comparisons in sorting are what ArrayList.sort (TimSort) of JDK 21 actually showed with these three elements, and they are not set by the Java specification, so they can differ on another JDK or with other elements. The order in which the elements pass through filter and map one at a time was also seen in this sequential stream, and in a parallel stream the order is not fixed. A lambda, an anonymous class, and a method reference give the same result in what this lab shows, but they differ in how the object is created inside and in what this refers to. When a lambda uses a local variable of the enclosing code, it can use only a variable whose value does not change, and this rule is explained in the lab &quot;Inner classes and anonymous classes&quot;.</p>
 <p>Previous lab: <a href="../../lab/sorting/">Sorting and Comparator</a> · Next lab: <a href="../../lab/stream/">Lazy evaluation in streams</a></p>
   </div>
 
@@ -189,6 +198,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

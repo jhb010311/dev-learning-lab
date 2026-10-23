@@ -1,0 +1,9 @@
+// 기초개념 dep_basic의 보조 확인: implementation 한 줄을 Gradle이 어떻게 풀어 클래스패스 목록을 만드는지 오프라인으로 본다.
+// 잭슨은 이 컴퓨터의 Gradle 캐시(E:/dev/gradle)에 없고 내려받지 않으므로, 캐시에 있던 Gson 2.11.0을 쓴다.
+// 실행: 이 폴더를 스크래치로 복사한 뒤 GRADLE_USER_HOME=E:/dev/gradle, JAVA_HOME=JDK 21로
+//       gradle --offline --no-daemon -q dependencies --configuration runtimeClasspath (compileClasspath도 같은 방법)
+plugins { id 'java' }
+repositories { mavenCentral() }
+dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
+}

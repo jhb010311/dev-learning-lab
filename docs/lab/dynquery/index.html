@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>동적 쿼리와 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실</title>
-<meta name="description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.">
+<title>동적 쿼리: Specification과 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실</title>
+<meta name="description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. 스프링 데이터 JPA의 Specification, JPA의 Criteria API, Q…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dynquery/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="동적 쿼리와 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실">
-<meta property="og:description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.">
+<meta property="og:title" content="동적 쿼리: Specification과 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실">
+<meta property="og:description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. 스프링 데이터 JPA의 Specification, JPA의 Criteria API, Q…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -29,23 +29,25 @@
   <div id="pre">
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
-<h1>동적 쿼리와 Querydsl</h1>
+<h1>동적 쿼리: Specification과 Querydsl</h1>
 <p><b>검색 조건이 있을 때만 where에 붙이려면</b></p>
-<p><b>왜 생겼나</b> — 조건마다 JPQL 문자열을 이어 붙이면 컴파일러는 그것을 그냥 글자로 보므로, 조각을 잘못 이은 쿼리도 그 조합이 실제로 실행될 때까지 오류가 드러나지 않는다. Criteria API와 Querydsl은 조건을 자바 객체로 만들어 넘기면 where와 and를 도구가 붙여 주고, Querydsl은 엔티티에서 만든 Q클래스로 필드를 가리켜 필드 이름 오타까지 컴파일할 때 잡는다.</p>
-<p><b>지금 어디에 쓰나</b> — 관리자 화면의 회원 검색, 쇼핑몰의 상품 필터처럼 입력한 항목만 조건이 되는 검색 기능에 쓴다. 스프링 데이터 JPA를 쓰는 프로젝트에서는 Querydsl을 함께 쓰는 경우가 흔하고, 스프링 데이터의 Specification으로 Criteria API를 감싸 쓰기도 한다. 조건이 늘 같은 쿼리라면 쿼리 메서드나 @Query로 충분하다.</p>
-<p>회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.</p>
-<p>일부만 실행으로 확인 · 문자열 방식과 Criteria API의 열여섯 조합은 Hibernate 7.4.5와 H2에서 실행해 대조. Querydsl의 네 조합은 라이브러리가 없어 공식 문서 기준</p>
+<p><b>왜 생겼나</b> — 조건마다 JPQL 문자열을 이어 붙이면 where와 and의 자리, 띄어쓰기를 사람이 맞춰야 하고, 컴파일러는 그 문자열을 검사하지 못해 잘못 이은 조합은 그 요청이 실제로 들어올 때에야 드러난다. 값까지 문자열에 넣으면 SQL Injection의 통로도 된다. JPA 표준의 Criteria API는 조건을 객체로 만들어 넘기면 where와 and를 JPA가 붙여 주게 했고, 스프링 데이터 JPA의 Specification은 그 조건을 메서드 하나씩으로 나눠 이름을 붙이고 and나 or로 조합하게 했다. Querydsl은 엔티티를 보고 만든 Q클래스로 필드를 가리켜 필드 이름 오타까지 컴파일할 때 잡는다.</p>
+<p><b>지금 어디에 쓰나</b> — 관리자 화면의 회원 검색, 쇼핑몰의 상품 필터처럼 입력한 항목만 조건이 되는 검색 기능에 쓴다. 스프링 데이터 JPA를 쓰는 프로젝트에서는 리포지토리에 JpaSpecificationExecutor를 더해 Specification으로 조건을 조합하거나, Querydsl을 함께 쓰는 경우가 흔하다. 조건이 늘 같은 쿼리라면 쿼리 메서드나 @Query로 충분하다.</p>
+<p>회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. 스프링 데이터 JPA의 Specification, JPA의 Criteria API, Querydsl은 조건을 문자열이 아니라 객체로 조립하고, where와 and는 도구가 붙입니다.</p>
+<p>실행으로 대조 · Specification, Criteria API, Querydsl, 문자열 직접 잇기의 스물네 조합을 스프링 부트 4.1.1, 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2, Querydsl 5.1.0에서 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>동적 쿼리</dt>
 <dd><b>왜 생겼나</b> — 입력할 수 있는 조건이 여러 개이면 그 조합마다 쿼리를 미리 만들어 둘 수 없다(조건이 5개면 조합이 32가지다). 동적 쿼리는 실행할 때 들어온 조건만 골라 쿼리 하나를 조립해서, 조합마다 쿼리를 따로 두지 않게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 목록 화면에서 정렬 기준이나 검색 칸을 사용자가 골라 쓰는 조회에 필요하다. MyBatis를 쓰는 프로젝트에서는 XML의 &lt;if&gt;, &lt;where&gt; 태그로 들어온 조건만 붙인다.</dd>
-<dd>실행할 때의 입력에 따라 문장의 모양이 달라지는 쿼리다. 검색 화면처럼 입력된 조건만 where에 넣어야 할 때 필요하다. 문자열을 이어 붙여 만들면 조건이 하나도 없을 때 where만 남거나, and가 엉뚱한 자리에 가거나, 띄어쓰기가 빠지는 실수가 생기고, 이런 오류는 컴파일이 아니라 그 조합의 요청이 들어왔을 때에야 드러난다. 그래서 조건을 객체로 조립하는 Criteria API나 Querydsl을 쓴다. 어떤 방식이든 값은 문자열에 직접 넣지 않고 파라미터로 바인딩한다.</dd>
-<dt>JPQL</dt>
-<dd>테이블이 아니라 엔티티와 그 필드를 대상으로 작성하는 JPA의 쿼리 언어다. SQL과 문법이 비슷하며, 실행할 때 JPA 구현체가 사용 중인 데이터베이스에 맞는 SQL로 변환한다. 특정 데이터베이스의 문법에 의존하지 않는다는 장점이 있다.</dd>
+<dd>실행할 때의 입력에 따라 문장의 모양이 달라지는 쿼리다. 검색 화면처럼 입력된 조건만 where에 넣어야 할 때 필요하다. 문자열을 이어 붙여 만들면 조건이 하나도 없을 때 where만 남거나, and가 엉뚱한 자리에 가거나, 띄어쓰기가 빠지는 실수가 생기고, 이런 오류는 컴파일이 아니라 그 조합의 요청이 들어왔을 때에야 드러난다. 그래서 조건을 객체로 조립하는 스프링 데이터 JPA의 Specification, JPA의 Criteria API, Querydsl을 쓴다. 어떤 방식이든 값은 문자열에 직접 넣지 않고 파라미터로 바인딩한다.</dd>
+<dt>Specification</dt>
+<dd><b>왜 생겼나</b> — Criteria API로 동적 쿼리를 짜면 조건을 만드는 코드가 메서드 하나에 길게 늘어서고, 같은 조건을 다른 검색에서 다시 쓰기 어렵다. Specification은 조건 하나하나에 이름을 붙여 따로 두고, 필요한 것만 골라 조합하게 해 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 데이터 JPA 프로젝트에서 Querydsl 같은 라이브러리를 더하지 않고 검색 조건을 조합할 때 쓴다. 정렬이나 페이지를 함께 쓰는 findAll(spec, pageable)로 목록 화면을 만든다.</dd>
+<dd>스프링 데이터 JPA가 주는 인터페이스로, 검색 조건 하나를 Criteria API로 만드는 방법을 메서드 하나(toPredicate)로 나타낸다. 보통 (root, query, cb) -&gt; cb.equal(root.get(&quot;name&quot;), name)처럼 람다로 쓰고, Specification.where(a).and(b)처럼 and, or로 조합한다. 리포지토리가 JpaSpecificationExecutor를 함께 상속하면 findAll(spec), count(spec)에 넘겨 실행할 수 있다. 람다가 조건 대신 null을 돌려주면 그 조건은 빠지고 남은 조건만 where에 들어가므로, 값이 없는 조건을 빼는 동적 쿼리에 맞다. 스프링 데이터 JPA 4.1.1에서는 where나 and에 Specification 자체를 null로 넘기면 IllegalArgumentException이 난다.</dd>
 <dt>Criteria API</dt>
 <dd><b>지금 어디에 쓰나</b> — Querydsl 같은 라이브러리를 더하지 않고 동적 쿼리를 만들어야 할 때 쓴다. JPA 표준이라서 Hibernate가 아닌 다른 JPA 구현으로 바꿔도 같은 코드가 돈다.</dd>
-<dd>JPA 표준에 들어 있는, 쿼리를 문자열이 아니라 자바 객체로 조립하는 API다. CriteriaBuilder로 조건 객체(Predicate)를 만들어 목록에 모은 뒤 where에 넘기면, 조건의 개수에 맞게 where와 and가 만들어진다. 조건이 0개이면 where 절이 생기지 않는다. 별도 라이브러리 없이 쓸 수 있지만 코드가 길어 어떤 쿼리인지 읽기 어렵다. 프로퍼티 이름을 문자열로 적으면 이름이 틀려도 컴파일은 되고 실행 중에 예외가 난다.</dd>
+<dd>JPA 표준이 정한, 쿼리를 문자열이 아니라 자바 객체로 조립하는 API다. CriteriaBuilder로 조건 객체(Predicate)를 만들어 목록에 모은 뒤 where에 넘기면, 조건의 개수에 맞게 where와 and가 만들어진다. 조건이 0개이면 where 절이 생기지 않는다. 별도 라이브러리 없이 쓸 수 있지만 코드가 길어 어떤 쿼리인지 읽기 어렵다. 프로퍼티 이름을 문자열로 적으면 이름이 틀려도 컴파일은 되고 실행 중에 예외가 난다.</dd>
 <dt>Querydsl</dt>
 <dd><b>왜 생겼나</b> — Criteria API로 짠 쿼리는 코드가 길어 어떤 SQL이 나갈지 한눈에 읽기 어렵다. Querydsl은 select, from, where를 SQL과 비슷한 순서의 메서드로 이어 적게 해서, 자바 코드로 쓰면서도 쿼리 모양이 읽히게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 조건 조립뿐 아니라 조인, group by 집계, DTO로 바로 받는 조회처럼 JPQL 문자열이 길어지는 조회를 자바 코드로 쓸 때도 쓴다.</dd>
@@ -55,44 +57,50 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 나이만 입력했더니 where 바로 뒤에 and가 와서 문법 오류가 납니다.</li>
-<li><b>같은 코드에 조건을 둘 다 넣으면</b> — 아무 문제 없이 동작합니다. 그래서 이 조합만 시험하면 오류를 놓칩니다.</li>
-<li><b>조건을 하나도 넣지 않으면</b> — 문자열이 where로 끝나서 문법 오류가 납니다.</li>
-<li><b>띄어쓰기 하나를 빠뜨리면</b> — m과 where가 붙어 mwhere가 됩니다.</li>
-<li><b>조건을 모아서 잇기</b> — 문자열로도 바르게 만들 수는 있습니다.</li>
-<li><b>Criteria API로 조립</b> — 조건이 없으면 where가 아예 생기지 않습니다.</li>
-<li><b>Querydsl로 조립</b> — null인 조건은 where가 알아서 건너뜁니다(문서 기준).</li>
+<li><b>처음 설정으로</b> — null을 돌려준 이름 조건은 빠지고 나이 조건 하나만 where에 들어갑니다.</li>
+<li><b>조건을 하나도 넣지 않으면</b> — 남은 조건이 없어서 where 절이 아예 생기지 않고 전체가 조회됩니다.</li>
+<li><b>Criteria API로 조건 둘을 조립</b> — 조건 객체 두 개를 where에 넘기면 JPA가 and로 묶습니다. Specification의 람다가 받는 cb도 이 API의 CriteriaBuilder입니다.</li>
+<li><b>Querydsl로 조립</b> — where가 null인 조건을 건너뛰어, 이름 조건만 남습니다. 나간 SQL은 Specification, Criteria API와 같습니다.</li>
+<li><b>이름 칸에 따옴표가 섞이면</b> — 값은 ? 자리에 따로 바인딩되므로 그냥 이상한 이름일 뿐이고, 0명이 조회됩니다.</li>
+<li><b>문자열을 직접 이어 붙이면</b> — where 바로 뒤에 and가 와서 문법 오류가 납니다. 조건을 둘 다 넣어 시험하면 놓치는 오류입니다.</li>
+<li><b>이어 붙인 문자열에 따옴표가 섞이면</b> — 넣은 따옴표가 문자열을 닫아 or 조건이 생기고, 회원 7명이 모두 조회됩니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>검색 조건: 이름은 입력하지 않아 null, 나이는 20입니다. null이 아닌 조건만 쿼리의 where에 넣어야 합니다.</li>
-<li>1번째 줄: 기본 문장을 만듭니다. 조건이 붙을 것이라 보고 끝에 where를 미리 붙여 두었습니다.</li>
-<li>2번째 줄: 이름 조건이 null이므로 건너뜁니다. 문자열은 그대로입니다.</li>
-<li>3번째 줄: 나이 조건이 있으므로 뒤에 &quot; and m.age &gt;= :age&quot; 조각을 붙입니다. 이 줄은 앞에 이름 조건이 이미 붙어 있다고 보고 and로 시작합니다. 그런데 이번에는 이름 조건이 붙지 않았습니다.</li>
-<li>em.createQuery(jpql, Member.class): Hibernate가 문자열을 처음부터 읽어 문법을 검사합니다. where 바로 뒤에 and가 왔습니다. and 앞에 있어야 할 첫 조건이 없습니다. Hibernate의 문법에서는 and 같은 낱말도 이름으로 쓸 수 있어서 and까지는 이름으로 읽고 넘어가고, 그다음 낱말 m에서 멈춥니다.</li>
-<li>예외: createQuery가 IllegalArgumentException을 던집니다(원인은 Hibernate의 SyntaxException). 메시지에 나오는 &quot;At 1:33&quot;이라는 글자는 1번째 줄의 33번 글자(0부터 셈)에서 멈췄다는 뜻입니다. SQL은 DB로 나가지 않았고, 검색 요청은 실패합니다.</li>
+<li>1번째 줄 nameEq(name): 예시로 만든 메서드입니다. 조건을 바로 만들지 않고, 쿼리를 만들 때 불릴 람다(Specification)를 돌려줍니다. 이 람다는 name이 null이면 조건 대신 null을, 아니면 cb.equal(root.get(&quot;name&quot;), name)을 돌려주도록 적혀 있습니다. Specification.where는 스프링 데이터 JPA가 주는 메서드로, 받은 Specification을 출발점으로 삼습니다.</li>
+<li>2번째 줄 .and(ageGoe(age)): ageGoe도 예시로 만든 메서드이고 같은 모양의 람다를 돌려줍니다. and는 스프링 데이터 JPA가 주는 메서드로, 두 Specification을 and로 묶은 새 Specification을 돌려줍니다. 아직 SQL은 만들지 않았습니다.</li>
+<li>3번째 줄 memberRepository.findAll(spec): JpaSpecificationExecutor가 주는 메서드입니다. 스프링 데이터 JPA가 CriteriaQuery를 만들고 두 람다를 부릅니다. nameEq는 null을, ageGoe는 조건 age &gt;= ?를 돌려줍니다. null을 돌려준 조건은 빠지고, 남은 조건 하나만 where에 들어갑니다.</li>
+<li>SELECT 한 번이 DB로 나갑니다. SQL의 조건은 &quot;where age &gt;= ?&quot;입니다. ? 자리에 바인딩된 값은 20입니다. 회원 7명 가운데 5명이 조회됩니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>이 코드는 네 가지 조합 가운데 둘 다 없을 때, 나이만 있을 때 실패하고 나머지에서는 정상입니다. 컴파일러는 문자열 안을 검사하지 않고, 오류는 그 조합의 요청이 실제로 들어왔을 때에야 납니다. 모든 조합을 시험해 보지 않으면 운영 중에 드러납니다.</li>
-<li>어느 방식이든 값은 문자열에 직접 이어 붙이지 않고 :name 같은 자리를 두고 setParameter로 넣습니다. 사용자가 입력한 값을 문장에 그대로 이어 붙이면 SQL Injection 공격에 노출됩니다.</li>
+<li>Specification으로 조립한 쿼리에 조건 1개가 남아 5명이 조회됐습니다. 이름과 나이 칸의 여섯 가지 조합이 모두 문법 오류 없이 실행됩니다.</li>
+<li>where, and, 띄어쓰기를 사람이 쓰지 않습니다. 값이 없을 때 람다가 조건 대신 null을 돌려주면 스프링 데이터 JPA가 그 조건을 빼고 남은 것만 and로 묶습니다. 조건이 늘면 nameEq 같은 메서드를 하나 더 만들어 and로 잇습니다.</li>
+<li>null은 람다가 조건 대신 돌려주게 합니다. Specification 자체를 null로 넘기면 안 됩니다. 스프링 데이터 JPA 4.1.1에서 Specification.where(null)이나 and(null)은 IllegalArgumentException을 던집니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 클래스 안의 메서드와 그것을 부르는 줄만 보임 (클래스 선언, em 필드, 예시로 만든 Member 엔티티, import는 생략)
-List&lt;Member&gt; search(String name, Integer age) {
-    String jpql = &quot;select m from Member m where&quot;;
-    if (name != null) jpql += &quot; m.name = :name&quot;;
-    if (age != null)  jpql += &quot; and m.age &gt;= :age&quot;;
+<pre>// 필요한 부분만 남김 (클래스 선언, memberRepository 필드, 예시로 만든 Member 엔티티, import는 생략)
+// MemberRepository는 예시로 만든 리포지토리. JpaRepository, JpaSpecificationExecutor, Specification은 스프링 데이터 JPA가 주는 것
+interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, JpaSpecificationExecutor&lt;Member&gt; { }
 
-    TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class);
-    if (name != null) query.setParameter(&quot;name&quot;, name);
-    if (age != null)  query.setParameter(&quot;age&quot;, age);
-    return query.getResultList();
+// nameEq, ageGoe는 예시로 만든 메서드. 값이 없으면 조건 대신 null을 돌려준다
+static Specification&lt;Member&gt; nameEq(String name) {
+    return (root, query, cb) -&gt; name == null ? null : cb.equal(root.get(&quot;name&quot;), name);
+}
+static Specification&lt;Member&gt; ageGoe(Integer age) {
+    return (root, query, cb) -&gt; age == null ? null : cb.greaterThanOrEqualTo(root.get(&quot;age&quot;), age);
+}
+
+List&lt;Member&gt; search(String name, Integer age) {
+    Specification&lt;Member&gt; spec = Specification.where(nameEq(name))
+            .and(ageGoe(age));
+    return memberRepository.findAll(spec);
 }
 
 search(null, 20);   // 이름은 입력 안 함, 나이는 20 이상</pre>
 <h2>이 모형의 전제</h2>
-<p>문자열을 이어 붙이는 세 가지 방식과 JPA Criteria API 방식의 열여섯 가지 조합은 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드를 실제로 실행해, 조립된 문자열, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 조회된 회원 수를 화면과 대조했습니다. Querydsl의 네 가지 조합은 검증 실행 환경에 Querydsl 라이브러리가 없어 실행으로 확인하지 못했습니다. 그 부분은 Querydsl 공식 문서를 따른 설명입니다: FilteredClause.where(Predicate...)의 API 문서(&quot;Adds the given filter conditions. Skips null arguments&quot;), 참조 문서 Querying JPA 장의 여러 필터를 and로 묶는 예, Complex predicates 절의 BooleanBuilder 설명. Querydsl의 결과 칸에 적힌 where와 회원 수는 문서대로 동작한다고 볼 때의 값이며 실행 결과가 아닙니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. &quot;where and&quot;에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. Criteria API에서 조건이 0개일 때 where 절이 생기지 않는다는 것, m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 예외(Hibernate 7.4.5에서는 PathElementException)가 난다는 것도 실행으로 확인했습니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.</p>
+<p>네 가지 방식과 이름 칸 세 가지, 나이 칸 두 가지를 곱한 스물네 가지 조합을 스프링 부트 4.1.1(자동 설정), 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2 데이터베이스, Querydsl 5.1.0(jakarta)에서 화면과 같은 구조의 코드로 실제로 실행해, 성공 여부, 예외의 종류와 오류 위치와 걸린 낱말, DB로 나간 SQL의 where, 바인딩된 값, 조회된 회원 수를 화면과 대조했습니다. Q클래스(QMember)는 컴파일할 때 querydsl-apt가 Member 엔티티를 보고 만든 것을 썼습니다. Specification, Criteria API, Querydsl은 같은 조건이면 나간 SQL이 글자까지 같았습니다. 스프링 데이터 JPA가 null을 돌려준 조건을 빼고 남은 조건만 and로 묶는다는 설명, Querydsl의 where가 null인 조건을 건너뛴다는 설명은 이렇게 나간 SQL에 근거합니다. Specification.where(null)과 and(null)이 IllegalArgumentException을 던진다는 것, Criteria API에서 m.get에 없는 프로퍼티 이름을 주면 컴파일은 되고 실행 중에 PathElementException이 난다는 것, 문자열이라도 조건을 목록에 모아 and로 잇고 값을 바인딩하면 여섯 조합이 모두 바르게 실행된다는 것도 실행으로 확인했습니다. 문법 오류의 위치와 걸린 낱말은 Hibernate 7.4.5가 낸 메시지 기준이고, 다른 버전이나 다른 JPA 구현에서는 다르게 나올 수 있습니다. &quot;where and&quot;에서 Hibernate가 and를 이름으로 읽고 넘어간다는 설명은, 오류가 and가 아니라 그다음 낱말에서 났다는 실행 결과에 근거한 해석입니다. 화면의 SQL where는 테이블 별칭을 걷어 내고 읽기 쉽게 줄인 것입니다. 실제 서비스에서는 조건이 훨씬 많고 or, like, 정렬이 섞이므로 문자열 방식의 실수가 여기보다 생기기 쉽습니다.</p>
 <p>앞 실습: <a href="../../lab/datajpa/">스프링 데이터 JPA</a> · 다음 실습: <a href="../../lab/connpool/">커넥션 풀과 OSIV</a></p>
   </div>
 
@@ -185,6 +193,6 @@ search(null, 20);   // 이름은 입력 안 함, 나이는 20 이상</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

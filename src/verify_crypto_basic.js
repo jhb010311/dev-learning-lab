@@ -1,1 +1,1 @@
-Lab.verify({ crypto_basic: ['run', 'JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조, Node.js와 NIST 시험 벡터로 계산 확인'] });
+Lab.verify({ crypto_basic: ['run', 'JDK 21에서 화면의 코드(KeyGenerator, Cipher AES/GCM/NoPadding, GCMParameterSpec, doFinal)를 여덟 가지 조합 그대로 javax.tools로 컴파일하고 실행해 출력과 예외(AEADBadTagException, Tag mismatch)를 대조, 실제 무작위 값으로도 다시 실행, Node.js와 NIST 시험 벡터로 계산 확인'] });

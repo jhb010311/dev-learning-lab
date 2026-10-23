@@ -1,0 +1,4 @@
+// 기초개념 "람다" 실습의 용어. 근거: JDK 21의 java.lang.Runnable, java.lang.Thread API 문서(같은 JDK의 소스에 붙은 문서)와 Java Language Specification(Java SE 21) 9.8절.
+module.exports = [
+  ['Java 언어', 'Runnable', 'Runnable은 자바가 java.lang 패키지에 미리 만들어 둔 인터페이스로, 본문 없이 이름만 적은 메서드가 void run() 하나뿐이다. 구현할 메서드가 하나뿐이어서 함수형 인터페이스이고(@FunctionalInterface가 붙어 있다), 그래서 Runnable r = () -> System.out.println("일한다");처럼 람다로 구현한 객체를 만들 수 있다. 같은 것을 익명 클래스 new Runnable() { public void run() { … } }나 class Work implements Runnable처럼 클래스로 적을 수도 있다. 람다나 클래스를 적은 줄에서는 run의 본문이 실행되지 않고, 누군가 run을 부를 때 실행된다. 내 코드가 r.run()으로 직접 부르면 지금 실행 중인 스레드에서 실행되고, new Thread(r)에 넘긴 뒤 start()를 부르면 새로 시작된 스레드가 run을 부른다.', { why: '자바 1.0부터 스레드에게 "이 일을 해 달라"고 넘길 방법이 필요했다. 할 일을 run이라는 메서드 하나로 정한 인터페이스를 두어, Thread가 무슨 클래스의 객체든 run만 부르면 되게 했다.', use: 'new Thread(() -> ...)로 새 스레드에 일을 맡길 때, ExecutorService의 execute(...)나 submit(...)으로 스레드 풀에 일을 넘길 때 Runnable을 넘긴다. 지금은 대개 람다로 적는다.' }],
+];

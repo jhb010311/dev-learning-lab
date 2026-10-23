@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enum classes: Why does an enum saved as a number come back as a different constant? · Dev Learning Lab</title>
-<meta name="description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the p…">
+<title>Enum classes: Why does an enum saved with @Enumerated(EnumType.ORDINAL) come back as a different constant? · Dev Learning Lab</title>
+<meta name="description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. When you save an enum field of a JPA entity to a database, you…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/enumtype/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Enum classes: Why does an enum saved as a number come back as a different constant? · Dev Learning Lab">
-<meta property="og:description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the p…">
+<meta property="og:title" content="Enum classes: Why does an enum saved with @Enumerated(EnumType.ORDINAL) come back as a different constant? · Dev Learning Lab">
+<meta property="og:description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. When you save an enum field of a JPA entity to a database, you…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,75 +30,102 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Enum classes</h1>
-<p><b>Why does an enum saved as a number come back as a different constant?</b></p>
-<p><b>Why it exists</b> — Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time.</p>
-<p><b>Where it's used today</b> — It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. Processing that differs for each constant is divided with switch or handled with methods placed in the enum. When saving to a database with JPA, you save the name with @Enumerated(EnumType.STRING) instead of the default ordinal number, or you save a code value you defined yourself by converting it with an AttributeConverter.</p>
-<p>An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.</p>
-<p>Checked against real execution · 45 combinations were actually compiled and run on JDK 21 and checked against the results</p>
+<p><b>Why does an enum saved with @Enumerated(EnumType.ORDINAL) come back as a different constant?</b></p>
+<p><b>Why it exists</b> — Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time. But a database column cannot hold an enum object as it is, so JPA lets you decide, with @Enumerated and AttributeConverter, how to turn it into a number or text when saving and turn it back when reading.</p>
+<p><b>Where it's used today</b> — It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. For an enum field of a JPA entity, it is usual to write @Enumerated(EnumType.STRING) to save the name of the constant. If you do not write @Enumerated, the value is saved with the default, ORDINAL (the position in the declaration). If you must save a short code such as P or S in the database, you create an AttributeConverter and specify it with @Convert.</p>
+<p>An enum is a type that can have only a fixed set of values, such as the status of an order. When you save an enum field of a JPA entity to a database, you choose how to save it with @Enumerated. EnumType.ORDINAL saves the position of the constant in the declaration, and EnumType.STRING saves the name of the constant. If you save by number and later change the order of the enum declaration, the number in the database stays the same, but the constant that the number refers to changes. This lab follows the results that Hibernate actually saved and read back.</p>
+<p>Checked against real execution · On Hibernate 7.4.5 and H2, 45 combinations were compiled and run with the code on the screen, and the column definition, the saved value, and the constant or exception read after deploying again were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Enum class</dt>
 <dd>This is the syntax for creating a type that can have only a few fixed values. When you declare enum Status { ORDERED, PAID }, ORDERED and PAID each become an object of type Status, and these objects are created only once and no more can be created with new. There is only one object for each constant, so constants can be compared with == and can also be used in a switch. An enum is also a class, so it can have fields, constructors, and methods, which lets you attach a display name or a code value to each constant. Unlike representing a state with a string or a number, using a value that is not defined is a compile-time error, so enums are used to represent states and kinds.</dd>
+<dt>@Enumerated</dt>
+<dd><b>Why it exists</b> — A Java enum value cannot be passed to JDBC as it is, so you had to write code yourself to convert it to a number or text when saving and convert it back when reading. JPA takes care of this conversion, and @Enumerated lets you choose whether the conversion uses the ordinal number or the name.</dd>
+<dd><b>Where it's used today</b> — Add it to a field that holds one of a few fixed values, such as an order status or a member grade. If the DB has to store a short code such as P or D instead of the name, create and use an AttributeConverter instead of @Enumerated.</dd>
+<dd>This annotation specifies what value an enum field is stored as in the database. EnumType.ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0) as a number, and EnumType.STRING stores the name of the constant as text. The default when you do not add it is ORDINAL. If you add a constant at the front or in the middle of the enum after saving with ORDINAL, the numbers shift, and values that are already stored are read back as different constants. No exception is thrown, so it is hard to notice, and using STRING is the safer choice.</dd>
+<dt>AttributeConverter</dt>
+<dd><b>Why it exists</b> — @Enumerated can save an enum only as its position or its name, so it was hard to match a database that has long written statuses as codes such as P and S, or to rename constants freely. AttributeConverter came in with JPA 2.1, and one class can now decide how a single field is converted and saved.</dd>
+<dd><b>Where it's used today</b> — It is used when saving an enum as a short code value, when saving a boolean as the text Y/N, and when saving a value object such as an amount of money or a phone number as text in a single column.</dd>
+<dd>This is a JPA interface that decides how to convert between the value of an entity field and the value of a database column. You create a class that implements AttributeConverter&lt;X, Y&gt; and fill in two methods. convertToDatabaseColumn converts the field value (X) to the column value (Y) when saving, and convertToEntityAttribute converts the column value to the field value when reading. If you put @Converter on the class and @Convert(converter = the converter class) on a field, it is used for that field, and if you set @Converter(autoApply = true), it is used for all fields of the same type. If you save an enum not as its position or name but as a code that you decide, such as P or S, the saved value does not shake even when you change the order or the names of the constants.</dd>
 <dt>ordinal() and name()</dt>
 <dd><b>Why it exists</b> — To save an enum constant in a file or a database, you have to convert it to text or a number, and if you write conversion code for each constant, you have to edit it every time you add a constant. name() and ordinal() are methods that every enum inherits from java.lang.Enum, so you get the name and the position without writing anything yourself.</dd>
 <dd><b>Where it's used today</b> — Use name() when the exact name is needed, as when passing a constant as text to another system, and leave text to be shown in logs to toString(). The API documentation says that ordinal() is meant for data structures such as EnumSet and EnumMap, so it is rarely used directly in ordinary code.</dd>
-<dd>These are two methods that every enum constant has. ordinal() returns the position of the constant in the declaration, counted from 0, and name() returns the name of the constant, as written in the declaration, as a string. ordinal() is determined by the declaration order, so its value changes when a constant is inserted in the middle or the order is changed. For this reason, if you save ordinal() values in a database or a file, the same number can later be read as a different constant. When saving, use name() or the value of a field that you define separately in the enum.</dd>
+<dd>These are two methods that every enum constant has. ordinal() returns the position of the constant in the declaration, counted from 0, and name() returns the name of the constant, as written in the declaration, as a string. ordinal() is determined by the declaration order, so its value changes when a constant is inserted in the middle or the order is changed. For this reason, if you save ordinal() values in a database or a file, the same number can later be read as a different constant. The value that @Enumerated(EnumType.ORDINAL) of JPA writes in the database is ordinal(), and the value that EnumType.STRING writes is name(). So when saving, use STRING or a code value that you define separately in the enum.</dd>
 <dt>valueOf method of an enum class</dt>
 <dd><b>Why it exists</b> — To convert a value that came in as text to an enum, you have to write code that compares with if for each constant, and you have to edit that code every time you add a constant. valueOf is made by the compiler for every enum, so that a constant is found directly from its name alone.</dd>
 <dd><b>Where it's used today</b> — Use it to turn text read from a request parameter or a settings file, or a value saved by name in a database, back into an enum constant.</dd>
 <dd>This is a static method that takes a name string and returns the enum constant with that name, and it is declared automatically in every enum. Status.valueOf(&quot;PAID&quot;) returns Status.PAID. The name must match exactly, including case, and when there is no such constant, the method does not return null but throws an IllegalArgumentException. So when you pass a value that cannot be trusted, such as a string entered by a user, you must be prepared for the exception. values(), which returns an array containing all the constants in declaration order, is declared together with it.</dd>
-<dt>Identity and equality</dt>
-<dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The ordinal is saved, and then a constant is inserted in the middle. &quot;Payment completed&quot; is read as &quot;Order canceled&quot;.</li>
-<li><b>Changing only the order</b> — Even if no constant is added, changing only the order makes the number refer to a different constant.</li>
-<li><b>Adding at the very end</b> — The ordinals of the existing constants stay the same, so nothing goes wrong.</li>
-<li><b>A constant that is safe by luck</b> — The change is the same, but the ordinal of the first constant does not change.</li>
-<li><b>Saving by name</b> — The same constant comes back even after a constant is inserted in the middle.</li>
-<li><b>Saved by name, then renamed</b> — valueOf receives a name that does not exist and throws an IllegalArgumentException.</li>
-<li><b>Saving a code you define yourself</b> — The same constant comes back whether the order is changed or the name is changed.</li>
+<li><b>Default settings</b> — The number 1 stays in the database, and in the current declaration, position 1 is CANCELED. An order with payment completed is read as a canceled order.</li>
+<li><b>Even changing only the order</b> — Even if no constant is added, changing only the order makes the number refer to a different constant.</li>
+<li><b>Adding at the very end</b> — The numbers of the existing constants stay the same, so the same constant is read.</li>
+<li><b>A constant that is safe by luck</b> — The change is the same, but the number of the first constant does not change.</li>
+<li><b>Saving with STRING</b> — The name is saved in the database, so the same constant is read even if the order changes.</li>
+<li><b>STRING, but the name is changed</b> — No constant matches &quot;PAID&quot; in the database, so em.find throws an exception.</li>
+<li><b>Saving a code with AttributeConverter</b> — What is saved is a code, not a name or a number, so the same constant is read even if the name is changed.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The old enum declaration listed ORDERED, PAID, SHIPPED in that order: Each enum constant is one object. PAID(&quot;Payment completed&quot;) is a Status object created by passing &quot;Payment completed&quot; to the constructor, and it is the only PAID object in the whole program. You cannot create another one with new.</li>
-<li>An order with the status PAID was saved to the database: An enum object cannot be stored as it is, so a value that stands for the constant is written instead. Here that value is PAID.ordinal(), which is 1. ordinal() returns the position of the constant in the declaration, counted from 0.</li>
-<li>After that, the enum declaration was changed: The new constant CANCELED was inserted between ORDERED and PAID. The ordinals are now ORDERED(0), CANCELED(1), PAID(2), SHIPPED(3). The value written in the database (1) is not updated and stays as it was.</li>
-<li>Status.values()[1] runs: values() returns an array that contains the constants in the order of the current declaration. The element at index 1 is CANCELED. The saved constant was PAID, but a different constant came back. There is no exception and no warning.</li>
-<li>System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;) runs: The output is &quot;CANCELED (Order canceled)&quot;. label() is a method that you write yourself inside the enum, and it returns the label value that the constant received when it was created. An enum is also a class, so it can have fields and methods like this.</li>
-<li>s == Status.PAID runs: The result is false. There is only one object for each enum constant, so the same constant is the same object no matter how it was obtained. That is why you can compare with == instead of equals. The result is false not because of how the comparison is done, but because s really is a different constant (CANCELED). The program ends normally.</li>
+<li>First deployment: the enum declaration lists ORDERED, PAID, SHIPPED in that order. Hibernate looked at the Order entity and created the orders table, and the status column is &quot;status tinyint check ((status between 0 and 2))&quot;. EnumType.ORDINAL saves the position of the constant in the declaration, so the column is a number column. The condition (check) that accepts only 0 to 2 was added by Hibernate for H2.</li>
+<li>em.persist(new Order(1L, OrderStatus.PAID)) and commit: an INSERT is sent, and 1 is saved in the status column. This is the value of PAID.ordinal() that Hibernate wrote. ordinal() is a method that every enum inherits from java.lang.Enum, and it returns the position of the constant in the declaration, counted from 0.</li>
+<li>After that, the enum declaration was changed and the application was deployed again: The new constant CANCELED was inserted between ORDERED and PAID. The ordinals are now ORDERED(0), CANCELED(1), PAID(2), SHIPPED(3). The table was not created again, so 1 in the status column stays as it was.</li>
+<li>em.find(Order.class, 1L) runs: the row is read with SELECT, and 1 in the status column is turned into a constant. Because it is ORDINAL, Hibernate picks the constant at index 1 in the current declaration. This is the same result as OrderStatus.values()[1] (values() is a method that is created automatically for every enum, and it returns an array of the constants in the order of the current declaration). The element at index 1 is CANCELED. The saved one was PAID, but a different constant came out. There is no exception and no warning.</li>
+<li>System.out.println(order.getStatus()) runs: the output is &quot;CANCELED&quot;. The toString() of an enum returns the same name as name() unless you override it.</li>
+<li>order.getStatus() == OrderStatus.PAID runs: the result is false. There is only one object for each enum constant, so whether it was read by Hibernate or written in the code, the same constant is the same object. That is why you can compare with == without equals. The result is false not because of how the comparison is done, but because the constant that was read really is a different constant (CANCELED).</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>ordinal() is only the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is &quot;Payment completed&quot; is shown as &quot;Order canceled&quot;. Do not save ordinal() values.</li>
-<li>Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, no exception is thrown even when one side is null, and comparing constants of different enum classes is reported as a compile-time error.</li>
+<li>EnumType.ORDINAL only saves the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is &quot;Payment completed&quot; is shown as an order that is &quot;Order canceled&quot;. The default when you do not write @Enumerated is also ORDINAL, so write @Enumerated(EnumType.STRING) on enum fields.</li>
+<li>Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, and no exception is thrown even when one side is null.</li>
 </ul>
 <h2>Code</h2>
-<pre>enum Status {
-    ORDERED(&quot;Order received&quot;),
-    CANCELED(&quot;Order canceled&quot;),
-    PAID(&quot;Payment completed&quot;),
-    SHIPPED(&quot;Shipping started&quot;);
+<pre>// File: OrderStatus.java
+// An enum we made as an example to represent the order status. When it was saved, the declaration was in the order ORDERED, PAID, SHIPPED, and CANCELED was inserted between ORDERED and PAID after saving
+public enum OrderStatus { ORDERED, CANCELED, PAID, SHIPPED }
 
-    private final String label;
+// File: Order.java
+// An example entity we made. @Entity, @Table, @Id, @Enumerated, and EnumType are provided by JPA
+import jakarta.persistence.*;
 
-    Status(String label) {
-        this.label = label;
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+
+    @Enumerated(EnumType.ORDINAL)
+    private OrderStatus status;
+
+    protected Order() {
     }
 
-    String label() {
-        return label;
+    public Order(Long id, OrderStatus status) {
+        this.id = id;
+        this.status = status;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
     }
 }
 
-// The value of PAID.ordinal(), saved under the old declaration (order: ORDERED, PAID, SHIPPED); from here on, lines inside main (class and main declaration omitted)
-int saved = 1;
-Status s = Status.values()[saved];
-System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;);
-System.out.println(s == Status.PAID);</pre>
+// File: OrderReader.java
+// An example class we made that reads the order after deploying again. EntityManager is provided by JPA
+import jakarta.persistence.EntityManager;
+
+public class OrderReader {
+    // Read the order that was saved with em.persist(new Order(1L, OrderStatus.PAID)) under the old declaration
+    static void print(EntityManager em) {
+        Order order = em.find(Order.class, 1L);
+        System.out.println(order.getStatus());
+        System.out.println(order.getStatus() == OrderStatus.PAID);
+    }
+}
+</pre>
 <h2>Assumptions of this model</h2>
-<p>All 45 combinations were checked by actually compiling and running the code shown on the screen (the enum declaration after the change and the code below it) on JDK 21 in our test environment, and comparing the saved value, the two lines of output, the exit code, and the exception message. The saved values were obtained by actually getting ordinal(), name(), and code from the enum with the old declaration. In the code on the screen, the five lines below the enum declaration are inside the main method, and the declaration of main is omitted. The following were also checked in the same way: the same constant is the same object no matter how it is obtained, valueOf also throws an exception for a name that differs only in case, == does not throw an exception even when one side is null, and comparing constants of different enum classes with == is a compile-time error. No real database was used. The saved value was written directly in the code to imitate one. A change that removes a constant is not included in the settings. If a constant is removed, reading by ordinal returns a later constant that has moved up or throws an exception because the index is outside the array (ArrayIndexOutOfBoundsException), and reading by name makes valueOf throw an exception (this was also checked by running it separately).</p>
+<p>All 45 combinations were checked against real execution with Hibernate 7.4.5 and the H2 database (2.4.240). For each combination, the code on the screen was compiled as it is, the table was created with the Order of the old declaration (ORDERED, PAID, SHIPPED), one order was persisted, and then, leaving the table as it was, OrderReader.print from the screen was run with the classes of the current declaration. What was compared is the definition of the status column that Hibernate created, the value saved in the database (read directly with JDBC), the two lines of console output, and the kind and message of the exception. The package name that is attached to the exception message is not in the code on the screen, so it was left out. For every combination we also checked that the constant Hibernate read is the same as the result of calling values()[number] or valueOf(name) directly. The following facts were also checked by running them in the same way: an enum field without @Enumerated becomes exactly the same column as ORDINAL and a number is saved; if you save with ORDINAL and then delete that constant so that the number is out of range, em.find throws an ArrayIndexOutOfBoundsException; if the converter receives a code it does not know, a PersistenceException (caused by the IllegalArgumentException that fromCode threw) occurs; and the same constant is the same object however it is obtained. The column definition differs depending on the kind of database (dialect) and the Hibernate version, and the tinyint, the check conditions, and the enum-type column written here are what Hibernate 7.4.5 made for H2. Because of these conditions, if you keep using the table that Hibernate created, then after CANCELED is inserted, saving SHIPPED (now number 3) with ORDINAL, or saving CANCELED with STRING, also fails (this was also checked by running it). This lab covers only reading rows that were already saved. In real services, the table is often created separately with a tool such as Flyway, so these conditions may not exist, but it is the same that the saved value stays as it is when you deploy again. It was run with Hibernate alone, without Spring Boot, and even if you use Spring Data JPA, the same Hibernate does the saving and reading.</p>
 <p>Previous lab: <a href="../../lab/generic/">Generics</a> · Next lab: <a href="../../lab/annot/">Annotations</a></p>
   </div>
 
@@ -191,6 +218,6 @@ System.out.println(s == Status.PAID);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

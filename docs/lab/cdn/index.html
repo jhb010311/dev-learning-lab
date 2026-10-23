@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -103,7 +103,7 @@ http.createServer(async (req, res) =&gt; {
 // 40초  curl https://cdn.shop.example/app.css?v=1
 // 80초  curl https://cdn.shop.example/app.css?v=1</pre>
 <h2>이 모형의 전제</h2>
-<p>열여섯 가지 조합(파일을 바꾸지 않으면 &quot;바꾼 뒤에 하는 일&quot;은 쓰이지 않음)을 127.0.0.1에 띄운 오리진 서버와 엣지 역할의 작은 캐싱 프록시로 실행해, 네 번의 요청이 각각 MISS, HIT, EXPIRED 가운데 무엇이었는지와 받은 내용, 오리진에 도착한 요청 수가 모형과 같은 것을 확인했습니다. 엣지는 Node.js 24로 직접 만든 시험용이며, 사본을 보관해도 되는지와 유효 시간이 남았는지는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2(공유 캐시 모드)에 맡겼습니다. 80초를 기다리지 않도록 엣지의 시계를 빠르게 돌려(모형의 1초를 실제 30ms로) 시험했고, 사용자 역할은 Node의 fetch와 curl 8.21이 번갈아 맡았습니다. 실제 CDN 서비스에서 확인한 것은 아닙니다. 걸린 시간(20ms, 220ms)과 &quot;가깝다, 멀다&quot;는 측정값이 아니라 차이를 보이기 위한 예시입니다. s-maxage가 공유 캐시의 유효 시간을 정한다는 것과 유효 시간이 지난 사본을 그대로 쓰지 않는다는 것은 RFC 9111 4.2절과 5.2.2.10절, 사본을 요청 메서드와 주소로 찾는다는 것은 2절을 따랐습니다. HIT, MISS, EXPIRED라는 이름과 X-Cache 헤더는 표준이 아니라 여러 CDN과 프록시가 쓰는 관례이고 제품마다 표기가 다릅니다. 무효화(purge)도 표준에 없는 제품별 기능이며, 여기서는 PURGE 메서드로 한 주소의 사본을 지우는 흔한 방식을 따랐습니다. 유효 시간이 지났을 때 이 모형의 엣지는 파일 전체를 다시 받지만, 실제 CDN은 대개 조건부 요청으로 &quot;바뀌었는지&quot;만 먼저 묻습니다(HTTP 캐시와 ETag 실습 참고). 엣지가 여러 지역에 여러 대 있고 저마다 사본을 따로 보관한다는 것, 브라우저가 따로 보관하는 사본, 사본을 미리 채워 두는 기능은 다루지 않았습니다.</p>
+<p>열여섯 가지 조합(파일을 바꾸지 않으면 &quot;바꾼 뒤에 하는 일&quot;은 쓰이지 않음)을 127.0.0.1에 띄운 오리진 서버와 엣지 역할의 작은 캐싱 프록시로 실행해, 네 번의 요청이 각각 MISS, HIT, EXPIRED 가운데 무엇이었는지와 받은 내용, 오리진에 도착한 요청 수가 모형과 같은 것을 확인했습니다. 엣지는 Node.js 24로 직접 만든 시험용이며, 사본을 보관해도 되는지와 유효 시간이 남았는지는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2(공유 캐시 모드)에 맡겼습니다. 80초를 기다리지 않도록 엣지의 시계를 빠르게 돌려(모형의 1초를 실제 30ms로) 시험했고, 사용자 역할은 Node의 fetch와 curl 8.21이 번갈아 맡았습니다. 실제 CDN 서비스에서 확인한 것은 아닙니다. 걸린 시간(20ms, 220ms)과 &quot;가깝다, 멀다&quot;는 측정값이 아니라 차이를 보이기 위한 예시입니다. s-maxage가 공유 캐시의 유효 시간을 정한다는 것과 유효 시간이 지난 사본을 그대로 쓰지 않는다는 것은 RFC 9111 4.2절과 5.2.2.10절, 사본을 요청 메서드와 주소로 찾는다는 것은 2절을 따랐습니다. HIT, MISS, EXPIRED라는 이름과 X-Cache 헤더는 표준이 아니라 여러 CDN과 프록시가 쓰는 관례이고 제품마다 표기가 다릅니다. 무효화(purge)도 표준에 없는 제품별 기능이며, 여기서는 PURGE 메서드로 한 주소의 사본을 지우는 방식(Varnish·Fastly 등)을 따랐습니다. CloudFront 같은 곳은 PURGE 요청을 받지 않고 콘솔이나 API(예: aws cloudfront create-invalidation)로 무효화를 요청합니다. 유효 시간이 지났을 때 이 모형의 엣지는 파일 전체를 다시 받지만, 실제 CDN은 대개 조건부 요청으로 &quot;바뀌었는지&quot;만 먼저 묻습니다(HTTP 캐시와 ETag 실습 참고). 엣지가 여러 지역에 여러 대 있고 저마다 사본을 따로 보관한다는 것, 브라우저가 따로 보관하는 사본, 사본을 미리 채워 두는 기능은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/revproxy/">프록시와 리버스 프록시</a></p>
   </div>
 
@@ -196,6 +196,6 @@ http.createServer(async (req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

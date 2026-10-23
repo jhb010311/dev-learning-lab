@@ -1,0 +1,37 @@
+# java 21.0.12.1
+exc-ext-none-own => ERR|compiler.err.cant.apply.symbol|1|false|false|-|constructor MemberNotFoundException in class MemberNotFoundException cannot be applied to given types;|throw new MemberNotFoundException("회원이 없습니다: 민수");|-|-
+exc-ext-none-rt => ERR|compiler.err.cant.apply.symbol|1|false|false|-|constructor MemberNotFoundException in class MemberNotFoundException cannot be applied to given types;|throw new MemberNotFoundException("회원이 없습니다: 민수");|-|-
+exc-ext-super-own => OK|-|0|true|true|잡음: 회원이 없습니다: 민수 / 끝|-|-|0|-
+exc-ext-super-rt => OK|-|0|true|true|잡음: 회원이 없습니다: 민수 / 끝|-|-|0|-
+exc-noext-none-own => ERR|compiler.err.cant.apply.symbol|3|false|false|-|constructor MemberNotFoundException in class MemberNotFoundException cannot be applied to given types;|throw new MemberNotFoundException("회원이 없습니다: 민수"); ## } catch (MemberNotFoundException e) { ## System.out.println("잡음: " + e.getMessage());|-|-
+exc-noext-none-rt => ERR|compiler.err.cant.apply.symbol|1|false|false|-|constructor MemberNotFoundException in class MemberNotFoundException cannot be applied to given types;|throw new MemberNotFoundException("회원이 없습니다: 민수");|-|-
+exc-noext-super-own => ERR|compiler.err.cant.apply.symbol|4|false|false|-|constructor Object in class java.lang.Object cannot be applied to given types;|super(message); ## throw new MemberNotFoundException("회원이 없습니다: 민수"); ## } catch (MemberNotFoundException e) { ## System.out.println("잡음: " + e.getMessage());|-|-
+exc-noext-super-rt => ERR|compiler.err.cant.apply.symbol|2|false|false|-|constructor Object in class java.lang.Object cannot be applied to given types;|super(message); ## throw new MemberNotFoundException("회원이 없습니다: 민수");|-|-
+obj-none-Member => OK|-|0|true|true|Member@279f2327 / Member@279f2327|-|-|0|-
+obj-none-Object => OK|-|0|true|true|Member@279f2327 / Member@279f2327|-|-|0|-
+obj-none-String => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Member cannot be converted to java.lang.String|String m = new Member("민수");|-|-
+obj-ok-Member => OK|-|0|true|true|Member(민수) / Member(민수)|-|-|0|-
+obj-ok-Object => OK|-|0|true|true|Member(민수) / Member(민수)|-|-|0|-
+obj-ok-String => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Member cannot be converted to java.lang.String|String m = new Member("민수");|-|-
+obj-typo-Member => ERR|compiler.err.method.does.not.override.superclass|1|false|false|-|method does not override or implement a method from a supertype|@Override|-|-
+obj-typo-Object => ERR|compiler.err.method.does.not.override.superclass|1|false|false|-|method does not override or implement a method from a supertype|@Override|-|-
+obj-typo-String => ERR|compiler.err.method.does.not.override.superclass|2|false|false|-|method does not override or implement a method from a supertype|@Override ## String m = new Member("민수");|-|-
+obj-typo_noann-Member => OK|-|0|true|true|Member@279f2327 / Member@279f2327|-|-|0|-
+obj-typo_noann-Object => OK|-|0|true|true|Member@279f2327 / Member@279f2327|-|-|0|-
+obj-typo_noann-String => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Member cannot be converted to java.lang.String|String m = new Member("민수");|-|-
+# fact Member superclass: java.lang.Object
+# fact Member(none) toString/equals/hashCode/getClass declared in: java.lang.Object/java.lang.Object/java.lang.Object/java.lang.Object
+# fact Member(ok) toString declared in: Member
+# fact Member(typo_noann) toString declared in: java.lang.Object | tostring declared in: Member
+# fact Object public methods: equals, getClass, hashCode, notify, notifyAll, toString, wait
+# fact Object.toString: public java.lang.String java.lang.Object.toString()
+# fact obj-none-Member reruns: Member@279f2327 / Member@279f2327 ;; Member@279f2327 / Member@279f2327 ;; Member@279f2327 / Member@279f2327
+# fact MemberNotFoundException chain: MemberNotFoundException > java.lang.RuntimeException > java.lang.Exception > java.lang.Throwable > java.lang.Object
+# fact MemberNotFoundException getMessage declared in: java.lang.Throwable
+# fact MemberNotFoundException(super) constructors: MemberNotFoundException(java.lang.String)
+# fact RuntimeException public constructors: public java.lang.RuntimeException(), public java.lang.RuntimeException(java.lang.String), public java.lang.RuntimeException(java.lang.String,java.lang.Throwable), public java.lang.RuntimeException(java.lang.Throwable)
+# fact no-ctor class compiles: OK | constructors: MemberNotFoundException()
+# fact superclass of NullPointerException/IllegalArgumentException/ArithmeticException: java.lang.RuntimeException/java.lang.RuntimeException/java.lang.RuntimeException
+# fact unchecked throw without throws compiles: OK | output: m=Member(민수) / Point[x=1, y=2]
+# fact extends A, B: ERR compiler.err.expected / '{' expected
+# fact extends String: ERR compiler.err.cant.inherit.from.final / cannot inherit from final java.lang.String | String is final: true

@@ -1,0 +1,36 @@
+# java 21.0.12.1
+runnable|lambda|false => OK|-|0|true|true|준비 / 일한다|-|-
+runnable|lambda|true => OK|-|0|true|true|준비|-|-
+runnable|anon|false => OK|-|0|true|true|준비 / 일한다|-|-
+runnable|anon|true => OK|-|0|true|true|준비|-|-
+runnable|named|false => OK|-|0|true|true|준비 / 일한다|-|-
+runnable|named|true => OK|-|0|true|true|준비|-|-
+thread|lambda|false => OK|-|0|true|true|준비 / 일한다|-|-
+thread|lambda|true => OK|-|0|true|true|준비|-|-
+thread|anon|false => OK|-|0|true|true|준비 / 일한다|-|-
+thread|anon|true => OK|-|0|true|true|준비|-|-
+thread|named|false => OK|-|0|true|true|준비 / 일한다|-|-
+thread|named|true => OK|-|0|true|true|준비|-|-
+sort|lambda|false => OK|-|0|true|true|[다현, 가영, 나래] / [가영, 나래, 다현]|-|-
+sort|anon|false => OK|-|0|true|true|[다현, 가영, 나래] / [가영, 나래, 다현]|-|-
+sort|named|false => OK|-|0|true|true|[다현, 가영, 나래] / [가영, 나래, 다현]|-|-
+task|lambda|false => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Task is not a functional interface ~     multiple non-overriding abstract methods found in interface Task|Task t = () -> System.out.println("일한다");
+task|lambda|true => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Task is not a functional interface ~     multiple non-overriding abstract methods found in interface Task|Task t = () -> System.out.println("일한다");
+task|anon|false => OK|-|0|true|true|준비 / 일한다|-|-
+task|anon|true => OK|-|0|true|true|준비|-|-
+task|named|false => OK|-|0|true|true|준비 / 일한다|-|-
+task|named|true => OK|-|0|true|true|준비|-|-
+# fact api Runnable => 인터페이스: true, 패키지: java.lang, 구현할 메서드: run, @FunctionalInterface: true
+# fact api Comparator => 인터페이스: true, 패키지: java.util, 구현할 메서드: compare, @FunctionalInterface: true, 본문 없이 선언된 equals도 있음: true
+# fact api Thread(Runnable) => true, List.sort(Comparator) => true
+# fact after lambda => 직후 / Runnable 구현 객체: true, 익명 클래스: false, 숨은 클래스: true, 클래스 이름: (숨은 클래스)
+# fact after anon => 직후 / Runnable 구현 객체: true, 익명 클래스: true, 숨은 클래스: false, 클래스 이름: Main$1
+# fact after named => 직후 / Runnable 구현 객체: true, 익명 클래스: false, 숨은 클래스: false, 클래스 이름: Work
+# fact where runnable lambda => 준비 main / 일한다 main
+# fact where runnable anon => 준비 main / 일한다 main
+# fact where runnable named => 준비 main / 일한다 main
+# fact where thread lambda => 준비 main / 일한다 Thread-0
+# fact where thread anon => 준비 main / 일한다 Thread-0
+# fact where thread named => 준비 main / 일한다 Thread-0
+# fact sortcalls => [다현, 가영, 나래] / compare(가영, 다현) = -1764 / compare(나래, 가영) = 1176 / compare(나래, 다현) = -588 / compare(나래, 가영) = 1176 / 불린 횟수 4 / [가영, 나래, 다현]
+# fact task => 구현할 메서드: run, stop

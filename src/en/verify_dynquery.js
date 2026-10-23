@@ -1,1 +1,1 @@
-Lab.verify({ dynquery: ['part', 'The 16 combinations of the string methods and the Criteria API were run on Hibernate 7.4.5 and H2 and checked against the results. The 4 Querydsl combinations follow the official documentation because the library is not available'] });
+Lab.verify({ dynquery: ['run', 'The 24 combinations of Specification, the Criteria API, Querydsl, and joining strings by hand were run on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, H2, and Querydsl 5.1.0 and checked against the results'] });

@@ -1,1 +1,1 @@
-Lab.verify({ inherit_basic: ['run', 'JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조'] });
+Lab.verify({ inherit_basic: ['run', 'JDK 21에서 화면의 코드 스무 가지 조합(Object와 toString 12, extends RuntimeException 예외 클래스 8)을 javax.tools로 컴파일하고 java로 실행해 대조, Object·RuntimeException·Throwable의 상속 관계와 메서드가 적힌 클래스는 리플렉션으로 확인'] });

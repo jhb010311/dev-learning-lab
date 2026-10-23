@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>람다: 람다는 무엇을 줄여 쓴 것인가 · 개발 학습 실습실</title>
-<meta name="description" content="람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입…">
+<meta name="description" content="람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;구현할 메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 이 실습은 자바가 주는 두 인터페이스로 봅니다. Runnable(java.lang 패키지)은…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="람다: 람다는 무엇을 줄여 쓴 것인가 · 개발 학습 실습실">
-<meta property="og:description" content="람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입…">
+<meta property="og:description" content="람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;구현할 메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 이 실습은 자바가 주는 두 인터페이스로 봅니다. Runnable(java.lang 패키지)은…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lambda_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,10 +31,10 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>람다</h1>
 <p><b>람다는 무엇을 줄여 쓴 것인가</b></p>
-<p><b>왜 생겼나</b> — 할 일 하나를 다른 코드에 넘기려면, 람다가 없던 때는 인터페이스를 구현한 익명 클래스를 new와 메서드 선언까지 여러 줄로 적어야 했고, 정작 중요한 한 줄이 그 사이에 묻혔다. 람다는 메서드가 하나뿐인 인터페이스라면 어느 메서드의 할 일인지 컴파일러가 알 수 있다는 점을 이용해, 매개변수와 할 일만 화살표로 적게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 리스트를 정렬할 기준을 넘기는 list.sort((a, b) -&gt; a.compareTo(b)), 조건에 맞는 것을 지우는 list.removeIf(n -&gt; n &lt; 0), 새 스레드에 맡길 일을 넘기는 new Thread(() -&gt; ...)처럼 할 일을 다른 코드에 건넬 때 쓴다. 할 일이 여러 줄로 길어지면 이름 있는 메서드로 따로 적고, 그 메서드를 메서드 참조(::)로 넘기기도 한다.</p>
-<p>람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입니다. 같은 일을 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드가 됩니다. 이 실습은 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지 보고, 람다를 적은 줄에서 화살표 뒤의 코드가 실행되는지, t.run()을 지우거나 두 번 부르면 어떻게 되는지, Task에 메서드가 하나 더 있으면 어떻게 되는지, 같은 코드를 컴파일하고 실행해 봅니다.</p>
-<p>실행으로 대조 · JDK 21에서 열여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
+<p><b>왜 생겼나</b> — 새 스레드에 맡길 일이나 리스트를 정렬할 기준처럼 할 일 하나를 다른 코드에 넘기려면, 람다가 없던 때(자바 7까지)는 Runnable이나 Comparator를 구현한 익명 클래스를 new와 메서드 선언까지 여러 줄로 적어야 했고, 정작 중요한 한 줄이 그 사이에 묻혔다. 자바 8에서 들어온 람다는 구현할 메서드가 하나뿐인 인터페이스라면 어느 메서드의 할 일인지 컴파일러가 알 수 있다는 점을 이용해, 매개변수와 할 일만 화살표로 적게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 새 스레드에 맡길 일을 넘기는 new Thread(() -&gt; ...), 리스트를 정렬할 기준을 넘기는 list.sort((a, b) -&gt; a.compareTo(b)), 조건에 맞는 것을 지우는 list.removeIf(n -&gt; n &lt; 0), 스트림의 filter와 map처럼 자바가 할 일을 받는 자리에 쓴다. 할 일이 여러 줄로 길어지면 이름 있는 메서드로 따로 적고, 그 메서드를 메서드 참조(::)로 넘기기도 한다.</p>
+<p>람다는 화살표(-&gt;)로 적는 짧은 코드입니다. () -&gt; System.out.println(&quot;일한다&quot;)는 &quot;구현할 메서드가 하나뿐인 인터페이스를 구현한 객체&quot;를 짧게 적은 것입니다. 이 실습은 자바가 주는 두 인터페이스로 봅니다. Runnable(java.lang 패키지)은 구현할 메서드가 run() 하나이고, new Thread(…)가 받는 것이 이 Runnable입니다. Comparator(java.util 패키지)는 구현할 메서드가 compare(a, b) 하나이고, list.sort(…)가 정렬 기준으로 받는 것이 이 Comparator입니다. 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지, 화살표 뒤의 코드가 람다를 적은 줄에서 실행되는지 부를 때 실행되는지, 그 코드를 누가 부르는지(내 코드의 r.run()인지, 새 스레드인지, sort인지) 같은 코드를 컴파일하고 실행해 봅니다. 마지막으로 직접 만든 인터페이스에 메서드가 둘이면 람다를 쓸 수 없는 것을 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 스물한 가지 조합(Runnable·Thread·List.sort·직접 만든 Task)을 javax.tools로 컴파일하고 java Main으로 실행해 대조(verify/plain/LambdaBasicProbe.java, cmp_lambda_basic.js)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>람다 표현식</dt>
@@ -43,50 +43,56 @@
 <dd><b>왜 생겼나</b> — 자바에는 함수만 따로 나타내는 타입이 없어서, 람다를 받을 변수나 매개변수에 붙일 타입이 필요했다. 함수형 인터페이스는 추상 메서드가 하나뿐인 인터페이스를 그 타입으로 삼아, Runnable이나 Comparator 같은 기존 인터페이스도 그대로 람다를 받게 했다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 스트림의 filter가 Predicate를, map이 Function을 받는 것처럼 동작을 매개변수로 받는 메서드를 만들 때 쓴다. 직접 정의할 때는 @FunctionalInterface를 붙여 추상 메서드가 하나인지 컴파일러가 검사하게 한다.</dd>
 <dd>추상 메서드가 하나뿐인 인터페이스로(equals처럼 Object의 메서드를 다시 선언한 것은 세지 않고, default·static 메서드는 여러 개 있어도 된다), 람다 표현식이나 메서드 참조를 대입할 수 있는 타입이다. java.util.function 패키지에 Function(입력을 받아 결과 반환), Supplier(값 공급), Consumer(값 소비), Predicate(조건 판별) 등이 미리 정의되어 있다.</dd>
+<dt>Runnable</dt>
+<dd><b>왜 생겼나</b> — 자바 1.0부터 스레드에게 &quot;이 일을 해 달라&quot;고 넘길 방법이 필요했다. 할 일을 run이라는 메서드 하나로 정한 인터페이스를 두어, Thread가 무슨 클래스의 객체든 run만 부르면 되게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — new Thread(() -&gt; ...)로 새 스레드에 일을 맡길 때, ExecutorService의 execute(...)나 submit(...)으로 스레드 풀에 일을 넘길 때 Runnable을 넘긴다. 지금은 대개 람다로 적는다.</dd>
+<dd>Runnable은 자바가 java.lang 패키지에 미리 만들어 둔 인터페이스로, 본문 없이 이름만 적은 메서드가 void run() 하나뿐이다. 구현할 메서드가 하나뿐이어서 함수형 인터페이스이고(@FunctionalInterface가 붙어 있다), 그래서 Runnable r = () -&gt; System.out.println(&quot;일한다&quot;);처럼 람다로 구현한 객체를 만들 수 있다. 같은 것을 익명 클래스 new Runnable() { public void run() { … } }나 class Work implements Runnable처럼 클래스로 적을 수도 있다. 람다나 클래스를 적은 줄에서는 run의 본문이 실행되지 않고, 누군가 run을 부를 때 실행된다. 내 코드가 r.run()으로 직접 부르면 지금 실행 중인 스레드에서 실행되고, new Thread(r)에 넘긴 뒤 start()를 부르면 새로 시작된 스레드가 run을 부른다.</dd>
+<dt>start()와 run()</dt>
+<dd><b>왜 생겼나</b> — 스레드를 만드는 방법은 운영체제마다 달라서 직접 만들려면 그 운영체제의 기능을 불러야 한다. start()는 이 일을 자바 가상 머신(JVM)에 맡기고, 할 일은 run()에 보통 메서드로 적게 해서 작업 코드와 스레드를 만드는 일을 나눴다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 짧은 예제나 테스트에서는 new Thread(작업).start()로 바로 스레드를 띄운다. 할 일을 Runnable이나 람다로 적어 두면 같은 코드를 ExecutorService에 넘겨 풀의 스레드에서 실행할 수도 있다.</dd>
+<dd>start()는 새 스레드를 만들어 그 스레드가 run()을 실행하게 하는 메서드이고, run()은 스레드가 할 일을 담은 보통의 메서드다. 그래서 run()을 직접 부르면 새 스레드가 생기지 않고, 부른 스레드가 그 코드를 순서대로 실행한다. start()는 Thread 객체 하나에 한 번만 부를 수 있으며, 두 번째로 부르면 IllegalThreadStateException이 발생한다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만든다.</dd>
+<dt>Comparable과 Comparator</dt>
+<dd>객체의 순서를 정하는 두 가지 방법이다. Comparable은 클래스가 스스로 구현하는 인터페이스로, compareTo 메서드 하나에 그 클래스의 기본 순서를 정해 둔다. Comparator는 클래스 바깥에서 따로 만드는 비교 방법으로, 같은 객체들을 그때그때 다른 기준으로 정렬할 수 있게 해 준다. 둘 다 앞의 것이 먼저면 음수, 순서를 가릴 수 없으면 0, 나중이면 양수를 돌려준다. 두 수를 뺀 값을 그대로 돌려주면 오버플로로 부호가 뒤집힐 수 있으므로 Integer.compare나 Comparator.comparingInt를 쓴다.</dd>
 <dt>익명 클래스</dt>
 <dd><b>지금 어디에 쓰나</b> — 메서드가 둘 이상인 인터페이스나 추상 클래스를 한 번만 쓸 곳에서 바로 구현할 때, 필드를 가진 구현이 필요할 때 쓴다. 추상 메서드가 하나뿐인 인터페이스라면 지금은 대개 람다로 쓴다.</dd>
 <dd>이름을 붙이지 않고, 선언하는 자리에서 바로 객체를 하나 만드는 클래스다. new Runnable() { ... }처럼 인터페이스나 클래스 이름 뒤에 중괄호로 내용을 적으며, 그 인터페이스를 구현하거나 그 클래스를 상속한 객체가 만들어진다. 한 번만 쓸 작은 구현을 따로 파일로 만들지 않아도 되는 것이 장점이다. 익명 클래스 안의 this는 새로 만든 그 객체를 가리키며, 이 점이 this가 바깥 객체를 가리키는 람다와 다르다. 컴파일하면 Outer$1처럼 바깥 클래스 이름에 번호가 붙은 클래스 파일이 따로 만들어진다.</dd>
-<dt>인터페이스</dt>
-<dd>클래스가 구현해야 할 메서드의 목록(계약)을 정의한 타입이다. 인스턴스 필드를 가질 수 없고, 한 클래스가 여러 인터페이스를 구현할 수 있다. 사용하는 코드가 인터페이스에만 의존하면 구현 클래스를 바꾸거나 테스트용 가짜 구현으로 교체하기 쉽다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 람다를 적은 줄에서는 실행되지 않고, t.run()을 부를 때 실행됩니다. 준비, 일한다 순서로 출력됩니다.</li>
-<li><b>t.run()을 지우면</b> — 람다는 할 일을 변수에 담아 둘 뿐이어서 &quot;일한다&quot;가 출력되지 않습니다.</li>
+<li><b>처음 설정으로</b> — Runnable 변수에 람다를 대입한 줄에서는 실행되지 않고, r.run()을 부를 때 실행됩니다. 준비, 일한다 순서로 출력됩니다.</li>
+<li><b>r.run()을 지우면</b> — 람다를 적은 줄은 할 일을 적은 객체를 만들 뿐이어서 &quot;일한다&quot;가 출력되지 않습니다.</li>
 <li><b>익명 클래스로 풀어 적으면</b> — 같은 일을 길게 쓴 코드입니다. 람다와 출력이 같습니다.</li>
-<li><b>이름 있는 클래스로 풀어 적으면</b> — Work 클래스를 만들고 new로 객체를 만듭니다. 람다와 출력이 같습니다.</li>
-<li><b>Task에 메서드가 하나 더 있으면</b> — 람다는 어느 메서드의 할 일인지 알 수 없어 컴파일 오류가 납니다.</li>
+<li><b>이름 있는 클래스로 풀어 적으면</b> — 예시로 지은 Work 클래스가 Runnable을 구현하고, new로 객체를 만듭니다. 람다와 출력이 같습니다.</li>
+<li><b>새 스레드에 넘기면</b> — 내 코드에는 run을 부르는 줄이 없습니다. th.start()로 새 스레드를 시작하면 그 스레드가 run을 부릅니다.</li>
+<li><b>정렬 기준으로 넘기면</b> — 람다는 Comparator의 compare를 구현한 것이고, sort가 두 이름을 비교할 때마다 부릅니다. [가영, 나래, 다현] 순서로 정렬됩니다.</li>
+<li><b>메서드가 둘인 인터페이스면</b> — 람다는 어느 메서드의 할 일인지 정할 수 없어 컴파일 오류가 납니다. 익명 클래스나 이름 있는 클래스는 두 메서드를 모두 작성하면 됩니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>javac로 컴파일합니다. 컴파일러가 소스를 위에서부터 읽으면서 interface Task 선언을 만납니다. Task에는 본문 없이 이름만 적은 메서드가 run 하나뿐입니다. Task를 구현하는 쪽은 run 하나만 작성하면 됩니다.</li>
-<li>컴파일러가 Task t = () -&gt; System.out.println(&quot;일한다&quot;); 줄을 읽습니다. 화살표 뒤의 코드는 &quot;Task가 구현해야 할 메서드가 할 일&quot;을 적은 것으로 읽는데, Task에는 구현할 메서드가 run 하나뿐이므로 그 코드는 run이 할 일이라고 정해집니다. 이름을 따로 적지 않아도 됩니다. 컴파일은 실행이 아니므로 화살표 뒤의 코드는 실행되지 않습니다.</li>
+<li>javac로 컴파일합니다. 이 코드에는 interface 선언이 없습니다. Runnable은 자바가 java.lang 패키지에 미리 만들어 둔 인터페이스여서 import 없이 쓸 수 있고, 본문 없이 이름만 적은 메서드가 run() 하나뿐입니다. Runnable을 구현하는 쪽은 run 하나만 작성하면 됩니다.</li>
+<li>컴파일러가 Runnable r = () -&gt; System.out.println(&quot;일한다&quot;); 줄을 읽습니다. 왼쪽 변수의 타입이 Runnable이므로, 화살표 뒤의 코드는 Runnable이 구현할 메서드의 할 일로 읽힙니다. Runnable에는 구현할 메서드가 run 하나뿐이어서 그 코드는 run이 할 일이라고 정해집니다. 메서드 이름을 적지 않아도 되는 이유입니다. 화살표 앞의 ()는 run이 받는 값이 없다는 뜻입니다. 컴파일은 실행이 아니므로 화살표 뒤의 코드는 실행되지 않습니다.</li>
 <li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다.</li>
-<li>java Main으로 실행합니다. main이 시작되고 Task t = () -&gt; System.out.println(&quot;일한다&quot;); 줄이 실행됩니다. 이 줄은 &quot;run이 불리면 화살표 뒤의 코드를 실행하는 객체&quot;를 만들어 변수 t에 담습니다. 화살표 뒤의 코드는 이 줄에서 실행되지 않으므로 &quot;일한다&quot;는 출력되지 않았습니다. 람다를 적은 줄이 하는 일은 할 일을 t에 담아 두는 데까지입니다.</li>
-<li>System.out.println(&quot;준비&quot;)가 실행되어 준비를 출력합니다. 지금까지 출력된 것은 이것뿐입니다. 객체는 이미 t에 담겨 있지만, run은 아직 한 번도 불리지 않았습니다.</li>
-<li>t.run()이 실행됩니다. t에 담긴 객체의 run이 불리고, 그 순간 화살표 뒤의 코드 System.out.println(&quot;일한다&quot;)가 실행됩니다. &quot;일한다&quot;가 출력되고, run이 실행된 횟수는 1번이 됩니다. &quot;일한다&quot;는 &quot;준비&quot;보다 뒤에 나왔습니다. 코드를 적은 자리가 아니라 부른 순간에 실행된 것입니다.</li>
+<li>java Main으로 실행합니다. main이 시작되고 Runnable r = () -&gt; System.out.println(&quot;일한다&quot;); 줄이 실행됩니다. 이 줄은 &quot;run이 불리면 화살표 뒤의 코드를 실행하는 객체&quot;를 만들고, 변수 r이 그 객체를 가리키게 합니다. 화살표 뒤의 코드는 이 줄에서 실행되지 않으므로 &quot;일한다&quot;는 출력되지 않았습니다. 람다를 적은 줄이 하는 일은 할 일을 적은 객체를 만드는 데까지입니다.</li>
+<li>System.out.println(&quot;준비&quot;)가 실행되어 준비를 출력합니다. 객체는 이미 만들어졌지만, run은 아직 한 번도 불리지 않았습니다.</li>
+<li>r.run()이 실행됩니다. 내 코드(main)가 run을 직접 부르는 줄입니다. 변수 r이 가리키는 람다가 만든 객체의 run이 불리고, 그 순간 화살표 뒤의 코드 System.out.println(&quot;일한다&quot;)가 실행됩니다. &quot;일한다&quot;는 &quot;준비&quot;보다 뒤에 나왔습니다. 코드를 적은 자리가 아니라 부른 순간에 실행된 것입니다. 새 스레드는 없고, main을 실행하던 main 스레드가 그대로 run을 실행합니다.</li>
 <li>main이 끝납니다. 출력은 준비, 일한다 순서입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>람다 () -&gt; System.out.println(&quot;일한다&quot;)는 메서드가 하나뿐인 인터페이스(Task)를 구현한 객체를 짧게 적은 것입니다. 람다를 적은 줄에서는 화살표 뒤의 코드가 실행되지 않고, 그 줄은 할 일을 변수 t에 담아 둡니다. 화살표 뒤의 코드는 t.run()을 부르는 순간 실행됐습니다.</li>
-<li>그래서 출력이 준비, 일한다 순서였습니다. 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드와 같은 일입니다. 이 실습의 익명 클래스와 이름 있는 클래스 설정으로 확인할 수 있습니다.</li>
+<li>람다 () -&gt; System.out.println(&quot;일한다&quot;)는 Runnable의 run이 할 일을 적은 것입니다. 적은 줄에서는 실행되지 않고, r.run()을 부를 때 실행되어 준비, 일한다 순서로 출력되었습니다.</li>
+<li>람다는 Runnable을 구현한 객체를 만드는 코드이고, 그 객체의 run을 부르는 쪽이 따로 있어야 실행됩니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>interface Task {
-    void run();
-}
-
-public class Main {
+<pre>public class Main {
     public static void main(String[] args) {
-        // 람다: run의 할 일을 담아 둔다. 이 줄에서는 실행되지 않는다
-        Task t = () -&gt; System.out.println(&quot;일한다&quot;);
+        // 람다: run이 할 일을 화살표 뒤에 적는다. 이 줄에서는 실행되지 않는다
+        Runnable r = () -&gt; System.out.println(&quot;일한다&quot;);
         System.out.println(&quot;준비&quot;);
-        t.run();
+        r.run();
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열여덟 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.prob.found.req의 &quot;Task is not a functional interface, multiple non-overriding abstract methods found in interface Task&quot;는 &quot;Task는 메서드가 하나가 아니어서 람다로 쓸 수 없음&quot;으로, compiler.err.does.not.override.abstract의 &quot;does not override abstract method stop() in Task&quot;는 &quot;Task의 stop 메서드를 작성하지 않았음&quot;으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 단계 문장이 기대는 사실은 별도의 소스를 같은 방식으로 실행해 확인했습니다. 객체를 담는 줄 바로 뒤에서 t는 세 형식 모두 Task를 구현한 클래스의 객체이고, 그 줄에서는 &quot;일한다&quot;가 출력되지 않았습니다(람다는 이 JDK에서 만들어지는 숨은 클래스의 객체이고, 익명 클래스와 이름 있는 클래스 Work는 각각 그 이름 그대로의 클래스의 객체였습니다). 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 람다 표현식이 대입, 호출, 형 변환 문맥에서 함수형 인터페이스를 목표 타입으로 가진다는 것은 15.27.3절, 실행할 때 람다 표현식을 계산하면 목표 함수형 인터페이스를 구현하는 클래스의 객체에 대한 참조가 만들어지고 이것은 람다 본문의 실행과 다르다는 것과 람다 본문은 그 인터페이스의 메서드가 불릴 때 실행된다는 것은 15.27절 서두와 15.27.4절, 함수형 인터페이스가 (Object의 메서드를 제외하고) 추상 메서드가 하나뿐인 인터페이스라는 것과 그 객체를 람다 표현식으로도 만들 수 있다는 것은 9.8절, 익명 클래스가 클래스 인스턴스 생성 식에서 암시적으로 선언되고 인터페이스를 직접 상위 인터페이스로 가질 수 있다는 것은 15.9.5절을 따랐습니다. 문서의 해당 절은 일부만 요약으로 돌아와 원문 전체를 읽지는 못했습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 이 실습은 &quot;람다는 메서드가 하나뿐인 인터페이스를 구현한 객체를 짧게 적은 것&quot;과 그 실행 시점만 다룹니다. 람다가 만드는 객체가 익명 클래스의 객체와 똑같은 것은 아닙니다. 이 JDK에서는 숨은 클래스로 만들어지고, 그 밖에 this가 가리키는 대상 등이 다르다고 하는데 이 실습에서는 확인하지 않았습니다. 매개변수가 있는 람다, 값을 돌려주는 람다, 메서드 참조, Runnable이나 Comparator 같은 기본 제공 함수형 인터페이스, default 메서드나 static 메서드가 있는 인터페이스는 다루지 않았고, 이것들은 &quot;세부 동작 실습: 람다와 함수형 인터페이스&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 스물한 가지 조합(Runnable 변수, 새 스레드, 직접 만든 Task는 각각 적는 방법 3가지와 부르는 줄이 있는지 없는지, 정렬 기준은 적는 방법 3가지)을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 별도 프로세스로 java Main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 오류의 진단 코드(compiler.err.prob.found.req의 &quot;incompatible types: Task is not a functional interface, multiple non-overriding abstract methods found in interface Task&quot;를 &quot;Task는 구현할 메서드가 둘이어서 람다로 쓸 수 없음&quot;으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 단계 문장이 기대는 사실은 따로 실행해 확인했습니다. Runnable은 java.lang 패키지, Comparator는 java.util 패키지의 인터페이스이고, Object의 메서드를 빼면 본문 없는 메서드가 각각 run, compare 하나뿐이며 둘 다 @FunctionalInterface가 붙어 있습니다(Comparator에는 본문 없이 다시 선언한 equals도 있습니다). Thread에는 Runnable을 받는 생성자가, List에는 Comparator를 받는 sort가 있습니다. 람다, 익명 클래스, Work를 적은 줄 바로 뒤에서는 아무것도 출력되지 않았고, 세 경우 모두 Runnable을 구현한 객체였습니다(람다는 이 JDK에서 숨은 클래스, 익명 클래스는 Main$1, Work는 Work 클래스의 객체). 할 일을 실행한 스레드의 이름은 r.run()에서는 main, th.start()에서는 Thread-0이었습니다. 이 세 이름을 정렬할 때 sort가 compare를 부른 횟수는 4번이었고 첫 호출은 compare(&quot;가영&quot;, &quot;다현&quot;)였습니다. 횟수와 순서는 명세가 정한 것이 아니라 이 JDK의 정렬 구현에서 관찰한 것입니다. API 문서는 같은 JDK의 소스에 붙은 것을 직접 읽었습니다. Runnable은 run()을 기능 메서드로 갖는 함수형 인터페이스이고, Thread(Runnable task)의 task는 이 스레드가 시작될 때 run 메서드가 불리는 객체이며 이름을 주지 않으면 &quot;Thread-&quot; 뒤에 정수를 붙인 이름이 자동으로 붙고, start()는 이 스레드가 실행을 시작하게 하며 한 스레드는 한 번만 시작할 수 있습니다. 가상 머신은 시작된 데몬이 아닌 스레드가 모두 끝나야 종료를 시작하고, 시작하지 않은 스레드는 종료를 막지 않습니다(Thread 클래스 문서). List.sort는 주어진 Comparator가 정하는 순서로 리스트를 정렬하고, Comparator.compare는 첫 인자가 작으면 음수, 같으면 0, 크면 양수를 돌려줍니다. 언어 규칙은 Java Language Specification(Java SE 21)의 15.27절(람다 표현식), 15.27.3절(람다는 대입·호출 문맥에서 함수형 인터페이스를 목표 타입으로 가짐), 15.27.4절(람다를 계산하면 객체가 만들어지고 본문은 그 메서드가 불릴 때 실행됨), 9.8절(함수형 인터페이스는 Object의 메서드를 빼고 추상 메서드가 하나뿐인 인터페이스), 15.9.5절(익명 클래스)을 따랐습니다. 명세의 해당 절은 일부만 요약으로 읽었고 원문 전체를 읽지는 못했습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 이 실습은 &quot;람다는 구현할 메서드가 하나뿐인 인터페이스를 구현한 객체를 짧게 적은 것&quot;과 그 할 일이 언제, 누구에 의해 실행되는지만 다룹니다. 람다의 this가 익명 클래스와 다른 것, 람다 안에서 바깥 지역 변수를 쓰는 규칙은 다루지 않았습니다. 메서드 참조와 java.util.function의 Supplier, Predicate, Consumer는 &quot;세부 동작 실습: 람다와 함수형 인터페이스&quot;에서, run()을 직접 부르는 것과 start()의 차이는 &quot;스레드의 생성과 상태&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/collection_basic/">List와 Map</a> · 다음 실습: <a href="../../lab/stream_basic/">스트림</a></p>
   </div>
 
@@ -179,6 +185,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

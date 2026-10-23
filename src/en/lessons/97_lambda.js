@@ -1,102 +1,212 @@
 Lab.register({
   id: 'lambda', nav: 'Lambda expressions and functional interfaces', cat: 'Java language', mode: 'step',
-  title: 'When does the code in a lambda expression run?',
-  why: 'Before lambdas, to pass a single action, such as a sort order or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the form (parameters) -> body, so you write only the action to pass.',
-  use: 'It is used when you pass an action to standard methods that accept one, such as filter and map of a stream, sort and removeIf of a list, and computeIfAbsent of a Map. It is also used when you postpone creating a value until it is needed, as with orElseGet of Optional, and when you create a Runnable to pass to a thread. When the body gets long, you move it out into a named method and pass it as a method reference.',
-  intro: 'A lambda expression is syntax that turns "an action to run later" into an object. A variable can refer to that object, and you can pass it to another method just like a number or a string. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
-  terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
+  title: 'When does the code written in a lambda run?',
+  why: 'Without lambdas, even to pass just one action, such as the rule for sorting or what to do when a button is pressed, you had to write several lines that implement an interface with an anonymous class. A lambda shortens the implementation of an interface that has only one abstract method to the shape (parameters) -> body, so that you write only the action to pass.',
+  use: 'You use it when you pass an action to a standard method that takes one, such as filter and map of a stream, forEach, removeIf, and sort of a list, and computeIfAbsent of a Map. You also use it to put off creating a value until it is needed, as with orElseGet of Optional, and to make the Runnable you pass to a thread. When the body gets long, you move it out to a named method and pass it with a method reference.',
+  intro: 'A lambda is syntax that turns "an action to run later" into an object. The body is not run on the line where the lambda is written; it runs when the side that received the object calls it. In this lab you pass lambdas to Java standard methods (forEach, removeIf, and sort of ArrayList, filter and map of a stream, Comparator.comparing, and orElseGet of Optional) and see when and how many times a standard method calls the lambda. The type of a lambda is decided by the parameter type of the method that receives it. Here they are all Consumer, Predicate, Function, and Supplier, which Java provides in the java.util.function package.',
+  terms: ['Lambda expression', 'Functional interface', 'Standard methods that take a lambda', 'Method reference', 'Stream API', 'Lazy evaluation', 'orElse and orElseGet', 'Comparable and Comparator', 'Differences between anonymous classes and lambda expressions'],
   controls: [
-    { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
-    { id: 'form', label: 'How the action is written', type: 'select', value: 'lambda', options: [['anon', 'Anonymous class'], ['lambda', 'Lambda expression'], ['ref', 'Method reference']], hint: 'All three create an object that does the same job (details such as what this refers to are different).' },
-    { id: 'calls', label: 'How many times the receiving method (run) calls the action', type: 'select', value: '2', options: [['0', '0 times (receives it but never calls it)'], ['1', '1 time'], ['2', '2 times']] },
+    { id: 'api', label: 'Standard method that takes the lambda', type: 'select', value: 'forEach', options: [
+      ['forEach', 'names.forEach(n -> …) : takes a Consumer'],
+      ['forEachRef', 'names.forEach(System.out::println) : passes a method reference'],
+      ['removeIf', 'names.removeIf(n -> …) : takes a Predicate'],
+      ['stream', 'names.stream().filter(n -> …).map(n -> …).toList() : Predicate, Function'],
+      ['nostream', 'names.stream().filter(n -> …).map(n -> …) : stops without a terminal operation'],
+      ['sort', 'names.sort(Comparator.comparing(n -> …)) : takes a Function'],
+      ['orElse', 'saved.orElse(defaultName()) : passes a value, not a lambda'],
+      ['orElseGet', 'saved.orElseGet(() -> defaultName()) : takes a Supplier']],
+      hint: 'forEach, removeIf, sort, stream, filter, map, toList, Comparator.comparing, orElse, and orElseGet are all Java standard methods. defaultName is a method made for this example.' },
+    { id: 'data', label: 'Values on the receiving side', type: 'select', value: 'full', options: [['full', 'Has values: List.of("kiwi", "fig", "banana") / Optional.of("Alice")'], ['empty', 'Empty: an empty ArrayList / Optional.empty()']] },
   ],
   presets: [
-    { t: 'Default settings', q: 'When does the body run if a Function<String, Integer> lambda expression is passed to run and run calls the action 2 times?', d: 'Nothing happens on the line that creates the lambda expression, and the body runs each time run calls it.', v: { fi: 'function', form: 'lambda', calls: '2' } },
-    { t: 'Receiving it without calling it', q: 'What if the receiving method (run) calls the action 0 times?', d: 'The lambda expression is created and passed, but the body never runs.', v: { fi: 'function', form: 'lambda', calls: '0' } },
-    { t: 'Writing it as an anonymous class', q: 'What if you write the action as an anonymous class instead of a lambda expression?', d: 'The code gets longer, but the result is the same as with the lambda expression.', v: { fi: 'function', form: 'anon', calls: '2' } },
-    { t: 'Writing it as a method reference', q: 'What if you write the action as a method reference instead of a lambda expression?', d: 'It refers to an existing method by name. The result is the same.', v: { fi: 'function', form: 'ref', calls: '2' } },
-    { t: 'Passing a Supplier and calling get later', q: 'What if the functional interface is Supplier<String> and run calls the action 1 time?', d: 'The work of creating a value is put off and runs when the value is needed.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
-    { t: 'Predicate', q: 'What if the functional interface is Predicate<String>?', d: 'It passes a condition check. true or false comes back.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
-    { t: 'Consumer', q: 'What if the functional interface is Consumer<String>?', d: 'It takes a value, only uses it, and returns nothing.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
+    { t: 'Default settings', q: 'When you pass a lambda to names.forEach, when and how many times does the lambda body run?', d: 'On the line that calls forEach, the lambda object is created and passed, and forEach calls accept for each element, so the body runs three times.', v: { api: 'forEach', data: 'full' } },
+    { t: 'forEach on an empty list', q: 'When you call forEach on an empty list, how many times does the lambda body run?', d: 'There are no elements, so forEach never calls accept. Even though a lambda was passed, the body does not run.', v: { api: 'forEach', data: 'empty' } },
+    { t: 'Pass a method reference', q: 'What if you pass a method reference, as in names.forEach(System.out::println)?', d: 'It is the same Consumer as n -> System.out.println(n). forEach calls it for each element, and three names are printed.', v: { api: 'forEachRef', data: 'full' } },
+    { t: 'Pass a condition to removeIf', q: 'When you pass a Predicate lambda to names.removeIf, which elements are removed?', d: 'removeIf calls test for each element and removes only fig, for which true came back. What remains is [kiwi, banana].', v: { api: 'removeIf', data: 'full' } },
+    { t: 'filter and map of a stream', q: 'In what order do the lambdas passed to filter and map run?', d: 'When toList is called, the elements pass through filter one at a time, and an element that passes goes to map before the next element does. filter is called 3 times and map 2 times.', v: { api: 'stream', data: 'full' } },
+    { t: 'Without a terminal operation', q: 'What if you call only filter and map and do not call a terminal operation such as toList?', d: 'The stream is only built and no elements are sent through it, so the lambdas of filter and map never run.', v: { api: 'nostream', data: 'full' } },
+    { t: 'Sort with Comparator.comparing', q: 'How many times is the key lambda passed to Comparator.comparing called?', d: 'Each time sort compares two elements, the Comparator calls the key lambda twice. For these three elements on JDK 21, there were 3 comparisons and 6 calls of the key lambda.', v: { api: 'sort', data: 'full' } },
+    { t: 'Pass a method call to orElse', q: 'When the Optional has a value, does defaultName run if you write orElse(defaultName())?', d: 'It does. Java evaluates the argument defaultName() before it calls orElse. The result is Alice, but "Default created" is printed.', v: { api: 'orElse', data: 'full' } },
+    { t: 'Pass a lambda to orElseGet', q: 'When the Optional has a value, what happens with orElseGet(() -> defaultName())?', d: 'If there is a value, orElseGet does not call get, so defaultName does not run.', v: { api: 'orElseGet', data: 'full' } },
+    { t: 'orElseGet on an empty Optional', q: 'When the Optional is empty, what happens with orElseGet(() -> defaultName())?', d: 'There is no value, so orElseGet calls get once, the lambda runs, and the Guest that defaultName returned becomes the result.', v: { api: 'orElseGet', data: 'empty' } },
   ],
-  // For each interface: the type, the variable name, the method that is called, the method that serves as the body, what it takes, what it returns, the values passed in the calls, the values that come back
-  FI: {
-    'function': { type: 'Function<String, Integer>', v: 'f', m: 'apply', body: 'length', sig: 'static int length(String s)', ret: '        return s.length();\n', takes: 'one value', gives: 'one value', args: ['hello', 'hi'], res: ['5', '2'], anon: 'public Integer apply(String s) {\n        return length(s);\n    }', lam: 's -> length(s)', what: 'takes a string and returns its length' },
-    predicate: { type: 'Predicate<String>', v: 'p', m: 'test', body: 'isLong', sig: 'static boolean isLong(String s)', ret: '        return s.length() > 3;\n', takes: 'one value', gives: 'true or false', args: ['hello', 'hi'], res: ['true', 'false'], anon: 'public boolean test(String s) {\n        return isLong(s);\n    }', lam: 's -> isLong(s)', what: 'takes a string and checks whether it is longer than 3 characters' },
-    supplier: { type: 'Supplier<String>', v: 's', m: 'get', body: 'make', sig: 'static String make()', ret: '        return "hello";\n', takes: 'nothing', gives: 'one value', args: [null, null], res: ['hello', 'hello'], anon: 'public String get() {\n        return make();\n    }', lam: '() -> make()', what: 'takes nothing, creates one string, and returns it' },
-    consumer: { type: 'Consumer<String>', v: 'c', m: 'accept', body: 'show', sig: 'static void show(String s)', ret: '', takes: 'one value', gives: 'nothing (void)', args: ['hello', 'hi'], res: [null, null], anon: 'public void accept(String s) {\n        show(s);\n    }', lam: 's -> show(s)', what: 'takes a string, only uses it, and returns nothing' },
+  NAMES: ['kiwi', 'fig', 'banana'],
+  // The order of the two elements Comparator.compare received during sorting. The order in which ArrayList.sort (TimSort) of JDK 21 actually called it when sorting [kiwi, fig, banana] (verify/plain/lambda_probe.out.txt)
+  SORT_CMP: [['fig', 'kiwi'], ['banana', 'fig'], ['banana', 'kiwi']],
+  // For each standard method: the name, the parameter (JDK 21 declaration), the method the lambda implements, and the line in the standard method's code that calls the lambda (copied from the JDK 21 source)
+  STD: {
+    forEach: [['ArrayList.forEach', 'Consumer<? super E> action', 'accept', 'action.accept(elementAt(es, i));  (for each element)']],
+    removeIf: [['ArrayList.removeIf', 'Predicate<? super E> filter', 'test', 'filter.test(elementAt(es, i))  (for each element; if true, the position is marked for removal)']],
+    stream: [['Stream.filter', 'Predicate<? super T> predicate', 'test', 'Called when the terminal operation sends elements through one at a time'], ['Stream.map', 'Function<? super T, ? extends R> mapper', 'apply', 'Called for each element that passed filter']],
+    sort: [['ArrayList.sort', 'Comparator<? super E> c', 'compare', 'Arrays.sort((E[]) elementData, 0, size, c);'], ['Comparator.comparing', 'Function<? super T, ? extends U> keyExtractor', 'apply', '(c1, c2) -> keyExtractor.apply(c1).compareTo(keyExtractor.apply(c2))']],
+    orElse: [['Optional.orElse', 'T other', '(none; it takes a value)', 'return value != null ? value : other;']],
+    orElseGet: [['Optional.orElseGet', 'Supplier<? extends T> supplier', 'get', 'return value != null ? value : supplier.get();']],
   },
-  // The code of call #i, and the line that the body prints during that call
-  callText: function (F, i) { return F.v + '.' + F.m + '(' + (F.args[i] === null ? '' : '"' + F.args[i] + '"') + ')'; },
-  bodyLine: function (F, i) { return 'body runs: ' + F.body + '(' + (F.args[i] === null ? '' : F.args[i]) + ')'; },
+  std: function (api) { return this.STD[api === 'forEachRef' ? 'forEach' : api === 'nostream' ? 'stream' : api]; },
+  isOpt: function (api) { return api === 'orElse' || api === 'orElseGet'; },
   code: function (c) {
-    var F = this.FI[c.fi], n = +c.calls, self = this, sup = c.fi === 'supplier';
-    var body = F.sig + ' {' + '                    // what the action to pass does\n        System.out.println("body runs: ' + F.body + '(" + ' + (sup ? '' : 's + ') + '")");\n' + F.ret + '    }';
-    if (sup) body = F.sig + ' {' + '                    // what the action to pass does\n        System.out.println("body runs: make()");\n' + F.ret + '    }';
-    var calls = '';
-    for (var i = 0; i < n; i++) calls += c.fi === 'consumer' ? '        ' + self.callText(F, i) + ';' + (i === 0 ? '                       // returns no value' : '') + '\n' : '        System.out.println("result " + ' + self.callText(F, i) + ');\n';
-    if (!n) calls = '        // ' + F.v + ' is received but never called\n';
-    var run = 'static void run(' + F.type + ' ' + F.v + ') {' + '      // the method that receives the action and calls it\n        System.out.println("run starts");\n' + calls + '        System.out.println("run ends");\n    }';
-    var make = c.form === 'anon' ? 'new ' + F.type + '() {    // creates the action (it does not run yet)\n            @Override\n            ' + F.anon.replace(/\n/g, '\n        ') + '\n        };' : c.form === 'lambda' ? F.lam + ';        // creates the action (it does not run yet)' : 'Demo::' + F.body + ';         // creates the action (it does not run yet)';
-    return 'class Demo {\n    ' + body + '\n\n    ' + run + '\n\n    public static void main(String[] args) {\n        ' + F.type + ' ' + F.v + ' = ' + make + '\n        System.out.println("after creation");\n        run(' + F.v + ');                                   // passes the action like a value\n    }\n}';
+    var a = c.api, full = c.data === 'full', opt = this.isOpt(a), L = [];
+    var imp = opt ? ['java.util.Optional'] : ['java.util.ArrayList'].concat(a === 'sort' ? ['java.util.Comparator'] : [], ['java.util.List'], a === 'nostream' ? ['java.util.stream.Stream'] : []);
+    imp.forEach(function (x) { L.push('import ' + x + ';'); });
+    L.push('', 'public class Main {');
+    if (opt) L.push('    static String defaultName() {                   // a method made for this example (not standard)', '        System.out.println("Default created");', '        return "Guest";', '    }', '');
+    L.push('    public static void main(String[] args) {');
+    if (opt) L.push('        Optional<String> saved = ' + (full ? 'Optional.of("Alice");' : 'Optional.empty();'));
+    else L.push('        List<String> names = ' + (full ? 'new ArrayList<>(List.of("kiwi", "fig", "banana"));' : 'new ArrayList<>();'));
+    var body = {
+      forEach: ['System.out.println("Before calling forEach");', 'names.forEach(n -> System.out.println("Lambda ran: " + n));   // Consumer<String>', 'System.out.println("forEach done");'],
+      forEachRef: ['System.out.println("Before calling forEach");', 'names.forEach(System.out::println);       // the same Consumer<String> as n -> System.out.println(n)', 'System.out.println("forEach done");'],
+      removeIf: ['System.out.println("Before calling removeIf");', 'names.removeIf(n -> {                     // Predicate<String>', '    System.out.println("Lambda ran: " + n);', '    return n.length() <= 3;               // if true, remove this element', '});', 'System.out.println("Remaining " + names);'],
+      stream: ['System.out.println("Before creating the stream");', 'List<Integer> lengths = names.stream()', '        .filter(n -> {                    // Predicate<String>', '            System.out.println("filter lambda: " + n);', '            return n.length() > 3;', '        })', '        .map(n -> {                       // Function<String, Integer>', '            System.out.println("map lambda: " + n);', '            return n.length();', '        })', '        .toList();                        // terminal operation: the elements flow here', 'System.out.println("Result " + lengths);'],
+      nostream: ['System.out.println("Before creating the stream");', 'Stream<Integer> lengths = names.stream()', '        .filter(n -> {                    // Predicate<String>', '            System.out.println("filter lambda: " + n);', '            return n.length() > 3;', '        })', '        .map(n -> {                       // Function<String, Integer>', '            System.out.println("map lambda: " + n);', '            return n.length();', '        });                               // no terminal operation (such as toList) is called', 'System.out.println("After creating the stream");'],
+      sort: ['System.out.println("Before calling sort");', 'names.sort(Comparator.comparing(n -> {   // takes a Function<String, Integer> and makes a Comparator', '    System.out.println("Key taken: " + n);', '    return n.length();                    // compare by the number of characters', '}));', 'System.out.println("Sorted " + names);'],
+      orElse: ['System.out.println("Before calling orElse");', 'String name = saved.orElse(defaultName());          // the argument is evaluated first and then passed', 'System.out.println("Name " + name);'],
+      orElseGet: ['System.out.println("Before calling orElseGet");', 'String name = saved.orElseGet(() -> defaultName());  // Supplier<String>', 'System.out.println("Name " + name);'],
+    }[a];
+    body.forEach(function (x) { L.push('        ' + x); });
+    L.push('    }', '}');
+    return L.join('\n');
   },
-  label: function (c) { return this.FI[c.fi].type.replace(/<.*/, '') + ' · ' + { anon: 'anonymous class', lambda: 'lambda expression', ref: 'method reference' }[c.form] + ' · ' + c.calls + (c.calls === '1' ? ' call' : ' calls'); },
-  columns: ['Method called', 'Takes', 'Returns', 'Times the body ran', 'Values returned'],
+  label: function (c) { return { forEach: 'forEach', forEachRef: 'forEach (method reference)', removeIf: 'removeIf', stream: 'filter, map, toList', nostream: 'filter, map (no terminal operation)', sort: 'Comparator.comparing', orElse: 'orElse', orElseGet: 'orElseGet' }[c.api] + ' · ' + (c.data === 'full' ? 'has values' : 'empty'); },
+  columns: ['Standard method', 'Functional interface it takes', 'Times the body ran', 'Result'],
   simulate: function (c) {
-    var F = this.FI[c.fi], n = +c.calls, ev = [], sum = [], self = this, form = c.form;
-    var st = { made: false, passed: false, cur: -1, done: 0, count: 0, out: [], end: false };
-    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
-    var decl = F.type + ' ' + F.v + ' = ';
-    st.made = true;
-    push(form === 'anon' ? decl + 'new ' + F.type + '() { ... }: This creates an object of a class with no name that implements the ' + F.type.replace(/<.*/, '') + ' interface, and the variable ' + F.v + ' refers to that object. The code written inside ' + F.m + ' does not run yet. Nothing is printed.'
-      : form === 'lambda' ? decl + F.lam + ': This creates an object that can run the action written to the right of the arrow token (->), and the variable ' + F.v + ' refers to that object. The ' + F.body + ' method is not called yet. Nothing is printed.'
-      : decl + 'Demo::' + F.body + ': This creates an object that refers to the ' + F.body + ' method, and the variable ' + F.v + ' refers to that object. The method is not called. The code only refers to it, as if to say "use this method". Nothing is printed.', '');
-    st.out.push('after creation');
-    push('System.out.println("after creation"): "after creation" is printed. Execution has already passed the line that creates the action, but "body runs" has not been printed even once.', '');
-    st.passed = true;
-    push('run(' + F.v + '): The action object that the variable ' + F.v + ' refers to is passed to the run method. An action is passed in the same way as a number or a string. Passing it does not make it run.', '');
-    st.out.push('run starts');
-    push('System.out.println("run starts"): Execution enters run, and "run starts" is printed.', '');
-    for (var i = 0; i < n; i++) {
-      st.cur = i; st.done = i + 1; st.count = i + 1; st.out.push(this.bodyLine(F, i));
-      var res = F.res[i];
-      if (res !== null) st.out.push('result ' + res);
-      push(this.callText(F, i) + ': ' + (i === 0 ? 'This is where the action finally runs. The ' : 'The same action runs one more time. The ') + F.body + ' method is called, and "' + this.bodyLine(F, i) + '" is printed. ' + (res === null ? 'accept returns no value, so there is nothing to receive.' : 'The returned value ' + res + ' is printed as "result ' + res + '".'), 'good');
+    var a = c.api, full = c.data === 'full', ev = [], sum = [];
+    var st = { out: [], msgs: [], calls: 0 }, list = full ? this.NAMES.slice() : [], row;
+    function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
+    function msg(f, t, s, cls) { st.msgs.push({ f: f, t: t, s: s, cls: cls || '' }); }
+    function say(line) { st.out.push(line); msg('main', '', 'Prints: ' + line); }
+    function show(xs) { return '[' + xs.join(', ') + ']'; }
+    // The step that runs one System.out.println line
+    function print(codeText, line, extra) { say(line); push(codeText + ': the line printed is "' + line + '".' + (extra ? ' ' + extra : '')); }
+    if (this.isOpt(a)) {
+      var v = full ? 'Alice' : 'Guest';
+      msg('main', '', full ? 'saved = Optional.of("Alice")' : 'saved = Optional.empty()');
+      push(full ? 'Optional<String> saved = Optional.of("Alice"): this uses Java\'s standard Optional to create an Optional that holds the value "Alice".' : 'Optional<String> saved = Optional.empty(): this uses Java\'s standard Optional to create an empty Optional with no value.');
+      print('System.out.println("Before calling ' + a + '")', 'Before calling ' + a);
+      if (a === 'orElse') {
+        st.calls = 1; st.out.push('Default created'); msg('main', 'dn', 'Evaluate defaultName() first', 'hot'); msg('dn', '', 'Prints: Default created', 'hot');
+        push('saved.orElse(defaultName()): Java evaluates the argument before it calls the method. So defaultName() runs before orElse is entered, and "Default created" is printed.' + (full ? ' It ran even though the Optional has a value.' : ''), full ? 'bad' : 'good');
+        msg('main', 'std', 'orElse("Guest")');
+        msg('std', '', full ? 'value is present, returns "Alice"' : 'value is absent, returns other ("Guest")', 'good');
+        push('orElse("Guest"): what orElse receives is the value "Guest", which has already been evaluated. The body of the standard Optional.orElse is one line, return value != null ? value : other;, and ' + (full ? 'there is a value, so it returns "Alice". The "Guest" that was prepared is not used.' : 'there is no value, so it returns the "Guest" it received.'));
+      } else {
+        msg('main', 'std', 'orElseGet(lambda)');
+        push('saved.orElseGet(() -> defaultName()): the lambda creates a Supplier<String> object and passes it to orElseGet. Creating and passing the lambda does not run defaultName().');
+        if (full) {
+          msg('std', '', 'value present: skips get(), returns "Alice"', 'good');
+          push('The body of the standard Optional.orElseGet is one line, return value != null ? value : supplier.get();. There is a value, so it does not call supplier.get() and returns "Alice". The lambda body did not run.', 'good');
+        } else {
+          st.calls = 1; st.out.push('Default created'); msg('std', 'lam', 'get()', 'hot'); msg('lam', '', 'defaultName() runs, prints: Default created', 'hot');
+          push('supplier.get(): there is no value, so orElseGet calls get. Only now does the lambda body defaultName() run and print "Default created", and the "Guest" it returns becomes the result.', 'good');
+        }
+      }
+      print('System.out.println("Name " + name)', 'Name ' + v);
+      sum.push(a === 'orElse' ? 'The argument of orElse is evaluated before orElse is called, so defaultName() ran ' + (full ? 'even though the Optional has a value' : 'because the Optional has no value') + '. It runs whether or not there is a value. If creating the default takes time, or other things such as saving happen along with it, pass it to orElseGet as a lambda.'
+        : full ? 'When there is a value, orElseGet does not call the Supplier it received, so the lambda body never ran. When you pass a lambda, the receiving side decides whether to run it.' : 'orElseGet calls get of the Supplier once, only when there is no value, to create the default.');
+      sum.push('The body of the standard orElseGet is one line that calls supplier.get(). A method you write yourself can also take a Supplier<T> parameter and call get() only when needed, and decide when the action runs in the same way.');
+      row = [a === 'orElse' ? 'Optional.orElse' : 'Optional.orElseGet', a === 'orElse' ? 'None (takes a String value)' : 'Supplier<String>', a === 'orElse' ? 'defaultName() 1 (no lambda)' : '' + st.calls, v];
+      return { events: ev, summary: sum, out: st.out.slice(), row: row };
     }
-    st.cur = -1;
-    if (!n) push('run contains no call to ' + F.v + '.' + F.m + '(...). It receives the action but moves on without running it.', 'bad');
-    st.out.push('run ends'); st.end = true;
-    push('System.out.println("run ends"): "run ends" is printed. "body runs" was printed ' + n + (n === 1 ? ' time' : ' times') + ' in all.', '');
-    var got = F.res.slice(0, n).filter(function (x) { return x !== null; });
-    sum.push(n ? 'Nothing ran on the line that creates the action. The body ran each time the ' + F.m + ' method was called inside run. The code inside a lambda expression runs when it is called, not when it is created.' : 'The action was created and passed, but the receiving method did not call it, so the body never ran. A lambda expression is only "code that can be run later". The receiving method decides whether to run it and how many times.');
-    sum.push({ 'function': 'Function<T, R> is an action that takes one value of type T and returns a value of type R, and it is called with apply. It is used to turn a value into another value (conversion).', predicate: 'Predicate<T> is an action that takes one value of type T and returns true or false, and it is called with test. It is used for condition checks.', supplier: 'Supplier<T> is an action that takes nothing and returns a value of type T, and it is called with get. It lets you put off the work of creating a value and run it only when the value is really needed.', consumer: 'Consumer<T> is an action that takes one value of type T and returns nothing, and it is called with accept. It is used for work that takes a value and only uses it, such as printing or saving.' }[c.fi]);
-    sum.push(form === 'anon' ? 'An anonymous class is how an action was passed before lambda expressions existed (up to Java 7). If you change the setting to a lambda expression, the same work fits on one line.' : form === 'lambda' ? 'The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference.' : 'When a lambda expression does nothing but call one existing method, you can write it more briefly as a method reference (ClassName::methodName). The result is the same as with the lambda expression.');
-    return { events: ev, summary: sum, out: st.out.slice(), row: [F.m, F.takes, F.gives, n + (n === 1 ? ' time' : ' times'), !n ? '(not called)' : got.length ? got.join(', ') : '(no value returned)'] };
+    msg('main', '', full ? 'names = [kiwi, fig, banana]' : 'names = []');
+    push(full ? 'List<String> names = new ArrayList<>(List.of("kiwi", "fig", "banana")): this creates a Java standard ArrayList whose elements are kiwi, fig, and banana in that order.' : 'List<String> names = new ArrayList<>(): this creates a Java standard ArrayList with no elements.');
+    var pre = a === 'stream' || a === 'nostream' ? 'Before creating the stream' : 'Before calling ' + (a === 'forEachRef' ? 'forEach' : a);
+    print('System.out.println("' + pre + '")', pre);
+    if (a === 'forEach' || a === 'forEachRef') {
+      var ref = a === 'forEachRef';
+      msg('main', 'std', ref ? 'forEach(System.out::println)' : 'forEach(lambda)');
+      push(ref ? 'names.forEach(System.out::println): a method reference that points to the println method of the System.out object creates a Consumer<String> object and passes it to forEach. It is the same as the lambda written as n -> System.out.println(n). Nothing has been printed yet.' : 'names.forEach(n -> …): the lambda creates a Consumer<String> object and passes it to forEach. The parameter type of forEach is Consumer<? super E>, so this lambda implements accept of Consumer. The body does not run at the moment it is passed.');
+      list.forEach(function (n, i) {
+        st.calls++; var line = ref ? n : 'Lambda ran: ' + n; st.out.push(line);
+        msg('std', 'lam', 'accept("' + n + '")', 'hot'); msg('lam', '', 'Prints: ' + line, 'hot');
+        push('action.accept("' + n + '"): ' + (i === 0 ? 'The standard ArrayList.forEach calls accept for each element, and only here does the body run. ' : 'The same body runs once more with the next element. ') + 'The line printed is "' + line + '".', 'good');
+      });
+      if (!full) { msg('std', '', 'No elements, so accept is not called', 'bad'); push('The for statement in forEach loops as many times as there are elements. There are no elements, so it ends without calling accept even once.', 'bad'); }
+      print('System.out.println("forEach done")', 'forEach done', 'The body ran ' + st.calls + ' times in all.');
+      sum.push(full ? 'The body ran not on the line that passed the lambda, but each time the standard forEach called accept. How many times it is called is decided by forEach, from the number of elements.' : 'A lambda was passed, but there were no elements, so forEach never called it. A lambda is only "an action that can be run later", and the receiving side decides whether to run it and how many times.');
+      if (ref) sum.push('When a lambda only calls one existing method, you can write it more briefly as a method reference (System.out::println, String::length). The result is the same as the lambda.');
+      row = ['ArrayList.forEach', ref ? 'Consumer<String> (method reference)' : 'Consumer<String>', '' + st.calls, full ? 'One line printed per element' : 'No output'];
+    } else if (a === 'removeIf') {
+      msg('main', 'std', 'removeIf(lambda)');
+      push('names.removeIf(n -> { … }): the lambda creates a Predicate<String> object and passes it to removeIf. Predicate is a standard functional interface that has one method, test, which takes a value and returns true or false.');
+      var kept = [];
+      list.forEach(function (n) {
+        st.calls++; st.out.push('Lambda ran: ' + n); var del = n.length <= 3; if (!del) kept.push(n);
+        msg('std', 'lam', 'test("' + n + '")', 'hot'); msg('lam', '', 'Prints and returns ' + del, del ? 'bad' : 'good');
+        push('filter.test("' + n + '"): removeIf calls test for each element. The line printed is "Lambda ran: ' + n + '". n.length() is ' + n.length + '. ' + (del ? 'It is 3 or less, so it returns true, and this element is marked as a position to remove.' : 'It is greater than 3, so it returns false, and this element stays.'), del ? 'bad' : 'good');
+      });
+      if (!full) { msg('std', '', 'No elements, so test is not called', 'bad'); push('There are no elements, so removeIf never calls test and returns false.', 'bad'); }
+      print('System.out.println("Remaining " + names)', 'Remaining ' + show(kept));
+      sum.push(full ? 'The standard removeIf called test for each element and removed the elements for which true came back. The lambda is in charge only of deciding whether to remove, and removeIf does the work of going through the list and removing.' : 'There were no elements, so removeIf never called test.');
+      row = ['ArrayList.removeIf', 'Predicate<String>', '' + st.calls, show(kept)];
+    } else if (a === 'stream' || a === 'nostream') {
+      var term = a === 'stream', fc = 0, mc = 0, res = [];
+      msg('main', 'std', 'stream().filter(…).map(…)');
+      push('names.stream().filter(n -> { … }).map(n -> { … }): a Predicate<String> lambda is passed to filter and a Function<String, Integer> lambda to map. filter and map are intermediate operations, so when they are called they only build a stream with the actions chained on, and they do not run the lambdas. Nothing is printed.');
+      if (term) {
+        msg('main', 'std', 'toList()');
+        push('.toList(): the terminal operation is called. Now the stream sends the elements through one at a time from the start and calls the lambdas of filter and map.');
+        list.forEach(function (n) {
+          fc++; st.calls++; st.out.push('filter lambda: ' + n); var pass = n.length > 3;
+          msg('std', 'f', 'test("' + n + '"), ' + pass, pass ? 'hot' : 'bad');
+          push('test of filter("' + n + '"): the line printed is "filter lambda: ' + n + '". n.length() is ' + n.length + '. ' + (pass ? 'It is greater than 3, so it is true, and this element goes straight to map before moving on to the next element.' : 'It is not greater than 3, so it is false, and this element does not go to map.'), pass ? 'good' : 'bad');
+          if (pass) {
+            mc++; st.calls++; st.out.push('map lambda: ' + n); res.push(n.length);
+            msg('std', 'm', 'apply("' + n + '"), ' + n.length, 'hot');
+            push('apply of map("' + n + '"): the line printed is "map lambda: ' + n + '". The value it returned is ' + n.length + '. This value becomes an element of the result list.', 'good');
+          }
+        });
+        if (!full) { msg('std', '', 'No elements, so the lambdas are not called', 'bad'); push('There are no elements, so the lambdas of filter and map are never called, and an empty list is created.', 'bad'); }
+        print('System.out.println("Result " + lengths)', 'Result ' + show(res));
+        sum.push(full ? 'The lambdas ran not when filter and map were called, but after toList was called. Each element passes through filter and goes straight to map, so the output is mixed in the order filter, map, filter, filter, map.' : 'When there are no elements, the lambdas are not called even if you call the terminal operation.');
+      } else {
+        msg('std', '', 'No terminal operation, so no elements flow', 'bad');
+        push('No terminal operation (toList, forEach, count, and so on) was called. The stream sends no elements through, so the lambdas of filter and map never run.', 'bad');
+        print('System.out.println("After creating the stream")', 'After creating the stream', 'Not a single line of "filter lambda" or "map lambda" was printed.');
+        sum.push('filter and map only take lambdas and chain on the work; it is the terminal operation that sends elements through and makes the lambdas get called. With no terminal operation, the lambdas do not run.');
+      }
+      sum.push('The parameter of Stream.filter is Predicate<? super T>, and the parameter of Stream.map is Function<? super T, ? extends R>. So even if both have the same n -> { … } shape, the lambda in filter implements test and the lambda in map implements apply.');
+      row = ['Stream.filter, Stream.map' + (term ? ', toList' : ''), 'Predicate<String>, Function<String, Integer>', 'filter ' + fc + ', map ' + mc, term ? show(res) : '(did not run)'];
+    } else {
+      msg('main', 'std', 'sort(comparing(lambda))');
+      push('names.sort(Comparator.comparing(n -> { … })): the lambda creates a Function<String, Integer> object and passes it to the standard Comparator.comparing. comparing returns a Comparator that takes a key from each of two elements and compares the keys, and that Comparator is passed to sort. On this line the key lambda has not been called yet.');
+      var cmps = full ? this.SORT_CMP : [];
+      cmps.forEach(function (p, i) {
+        st.calls += 2; st.out.push('Key taken: ' + p[0], 'Key taken: ' + p[1]);
+        msg('std', 'cmp', 'compare(' + p[0] + ', ' + p[1] + ')'); msg('cmp', 'lam', 'apply(' + p[0] + '), apply(' + p[1] + ')', 'hot');
+        push('compare("' + p[0] + '", "' + p[1] + '"): ' + (i === 0 ? 'sort calls compare of the Comparator to compare two elements, and ' : 'sort compares again. ') + 'compare takes the keys of the two elements with keyExtractor.apply. The key lambda runs twice, and two lines, "Key taken: ' + p[0] + '" and "Key taken: ' + p[1] + '", are printed. Then it compares the two keys (' + p[0].length + ', ' + p[1].length + ') with compareTo of Integer.', 'good');
+      });
+      if (!full) { msg('std', '', 'No elements, so compare is not called', 'bad'); push('With fewer than 2 elements there is nothing to compare, so sort does not call compare. The key lambda does not run either.', 'bad'); }
+      var sorted = full ? ['fig', 'kiwi', 'banana'] : [];
+      print('System.out.println("Sorted " + names)', 'Sorted ' + show(sorted), full ? 'It is the order of 3, 4, and 6 characters.' : '');
+      sum.push(full ? 'The key lambda was called twice per comparison, ' + st.calls + ' times in all. How many comparisons to make is decided by the sorting algorithm, so the lambda side cannot know (this count is the value from sorting these three elements on JDK 21).' : 'There were no elements, so no comparison happened and the key lambda was not called.');
+      sum.push('A lambda that only calls one method, such as n -> n.length(), can be shortened to Comparator.comparing(String::length).');
+      row = ['ArrayList.sort, Comparator.comparing', 'Function<String, Integer> (taken by comparing)', '' + st.calls, show(sorted)];
+    }
+    return { events: ev, summary: sum, out: st.out.slice(), row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, F = this.FI[c.fi];
-    if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.table(v, ['Interface', 'Method called', 'Takes', 'Returns'], [{ cells: [F.type.replace(/<.*/, ''), F.m, F.takes, F.gives] }], 'Shape of this action');
-    H.table(v, ['#', 'Line printed'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: o.indexOf('body runs') === 0 ? 'hot' : '' }] }; }), 'Output so far');
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    if (!s) { H.text(v, 'Click Run to go one line at a time.'); return; }
+    H.table(v, ['Standard method', 'Parameter (JDK 21 declaration)', 'Method the lambda implements', 'Where the standard method\'s code calls it'], this.std(c.api).map(function (r) { return { cells: r }; }), 'The side that takes the lambda (Java standard)');
+    H.table(v, ['Order', 'Printed line'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: /^(Lambda ran|filter lambda|map lambda|Key taken|Default created)/.test(o) || c.api === 'forEachRef' && /^(kiwi|fig|banana)$/.test(o) ? 'hot' : '' }] }; }), 'Output so far');
   },
-  // Diagram: on the left, where the action is created (the variable); in the middle, the run method, which receives the action and calls it; on the right, the method that serves as the body. An arrow goes to the body only during a call.
+  // Diagram: from the left, main (my code), the standard method that takes the lambda, and the lambda (in orElse, the example method) are placed side by side, and who calls whom is drawn from top to bottom. The arrow toward the lambda appears only when the standard method calls it.
   draw: function (P, sim, shown) {
-    var c = sim.c, F = this.FI[c.fi], n = +c.calls, self = this, last = shown[shown.length - 1];
-    var s = last ? last.snap : { made: false, passed: false, cur: -1, done: 0, count: 0, out: [], end: false };
-    P.size(680, 300);
-    P.region('mk', 16, 16, 232, 200, 'Where the action is created (main)');
-    P.box('obj', 28, 52, 208, 66, s.made ? { cls: 'wait', title: 'Variable ' + F.v, sub: [F.type, c.form === 'anon' ? 'new ' + F.type.replace(/<.*/, '') + '<>() { ... }' : c.form === 'lambda' ? F.lam : 'Demo::' + F.body] } : { cls: 'ghost', title: 'Variable ' + F.v, sub: 'none yet' });
-    P.text('mkn', 28, 144, s.made ? 'only created, not run' : '', { cls: 'mut' });
-    P.region('rn', 260, 16, 196, 200, 'run (receives and calls)');
-    P.box('prm', 272, 50, 172, 34, { cls: s.passed ? 'wait' : 'ghost', title: 'Parameter ' + F.v, right: s.passed ? 'received' : '' });
-    if (s.passed) P.arrow('pass', 'obj:r', 'prm:l', { label: 'pass' });
-    for (var i = 0; i < n; i++) P.box('c' + i, 272, 96 + i * 56, 172, 48, { cls: i >= s.done ? 'ghost' : 'good' + (i === s.cur ? ' now' : ''), title: self.callText(F, i), sub: i >= s.done ? 'not called yet' : F.res[i] === null ? 'no value returned' : 'returned ' + F.res[i] });
-    if (!n) P.text('nocall', 358, 140, 'no code calls it', { cls: s.end ? 'bad' : 'mut', anchor: 'middle' });
-    P.region('bd', 468, 16, 196, 200, 'Body (the ' + F.body + ' method)');
-    P.box('body', 480, 52, 172, 66, { cls: s.cur >= 0 ? 'hot now' : s.count ? 'plain' : 'ghost', title: F.body + '(' + (c.fi === 'supplier' ? '' : 's') + ')', sub: ['prints "body runs"', 'ran ' + s.count + (s.count === 1 ? ' time so far' : ' times so far')] });
-    if (s.cur >= 0) P.arrow('call', 'c' + s.cur + ':r', 'body:l', { cls: 'hot', label: 'runs' });
-    P.box('r1', 16, 236, 648, 38, { cls: s.count ? 'good' : s.end ? 'bad' : 'ghost', title: 'The body ran', right: s.count + (s.count === 1 ? ' time' : ' times') });
-    P.note('No arrow goes to the body on the line that creates the action. The body runs only at the moment the ' + F.m + ' method is called inside run. The body is a separate method here so that the three ways of writing the action can be compared under the same conditions. If you write the code directly inside the lambda expression, it runs at the same point.');
+    var c = sim.c, a = c.api, last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], calls: 0 };
+    var actors = {
+      forEach: [['main', 'main (my code)', 'wait'], ['std', 'ArrayList.forEach', 'plain'], ['lam', 'Lambda n -> …', 'hot']],
+      forEachRef: [['main', 'main (my code)', 'wait'], ['std', 'ArrayList.forEach', 'plain'], ['lam', 'System.out::println', 'hot']],
+      removeIf: [['main', 'main (my code)', 'wait'], ['std', 'ArrayList.removeIf', 'plain'], ['lam', 'Lambda n -> { … }', 'hot']],
+      stream: [['main', 'main', 'wait'], ['std', 'Stream (standard)', 'plain'], ['f', 'filter lambda', 'hot'], ['m', 'map lambda', 'hot']],
+      sort: [['main', 'main', 'wait'], ['std', 'ArrayList.sort', 'plain'], ['cmp', 'Comparator', 'plain'], ['lam', 'Key lambda', 'hot']],
+      orElse: [['main', 'main (my code)', 'wait'], ['dn', 'defaultName()', 'hot'], ['std', 'Optional.orElse', 'plain']],
+      orElseGet: [['main', 'main (my code)', 'wait'], ['std', 'Optional.orElseGet', 'plain'], ['lam', 'Lambda () -> …', 'hot']],
+    }[a === 'nostream' ? 'stream' : a];
+    var keep = Math.max(1, Math.min(10, sim.events[sim.events.length - 1].snap.msgs.length));
+    var end = P.seq(actors, s.msgs.map(function (m) { return m.t ? { f: m.f, t: m.t, s: m.s, cls: m.cls } : { f: m.f, s: m.s, cls: m.cls }; }), { keep: keep });
+    P.box('cnt', 16, end + 14, 648, 34, { cls: s.calls ? 'good' : 'ghost', title: a === 'orElse' ? 'Times defaultName() ran' : 'Times the lambda body ran', right: '' + s.calls });
+    P.size(680, end + 64);
+    P.note('Each arrow is one method call, and time flows from top to bottom. In this lab, every arrow toward the lambda starts from a standard method or from Comparator. main only creates the lambda and passes it, and does not call it directly.' + (a === 'sort' ? ' The Comparator is the object that Comparator.comparing created and returned.' : '') + (a === 'stream' || a === 'nostream' ? ' "Stream (standard)" is the several objects that make up the stream drawn as one.' : '') + (a === 'orElse' ? ' orElse has no lambda, and main calls defaultName() directly before it calls orElse.' : ''));
   },
-  assume: 'The output order, the number of times the body ran, and the returned values of the 36 combinations were checked against the result of running code with the same structure on JDK 21 in our test environment. The name of the method that each interface calls, the number of values it takes, and the type it returns were also checked against values read from the real interfaces. Saying that an anonymous class, a lambda expression, and a method reference are the same means that the results seen in this lab (the output and the returned values) are the same. How the object is created internally and what this refers to differ among them. When a lambda expression uses a local variable of the enclosing scope, it can use only a variable whose value does not change, and this rule is explained in the "Inner classes and anonymous classes" lab.',
+  assume: 'For each of the sixteen combinations (8 standard methods × has values or empty), the code on the screen was written as is to Main.java, compiled and run with JDK 21 in the verification environment, and the printed lines and their order, the number of times the body ran, and the result were checked (verify/plain/lambda_probe.js, cmp_lambda.js). The parameter types of the standard methods were checked with reflection, and the lines of code copied into "where the standard method\'s code calls it" were checked by whether that text is in the JDK 21 source (src.zip). The order and number of comparisons in sorting are what ArrayList.sort (TimSort) of JDK 21 actually showed with these three elements, and they are not set by the Java specification, so they can differ on another JDK or with other elements. The order in which the elements pass through filter and map one at a time was also seen in this sequential stream, and in a parallel stream the order is not fixed. A lambda, an anonymous class, and a method reference give the same result in what this lab shows, but they differ in how the object is created inside and in what this refers to. When a lambda uses a local variable of the enclosing code, it can use only a variable whose value does not change, and this rule is explained in the lab "Inner classes and anonymous classes".',
 });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -85,10 +85,10 @@ session.setAttribute(&quot;memberId&quot;, member.getId());
 // 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다
 HttpSession session = request.getSession(false);
 if (session == null) {
-    throw new UnauthorizedException();   // 예시로 만든 예외 -&gt; 401
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);   // 스프링이 주는 예외 -&gt; 401 응답
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다.</p>
+<p>로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다. 세션 코드에서 ResponseStatusException(HttpStatus.UNAUTHORIZED)을 던지면 401 응답이 되는 것은 스프링 부트 4.1.1 서버를 띄워 확인했습니다(세션 없이 요청하면 401, 로그인해 받은 JSESSIONID 쿠키를 보내면 200).</p>
 <p>다음 실습: <a href="../../lab/cookie/">쿠키</a></p>
   </div>
 
@@ -181,6 +181,6 @@ if (session == null) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

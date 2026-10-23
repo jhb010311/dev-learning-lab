@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>시큐리티 필터 체인: 401과 403은 어디에서 갈리나 · 개발 학습 실습실</title>
-<meta name="description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요…">
+<meta name="description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 SecurityContext에 적어 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. JWT를 쓰는 API 서버라면 스프링 시큐리티가 주는 oauth2ResourceSer…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/security/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="시큐리티 필터 체인: 401과 403은 어디에서 갈리나 · 개발 학습 실습실">
-<meta property="og:description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요…">
+<meta property="og:description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 SecurityContext에 적어 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. JWT를 쓰는 API 서버라면 스프링 시큐리티가 주는 oauth2ResourceSer…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,9 +32,9 @@
 <h1>시큐리티 필터 체인</h1>
 <p><b>401과 403은 어디에서 갈리나</b></p>
 <p><b>왜 생겼나</b> — 컨트롤러마다 로그인 여부와 권한을 확인하는 코드를 직접 넣으면, 한 곳만 빠뜨려도 그 경로가 열린다. Spring Security는 이 확인을 컨트롤러 앞의 필터 단계로 모아, 경로별 규칙을 설정 한 곳에 적어 두면 모든 요청에 같은 방식으로 적용되게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 로그인이 필요한 웹 서비스와 API 서버에서 쓴다. JWT나 세션으로 사용자를 확인하고, 관리자 경로에는 ADMIN 권한만 통과시키고, 거부할 때 나가는 401·403 응답의 모양을 정하는 일을 이 설정에서 한다. 컨트롤러 메서드 단위로 권한을 따질 때는 @PreAuthorize 같은 애너테이션을 함께 쓴다.</p>
-<p>스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어디에서 막히고 어떤 응답으로 끝나는지 봅니다.</p>
-<p>실행으로 대조 · 스프링 부트 4.1.1과 시큐리티 7.1.1 서버에 열두 가지 요청을 보내 대조</p>
+<p><b>지금 어디에 쓰나</b> — 로그인이 필요한 웹 서비스와 API 서버에서 쓴다. JWT로 사용자를 확인하는 API 서버는 oauth2ResourceServer 설정 한 줄로 토큰 확인 필터를 켜고, 관리자 경로에는 ADMIN 권한만 통과시키는 규칙을 authorizeHttpRequests에 적는다. 컨트롤러 메서드 단위로 권한을 따질 때는 @PreAuthorize 같은 애너테이션을 함께 쓴다.</p>
+<p>스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 SecurityContext에 적어 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. JWT를 쓰는 API 서버라면 스프링 시큐리티가 주는 oauth2ResourceServer 설정이 토큰 확인 필터(BearerTokenAuthenticationFilter)와 401·403 응답을 만드는 부품을 함께 넣어 줍니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403입니다. 토큰과 경로에 따라 요청이 어디에서 막히고 어떤 응답으로 끝나는지 봅니다.</p>
+<p>일부만 실행으로 확인 · 열두 가지 요청을 스프링 부트 4.1.1과 시큐리티 7.1.1 서버에 보내 응답 코드와 응답을 만든 곳을 대조. 인가·익명·예외 변환 필터는 실제로 돌았고, 이 환경에 없는 oauth2-resource-server의 토큰 확인 필터와 401·403 처리기는 7.1.1 소스에서 동작을 옮긴 대역으로 돌림(소스 대조). 설정 코드는 시그니처 대역과 함께 컴파일만 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>인증과 인가</dt>
@@ -43,6 +43,10 @@
 <dd><b>왜 생겼나</b> — 보안 검사를 서블릿 필터로 직접 짜면 로그인 확인, 권한 검사, CSRF 검사 필터의 순서와 적용할 주소를 프로젝트마다 손으로 맞춰야 했다. Spring Security는 이런 필터를 정해진 순서로 제공하고, SecurityFilterChain에서는 어느 주소에 어떤 검사를 쓸지를 고르게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 폼 로그인, JWT 검증, 소셜 로그인, 관리자 주소 제한을 SecurityFilterChain 빈에 설정한다. /api/** 주소와 화면 주소처럼 규칙이 다른 묶음은 체인을 둘 이상 두어 나눈다.</dd>
 <dd>Spring Security는 인증과 인가를 처리하는 스프링의 보안 프레임워크로, 서블릿 필터들의 묶음으로 동작한다. SecurityFilterChain은 어떤 요청에 어떤 보안 필터들을 어떤 순서로 적용할지 정의한 것이다. 요청이 컨트롤러에 도달하기 전에 필터들이 차례로 인증 정보 확인, 권한 검사 등을 수행한다.</dd>
+<dt>OAuth2 리소스 서버(oauth2ResourceServer)</dt>
+<dd><b>왜 생겼나</b> — JWT로 사용자를 확인하는 API 서버는 저마다 Authorization 헤더 읽기, 토큰 검증, 인증 정보 기록, 실패 응답을 필터로 직접 짰고, 틀린 토큰을 그냥 넘기거나 응답 헤더를 빠뜨리는 실수가 잦았다. OAuth 2.0 Bearer 토큰 규격(RFC 6750)에 맞춘 이 일을 설정 한 줄로 켜게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JWT 액세스 토큰을 받는 REST API 서버에서 쓴다. 인가 서버가 공개 키 목록을 내주면 spring.security.oauth2.resourceserver.jwt.issuer-uri나 jwk-set-uri 속성만으로 JwtDecoder가 만들어지고, 대칭 키(HS256)를 쓰면 NimbusJwtDecoder.withSecretKey로 만든 JwtDecoder 빈을 직접 등록한다.</dd>
+<dd>OAuth 2.0에서 액세스 토큰을 받아 API를 내주는 서버를 리소스 서버라고 한다. Spring Security에서는 SecurityFilterChain 설정에 http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))를 적으면 이 역할을 켠다(spring-boot-starter-oauth2-resource-server가 필요하다). 그러면 Authorization: Bearer 헤더의 토큰을 확인하는 BearerTokenAuthenticationFilter가 체인에 들어가고, 토큰이 없으면 그냥 다음 필터로 넘기고, 있으면 JwtDecoder로 검증해 성공하면 JwtAuthenticationToken을 SecurityContext에 두며, 실패하면 경로와 상관없이 그 자리에서 401로 끝낸다. 토큰의 클레임을 권한으로 바꾸는 일은 JwtAuthenticationConverter가 하는데, 기본은 scope(또는 scp) 클레임의 값마다 SCOPE_를 붙인 권한을 만든다. 인증 실패와 권한 부족 때의 응답 부품(BearerTokenAuthenticationEntryPoint, BearerTokenAccessDeniedHandler)도 함께 등록된다.</dd>
 <dt>SecurityContext</dt>
 <dd><b>왜 생겼나</b> — 필터에서 확인한 사용자를 컨트롤러와 서비스까지 전하려면 메서드마다 사용자 정보를 매개변수로 넘겨야 한다. SecurityContext를 두면 그렇게 넘기지 않아도 같은 요청을 처리하는 어느 계층에서든 SecurityContextHolder로 현재 사용자를 얻는다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 컨트롤러의 @AuthenticationPrincipal 매개변수와 메서드에 붙인 @PreAuthorize 검사가 이곳의 인증 정보를 쓴다. @Async처럼 다른 스레드로 넘어가면 기본으로는 이어지지 않아 따로 넘겨야 한다.</dd>
@@ -50,6 +54,10 @@
 <dt>필터(Filter)</dt>
 <dd><b>지금 어디에 쓰나</b> — 스프링 부트에서는 OncePerRequestFilter를 상속해 만들고 빈으로 등록하면 적용된다. 요청 로그나 요청 번호 붙이기처럼 컨트롤러와 무관한 일에 쓰고, 어느 컨트롤러 메서드인지 알아야 하면 인터셉터가 맞다.</dd>
 <dd>서블릿 컨테이너 수준에서 요청과 응답을 가로채 처리하는 구성 요소로 서블릿 표준에 속한다. 요청이 DispatcherServlet에 도달하기 전과 응답이 돌아가는 길에 동작하며, 인코딩 설정, CORS 처리, 인증 같은 모든 요청에 걸친 작업에 쓴다. Spring Security도 필터들의 묶음으로 동작한다.</dd>
+<dt>AuthenticationEntryPoint와 AccessDeniedHandler</dt>
+<dd><b>왜 생겼나</b> — 거부 응답을 컨트롤러에서 만들 수는 없다. 이 결정은 요청이 DispatcherServlet에 닿기 전의 필터에서 내려지므로 @ControllerAdvice가 닿지 않는다. 그래서 필터 단계에서 응답을 만드는 자리를 따로 두어 바꿔 끼울 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — API 서버에서 401·403 응답 본문을 JSON 오류 형식으로 맞출 때 http.exceptionHandling(e -&gt; e.authenticationEntryPoint(…).accessDeniedHandler(…))나 oauth2ResourceServer(o -&gt; o.authenticationEntryPoint(…).accessDeniedHandler(…))로 구현을 넘긴다. 처리기에서 sendError를 쓰면 /error로 다시 넘어가 그 경로의 보안 규칙을 한 번 더 거치므로, 상태 코드를 직접 쓰거나 /error를 허용한다.</dd>
+<dd>Spring Security가 요청을 거부할 때 응답을 만드는 두 인터페이스다. AuthenticationEntryPoint는 &quot;누구인지 확인되지 않았다&quot;일 때 불려 보통 401로 답하고(폼 로그인이면 로그인 페이지로 보내기), AccessDeniedHandler는 &quot;인증은 됐지만 권한이 모자라다&quot;일 때 불려 403으로 답한다. 둘을 고르는 것은 ExceptionTranslationFilter로, 뒤의 AuthorizationFilter가 접근 거부 예외를 던지면 현재 사용자가 익명인지를 보고 익명이면 진입점을, 아니면 처리기를 부른다. oauth2ResourceServer는 BearerTokenAuthenticationEntryPoint(401과 WWW-Authenticate: Bearer 헤더)와 BearerTokenAccessDeniedHandler(403과 error=&quot;insufficient_scope&quot;)를 기본으로 등록한다.</dd>
 <dt>HTTP 상태 코드</dt>
 <dd><b>왜 생겼나</b> — 결과를 본문의 글로만 알리면 서버마다 적는 방식이 달라서, 브라우저나 프록시, 모니터링 도구는 그 요청이 성공했는지 알 수 없다. 상태 코드는 결과를 정해진 숫자로 알려, 이런 도구가 서버마다 따로 맞추지 않고도 캐시, 재시도, 오류 집계를 하게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 프런트엔드가 401이면 로그인 화면으로, 404면 없는 페이지 안내로 보내는 것처럼 오류 종류에 따라 처리를 나눌 때 쓴다. 운영에서는 5xx 응답의 비율을 지켜보다가 갑자기 늘면 장애로 보고 알림을 보낸다.</dd>
@@ -62,45 +70,59 @@
 <li><b>USER가 관리자 경로를 요청</b> — 누구인지는 알지만 권한이 없습니다. 403.</li>
 <li><b>ADMIN이 관리자 경로를 요청</b> — 통과합니다.</li>
 <li><b>토큰 없이 관리자 경로</b> — 403이 아니라 401입니다. 왜 그런지 보세요.</li>
-<li><b>누구나 허용된 경로</b> — 토큰이 없어도 통과합니다.</li>
+<li><b>위조된 토큰으로 누구나 허용된 경로</b> — permitAll 경로인데도 401입니다.</li>
+<li><b>토큰 없이 누구나 허용된 경로</b> — 토큰이 없어도 통과합니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>GET /orders 요청이 들어와 시큐리티 필터 체인에 진입합니다. 컨트롤러보다 앞, 서블릿 필터 단계입니다.</li>
-<li>JwtAuthenticationFilter: Authorization 헤더에 토큰이 없습니다. 아무것도 하지 않고 다음 필터로 넘깁니다. 여기서 바로 거절하지 않는 이유는, 인증이 필요 없는 경로일 수도 있기 때문입니다.</li>
+<li>BearerTokenAuthenticationFilter: Authorization 헤더에 Bearer 토큰이 없습니다. 아무것도 하지 않고 다음 필터로 넘깁니다. 여기서 바로 거절하지 않는 이유는, 인증이 필요 없는 경로일 수도 있기 때문입니다.</li>
 <li>AnonymousAuthenticationFilter: 여기까지 인증 정보가 없으면 &quot;익명 사용자&quot;로 표시해 둡니다.</li>
-<li>AuthorizationFilter: 이 경로의 규칙은 authenticated (인증된 사용자만)입니다. 현재 사용자는 익명이라 조건에 맞지 않습니다. 접근 거부 예외를 던집니다.</li>
-<li>ExceptionTranslationFilter: 예외를 받아 사용자를 확인합니다. 익명 사용자이므로 &quot;권한이 없다&quot;가 아니라 &quot;누구인지부터 밝혀라&quot;로 판단하고, AuthenticationEntryPoint를 호출해 401로 응답합니다.</li>
+<li>AuthorizationFilter: 이 경로의 규칙은 authenticated (인증된 사용자만)입니다. 현재 사용자는 익명이라 조건에 맞지 않습니다. 접근 거부 예외(AccessDeniedException)를 던집니다.</li>
+<li>ExceptionTranslationFilter: 예외를 받아 사용자를 확인합니다. 익명 사용자이므로 &quot;권한이 없다&quot;가 아니라 &quot;누구인지부터 밝혀라&quot;로 판단하고, AuthenticationEntryPoint를 호출합니다. oauth2ResourceServer가 등록해 둔 BearerTokenAuthenticationEntryPoint가 401과 WWW-Authenticate: Bearer 헤더로 응답합니다.</li>
 <li>응답이 나가고, 이 요청에 쓰인 SecurityContext는 비워집니다. 스레드에 묶어 두는 정보라서, 스레드가 다음 요청에 재사용되기 전에 지워야 합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>401은 &quot;누구인지 확인되지 않았다&quot;(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 요청이 거부되면 401로 응답하도록 설정해 두었기 때문입니다(이 설정이 없으면 403이 나갑니다).</li>
-<li>이 응답은 DispatcherServlet에 닿기 전에 필터에서 만들어지므로 @ControllerAdvice로는 바꿀 수 없습니다. 응답 형식을 바꾸려면 AuthenticationEntryPoint와 AccessDeniedHandler를 직접 등록합니다.</li>
+<li>401은 &quot;누구인지 확인되지 않았다&quot;(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, ExceptionTranslationFilter가 익명 사용자의 접근 거부를 &quot;누구인지부터 밝혀라&quot;로 바꾸기 때문입니다. 이때 쓸 진입점을 oauth2ResourceServer가 BearerTokenAuthenticationEntryPoint로 등록해 두므로, exceptionHandling을 따로 적지 않아도 401이 나옵니다.</li>
+<li>이 응답은 DispatcherServlet에 닿기 전에 필터에서 만들어지므로 @ControllerAdvice로는 바꿀 수 없습니다. 응답 형식을 바꾸려면 oauth2ResourceServer(o -&gt; o.authenticationEntryPoint(…).accessDeniedHandler(…))로 다른 구현을 넘깁니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 설정 클래스 본문만 보임 (@Configuration 클래스 선언, jwtAuthenticationFilter 필드, import는 생략)
+<pre>// 설정 클래스 본문만 보임 (@Configuration 클래스 선언과 import는 생략)
+// oauth2ResourceServer, JwtDecoder, NimbusJwtDecoder, JwtAuthenticationConverter,
+// JwtGrantedAuthoritiesConverter는 Spring Security(spring-boot-starter-oauth2-resource-server)가 주는 것이다.
 @Bean
 SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http
-        .csrf(csrf -&gt; csrf.disable())
         .sessionManagement(s -&gt; s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -&gt; auth
             .requestMatchers(&quot;/public/**&quot;).permitAll()
             .requestMatchers(&quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;)
             .anyRequest().authenticated())
-        .addFilterBefore(jwtAuthenticationFilter,
-                         UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(e -&gt; e
-            .authenticationEntryPoint((req, res, ex) -&gt; res.setStatus(401))   // 인증 안 됨
-            .accessDeniedHandler((req, res, ex) -&gt; res.setStatus(403)))       // 권한 없음
+        .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))   // BearerTokenAuthenticationFilter를 넣는다
         .build();
 }
 
-// JwtAuthenticationFilter(예시로 직접 만든 필터): Authorization 헤더의 토큰을 검증하고
-// 유효하면 SecurityContext에 인증 정보를 넣는다</pre>
+@Bean   // 토큰의 서명을 확인할 디코더 (HS256, 키는 32바이트 이상)
+JwtDecoder jwtDecoder(@Value(&quot;${app.jwt.secret}&quot;) String secret) {   // app.jwt.secret은 예시로 정한 설정 이름
+    SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;);
+    return NimbusJwtDecoder.withSecretKey(key).build();
+}
+
+@Bean   // 토큰의 role 클레임(&quot;USER&quot;)을 권한 ROLE_USER로 바꾼다 (기본은 scope 클레임을 SCOPE_ 권한으로)
+JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter roles = new JwtGrantedAuthoritiesConverter();
+    roles.setAuthoritiesClaimName(&quot;role&quot;);
+    roles.setAuthorityPrefix(&quot;ROLE_&quot;);
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(roles);
+    return converter;
+}
+
+// 401·403 응답은 oauth2ResourceServer가 기본으로 등록하는 BearerTokenAuthenticationEntryPoint와
+// BearerTokenAccessDeniedHandler가 만든다(exceptionHandling을 따로 적지 않아도 된다).</pre>
 <h2>이 모형의 전제</h2>
-<p>세션을 쓰지 않는 JWT 방식의 일반적인 구성을 가정했습니다. 직접 만든 JwtAuthenticationFilter는 토큰이 없거나 잘못된 경우 거절하지 않고 넘긴다고 보았습니다(잘못된 토큰이면 이 필터에서 바로 401을 내도록 구현하기도 합니다). 열두 가지 조합 모두를 실제 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버에 HTTP 요청을 보내, 응답 코드와 응답을 만든 곳(AuthenticationEntryPoint, AccessDeniedHandler), 컨트롤러 실행 여부가 화면과 일치하는 것을 확인했습니다. 이때 두 가지를 알게 됐습니다. 첫째, 인증 실패 때의 응답을 정하지 않으면(exceptionHandling 설정이 없으면) 토큰 없는 요청에 401이 아니라 403이 돌아옵니다. 그래서 화면의 코드에 exceptionHandling 설정을 넣었습니다. 둘째, 권한 부족을 스프링 시큐리티의 기본 처리기에 맡기면 USER가 관리자 경로를 요청했을 때 403이 아니라 401이 돌아왔습니다. 기본 처리기가 오류 페이지(/error)로 요청을 다시 넘기는데, 그 요청에는 인증 정보가 없어 다시 인증 실패로 처리되기 때문입니다. 화면처럼 403이 나오게 하려면 처리기에서 상태 코드를 직접 응답하거나 /error 경로를 허용해야 합니다. 실제 체인에는 여기 적지 않은 필터가 더 있습니다.</p>
+<p>세션을 쓰지 않는 JWT API 서버에서 스프링 시큐리티의 oauth2ResourceServer와 HS256 JwtDecoder를 쓰는 구성을 가정했습니다. 열두 가지 조합을 실제 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버에 HTTP 요청으로 보내, 응답 코드와 응답을 만든 곳, 컨트롤러 실행 여부가 화면과 같은 것을 확인했습니다. 이때 authorizeHttpRequests, AnonymousAuthenticationFilter, ExceptionTranslationFilter, AuthorizationFilter는 실제 스프링 시큐리티가 돌았습니다. 다만 검증 실행 환경에 spring-security-oauth2-resource-server와 oauth2-jose가 없어서, oauth2ResourceServer가 넣는 세 부품(BearerTokenAuthenticationFilter, BearerTokenAuthenticationEntryPoint, BearerTokenAccessDeniedHandler)은 7.1.1 공식 소스에서 동작만 옮긴 대역으로 바꿔 끼웠고, 그 자리(BasicAuthenticationFilter 바로 앞)와 기본 등록 방식, 틀린 토큰이면 경로와 상관없이 그 자리에서 401로 끝낸다는 것, 403 처리기가 상태 코드를 직접 쓴다는 것은 소스와 대조했습니다. 토큰은 &quot;JWT의 구조와 검증&quot; 실습의 값이고 서명은 실제로 계산해 확인했습니다. 화면의 설정 코드는 공식 시그니처만 옮긴 대역과 함께 javac로 컴파일되는 것을 확인했습니다. 7.0부터 JwtAuthenticationConverter는 role에서 만든 권한 말고도 FACTOR_BEARER라는 권한을 하나 더 붙이지만, 이 실습의 규칙에는 영향이 없습니다. 실제 체인에는 여기 적지 않은 필터가 더 있습니다.</p>
 <p>앞 실습: <a href="../../lab/cacheabs/">캐시 추상화</a></p>
   </div>
 
@@ -193,6 +215,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

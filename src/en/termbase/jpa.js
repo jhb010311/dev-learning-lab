@@ -290,4 +290,10 @@ module.exports = [
     src: '[명세] 2.9.2, 2.11. Entity Relationships ; [API] OneToMany ; [H-입문] 3.19. Many-to-many, 4.4 ; [H-가이드] 3장(3.7.12–3.9.12 사이)',
     also: ['many-to-many', '@ManyToMany', 'join table', '@JoinTable', 'association table', 'link table', 'link entity'],
     note: '"연결 테이블"의 명세 용어는 join table이다(@JoinTable): "a join table is used to map the map for a many-to-many relationship", "a unidirectional OneToMany association is sometimes mapped to a join table using the JoinTable annotation." Hibernate는 다른 이름도 쓴다: 입문서 "It always maps to a separate association table in the database.", User Guide "requires a link table that joins two entities". 연결 테이블을 엔티티로 올린 것은 User Guide의 제목 "Bidirectional many-to-many with a link entity"에서 link entity. 명세: "For many-to-many bidirectional relationships either side may be the owning side." connection table, mapping table 같은 직역은 쓰지 않는다.' },
+  { ko: 'AttributeConverter', en: 'AttributeConverter', how: 'official',
+    src: 'Jakarta Persistence 3.2 API, jakarta.persistence.AttributeConverter — https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/attributeconverter',
+    note: '인터페이스 이름 그대로(enumtype).' },
+  { ko: 'Specification', en: 'Specification', how: 'official',
+    src: 'Spring Data JPA Reference, Specifications — https://docs.spring.io/spring-data/jpa/reference/jpa/specifications.html',
+    note: '인터페이스 이름 그대로(dynquery). 문서: "Spring Data JPA Specification provides a small, focused API to express predicates over entities".' },
 ];

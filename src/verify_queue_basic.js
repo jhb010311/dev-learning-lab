@@ -1,1 +1,1 @@
-Lab.verify({ queue_basic: ['run', 'Node.js 24.18.0의 http 서버 둘(이 실습을 위해 쓴 작은 큐 서버와 직접 요청을 받는 알림 서버)과 주문 서버 역할의 프로그램으로 네 가지 조합을 실행해 대조. Kafka, RabbitMQ 같은 실제 제품은 실행하지 않음'] });
+Lab.verify({ queue_basic: ['part', '큐를 지우고 직접 부르는 두 조합은 Spring Boot 4.1.1과 Spring Framework 7.0.9(RestClient, @PostMapping)로 화면과 같은 소스를 컴파일해 실행(ResourceAccessException 확인). 큐를 쓰는 두 조합은 RabbitMQ와 spring-amqp가 없어 화면 코드를 공식 시그니처만 옮긴 대역과 컴파일만 했고, 동작은 RabbitMQ·스프링 AMQP 문서대로 만든 실행용 모형(Node.js)으로 돌려 대조(verify/net/cmp_queue_basic.js)'] });

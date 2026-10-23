@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>라이브러리와 의존성: 라이브러리는 무엇이고, 없으면 어떻게 되는가 · 개발 학습 실습실</title>
-<meta name="description" content="라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Gree…">
+<meta name="description" content="라이브러리는 남이 만들어 둔 클래스들이고, 보통 jar 파일(컴파일된 클래스 파일을 하나로 묶은 파일)로 받아 씁니다. 이 실습의 App.java는 잭슨(Jackson)이라는 실제 라이브러리의 ObjectMapper 클래스로 Map을 JSON 글로 바꿉니다. ObjectMap…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dep_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="라이브러리와 의존성: 라이브러리는 무엇이고, 없으면 어떻게 되는가 · 개발 학습 실습실">
-<meta property="og:description" content="라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Gree…">
+<meta property="og:description" content="라이브러리는 남이 만들어 둔 클래스들이고, 보통 jar 파일(컴파일된 클래스 파일을 하나로 묶은 파일)로 받아 씁니다. 이 실습의 App.java는 잭슨(Jackson)이라는 실제 라이브러리의 ObjectMapper 클래스로 Map을 JSON 글로 바꿉니다. ObjectMap…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,72 +31,81 @@
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>라이브러리와 의존성</h1>
 <p><b>라이브러리는 무엇이고, 없으면 어떻게 되는가</b></p>
-<p><b>왜 생겼나</b> — JSON 글을 객체로 바꾸기, 테스트 실행하기 같은 흔한 일을 프로젝트마다 처음부터 짜면 시간이 들고 실수도 생긴다. 라이브러리는 이런 일을 하는 클래스를 jar 파일로 받아 import로 가져다 쓰게 한다. jar를 손으로 받아 -cp에 적는 번거로운 일은 Gradle이나 Maven 같은 빌드 도구가 대신 맡는다.</p>
-<p><b>지금 어디에 쓰나</b> — 스프링 부트 프로젝트의 build.gradle에서 dependencies 부분에 spring-boot-starter-web이나 JUnit 같은 라이브러리 이름을 적을 때 본다. Gradle은 그 라이브러리가 다시 쓰는 라이브러리까지 받아 와 클래스패스에 넣는다. 테스트에만 필요한 것은 testImplementation으로 적어, 프로그램을 실행할 때의 클래스패스에는 들어가지 않게 한다.</p>
-<p>라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Greeter는 App.java 안에 없습니다. 그래서 컴파일할 때도, 실행할 때도 컴파일러(javac)와 JVM(java)은 클래스패스(클래스 파일을 찾아볼 곳의 목록)에서 Greeter를 찾아야 하고, 명령에서는 -cp 뒤에 그 목록을 적습니다. 내 프로젝트가 쓰는 라이브러리를 의존성이라고 부르며, 빌드 도구 Gradle에서는 implementation으로 적은 의존성이 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 javac 명령과 java 명령에서 greet.jar를 하나씩 빼 가며 실제로 컴파일하고 실행해, 어느 단계에서 어떤 오류가 나는지를 봅니다. (Gradle은 이 실습에서 실행하지 않습니다.)</p>
-<p>실행으로 대조 · JDK 21에서 네 가지 조합을 greet.jar를 만들어 javac와 java 명령 그대로 실행해 대조</p>
+<p><b>왜 생겼나</b> — JSON 글을 객체로 바꾸기, 테스트 실행하기 같은 흔한 일을 프로젝트마다 처음부터 짜면 시간이 들고 실수도 생긴다. 라이브러리는 이런 일을 하는 클래스를 jar 파일로 받아 import로 가져다 쓰게 한다. jar를 손으로 받아 -cp에 적는 번거로운 일, 그 라이브러리가 다시 쓰는 jar까지 챙기는 일은 Gradle이나 Maven 같은 빌드 도구가 대신 맡는다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링 부트 프로젝트의 build.gradle에서 dependencies 부분에 라이브러리의 좌표(그룹:이름:버전)를 implementation 한 줄로 적을 때 본다. Gradle은 그 라이브러리가 다시 쓰는 라이브러리까지 받아 와 클래스패스에 넣는다. 테스트에만 필요한 것은 testImplementation으로 적어, 프로그램을 실행할 때의 클래스패스에는 들어가지 않게 한다. 실행 중에 NoClassDefFoundError가 나면, 그 클래스를 가진 jar가 실행할 때의 클래스패스에 있는지부터 본다.</p>
+<p>라이브러리는 남이 만들어 둔 클래스들이고, 보통 jar 파일(컴파일된 클래스 파일을 하나로 묶은 파일)로 받아 씁니다. 이 실습의 App.java는 잭슨(Jackson)이라는 실제 라이브러리의 ObjectMapper 클래스로 Map을 JSON 글로 바꿉니다. ObjectMapper는 내가 만든 클래스도 아니고 자바(JDK)가 주는 클래스도 아니며, jackson-databind라는 jar 파일이 가진 클래스입니다. 그래서 컴파일하는 javac와 실행하는 java는 클래스패스(클래스 파일을 찾아볼 곳의 목록, 명령에서는 -cp 뒤에 적음)에서 그 jar를 찾아야 합니다. 또 jackson-databind는 jackson-core와 jackson-annotations라는 다른 jar를 쓰기 때문에, 내 코드에 나오지 않는 그 두 jar도 있어야 합니다. 이 실습은 두 명령의 -cp에서 잭슨 jar를 빼 가며 실제로 컴파일하고 실행해, 어느 단계에서 어떤 오류가 나는지 봅니다. 실제 프로젝트에서는 build.gradle의 implementation 한 줄을 적으면 Gradle이 이 jar들을 받아 클래스패스에 넣어 줍니다(Gradle은 이 실습에서 실행하지 않고, 문서로 대조했습니다).</p>
+<p>실행으로 대조 · JDK 21에서 실제 잭슨 jar(jackson-databind·jackson-core 3.1.5, jackson-annotations 2.21)로 아홉 가지 조합을 화면의 javac·java 명령 그대로 실행해 대조(20/20). build.gradle의 implementation 한 줄과 전이 의존성은 Gradle 공식 문서와 대조했고, 잭슨으로 Gradle을 실행하지는 않음(캐시에 있던 Gson으로 Gradle 8.14.3을 오프라인 실행해 전이 의존성이 두 클래스패스 목록에 올라오는 것만 확인)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>라이브러리와 jar 파일</dt>
-<dd>라이브러리는 남이 만들어 둔 클래스들로, 내 코드가 import로 가져다 쓴다. 자바에서는 컴파일한 클래스 파일을 jar 파일 하나로 묶어 나누어 주는 일이 흔하다. 예를 들어 Greeter.java를 컴파일해 jar 도구로 묶으면 jar tf greet.jar가 lib/Greeter.class를 비롯한 안의 파일 목록을 보여 준다. 내 코드를 컴파일하거나 실행할 때 jar 안의 클래스가 필요하면, 그 jar를 클래스패스에 적어야 한다. jar가 내 소스와 같은 폴더에 놓여 있다는 것만으로는 찾아보는 곳에 들어가지 않는다.</dd>
+<dd>라이브러리는 남이 만들어 둔 클래스들로, 내 코드가 import로 가져다 쓴다. 자바에서는 컴파일한 클래스 파일을 jar 파일 하나로 묶어 나누어 주는 일이 흔하다. 예를 들어 JSON 라이브러리 잭슨의 jackson-databind-3.1.5.jar를 jar tf로 보면 tools/jackson/databind/ObjectMapper.class 같은 클래스 파일 목록이 나온다. 내 코드를 컴파일하거나 실행할 때 jar의 클래스가 필요하면, 그 jar를 클래스패스에 적어야 한다. jar가 내 소스와 같은 폴더에 놓여 있다는 것만으로는 찾아보는 곳이 되지 않는다. 직접 만든 클래스도 jar 도구로 묶으면 같은 방법으로 쓸 수 있다.</dd>
+<dt>잭슨(Jackson)과 ObjectMapper</dt>
+<dd><b>왜 생겼나</b> — JSON은 웹 API가 데이터를 주고받는 가장 흔한 글 형식이라, 객체와 JSON 사이를 바꾸는 코드를 프로젝트마다 손으로 쓰면 시간이 들고 실수가 잦다. 잭슨은 이 변환을 한 번 잘 만들어 모두가 받아 쓰게 한 라이브러리이다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 MVC가 @RequestBody로 받은 JSON을 객체로 바꾸고, @RestController가 돌려준 객체를 JSON 응답으로 바꿀 때 잭슨을 쓴다. 코드에서 직접 JSON 글을 만들거나 읽을 때도 ObjectMapper를 쓴다.</dd>
+<dd>잭슨은 자바 객체를 JSON 글로, JSON 글을 자바 객체로 바꾸는 라이브러리이고, ObjectMapper는 그 일을 하는 잭슨의 중심 클래스이다. new ObjectMapper()로 만든 뒤 writeValueAsString(객체)를 부르면 JSON 글이 돌아온다. 잭슨은 jar 여러 개로 나뉘어 있어서 ObjectMapper가 있는 jackson-databind는 jackson-core(JSON을 읽고 쓰는 바탕)와 jackson-annotations(애너테이션)를 쓴다. 잭슨 3부터 패키지와 좌표의 그룹은 tools.jackson으로 시작한다(잭슨 2는 com.fasterxml.jackson). 단, jackson-annotations는 잭슨 3에서도 com.fasterxml.jackson.annotation 패키지를 쓴다.</dd>
 <dt>클래스패스(-cp)</dt>
 <dd><b>왜 생겼나</b> — JVM이 컴퓨터의 모든 폴더를 뒤져 클래스를 찾는다면 느리고, 같은 이름의 클래스가 여러 곳에 있을 때 어느 것을 쓸지도 정할 수 없다. 클래스패스는 찾아볼 곳과 그 순서를 사람이 정해 주게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 평소에는 IntelliJ나 Gradle이 의존성 jar를 모아 클래스패스를 만들어 주므로 직접 적을 일이 적다. 실행할 때 클래스를 찾지 못했다는 오류가 나면, 그 클래스를 가진 jar가 클래스패스에 있는지부터 확인한다.</dd>
-<dd>클래스패스는 컴파일러(javac)와 JVM(java)이 사용자 클래스 파일을 찾아볼 곳의 목록이다. 명령에서는 -cp(또는 --class-path, -classpath) 뒤에 적고, 목록의 한 곳은 디렉터리나 JAR 파일이며 Windows에서는 세미콜론(;)으로, 그 밖의 시스템에서는 콜론(:)으로 구분한다. -cp를 적지 않고 CLASSPATH 환경 변수도 없으면 javac와 java 모두 현재 폴더를 쓴다. javac와 java는 각각 자기 명령의 클래스패스를 따로 받으므로, 컴파일할 때 준 -cp가 실행할 때 저절로 이어지지 않는다. -cp greet.jar처럼 jar만 적으면 현재 폴더는 찾아보는 곳이 아니므로, 현재 폴더의 클래스 파일도 쓰려면 greet.jar;.처럼 점(.)을 함께 적어야 한다.</dd>
+<dd>클래스패스는 컴파일러(javac)와 JVM(java)이 사용자 클래스 파일을 찾아볼 곳의 목록이다. 명령에서는 -cp(또는 --class-path, -classpath) 뒤에 적고, 목록의 한 곳은 디렉터리나 JAR 파일이며 Windows에서는 세미콜론(;)으로, 그 밖의 시스템에서는 콜론(:)으로 구분한다. -cp를 적지 않고 CLASSPATH 환경 변수도 없으면 javac와 java 모두 현재 폴더를 쓴다. javac와 java는 각각 자기 명령의 클래스패스를 따로 받으므로, 컴파일할 때 준 -cp가 실행할 때 저절로 이어지지 않는다. -cp에 jar만 적으면 현재 폴더는 찾아보는 곳이 아니므로, 현재 폴더의 클래스 파일도 쓰려면 jar 목록 끝에 ;.처럼 점(.)을 함께 적어야 한다.</dd>
 <dt>NoClassDefFoundError</dt>
-<dd>NoClassDefFoundError는 JVM이나 클래스 로더가 클래스의 정의를 불러오려는데 그 정의를 찾을 수 없을 때 던져지는 오류이다. API 문서는 찾으려는 클래스의 정의가 지금 실행 중인 클래스를 컴파일할 때는 있었지만 이제는 찾을 수 없는 경우라고 설명한다. 라이브러리 jar를 컴파일할 때는 클래스패스에 넣고 실행할 때는 빼면 이 오류가 난다. 컴파일할 때 jar가 없어서 나는 &quot;package lib does not exist&quot; 같은 컴파일 오류와는 시점이 다르다. 컴파일 오류는 프로그램을 실행하기 전에 컴파일러가 알리고, 이 오류는 프로그램이 실행되는 도중에 그 클래스가 필요해진 곳에서 난다.</dd>
+<dd>NoClassDefFoundError는 JVM이나 클래스 로더가 클래스의 정의를 불러오려는데 그 정의를 찾을 수 없을 때 던져지는 오류이다. API 문서는 찾으려는 클래스의 정의가 지금 실행 중인 클래스를 컴파일할 때는 있었지만 이제는 찾을 수 없는 경우라고 설명한다. 라이브러리 jar를 컴파일할 때는 클래스패스에 넣고 실행할 때는 빼면 이 오류가 난다. 내 코드가 직접 쓰지 않는 jar라도, 내가 쓰는 라이브러리가 쓰는 jar(전이 의존성)가 빠지면 똑같이 난다. 예를 들어 jackson-core를 빼고 실행하면 new ObjectMapper() 줄에서 NoClassDefFoundError: tools/jackson/core/TreeCodec이 난다. 컴파일할 때 jar가 없어서 나는 &quot;package ... does not exist&quot; 같은 컴파일 오류와는 시점이 다르다. 컴파일 오류는 프로그램을 실행하기 전에 컴파일러가 알리고, 이 오류는 프로그램이 실행되는 도중에 그 클래스가 처음 필요해진 곳에서 난다.</dd>
 <dt>빌드 의존성과 implementation</dt>
-<dd><b>왜 생겼나</b> — jar 파일을 각자 받아 쓰면 팀원마다 다른 버전을 쓰게 되기 쉽다. build.gradle에 좌표와 버전을 적어 두면 누구의 컴퓨터에서 빌드하든 같은 라이브러리를 같은 버전으로 받아 온다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 내 코드에서 import해 쓰는 라이브러리는 implementation에 적는다. 내 코드가 직접 부르지 않고 실행할 때만 필요한 DB 드라이버는 runtimeOnly에 적는다.</dd>
-<dd>의존성은 내 프로젝트가 쓰는 라이브러리이다. Gradle에서는 dependencies 블록 안에 group:name:version 좌표로 적는다. 그 가운데 implementation은 메인 소스를 컴파일할 때와 실행할 때 모두 필요한 의존성을 적는 자리이다. Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일에 쓰는 compileClasspath와 실행에 쓰는 runtimeClasspath에 모두 포함된다. 곧 손으로 javac와 java 명령에 -cp를 적던 일을 빌드 도구가 설정 한 줄로 대신한다.</dd>
+<dd><b>왜 생겼나</b> — jar 파일을 각자 받아 쓰면 팀원마다 다른 버전을 쓰게 되기 쉽고, 라이브러리가 쓰는 jar를 빠뜨리기도 쉽다. build.gradle에 좌표와 버전을 적어 두면 누구의 컴퓨터에서 빌드하든 같은 라이브러리를 같은 버전으로 받아 온다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 내 코드에서 import해 쓰는 라이브러리는 implementation에 적는다. 내 코드가 직접 부르지 않고 실행할 때만 필요한 DB 드라이버는 runtimeOnly에, 테스트에만 쓰는 것은 testImplementation에 적는다.</dd>
+<dd>의존성은 내 프로젝트가 쓰는 라이브러리이다. Gradle에서는 dependencies 블록에 group:name:version 좌표로 적는다. 예를 들어 implementation 'tools.jackson.core:jackson-databind:3.1.5'이다. 그 가운데 implementation은 메인 소스를 컴파일할 때와 실행할 때 모두 필요한 의존성을 적는 자리이다. Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일에 쓰는 compileClasspath와 실행에 쓰는 runtimeClasspath에 모두 포함되고, Gradle은 라이브러리마다 딸린 정보 파일(POM 등)을 읽어 그 라이브러리가 쓰는 라이브러리도 함께 넣는다. 곧 jar를 받아 javac와 java 명령에 -cp를 적던 일을 빌드 도구가 설정 한 줄로 대신한다.</dd>
+<dt>전이 의존성</dt>
+<dd>내가 빌드 파일에 직접 적은 라이브러리(직접 의존성)가 다시 필요로 해서 함께 들어오는 라이브러리다. 빌드 도구는 라이브러리마다 딸린 설명 파일을 읽어 필요한 것을 차례로 따라가며 가져오므로, 한 줄을 적어도 실제로 들어오는 라이브러리는 훨씬 많다. 전이 의존성도 내 프로그램 안에서 직접 의존성과 똑같이 실행되므로 그 취약점은 내 프로그램의 취약점이 된다. 빌드 파일에는 이름이 보이지 않기 때문에, 의존성 나무를 출력하는 명령으로 무엇이 어떤 경로로 들어왔는지 확인해야 한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 컴파일과 실행 명령에 모두 greet.jar가 있습니다. 컴파일에 성공하고 hello, kim이 출력됩니다.</li>
-<li><b>컴파일할 때 -cp greet.jar를 빼면</b> — 컴파일러가 Greeter를 찾지 못해 컴파일이 실패합니다.</li>
-<li><b>실행할 때 greet.jar를 빼면</b> — 컴파일에는 성공하지만, 실행하는 중에 Greeter를 찾지 못해 오류가 납니다.</li>
-<li><b>둘 다 빼면</b> — 컴파일 단계에서 이미 실패해 실행할 수 없습니다.</li>
+<li><b>처음 설정으로</b> — 컴파일과 실행 명령의 -cp에 잭슨 jar 세 개가 모두 있습니다. 컴파일에 성공하고 {&quot;name&quot;:&quot;kim&quot;}이 출력됩니다.</li>
+<li><b>컴파일할 때 jar를 모두 빼면</b> — 컴파일러가 tools.jackson.databind 패키지와 ObjectMapper를 찾지 못해 오류 3개로 컴파일이 실패합니다.</li>
+<li><b>실행할 때 jar를 모두 빼면</b> — 컴파일에는 성공하지만, 실행하는 중에 new ObjectMapper() 줄에서 NoClassDefFoundError가 납니다.</li>
+<li><b>실행할 때 jackson-core만 빼면</b> — ObjectMapper가 jackson-core의 TreeCodec을 쓰기 때문에, 실행 중에 NoClassDefFoundError(tools/jackson/core/TreeCodec)가 납니다.</li>
+<li><b>컴파일할 때 jackson-core만 빼면</b> — 컴파일러도 TreeCodec을 찾지 못해 writeValueAsString 줄에서 오류 1개로 컴파일이 실패합니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>터미널에 javac -cp greet.jar App.java 명령을 입력하면 컴파일러(javac)가 App.java를 읽습니다. 소스 맨 위의 import lib.Greeter; 줄은 App.java 안에 없는 Greeter 클래스를 가져다 쓰겠다는 뜻입니다. Greeter는 남이 만들어 둔 클래스이고, greet.jar 안에 lib/Greeter.class라는 파일로 들어 있습니다.</li>
-<li>컴파일러는 Greeter가 어떤 클래스인지 알아야 컴파일할 수 있으므로, 클래스패스에서 lib/Greeter.class를 찾습니다. 클래스패스는 클래스 파일을 찾아볼 곳의 목록이고, 명령의 -cp 뒤에 적습니다. 이 명령은 -cp greet.jar라고 적었으므로 찾아볼 곳은 greet.jar입니다.</li>
-<li>greet.jar 안에서 lib/Greeter.class를 찾았습니다. 컴파일러가 Greeter 클래스를 알게 되었으므로 Greeter.hello(&quot;kim&quot;) 줄도 통과합니다.</li>
-<li>컴파일에 성공해 App.class가 만들어집니다. 폴더에 새로 생긴 클래스 파일은 App.class 하나뿐이고, Greeter.class는 복사되지 않았습니다. greet.jar의 내용이 App.class 안으로 들어온 것이 아닙니다.</li>
-<li>java -cp greet.jar;. App 명령을 입력하면 JVM(java)이 클래스패스에서 App 클래스를 찾아 main을 시작합니다. 클래스패스는 greet.jar;.입니다. 세미콜론(;)은 Windows에서 여러 곳을 구분하는 글자이고(macOS와 Linux는 :), 맨 뒤의 점(.)은 현재 폴더, 곧 App.class가 있는 곳입니다. 점을 빼고 -cp greet.jar만 적으면 현재 폴더를 찾아보지 않아 App을 찾지 못합니다.</li>
-<li>main 안의 System.out.println(Greeter.hello(&quot;kim&quot;)) 줄에서 Greeter.hello를 부르려면 Greeter 클래스가 필요합니다. JVM이 클래스패스에서 lib/Greeter.class를 찾습니다.</li>
-<li>greet.jar 안에서 lib/Greeter.class를 찾아 불러옵니다. hello(&quot;kim&quot;)이 hello, kim을 돌려주고, println이 그 글을 출력합니다.</li>
+<li>터미널에 javac 명령을 입력하면 컴파일러(javac)가 App.java를 읽습니다. 첫 줄의 java.util.Map은 자바(JDK)가 주는 클래스라서 따로 적지 않아도 찾습니다. 둘째 줄의 import tools.jackson.databind.ObjectMapper;는 다릅니다. ObjectMapper는 JDK의 클래스가 아니라 잭슨이라는 라이브러리가 주는 클래스이고, jackson-databind-3.1.5.jar라는 jar 파일이 tools/jackson/databind/ObjectMapper.class를 가지고 있습니다.</li>
+<li>컴파일러는 ObjectMapper가 어떤 클래스인지 알아야 컴파일할 수 있으므로, 클래스패스에서 ObjectMapper.class를 찾습니다. 클래스패스는 클래스 파일을 찾아볼 곳의 목록이고, 명령의 -cp 뒤에 적습니다(Windows에서는 세미콜론(;)으로 구분). 이 명령은 잭슨 jar 세 개를 적었으므로 찾아볼 곳은 jackson-databind, jackson-core, jackson-annotations입니다.</li>
+<li>jackson-databind jar에서 ObjectMapper.class를 찾았습니다. 그런데 ObjectMapper의 선언에는 jackson-core의 TreeCodec이라는 이름이 적혀 있습니다(public class ObjectMapper implements TreeCodec&lt;JsonNode&gt;, …). 그래서 mapper.writeValueAsString(…) 줄을 확인하려면 컴파일러는 TreeCodec.class도 찾아야 합니다.</li>
+<li>jackson-core jar에서 TreeCodec.class를 찾았습니다. 컴파일러가 필요한 클래스를 모두 알게 되었습니다.</li>
+<li>컴파일에 성공해 App.class가 만들어집니다. 폴더에 새로 생긴 클래스 파일은 App.class 하나뿐입니다. 잭슨의 클래스 파일이 App.class로 복사된 것이 아니므로, 실행할 때 JVM이 jar에서 다시 찾아야 합니다.</li>
+<li>java 명령을 입력하면 JVM(java)이 클래스패스에서 App 클래스를 찾아 main을 시작합니다. 맨 뒤의 점(.)은 현재 폴더, 곧 App.class가 있는 곳입니다. javac에 적은 -cp는 java 명령으로 이어지지 않으므로, 실행할 때 쓸 jar는 이 명령에 다시 적어야 합니다. 이 명령은 잭슨 jar 세 개와 점(.)을 적었습니다.</li>
+<li>main의 첫 줄 new ObjectMapper()에서 ObjectMapper 클래스가 처음 필요해집니다. JVM이 클래스패스에서 ObjectMapper.class를 찾습니다.</li>
+<li>jackson-databind jar에서 ObjectMapper.class를 찾았습니다. 이 클래스를 불러오려면 그 선언에 적힌 jackson-core의 TreeCodec도 있어야 하므로, JVM이 TreeCodec.class를 찾습니다.</li>
+<li>TreeCodec.class는 jackson-core에서, ObjectMapper가 쓰는 애너테이션 클래스는 jackson-annotations에서 찾아 불러옵니다. writeValueAsString이 Map.of(&quot;name&quot;, &quot;kim&quot;)을 JSON 글 {&quot;name&quot;:&quot;kim&quot;}으로 바꿔 돌려주고, println이 그 글을 출력합니다.</li>
+<li>화면 아래 build.gradle의 implementation 'tools.jackson.core:jackson-databind:3.1.5' 한 줄은 지금까지 손으로 한 일을 빌드 도구 Gradle에 맡기는 방법입니다. 이 좌표(그룹:이름:버전)는 jackson-databind jar에 함께 묶여 있는 pom.xml에 적힌 것과 같고, 그 pom.xml에는 jackson-databind가 쓰는 라이브러리로 jackson-core와 jackson-annotations가 적혀 있습니다. Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일할 때의 클래스패스(compileClasspath)와 실행할 때의 클래스패스(runtimeClasspath)에 모두 들어가고, Gradle은 이런 정보 파일을 읽어 라이브러리가 쓰는 라이브러리(전이 의존성)도 찾아 함께 넣습니다. 이 실습은 잭슨으로 Gradle을 실행하지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>라이브러리는 남이 만들어 둔 클래스를 묶은 jar 파일입니다. 내 코드가 Greeter 같은 라이브러리의 클래스를 쓰려면 컴파일할 때(javac -cp greet.jar)와 실행할 때(java -cp greet.jar;.) 모두 그 jar가 클래스패스에 있어야 합니다. 둘 다 있었으므로 컴파일에 성공하고 hello, kim이 출력됐습니다.</li>
-<li>내 프로젝트가 쓰는 라이브러리를 의존성이라고 부릅니다. Gradle에서는 dependencies 안에 implementation(&quot;lib:greet:1.0&quot;)처럼 한 줄을 적고(이 이름은 설명을 위한 가짜입니다), Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 Gradle을 실행하지 않고, 그 일을 -cp로 손수 적어 보인 것입니다.</li>
+<li>잭슨 같은 라이브러리는 남이 만들어 둔 클래스를 jar 파일로 나누어 준 것입니다. 내 코드가 ObjectMapper를 쓰려면 컴파일할 때(javac -cp)와 실행할 때(java -cp) 모두 그 jar가 클래스패스에 있어야 하고, 둘 다 있었으므로 컴파일에 성공하고 {&quot;name&quot;:&quot;kim&quot;}이 출력됐습니다.</li>
+<li>내 코드가 직접 쓰는 것은 jackson-databind의 ObjectMapper뿐이지만, jackson-databind가 jackson-core와 jackson-annotations를 쓰므로 jar 세 개가 모두 필요했습니다(전이 의존성). 실제 프로젝트에서는 build.gradle에 implementation 한 줄을 적으면 Gradle이 이 jar들을 받아 클래스패스에 넣어 주므로, -cp를 손으로 적을 일은 드뭅니다.</li>
+<li>라이브러리는 결국 이런 jar 파일입니다. 예시로 만든 lib.Greeter 같은 클래스도 javac로 컴파일해 jar 도구로 greet.jar처럼 묶으면, 같은 방법으로 -cp에 적어 쓸 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
 <pre># App.java
-// greet.jar 안에 있는, 남이 만든 클래스를 가져온다
-import lib.Greeter;
+import java.util.Map;
+import tools.jackson.databind.ObjectMapper; // 잭슨 라이브러리(jackson-databind)가 주는 클래스
 
 public class App {
     public static void main(String[] args) {
-        System.out.println(Greeter.hello(&quot;kim&quot;));
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(Map.of(&quot;name&quot;, &quot;kim&quot;)); // Map을 JSON 글로 바꾼다
+        System.out.println(json);
     }
 }
 
-# greet.jar (Greeter.java를 컴파일해 jar로 묶은 것)
-package lib;
+# 터미널 (잭슨 jar 세 개를 받아 둔 폴더에서)
+javac -cp jackson-databind-3.1.5.jar;jackson-core-3.1.5.jar;jackson-annotations-2.21.jar App.java
+java -cp jackson-databind-3.1.5.jar;jackson-core-3.1.5.jar;jackson-annotations-2.21.jar;. App
 
-public class Greeter {
-    public static String hello(String name) {
-        return &quot;hello, &quot; + name;
-    }
-}
-
-# 터미널
-javac -cp greet.jar App.java
-java -cp greet.jar;. App</pre>
+# build.gradle (Gradle을 쓰면 jar를 받아 -cp에 적는 일을 이 한 줄이 대신한다)
+dependencies {
+    implementation 'tools.jackson.core:jackson-databind:3.1.5'
+}</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 네 가지 조합을 모두 대조했습니다. 먼저 lib.Greeter 클래스(hello 메서드 하나)를 javac와 jar 도구로 greet.jar에 묶었고(외부 jar는 받지 않았습니다), 조합마다 새 폴더에 greet.jar와 App.java를 놓고 화면에 적힌 터미널 명령 javac와 java를 그대로 실행했습니다. 화면의 코드는 Probe가 실제 파일 내용과 실제 실행한 명령으로 만들어 남긴 글과 같습니다. 대조한 것은 컴파일 성공 여부, 오류의 개수와 진단 코드(compiler.err.doesnt.exist와 compiler.err.cant.resolve.location를 화면의 두 가지 오류 설명으로 옮겼습니다)와 오류가 난 줄, App.class가 만들어졌는지, java 명령의 종료 코드와 출력, 실행 오류의 종류(NoClassDefFoundError)와 그 위치(App.java:6)입니다. 컴파일에 실패한 조합에서도 java 명령을 실제로 실행해, App 클래스를 찾을 수 없다는 오류가 나는 것을 확인했습니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. greet.jar에는 lib/Greeter.class가 들어 있다는 것(jar tf), 컴파일에 성공한 폴더에 생긴 클래스 파일은 App.class 하나뿐이라는 것, java 명령에서 -cp greet.jar만 적고 점(.)을 빼면 현재 폴더의 App.class를 찾지 못한다는 것, 컴파일 전 폴더에는 App.java와 greet.jar만 있었다는 것입니다. 명령은 Windows 11에서 실행했고, 클래스패스의 구분자 세미콜론(;)은 Windows 기준입니다(macOS와 Linux는 콜론). 화면에는 한 가지로만 적었습니다. CLASSPATH 환경 변수는 실행하는 프로세스에서 지웠고, 이 변수가 설정된 환경에서는 -cp를 적지 않은 명령의 결과가 달라질 수 있습니다. java 실행기의 오류 문장은 검증 실행에 쓴 Windows의 언어 설정(한국어)을 따라 한국어로 나왔고, 다른 언어 설정에서는 문장이 다릅니다. 문서는 직접 열어 확인했습니다. Oracle의 javac 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)에서 --class-path(-cp)가 사용자 클래스 파일을 찾을 곳을 정하고, -cp도 CLASSPATH 환경 변수도 없으면 현재 폴더가 쓰이며, 구분자가 Windows에서 세미콜론이라는 것을, java 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html, 앞부분 10만 자만 읽었고 -cp 설명은 그 안에 있었습니다)에서 -cp가 클래스 파일을 찾을 디렉터리, JAR 파일, ZIP 파일의 목록이고 지정하지 않으면 현재 폴더(.)라는 것을, NoClassDefFoundError API 문서(https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/NoClassDefFoundError.html)에서 클래스를 불러오려는데 정의를 찾을 수 없을 때 던져지며 컴파일할 때는 있었던 정의를 지금은 찾을 수 없는 경우라는 것을, Gradle 문서의 Declaring dependencies(https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html)에서 모듈 의존성을 group:name:version 좌표로 적는다는 것과 dependencies 안에 implementation으로 적는 예를, Java Plugin 문서(https://docs.gradle.org/current/userguide/java_plugin.html)의 설정 표에서 implementation이 컴파일할 때와 실행할 때 모두 필요한 의존성이고 compileClasspath와 runtimeClasspath에 포함된다는 것을 따랐습니다. Gradle은 실행하지 않았고, 저장소에서 jar를 내려받는 과정은 문서로도 확인하지 못해 적지 않았습니다. 오류의 개수와 종류, 오류 문장은 명세가 정한 것이 아니라 이 JDK에서 관찰한 것입니다. 이 밖에 라이브러리가 다시 다른 라이브러리를 끌어오는 것(전이 의존성), 버전, 클래스패스 여러 곳에 같은 클래스가 있을 때의 순서, 모듈 시스템은 다루지 않았고, 의존성과 공급망은 &quot;세부 동작 실습: 의존성과 공급망&quot;에서, 의존성을 보고 설정을 자동으로 만들어 주는 스프링 부트는 &quot;세부 동작 실습: 스프링 부트 자동 설정&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)이고, 라이브러리는 이미 받아 둔 잭슨 jar 세 개(jackson-databind 3.1.5, jackson-core 3.1.5, jackson-annotations 2.21)를 썼습니다(새로 내려받지 않았습니다). 잭슨 3부터 패키지 이름은 tools.jackson으로 시작하고(잭슨 2는 com.fasterxml.jackson), jackson-annotations만 com.fasterxml.jackson.annotation 패키지를 그대로 씁니다. 화면의 좌표 tools.jackson.core:jackson-databind:3.1.5는 jackson-databind jar에 함께 묶여 있는 pom.xml에서 읽었습니다. 아홉 가지 조합(javac의 -cp 3가지와 java의 -cp 3가지)을 모두 대조했습니다. 조합마다 새 폴더에 jar 세 개와 App.java를 놓고 화면에 적힌 터미널 명령 javac와 java를 그대로 실행했고, 화면의 코드는 대조 프로그램이 실제 파일 내용과 실행한 명령으로 만들어 남긴 글과 글자까지 같습니다. 대조한 것은 컴파일 성공 여부, 오류의 개수와 진단 코드(compiler.err.doesnt.exist, compiler.err.cant.resolve.location, compiler.err.cant.access를 화면의 오류 설명으로 옮겼습니다)와 오류가 난 줄, App.class가 만들어졌는지, java 명령의 종료 코드와 출력, 실행 오류의 종류와 대상 클래스, 그 위치(App.java:6)입니다. 컴파일에 실패한 조합에서도 java 명령을 실제로 실행해, App 클래스를 찾을 수 없다는 오류가 나는 것을 확인했습니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. jar마다 ObjectMapper.class, TreeCodec.class, JsonSerializeAs.class가 있다는 것(jar tf), ObjectMapper의 선언이 tools.jackson.core.TreeCodec을 구현한다는 것(javap), jackson-databind의 pom.xml에 test 범위가 아닌 의존성으로 jackson-annotations와 jackson-core가 적혀 있다는 것, 컴파일에 성공한 폴더에 생긴 클래스 파일은 App.class 하나뿐이라는 것, 실행할 때 jar만 적고 점(.)을 빼면 App을 찾지 못한다는 것입니다. 실행할 때 jackson-annotations만 빼도 App.java:6에서 NoClassDefFoundError(com/fasterxml/jackson/annotation/JsonSerializeAs)가 나는 것을 따로 확인했고, 화면의 &quot;애너테이션 클래스는 jackson-annotations에서 불러온다&quot;는 문장은 이 결과에 기댑니다. 요약 끝 문장의 greet.jar는 예시로 만든 lib.Greeter를 javac와 jar 도구로 묶어 -cp greet.jar로 컴파일하고 -cp greet.jar;.로 실행해 hello, kim이 출력되는 것을 확인했습니다. 명령은 Windows 11에서 실행했고, 클래스패스의 구분자 세미콜론(;)은 Windows 기준입니다(macOS와 Linux는 콜론). CLASSPATH 환경 변수는 실행하는 프로세스에서 지웠고, 이 변수가 설정된 환경에서는 -cp를 적지 않은 명령의 결과가 달라질 수 있습니다. java 실행기의 오류 문장은 검증 실행에 쓴 Windows의 언어 설정(한국어)을 따랐고, 오류의 개수와 종류, 오류 문장은 명세가 정한 것이 아니라 이 JDK와 이 잭슨 버전에서 관찰한 것입니다. 문서는 직접 열어 확인했습니다. Oracle의 javac 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)와 java 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)에서 -cp가 클래스 파일을 찾을 디렉터리와 JAR 파일의 목록이고 지정하지 않으면 현재 폴더라는 것을, NoClassDefFoundError API 문서(https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/NoClassDefFoundError.html)에서 컴파일할 때는 있었던 클래스 정의를 실행할 때 찾을 수 없으면 던져진다는 것을 따랐습니다. Gradle은 Java Plugin 문서(https://docs.gradle.org/current/userguide/java_plugin.html)에서 implementation이 컴파일과 실행에 모두 필요한 의존성이고 compileClasspath와 runtimeClasspath가 implementation을 포함한다는 것을, Graph Resolution 문서(https://docs.gradle.org/current/userguide/graph_resolution.html)에서 Gradle이 모듈의 메타데이터(POM 등)를 읽어 그 의존성을 그래프에 더하며 이 과정이 올바른 전이 의존성을 빌드에 넣는다는 것을, Dependency Management 기초 문서(https://docs.gradle.org/current/userguide/dependency_management_basics.html)에서 Gradle이 의존성을 내려받고 캐시하고 풀어 준다는 것을 따랐습니다. 잭슨으로는 Gradle을 실행하지 않았습니다. 이 컴퓨터의 Gradle 캐시에 잭슨이 없고 내려받지 않았기 때문입니다. 대신 캐시에 있던 Gson 2.11.0으로 Gradle 8.14.3을 오프라인 실행해, implementation 한 줄만 적었는데 Gson이 쓰는 error_prone_annotations가 compileClasspath와 runtimeClasspath의 의존성 목록에 함께 올라오는 것을 확인했습니다(그 jar 파일은 캐시에 없어 실제 jar 목록까지는 풀지 못했습니다). 따라서 jackson-core와 jackson-annotations가 Gradle의 어느 클래스패스에 들어가는지는 잭슨으로 직접 확인한 것이 아니라 문서와 이 확인에 기댄 것입니다. 버전 충돌, 클래스패스 여러 곳에 같은 클래스가 있을 때의 순서, 모듈 시스템은 다루지 않았고, 의존성과 공급망은 &quot;세부 동작 실습: 의존성과 공급망&quot;에서, 의존성을 보고 설정을 자동으로 만들어 주는 스프링 부트는 &quot;세부 동작 실습: 스프링 부트 자동 설정&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/io_basic/">파일 입출력</a> · 다음 실습: <a href="../../lab/bean_basic/">빈</a></p>
   </div>
 
@@ -189,6 +198,6 @@ java -cp greet.jar;. App</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

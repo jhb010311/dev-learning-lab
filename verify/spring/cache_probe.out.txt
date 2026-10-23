@@ -1,0 +1,6 @@
+# spring 7.0.9 | java 21.0.12.1 | threads 20 | body 300ms
+plain_map => threads=20|loads=20|distinctValues=20|cacheGet=20|cacheGetWithLoader=0|minMs=341|maxMs=341|loadsAfterOneMoreCall=20|cached=[1]
+sync_map => threads=20|loads=1|distinctValues=1|cacheGet=0|cacheGetWithLoader=20|minMs=306|maxMs=307|loadsAfterOneMoreCall=1|cached=[1]
+sync_nolock => threads=20|loads=20|distinctValues=20|cacheGet=0|cacheGetWithLoader=20|minMs=309|maxMs=310|loadsAfterOneMoreCall=20|cached=[1]
+plain_nolock => threads=20|loads=20|distinctValues=20|cacheGet=20|cacheGetWithLoader=0|minMs=300|maxMs=312|loadsAfterOneMoreCall=20|cached=[1]
+sync_unless => error=java.lang.IllegalStateException: A sync=true operation does not support the unless attribute on 'Builder[public java.lang.String CacheProbe$SyncUnlessService.getProduct(long)] caches=[product] | key='#id' | keyGenerator='' | cacheManager='' | cacheResolver='' | condition='' | unless='#result == null' | sync='true''

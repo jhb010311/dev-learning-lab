@@ -20,8 +20,8 @@ Lab.register({
     return '// 메서드 안의 줄만 보임 (선언과 import는 생략. tooManyRequests는 예시로 만든 메서드)\n' + this.codeBody(c);
   },
   codeBody: function (c) {
-    if (c.algo === 'fixed') return '// 고정 윈도: 키 = 사용자 + 현재 초\nString key = "rate:" + userId + ":" + (now / 1000);\nlong count = redis.incr(key);            // 이번 초의 요청 수 +1\nif (count == 1) redis.expire(key, 1);    // 1초 뒤 사라짐\nif (count > 5) return tooManyRequests(); // 429';
-    if (c.algo === 'sliding') return '// 슬라이딩 윈도: 최근 1초 안의 요청 시각을 모두 기록\nString key = "rate:" + userId;\nredis.zremrangeByScore(key, 0, now - 1000);   // 1초보다 오래된 기록 삭제\nif (redis.zcard(key) >= 5) return tooManyRequests();   // 429\nredis.zadd(key, now, requestId);';
+    if (c.algo === 'fixed') return '// redis는 Redis 서버에 명령을 보내는 Jedis 클라이언트 객체 (메서드 이름이 Redis 명령 INCR·EXPIRE와 같다)\n// 고정 윈도: 키 = 사용자 + 현재 초\nString key = "rate:" + userId + ":" + (now / 1000);\nlong count = redis.incr(key);            // 이번 초의 요청 수 +1\nif (count == 1) redis.expire(key, 1);    // 1초 뒤 사라짐\nif (count > 5) return tooManyRequests(); // 429';
+    if (c.algo === 'sliding') return '// redis는 Redis 서버에 명령을 보내는 Jedis 클라이언트 객체 (메서드 이름이 Redis 명령 ZREMRANGEBYSCORE·ZCARD·ZADD와 같다)\n// 슬라이딩 윈도: 최근 1초 안의 요청 시각을 모두 기록\nString key = "rate:" + userId;\nredis.zremrangeByScore(key, 0, now - 1000);   // 1초보다 오래된 기록 삭제\nif (redis.zcard(key) >= 5) return tooManyRequests();   // 429\nredis.zadd(key, now, requestId);';
     return '// 토큰 버킷: 용량 5, 초당 5개 보충\nBucket bucket = Bucket.builder()\n    .addLimit(limit -> limit.capacity(5)\n        .refillGreedy(5, Duration.ofSeconds(1)))\n    .build();\n\nif (!bucket.tryConsume(1)) return tooManyRequests();   // 토큰이 없으면 429';
   },
   label: function (c) { return { fixed: '고정 윈도', sliding: '슬라이딩 윈도', bucket: '토큰 버킷' }[c.algo] + ' · ' + { even: '고르게 초당 8건', edge: '경계에 몰림', burst: '한순간에 몰림' }[c.pat]; },
@@ -68,5 +68,5 @@ Lab.register({
     P.box('no', 346, 250, 318, 34, { cls: res.length - ok ? 'bad' : 'ghost', title: '거절 (429)', right: (res.length - ok) + '건' });
     P.note('점 하나가 요청 하나이고, 왼쪽에서 오른쪽으로 시간이 흐릅니다. 초록은 통과, 빨강은 거절입니다. ' + (algo === 'fixed' ? '고정 윈도는 점선 경계에서 카운터를 0으로 되돌리므로, 경계 양쪽에 몰린 요청이 한도의 두 배까지 통과할 수 있습니다.' : algo === 'sliding' ? '슬라이딩 윈도는 점선 경계와 관계없이 "지금부터 1초 전까지"를 셉니다.' : ''));
   },
-  assume: '제한은 초당 5건으로 고정했습니다. 세 알고리즘의 동작은 널리 쓰이는 정의를 따랐습니다. 슬라이딩 윈도는 요청 시각을 모두 기록하는 방식(슬라이딩 윈도 로그)으로 구현했고, 토큰 버킷은 시간이 흐른 만큼 연속적으로 토큰이 채워진다고 보았습니다. 실제 서비스에서는 사용자나 IP, API 키 단위로 따로 셉니다.',
+  assume: '제한은 초당 5건으로 고정했습니다. 세 알고리즘의 동작은 널리 쓰이는 정의를 따랐습니다. 슬라이딩 윈도는 요청 시각을 모두 기록하는 방식(슬라이딩 윈도 로그)으로 구현했고, 토큰 버킷은 시간이 흐른 만큼 연속적으로 토큰이 채워진다고 보았습니다. 실제 서비스에서는 사용자나 IP, API 키 단위로 따로 셉니다. 고정 윈도와 슬라이딩 윈도는 자바나 스프링이 따로 주는 API가 없어 Redis 명령으로 직접 짠 모습을 보였습니다. 코드의 redis는 Jedis 클라이언트 객체이고, 메서드 이름과 인자는 Jedis 문서와 대조했을 뿐 Redis 서버로 실행하지는 않았습니다.',
 });

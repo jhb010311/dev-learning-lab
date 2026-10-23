@@ -1,0 +1,29 @@
+# java 21.0.12.1
+# fact List: public abstract interface java.util.List<E> | isInterface=true
+# fact Comparable: public abstract interface java.lang.Comparable<T> | isInterface=true | abstract methods=public abstract int java.lang.Comparable.compareTo(T)
+# fact ArrayList: isInterface=false | extends AbstractList | implements List, RandomAccess, Cloneable, Serializable
+# fact LinkedList: isInterface=false | extends AbstractSequentialList | implements List, Deque, Cloneable, Serializable
+# fact String implements Serializable, Comparable, CharSequence, Constable, ConstantDesc | Comparable? true
+# fact trimToSize: ArrayList=true List=false LinkedList=false
+# fact List add/get/size: true/true/true
+# fact List default methods: addFirst, addLast, getFirst, getLast, removeFirst, removeLast, replaceAll, reversed, sort, spliterator
+# fact Collections.sort: public static <T extends java.lang.Comparable<? super T>> void java.util.Collections.sort(java.util.List<T>)
+# fact extends A, B: ERR compiler.err.expected / '{' expected
+# fact implements I, J: OK
+list-ArrayList-ArrayList-false => OK|-|0|true|true|[민수, 지은, 현우], 3명 / names가 가리키는 객체: ArrayList|-|-
+list-ArrayList-ArrayList-true => OK|-|0|true|true|[민수, 지은, 현우], 3명 / names가 가리키는 객체: ArrayList|-|-
+list-ArrayList-LinkedList-false => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: cannot infer type arguments for java.util.LinkedList<>|ArrayList<String> names = new LinkedList<>();
+list-ArrayList-LinkedList-true => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: cannot infer type arguments for java.util.LinkedList<>|ArrayList<String> names = new LinkedList<>();
+list-ArrayList-List-false => ERR|compiler.err.abstract.cant.be.instantiated|2|false|false|-|java.util.List is abstract; cannot be instantiated|ArrayList<String> names = new List<>(); ## ArrayList<String> names = new List<>();
+list-ArrayList-List-true => ERR|compiler.err.abstract.cant.be.instantiated|2|false|false|-|java.util.List is abstract; cannot be instantiated|ArrayList<String> names = new List<>(); ## ArrayList<String> names = new List<>();
+list-List-ArrayList-false => OK|-|0|true|true|[민수, 지은, 현우], 3명 / names가 가리키는 객체: ArrayList|-|-
+list-List-ArrayList-true => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|names.trimToSize();
+list-List-LinkedList-false => OK|-|0|true|true|[민수, 지은, 현우], 3명 / names가 가리키는 객체: LinkedList|-|-
+list-List-LinkedList-true => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|names.trimToSize();
+list-List-List-false => ERR|compiler.err.abstract.cant.be.instantiated|1|false|false|-|java.util.List is abstract; cannot be instantiated|List<String> names = new List<>();
+list-List-List-true => ERR|compiler.err.abstract.cant.be.instantiated|2|false|false|-|java.util.List is abstract; cannot be instantiated|List<String> names = new List<>(); ## names.trimToSize();
+own-cls => OK|-|0|true|true|안녕하세요, 민수|-|-
+own-iface => OK|-|0|true|true|안녕하세요, 민수|-|-
+sort-both => OK|-|0|true|true|지은 25 / 현우 28 / 민수 31|-|-
+sort-noimpl => ERR|compiler.err.cant.apply.symbols|1|false|false|-|no suitable method found for sort(java.util.List<Member>)|Collections.sort(members);
+sort-nomethod => ERR|compiler.err.does.not.override.abstract|1|false|false|-|Member is not abstract and does not override abstract method compareTo(Member) in java.lang.Comparable|class Member implements Comparable<Member> {

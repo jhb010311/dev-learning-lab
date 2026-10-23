@@ -1,1 +1,1 @@
-Lab.verify({ cache: ['model', 'A model that shows how the behavior works'] });
+Lab.verify({ cache: ['part', 'The behavior of @Cacheable and sync = true (how many times the body runs when 20 threads call at the same time, and the exception when it is used with unless) was checked by running it on Spring 7.0.9. The Redis side (entryTtl, the locking writer, and the default writer not locking since 3.4) was checked against the official documentation and the source, and the times and counts are a model'] });

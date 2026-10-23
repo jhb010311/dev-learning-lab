@@ -1,142 +1,166 @@
 Lab.register({
   id: 'enumtype', nav: 'Enum classes', cat: 'Java language', mode: 'step',
-  title: 'Why does an enum saved as a number come back as a different constant?',
-  why: 'Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time.',
-  use: 'It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. Processing that differs for each constant is divided with switch or handled with methods placed in the enum. When saving to a database with JPA, you save the name with @Enumerated(EnumType.STRING) instead of the default ordinal number, or you save a code value you defined yourself by converting it with an AttributeConverter.',
-  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.',
-  terms: ['Enum class', 'ordinal() and name()', 'valueOf method of an enum class', 'Identity and equality'],
+  title: 'Why does an enum saved with @Enumerated(EnumType.ORDINAL) come back as a different constant?',
+  why: 'Before enums, values such as the status of an order were represented with int constants or strings. Then the compiler could not stop you from passing a number that was not defined or a misspelled string, and it was hard to notice when constants of another kind that used the same numbers got mixed in. An enum groups the possible values into one type, so code that passes any other value or a constant of another kind is blocked at compile time. But a database column cannot hold an enum object as it is, so JPA lets you decide, with @Enumerated and AttributeConverter, how to turn it into a number or text when saving and turn it back when reading.',
+  use: 'It is used to represent values whose kinds are decided in advance, such as order status, payment method, and member grade. For an enum field of a JPA entity, it is usual to write @Enumerated(EnumType.STRING) to save the name of the constant. If you do not write @Enumerated, the value is saved with the default, ORDINAL (the position in the declaration). If you must save a short code such as P or S in the database, you create an AttributeConverter and specify it with @Convert.',
+  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. When you save an enum field of a JPA entity to a database, you choose how to save it with @Enumerated. EnumType.ORDINAL saves the position of the constant in the declaration, and EnumType.STRING saves the name of the constant. If you save by number and later change the order of the enum declaration, the number in the database stays the same, but the constant that the number refers to changes. This lab follows the results that Hibernate actually saved and read back.',
+  terms: ['Enum class', '@Enumerated', 'AttributeConverter', 'ordinal() and name()', 'valueOf method of an enum class'],
   controls: [
-    { id: 'store', label: 'Value written when saving', type: 'select', value: 'ordinal', options: [['ordinal', 'ordinal(): the position in the declaration'], ['name', 'name(): the name of the constant'], ['code', 'The value of code, a field you define yourself']] },
+    { id: 'store', label: 'How the status field is saved', type: 'select', value: 'ORDINAL', options: [['ORDINAL', '@Enumerated(EnumType.ORDINAL): the position in the declaration'], ['STRING', '@Enumerated(EnumType.STRING): the name of the constant'], ['code', '@Convert + AttributeConverter: a code value you define']] },
     { id: 'change', label: 'How the enum declaration was changed after saving', type: 'select', value: 'insert', options: [['same', 'Not changed'], ['append', 'A new constant CANCELED added at the very end'], ['insert', 'A new constant CANCELED inserted in the middle'], ['swap', 'ORDERED and PAID swapped'], ['rename', 'PAID renamed to PAYMENT_DONE']] },
-    { id: 'saved', label: 'Saved constant', type: 'select', value: 'PAID', options: [['ORDERED', 'ORDERED (Order received)'], ['PAID', 'PAID (Payment completed)'], ['SHIPPED', 'SHIPPED (Shipping started)']] },
+    { id: 'saved', label: 'Status of the saved order', type: 'select', value: 'PAID', options: [['ORDERED', 'ORDERED (Order received)'], ['PAID', 'PAID (Payment completed)'], ['SHIPPED', 'SHIPPED (Shipping started)']] },
   ],
   presets: [
-    { t: 'Default settings', q: 'Which constant do you get when you read back a PAID saved with ordinal() after CANCELED is inserted in the middle of the enum?', d: 'The ordinal is saved, and then a constant is inserted in the middle. "Payment completed" is read as "Order canceled".', v: { store: 'ordinal', change: 'insert', saved: 'PAID' } },
-    { t: 'Changing only the order', q: 'What if ORDERED and PAID are swapped instead of inserting a new constant?', d: 'Even if no constant is added, changing only the order makes the number refer to a different constant.', v: { store: 'ordinal', change: 'swap', saved: 'PAID' } },
-    { t: 'Adding at the very end', q: 'What if the new constant CANCELED is added at the very end instead of in the middle?', d: 'The ordinals of the existing constants stay the same, so nothing goes wrong.', v: { store: 'ordinal', change: 'append', saved: 'PAID' } },
-    { t: 'A constant that is safe by luck', q: 'What if the saved constant is ORDERED and CANCELED is still inserted in the middle?', d: 'The change is the same, but the ordinal of the first constant does not change.', v: { store: 'ordinal', change: 'insert', saved: 'ORDERED' } },
-    { t: 'Saving by name', q: 'What if you save the value of name() instead of ordinal()?', d: 'The same constant comes back even after a constant is inserted in the middle.', v: { store: 'name', change: 'insert', saved: 'PAID' } },
-    { t: 'Saved by name, then renamed', q: 'What if you save the value of name() and PAID is renamed to PAYMENT_DONE?', d: 'valueOf receives a name that does not exist and throws an IllegalArgumentException.', v: { store: 'name', change: 'rename', saved: 'PAID' } },
-    { t: 'Saving a code you define yourself', q: 'What if you save the value of code, a field you define yourself, and PAID is renamed to PAYMENT_DONE?', d: 'The same constant comes back whether the order is changed or the name is changed.', v: { store: 'code', change: 'rename', saved: 'PAID' } },
+    { t: 'Default settings', q: 'Which constant do you get when you read back a PAID order saved with @Enumerated(EnumType.ORDINAL), after CANCELED is inserted in the middle of the enum and the application is deployed again?', d: 'The number 1 stays in the database, and in the current declaration, position 1 is CANCELED. An order with payment completed is read as a canceled order.', v: { store: 'ORDINAL', change: 'insert', saved: 'PAID' } },
+    { t: 'Even changing only the order', q: 'What if ORDERED and PAID are swapped instead of inserting a new constant?', d: 'Even if no constant is added, changing only the order makes the number refer to a different constant.', v: { store: 'ORDINAL', change: 'swap', saved: 'PAID' } },
+    { t: 'Adding at the very end', q: 'What if the new constant CANCELED is added at the very end instead of in the middle?', d: 'The numbers of the existing constants stay the same, so the same constant is read.', v: { store: 'ORDINAL', change: 'append', saved: 'PAID' } },
+    { t: 'A constant that is safe by luck', q: 'What if the saved order is ORDERED and CANCELED is still inserted in the middle?', d: 'The change is the same, but the number of the first constant does not change.', v: { store: 'ORDINAL', change: 'insert', saved: 'ORDERED' } },
+    { t: 'Saving with STRING', q: 'What if you change the way of saving to @Enumerated(EnumType.STRING) and insert CANCELED in the middle?', d: 'The name is saved in the database, so the same constant is read even if the order changes.', v: { store: 'STRING', change: 'insert', saved: 'PAID' } },
+    { t: 'STRING, but the name is changed', q: 'What if you save with @Enumerated(EnumType.STRING) and then rename PAID to PAYMENT_DONE?', d: 'No constant matches "PAID" in the database, so em.find throws an exception.', v: { store: 'STRING', change: 'rename', saved: 'PAID' } },
+    { t: 'Saving a code with AttributeConverter', q: 'What if you save the code value P with an AttributeConverter instead of @Enumerated, and rename PAID to PAYMENT_DONE?', d: 'What is saved is a code, not a name or a number, so the same constant is read even if the name is changed.', v: { store: 'code', change: 'rename', saved: 'PAID' } },
   ],
   OLD: [['ORDERED', 'O', 'Order received'], ['PAID', 'P', 'Payment completed'], ['SHIPPED', 'S', 'Shipping started']],
+  // The status column that Hibernate 7.4.5 created in H2 at the first deployment (checked with EnumTypeProbe)
+  DDL: { ORDINAL: 'status tinyint check ((status between 0 and 2))', STRING: "status enum ('ORDERED','PAID','SHIPPED')", code: "status varchar(255) check ((status in ('P','S','O')))" },
+  // The exception that em.find throws when it reads a row saved with STRING after a constant was renamed (checked with EnumTypeProbe)
+  RENAME_ERR: 'java.lang.IllegalArgumentException: No enum constant OrderStatus.PAID',
   // The declaration after the change: [name, code, label]
   consts: function (change) {
     var o = this.OLD[0], p = this.OLD[1], s = this.OLD[2], x = ['CANCELED', 'C', 'Order canceled'];
     return { same: [o, p, s], append: [o, p, s, x], insert: [o, x, p, s], swap: [p, o, s], rename: [o, ['PAYMENT_DONE', 'P', 'Payment completed'], s] }[change];
   },
-  // The saved value, the constant read from the current declaration (null if there is none), and the current name of the saved constant
+  // What was changed after saving, written above the enum declaration in the code on the screen
+  CHNOTE: { same: 'it was not changed after saving', append: 'CANCELED was added at the very end after saving', insert: 'CANCELED was inserted between ORDERED and PAID after saving', swap: 'ORDERED and PAID were swapped after saving', rename: 'PAID was renamed to PAYMENT_DONE after saving' },
+  // The value saved in the database, the constant read from the current declaration (null if there is none), and the current name of the saved constant
   facts: function (c) {
     var cs = this.consts(c.change), oi = this.OLD.map(function (r) { return r[0]; }).indexOf(c.saved), old = this.OLD[oi];
-    var value = c.store === 'ordinal' ? String(oi) : c.store === 'name' ? old[0] : old[1], read = null;
-    if (c.store === 'ordinal') read = cs[oi];
-    if (c.store === 'name') read = cs.filter(function (r) { return r[0] === value; })[0] || null;
+    var value = c.store === 'ORDINAL' ? String(oi) : c.store === 'STRING' ? old[0] : old[1], read = null;
+    if (c.store === 'ORDINAL') read = cs[oi] || null;
+    if (c.store === 'STRING') read = cs.filter(function (r) { return r[0] === value; })[0] || null;
     if (c.store === 'code') read = cs.filter(function (r) { return r[1] === value; })[0] || null;
     var now = c.change === 'rename' && c.saved === 'PAID' ? 'PAYMENT_DONE' : c.saved;
-    return { cs: cs, oi: oi, old: old, value: value, shown: c.store === 'ordinal' ? value : '"' + value + '"', read: read, now: now, eq: !!read && read[0] === now };
+    return { cs: cs, oi: oi, old: old, value: value, shown: c.store === 'ORDINAL' ? value : "'" + value + "'", read: read, now: now, eq: !!read && read[0] === now };
   },
   code: function (c) {
-    var f = this.facts(c), code = c.store === 'code', s = 'enum Status {\n';
-    f.cs.forEach(function (r, i) { s += '    ' + r[0] + '(' + (code ? '"' + r[1] + '", ' : '') + '"' + r[2] + '")' + (i < f.cs.length - 1 ? ',' : ';') + '\n'; });
-    s += '\n';
-    if (code) s += '    private final String code;\n';
-    s += '    private final String label;\n\n';
-    if (code) s += '    Status(String code, String label) {\n        this.code = code;\n        this.label = label;\n    }\n\n';
-    else s += '    Status(String label) {\n        this.label = label;\n    }\n\n';
-    s += '    String label() {\n        return label;\n    }\n';
-    if (code) s += '\n    static Status fromCode(String code) {\n        for (Status s : values()) {\n            if (s.code.equals(code)) return s;\n        }\n        throw new IllegalArgumentException("Unknown code: " + code);\n    }\n';
-    s += '}\n\n';
-    s += '// The value of ' + c.saved + (c.store === 'ordinal' ? '.ordinal()' : c.store === 'name' ? '.name()' : '.code') + ', saved under the old declaration (order: ORDERED, PAID, SHIPPED); from here on, lines inside main (class and main declaration omitted)\n';
-    if (c.store === 'ordinal') s += 'int saved = ' + f.value + ';\nStatus s = Status.values()[saved];\n';
-    if (c.store === 'name') s += 'String saved = "' + f.value + '";\nStatus s = Status.valueOf(saved);\n';
-    if (c.store === 'code') s += 'String saved = "' + f.value + '";\nStatus s = Status.fromCode(saved);\n';
-    return s + 'System.out.println(s + " (" + s.label() + ")");\nSystem.out.println(s == Status.' + f.now + ');';
+    var f = this.facts(c), code = c.store === 'code', s = '// File: OrderStatus.java\n// An enum we made as an example to represent the order status. When it was saved, the declaration was in the order ORDERED, PAID, SHIPPED, and ' + this.CHNOTE[c.change] + '\n';
+    if (!code) s += 'public enum OrderStatus { ' + f.cs.map(function (r) { return r[0]; }).join(', ') + ' }\n\n';
+    else {
+      s += 'public enum OrderStatus {\n';
+      f.cs.forEach(function (r, i) { s += '    ' + r[0] + '("' + r[1] + '")' + (i < f.cs.length - 1 ? ',' : ';') + '\n'; });
+      s += '\n    private final String code;\n\n    OrderStatus(String code) {\n        this.code = code;\n    }\n\n    public String getCode() {\n        return code;\n    }\n\n' +
+        '    public static OrderStatus fromCode(String code) {\n        for (OrderStatus s : values()) {\n            if (s.code.equals(code)) {\n                return s;\n            }\n        }\n        throw new IllegalArgumentException("Unknown code: " + code);\n    }\n}\n\n';
+    }
+    if (code) {
+      s += '// File: OrderStatusConverter.java\n// An example converter we made. AttributeConverter and @Converter are provided by JPA\nimport jakarta.persistence.AttributeConverter;\nimport jakarta.persistence.Converter;\n\n@Converter\npublic class OrderStatusConverter implements AttributeConverter<OrderStatus, String> {\n' +
+        '    @Override\n    public String convertToDatabaseColumn(OrderStatus status) {\n        return status == null ? null : status.getCode();\n    }\n\n' +
+        '    @Override\n    public OrderStatus convertToEntityAttribute(String code) {\n        return code == null ? null : OrderStatus.fromCode(code);\n    }\n}\n\n';
+    }
+    s += '// File: Order.java\n// An example entity we made. @Entity, @Table, @Id, ' + (code ? 'and @Convert' : '@Enumerated, and EnumType') + ' are provided by JPA\nimport jakarta.persistence.*;\n\n@Entity\n@Table(name = "orders")\npublic class Order {\n    @Id\n    private Long id;\n\n' +
+      (code ? '    @Convert(converter = OrderStatusConverter.class)\n' : '    @Enumerated(EnumType.' + c.store + ')\n') + '    private OrderStatus status;\n\n' +
+      '    protected Order() {\n    }\n\n    public Order(Long id, OrderStatus status) {\n        this.id = id;\n        this.status = status;\n    }\n\n    public OrderStatus getStatus() {\n        return status;\n    }\n}\n\n';
+    s += '// File: OrderReader.java\n// An example class we made that reads the order after deploying again. EntityManager is provided by JPA\nimport jakarta.persistence.EntityManager;\n\npublic class OrderReader {\n' +
+      '    // Read the order that was saved with em.persist(new Order(1L, OrderStatus.' + c.saved + ')) under the old declaration\n    static void print(EntityManager em) {\n        Order order = em.find(Order.class, 1L);\n' +
+      '        System.out.println(order.getStatus());\n        System.out.println(order.getStatus() == OrderStatus.' + f.now + ');\n    }\n}\n';
+    return s;
   },
-  label: function (c) { return { ordinal: 'saved by ordinal()', name: 'saved by name()', code: 'saved by code' }[c.store] + ' · ' + { same: 'declaration unchanged', append: 'added at the end', insert: 'inserted in the middle', swap: 'order swapped', rename: 'renamed' }[c.change] + ' · ' + c.saved; },
-  columns: ['Saved value', 'Constant read back', '== the saved constant', 'How it ended'],
+  label: function (c) { return { ORDINAL: 'ORDINAL', STRING: 'STRING', code: 'AttributeConverter' }[c.store] + ' · ' + { same: 'declaration unchanged', append: 'added at the end', insert: 'inserted in the middle', swap: 'order swapped', rename: 'renamed' }[c.change] + ' · ' + c.saved; },
+  columns: ['status value in the DB', 'Constant read back', '== the saved constant', 'How it ended'],
   simulate: function (c) {
     var f = this.facts(c), ev = [], sum = [], store = c.store, ch = c.change;
-    var st = { savedOn: false, changed: false, read: '', failed: false, out: [], err: '', eq: '?', end: '?' };
+    var st = { built: false, savedOn: false, changed: false, read: '', failed: false, out: [], err: '', eq: '?', end: '?' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
+    // The Korean text needs a particle after the DB value, chosen by its last sound. English does not need it, so bat is not used
+    var bat = store === 'ORDINAL' && f.value !== '2';
     var order = function (cs) { return cs.map(function (r, i) { return r[0] + '(' + i + ')'; }).join(', '); };
-    var ctor = store === 'code' ? 'PAID("P", "Payment completed") is a Status object created by passing "P" and "Payment completed" to the constructor' : 'PAID("Payment completed") is a Status object created by passing "Payment completed" to the constructor';
 
-    push('The old enum declaration listed ORDERED, PAID, SHIPPED in that order: Each enum constant is one object. ' + ctor + ', and it is the only PAID object in the whole program. You cannot create another one with new.');
+    st.built = true;
+    var DDLWHY = {
+      ORDINAL: 'EnumType.ORDINAL saves the position of the constant in the declaration, so the column is a number column. The condition (check) that accepts only 0 to 2 was added by Hibernate for H2.',
+      STRING: 'EnumType.STRING saves the name of the constant, so the column accepts text. For H2, Hibernate made it an enum-type column that accepts only the three names.',
+      code: 'Because a converter is specified with @Convert, Hibernate treats what is saved as the String that the converter returns, not the enum, and creates a text column. The condition (check) that accepts only the code values of the three constants (O, P, S) was also added by Hibernate for H2.',
+    }[store];
+    push('First deployment: the enum declaration lists ORDERED, PAID, SHIPPED in that order. Hibernate looked at the Order entity and created the orders table, and the status column is "' + this.DDL[store] + '". ' + DDLWHY);
+
     st.savedOn = true;
-    var HOW = { ordinal: c.saved + '.ordinal(), which is ' + f.value + '. ordinal() returns the position of the constant in the declaration, counted from 0.', name: c.saved + '.name(), which is "' + f.value + '". name() returns the name of the constant as a string.', code: 'the code field of ' + c.saved + ', which is "' + f.value + '". code is a value that you choose for each constant yourself, to be used when saving.' }[store];
-    push('An order with the status ' + c.saved + ' was saved to the database: An enum object cannot be stored as it is, so a value that stands for the constant is written instead. Here that value is ' + HOW);
+    var HOW = {
+      ORDINAL: 'This is the value of ' + c.saved + '.ordinal() that Hibernate wrote. ordinal() is a method that every enum inherits from java.lang.Enum, and it returns the position of the constant in the declaration, counted from 0.',
+      STRING: 'This is the value of ' + c.saved + '.name() that Hibernate wrote. name() is a method that every enum inherits from java.lang.Enum, and it returns the name of the constant, as written in the declaration, as a string.',
+      code: 'This is the value that Hibernate received by calling convertToDatabaseColumn(' + c.saved + ') of the converter. This converter returns the value of the code field that was defined in the enum.',
+    }[store];
+    push('em.persist(new Order(1L, OrderStatus.' + c.saved + ')) and commit: an INSERT is sent, and ' + f.shown + ' is saved in the status column. ' + HOW);
+
     st.changed = true;
     var CH = { append: 'The new constant CANCELED was added at the very end', insert: 'The new constant CANCELED was inserted between ORDERED and PAID', swap: 'The first two constants, ORDERED and PAID, were swapped', rename: 'PAID was renamed to PAYMENT_DONE' }[ch];
-    if (ch === 'same') push('After that, the enum declaration was not changed: The ordinals are still ' + order(f.cs) + '.');
-    else push('After that, the enum declaration was changed: ' + CH + '. The ordinals are now ' + order(f.cs) + '. The value written in the database (' + f.shown + ') is not updated and stays as it was.', ch === 'append' || ch === 'rename' ? '' : 'hot');
+    if (ch === 'same') push('After that, the enum declaration was not changed and the application was deployed again: the ordinals are still ' + order(f.cs) + '.');
+    else push('After that, the enum declaration was changed and the application was deployed again: ' + CH + '. The ordinals are now ' + order(f.cs) + '. The table was not created again, so ' + f.shown + ' in the status column stays as it was.', ch === 'append' || ch === 'rename' ? '' : 'hot');
 
-    var shifted = (ch === 'insert' || ch === 'swap');
-    if (store === 'ordinal') {
+    var shifted = (ch === 'insert' || ch === 'swap'), find = 'em.find(Order.class, 1L) runs: the row is read with SELECT, and ' + f.shown + ' in the status column is turned into a constant. ';
+    if (store === 'ORDINAL') {
       st.read = f.read[0];
-      push('Status.values()[' + f.value + '] runs: values() returns an array that contains the constants in the order of the current declaration. The element at index ' + f.value + ' is ' + f.read[0] + '. ' + (f.eq ? (shifted ? 'It is the same as the saved constant, because the ordinal of this constant did not change in this edit.' : 'It is the same as the saved constant.') : 'The saved constant was ' + c.saved + ', but a different constant came back. There is no exception and no warning.'), f.eq ? 'good' : 'bad');
-    } else if (store === 'name') {
-      if (f.read) { st.read = f.read[0]; push('Status.valueOf("' + f.value + '") runs: It finds the constant whose name is exactly "' + f.value + '" and returns it. It looks up the constant by name, not by ordinal, so a change in the order or the number of constants has no effect.', 'good'); }
+      push(find + 'Because it is ORDINAL, Hibernate picks the constant at index ' + f.value + ' in the current declaration. This is the same result as OrderStatus.values()[' + f.value + '] (values() is a method that is created automatically for every enum, and it returns an array of the constants in the order of the current declaration). The element at index ' + f.value + ' is ' + f.read[0] + '. ' + (f.eq ? (shifted ? 'It is the same as the saved constant. This is because the number of this constant did not change in this edit.' : 'It is the same as the saved constant.') : 'The saved one was ' + c.saved + ', but a different constant came out. There is no exception and no warning.'), f.eq ? 'good' : 'bad');
+    } else if (store === 'STRING') {
+      if (f.read) { st.read = f.read[0]; push(find + 'Because it is STRING, Hibernate looks for the constant whose name is exactly "' + f.value + '". This is the same result as OrderStatus.valueOf("' + f.value + '") (valueOf is also a method that is created automatically for every enum). It looks up the constant by name, not by number, so a change in the order or the number of constants has no effect.', 'good'); }
       else {
-        st.failed = true; st.err = 'Exception in thread "main" java.lang.IllegalArgumentException: No enum constant Status.' + f.value; st.end = 'Stopped by an exception';
-        push('Status.valueOf("' + f.value + '") runs: It looks for the constant whose name is exactly "' + f.value + '". The current declaration has no such name. In this case valueOf does not return null. It throws an IllegalArgumentException (message: No enum constant Status.' + f.value + '). Nothing catches the exception, so the program stops at this line.', 'bad');
+        st.failed = true; st.err = this.RENAME_ERR; st.end = 'Stopped by an exception';
+        push(find + 'Because it is STRING, it looks for the constant whose name is exactly "' + f.value + '", but the current declaration has no such name. em.find cannot return the order and throws ' + this.RENAME_ERR + '. This is the same exception as when OrderStatus.valueOf("' + f.value + '") receives a name that does not exist. If nothing catches it, that request fails here.', 'bad');
       }
     } else {
       st.read = f.read[0];
-      push('Status.fromCode("' + f.value + '") runs: This method, which you write yourself inside the enum, looks at the constants one by one to find the one whose code field is "' + f.value + '". The constant it finds is ' + f.read[0] + '. Changing the order or the names has no effect as long as the code values are left as they are.', 'good');
+      push(find + 'Hibernate calls convertToEntityAttribute("' + f.value + '") of the converter, and the converter uses fromCode to find the constant whose code is "' + f.value + '". The constant it finds is ' + f.read[0] + '. Changing the order or the names has no effect as long as the code values stay as they are.', 'good');
     }
     if (f.read) {
-      var line = f.read[0] + ' (' + f.read[2] + ')';
-      st.out.push(line);
-      push('System.out.println(s + " (" + s.label() + ")") runs: The output is "' + line + '". label() is a method that you write yourself inside the enum, and it returns the label value that the constant received when it was created. An enum is also a class, so it can have fields and methods like this.');
+      st.out.push(f.read[0]);
+      push('System.out.println(order.getStatus()) runs: the output is "' + f.read[0] + '". The toString() of an enum returns the same name as name() unless you override it.');
       st.eq = String(f.eq); st.out.push(String(f.eq)); st.end = 'Ended normally';
-      push('s == Status.' + f.now + ' runs: The result is ' + f.eq + '. There is only one object for each enum constant, so the same constant is the same object no matter how it was obtained. That is why you can compare with == instead of equals. ' + (f.eq ? 'The s that was just read and the Status.' + f.now + ' written in the code are the same object.' : 'The result is false not because of how the comparison is done, but because s really is a different constant (' + f.read[0] + ').') + ' The program ends normally.', f.eq ? 'good' : 'bad');
+      push('order.getStatus() == OrderStatus.' + f.now + ' runs: the result is ' + f.eq + '. There is only one object for each enum constant, so whether it was read by Hibernate or written in the code, the same constant is the same object. That is why you can compare with == without equals.' + (f.eq ? '' : ' The result is false not because of how the comparison is done, but because the constant that was read really is a different constant (' + f.read[0] + ').'), f.eq ? 'good' : 'bad');
     }
-    var endText = f.read ? 'Ended normally' : 'Stopped by an exception: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
-    var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(not read)', f.read ? String(f.eq) : '(not read)', endText];
-    if (store === 'ordinal' && !f.eq) sum.push('ordinal() is only the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is "' + f.old[2] + '" is shown as "' + f.read[2] + '". Do not save ordinal() values.');
-    if (store === 'ordinal' && f.eq && shifted) sum.push('This constant was safe because its ordinal did not change. With the same change, data that saved a different constant goes wrong.');
-    if (store === 'ordinal' && ch === 'append') sum.push('Adding a constant at the very end does not change the ordinals of the existing constants. But everyone who edits the enum has to keep the promise "always add only at the end" from then on, so avoid saving ordinal() values in the first place.');
-    if (store === 'ordinal' && ch === 'rename') sum.push('Renaming a constant does not affect the ordinals. Data saved by ordinal goes wrong when the order is touched.');
-    if (store === 'ordinal' && ch === 'same') sum.push('As long as the declaration is not changed, saving the ordinal does not reveal any problem.');
-    if (store === 'name' && f.read) sum.push('When you save with name(), the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected.' : ' In return, you must not rename the constants.'));
-    if (store === 'name' && !f.read) sum.push('valueOf throws an IllegalArgumentException when it receives a name that does not exist. The same happens when only the case differs ("paid"). If you saved by name, renaming a constant amounts to making the saved data unreadable. Even so, an exception that shows the problem right away is better than silently getting a different constant.');
-    if (store === 'code') sum.push('If you define the value to save as a separate field of the enum, you can change both the order and the names of the constants freely. In return, a code value must not be changed once it is set. This approach is possible because an enum can have fields and methods.');
-    if (f.read) sum.push('Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, no exception is thrown even when one side is null, and comparing constants of different enum classes is reported as a compile-time error.');
+    var endText = f.read ? 'Ended normally' : 'Stopped by an exception: ' + this.RENAME_ERR;
+    var row = [f.shown, f.read ? f.read[0] : '(not read)', f.read ? String(f.eq) : '(not read)', endText];
+    if (store === 'ORDINAL' && !f.eq) sum.push('EnumType.ORDINAL only saves the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is "' + f.old[2] + '" is shown as an order that is "' + f.read[2] + '". The default when you do not write @Enumerated is also ORDINAL, so write @Enumerated(EnumType.STRING) on enum fields.');
+    if (store === 'ORDINAL' && f.eq && shifted) sum.push('This constant was safe because its number did not change. With the same change, orders saved as a different constant go wrong.');
+    if (store === 'ORDINAL' && ch === 'append') sum.push('Adding a constant at the very end does not change the numbers of the existing constants. But everyone who edits the enum has to keep the promise "always add only at the end" from then on, so avoid saving with ORDINAL in the first place.');
+    if (store === 'ORDINAL' && ch === 'rename') sum.push('Renaming a constant does not affect the numbers. Data saved with ORDINAL goes wrong when the order is touched.');
+    if (store === 'ORDINAL' && ch === 'same') sum.push('As long as the declaration is not changed, saving with ORDINAL does not reveal any problem.');
+    if (store === 'STRING' && f.read) sum.push('When you save with EnumType.STRING, the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected.' : ' In return, if you rename a constant, rows that were already saved cannot be read.'));
+    if (store === 'STRING' && !f.read) sum.push('If you saved with STRING, renaming a constant amounts to making the saved rows unreadable. If you must rename it, include in the deployment an UPDATE statement that also fixes the value in the database. Even so, an exception that shows the problem right away is better than ORDINAL, which silently gives a different constant.');
+    if (store === 'code') sum.push('AttributeConverter is an interface provided by JPA, and it has you fill in two methods that convert between a field value and a database value. If you define the value to save separately as the code field of the enum, you can change both the order and the names of the constants. In return, a code value must not be changed once it is set. The code field and the fromCode method are examples made for this lab, and this approach is possible because an enum can have fields and methods.');
+    if (f.read) sum.push('Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, and no exception is thrown even when one side is null.');
     return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, f = this.facts(c);
-    if (!s) { H.text(v, 'Click Run to go one step at a time, from saving the value to reading it back.'); return; }
-    var cs = s.changed ? f.cs : this.OLD, code = c.store === 'code';
-    H.table(v, ['ordinal()', 'name()'].concat(code ? ['code'] : [], ['label()']), cs.map(function (r, i) {
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, f = this.facts(c), code = c.store === 'code';
+    if (!s) { H.text(v, 'Click Run to go one step at a time, from the first deployment and saving to deploying again and reading.'); return; }
+    var cs = s.changed ? f.cs : this.OLD;
+    H.table(v, ['ordinal()', 'name()'].concat(code ? ['code'] : []), cs.map(function (r, i) {
       var hit = s.read === r[0] && s.changed;
-      return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : [], [r[2]]) };
+      return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : []) };
     }), s.changed ? 'The current enum declaration' : 'The old enum declaration');
+    H.table(v, ['id', 'status'], s.savedOn ? [{ cells: ['1', f.shown] }] : [], 'orders table (' + this.DDL[c.store] + ')');
     var ln = H.lanes(v);
-    H.lane(ln, 'How it is read', { ordinal: 'Status.values()[' + f.value + ']', name: 'Status.valueOf("' + f.value + '")', code: 'Status.fromCode("' + f.value + '")' }[c.store], 'none');
+    H.lane(ln, 'What Hibernate does when reading', { ORDINAL: 'Same result as OrderStatus.values()[' + f.value + ']', STRING: 'Same result as OrderStatus.valueOf("' + f.value + '")', code: 'converter.convertToEntityAttribute("' + f.value + '")' }[c.store], 'none');
     H.title(v, 'Console output');
-    var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (error output)');
+    var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (exception thrown by em.find)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(nothing yet)'));
-    H.counters(v, [[s.end, 'Program']]);
+    H.counters(v, [[s.end, 'Read']]);
   },
-  // Diagram: the constants of the old declaration in order at the top, the constants of the current declaration in order at the bottom, and the saved value in the middle. One arrow goes from the saved constant to the value, and another from the value to the constant that is read back.
+  // Diagram: the constants of the old declaration in order at the top, the constants of the current declaration in order at the bottom, and the status value in the DB in the middle. One arrow goes from the saved constant to the value, and another from the value to the constant that is read back.
   draw: function (P, sim, shown) {
-    var c = sim.c, f = this.facts(c), last = shown[shown.length - 1], s = last ? last.snap : { savedOn: false, changed: false, read: '', failed: false, out: [], err: '', eq: '?', end: '?' };
-    var attr = function (r, i) { return c.store === 'ordinal' ? 'ordinal ' + i : c.store === 'name' ? 'name ' + r[0] : 'code ' + r[1]; };
+    var c = sim.c, f = this.facts(c), last = shown[shown.length - 1], s = last ? last.snap : { built: false, savedOn: false, changed: false, read: '', failed: false, out: [], err: '', eq: '?', end: '?' };
+    var attr = function (r, i) { return c.store === 'ORDINAL' ? 'ordinal ' + i : c.store === 'STRING' ? 'name ' + r[0] : 'code ' + r[1]; };
     P.size(680, 334);
     P.region('old', 16, 16, 648, 98, 'Old declaration (when saving)');
     this.OLD.forEach(function (r, i) { P.box('o_' + r[0], 30 + i * 156, 46, 152, 56, { cls: s.savedOn && r[0] === c.saved ? 'hot' : 'plain', title: r[0], sub: [attr(r, i), r[2]] }); });
-    P.box('saved', 214, 126, 252, 34, { cls: s.savedOn ? (s.failed ? 'bad' : 'hot') : 'ghost', title: 'Value in the DB', right: s.savedOn ? f.shown : 'none yet' });
-    P.region('new', 16, 172, 648, 98, s.changed ? 'Current declaration (when reading)' : 'Current declaration (not changed yet)');
+    P.box('saved', 194, 126, 292, 34, { cls: s.savedOn ? (s.failed ? 'bad' : 'hot') : 'ghost', title: 'orders.status column', right: s.savedOn ? f.shown : 'none yet' });
+    P.region('new', 16, 172, 648, 98, s.changed ? 'Current declaration (when reading after deploying again)' : 'Current declaration (not changed yet)');
     f.cs.forEach(function (r, i) {
       var hit = s.read === r[0];
       P.box('n_' + r[0], 30 + i * 156, 202, 152, 56, { cls: !s.changed ? 'ghost' : hit ? (f.eq ? 'good now' : 'bad now') : r[0] === 'CANCELED' || r[0] === 'PAYMENT_DONE' ? 'wait' : 'plain', title: r[0], sub: [attr(r, i), r[2]] });
     });
-    if (s.savedOn) P.arrow('a_save', 'o_' + c.saved + ':b', 'saved:t', { cls: 'hot', label: 'save' });
-    if (s.read) P.arrow('a_read', 'saved:b', 'n_' + s.read + ':t', { cls: f.eq ? 'good' : 'bad', label: 'read' });
+    if (s.savedOn) P.arrow('a_save', 'o_' + c.saved + ':b', 'saved:t', { cls: 'hot', label: 'persist' });
+    if (s.read) P.arrow('a_read', 'saved:b', 'n_' + s.read + ':t', { cls: f.eq ? 'good' : 'bad', label: 'find' });
     P.box('r1', 16, 284, 320, 34, { cls: s.failed ? 'bad' : s.read ? (f.eq ? 'good' : 'bad') : 'ghost', title: 'Constant read back', right: s.failed ? 'exception thrown' : s.read || '?' });
     P.box('r2', 344, 284, 320, 34, { cls: s.eq === 'true' ? 'good' : s.eq === 'false' ? 'bad' : s.failed ? 'bad' : 'ghost', title: '== the saved constant', right: s.failed ? 'not compared' : s.eq });
-    P.note('Each box is one enum constant (one object). Looking up by ordinal means going straight down from the top row to the same position in the bottom row. Looking up by name or by code follows the constant to whatever position it has moved to.');
+    P.note('Each box is one enum constant (one object). ORDINAL follows the same position straight down from the top row to the bottom row, while STRING and AttributeConverter look up by name or by code, so they follow the constant to whatever position it has moved to.');
   },
-  assume: 'All 45 combinations were checked by actually compiling and running the code shown on the screen (the enum declaration after the change and the code below it) on JDK 21 in our test environment, and comparing the saved value, the two lines of output, the exit code, and the exception message. The saved values were obtained by actually getting ordinal(), name(), and code from the enum with the old declaration. In the code on the screen, the five lines below the enum declaration are inside the main method, and the declaration of main is omitted. The following were also checked in the same way: the same constant is the same object no matter how it is obtained, valueOf also throws an exception for a name that differs only in case, == does not throw an exception even when one side is null, and comparing constants of different enum classes with == is a compile-time error. No real database was used. The saved value was written directly in the code to imitate one. A change that removes a constant is not included in the settings. If a constant is removed, reading by ordinal returns a later constant that has moved up or throws an exception because the index is outside the array (ArrayIndexOutOfBoundsException), and reading by name makes valueOf throw an exception (this was also checked by running it separately).',
+  assume: 'All 45 combinations were checked against real execution with Hibernate 7.4.5 and the H2 database (2.4.240). For each combination, the code on the screen was compiled as it is, the table was created with the Order of the old declaration (ORDERED, PAID, SHIPPED), one order was persisted, and then, leaving the table as it was, OrderReader.print from the screen was run with the classes of the current declaration. What was compared is the definition of the status column that Hibernate created, the value saved in the database (read directly with JDBC), the two lines of console output, and the kind and message of the exception. The package name that is attached to the exception message is not in the code on the screen, so it was left out. For every combination we also checked that the constant Hibernate read is the same as the result of calling values()[number] or valueOf(name) directly. The following facts were also checked by running them in the same way: an enum field without @Enumerated becomes exactly the same column as ORDINAL and a number is saved; if you save with ORDINAL and then delete that constant so that the number is out of range, em.find throws an ArrayIndexOutOfBoundsException; if the converter receives a code it does not know, a PersistenceException (caused by the IllegalArgumentException that fromCode threw) occurs; and the same constant is the same object however it is obtained. The column definition differs depending on the kind of database (dialect) and the Hibernate version, and the tinyint, the check conditions, and the enum-type column written here are what Hibernate 7.4.5 made for H2. Because of these conditions, if you keep using the table that Hibernate created, then after CANCELED is inserted, saving SHIPPED (now number 3) with ORDINAL, or saving CANCELED with STRING, also fails (this was also checked by running it). This lab covers only reading rows that were already saved. In real services, the table is often created separately with a tool such as Flyway, so these conditions may not exist, but it is the same that the saved value stays as it is when you deploy again. It was run with Hibernate alone, without Spring Boot, and even if you use Spring Data JPA, the same Hibernate does the saving and reading.',
 });

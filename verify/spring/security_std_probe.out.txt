@@ -1,0 +1,30 @@
+# spring boot 4.1.1 | spring security 7.1.1 | java 21.0.12.1
+# token.user eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjcyMjU2MDB9.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.admin eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ._Crl3waja45Oj0WU2YHqH-bAhgouCo5PsGQEAgYkIuQ
+# token.bad eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# chain.std DisableEncodeUrlFilter > WebAsyncManagerIntegrationFilter > SecurityContextHolderFilter > HeaderWriterFilter > CsrfFilter > LogoutFilter > BearerStandIn > RequestCacheAwareFilter > SecurityContextHolderAwareRequestFilter > AnonymousAuthenticationFilter > SessionManagementFilter > ExceptionTranslationFilter > AuthorizationFilter
+std|none|public => 200|controller=true|auth=AnonymousAuthenticationToken:anonymousUser:[ROLE_ANONYMOUS]|ended=-|rejectedIn=-|www=-
+std|none|orders => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+std|none|admin => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+std|bad|public => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=BearerTokenAuthenticationFilter|www=Bearer error="invalid_token", error_description="An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"
+std|bad|orders => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=BearerTokenAuthenticationFilter|www=Bearer error="invalid_token", error_description="An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"
+std|bad|admin => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=BearerTokenAuthenticationFilter|www=Bearer error="invalid_token", error_description="An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"
+std|user|public => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[FACTOR_BEARER, ROLE_USER]|ended=-|rejectedIn=-|www=-
+std|user|orders => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[FACTOR_BEARER, ROLE_USER]|ended=-|rejectedIn=-|www=-
+std|user|admin => 403|controller=false|auth=-|ended=AccessDeniedHandler|rejectedIn=-|www=Bearer error="insufficient_scope", error_description="The request requires higher privileges than provided by the access token.", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"
+std|admin|public => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[FACTOR_BEARER, ROLE_ADMIN]|ended=-|rejectedIn=-|www=-
+std|admin|orders => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[FACTOR_BEARER, ROLE_ADMIN]|ended=-|rejectedIn=-|www=-
+std|admin|admin => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[FACTOR_BEARER, ROLE_ADMIN]|ended=-|rejectedIn=-|www=-
+# chain.custom DisableEncodeUrlFilter > WebAsyncManagerIntegrationFilter > SecurityContextHolderFilter > HeaderWriterFilter > CsrfFilter > LogoutFilter > BearerStandIn > RequestCacheAwareFilter > SecurityContextHolderAwareRequestFilter > AnonymousAuthenticationFilter > SessionManagementFilter > ExceptionTranslationFilter > AuthorizationFilter
+custom|none|public => 200|controller=true|auth=AnonymousAuthenticationToken:anonymousUser:[ROLE_ANONYMOUS]|ended=-|rejectedIn=-|www=-
+custom|none|orders => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+custom|none|admin => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+custom|bad|public => 200|controller=true|auth=AnonymousAuthenticationToken:anonymousUser:[ROLE_ANONYMOUS]|ended=-|rejectedIn=-|www=-
+custom|bad|orders => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+custom|bad|admin => 401|controller=false|auth=-|ended=AuthenticationEntryPoint|rejectedIn=-|www=Bearer
+custom|user|public => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[ROLE_USER]|ended=-|rejectedIn=-|www=-
+custom|user|orders => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[ROLE_USER]|ended=-|rejectedIn=-|www=-
+custom|user|admin => 403|controller=false|auth=-|ended=AccessDeniedHandler|rejectedIn=-|www=Bearer error="insufficient_scope", error_description="The request requires higher privileges than provided by the access token.", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"
+custom|admin|public => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[ROLE_ADMIN]|ended=-|rejectedIn=-|www=-
+custom|admin|orders => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[ROLE_ADMIN]|ended=-|rejectedIn=-|www=-
+custom|admin|admin => 200|controller=true|auth=UsernamePasswordAuthenticationToken:7:[ROLE_ADMIN]|ended=-|rejectedIn=-|www=-

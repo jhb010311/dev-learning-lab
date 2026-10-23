@@ -21,7 +21,7 @@ Lab.register({
   code: function (c) {
     var H = '// 메서드만 보임 (클래스 선언, import, 예시로 만든 Order·OrderDto·orderService 등의 선언은 생략)\n';
     if (c.how === 'direct') return H + '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    mailClient.sendConfirm(order);                 // 메일 서버를 직접 호출하고 기다린다\n    return OrderDto.of(order);                     // 메일이 끝나야 응답\n}';
-    return H + '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    queue.send("order-created", order.getId());    // 메시지만 넣고 기다리지 않는다\n    return OrderDto.of(order);                     // 바로 응답\n}\n\n// 메일 서버 쪽: 큐에서 하나씩 꺼내 처리한다\n@RabbitListener(queues = "order-created")\nvoid onOrder(long orderId) {\n    mailSender.sendConfirm(orderId);\n}';
+    return H + '// rabbitTemplate: 스프링 AMQP가 주는 RabbitTemplate(스프링 부트가 만든 빈)\n@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    // 메시지만 큐 order-created에 넣고 기다리지 않는다\n    rabbitTemplate.convertAndSend("order-created", order.getId());\n    return OrderDto.of(order);                     // 바로 응답\n}\n\n// 메일 서버 쪽: 큐에서 하나씩 꺼내 처리한다\n@RabbitListener(queues = "order-created")\nvoid onOrder(long orderId) {\n    mailSender.sendConfirm(orderId);\n}';
   },
   label: function (c) { return (c.how === 'direct' ? '직접 호출' : '메시지 큐') + ' · ' + c.n + '건 · 메일 ' + (+c.work / 1000) + '초 · ' + (c.state === 'ok' ? '정상' : '메일 서버 죽음'); },
   columns: ['주문 성공', '주문 한 건의 응답 시간', '보낸 메일', '큐에 가장 많이 쌓인 수'],
@@ -71,5 +71,5 @@ Lab.register({
     if (!s.orders.length) P.text('none', 340, 244, '아직 들어온 주문이 없습니다', { cls: 'mut', anchor: 'middle' });
     P.note(direct ? '두 서버가 화살표 하나로 묶여 있습니다.' : '가운데 큐가 완충 역할을 합니다.');
   },
-  assume: '개념을 설명하기 위한 모델이며 실제 메시지 큐를 실행해 확인한 결과는 아닙니다. 시간 값(저장 0.05초, 큐에 넣기 0.01초, 타임아웃 3초)은 예시입니다. 직접 호출에서도 타임아웃과 예외 처리를 넣어 주문 실패를 막을 수 있고, 큐 자체가 죽는 경우와 메시지 유실, 중복 전달, 순서 문제는 여기서 다루지 않았습니다. 코드의 @RabbitListener는 RabbitMQ를 쓸 때의 예시입니다.',
+  assume: '개념을 설명하기 위한 모델이며 실제 메시지 큐를 실행해 확인한 결과는 아닙니다. 시간 값(저장 0.05초, 큐에 넣기 0.01초, 타임아웃 3초)은 예시입니다. 직접 호출에서도 타임아웃과 예외 처리를 넣어 주문 실패를 막을 수 있고, 큐 자체가 죽는 경우와 메시지 유실, 중복 전달, 순서 문제는 여기서 다루지 않았습니다. 코드의 rabbitTemplate.convertAndSend(스프링 AMQP의 RabbitTemplate)와 @RabbitListener는 RabbitMQ를 쓸 때의 예시이고 실행하지 않았습니다. 이 두 곳은 스프링 AMQP의 공식 시그니처만 옮긴 대역과 함께 컴파일되는 것까지만 확인했습니다(verify/spring/cmp_mq.js).',
 });

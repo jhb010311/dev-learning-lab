@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dynamic queries and Querydsl: How do you add a search condition to where only when it is given? · Dev Learning Lab</title>
+<title>Dynamic queries: Specification and Querydsl: How do you add a search condition to where only when it is given? · Dev Learning Lab</title>
 <meta name="description" content="On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape o…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dynquery/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dynquery/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Dynamic queries and Querydsl: How do you add a search condition to where only when it is given? · Dev Learning Lab">
+<meta property="og:title" content="Dynamic queries: Specification and Querydsl: How do you add a search condition to where only when it is given? · Dev Learning Lab">
 <meta property="og:description" content="On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape o…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/dynquery/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -29,20 +29,22 @@
   <div id="pre">
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
-<h1>Dynamic queries and Querydsl</h1>
+<h1>Dynamic queries: Specification and Querydsl</h1>
 <p><b>How do you add a search condition to where only when it is given?</b></p>
-<p><b>Why it exists</b> — If you join JPQL strings for each condition, the compiler sees them only as text, so even a query whose pieces were joined wrongly shows its error only when that combination is actually run. With the Criteria API and Querydsl, you pass the conditions as Java objects and the tool attaches where and and for you, and Querydsl points to fields with Q classes generated from entities, so it catches even a typo in a field name at compile time.</p>
-<p><b>Where it's used today</b> — You use it for search features where only the items that were entered become conditions, such as a member search on an admin screen or a product filter in a shop. In projects that use Spring Data JPA, using Querydsl together is common, and sometimes the Criteria API is wrapped and used with Spring Data's Specification. For a query whose conditions are always the same, a query method or @Query is enough.</p>
-<p>On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.</p>
-<p>Partly checked against real execution · The 16 combinations of the string methods and the Criteria API were run on Hibernate 7.4.5 and H2 and checked against the results. The 4 Querydsl combinations follow the official documentation because the library is not available</p>
+<p><b>Why it exists</b> — If you join JPQL strings for each condition, a person has to get the positions of where and and and the spaces right, and the compiler cannot check those strings, so a query whose pieces were joined wrongly shows its error only when a request with that combination actually arrives. If you also put the values into the string, it becomes a path for SQL injection. The Criteria API of the JPA standard lets you pass the conditions as objects and has JPA attach where and and, and Specification in Spring Data JPA splits each condition into one named method and lets you combine them with and or or. Querydsl points to fields with Q classes generated from the entity, so it catches even a typo in a field name at compile time.</p>
+<p><b>Where it's used today</b> — You use it for search features where only the items that were entered become conditions, such as a member search on an admin screen or a product filter in a shop. In projects that use Spring Data JPA, it is common to add JpaSpecificationExecutor to the repository and combine conditions with Specification, or to use Querydsl together. For a query whose conditions are always the same, a query method or @Query is enough.</p>
+<p>On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query like this is called a dynamic query. Specification in Spring Data JPA, the Criteria API of JPA, and Querydsl assemble the conditions as objects instead of strings, and the tool attaches where and and.</p>
+<p>Checked against real execution · The 24 combinations of Specification, the Criteria API, Querydsl, and joining strings by hand were run on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, H2, and Querydsl 5.1.0 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Dynamic query</dt>
 <dd><b>Why it exists</b> — If there are several conditions that can be entered, you cannot prepare a query for every combination in advance (with 5 conditions, there are 32 combinations). A dynamic query picks only the conditions that came in at run time and assembles one query, so that a separate query is not kept for each combination.</dd>
 <dd><b>Where it's used today</b> — It is needed for queries where the user chooses the sort order or the search fields on a list screen. In a project that uses MyBatis, only the conditions that came in are attached with the &lt;if&gt; and &lt;where&gt; tags in XML.</dd>
-<dd>A query built at run time from whichever conditions were supplied, so its shape changes with the input. It is needed when only the conditions that were entered must go into where, as on a search screen. If you build it by joining strings, mistakes happen: only where is left when there is no condition, an and ends up in the wrong place, or a space is missing. Such errors show up not at compile time but only when a request with that combination arrives. So you use the Criteria API or Querydsl, which assemble the conditions as objects. With any approach, values are bound as parameters instead of being put directly into the string.</dd>
-<dt>JPQL</dt>
-<dd>The JPA query language that you write against entities and their fields, not tables. Its syntax is similar to SQL, and when a query runs, the JPA provider translates it into SQL for the database in use. Its advantage is that it does not depend on the syntax of a specific database.</dd>
+<dd>A query built at run time from whichever conditions were supplied, so its shape changes with the input. It is needed when only the conditions that were entered must go into where, as on a search screen. If you build it by joining strings, mistakes happen: only where is left when there is no condition, an and ends up in the wrong place, or a space is missing. Such errors show up not at compile time but only when a request with that combination arrives. So you use Specification of Spring Data JPA, the Criteria API of JPA, or Querydsl, which assemble the conditions as objects. With any approach, values are bound as parameters instead of being put directly into the string.</dd>
+<dt>Specification</dt>
+<dd><b>Why it exists</b> — When you write a dynamic query with the Criteria API, the code that builds the conditions stretches out long in a single method, and it is hard to reuse the same condition in another search. Specification lets you give each condition its own name and keep it separately, and pick and combine only the ones you need.</dd>
+<dd><b>Where it's used today</b> — It is used to combine search conditions in a Spring Data JPA project without adding a library such as Querydsl. You build a list screen with findAll(spec, pageable), which also handles sorting and paging.</dd>
+<dd>This is an interface provided by Spring Data JPA that expresses how to build one search condition with the Criteria API as a single method (toPredicate). You usually write it as a lambda, as in (root, query, cb) -&gt; cb.equal(root.get(&quot;name&quot;), name), and combine them with and and or, as in Specification.where(a).and(b). If the repository also extends JpaSpecificationExecutor, you can pass a Specification to findAll(spec) and count(spec) to run it. If the lambda returns null instead of a condition, that condition is dropped and only the remaining conditions go into where, so it suits a dynamic query that drops conditions with no value. In Spring Data JPA 4.1.1, passing a null Specification itself to where or and throws an IllegalArgumentException.</dd>
 <dt>Criteria API</dt>
 <dd><b>Where it's used today</b> — Use it when you must build a dynamic query without adding a library such as Querydsl. Because it is a JPA standard, the same code runs even if you switch to a JPA implementation other than Hibernate.</dd>
 <dd>An API in the JPA standard that builds a query as Java objects instead of a string. You create condition objects (Predicate) with a CriteriaBuilder, collect them in a list, and pass them to where, and then where and and are created to match the number of conditions. With 0 conditions, no where clause is created. You can use it without a separate library, but the code is long and it is hard to read what query it is. If you write a property name as a string, a wrong name still compiles and throws an exception while running.</dd>
@@ -55,44 +57,50 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — Only the age is entered, so and comes right after where and causes a syntax error.</li>
-<li><b>Same code with both conditions</b> — It works with no problem. So if you test only this combination, you miss the error.</li>
-<li><b>With no condition at all</b> — The string ends with where, which causes a syntax error.</li>
-<li><b>Missing a single space</b> — m and where stick together and become mwhere.</li>
-<li><b>Collect the conditions and join them</b> — You can build it correctly with strings too.</li>
-<li><b>Assemble with the Criteria API</b> — If there is no condition, no where is created at all.</li>
-<li><b>Assemble with Querydsl</b> — A null condition is skipped by where on its own (according to the documentation).</li>
+<li><b>Default settings</b> — The name condition, which returned null, is dropped, and only the age condition goes into where.</li>
+<li><b>With no condition at all</b> — No condition remains, so no where clause is created at all and everything is returned.</li>
+<li><b>Assemble two conditions with the Criteria API</b> — When you pass two condition objects to where, JPA combines them with and. The cb that the lambda of Specification receives is also the CriteriaBuilder of this API.</li>
+<li><b>Assemble with Querydsl</b> — where skips the null condition, and only the name condition remains. The SQL sent is the same as with Specification and the Criteria API.</li>
+<li><b>When quotes are mixed into the name field</b> — The value is bound separately to the ? placeholder, so it is just a strange name, and 0 members are found.</li>
+<li><b>Joining strings by hand</b> — and comes right after where, which causes a syntax error. It is an error you miss if you test with both conditions given.</li>
+<li><b>When quotes are mixed into the joined string</b> — The quote that was entered closes the string and creates an or condition, and all 7 members are found.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>Search conditions: the name is null because it was not entered, and the age is 20. Only the conditions that are not null must go into the where of the query.</li>
-<li>Line 1: Builds the base statement. Expecting conditions to follow, it attaches where at the end in advance.</li>
-<li>Line 2: The name condition is null, so it is skipped. The string stays as it is.</li>
-<li>Line 3: There is a age condition, so the piece &quot; and m.age &gt;= :age&quot; is attached at the end. This line assumes that the name condition is already attached before it, so it starts with and. But this time the name condition was not attached.</li>
-<li>em.createQuery(jpql, Member.class): Hibernate reads the string from the beginning and checks the syntax. and came right after where. The first condition that should be before and is missing. In the Hibernate grammar, a word such as and can also be used as a name, so it reads up to and as a name and moves on, and it stops at the next token, m.</li>
-<li>Exception: createQuery throws an IllegalArgumentException (the cause is a SyntaxException from Hibernate). The text &quot;At 1:33&quot; in the message means that it stopped at character 33 of line 1 (counted from 0). No SQL was sent to the DB, and the search request fails.</li>
+<li>Line 1, nameEq(name): an example method we made. It does not create the condition right away. It returns a lambda (a Specification) that is called when the query is built. This lambda is written to return null instead of a condition if name is null, and cb.equal(root.get(&quot;name&quot;), name) otherwise. Specification.where is a method provided by Spring Data JPA, and it takes the Specification it receives as the starting point.</li>
+<li>Line 2, .and(ageGoe(age)): ageGoe is also an example method we made, and it returns a lambda of the same shape. and is a method provided by Spring Data JPA, and it returns a new Specification that combines two Specifications with and. No SQL has been built yet.</li>
+<li>Line 3, memberRepository.findAll(spec): a method provided by JpaSpecificationExecutor. Spring Data JPA creates a CriteriaQuery and calls the two lambdas. nameEq returns null, and ageGoe returns the condition age &gt;= ?. A condition that returned null is dropped, and only the one remaining condition goes into where.</li>
+<li>One SELECT is sent to the DB. The condition of the SQL is &quot;where age &gt;= ?&quot;. The values bound to the ? placeholders are 20. Members found: 5 out of 7.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Of the four combinations, this code fails when neither is given, when only the age is given, and works normally in the rest. The compiler does not check inside strings, and an error appears only when a request with that combination actually arrives. If you do not test every combination, the error shows up in production.</li>
-<li>With any approach, do not append values to the string directly; leave a placeholder such as :name and put the value in with setParameter. If you append a value entered by a user to the statement as it is, you are exposed to a SQL injection attack.</li>
+<li>The query assembled with Specification ran with 1 condition left, and members found: 5. All six combinations of the name and age fields run without a syntax error.</li>
+<li>You do not write where, and, or spaces yourself. If the lambda returns null instead of a condition when there is no value, Spring Data JPA drops that condition and combines only the remaining ones with and. When conditions increase, you create one more method like nameEq and chain it with and.</li>
+<li>Let the lambda return null instead of a condition. Do not pass null itself as the Specification. In Spring Data JPA 4.1.1, Specification.where(null) and and(null) throw an IllegalArgumentException.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Only the methods inside the class and the line that calls search are shown (class declaration, the em field, the example Member entity, and imports omitted)
-List&lt;Member&gt; search(String name, Integer age) {
-    String jpql = &quot;select m from Member m where&quot;;
-    if (name != null) jpql += &quot; m.name = :name&quot;;
-    if (age != null)  jpql += &quot; and m.age &gt;= :age&quot;;
+<pre>// Only the necessary parts are kept (class declaration, memberRepository field, the example Member entity we made, and imports omitted)
+// MemberRepository is an example repository we made. JpaRepository, JpaSpecificationExecutor, and Specification are provided by Spring Data JPA
+interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, JpaSpecificationExecutor&lt;Member&gt; { }
 
-    TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class);
-    if (name != null) query.setParameter(&quot;name&quot;, name);
-    if (age != null)  query.setParameter(&quot;age&quot;, age);
-    return query.getResultList();
+// nameEq and ageGoe are example methods we made. When there is no value, they return null instead of a condition
+static Specification&lt;Member&gt; nameEq(String name) {
+    return (root, query, cb) -&gt; name == null ? null : cb.equal(root.get(&quot;name&quot;), name);
+}
+static Specification&lt;Member&gt; ageGoe(Integer age) {
+    return (root, query, cb) -&gt; age == null ? null : cb.greaterThanOrEqualTo(root.get(&quot;age&quot;), age);
+}
+
+List&lt;Member&gt; search(String name, Integer age) {
+    Specification&lt;Member&gt; spec = Specification.where(nameEq(name))
+            .and(ageGoe(age));
+    return memberRepository.findAll(spec);
 }
 
 search(null, 20);   // the name is not entered, the age is 20 or older</pre>
 <h2>Assumptions of this model</h2>
-<p>The 16 combinations of the three string-concatenation methods and the JPA Criteria API method were run on Hibernate 7.4.5 and an H2 database, using code with the same structure as the screen, and the built string, whether it succeeded, the kind of exception, the error position and the failing token, the where of the SQL sent to the DB, and the number of members found were checked against the screen. The 4 Querydsl combinations could not be checked by execution because the Querydsl library was not available in our test runs. That part is an explanation that follows the official Querydsl documentation: the API documentation of FilteredClause.where(Predicate...) (&quot;Adds the given filter conditions. Skips null arguments&quot;), the example of combining several filters with and in the Querying JPA chapter of the reference documentation, and the explanation of BooleanBuilder in the Complex predicates section. The where and the number of members written in the result cells of Querydsl are the values assuming that it works as the documentation says, and they are not execution results. The position of the syntax error and the failing token are based on the message produced by Hibernate 7.4.5, and they may come out differently on other versions or other JPA implementations. The explanation that, for &quot;where and&quot;, Hibernate reads and as a name and moves on is an interpretation based on the execution result that the error occurred not at and but at the token after it. The SQL where on the screen has the table aliases removed and is shortened to be easy to read. It was also confirmed by execution that, with the Criteria API, no where clause is created when there are 0 conditions, and that if you give m.get a property name that does not exist, it compiles and an exception (a PathElementException in Hibernate 7.4.5) is thrown while running. In a real service there are many more conditions, and or, like, and sorting are mixed in, so the mistakes of the string method are easier to make than here.</p>
+<p>All 24 combinations of the four methods, the three name fields, and the two age fields were run for real, with code that has the same structure as the screen, on Spring Boot 4.1.1 (auto-configuration), Spring Data JPA 4.1.1, Hibernate 7.4.5, an H2 database, and Querydsl 5.1.0 (jakarta), and the screen was checked against whether it succeeded, the kind of exception, the error position and the failing token, the where of the SQL sent to the DB, the bound values, and the number of members found. For the Q class (QMember), the one that querydsl-apt generated by looking at the Member entity at compile time was used. With the same conditions, the SQL sent by Specification, the Criteria API, and Querydsl was identical down to the letters. The explanations that Spring Data JPA drops a condition that returned null and combines only the remaining conditions with and, and that the where of Querydsl skips null conditions, are based on the SQL sent in this way. We also confirmed by running that Specification.where(null) and and(null) throw an IllegalArgumentException, that with the Criteria API a property name that does not exist in m.get compiles and a PathElementException occurs while running, and that even with strings, collecting the conditions in a list, joining them with and, and binding the values makes all six combinations run correctly. The position of the syntax error and the failing token are based on the message produced by Hibernate 7.4.5, and they may come out differently on other versions or other JPA implementations. The explanation that, for &quot;where and&quot;, Hibernate reads and as a name and moves on is an interpretation based on the execution result that the error occurred not at and but at the token after it. The SQL where on the screen has the table aliases removed and is shortened to be easy to read. In a real service there are many more conditions, and or, like, and sorting are mixed in, so the mistakes of the string method are easier to make than here.</p>
 <p>Previous lab: <a href="../../lab/datajpa/">Spring Data JPA</a> · Next lab: <a href="../../lab/connpool/">Connection pool and OSIV</a></p>
   </div>
 
@@ -185,6 +193,6 @@ search(null, 20);   // the name is not entered, the age is 20 or older</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

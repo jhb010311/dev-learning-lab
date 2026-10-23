@@ -1,3 +1,4 @@
+// [옛 판] 2026-10-22 hash_basic을 표준(PasswordEncoder, MessageDigest) 중심으로 다시 짜기 전의 대조 도구다. 지금 판은 verify/spring/cmp_hash_basic.js로 대조한다.
 // 기초개념 "해시" 실습의 모형 결과를 실제 javac 컴파일과 실행 결과(HashBasicProbe.out.txt)와 대조한다
 // 대조:
 //  1) 여섯 가지 조합: 결과 표 세 열(저장된 값, 입력에서 계산한 값, 로그인)과, 줄이기 전의 전체 값(저장된 값, 입력에서 계산한 값),

@@ -1,1 +1,1 @@
-Lab.verify({ deploy_basic: ['run', 'Node.js 24.18.0의 서버(자식 프로세스)를 실제로 띄우고 server.js 파일을 고치고 껐다 켜며 http 클라이언트로 요청하는 여섯 가지 조합을 실행해 대조'] });
+Lab.verify({ deploy_basic: ['run', 'JDK 21과 스프링 부트 4.1.1에서 화면의 코드 열두 가지 조합을 그대로 실행해 대조: 자바 파일을 javac로 컴파일하고 jar 명령으로 app.jar를 만들고(./gradlew bootJar 대신, bootJar가 같은 일을 한다는 것은 스프링 부트·Gradle 공식 문서로 확인), java -jar로 켜고 끄며 curl로 요청해 응답·8080 포트를 연 프로세스·jar와 소스의 값을 기록'] });

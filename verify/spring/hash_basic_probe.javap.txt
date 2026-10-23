@@ -1,0 +1,12 @@
+# javap -c -p spring-security-crypto-7.1.1.jar: BCryptPasswordEncoder의 encode/matches가 부르는 메서드, BCrypt.checkpw가 부르는 메서드
+  protected java.lang.String encodeNonNullPassword(java.lang.String);
+      10: invokestatic  #91                 // Method org/springframework/security/crypto/bcrypt/BCrypt.hashpw:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      23: invokestatic  #105                // Method org/springframework/security/crypto/bcrypt/BCrypt.gensalt:(Ljava/lang/String;ILjava/security/SecureRandom;)Ljava/lang/String;
+  protected boolean matchesNonNull(java.lang.String, java.lang.String);
+      20: invokeinterface #121,  2          // InterfaceMethod org/apache/commons/logging/Log.warn:(Ljava/lang/Object;)V
+      32: invokestatic  #127                // Method org/springframework/security/crypto/bcrypt/BCrypt.checkpw:(Ljava/lang/String;Ljava/lang/String;)Z
+  protected boolean upgradeEncodingNonNull(java.lang.String);
+  public static boolean checkpw(java.lang.String, java.lang.String);
+      11: invokestatic  #213                // Method hashpwforcheck:([BLjava/lang/String;)Ljava/lang/String;
+      14: invokestatic  #216                // Method equalsNoEarlyReturn:(Ljava/lang/String;Ljava/lang/String;)Z
+  public static boolean checkpw(byte[], java.lang.String);

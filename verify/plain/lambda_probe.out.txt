@@ -1,0 +1,36 @@
+# openjdk version "21.0.12.1" 2026-08-18 LTS
+forEach-full => forEach 부르기 전 / 람다 실행: kiwi / 람다 실행: fig / 람다 실행: banana / forEach 끝
+forEach-empty => forEach 부르기 전 / forEach 끝
+forEachRef-full => forEach 부르기 전 / kiwi / fig / banana / forEach 끝
+forEachRef-empty => forEach 부르기 전 / forEach 끝
+removeIf-full => removeIf 부르기 전 / 람다 실행: kiwi / 람다 실행: fig / 람다 실행: banana / 남은 것 [kiwi, banana]
+removeIf-empty => removeIf 부르기 전 / 남은 것 []
+stream-full => 스트림 만들기 전 / filter 람다: kiwi / map 람다: kiwi / filter 람다: fig / filter 람다: banana / map 람다: banana / 결과 [4, 6]
+stream-empty => 스트림 만들기 전 / 결과 []
+nostream-full => 스트림 만들기 전 / 스트림을 만든 뒤
+nostream-empty => 스트림 만들기 전 / 스트림을 만든 뒤
+sort-full => sort 부르기 전 / 키 꺼냄: fig / 키 꺼냄: kiwi / 키 꺼냄: banana / 키 꺼냄: fig / 키 꺼냄: banana / 키 꺼냄: kiwi / 정렬 [fig, kiwi, banana]
+sort-empty => sort 부르기 전 / 정렬 []
+orElse-full => orElse 부르기 전 / 기본값 만듦 / 이름 민수
+orElse-empty => orElse 부르기 전 / 기본값 만듦 / 이름 손님
+orElseGet-full => orElseGet 부르기 전 / 이름 민수
+orElseGet-empty => orElseGet 부르기 전 / 기본값 만듦 / 이름 손님
+# fact param ArrayList.forEach | 표=Consumer<? super E> | 실제=Consumer<? super E> = true
+# fact src java.base/java/util/ArrayList.java | action.accept(elementAt(es, i)); = true
+# fact param ArrayList.removeIf | 표=Predicate<? super E> | 실제=Predicate<? super E> = true
+# fact src java.base/java/util/ArrayList.java | filter.test(elementAt(es, i)) = true
+# fact param Stream.filter | 표=Predicate<? super T> | 실제=Predicate<? super T> = true
+# fact param Stream.map | 표=Function<? super T, ? extends R> | 실제=Function<? super T, ? extends R> = true
+# fact param ArrayList.sort | 표=Comparator<? super E> | 실제=Comparator<? super E> = true
+# fact src java.base/java/util/ArrayList.java | Arrays.sort((E[]) elementData, 0, size, c); = true
+# fact param Comparator.comparing | 표=Function<? super T, ? extends U> | 실제=Function<? super T, ? extends U> = true
+# fact src java.base/java/util/Comparator.java | (c1, c2) -> keyExtractor.apply(c1).compareTo(keyExtractor.apply(c2)) = true
+# fact param Optional.orElse | 표=T | 실제=T = true
+# fact src java.base/java/util/Optional.java | return value != null ? value : other; = true
+# fact param Optional.orElseGet | 표=Supplier<? extends T> | 실제=Supplier<? extends T> = true
+# fact src java.base/java/util/Optional.java | return value != null ? value : supplier.get(); = true
+# fact abstract Consumer = accept
+# fact abstract Predicate = test
+# fact abstract Function = apply
+# fact abstract Supplier = get
+# fact abstract Comparator = compare

@@ -1,0 +1,27 @@
+# java 21.0.12.1 | javax.crypto.Mac HmacSHA256 | 판단 순서와 문구: spring-security 7.1.1 NimbusJwtDecoder, nimbus-jose-jwt 10.9.1 (소스에서 옮김, 디코더는 실행하지 않음)
+# time.before 1767225000 = 2025-12-31T23:50:00Z
+# time.grace 1767225630 = 2026-01-01T00:00:30Z
+# time.after 1767225900 = 2026-01-01T00:05:00Z
+# exp 1767225600 = 2026-01-01T00:00:00Z
+# sig.ok 5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# sig.serverForAdmin _Crl3waja45Oj0WU2YHqH-bAhgouCo5PsGQEAgYkIuQ
+# token.ok eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjcyMjU2MDB9.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.payload eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.otherkey eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.qmZRR9KJgyn1QAoptqhfdyZ5pV0I2gPLAaszvAlaFJ8
+# token.none eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.
+# boundary exp+0s: accept
+# boundary exp+59s: accept
+# boundary exp+60s: accept
+# boundary exp+61s: reject
+ok|before => accept|sub=7|role=USER
+ok|grace => accept|sub=7|role=USER
+ok|after => reject|JwtValidationException|An error occurred while attempting to decode the Jwt: Jwt expired at 2026-01-01T00:00:00Z
+payload|before => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+payload|grace => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+payload|after => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+otherkey|before => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+otherkey|grace => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+otherkey|after => reject|BadJwtException|An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature
+none|before => reject|BadJwtException|Unsupported algorithm of none
+none|grace => reject|BadJwtException|Unsupported algorithm of none
+none|after => reject|BadJwtException|Unsupported algorithm of none

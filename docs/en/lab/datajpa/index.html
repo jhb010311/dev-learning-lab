@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -101,7 +101,7 @@ interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
 List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;Alice&quot;, 20);</pre>
 <h2>Assumptions of this model</h2>
 <p>All the scenes (6 method names, 8 page requests, and 5 save cases) were run by actually starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and an H2 database with the auto-configuration of Spring Boot 4.1.1, and whether startup succeeded, the exception name and message, the number and kind of SQL statements sent to the database, the shape of where and order by, the number of rows skipped and requested, and the results received were checked against the screen. It was also confirmed by execution that the implementation of the repository is a proxy and that SimpleJpaRepository is behind it. The SQL on the screen is shortened to be easy to read. The actual SQL has table aliases, and the like condition has an escape clause added to it, and the shape of the statement differs by Hibernate version and database. The two wrong method names were checked by starting a separate repository that has only that method. Other keywords mentioned in the result summaries, such as Or, follow the keyword table in the Spring Data JPA documentation and were not run. The decision of whether an entity is new in save follows the &quot;Entity State-detection Strategies&quot; section of the Spring Data JPA documentation, and for an entity with a @Version field, the decision is made by whether that field is null instead of the id. The SELECT being sent twice and the exception being thrown in the id 999 example are results seen with Hibernate 7.4.5, and they differ by version. It was also confirmed by execution that when an entity whose id is set directly implements Persistable and tells Spring Data that it is new, only one INSERT is sent without a SELECT (the way of adding a @Version field was not run). save was called with no transaction outside it, so the UPDATE and INSERT are sent when the transaction of save itself ends. If there is a @Transactional outside, they are sent when that transaction commits.</p>
-<p>Previous lab: <a href="../../lab/bulk/">Bulk update and delete operations</a> · Next lab: <a href="../../lab/dynquery/">Dynamic queries and Querydsl</a></p>
+<p>Previous lab: <a href="../../lab/bulk/">Bulk update and delete operations</a> · Next lab: <a href="../../lab/dynquery/">Dynamic queries: Specification and Querydsl</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -193,6 +193,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;A
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

@@ -1,1 +1,1 @@
-Lab.verify({ lb_basic: ['run', 'Node.js 24.18.0의 http 서버 A(B)와 직접 만든 로드 밸런서, http 클라이언트로 네 가지 조합을 실행해 대조'] });
+Lab.verify({ lb_basic: ['part', '스프링 부트 쪽은 실제 스프링 부트 4.1.1(내장 톰캣 11.0.24)에 화면의 HelloController를 그대로 컴파일해 화면의 java -jar 인자로 띄우고 네 가지 조합을 실행해 대조(verify/net/cmp_lb_basic.js). nginx는 실행하지 않았고 설정은 nginx 문서(ngx_http_upstream_module, ngx_http_proxy_module)와 대조, 실행에서는 화면의 nginx 설정을 읽어 문서대로 라운드 로빈과 실패한 서버 건너뛰기를 하는 Node 모형이 nginx 역할을 대신함'] });

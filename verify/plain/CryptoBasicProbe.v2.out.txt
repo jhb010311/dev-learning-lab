@@ -1,0 +1,35 @@
+# java 21.0.12.1
+FACT fixedStream => key=000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f|iv=202122232425262728292a2b|otherKey=2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b|provider=ProbeFixed
+on|keep|same => OK|>�<U+0012>��<U+0004>񼒑�v�)���e��<�<U+005C>�<U+0015>Z<U+009E>f<U+0003>��n|카드번호 1234|-|-|lines=2
+REAL on|keep|same => OK|firstIsPt=false|second=PT|-|-|lines=2
+on|keep|other => EX|>�<U+0012>��<U+0004>񼒑�v�)���e��<�<U+005C>�<U+0015>Z<U+009E>f<U+0003>��n|-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+REAL on|keep|other => EX|firstIsPt=false|second=-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+on|tamper|same => EX|>�<U+0012>��<U+0004>񼒑�v�)���e��<�<U+005C>�<U+0015>Z<U+009E>f<U+0003>��n|-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+REAL on|tamper|same => EX|firstIsPt=false|second=-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+on|tamper|other => EX|>�<U+0012>��<U+0004>񼒑�v�)���e��<�<U+005C>�<U+0015>Z<U+009E>f<U+0003>��n|-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+REAL on|tamper|other => EX|firstIsPt=false|second=-|javax.crypto.AEADBadTagException|Tag mismatch|lines=1
+off|keep|same => OK|카드번호 1234|카드번호 1234|-|-|lines=2
+REAL off|keep|same => OK|firstIsPt=true|second=PT|-|-|lines=2
+off|keep|other => OK|카드번호 1234|카드번호 1234|-|-|lines=2
+REAL off|keep|other => OK|firstIsPt=true|second=PT|-|-|lines=2
+off|tamper|same => OK|카드번호 1234|카드번호 1235|-|-|lines=2
+REAL off|tamper|same => OK|firstIsPt=true|second=카드번호 1235|-|-|lines=2
+off|tamper|other => OK|카드번호 1234|카드번호 1235|-|-|lines=2
+REAL off|tamper|other => OK|firstIsPt=true|second=카드번호 1235|-|-|lines=2
+JAVA key=000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f|iv=202122232425262728292a2b|pt=ecb9b4eb939cebb288ed98b82031323334|sent=3e83129bff04f1bc9291da76e129c6cae465eee73cbf5cc6155ac29e6603859b6e
+FACT bytes => ptBytes=17|sentBytes=33|tagBytes=16
+FACT midString => >�<U+0012>��<U+0004>񼒑�v�)���e��<�<U+005C>�<U+0015>Z<U+009E>f<U+0003>��n|hasFFFD=true|has1234=false|hasCard=false
+FACT ptByte16 => 34|flipped=35|5
+FACT twice => same=false|decA=카드번호 1234|decB=카드번호 1234
+FACT reuseIv => java.security.InvalidAlgorithmParameterException: Cannot reuse iv for GCM encryption
+FACT wrongKey100 => thrown=100|returned=0|javax.crypto.AEADBadTagException|Tag mismatch
+FACT tamperEachByte => positions=33|thrown=33|javax.crypto.AEADBadTagException
+FACT tamper16 => javax.crypto.AEADBadTagException
+FACT sameKey => PT=ecb9b4eb939cebb288ed98b82031323334|expectPT=ecb9b4eb939cebb288ed98b82031323334
+FACT otherKeyFixed => javax.crypto.AEADBadTagException
+FACT gcmBodyAsCtr => untouched=카드번호 1234|tampered16=카드번호 1235
+FACT ctrTamper => noException|카드번호 1235
+FACT ctrOtherKey => noException|len=17|equalsPT=false
+NIST enc => ct=fa4362189661d163fcd6a56d8bf0405a|tag=d636ac1bbedd5cc3ee727dc2ab4a9489|match=true
+NIST dec0 => PT=7789b41cb3ee548814ca0b388c10b343|match=true
+NIST dec2 => javax.crypto.AEADBadTagException|match=true

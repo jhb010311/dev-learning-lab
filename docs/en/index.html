@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="./app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,14 +42,14 @@
 <li><a href="./lab/null_basic/">null</a> — What is null, and why does NullPointerException happen?</li>
 <li><a href="./lab/ctor_basic/">Constructors</a> — What is a constructor, and when does it run?</li>
 <li><a href="./lab/static_basic/">static</a> — What is static, and what changes when you add it?</li>
-<li><a href="./lab/inherit_basic/">Inheritance</a> — What does a class inherit through extends?</li>
+<li><a href="./lab/inherit_basic/">Inheritance</a> — What does extends pass down?</li>
 <li><a href="./lab/interface_basic/">Interfaces</a> — What does an interface look like in code, and what does it decide?</li>
 <li><a href="./lab/exception_basic/">Exceptions</a> — What is an exception, and what does try-catch do?</li>
 <li><a href="./lab/generic_basic/">Generics</a> — What does the &lt;String&gt; in List&lt;String&gt; do?</li>
 <li><a href="./lab/collection_basic/">List and Map</a> — What do List and Map hold, and how do you get things out?</li>
-<li><a href="./lab/lambda_basic/">Lambdas</a> — What is a lambda a shorter way to write?</li>
+<li><a href="./lab/lambda_basic/">Lambdas</a> — What does a lambda shorten?</li>
 <li><a href="./lab/stream_basic/">Streams</a> — What is a stream, and how is it different from a for loop?</li>
-<li><a href="./lab/annot_basic/">Annotations</a> — What is an annotation, and what happens when you add one?</li>
+<li><a href="./lab/annot_basic/">Annotations</a> — What is an annotation, and who does what when you add one?</li>
 <li><a href="./lab/thread_basic/">Threads</a> — What is a thread, and what does start() do?</li>
 <li><a href="./lab/lock_basic/">Locks (synchronized)</a> — What is a lock, and what happens without one?</li>
 <li><a href="./lab/pool_basic/">Thread pools</a> — What is a thread pool, and how is it different from creating a thread every time?</li>
@@ -104,7 +104,7 @@
 <li><a href="./lab/cookie_basic/">Cookies</a> — What is a cookie, and who stores it and who sends it?</li>
 <li><a href="./lab/json_basic/">JSON</a> — What does JSON look like, and what mistakes make it unreadable?</li>
 <li><a href="./lab/https_basic/">HTTPS</a> — How is HTTPS different from HTTP?</li>
-<li><a href="./lab/proxy_basic/">Proxy servers</a> — What is a proxy server, and what changes when it sits in between?</li>
+<li><a href="./lab/proxy_basic/">Proxy servers</a> — What is the difference between calling a server directly and calling it through nginx (a proxy)?</li>
 </ul>
 <h3>Security</h3>
 <ul>
@@ -120,7 +120,7 @@
 <ul>
 <li><a href="./lab/process_basic/">Processes</a> — What is a process, and what is separate when you run a program twice?</li>
 <li><a href="./lab/remote_basic/">Calling another server</a> — How is a server calling another server different from calling a method?</li>
-<li><a href="./lab/lb_basic/">Load balancers</a> — If you run several servers, which server does a request go to?</li>
+<li><a href="./lab/lb_basic/">Load balancers</a> — Where does a request go when you run several servers?</li>
 <li><a href="./lab/cache_basic/">Caches</a> — What is a cache, and what do you gain and lose by using one?</li>
 <li><a href="./lab/queue_basic/">Message queues</a> — What is a message queue, and how is it different from calling a server directly?</li>
 <li><a href="./lab/deploy_basic/">Deployment</a> — When does a running server change after you edit the code?</li>
@@ -163,8 +163,8 @@
 <h3>Generics, enums, and annotations</h3>
 <ul>
 <li><a href="./lab/generic/">Generics</a> — What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</li>
-<li><a href="./lab/enumtype/">Enum classes</a> — Why does an enum saved as a number come back as a different constant?</li>
-<li><a href="./lab/annot/">Annotations</a> — What really happens when you just add an annotation with @?</li>
+<li><a href="./lab/enumtype/">Enum classes</a> — Why does an enum saved with @Enumerated(EnumType.ORDINAL) come back as a different constant?</li>
+<li><a href="./lab/annot/">Annotations</a> — What really happens when you just add an @?</li>
 </ul>
 <h3>Collections</h3>
 <ul>
@@ -177,7 +177,7 @@
 </ul>
 <h3>Lambdas and streams</h3>
 <ul>
-<li><a href="./lab/lambda/">Lambda expressions and functional interfaces</a> — When does the code in a lambda expression run?</li>
+<li><a href="./lab/lambda/">Lambda expressions and functional interfaces</a> — When does the code written in a lambda run?</li>
 <li><a href="./lab/stream/">Lazy evaluation in streams</a> — A stream does not run in the order in which it is written</li>
 <li><a href="./lab/collect/">Collecting a stream</a> — Into what shape do you collect the result of a stream?</li>
 <li><a href="./lab/parstream/">Parallel streams and the common pool</a> — Someone else's parallel stream slows down my code</li>
@@ -282,7 +282,7 @@
 <li><a href="./lab/fetchjoin/">JPQL and fetch joins</a> — What is the difference between join and join fetch?</li>
 <li><a href="./lab/bulk/">Bulk update and delete operations</a> — After one UPDATE changes many rows, why does the entity still have the old value?</li>
 <li><a href="./lab/datajpa/">Spring Data JPA</a> — How does a repository work when there is no implementation class?</li>
-<li><a href="./lab/dynquery/">Dynamic queries and Querydsl</a> — How do you add a search condition to where only when it is given?</li>
+<li><a href="./lab/dynquery/">Dynamic queries: Specification and Querydsl</a> — How do you add a search condition to where only when it is given?</li>
 </ul>
 <h3>Web applications and performance</h3>
 <ul>
@@ -376,7 +376,7 @@
 <h3>In front of the web server</h3>
 <ul>
 <li><a href="./lab/scale/">Load balancers and scale out</a> — How far does adding servers get you?</li>
-<li><a href="./lab/revproxy/">Proxies and reverse proxies</a> — How does a server behind a proxy know who sent the request?</li>
+<li><a href="./lab/revproxy/">Proxies and reverse proxies</a> — How does Spring Boot behind nginx know who sent the request?</li>
 <li><a href="./lab/cdn/">CDN</a> — The origin was changed, so why do users still get the old file?</li>
 </ul>
 <h2><a href="./study/sec/">Security</a></h2>
@@ -415,7 +415,7 @@
 <h3>High traffic</h3>
 <ul>
 <li><a href="./lab/scale/">Load balancers and scale out</a> — How far does adding servers get you?</li>
-<li><a href="./lab/cache/">Caching and TTL</a> — How much does a cache reduce database queries, and when do requests pile up again?</li>
+<li><a href="./lab/cache/">Caching and TTL</a> — If you give @Cacheable a TTL, how much does it reduce database queries, and when do requests pile up again?</li>
 <li><a href="./lab/redis/">Redis single-threaded execution</a> — If one command is slow, everyone waits</li>
 <li><a href="./lab/ratelimit/">Rate limiting</a> — Three meanings of &quot;accept only 5 requests per second&quot;</li>
 </ul>
@@ -537,6 +537,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="./app.js?v=ecc1a00f8f"></script>
+<script src="./app.js?v=cffe3f81e8"></script>
 </body>
 </html>

@@ -1,1 +1,1 @@
-Lab.verify({ lambda: ['run', 'Checked by running 36 combinations on JDK 21'] });
+Lab.verify({ lambda: ['run', 'On the PC used to write this lab, the code on the screen was compiled and run as is on JDK 21 for each of 16 combinations, the order of output, the number of times the lambda body ran, and the result were checked, and the parameter types of the standard methods (reflection) and the lines of JDK source that were copied into this lab were checked'] });

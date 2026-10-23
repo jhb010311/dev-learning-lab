@@ -1,0 +1,9 @@
+# java 21.0.12.1 · Windows 11 · localhost · 받는 쪽과 보내는 쪽은 각각 따로 띄운 자바 프로세스 · 조합마다 5번 실행
+# localhost(InetAddress.getByName) => 127.0.0.1
+tcp|on => senderOut=보내기 끝|senderErr=-|senderExit=0|receiverOut=받은 글: ABC|receiverExit=0|pre=refused|runs=5개 모두 같음|ports=[64514, 64537, 64556, 64570, 64588]
+tcp|off => senderOut=-|senderErr=Exception in thread "main" java.net.ConnectException: Connection refused: connect|senderExit=1|receiverOut=(띄우지 않음)|receiverExit=-|pre=refused|runs=5개 모두 같음|ports=[64605, 64628, 64644, 64654, 64659]
+udp|on => senderOut=보내기 끝|senderErr=-|senderExit=0|receiverOut=받은 글: A / 받은 글: B / 받은 글: C|receiverExit=0|pre=refused|runs=5개 모두 같음|ports=[64673, 64682, 64727, 64767, 64782]
+udp|off => senderOut=보내기 끝|senderErr=-|senderExit=0|receiverOut=(띄우지 않음)|receiverExit=-|pre=refused|runs=5개 모두 같음|ports=[64792, 64800, 64808, 64822, 64829]
+# 사실 연결 거부까지 걸린 시간 => 예외=java.net.ConnectException: Connection refused: connect|ms=[1, 0, 0, 0, 0]
+# 사실 HTTP를 TCP로 보냄 => 서버가 받은 요청=[GET /hello]|응답 첫 줄=HTTP/1.1 200 OK|본문=hello
+# 사실 같은 요청 글을 UDP로 보냄 => send 예외=none|0.8초 안에 서버가 더 받은 요청 수=0

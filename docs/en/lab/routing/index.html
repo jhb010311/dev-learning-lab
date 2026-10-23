@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -82,7 +82,10 @@
 <li>ARP requests: one on each hop, 2 in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Network settings of PC A
+<pre>// Conceptual model (not a real API. sameNetwork, arp, myMac, discardAndReportTimeExceeded,
+// and forwardInNewFrame are names made up to show what the operating system and routers do)
+
+// Network settings of PC A
 const me      = '192.168.1.10';
 const mask    = '255.255.255.0';   // the first three numbers, where the mask is 255, identify the network
 const gateway = '192.168.1.1';     // the door to other networks (router R1)
@@ -97,7 +100,11 @@ const frame = { toMac: arp(nextHop), fromMac: myMac, payload: packet };
 // Rule of a router: when it receives a packet that is going somewhere else
 packet.ttl -= 1;
 if (packet.ttl === 0) discardAndReportTimeExceeded(packet);   // discard it and tell the sender
-else forwardInNewFrame(packet);    // write only new MAC addresses and send it on to the next hop. The IP addresses stay the same</pre>
+else forwardInNewFrame(packet);    // write only new MAC addresses and send it on to the next hop. The IP addresses stay the same
+
+// Commands to check on a real computer
+//   Windows: route print (routing table and default gateway), arp -a (ARP cache), tracert 192.168.2.30 (routers on the path)
+//   Linux:   ip route, ip neigh, traceroute 192.168.2.30</pre>
 <h2>Assumptions of this model</h2>
 <p>This is a conceptual model that puts the rules of the standards documents into code, not the result of running real equipment. This one PC cannot build a path through a switch and two routers, so it could not be checked by execution. Instead, the results of the model were checked against a calculation that applies the same rules in a different way (each device holds an IP address, a mask, a routing table, and an ARP table, and the packet is handed from device to device) in 18 combinations. The documents used as the basis: that the sending computer uses the mask to decide whether the destination is on the same network and then sends directly or via the gateway is Section 3.3.1.1 of RFC 1122; ARP, which finds a MAC address from an IP address, is RFC 826; the meaning of TTL is Section 3.2 of RFC 791; that a router decreases the TTL when it forwards a packet, discards the packet when it reaches 0, and sends an ICMP Time Exceeded message is Section 5.3.1 of RFC 1812 and RFC 792; and that a receiving computer accepts a packet even if its TTL is small is Section 3.2.1.7 of RFC 1122. The way a switch forwards by MAC address is what IEEE 802.1D describes. Simplifications: networks B and C also have switches, but they are not drawn; how a switch learns which MAC address is behind which port, the router recalculating the checksum of the IP header after it decreases the TTL, and network address translation (NAT) are not covered. When a packet passes a home router, the source IP address also changes because of NAT. The IP addresses are in the private range (192.168.x.x), and the MAC addresses are values from the range reserved for documentation (RFC 7042, now RFC 9542), not addresses of real devices. The initial TTL differs from one operating system to another.</p>
 <p>Previous lab: <a href="../../lab/subnet/">IP addresses and subnets</a> · Next lab: <a href="../../lab/socket/">Sockets and ports</a></p>
@@ -192,6 +199,6 @@ else forwardInNewFrame(packet);    // write only new MAC addresses and send it o
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

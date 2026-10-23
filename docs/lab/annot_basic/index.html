@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>애너테이션: 애너테이션은 무엇이고, 붙이면 무슨 일이 생기는가 · 개발 학습 실습실</title>
-<meta name="description" content="애너테이션은 @Run, @Override처럼 @로 시작하는, 코드에 붙이는 표시입니다. 이 실습에서는 @interface Run으로 표시를 직접 만들고 work 메서드 위에 @Run을 붙입니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. 효과가 생기려면 그 표시를…">
+<title>애너테이션: 애너테이션은 무엇이고, 붙이면 누가 무슨 일을 하는가 · 개발 학습 실습실</title>
+<meta name="description" content="애너테이션은 @Service, @Override, @Test처럼 @로 시작해 클래스나 메서드 위에 붙이는 꼬리표입니다. 꼬리표 자체에는 실행되는 코드가 없고, 뜻은 그것을 읽는 쪽이 정합니다. @Override는 컴파일러가, @Service는 스프링이(컴포넌트 스캔으로 찾은…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/annot_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/annot_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="애너테이션: 애너테이션은 무엇이고, 붙이면 무슨 일이 생기는가 · 개발 학습 실습실">
-<meta property="og:description" content="애너테이션은 @Run, @Override처럼 @로 시작하는, 코드에 붙이는 표시입니다. 이 실습에서는 @interface Run으로 표시를 직접 만들고 work 메서드 위에 @Run을 붙입니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. 효과가 생기려면 그 표시를…">
+<meta property="og:title" content="애너테이션: 애너테이션은 무엇이고, 붙이면 누가 무슨 일을 하는가 · 개발 학습 실습실">
+<meta property="og:description" content="애너테이션은 @Service, @Override, @Test처럼 @로 시작해 클래스나 메서드 위에 붙이는 꼬리표입니다. 꼬리표 자체에는 실행되는 코드가 없고, 뜻은 그것을 읽는 쪽이 정합니다. @Override는 컴파일러가, @Service는 스프링이(컴포넌트 스캔으로 찾은…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/annot_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,87 +30,99 @@
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>애너테이션</h1>
-<p><b>애너테이션은 무엇이고, 붙이면 무슨 일이 생기는가</b></p>
+<p><b>애너테이션은 무엇이고, 붙이면 누가 무슨 일을 하는가</b></p>
 <p><b>왜 생겼나</b> — 애너테이션이 없던 때는 &quot;이 메서드는 테스트다&quot;, &quot;이 클래스의 객체는 스프링이 만든다&quot; 같은 정보를 test로 시작하는 메서드 이름 같은 규칙이나 코드와 떨어진 XML 설정 파일로 알려야 해서, 코드를 고치면 설정 파일도 따로 맞춰야 했다. 애너테이션은 그런 표시를 해당 코드 바로 위에 @로 적게 해서, 코드와 표시가 한자리에서 보이고 같이 고쳐지게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — @Override는 부모의 메서드를 제대로 다시 적었는지 컴파일러가 확인하게 한다. 스프링의 @Component, @GetMapping, @Transactional과 JUnit의 @Test는 &quot;이것을 이렇게 다뤄 달라&quot;고 프레임워크에 알리는 표시다. 애너테이션을 직접 만드는 일은 많지 않고, 대개 자바와 프레임워크가 만들어 둔 것을 붙여 쓴다.</p>
-<p>애너테이션은 @Run, @Override처럼 @로 시작하는, 코드에 붙이는 표시입니다. 이 실습에서는 @interface Run으로 표시를 직접 만들고 work 메서드 위에 @Run을 붙입니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. 효과가 생기려면 그 표시를 읽고 무언가를 해 주는 쪽이 있어야 하고, 컴파일러나 스프링 같은 프레임워크, 또는 우리가 쓴 코드가 그 역할을 합니다. 여기서는 &quot;Run이 붙은 메서드를 찾아 부르는&quot; for 문을 우리가 직접 써서 그 관계를 보입니다. @Run을 지우고, 읽는 쪽을 지우고, @Retention을 지워 가며 같은 코드를 컴파일해 실행하고, 어느 메서드가 불리는지를 봅니다.</p>
-<p>실행으로 대조 · JDK 21에서 열두 가지 조합을 javax.tools로 컴파일하고 실행해, 불린 메서드와 실행 중에 읽힌 표시까지 대조</p>
+<p><b>지금 어디에 쓰나</b> — @Override는 부모의 메서드를 제대로 다시 적었는지 컴파일러가 확인하게 한다. 스프링의 @Service, @Repository, @Controller, @Component는 그 클래스의 객체를 스프링이 만들어 빈으로 등록하게 하고, @GetMapping, @Transactional도 스프링이 읽어서 일한다. JUnit의 @Test는 그 메서드를 테스트로 실행하게 한다. 애너테이션을 직접 만드는 일은 드물고, 대개 자바와 프레임워크가 만들어 둔 것을 붙여 쓴다.</p>
+<p>애너테이션은 @Service, @Override, @Test처럼 @로 시작해 클래스나 메서드 위에 붙이는 꼬리표입니다. 꼬리표 자체에는 실행되는 코드가 없고, 뜻은 그것을 읽는 쪽이 정합니다. @Override는 컴파일러가, @Service는 스프링이(컴포넌트 스캔으로 찾은 클래스의 객체를 만들어 빈으로 등록), @Test는 JUnit이 읽어서 일합니다. 이 실습은 세 애너테이션을 붙였다 뗐다 하고, 읽는 쪽(스프링, JUnit)을 거치거나 거치지 않으면서 같은 코드를 컴파일하고 실행해 무엇이 달라지는지 봅니다. 이어서 @Service와 @Override의 실제 선언에서 @Retention이 꼬리표를 어디까지 남기는지 보고, 마지막으로 애너테이션과 그것을 읽는 코드를 직접 만들어 봅니다. 코드에 나오는 OrderService, Order, OrderTest, Job은 이 실습에서 예시로 만든 클래스입니다.</p>
+<p>실행으로 대조 · JDK 21, 스프링 7.0.9, JUnit 6.0.3으로 화면 코드 열일곱 조합을 컴파일·실행(실제 컴포넌트 스캔, JUnit Launcher, javap)해 결과 표와 예외·컴파일 오류 문구, 빈 이름, @Service·@Override·@Test의 실제 선언까지 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>애너테이션</dt>
 <dd>코드에 붙이는 메타데이터로, 그 자체로는 동작하지 않고 컴파일러나 프레임워크가 읽어서 처리한다. @Override처럼 컴파일러가 검사에 쓰는 것과 @Transactional, @Autowired처럼 프레임워크가 실행 중에 리플렉션으로 읽어 기능을 적용하는 것이 있다.</dd>
-<dt>@interface</dt>
-<dd><b>왜 생겼나</b> — 자바가 미리 만들어 둔 애너테이션만 쓸 수 있다면 우리 프로그램에만 필요한 표시는 붙일 수 없다. @interface는 필요한 표시를 직접 만들게 해서, 그 표시가 붙은 곳을 프로그램이 찾아 따로 다룰 수 있게 했다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 스프링이 주는 @Component 같은 애너테이션도 이렇게 @interface로 선언되어 있다. 직접 만드는 것은 &quot;실행 시간을 잴 메서드&quot;처럼 여러 곳에 같은 표시를 붙여 한꺼번에 다루고 싶을 때다.</dd>
-<dd>@interface는 애너테이션(@로 시작하는 표시)을 새로 만드는 선언이다. 일반 인터페이스 선언의 interface 앞에 @를 붙여 @interface Run { }처럼 쓰면 Run이라는 애너테이션이 생기고, 그 뒤로 클래스나 메서드 위에 @Run으로 붙일 수 있다. 중괄호 안이 비어 있으면 값을 담지 않는 표시(마커 애너테이션)이고, 메서드 모양의 선언을 두면 @Name(값)처럼 값을 담는 요소가 된다. 선언만으로는 실행되는 코드가 생기지 않으며, 표시를 읽고 일하는 쪽은 따로 있어야 한다. 직접 만든 애너테이션에 @Retention을 적지 않으면 실행 중에는 남지 않는다.</dd>
-<dt>리플렉션</dt>
-<dd><b>왜 생겼나</b> — 프레임워크는 사용자가 나중에 만들 클래스의 이름을 미리 알 수 없어서, 보통의 코드로는 그 클래스의 객체를 만들거나 메서드를 부를 수 없다. 리플렉션은 실행 중에 클래스를 조사해 이름만으로 다루게 해서 이 일을 가능하게 한다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 애플리케이션 코드에서 직접 쓰는 일은 드물고 프레임워크, 테스트 도구, 직렬화 라이브러리를 만들 때 쓴다. 같은 일을 인터페이스와 다형성으로 풀 수 있으면 그쪽이 컴파일 시점의 타입 검사를 받아 안전하다.</dd>
-<dd>실행 중인 프로그램이 클래스의 정보(필드, 메서드, 생성자, 애너테이션)를 조사하고, 이름으로 객체를 생성하거나 메서드를 호출할 수 있는 기능이다. 스프링의 의존성 주입, JPA의 엔티티 처리, JSON 직렬화 라이브러리 등이 이 기능 위에서 동작한다. 일반 호출보다 느리고 컴파일 시점의 타입 검사를 받지 못한다.</dd>
+<dt>@Override</dt>
+<dd><b>왜 생겼나</b> — 재정의는 이름과 매개변수가 맞으면 조용히 이루어져서, 부모 메서드의 이름이 나중에 바뀌면 자식 메서드는 아무 오류 없이 재정의가 아닌 별개의 메서드로 남는다. @Override는 재정의하려는 뜻을 코드에 적어 이런 어긋남이 컴파일 오류로 드러나게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 재정의하거나 인터페이스의 메서드를 구현할 때 붙인다. 개발 도구(IDE)가 재정의 코드를 만들어 줄 때도 함께 적어 준다.</dd>
+<dd>바로 아래 메서드가 상위 클래스나 인터페이스의 메서드를 재정의한 것임을 나타내는 애너테이션이다. 컴파일러가 이 표시를 읽고 실제로 재정의가 맞는지 확인하며, 아니면 컴파일 오류를 낸다. 메서드 이름이나 매개변수를 잘못 적어 재정의가 아닌 새 메서드를 만들어 버리는 실수를 잡아 준다. 붙이지 않아도 재정의는 되고 프로그램의 동작도 달라지지 않지만, 실수를 막기 위해 재정의하는 메서드에는 항상 붙인다. 소스 코드까지만 남는 애너테이션이라 class 파일에는 적히지 않는다.</dd>
+<dt>@Service와 @Repository</dt>
+<dd><b>왜 생겼나</b> — 모든 빈에 @Component만 붙이면 클래스가 무슨 역할인지 코드에서 드러나지 않고, 데이터 접근 클래스에만 예외 변환을 적용하는 것처럼 역할별로 다르게 다룰 근거도 없다. 그래서 스프링은 @Component를 바탕으로 역할 이름을 붙인 애너테이션을 따로 두었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 웹 애플리케이션에서 업무 규칙을 처리하는 서비스 클래스에는 @Service를, DB를 다루는 클래스에는 @Repository를 붙인다. 스프링 데이터 JPA의 JpaRepository를 상속한 인터페이스는 스프링이 따로 찾아 등록하므로 @Repository를 붙이지 않아도 된다.</dd>
+<dd>@Service와 @Repository는 스프링이 주는 애너테이션으로, 클래스 위에 붙이면 컴포넌트 스캔이 그 클래스를 찾아 객체를 만들어 빈으로 등록한다. 둘 다 선언에 @Component가 붙어 있어서(메타 애너테이션) @Component를 붙인 것과 같은 방식으로 찾아지며, @Controller도 그렇다. 이름이 다른 것은 클래스의 역할(업무 처리, 데이터 접근, 요청 처리)을 드러내기 위해서다. @Repository는 하나가 더 있어서, PersistenceExceptionTranslationPostProcessor가 등록되어 있으면(스프링 부트는 데이터 접근 모듈을 쓸 때 자동 설정으로 등록한다) 그 빈에서 나는 JPA 같은 기술의 예외를 스프링의 DataAccessException 계열로 바꿔 던지는 대상이 된다. 애너테이션 자체는 꼬리표일 뿐이어서, 스프링을 시작하지 않고 new로 객체를 만들면 아무 일도 하지 않는다.</dd>
+<dt>컴포넌트 스캔</dt>
+<dd><b>왜 생겼나</b> — 빈을 클래스마다 XML이나 @Bean 메서드로 하나씩 등록하면, 클래스를 만들 때마다 등록 목록도 함께 고쳐야 한다. 컴포넌트 스캔은 클래스에 애너테이션만 붙이면 스프링이 찾아 등록하게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 직접 만든 서비스·리포지토리·컨트롤러는 보통 이 방식으로 등록한다. 그래서 @SpringBootApplication 클래스는 프로젝트의 가장 위 패키지에 두고, 그 밖의 패키지까지 찾게 하려면 scanBasePackages 속성으로 지정한다.</dd>
+<dd>지정한 패키지 아래에서 @Component 계열 애너테이션(@Service, @Repository, @Controller 등)이 붙은 클래스를 찾아 자동으로 빈으로 등록하는 기능이다. Spring Boot에서는 @SpringBootApplication이 붙은 클래스의 패키지와 그 하위 패키지가 기본 대상이다.</dd>
+<dt>@Test</dt>
+<dd><b>왜 생겼나</b> — JUnit 3까지는 이름이 test로 시작하는 메서드를 테스트로 보았기 때문에, 메서드 이름을 그 규칙에 맞춰 지어야 했다. @Test는 이름과 상관없이 붙은 표시만 보고 테스트를 찾게 해서, 이름을 확인하려는 내용대로 지을 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 테스트로 돌릴 메서드마다 위에 붙이며, IntelliJ 같은 IDE는 @Test가 붙은 메서드 옆에 실행 단추를 보여 준다. 같은 테스트를 값만 바꿔 여러 번 돌릴 때는 @ParameterizedTest를 붙인다.</dd>
+<dd>@Test는 메서드 위에 붙여, 그 메서드가 테스트 메서드라고 JUnit에 알리는 애너테이션이다. 문서에 따르면 @Test가 붙은 메서드는 private이거나 static이면 안 되고 값을 돌려주면 안 된다. JUnit은 @Test(또는 @RepeatedTest, @ParameterizedTest 같은 애너테이션)가 붙은 메서드를 테스트로 세므로, 내용이 테스트처럼 생겼어도 표시가 없는 메서드는 테스트로 세지 않는다. 실행한 JUnit 6.0.3에서는 @Test가 없는 메서드를 가진 클래스를 실행하면 찾은 테스트가 0개이고, 오류도 실패도 없이 그 메서드가 한 번도 실행되지 않았다.</dd>
 <dt>@Retention과 @Target</dt>
-<dd><b>왜 생겼나</b> — 애너테이션마다 붙일 자리와 남길 시점을 정할 방법이 없다면, 메서드용 표시를 클래스에 잘못 붙여도 컴파일러가 잡지 못하고 컴파일러만 보는 표시도 실행 중까지 남는다. @Target과 @Retention은 애너테이션을 만드는 쪽이 이 둘을 정하게 했다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 애너테이션을 직접 만들 때 함께 적는다. 스프링의 @Component와 @Transactional에도 @Retention(RetentionPolicy.RUNTIME)과 @Target이 붙어 있어서, 스프링이 실행 중에 이 표시를 찾아 읽는다.</dd>
-<dd>애너테이션을 새로 만들 때 그 애너테이션에 붙여 성질을 정하는 두 애너테이션이다. @Retention은 표시를 어디까지 남길지 정한다. SOURCE는 소스 코드까지만, CLASS는 class 파일까지, RUNTIME은 실행 중까지 남겨 리플렉션으로 읽을 수 있게 한다. 적지 않으면 CLASS가 되므로, 실행 중에 읽을 애너테이션에는 RUNTIME을 반드시 적어야 한다. @Target은 붙일 수 있는 곳(TYPE은 클래스 같은 타입 선언, METHOD는 메서드, FIELD는 필드 등)을 정하며, 맞지 않는 곳에 붙이면 컴파일 오류가 난다.</dd>
+<dd><b>왜 생겼나</b> — 애너테이션마다 붙일 자리와 남길 시점을 정할 방법이 없다면, 메서드용 표시를 필드에 잘못 붙여도 컴파일러가 잡지 못하고, 컴파일러만 보는 표시도 실행 중까지 남는다. @Target과 @Retention은 애너테이션을 만드는 쪽이 이 둘을 선언에 정해 두게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쓰는 쪽은 보통 직접 적지 않는다. 스프링·JUnit·자바가 주는 애너테이션의 선언에 이미 적혀 있어, 실행 중에 읽힐지(RUNTIME)와 어디에 붙일 수 있는지가 정해져 있다. 애너테이션을 직접 만들 때만 함께 적는다.</dd>
+<dd>애너테이션의 선언에 붙여 그 애너테이션의 성질을 정하는 두 애너테이션이다. @Retention은 표시를 어디까지 남길지 정한다. SOURCE는 소스 코드까지만(@Override), CLASS는 class 파일까지(스프링의 @Contract), RUNTIME은 실행 중까지 남겨 리플렉션으로 읽을 수 있게 한다(@Transactional, @Test, @Deprecated). 적지 않으면 CLASS가 된다. @Target은 붙일 수 있는 곳(TYPE은 클래스 같은 타입 선언, METHOD는 메서드, FIELD는 필드 등)을 정하며, 맞지 않는 곳에 붙이면 컴파일 오류가 난다. @Transactional의 선언에는 @Target({ElementType.TYPE, ElementType.METHOD})와 @Retention(RetentionPolicy.RUNTIME)이 붙어 있다.</dd>
+<dt>메타 애너테이션</dt>
+<dd><b>왜 생겼나</b> — 애너테이션마다 &quot;붙일 곳&quot;, &quot;남길 곳&quot;, &quot;스프링이 빈으로 다룰지&quot; 같은 성질을 처리하는 코드를 따로 만들면, 새 애너테이션이 생길 때마다 읽는 쪽도 고쳐야 한다. 메타 애너테이션은 그 성질을 선언 위의 표시로 적게 해서, 읽는 쪽이 선언만 보고 다룰 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링의 @Service, @Repository, @Controller, @RestController, @SpringBootApplication이 모두 다른 애너테이션을 메타 애너테이션으로 묶어 만든 것이다. 여러 애너테이션을 자주 함께 붙인다면, 그것들을 메타 애너테이션으로 붙인 애너테이션을 직접 선언해 한 줄로 줄이기도 한다.</dd>
+<dd>메타 애너테이션은 다른 애너테이션의 선언 위에 붙은 애너테이션이다. 자바가 주는 @Target, @Retention, @Documented가 대표적이고, 스프링의 @Service 선언에 붙은 @Component도 메타 애너테이션이다. 스프링은 클래스에 붙은 애너테이션의 선언까지 따라가 읽기 때문에, @Service가 붙은 클래스를 @Component가 붙은 클래스처럼 컴포넌트 스캔으로 찾는다. 자바의 리플렉션 메서드 isAnnotationPresent는 이렇게 따라가 읽지 않으므로, @Service가 붙은 클래스에 isAnnotationPresent(Component.class)를 물으면 false다.</dd>
+<dt>@interface</dt>
+<dd><b>왜 생겼나</b> — 자바가 미리 만들어 둔 애너테이션만 쓸 수 있다면 프레임워크나 우리 프로그램에 필요한 표시는 붙일 수 없다. @interface는 필요한 표시를 누구나 선언하게 해서, 스프링이나 JUnit 같은 도구가 자기 표시를 만들어 줄 수 있게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 대개는 선언을 직접 쓰지 않고 자바·스프링·JUnit이 선언해 둔 것을 붙여 쓴다. 선언을 읽을 일은 @Service가 왜 빈이 되는지처럼 동작의 근거를 찾을 때다. 직접 선언하는 것은 &quot;실행 시간을 잴 메서드&quot;처럼 여러 곳에 같은 표시를 붙이고 스프링 AOP 같은 읽는 쪽과 함께 쓸 때다.</dd>
+<dd>@interface는 애너테이션을 선언하는 문법이다. 일반 인터페이스 선언의 interface 앞에 @를 붙여 쓴다. 자바의 @Override, 스프링의 @Service, JUnit의 @Test도 모두 이렇게 선언되어 있고, 선언 위에 붙인 @Target(붙일 수 있는 곳)과 @Retention(어디까지 남길지)이 그 애너테이션의 성질을 정한다. 중괄호 안이 비어 있으면 값을 받지 않는 표시(마커 애너테이션)이고, 메서드 모양의 선언을 두면 @Service(&quot;이름&quot;)처럼 값을 받는 요소가 된다. 선언만으로는 실행되는 코드가 생기지 않으며, 표시를 읽고 일하는 쪽(컴파일러, 스프링, JUnit, 또는 직접 쓴 코드)이 따로 있어야 한다. 직접 선언할 때 @Retention을 적지 않으면 CLASS가 되어 실행 중에는 리플렉션으로 읽을 수 없다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — @Run이 붙은 work만 불립니다. 부른 것은 표시가 아니라, 표시를 읽은 우리 코드입니다.</li>
-<li><b>work의 @Run을 지우면</b> — 읽는 코드는 그대로인데 work가 불리지 않습니다.</li>
-<li><b>rest에도 @Run을 붙이면</b> — 읽는 코드는 그대로인데 rest도 불립니다.</li>
-<li><b>읽는 코드를 지우면</b> — @Run이 붙어 있어도 아무 일도 일어나지 않습니다.</li>
-<li><b>@Retention을 지우면</b> — @Run이 붙어 있어도 실행 중에는 보이지 않아 아무 메서드도 불리지 않습니다.</li>
+<li><b>처음 설정으로</b> — 스프링이 @Service를 읽고 OrderService의 객체를 만들어 빈으로 등록합니다. 그래서 getBean으로 받아 쓸 수 있습니다.</li>
+<li><b>@Service를 떼면</b> — 스프링이 OrderService를 빈으로 만들지 않아, getBean이 NoSuchBeanDefinitionException으로 멈춥니다.</li>
+<li><b>스프링 없이 new로 만들면</b> — 읽는 쪽인 스프링이 없으니 @Service는 아무 일도 하지 않습니다.</li>
+<li><b>@Override를 붙이고 이름을 잘못 적으면</b> — @Override를 읽는 컴파일러가 재정의가 아니라는 오류를 내고 컴파일을 멈춥니다.</li>
+<li><b>@Test를 붙이고 JUnit으로 실행하면</b> — JUnit이 @Test를 읽고 total()을 테스트로 찾아 부릅니다.</li>
+<li><b>@Retention: 꼬리표는 어디까지 남나</b> — @Service는 @Retention(RUNTIME)이라 class 파일에 남고, @Override는 @Retention(SOURCE)라 컴파일이 끝나면 버려집니다.</li>
+<li><b>직접 만든 @Run</b> — @interface로 만든 @Run에는 정해진 뜻이 없어서, 읽고 일하는 코드도 우리가 써야 합니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>컴파일러가 소스를 위에서부터 읽습니다. 먼저 @interface Run 선언을 읽고, Run이라는 표시를 새로 만듭니다. @로 시작하는 표시를 애너테이션이라고 부르고, @interface 뒤에 적은 Run이 그 표시의 이름이 됩니다. Run의 { } 안은 비어 있어서, 아무 값도 담지 않는 표시입니다. 그 위의 @Retention(RetentionPolicy.RUNTIME)은 이 표시를 어디까지 남길지 컴파일러에게 알립니다. RUNTIME은 class 파일에 기록하고 실행 중에도 리플렉션(실행 중에 클래스와 메서드를 조사하는 기능)으로 읽을 수 있게 남기라는 뜻입니다.</li>
-<li>컴파일러가 Job 클래스를 읽습니다. work 메서드 위에 @Run이 붙어 있습니다. 컴파일러는 이 표시를 class 파일에 실행 중에 읽을 수 있는 표시로 적어 둘 뿐, 메서드를 실행하거나 부르지는 않습니다.</li>
-<li>컴파일에 성공합니다. 컴파일러가 한 일은 소스를 확인하고 class 파일을 만드는 것까지입니다. work도 rest도 아직 한 번도 실행되지 않았습니다.</li>
-<li>java Main으로 실행합니다. main이 시작되고, new Job()이 Job 객체를 만듭니다. 이 줄에서 work와 rest는 실행되지 않았습니다. 메서드는 그것을 부르는 코드가 있어야 실행됩니다. 메서드 위에 붙은 @Run은 부르는 코드가 아니라 표시일 뿐입니다.</li>
-<li>for 문이 처음 돌면서 name은 &quot;work&quot;입니다. Job.class.getMethod(&quot;work&quot;)로 work 메서드를 꺼내고, m.isAnnotationPresent(Run.class)로 이 메서드에 Run이 붙어 있는지 실행 중에 묻습니다. 이렇게 묻는 것은 @Run이 아니라 우리가 쓴 이 코드입니다. 답은 true입니다. 소스에 붙인 @Run이 실행 중에 읽을 수 있는 상태로 남아 있기 때문입니다.</li>
-<li>true이므로 if 안으로 들어가 m.invoke(job)이 실행됩니다. invoke가 job 객체의 work 메서드를 부르고, work 메서드가 &quot;work 실행&quot;을 출력합니다. 이것을 출력하게 만든 것은 @Run 자체가 아니라, @Run을 보고 m.invoke(job)을 실행한 우리 코드입니다.</li>
-<li>for 문이 다시 돌면서 name은 &quot;rest&quot;입니다. Job.class.getMethod(&quot;rest&quot;)로 rest 메서드를 꺼내고, m.isAnnotationPresent(Run.class)로 이 메서드에 Run이 붙어 있는지 실행 중에 묻습니다. 답은 false입니다. 이 메서드에는 @Run이 붙어 있지 않습니다.</li>
-<li>false이므로 if 안으로 들어가지 않아 m.invoke(job)은 실행되지 않습니다. rest 메서드는 불리지 않았고, 아무것도 출력되지 않았습니다.</li>
-<li>for 문이 끝나고 main이 끝납니다. 불린 메서드는 1개이고, 출력은 &quot;work 실행&quot;입니다.</li>
+<li>OrderService는 이 실습에서 예시로 만든 클래스이고, 그 위의 @Service는 스프링이 주는 애너테이션입니다. 애너테이션은 @로 시작해 클래스나 메서드 위에 붙이는 꼬리표입니다. @Service라고 적는 것만으로는 객체가 만들어지지도, 메서드가 실행되지도 않습니다.</li>
+<li>javac가 두 파일을 컴파일합니다. 컴파일러는 @Service가 클래스에 붙일 수 있는 애너테이션인지만 확인하고 class 파일에 기록해 둡니다. @Service는 스프링이 @Retention(RetentionPolicy.RUNTIME)으로 선언해 두어서, 프로그램이 실행되는 동안에도 읽을 수 있는 꼬리표로 남습니다.</li>
+<li>main의 new AnnotationConfigApplicationContext(&quot;app&quot;)가 스프링을 시작합니다. 스프링은 app 패키지의 클래스를 훑으며 꼬리표를 읽습니다. 이것을 컴포넌트 스캔이라고 합니다. 스프링이 찾는 것은 @Component, 그리고 @Service처럼 선언에 @Component가 붙어 있는 애너테이션입니다.</li>
+<li>OrderService에 @Service가 붙어 있습니다. 스프링이 OrderService의 객체를 하나 만들어 빈(스프링이 만들어 관리하는 객체)으로 등록합니다. 빈의 이름은 클래스 이름의 첫 글자를 소문자로 바꾼 orderService입니다. 객체를 만든 것은 우리 코드의 new가 아니라 스프링입니다.</li>
+<li>context.getBean(OrderService.class)가 스프링에게 OrderService 빈을 달라고 합니다. 스프링이 만들어 둔 객체를 돌려주고, service.name()이 돌려준 &quot;주문 서비스&quot;가 출력됩니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>애너테이션은 @로 시작하는, 코드에 붙이는 표시입니다. @interface Run으로 표시를 만들고 work 메서드 위에 @Run을 붙였습니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. work가 불린 것은 Run이 붙은 메서드를 찾아 m.invoke(job)으로 부르는 코드를 우리가 썼기 때문입니다.</li>
-<li>스프링의 @RestController나 @GetMapping도 마찬가지로, 스프링이 그 표시를 읽어 주기 때문에 효과가 있는 것입니다. 스프링이 읽는 모습은 &quot;컨트롤러&quot; 기초 실습에서 봅니다.</li>
+<li>애너테이션은 코드에 붙이는 꼬리표이고, 그 뜻은 읽는 쪽이 정합니다. @Service를 읽은 것은 스프링의 컴포넌트 스캔이었고, 스프링이 OrderService의 객체를 만들어 빈으로 등록했기 때문에 getBean이 그 객체를 받아 올 수 있었습니다.</li>
+<li>@Repository와 @Controller도 선언에 @Component가 붙어 있어서 같은 방식으로 빈이 됩니다. @Override는 컴파일러가, @Test는 JUnit이 읽는다는 것은 다음 물음들에서 봅니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Method;
+<pre>// 파일: app/OrderService.java
+package app;
 
-// 표시를 만든다. 실행 중에도 읽을 수 있게 남겨 두라고 적는다
-@Retention(RetentionPolicy.RUNTIME)
-@interface Run { }
+import org.springframework.stereotype.Service;
 
-class Job {
-    // 표시: work 메서드에 Run을 붙인다
-    @Run
-    public void work() {
-        System.out.println(&quot;work 실행&quot;);
-    }
-    public void rest() {
-        System.out.println(&quot;rest 실행&quot;);
+// OrderService는 예시로 만든 클래스, @Service는 스프링이 주는 애너테이션
+@Service
+public class OrderService {
+    public String name() {
+        return &quot;주문 서비스&quot;;
     }
 }
 
+// 파일: app/Main.java
+package app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 public class Main {
-    public static void main(String[] args) throws Exception {
-        Job job = new Job();
-        // 읽는 쪽: Run이 붙은 메서드만 찾아 부른다
-        for (String name : new String[] { &quot;work&quot;, &quot;rest&quot; }) {
-            Method m = Job.class.getMethod(name);
-            if (m.isAnnotationPresent(Run.class)) {
-                m.invoke(job);
-            }
-        }
+    public static void main(String[] args) {
+        // 스프링을 시작한다. app 패키지의 클래스를 훑는다(컴포넌트 스캔)
+        ApplicationContext context =
+                new AnnotationConfigApplicationContext(&quot;app&quot;);
+        // 스프링이 만들어 둔 OrderService 객체를 달라고 한다
+        OrderService service = context.getBean(OrderService.class);
+        System.out.println(service.name());
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 열두 조합 모두 컴파일에 성공했습니다. 대조한 것은 컴파일 성공 여부, 실행했을 때의 출력, 출력에서 읽은 불린 메서드, 그리고 &quot;실행 중에 읽힌 표시&quot;입니다. 마지막 것은 Main과 따로, 대조 프로그램이 같은 클래스 로더에서 Job 클래스의 work와 rest 메서드에 isAnnotationPresent(Run.class)를 직접 물어 잰 값이며, 읽는 코드가 없는 조합에서도 잽니다. 또 Job의 class 파일에 표시가 어떤 형태로 적혔는지(RuntimeVisibleAnnotations인지 RuntimeInvisibleAnnotations인지)도 확인했고, 화면의 단계 문장이 이 결과에 기댑니다. 문서는 직접 열어 확인했습니다. Java Language Specification(Java SE 21)의 9.6절(@interface로 애너테이션을 선언하고, 요소가 없으면 마커 애너테이션 인터페이스라는 것), 9.6.4.2절(@Retention이 없으면 CLASS로 보고, SOURCE는 class 파일에 남기지 않고, CLASS와 RUNTIME은 class 파일에 기록하며, RUNTIME은 리플렉션이 실행 중에 읽을 수 있게 해야 한다는 것), 9.7절(애너테이션은 프로그램 요소에 정보를 붙이는 표시이고 실행 중의 동작에는 영향을 주지 않는다는 것)과 9.7.2절(마커 애너테이션)을 따랐습니다. java.lang.annotation.Retention과 RetentionPolicy의 API 문서(기본값이 CLASS이고 RUNTIME만 리플렉션으로 읽을 수 있다는 것), java.lang.reflect.AnnotatedElement의 API 문서(isAnnotationPresent)도 확인했습니다. 컴파일러가 표시를 어떤 형태로 class 파일에 적는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 화면의 코드는 이 실습의 설명을 위해 for 문으로 두 메서드를 차례로 보도록 했고, 실제 프레임워크가 표시를 읽는 방식과는 다릅니다. 스프링의 @RestController와 @GetMapping이 스프링이 읽어 주기 때문에 효과가 있다는 문장은 이 실습에서 실행하지 않았고, &quot;컨트롤러&quot; 기초 실습에서 확인한 내용을 가리킵니다. 애너테이션의 값을 담는 요소, @Target, @Override처럼 컴파일러가 읽는 표시, 실행 중에 읽는 프레임워크의 실제 구현은 다루지 않았습니다. 이 밖의 동작은 &quot;세부 동작 실습: 애너테이션&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1, 스프링 프레임워크 7.0.9(스프링 부트 없이 AnnotationConfigApplicationContext로 시작), JUnit Jupiter 6.0.3(JUnit Platform Launcher 6.0.3으로 실행)입니다. 물음에 쓰이는 열일곱 조합(@Service, @Override, @Test, 직접 만든 @Run마다 네 가지와 선언을 보는 물음 하나)의 화면 코드를 이 실습의 code 함수에서 그대로 꺼내 javax.tools로 컴파일했습니다. 컴파일에 성공한 것은 새 자바 프로세스로 실행하고(@Test를 JUnit으로 실행하는 조합은 Launcher로 실행), 표준 출력과 예외, JUnit이 찾은 테스트 수와 통과 수를 잡아 결과 표와 대조했습니다. 컴포넌트 스캔은 실제 스캔이며 OrderService를 손으로 등록하지 않았습니다. NoSuchBeanDefinitionException의 메시지, @Override의 컴파일 오류 문구, 빈 이름 orderService, @Service 자리에 @Repository, @Controller, @Component를 붙여도 getBean이 성공하는 것, 메서드 위에 @Service를 붙이면 컴파일 오류가 나는 것, javap -v로 본 OrderService.class에 Service만 RuntimeVisibleAnnotations로 남고 Override는 없는 것, @Override를 붙인 Order.class에도 Override가 남지 않는 것도 실행해 확인했습니다. 주석에 옮겨 적은 @Service와 @Override의 선언, 단계 문장의 @Test 선언(@Retention(RUNTIME))은 실행 중에 리플렉션으로 읽은 메타 애너테이션과 요소 이름으로 대조했고, 설명 주석은 옮기지 않았습니다. Object의 toString()이 돌려주는 Order@ 뒤의 16진수는 실행마다 다를 수 있어 형식만 대조했습니다. @Retention을 적지 않으면 CLASS가 되어 실행 중에 읽을 수 없다는 문장은 이번에 다시 실행하지 않았고, Java Language Specification(Java SE 21) 9.6.4.2절과 이 실습의 예전 실행 기록(직접 만든 애너테이션에 @Retention이 없으면 isAnnotationPresent가 false)에 기댑니다. 문서는 Java Language Specification 9.6절(@interface 선언), 9.6.4.1절(@Target), 9.6.4.2절(@Retention), 9.6.4.4절(@Override), 스프링 프레임워크 레퍼런스의 컴포넌트 스캔과 메타 애너테이션 절, JUnit 사용자 가이드의 @Test 설명을 확인했습니다. ./gradlew test나 IDE의 실행 단추가 JUnit을 부른다는 문장은 이 실습에서 실행하지 않았습니다. 스프링이 컴포넌트 스캔에서 꼬리표를 읽는 내부 방식, 직접 만든 애너테이션을 스프링 AOP와 함께 쓰는 방법은 다루지 않았고, 애너테이션의 세부 동작은 &quot;세부 동작 실습: 애너테이션&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/stream_basic/">스트림</a> · 다음 실습: <a href="../../lab/thread_basic/">스레드</a></p>
   </div>
 
@@ -203,6 +215,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="./app.css?v=8b40b0d075">
+<link rel="stylesheet" href="./app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -49,7 +49,7 @@
 <li><a href="./lab/collection_basic/">List와 Map</a> — List와 Map은 무엇을 담고, 어떻게 꺼내는가</li>
 <li><a href="./lab/lambda_basic/">람다</a> — 람다는 무엇을 줄여 쓴 것인가</li>
 <li><a href="./lab/stream_basic/">스트림</a> — 스트림은 무엇이고, for 문과 무엇이 다른가</li>
-<li><a href="./lab/annot_basic/">애너테이션</a> — 애너테이션은 무엇이고, 붙이면 무슨 일이 생기는가</li>
+<li><a href="./lab/annot_basic/">애너테이션</a> — 애너테이션은 무엇이고, 붙이면 누가 무슨 일을 하는가</li>
 <li><a href="./lab/thread_basic/">스레드</a> — 스레드는 무엇이고, start()는 무엇을 하는가</li>
 <li><a href="./lab/lock_basic/">락(synchronized)</a> — 락은 무엇이고, 없으면 무슨 일이 생기는가</li>
 <li><a href="./lab/pool_basic/">스레드 풀</a> — 스레드 풀은 무엇이고, 스레드를 매번 만드는 것과 무엇이 다른가</li>
@@ -104,7 +104,7 @@
 <li><a href="./lab/cookie_basic/">쿠키</a> — 쿠키는 무엇이고, 누가 저장하고 누가 보내는가</li>
 <li><a href="./lab/json_basic/">JSON</a> — JSON은 어떻게 생긴 글이고, 무엇이 틀리면 읽히지 않는가</li>
 <li><a href="./lab/https_basic/">HTTPS</a> — HTTPS는 HTTP와 무엇이 다른가</li>
-<li><a href="./lab/proxy_basic/">프록시 서버</a> — 프록시 서버는 무엇이고, 사이에 끼면 무엇이 달라지는가</li>
+<li><a href="./lab/proxy_basic/">프록시 서버</a> — 서버를 직접 부르기와 nginx(프록시)를 거쳐 부르기는 무엇이 다른가</li>
 </ul>
 <h3>보안</h3>
 <ul>
@@ -163,7 +163,7 @@
 <h3>제네릭, 열거형, 애너테이션</h3>
 <ul>
 <li><a href="./lab/generic/">제네릭</a> — List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나</li>
-<li><a href="./lab/enumtype/">열거형(enum)</a> — enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나</li>
+<li><a href="./lab/enumtype/">열거형(enum)</a> — @Enumerated(EnumType.ORDINAL)로 저장한 enum은 왜 다른 상수가 되어 돌아오나</li>
 <li><a href="./lab/annot/">애너테이션</a> — @를 붙이기만 하면 정말 무슨 일이 일어나나</li>
 </ul>
 <h3>컬렉션</h3>
@@ -282,7 +282,7 @@
 <li><a href="./lab/fetchjoin/">JPQL과 페치 조인</a> — join과 join fetch는 무엇이 다른가</li>
 <li><a href="./lab/bulk/">벌크 연산</a> — 한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가</li>
 <li><a href="./lab/datajpa/">스프링 데이터 JPA</a> — 구현 클래스가 없는데 리포지토리는 어떻게 동작하나</li>
-<li><a href="./lab/dynquery/">동적 쿼리와 Querydsl</a> — 검색 조건이 있을 때만 where에 붙이려면</li>
+<li><a href="./lab/dynquery/">동적 쿼리: Specification과 Querydsl</a> — 검색 조건이 있을 때만 where에 붙이려면</li>
 </ul>
 <h3>웹 애플리케이션과 성능</h3>
 <ul>
@@ -376,7 +376,7 @@
 <h3>웹 서버 앞의 장비</h3>
 <ul>
 <li><a href="./lab/scale/">로드밸런서와 스케일 아웃</a> — 서버를 늘리면 어디까지 버티나</li>
-<li><a href="./lab/revproxy/">프록시와 리버스 프록시</a> — 프록시 뒤의 서버는 누가 요청했는지 어떻게 아나</li>
+<li><a href="./lab/revproxy/">프록시와 리버스 프록시</a> — nginx 뒤의 스프링 부트는 누가 요청했는지 어떻게 아나</li>
 <li><a href="./lab/cdn/">CDN</a> — 원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나</li>
 </ul>
 <h2><a href="./study/sec/">보안</a></h2>
@@ -415,7 +415,7 @@
 <h3>대용량 트래픽</h3>
 <ul>
 <li><a href="./lab/scale/">로드밸런서와 스케일 아웃</a> — 서버를 늘리면 어디까지 버티나</li>
-<li><a href="./lab/cache/">캐시와 TTL</a> — 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</li>
+<li><a href="./lab/cache/">캐시와 TTL</a> — @Cacheable에 TTL을 주면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</li>
 <li><a href="./lab/redis/">Redis의 한 줄 처리</a> — 명령 하나가 느리면 모두가 기다린다</li>
 <li><a href="./lab/ratelimit/">요청 수 제한</a> — 초당 5건까지만 받는다는 것의 세 가지 의미</li>
 </ul>
@@ -537,6 +537,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="./app.js?v=8b40b0d075"></script>
+<script src="./app.js?v=07d0b0cacc"></script>
 </body>
 </html>

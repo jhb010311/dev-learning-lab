@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>애너테이션: @를 붙이기만 하면 정말 무슨 일이 일어나나 · 개발 학습 실습실</title>
-<meta name="description" content="애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가…">
+<meta name="description" content="애너테이션(@Transactional, @Test, @Override처럼 @로 시작하는 표시)은 코드에 붙여 두는 표시입니다. 표시 자체는 아무 일도 하지 않습니다. 읽는 쪽이 있어야 의미가 생기고, 읽는 쪽은 크게 둘입니다. 컴파일러(@Override, @Functional…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/annot/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/annot/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="애너테이션: @를 붙이기만 하면 정말 무슨 일이 일어나나 · 개발 학습 실습실">
-<meta property="og:description" content="애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가…">
+<meta property="og:description" content="애너테이션(@Transactional, @Test, @Override처럼 @로 시작하는 표시)은 코드에 붙여 두는 표시입니다. 표시 자체는 아무 일도 하지 않습니다. 읽는 쪽이 있어야 의미가 생기고, 읽는 쪽은 크게 둘입니다. 컴파일러(@Override, @Functional…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/annot/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,10 +31,10 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
 <h1>애너테이션</h1>
 <p><b>@를 붙이기만 하면 정말 무슨 일이 일어나나</b></p>
-<p><b>왜 생겼나</b> — 애너테이션이 없을 때는 &quot;이 메서드는 트랜잭션으로 묶는다&quot;, &quot;이 클래스는 이 테이블에 저장한다&quot; 같은 정보를 XML 설정 파일처럼 코드와 떨어진 곳에 적거나, test로 시작하는 메서드 이름 같은 규칙으로 나타냈다. 코드를 고칠 때 떨어진 설정을 함께 고치기 어려웠다. 애너테이션은 그 정보를 해당 클래스·메서드 바로 위에 적어 두고 도구가 읽어 가게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 스프링에서 @Component, @Autowired, @Transactional, @GetMapping처럼 빈 등록, 주입, 트랜잭션, 요청 연결을 지정할 때 흔히 쓴다. JPA의 @Entity, JUnit의 @Test도 애너테이션이다. 직접 만든 애너테이션을 실행 중에 리플렉션이나 스프링 AOP로 읽으려면 @Retention(RetentionPolicy.RUNTIME)을 붙여야 한다.</p>
-<p>애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다.</p>
-<p>실행으로 대조 · JDK 21에서 스물여덟 가지 조합을 실제로 컴파일하고 실행해 대조 (class 파일의 내용과 리플렉션 결과 포함)</p>
+<p><b>왜 생겼나</b> — 애너테이션이 없을 때는 &quot;이 메서드는 트랜잭션으로 묶는다&quot;, &quot;이 메서드는 테스트다&quot; 같은 정보를 XML 설정 파일처럼 코드와 떨어진 곳에 적거나, test로 시작하는 메서드 이름 같은 규칙으로 나타냈다. 코드를 고칠 때 떨어진 설정을 함께 고치기 어려웠다. 애너테이션은 그 정보를 해당 클래스·메서드 바로 위에 적어 두고, 컴파일러나 프레임워크가 읽어 가게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 스프링의 @Transactional, @Component, @GetMapping, JPA의 @Entity, JUnit의 @Test는 프레임워크가 실행 중에 리플렉션으로 읽는다. 자바의 @Override, @FunctionalInterface, @Deprecated는 컴파일러가 읽어 오류나 경고를 낸다. 이런 애너테이션의 선언에는 @Retention과 @Target이 붙어 있어, 표시를 어디까지 남길지와 어디에 붙일 수 있는지가 정해져 있다.</p>
+<p>애너테이션(@Transactional, @Test, @Override처럼 @로 시작하는 표시)은 코드에 붙여 두는 표시입니다. 표시 자체는 아무 일도 하지 않습니다. 읽는 쪽이 있어야 의미가 생기고, 읽는 쪽은 크게 둘입니다. 컴파일러(@Override, @FunctionalInterface, @Deprecated)와, 실행 중에 리플렉션으로 읽는 프레임워크(스프링의 @Transactional, JUnit의 @Test)입니다. 애너테이션마다 그 선언에 붙은 @Retention이 표시를 소스 코드까지만(SOURCE), class 파일까지(CLASS), 실행 중까지(RUNTIME) 중 어디까지 남길지 정하고, 그래서 누가 읽을 수 있는지도 정해집니다.</p>
+<p>실행으로 대조 · JDK 21, 스프링 7.0.9(H2), JUnit 6.0.3에서 스물네 가지 조합을 화면의 코드로 컴파일하고 실행해 결과 표, 컴파일러 메시지, class 파일에 애너테이션이 적힌 칸, 프록시 여부와 트랜잭션 시작·커밋 횟수, JUnit이 찾은 테스트 수를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>애너테이션</dt>
@@ -44,64 +44,97 @@
 <dd><b>지금 어디에 쓰나</b> — 애플리케이션 코드에서 직접 쓰는 일은 드물고 프레임워크, 테스트 도구, 직렬화 라이브러리를 만들 때 쓴다. 같은 일을 인터페이스와 다형성으로 풀 수 있으면 그쪽이 컴파일 시점의 타입 검사를 받아 안전하다.</dd>
 <dd>실행 중인 프로그램이 클래스의 정보(필드, 메서드, 생성자, 애너테이션)를 조사하고, 이름으로 객체를 생성하거나 메서드를 호출할 수 있는 기능이다. 스프링의 의존성 주입, JPA의 엔티티 처리, JSON 직렬화 라이브러리 등이 이 기능 위에서 동작한다. 일반 호출보다 느리고 컴파일 시점의 타입 검사를 받지 못한다.</dd>
 <dt>@Retention과 @Target</dt>
-<dd><b>왜 생겼나</b> — 애너테이션마다 붙일 자리와 남길 시점을 정할 방법이 없다면, 메서드용 표시를 클래스에 잘못 붙여도 컴파일러가 잡지 못하고 컴파일러만 보는 표시도 실행 중까지 남는다. @Target과 @Retention은 애너테이션을 만드는 쪽이 이 둘을 정하게 했다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 애너테이션을 직접 만들 때 함께 적는다. 스프링의 @Component와 @Transactional에도 @Retention(RetentionPolicy.RUNTIME)과 @Target이 붙어 있어서, 스프링이 실행 중에 이 표시를 찾아 읽는다.</dd>
-<dd>애너테이션을 새로 만들 때 그 애너테이션에 붙여 성질을 정하는 두 애너테이션이다. @Retention은 표시를 어디까지 남길지 정한다. SOURCE는 소스 코드까지만, CLASS는 class 파일까지, RUNTIME은 실행 중까지 남겨 리플렉션으로 읽을 수 있게 한다. 적지 않으면 CLASS가 되므로, 실행 중에 읽을 애너테이션에는 RUNTIME을 반드시 적어야 한다. @Target은 붙일 수 있는 곳(TYPE은 클래스 같은 타입 선언, METHOD는 메서드, FIELD는 필드 등)을 정하며, 맞지 않는 곳에 붙이면 컴파일 오류가 난다.</dd>
+<dd><b>왜 생겼나</b> — 애너테이션마다 붙일 자리와 남길 시점을 정할 방법이 없다면, 메서드용 표시를 필드에 잘못 붙여도 컴파일러가 잡지 못하고, 컴파일러만 보는 표시도 실행 중까지 남는다. @Target과 @Retention은 애너테이션을 만드는 쪽이 이 둘을 선언에 정해 두게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 쓰는 쪽은 보통 직접 적지 않는다. 스프링·JUnit·자바가 주는 애너테이션의 선언에 이미 적혀 있어, 실행 중에 읽힐지(RUNTIME)와 어디에 붙일 수 있는지가 정해져 있다. 애너테이션을 직접 만들 때만 함께 적는다.</dd>
+<dd>애너테이션의 선언에 붙여 그 애너테이션의 성질을 정하는 두 애너테이션이다. @Retention은 표시를 어디까지 남길지 정한다. SOURCE는 소스 코드까지만(@Override), CLASS는 class 파일까지(스프링의 @Contract), RUNTIME은 실행 중까지 남겨 리플렉션으로 읽을 수 있게 한다(@Transactional, @Test, @Deprecated). 적지 않으면 CLASS가 된다. @Target은 붙일 수 있는 곳(TYPE은 클래스 같은 타입 선언, METHOD는 메서드, FIELD는 필드 등)을 정하며, 맞지 않는 곳에 붙이면 컴파일 오류가 난다. @Transactional의 선언에는 @Target({ElementType.TYPE, ElementType.METHOD})와 @Retention(RetentionPolicy.RUNTIME)이 붙어 있다.</dd>
+<dt>@Transactional</dt>
+<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애너테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
+<dt>프록시(Proxy)</dt>
+<dd>실제 객체를 대신해 호출을 받는 대리 객체다. 호출을 받으면 부가 작업을 수행한 뒤 실제 객체에 전달한다. 스프링은 AOP와 @Transactional 같은 기능을 적용할 빈을 프록시로 감싸 컨테이너에 등록하므로, 다른 빈이 주입받는 것은 실제 객체가 아니라 프록시다.</dd>
+<dt>@Test</dt>
+<dd><b>왜 생겼나</b> — JUnit 3까지는 이름이 test로 시작하는 메서드를 테스트로 보았기 때문에, 메서드 이름을 그 규칙에 맞춰 지어야 했다. @Test는 이름과 상관없이 붙은 표시만 보고 테스트를 찾게 해서, 이름을 확인하려는 내용대로 지을 수 있게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 테스트로 돌릴 메서드마다 위에 붙이며, IntelliJ 같은 IDE는 @Test가 붙은 메서드 옆에 실행 단추를 보여 준다. 같은 테스트를 값만 바꿔 여러 번 돌릴 때는 @ParameterizedTest를 붙인다.</dd>
+<dd>@Test는 메서드 위에 붙여, 그 메서드가 테스트 메서드라고 JUnit에 알리는 애너테이션이다. 문서에 따르면 @Test가 붙은 메서드는 private이거나 static이면 안 되고 값을 돌려주면 안 된다. JUnit은 @Test(또는 @RepeatedTest, @ParameterizedTest 같은 애너테이션)가 붙은 메서드를 테스트로 세므로, 내용이 테스트처럼 생겼어도 표시가 없는 메서드는 테스트로 세지 않는다. 실행한 JUnit 6.0.3에서는 @Test가 없는 메서드를 가진 클래스를 실행하면 찾은 테스트가 0개이고, 오류도 실패도 없이 그 메서드가 한 번도 실행되지 않았다.</dd>
 <dt>@Override</dt>
 <dd><b>왜 생겼나</b> — 재정의는 이름과 매개변수가 맞으면 조용히 이루어져서, 부모 메서드의 이름이 나중에 바뀌면 자식 메서드는 아무 오류 없이 재정의가 아닌 별개의 메서드로 남는다. @Override는 재정의하려는 뜻을 코드에 적어 이런 어긋남이 컴파일 오류로 드러나게 했다.</dd>
 <dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 재정의하거나 인터페이스의 메서드를 구현할 때 붙인다. 개발 도구(IDE)가 재정의 코드를 만들어 줄 때도 함께 적어 준다.</dd>
 <dd>바로 아래 메서드가 상위 클래스나 인터페이스의 메서드를 재정의한 것임을 나타내는 애너테이션이다. 컴파일러가 이 표시를 읽고 실제로 재정의가 맞는지 확인하며, 아니면 컴파일 오류를 낸다. 메서드 이름이나 매개변수를 잘못 적어 재정의가 아닌 새 메서드를 만들어 버리는 실수를 잡아 준다. 붙이지 않아도 재정의는 되고 프로그램의 동작도 달라지지 않지만, 실수를 막기 위해 재정의하는 메서드에는 항상 붙인다. 소스 코드까지만 남는 애너테이션이라 class 파일에는 적히지 않는다.</dd>
-<dt>오버라이딩</dt>
-<dd><b>왜 생겼나</b> — 물려받은 메서드가 하위 클래스에 맞지 않을 때 다른 이름의 메서드를 새로 만들면, 상위 타입으로 부르는 코드는 여전히 물려받은 옛 동작을 실행한다. 오버라이딩은 같은 시그니처로 다시 정의해 상위 타입으로 불러도 새 동작이 실행되게 한다.</dd>
-<dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 클래스에 맞게 다시 쓸 때와 인터페이스의 메서드를 구현할 때 쓴다. @Override를 붙이면 이름이나 매개변수를 잘못 적어 새 메서드가 되는 실수를 컴파일러가 잡는다.</dd>
-<dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
+<dt>@Deprecated</dt>
+<dd><b>왜 생겼나</b> — 라이브러리가 낡은 API를 바로 지우면 그것을 쓰던 코드가 한꺼번에 깨진다. @Deprecated는 지우기 전에 &quot;곧 없어지니 다른 것으로 바꾸라&quot;는 신호를 컴파일 경고로 미리 보내 옮겨 갈 시간을 준다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 자바와 스프링의 낡은 API(Integer의 생성자, 오래된 설정 메서드 등)에 붙어 있어, 컴파일 경고나 개발 도구의 취소선으로 보인다. 라이브러리를 만드는 쪽은 바꿀 API를 알리는 데 쓴다.</dd>
+<dd>더 이상 쓰지 말라는 표시로, 자바가 주는 애너테이션이다. 클래스, 메서드, 생성자, 필드 등에 붙인다. since에는 언제부터인지, forRemoval에는 앞으로 지울 예정인지를 적는다. 컴파일러는 우리 코드가 이것이 붙은 API를 쓰면 경고를 낸다. 라이브러리의 class 파일에서 읽어야 하므로 선언에 @Retention(RetentionPolicy.RUNTIME)이 붙어 있다. 예를 들어 Integer의 생성자 Integer(int)에는 @Deprecated(since = &quot;9&quot;, forRemoval = true)가 붙어 있어, new Integer(5)를 컴파일하면 &quot;[removal] … has been deprecated and marked for removal&quot; 경고가 나온다. 경고일 뿐이라 동작은 바뀌지 않는다.</dd>
+<dt>@FunctionalInterface</dt>
+<dd><b>왜 생겼나</b> — 함수형 인터페이스에 누군가 추상 메서드를 하나 더하면, 그 인터페이스를 람다로 쓰던 곳마다 오류가 흩어져 나서 원인을 찾기 어렵다. @FunctionalInterface는 &quot;람다용&quot;이라는 뜻을 선언에 적어, 그런 변경을 선언한 자리에서 바로 막게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 람다로 쓰라고 만든 인터페이스에 붙인다. 자바 표준 라이브러리의 java.util.function 패키지에 있는 인터페이스들에 모두 붙어 있다.</dd>
+<dd>이 인터페이스는 람다로 쓸 함수형 인터페이스라는, 곧 추상 메서드가 정확히 하나라는 표시로, 자바가 주는 애너테이션이다. 컴파일러가 읽고 추상 메서드가 하나가 아니면 그 인터페이스를 선언한 자리에서 &quot;Unexpected @FunctionalInterface annotation&quot; 오류를 낸다. 붙이지 않아도 추상 메서드가 하나면 람다로 쓸 수 있으므로 동작은 바꾸지 않는다. 자바의 Runnable, Comparator, Function 등에 붙어 있다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — @Timed를 붙였고 읽는 코드도 있는데, 아무 일도 일어나지 않습니다.</li>
-<li><b>RUNTIME으로 남기면</b> — 읽는 코드가 표시를 찾아 work 앞뒤에 일을 덧붙입니다.</li>
-<li><b>읽는 코드가 없으면</b> — 표시가 실행 중까지 남아 있어도 아무 일도 일어나지 않습니다.</li>
-<li><b>SOURCE로 하면</b> — 표시가 class 파일에도 남지 않습니다.</li>
-<li><b>붙일 수 없는 곳에 붙이면</b> — @Target이 TYPE인데 메서드에 붙였습니다. 컴파일 오류입니다.</li>
-<li><b>@Override 없이 이름을 틀리면</b> — 오류 없이 컴파일되고, 부모의 메서드가 대신 실행됩니다.</li>
-<li><b>@Override가 잡아 준다</b> — 같은 실수를 컴파일러가 오류로 알려 줍니다.</li>
+<li><b>처음 설정으로</b> — 스프링이 표시를 읽고 프록시를 만들어 두었기 때문에, order()가 트랜잭션 안에서 실행됩니다.</li>
+<li><b>new로 직접 만들면</b> — 표시는 실행 중에도 보이지만, 그것을 읽고 일을 하는 스프링을 거치지 않아 트랜잭션이 없습니다.</li>
+<li><b>읽는 쪽을 등록하지 않으면</b> — @Transactional을 읽어 프록시를 만드는 부품이 등록되지 않습니다. 스프링에게서 받은 객체도 OrderService 그대로이고 트랜잭션이 없습니다.</li>
+<li><b>JUnit이 찾는 메서드</b> — JUnit은 리플렉션으로 @Test가 붙은 메서드만 찾아 실행합니다. subtracts()는 불리지 않고, 오류도 없습니다.</li>
+<li><b>유지 정책 세 가지</b> — 실행 중에 보이는 것은 RUNTIME인 @Transactional뿐입니다. @Contract는 class 파일에는 남지만 리플렉션에는 보이지 않습니다.</li>
+<li><b>@Target이 막는다</b> — 컴파일 오류입니다. 컴파일러가 @Transactional의 선언에 적힌 @Target을 읽고 막습니다.</li>
+<li><b>@Override가 잡아 준다</b> — 컴파일러가 오류로 알려 줍니다. @Override를 떼면 오류 없이 컴파일되고 부모의 메서드가 대신 실행됩니다.</li>
+<li><b>지울 예정인 생성자</b> — 컴파일러가 Integer.class에 남아 있는 @Deprecated(forRemoval = true)를 읽고 경고합니다. 컴파일은 됩니다.</li>
+<li><b>추상 메서드가 둘이면</b> — 람다로 쓸 수 없는 인터페이스가 되었다는 것을, 컴파일러가 선언한 자리에서 오류로 알립니다.</li>
+<li><b>직접 만든 애너테이션</b> — @Retention을 적지 않으면 CLASS가 되어 실행 중에는 보이지 않습니다. 실행 중에 읽으려면 RUNTIME을 적어야 합니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>@interface Timed 선언을 봅니다: Timed라는 애너테이션을 새로 만드는 문법입니다. 중괄호 안에 실행할 코드가 한 줄도 없습니다. 애너테이션은 &quot;여기에 이런 표시를 붙여 둔다&quot;는 정보일 뿐, 스스로 무엇을 하지는 않습니다.</li>
-<li>@Retention을 적지 않았습니다: @Retention은 표시를 어디까지 남길지 정하는 설정입니다. 적지 않으면 기본값인 CLASS가 적용됩니다. CLASS는 &quot;class 파일까지는 남기되, 실행 중에는 보여 주지 않는다&quot;는 뜻입니다.</li>
-<li>컴파일러가 work 메서드 위의 @Timed를 검사합니다: @Target(ElementType.METHOD)은 &quot;메서드에만 붙일 수 있다&quot;는 뜻이고, 붙인 곳이 메서드이므로 통과합니다. @Target을 읽고 지키게 하는 쪽은 컴파일러입니다.</li>
-<li>컴파일해서 Service.class를 만듭니다: @Timed 표시가 class 파일에 적힙니다. 다만 &quot;실행 중에는 보여 주지 않는 칸&quot;(RuntimeInvisibleAnnotations)에 적힙니다.</li>
-<li>Service.class.getDeclaredMethod(&quot;work&quot;) 실행: 리플렉션으로 work 메서드의 정보를 꺼냅니다. 리플렉션은 실행 중에 클래스가 가진 메서드, 필드, 애너테이션 같은 정보를 조사하는 기능으로, 프레임워크가 애너테이션을 읽을 때 쓰는 방법입니다.</li>
-<li>m.isAnnotationPresent(Timed.class) 실행: work에 @Timed가 붙어 있는지 묻습니다. 결과는 false입니다. 표시가 class 파일에는 있지만, JVM은 CLASS로 남긴 표시를 리플렉션에 보여 주지 않습니다. @Retention을 적지 않은 것이 원인입니다.</li>
-<li>found가 false이므로 읽는 쪽은 아무것도 덧붙이지 않습니다: m.invoke(service)로 work만 실행합니다. 소스 코드에는 @Timed가 분명히 붙어 있는데도, 읽는 쪽에게는 표시가 없는 메서드와 같습니다. 오류도 나지 않습니다.</li>
+<li>AppConfig와 OrderService는 예시로 만든 클래스입니다. order() 위에 스프링이 주는 @Transactional을 붙였습니다. @Transactional의 실제 선언(spring-tx 7.0.9)에는 @Target({ElementType.TYPE, ElementType.METHOD})와 @Retention(RetentionPolicy.RUNTIME)이 붙어 있습니다. 클래스와 메서드에 붙일 수 있고, 표시가 실행 중까지 남는다는 뜻입니다.</li>
+<li>javac가 컴파일합니다: 컴파일러는 @Transactional이 메서드에 붙여도 되는 애너테이션인지(@Target)만 확인하고 통과시킵니다. 트랜잭션에 관해서는 아무것도 하지 않습니다. RUNTIME이므로 표시는 OrderService.class의 RuntimeVisibleAnnotations(실행 중에도 보여 주는 칸)에 적힙니다.</li>
+<li>new AnnotationConfigApplicationContext(AppConfig.class): 스프링 컨테이너가 설정 클래스 AppConfig를 읽습니다. @EnableTransactionManagement가 있으므로, @Transactional을 찾아 트랜잭션을 걸어 줄 부품들이 빈으로 등록됩니다. 빈을 만들 때 프록시가 필요한지 살피는 자동 프록시 생성기(InfrastructureAdvisorAutoProxyCreator)와, @Transactional을 읽는 트랜잭션 어드바이저가 그것입니다.</li>
+<li>orderService 빈을 만들 때, 스프링이 리플렉션으로 OrderService의 메서드에 붙은 애너테이션을 살핍니다. order()에서 @Transactional을 찾았으므로, OrderService를 상속해 만든 프록시 클래스(OrderService$SpringCGLIB$0)의 객체를 빈으로 등록합니다. 프록시는 원래의 OrderService 객체를 참조로 갖고 있다가, 메서드 호출을 받으면 앞뒤에 트랜잭션 일을 하고 원래 객체의 메서드를 부릅니다.</li>
+<li>order.isAnnotationPresent(Transactional.class) 실행: 리플렉션으로 order()에 @Transactional이 붙어 있는지 직접 묻습니다. 결과는 true입니다. RUNTIME이라 표시가 실행 중까지 남아 있습니다. 스프링이 빈을 만들며 한 조사도 같은 리플렉션 정보(getDeclaredAnnotations)를 바탕으로 합니다.</li>
+<li>ctx.getBean(OrderService.class): 스프링에게서 빈을 받습니다. 받은 객체의 클래스는 OrderService$SpringCGLIB$0, 곧 스프링이 만든 프록시입니다.</li>
+<li>service.order() 실행: service는 프록시입니다. 프록시가 먼저 트랜잭션 매니저(DataSourceTransactionManager)로 트랜잭션을 시작하고, 원래 OrderService 객체의 order()를 부릅니다. 그 안에서 isActualTransactionActive()는 true입니다. order()가 끝나면 프록시가 커밋합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>애너테이션을 붙였고 읽는 코드도 있는데 아무 일도 일어나지 않습니다. 표시가 실행 중까지 남지 않았기 때문입니다. 실행 중에 리플렉션으로 읽을 애너테이션을 만들 때는 @Retention(RetentionPolicy.RUNTIME)을 반드시 적습니다. 적지 않으면 기본값이 CLASS라서 오류 없이 조용히 무시됩니다.</li>
-<li>CLASS는 class 파일을 읽어 처리하는 도구를 위한 것으로, 실행 중인 프로그램이 스스로 읽을 수는 없습니다.</li>
+<li>@Transactional이 스스로 하는 일은 없습니다. 스프링이 빈을 만들 때 리플렉션으로 이 표시를 찾고, 프록시를 만들어 메서드 앞뒤에 트랜잭션 시작과 커밋을 넣습니다. 표시가 실행 중까지 남도록 @Transactional의 선언에는 @Retention(RetentionPolicy.RUNTIME)이 붙어 있습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@Target(ElementType.METHOD)
-@interface Timed { }
+<pre>// AppConfig와 OrderService는 예시로 만든 클래스다
+// 애너테이션들과 DriverManagerDataSource 같은 클래스는 스프링이 주는 것이다
+@Configuration
+@EnableTransactionManagement
+class AppConfig {
+    @Bean
+    DataSource dataSource() {
+        return new DriverManagerDataSource(&quot;jdbc:h2:mem:annot&quot;);
+    }
 
-class Service {
-    @Timed
-    void work() {
-        System.out.println(&quot;work 실행&quot;);
+    @Bean
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean
+    OrderService orderService() {
+        return new OrderService();
     }
 }
 
-// 여기부터는 main 안의 코드: 애너테이션을 읽는 쪽 (Main 클래스·main 선언과 import는 생략)
-Service service = new Service();
-Method m = Service.class.getDeclaredMethod(&quot;work&quot;);
-boolean found = m.isAnnotationPresent(Timed.class);
-System.out.println(&quot;@Timed가 보이는가: &quot; + found);
-if (found) System.out.println(&quot;[시간 측정 시작]&quot;);
-m.invoke(service);
-if (found) System.out.println(&quot;[시간 측정 끝]&quot;);</pre>
+class OrderService {
+    @Transactional
+    public void order() {
+        boolean inTx = TransactionSynchronizationManager.isActualTransactionActive();
+        System.out.println(&quot;order 실행, 트랜잭션 안인가: &quot; + inTx);
+    }
+}
+
+// 여기부터는 main 안의 코드 (Main 클래스·main 선언과 import는 생략)
+try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class)) {
+    Method order = OrderService.class.getMethod(&quot;order&quot;);
+    System.out.println(&quot;@Transactional이 보이는가: &quot; + order.isAnnotationPresent(Transactional.class));
+    OrderService service = ctx.getBean(OrderService.class);
+    System.out.println(&quot;service의 클래스: &quot; + service.getClass().getSimpleName());
+    service.order();
+}</pre>
 <h2>이 모형의 전제</h2>
-<p>스물여덟 가지 조합(@Timed 쪽 24가지, @Override 쪽 4가지)을 검증 환경의 JDK 21에서 화면의 코드로 실제로 컴파일하고 실행해 대조했습니다. 컴파일 여부와 오류가 난 줄, 컴파일러 메시지, 출력뿐 아니라, 만들어진 class 파일의 바이트에 애너테이션이 적혀 있는지(적혀 있다면 RuntimeVisibleAnnotations와 RuntimeInvisibleAnnotations 가운데 어느 칸인지)와 리플렉션의 isAnnotationPresent 결과도 조합마다 직접 확인했습니다. 화면에서 숨겨진 설정은 결과에 영향을 주지 않습니다. 화면의 코드에는 import 문(java.lang.annotation의 것들과 java.lang.reflect.Method)과 main 메서드의 선언이 생략되어 있습니다. @Target(ElementType.TYPE)인 애너테이션을 클래스에 붙이면 컴파일된다는 것도 확인했습니다. 스프링 같은 프레임워크가 애너테이션을 읽는 방식은 이 모형의 &quot;읽는 쪽&quot; 코드와 원리가 같다는 설명이며, 프레임워크를 실제로 실행해 확인한 것은 아닙니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.</p>
+<p>스물네 가지 조합(@Transactional 8, @Test 2, 유지 정책 2, @Override 4, @Deprecated 2, @FunctionalInterface 4, 직접 만든 @Timed 2)을 화면의 코드 그대로 JDK 21에서 컴파일하고 실행해 대조했습니다. @Transactional은 스프링 7.0.9와 H2 메모리 DB로 실제 컨테이너를 띄워 실행했고, 받은 객체가 프록시인지, @EnableTransactionManagement가 자동 프록시 생성기를 등록하는지, order() 호출 한 번에 트랜잭션이 몇 번 시작·커밋되는지(트랜잭션 매니저에 단 리스너로 셈)도 확인했습니다. @Test는 JUnit 6.0.3의 Launcher로 실행해 찾은 테스트 수와 통과 수를 확인했습니다. 컴파일러 메시지는 영어로 받았고, class 파일의 어느 칸(RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations)에 애너테이션이 적혔는지는 javap -v로 확인했습니다. 글에 적은 표준 애너테이션의 @Retention·@Target과 Integer(int)의 @Deprecated 값은 같은 버전의 라이브러리에서 리플렉션으로 읽어 대조했습니다. 화면의 코드에는 import 문과 Main 클래스·main 선언이 생략되어 있습니다(@Test 코드는 import까지 보입니다). 스프링이 애너테이션을 찾을 때 자바 리플렉션의 getDeclaredAnnotations를 바탕으로 한다는 것, 스프링의 @Contract는 정적 분석 도구가 읽으라고 만든 것이라는 것, 스프링 부트의 자동 설정이 @EnableTransactionManagement를 대신 한다는 것은 스프링 문서와 소스를 보고 쓴 설명이며 실행해 확인하지는 않았습니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/enumtype/">열거형(enum)</a> · 다음 실습: <a href="../../lab/list/">ArrayList와 LinkedList</a></p>
   </div>
 
@@ -194,6 +227,6 @@ if (found) System.out.println(&quot;[시간 측정 끝]&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

@@ -1,135 +1,179 @@
 Lab.register({
   id: 'proxy_basic', nav: 'Proxy servers', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['revproxy', 'scale', 'cdn'],
-  title: 'What is a proxy server, and what changes when it sits in between?',
-  why: 'If a server program is exposed directly to the internet, then when servers are added or replaced, the address that clients connect to also changes, and work such as handling HTTPS or blocking bad connections must be done separately in each server program. A reverse proxy stands in front of the servers at a single address, receives requests, and passes them on, so clients connect to the same address even when the servers behind it change.',
-  use: 'A common setup puts Nginx in front of a Spring Boot server, receives requests on ports 80 and 443, and passes them to the server on port 8080. Here the party the server sees is the proxy server, so the real client\'s IP address is conveyed by configuring the proxy server to pass it along in the X-Forwarded-For header. There is also a proxy (a forward proxy) that gathers requests going from inside a company to outside sites in one place and filters them.',
-  intro: 'A proxy server is a server that stands between a client (the program that sends requests) and the origin server (the server that really produces the response) and passes requests on for it. The code box lists three things. First, the address the client connects to (http://localhost:8080/hello). The 8080 in the middle of the address is a port number, a door number given to each program on one computer. Second, the proxy server waiting on port 8080, which passes the request it receives to the server on 9000. Third, the origin server waiting on port 9000, which returns "Hello". So the client connects to the proxy server, and the proxy server connects again to the origin server, passes the request on, and returns the response. The proxy server in this lab stands in front of the server, and the client connects to it believing it is the server (a reverse proxy). In this lab, you change the address the client connects to, or remove the line of the proxy server or the origin server (that server is not running), send the same request each time, and see what the client receives and who the origin server sees. The code box is not the source of a program that was run. It lists what is waiting on which port, and 8080 and 9000 are example numbers. Load balancers, CDNs, and API gateways are also servers that stand between a client and a server.',
-  terms: ['Proxy server', 'Origin server', '502 Bad Gateway', 'Reverse proxy'],
+  title: 'What is the difference between calling a server directly and calling it through nginx (a proxy)?',
+  why: 'If a server program is exposed directly to the internet, then when you add servers or replace them, the address that users connect to changes too, and work such as handling HTTPS or blocking bad connections has to be done separately in each server program. A reverse proxy stands in front of the servers at one address, receives requests, and passes them on, so users connect to the same address even when the servers behind it change.',
+  use: 'A common setup puts nginx in front of a Spring Boot server and uses the proxy_pass setting of nginx to pass requests received on ports 80 and 443 to Spring Boot on port 8080. Spring Boot then sees nginx as the peer that connected to it, so nginx writes the real user\'s IP address into the X-Forwarded-For header with proxy_set_header and passes it along. There is also a proxy (a forward proxy) that gathers requests going from inside a company to outside sites in one place and filters them.',
+  intro: 'A proxy server is a server that stands between the side that sends requests (the user) and the real server and passes requests on for it. This lab uses the most common setup, nginx and Spring Boot, and compares calling the server directly with calling it through nginx. The code box has four parts. The first is the address the user calls. The user is on another computer (203.0.113.7), and 192.0.2.10 is the address of the server computer. If the address has no port number, the request goes to port 80, and if it has :8080, it goes to port 8080. A port number is the number of a door given to each program on one computer. The second is the nginx configuration. listen 80 is the line that receives requests on port 80, proxy_pass is the line that passes the received request on to port 8080 of the same computer (127.0.0.1:8080), and proxy_set_header is the line that writes a header onto the request when it is passed on. The third is application.properties, the configuration file of Spring Boot, and the fourth is the controller that receives the request. The controller returns, as text, the address of the peer that connected to it (request.getRemoteAddr()) and the header X-Forwarded-For. In this lab you change the address that is called, the server.address line, and which programs are running, and see what the user receives and whom Spring Boot sees as the peer. nginx is not installed on the computer used to write this lab, so in the run, a small program (Node.js) built to behave as the nginx documentation describes stood in for nginx, and the Spring Boot side ran the code on the screen as it is.',
+  terms: ['Proxy server', 'Reverse proxy', 'nginx proxy_pass and proxy_set_header', 'X-Forwarded-For', '502 Bad Gateway', 'server.address', 'Origin server'],
   controls: [
-    { id: 'via', label: 'Address the client connects to', type: 'select', value: 'proxy', options: [['proxy', 'http://localhost:8080/hello (the port of the proxy server)'], ['direct', 'http://localhost:9000/hello (the port of the origin server)']] },
-    { id: 'up', label: 'What is running', type: 'select', value: 'both', options: [['both', 'The proxy server on 8080 and the origin server on 9000 are both running'], ['noproxy', 'The proxy server on 8080 is not running (its line is removed)'], ['noserver', 'The origin server on 9000 is not running (its line is removed)']] },
+    { id: 'via', label: 'Address the user calls', type: 'select', value: 'proxy', options: [['proxy', 'http://192.0.2.10/hello (port 80: nginx)'], ['direct', 'http://192.0.2.10:8080/hello (port 8080: Spring Boot)']] },
+    { id: 'bind', label: 'application.properties has the line server.address=127.0.0.1', type: 'check', value: true },
+    { id: 'up', label: 'Programs that are running', type: 'select', value: 'both', options: [['both', 'Both nginx and Spring Boot are running'], ['noserver', 'Spring Boot is stopped (only nginx is running)'], ['noproxy', 'nginx is stopped (only Spring Boot is running)']] },
   ],
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
-    { t: 'Default settings', q: 'When a request goes through a proxy server, what path does it take, and who does the origin server see?', d: 'The client connects to the proxy server, and the proxy server connects again to the origin server. The origin server sees the proxy server.', v: { via: 'proxy', up: 'both' } },
-    { t: 'Connecting directly to the origin server', q: 'What if you change the address to port 9000 and connect directly to the origin server?', d: 'The request does not pass through the proxy server, and the origin server sees the client.', v: { via: 'direct', up: 'both' } },
-    { t: 'Turning off the proxy server', q: 'What if you turn off the proxy server on 8080 (remove its line)?', d: 'Even though the origin server is running, the client does not receive a response.', v: { via: 'proxy', up: 'noproxy' } },
-    { t: 'Turning off the origin server', q: 'What if you turn off the origin server on 9000 (remove its line)?', d: 'The client receives an error response sent by the proxy server.', v: { via: 'proxy', up: 'noserver' } },
-    { t: 'Connecting directly with the proxy server off', q: 'What if you connect directly to the origin server on port 9000 while the proxy server on 8080 is off?', d: 'A request that does not pass through the proxy server is not affected when the proxy server is off.', v: { via: 'direct', up: 'noproxy' } },
-    { t: 'Connecting directly with the origin server off', q: 'What if you connect directly to port 9000 while the origin server on 9000 is off?', d: 'The request does not pass through a proxy server that could answer for it, so the client receives a connection refused error.', v: { via: 'direct', up: 'noserver' } },
+    { t: 'Default settings', q: 'When a request goes through nginx (port 80), whom does Spring Boot see as the peer, and where can it find the user\'s address?', d: 'The peer that connected to Spring Boot is nginx (127.0.0.1), and the user\'s address 203.0.113.7 arrives in the X-Forwarded-For header that nginx wrote and passed on.', v: { via: 'proxy', bind: true, up: 'both' } },
+    { t: 'Calling port 8080 directly', q: 'With server.address=127.0.0.1 kept, what if the user calls Spring Boot directly on port 8080?', d: 'Even though Spring Boot is running, the user receives a connection refused error, because Spring Boot accepts only connections that come to 127.0.0.1.', v: { via: 'direct', bind: true, up: 'both' } },
+    { t: 'Removing the server.address line and calling directly', q: 'If you remove the server.address line and call port 8080 directly, whom does Spring Boot see as the peer, and what is X-Forwarded-For?', d: 'The peer is the user itself (203.0.113.7), and with no nginx in between to write the header, X-Forwarded-For is null.', v: { via: 'direct', bind: false, up: 'both' } },
+    { t: 'Stopping Spring Boot', q: 'What does the user receive if Spring Boot is stopped and the user calls through nginx (port 80)?', d: 'nginx cannot connect to port 8080 and returns 502 Bad Gateway to the user. nginx made this response.', v: { via: 'proxy', bind: true, up: 'noserver' } },
+    { t: 'Calling directly with Spring Boot stopped', q: 'If Spring Boot is stopped, there is no server.address line, and the user calls port 8080 directly, does the user receive a 502?', d: 'The request does not pass through an nginx that could answer for it, so the user receives a connection refused error, not 502.', v: { via: 'direct', bind: false, up: 'noserver' } },
+    { t: 'Stopping nginx', q: 'What if Spring Boot is kept running, nginx is stopped, and the user calls port 80?', d: 'Even though Spring Boot is fine, the user receives a connection refused error. The one door the user uses is port 80 of nginx.', v: { via: 'proxy', bind: true, up: 'noproxy' } },
   ],
-  GOT: { ok: '200 OK, body "Hello"', refuse: 'Connection refused error (nothing waiting on that port)', bad: '502 Bad Gateway (sent by the proxy server)' },
-  SEEN: { proxy: 'Proxy server', client: 'Client', none: 'None (no request arrived)' },
-  code: function (c) {
-    var out = ['# The address the client connects to', 'http://localhost:' + (c.via === 'proxy' ? '8080' : '9000') + '/hello'];
-    if (c.up !== 'noproxy') out.push('# On 8080: the proxy server (passes the request it receives to the server on 9000)');
-    if (c.up !== 'noserver') out.push('# On 9000: the origin server (returns "Hello")');
-    return out.join('\n');
+  CL: '203.0.113.7', HOST: '192.0.2.10',
+  GOT: { ok: '200 response (made by Spring Boot)', bad: '502 Bad Gateway (a response made by nginx)', refuse: 'Connection refused error (nothing is waiting at that address and port)' },
+  NONE: 'None (no request arrived)',
+  // Decides which branch the result takes. It is checked against what was measured in the run (verify/net/proxy_basic_probe_boot.js) with verify/net/cmp_proxy_basic.js.
+  judge: function (c) {
+    var viaP = c.via === 'proxy', pOn = c.up !== 'noproxy', sOn = c.up !== 'noserver', r = { viaP: viaP, pOn: pOn, sOn: sOn, bind: !!c.bind };
+    if (viaP && !pOn) r.k = 'refuseProxy';
+    else if (viaP && !sOn) r.k = 'bad';
+    else if (viaP) r.k = 'okProxy';
+    else if (!sOn) r.k = 'refuseDown';
+    else if (c.bind) r.k = 'refuseBind';
+    else r.k = 'okDirect';
+    return r;
   },
-  label: function (c) { return { proxy: 'Connects to 8080 (proxy server)', direct: 'Connects directly to 9000 (origin server)' }[c.via] + ' · ' + { both: 'Both running', noproxy: 'Proxy server not running', noserver: 'Origin server not running' }[c.up]; },
-  columns: ['What the client received', 'Who the origin server saw', 'Path the request took'],
+  code: function (c) {
+    var o = [], pOn = c.up !== 'noproxy', sOn = c.up !== 'noserver';
+    o.push('# The address the user (another computer, 203.0.113.7) calls');
+    if (c.via === 'proxy') o.push('# If no port number is written, http goes to port 80', 'http://192.0.2.10/hello');
+    else o.push('# :8080 is written, so it goes to port 8080', 'http://192.0.2.10:8080/hello');
+    o.push('',
+      '# nginx configuration (runs on the server computer 192.0.2.10)' + (pOn ? '' : ' · nginx is stopped now'),
+      'server {',
+      '    listen 80;',
+      '    location / {',
+      '        proxy_pass http://127.0.0.1:8080;',
+      '        proxy_set_header Host $host;',
+      '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;',
+      '    }',
+      '}',
+      '',
+      '# application.properties (Spring Boot, runs on the same computer)' + (sOn ? '' : ' · stopped now'),
+      'server.port=8080');
+    if (c.bind) o.push('# Accepts only connections that come to 127.0.0.1 (the address this computer uses for itself)', 'server.address=127.0.0.1');
+    else o.push('# No server.address line: accepts a connection that comes to any address of this computer');
+    o.push('',
+      '// HelloController.java',
+      '// HelloController is a name chosen for this example. @RestController and @GetMapping come from',
+      '// Spring, and HttpServletRequest comes from the servlet API (jakarta.servlet).',
+      'import jakarta.servlet.http.HttpServletRequest;',
+      'import org.springframework.web.bind.annotation.GetMapping;',
+      'import org.springframework.web.bind.annotation.RestController;',
+      '',
+      '@RestController',
+      'public class HelloController {',
+      '    @GetMapping("/hello")',
+      '    public String hello(HttpServletRequest request) {',
+      '        // The address of the peer that opened a connection to this server',
+      '        String peer = request.getRemoteAddr();',
+      '        // The X-Forwarded-For header that came with the request (null if absent)',
+      '        String xff = request.getHeader("X-Forwarded-For");',
+      '        return "Connected peer: " + peer + ", X-Forwarded-For: " + xff;',
+      '    }',
+      '}');
+    return o.join('\n');
+  },
+  label: function (c) { return { proxy: 'Calls port 80 (nginx)', direct: 'Calls port 8080 (Spring Boot) directly' }[c.via] + ' · ' + (c.bind ? 'server.address=127.0.0.1' : 'no server.address') + ' · ' + { both: 'both running', noserver: 'Spring Boot stopped', noproxy: 'nginx stopped' }[c.up]; },
+  columns: ['What the user received', 'getRemoteAddr() (the peer Spring Boot saw)', 'X-Forwarded-For header', 'Path the request took'],
   simulate: function (c) {
-    var ev = [], sum = [], viaP = c.via === 'proxy', pOn = c.up !== 'noproxy', sOn = c.up !== 'noserver', addr = viaP ? '8080' : '9000';
-    var st = { cl: 'plain', clt: ['Idle'], px: pOn ? 'plain' : 'ghost', pxt: pOn ? ['Waiting on 8080'] : ['Not running'], sv: sOn ? 'plain' : 'ghost', svt: sOn ? ['Waiting on 9000'] : ['Not running'], aq1: '', aq2: '', ar2: '', ar1: '', dq: '', dr: '', got: '', gotc: '', seen: '', seenc: '', way: '', wayc: '' };
+    var j = this.judge(c), G = this.GOT, NONE = this.NONE, CL = this.CL, HOST = this.HOST, ev = [], sum = [], row;
+    var spSub = j.sOn ? (j.bind ? ['Waiting at', '127.0.0.1:8080'] : ['Waiting on 8080', '(any address)']) : ['Stopped'];
+    var st = { cl: 'plain', clt: [CL], px: j.pOn ? 'plain' : 'ghost', pxt: j.pOn ? ['Waiting on 80'] : ['Stopped'], sv: j.sOn ? 'plain' : 'ghost', svt: spSub, aq1: '', aq2: '', ar2: '', ar1: '', dq: '', dr: '', got: '', gotc: '', peer: '', peerc: '', xff: '', xffc: '', way: '', wayc: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
-    var devs = [];
-    if (!viaP) devs.push('the port 9000 in the address the client connects to');
-    if (!pOn) devs.push('the removed line of the proxy server on 8080');
-    if (!sOn) devs.push('the removed line of the origin server on 9000');
-    var note = devs.length ? ' In the code box, what differs from the default settings is ' + devs.join(', ') + '.' : '';
-    var G = this.GOT, S = this.SEEN;
-    // Step 1: the client connects
-    if (viaP) st.aq1 = 'plain'; else st.dq = 'plain';
-    st.cl = 'hot'; st.clt = ['Connecting', 'to ' + addr];
-    var who = viaP ? (pOn ? 'The code box lists the proxy server as the one waiting on this port. The address the client uses does not contain the origin server\'s port, 9000.' : 'The code box lists nothing as waiting on this port. The line of the proxy server has been removed.') : ('The code box lists ' + (sOn ? 'the origin server as waiting on this port.' : 'nothing as waiting on this port. The line of the origin server has been removed.') + (pOn ? ' The proxy server is running, but the client does not use its port, 8080.' : ''));
-    push('The client (the program that sends requests) connects to the address in the code box and sends a GET /hello request. The ' + addr + ' in the middle of the address is a port number, a door number given to each program on one computer. The client tries to connect to the program waiting on port ' + addr + '. ' + who + note, '');
-    if (viaP && !pOn) {
-      // The proxy server is off and the client connects to the proxy
-      st.cl = 'bad'; st.clt = ['Refused']; st.aq1 = 'bad'; st.got = G.refuse; st.gotc = 'bad'; st.way = 'Client → proxy (refused)'; st.wayc = 'bad';
-      push('No program is waiting on port 8080, so the connection is not made, and the client receives a connection refused error. The request reached neither the proxy server nor the origin server.', 'bad');
-      st.seen = S.none; st.seenc = 'bad';
-      push('The origin server on port 9000 ' + (sOn ? 'is running and waiting, but it has never received a request. In this run, no peer connected to the server at all, because the client did not connect to port 9000.' : 'is not running.') + ' The origin server saw no peer.', 'bad');
-      sum.push('If the proxy server is off, the client receives a connection refused error. Even though the origin server is running, nothing is waiting on port 8080, the port the client connects to, so the request could not reach the server.');
-      sum.push('In a setup where the client connects only to the address of the proxy server, the proxy server is the only door to the origin server. When the door is closed, it does not help that the server behind it is fine.');
-      return { events: ev, summary: sum, row: [G.refuse, S.none, st.way] };
-    }
-    if (viaP) {
-      // The client connects to the proxy server, and the proxy server is running
-      st.aq1 = 'hot'; st.px = 'hot'; st.pxt = ['Got request']; st.way = 'Client → proxy';
-      if (sOn) {
-        st.pxt = ['Got it, passed', 'it to 9000']; st.aq2 = 'hot'; st.sv = 'hot'; st.svt = ['Got request']; st.way = 'Client → proxy → origin server';
-        push('The proxy server received the request. The proxy server is set to pass the request it receives to the origin server waiting on port 9000 (the proxy server line in the code box). So the proxy server makes a new connection to the origin server and sends the same GET /hello request. This connection is separate from the one the client made. The client did not make this connection, and it did not use the number 9000.', '');
-        st.seen = S.proxy; st.seenc = 'good'; st.svt = ['Saw the proxy'];
-        push('The origin server receives the request and returns "Hello" as the response, as written in the code box. The peer the server sees at this moment is the proxy server. The port of the peer that the server saw was different from the port the client used, and it was the same as the port the proxy server used when it connected to the server (in this run the three programs were on one computer, so all the addresses were 127.0.0.1, and we told them apart by port). The only peer that connected to the origin server was the proxy server.', 'good');
-        st.ar2 = 'good'; st.ar1 = 'good'; st.got = G.ok; st.gotc = 'good'; st.cl = 'good'; st.clt = ['Got response']; st.px = 'plain'; st.pxt = ['Sent back']; st.sv = 'plain'; st.svt = ['Sent response'];
-        push('The proxy server receives the response of the origin server and returns it to the client as it is. What the client received is 200 OK and the body "Hello". The client talked only with the proxy server it connected to.', 'good');
-        sum.push('A proxy server is a server that stands between the client and the origin server and passes requests on for it. The client connects to the proxy server, and the proxy server connects again to the origin server, passes the same request on, and returns the response.');
-        sum.push('So the origin server sees the proxy server, not the client. The client could connect without knowing the origin server\'s port (9000). Load balancers, CDNs, and API gateways are also servers that stand between a client and a server in this way.');
-        return { events: ev, summary: sum, row: [G.ok, S.proxy, st.way] };
-      }
-      // The origin server is off
-      st.pxt = ['Got request'];
-      push('The proxy server received the request. The proxy server is set to pass the request it receives to the origin server waiting on port 9000, so it tries to connect to the origin server.', '');
-      st.aq2 = 'bad'; st.pxt = ['Refused']; st.px = 'bad'; st.way = 'Client → proxy → origin server (refused)'; st.wayc = 'bad';
-      push('No program is waiting on port 9000, so the proxy server receives a connection refused error. The request could not reach the origin server.', 'bad');
+    // Step 1: the user calls
+    if (j.viaP) st.aq1 = 'plain'; else st.dq = 'plain';
+    st.cl = 'hot'; st.clt = [CL, 'Connecting to ' + (j.viaP ? '80' : '8080')];
+    push('The user (' + CL + ') sends a GET /hello request to the address in the code box. ' + (j.viaP ? 'The address has no port number, so it connects to port 80 of the server computer ' + HOST + '. What waits on port 80 is nginx (listen 80). The address the user uses does not contain the Spring Boot port, 8080.' : 'The address has :8080, so it connects straight to port 8080 of the server computer ' + HOST + '. The request does not pass through nginx.') + (j.pOn ? '' : ' nginx is stopped now.') + (j.sOn ? '' : ' Spring Boot is stopped now.'), '');
+    if (j.k === 'refuseProxy') {
+      st.cl = 'bad'; st.clt = ['Refused']; st.aq1 = 'bad'; st.got = G.refuse; st.gotc = 'bad'; st.way = 'User → nginx (80) (refused)'; st.wayc = 'bad';
+      push('No program is waiting on port 80 of ' + HOST + ', so the connection is not made, and the user receives a connection refused error. The request reached neither nginx nor Spring Boot.', 'bad');
+      st.peer = NONE; st.peerc = 'bad'; st.xff = NONE; st.xffc = 'bad';
+      push('Spring Boot is running and waiting on port 8080' + (j.bind ? ' of 127.0.0.1' : '') + ', but it never received a request, because the user calls only port 80. So the controller never ran.', 'bad');
+      sum.push('If nginx is stopped, the user receives a connection refused error. Even though Spring Boot is fine, no program is waiting on port 80, which the user calls, so the request cannot reach the server.');
+      sum.push('In a setup where users call only the address of nginx, nginx is the only door to Spring Boot. So when nginx stops, the service stops even though the server behind it is alive.');
+      row = [G.refuse, NONE, NONE, st.way];
+    } else if (j.k === 'bad') {
+      st.aq1 = 'hot'; st.px = 'hot'; st.pxt = ['Got request']; st.cl = 'plain'; st.clt = [CL, 'Awaiting reply'];
+      push('nginx receives the request. Following the line proxy_pass http://127.0.0.1:8080 in the location / block, it tries to make a new connection to port 8080 of the same computer and pass the request on.', '');
+      st.aq2 = 'bad'; st.px = 'bad'; st.pxt = ['Cannot reach 8080']; st.way = 'User → nginx (80) → Spring Boot (8080) (refused)'; st.wayc = 'bad';
+      push('Spring Boot is stopped, so no program is waiting on port 8080 of 127.0.0.1. nginx receives a connection refused error, and the request did not reach Spring Boot.', 'bad');
       st.ar1 = 'bad'; st.got = G.bad; st.gotc = 'bad'; st.cl = 'bad'; st.clt = ['Got a 502'];
-      push('The proxy server returns a 502 Bad Gateway response to the client. 502 is a status code that tells that, while a proxy server was passing a request on for the client, something went wrong with the server behind it. This response was made by the proxy server, not by the origin server. The proxy server of this lab is built to return 502 when it cannot connect to the origin server.', 'bad');
-      st.seen = S.none; st.seenc = 'bad';
-      push('The client received a response, not a connection refused error. This is because the proxy server, the peer the client connected to, is running. The origin server is not running, so it never received a request, and the origin server saw no peer.', 'bad');
-      sum.push('If the origin server is off, the client does not receive a connection refused error. It receives a 502 Bad Gateway response sent by the proxy server. This is because the proxy server the client connected to is running.');
-      sum.push('Even for the same server failure, what the client sees differs when a proxy server is in between. The 502 is a response made by the proxy server, not by the server, and it means "I tried to pass the request on, but could not reach the server behind me."');
-      return { events: ev, summary: sum, row: [G.bad, S.none, st.way] };
-    }
-    // Connecting directly to the origin server
-    if (!sOn) {
-      st.cl = 'bad'; st.clt = ['Refused']; st.dq = 'bad'; st.got = G.refuse; st.gotc = 'bad'; st.way = 'Client → origin server (refused)'; st.wayc = 'bad';
-      push('No program is waiting on port 9000, so the connection is not made, and the client receives a connection refused error.' + (pOn ? ' The proxy server is running, but this request did not go to port 8080, so it does not pass through the proxy server.' : ''), 'bad');
-      st.seen = S.none; st.seenc = 'bad';
-      push('The origin server is not running, so it never received a request, and the origin server saw no peer. The request did not pass through a proxy server that could answer for it, so the client did not receive a response such as 502. It received a connection refused error.', 'bad');
-      sum.push('If the client connects directly without a proxy server and the origin server is off, the client receives a connection refused error. There is no proxy server in between to answer for it, so there is no response such as 502 either.');
-      sum.push('In the same situation through a proxy server, the client received 502 Bad Gateway (the earlier question). What the client receives when the server is down depends on whether there is a proxy server in between.');
-      return { events: ev, summary: sum, row: [G.refuse, S.none, st.way] };
-    }
-    st.dq = 'hot'; st.sv = 'hot'; st.svt = ['Got request'];
-    st.way = 'Client → origin server';
-    push('The origin server receives the request and returns "Hello" as the response, as written in the code box. The peer the server sees at this moment is the client itself. The port of the peer that the server saw was the same as the port the client used.' + (pOn ? ' The proxy server is running, but it never received this request (the number of requests the proxy server received: 0).' : ' The proxy server is not running, but this request does not pass through the proxy server anyway, so it makes no difference.'), 'good');
-    st.seen = S.client; st.seenc = 'good'; st.dr = 'good'; st.got = G.ok; st.gotc = 'good'; st.cl = 'good'; st.clt = ['Got response']; st.sv = 'plain'; st.svt = ['Sent response'];
-    push('The client receives the response of the origin server directly. What it received is 200 OK and the body "Hello". No server in between passed it on.', 'good');
-    if (pOn) {
-      sum.push('If you connect to the origin server\'s port (9000) without going through the proxy server, the request goes straight to the server, and the server sees the client itself.');
-      sum.push('Even when the proxy server is running, a request does not pass through it unless the client connects to its port. In this lab, whether the request goes through the proxy server was decided by which port the client connects to.');
+      push('nginx returns a 502 Bad Gateway response to the user. The body is a short HTML page whose title is "502 Bad Gateway", and it was made by nginx, not by Spring Boot. 502 is a status code that says a server acting as a proxy did not get a valid response from the server behind it.', 'bad');
+      st.peer = NONE; st.peerc = 'bad'; st.xff = NONE; st.xffc = 'bad';
+      push('The user received a response, not a connection refused error, because nginx, the peer the user connected to, is running. Spring Boot never received a request, so the controller did not run.', 'bad');
+      sum.push('If Spring Boot is stopped, a user who calls through nginx receives not a connection refused error but a 502 Bad Gateway made by nginx. It means "the request reached nginx, but nginx could not pass it on to the server behind it."');
+      sum.push('So when the browser shows the 502 page of nginx, first check whether Spring Boot is running and whether the port written in proxy_pass (8080) matches server.port.');
+      row = [G.bad, NONE, NONE, st.way];
+    } else if (j.k === 'okProxy') {
+      st.aq1 = 'hot'; st.px = 'hot'; st.pxt = ['Got request,', 'passed to 8080']; st.aq2 = 'hot'; st.sv = 'hot'; st.svt = ['Got request']; st.way = 'User → nginx (80) → Spring Boot (8080)';
+      push('nginx receives the request, and following the line proxy_pass http://127.0.0.1:8080, it makes a new connection to port 8080 of the same computer and passes on the same GET /hello. This connection is separate from the one the user made, and nginx is the side that made it. When passing the request on, following the line proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for, nginx writes the address of the peer that connected to it (' + CL + ') into the X-Forwarded-For header. The line Host $host passes on the name the user wrote in the request (' + HOST + ') as a Host header, and this lab does not use it in its results.' + (j.bind ? ' The place nginx connected to is 127.0.0.1, so Spring Boot with server.address=127.0.0.1 accepts this connection too.' : ''), '');
+      st.peer = '127.0.0.1 (nginx)'; st.peerc = 'hot'; st.xff = CL; st.xffc = 'good'; st.svt = ['Peer: 127.0.0.1'];
+      push('The controller of Spring Boot runs. request.getRemoteAddr() is 127.0.0.1, because the one that opened the connection to this server is not the user but nginx on the same computer. The user\'s address ' + CL + ' is obtained with request.getHeader("X-Forwarded-For"), a value that nginx wrote.', 'hot');
+      st.ar2 = 'good'; st.ar1 = 'good'; st.got = G.ok; st.gotc = 'good'; st.cl = 'good'; st.clt = ['Got a 200']; st.px = 'plain'; st.pxt = ['Sent response back']; st.sv = 'plain'; st.svt = ['Sent response'];
+      push('nginx receives the response of Spring Boot and returns it to the user. What the user received is status code 200 and the body "Connected peer: 127.0.0.1, X-Forwarded-For: ' + CL + '". The user talked only with the nginx it connected to.', 'good');
+      sum.push('Going through nginx splits the connection in two. The user connects to nginx (port 80), and nginx makes its own connection to Spring Boot (port 8080) and passes the request on. So getRemoteAddr() in Spring Boot is not the address of the user but that of nginx (127.0.0.1).');
+      sum.push('The real user\'s address arrives in the X-Forwarded-For header that nginx wrote with proxy_set_header. The setting that makes Spring Boot read this header and reflect it in getRemoteAddr() (server.forward-headers-strategy) is covered in the in-depth lab "Proxies and reverse proxies".');
+      row = [G.ok, '127.0.0.1 (nginx)', CL, st.way];
+    } else if (j.k === 'refuseDown' || j.k === 'refuseBind') {
+      st.cl = 'bad'; st.clt = ['Refused']; st.dq = 'bad'; st.got = G.refuse; st.gotc = 'bad'; st.way = 'User → Spring Boot (8080) (refused)'; st.wayc = 'bad';
+      if (j.k === 'refuseBind') {
+        push('Spring Boot is running and waiting on port 8080, but because of the line server.address=127.0.0.1, it accepts only connections that come to 127.0.0.1. The user\'s connection came to port 8080 of ' + HOST + ', and no program is waiting at that address and port. So the connection is not made, and the user receives a connection refused error.', 'bad');
+        st.peer = NONE; st.peerc = 'bad'; st.xff = NONE; st.xffc = 'bad';
+        push('The controller did not run. 127.0.0.1 is the address a computer uses for itself, so a user on another computer cannot connect to the server computer with this address. Only a program on the same computer (here, nginx) can connect to 127.0.0.1:8080.', 'bad');
+        sum.push('With server.address=127.0.0.1, Spring Boot accepts only connections from the same computer. So an outside user cannot call port 8080 directly and can get in only through port 80 of nginx.');
+        sum.push('This way you can keep the port of the real server closed to the outside and expose only the proxy. Blocking port 8080 with a firewall is another way.');
+      } else {
+        push('No program is waiting on port 8080 of ' + HOST + ', so the connection is not made, and the user receives a connection refused error.' + (j.pOn ? ' nginx is running, but this request did not go to port 80, so it does not pass through nginx.' : ''), 'bad');
+        st.peer = NONE; st.peerc = 'bad'; st.xff = NONE; st.xffc = 'bad';
+        push('Spring Boot is stopped, so the controller did not run. The request did not pass through an nginx that could answer for it, so the user received a connection refused error and not a response such as 502.', 'bad');
+        sum.push('If Spring Boot is stopped while the user calls it directly, the user receives a connection refused error. There is no proxy to answer for it, so there is no response such as 502 either.');
+        sum.push('In the same situation through nginx, the user received the 502 Bad Gateway made by nginx (the question "Stopping Spring Boot"). What the user receives when the server is stopped depends on whether there is a proxy in between.');
+      }
+      row = [G.refuse, NONE, NONE, st.way];
     } else {
-      sum.push('Even when the proxy server is off, a client that connects directly to the origin server is not affected. This request does not pass through the proxy server in the first place.');
-      sum.push('What is blocked when the proxy server goes down is the requests that connect to the proxy server\'s port (8080).');
+      st.dq = 'hot'; st.sv = 'hot'; st.svt = ['Got request']; st.way = 'User → Spring Boot (8080)';
+      push('There is no server.address line, so Spring Boot accepts on port 8080 a connection that comes to any address of this computer. The user\'s connection is made and the request arrives directly.' + (j.pOn ? ' nginx is running, but it never received this request.' : ' nginx is stopped, but this request does not pass through nginx anyway, so it makes no difference.'), '');
+      st.peer = CL + ' (user)'; st.peerc = 'good'; st.xff = 'null (no header)'; st.xffc = 'hot'; st.svt = ['Peer: ' + CL];
+      push('The controller runs. request.getRemoteAddr() is ' + CL + ', the user\'s own address, because the one that opened the connection to this server is the user. request.getHeader("X-Forwarded-For") is null. The request did not pass through an nginx that would write the header in between, and the user did not send that header either.', 'good');
+      st.dr = 'good'; st.got = G.ok; st.gotc = 'good'; st.cl = 'good'; st.clt = ['Got a 200']; st.sv = 'plain'; st.svt = ['Sent response'];
+      push('The user receives the response of Spring Boot directly. What it received is status code 200 and the body "Connected peer: ' + CL + ', X-Forwarded-For: null".', 'good');
+      sum.push('When the user calls directly, there is only one connection. The user connects straight to Spring Boot, so getRemoteAddr() is the user\'s address itself, and there is no X-Forwarded-For.');
+      sum.push('Compared with going through nginx (the default settings), even with the same controller, getRemoteAddr() changes from 127.0.0.1 (nginx) to ' + CL + ' (the user). However, with the server.address line removed, port 8080 is open to the outside, so a user can skip nginx and come in.');
+      row = [G.ok, CL + ' (user)', 'null (no header)', st.way];
     }
-    return { events: ev, summary: sum, row: [G.ok, S.client, st.way] };
+    return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
-    if (!s) { H.text(v, 'Click Run to start with the client connecting to the address in the code box.'); return; }
+    if (!s) { H.text(v, 'Click Run to start with the user sending a request to the address in the code box.'); return; }
     H.table(v, ['Item', 'Value'], [
-      { cls: s.got ? '' : 'gone', cells: ['What the client received', s.got ? { v: s.got, cls: s.gotc } : 'Not yet'] },
-      { cls: s.seen ? '' : 'gone', cells: ['Who the origin server saw', s.seen ? { v: s.seen, cls: s.seenc } : 'Not yet'] },
+      { cls: s.got ? '' : 'gone', cells: ['What the user received', s.got ? { v: s.got, cls: s.gotc } : 'Not yet'] },
+      { cls: s.peer ? '' : 'gone', cells: ['getRemoteAddr() (the peer Spring Boot saw)', s.peer ? { v: s.peer, cls: s.peerc } : 'Not yet'] },
+      { cls: s.xff ? '' : 'gone', cells: ['X-Forwarded-For header', s.xff ? { v: s.xff, cls: s.xffc } : 'Not yet'] },
       { cls: s.way ? '' : 'gone', cells: ['Path the request took', s.way ? { v: s.way, cls: s.wayc || 'good' } : 'Not yet'] },
     ], 'Result');
   },
-  // Diagram: the client at the lower left, the proxy server at the top center, the origin server at the lower right. Through the proxy, the arrows bend client -> proxy -> origin server; when connecting directly, the arrow passes under the proxy and goes straight. A server that is off is a dashed box and a refused place is red. Three result boxes below.
+  // Diagram: the user (another computer) on the left. The box on the right is the server computer 192.0.2.10, with nginx in its upper part and Spring Boot in its lower part (both are programs running on that computer).
+  // Through nginx, the arrows bend user -> nginx -> Spring Boot; when calling directly, the arrow passes under nginx and goes straight. A program that is stopped is a dashed box and a refused place is red. Four result boxes below.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, pOn = c.up !== 'noproxy', sOn = c.up !== 'noserver';
-    P.size(680, 340);
-    P.box('cl', 14, 110, 140, 72, { cls: s ? s.cl : 'plain', title: 'Client', sub: s ? s.clt : ['Idle'] });
-    P.box('px', 270, 30, 140, 72, { cls: s ? s.px : (pOn ? 'plain' : 'ghost'), title: 'Proxy server', sub: s ? s.pxt : (pOn ? ['Waiting on 8080'] : ['Not running']) });
-    P.box('sv', 526, 110, 140, 72, { cls: s ? s.sv : (sOn ? 'plain' : 'ghost'), title: 'Origin server', sub: s ? s.svt : (sOn ? ['Waiting on 9000'] : ['Not running']) });
+    P.size(680, 392);
+    P.region('host', 216, 10, 456, 204, 'Server computer 192.0.2.10');
+    P.box('cl', 14, 118, 150, 72, { cls: s ? s.cl : 'plain', title: 'User', sub: s ? s.clt : ['203.0.113.7'] });
+    P.box('px', 236, 38, 170, 72, { cls: s ? s.px : (pOn ? 'plain' : 'ghost'), title: 'nginx', sub: s ? s.pxt : (pOn ? ['Waiting on 80'] : ['Stopped']) });
+    P.box('sv', 488, 118, 170, 72, { cls: s ? s.sv : (sOn ? 'plain' : 'ghost'), title: 'Spring Boot', sub: s ? s.svt : (sOn ? (c.bind ? ['Waiting at', '127.0.0.1:8080'] : ['Waiting on 8080', '(any address)']) : ['Stopped']) });
     function ac(x) { return x === 'plain' ? '' : x; }
-    if (s && s.aq1) P.arrow('aq1', [154, 122], [270, 78], { cls: ac(s.aq1) });
-    if (s && s.aq2) P.arrow('aq2', [410, 78], [526, 122], { cls: ac(s.aq2) });
-    if (s && s.ar2) P.arrow('ar2', [526, 140], [410, 92], { cls: ac(s.ar2) });
-    if (s && s.ar1) P.arrow('ar1', [270, 92], [154, 140], { cls: ac(s.ar1) });
-    if (s && s.dq) P.arrow('dq', [154, 150], [526, 150], { cls: ac(s.dq) });
-    if (s && s.dr) P.arrow('dr', [526, 168], [154, 168], { cls: ac(s.dr) });
-    P.box('n1', 14, 206, 652, 36, { cls: s && s.got ? s.gotc || 'wait' : 'ghost', title: 'What the client received', right: s && s.got ? s.got : 'Not yet' });
-    P.box('n2', 14, 248, 652, 36, { cls: s && s.seen ? s.seenc || 'wait' : 'ghost', title: 'Who the origin server saw', right: s && s.seen ? s.seen : 'Not yet' });
-    P.box('n3', 14, 290, 652, 36, { cls: s && s.way ? s.wayc || 'wait' : 'ghost', title: 'Path the request took', right: s && s.way ? s.way : 'Not yet' });
+    if (s && s.aq1) P.arrow('aq1', [164, 130], [236, 86], { cls: ac(s.aq1) });
+    if (s && s.aq2) P.arrow('aq2', [406, 86], [488, 130], { cls: ac(s.aq2) });
+    if (s && s.ar2) P.arrow('ar2', [488, 146], [406, 100], { cls: ac(s.ar2) });
+    if (s && s.ar1) P.arrow('ar1', [236, 100], [164, 146], { cls: ac(s.ar1) });
+    if (s && s.dq) P.arrow('dq', [164, 162], [488, 162], { cls: ac(s.dq) });
+    if (s && s.dr) P.arrow('dr', [488, 180], [164, 180], { cls: ac(s.dr) });
+    P.box('n1', 14, 226, 652, 36, { cls: s && s.got ? s.gotc || 'wait' : 'ghost', title: 'User received', right: s && s.got ? s.got : 'Not yet' });
+    P.box('n2', 14, 268, 652, 36, { cls: s && s.peer ? s.peerc || 'wait' : 'ghost', title: 'getRemoteAddr()', right: s && s.peer ? s.peer : 'Not yet' });
+    P.box('n3', 14, 310, 652, 36, { cls: s && s.xff ? s.xffc || 'wait' : 'ghost', title: 'X-Forwarded-For header', right: s && s.xff ? s.xff : 'Not yet' });
+    P.box('n4', 14, 352, 652, 36, { cls: s && s.way ? s.wayc || 'wait' : 'ghost', title: 'Path the request took', right: s && s.way ? s.way : 'Not yet' });
   },
-  assume: 'In our test run, we ran all six combinations for real, only on 127.0.0.1 of a single computer, and checked them against the model. We did not connect to any external network. The origin server and the proxy server are Node.js 24.18.0 http servers, and the client is http.request of the same Node.js (it does not reuse connections). The origin server answers GET /hello with 200 and the text written in the code box, "Hello", and it recorded the port of the peer that connected to it. The proxy server opened a new connection to the server whose port is written in the code box, passed the request it received on as it was, returned the response to the client, and recorded its own port used on that connection. The test program built the same text as the code on the screen, read it (which port has what written on it), and showed it as it was. A server whose line was removed was not started, and connecting to its port meant trying to connect to a free port that nothing was waiting on (a port that had just been closed). 8080 and 9000 on the screen are example numbers and free ports were used in the real run, and the code box is not the source of the programs that were run but a list of what is waiting on which port. What we checked against is what the client received (the status code and body, or the kind of error), who the origin server saw, and the path the request took; who the origin server saw was decided by comparing whether the peer port the server recorded was the same as the client\'s port or the same as the port the proxy server used when connecting to the server. The three programs were on one computer, so the peer address the server saw was 127.0.0.1 in every combination, and that is why we told them apart by port. In the combinations that went through the proxy server, the only peer that connected to the origin server was one (the proxy server), and in the combinations that connected directly, the proxy server received 0 requests. When nothing was waiting on 8080 (or 9000), the client received a connection refused error (ECONNREFUSED), and when the origin server was down and the request went through the proxy server, the proxy server got the same connection refused error and then returned 502. This 502 is a behavior that comes from how the proxy server of this lab was written, and we did not check what real proxy products return when they cannot connect. What we checked against the documentation is section 3.6 of RFC 9110 (an origin server is a program that can originate authoritative responses for a given target resource), section 3.7 (among intermediaries, a proxy is one that the client chooses by its configuration, and a gateway, also called a reverse proxy, acts as an origin server for the outbound connection and passes the requests it receives on to the inbound server), and section 15.6.3 (502 is the code used when a server acting as a gateway or proxy receives an invalid response from an inbound server). For section 15.6.3, we confirmed the first sentence word for word and the rest from a summary. The proxy server in this lab is the kind the client connects to believing it is the server, so in RFC terms it is closer to a gateway (reverse proxy), and we did not cover the difference from a forward proxy that the client chooses on purpose. We did not examine whether using 502 when the connection itself is refused fits the RFC sentence exactly. The sentence that load balancers, CDNs, and API gateways are also servers that stand between a client and a server is a general explanation, and it was not checked by this run or by the documentation. This lab leaves out many things. We did not look at headers such as X-Forwarded-For that pass the original client\'s address to the server, a setup that decrypts HTTPS at the proxy server, timeouts and 504 for slow responses, splitting requests among several servers, and keeping copies of responses. The first two are covered in the in-depth lab "Proxies and reverse proxies", splitting among servers in the in-depth lab "Load balancers and scale out", and keeping copies of responses in the in-depth lab "CDN". We did not use a browser, and we sent only one request, GET /hello.',
+  assume: 'The verification run (verify/net/proxy_basic_probe_boot.js) ran all twelve combinations only on the PC used to write this lab and did not use any external network. The Spring Boot side was actually run. The HelloController on the screen was compiled with JDK 21 with only one package line added, the lines of application.properties on the screen were written out to a file as they are, and the server was started as Spring Boot 4.1.1 (Spring 7.0.9, embedded Tomcat 11.0.24). The only change was replacing the 8080 of server.port with a free port number; the Main class that starts it and the filter that counts /hello requests were added for the run (they are not on the screen). Checking with netstat, the server waited only on 127.0.0.1 with server.address=127.0.0.1, and on 0.0.0.0 (all addresses) without that line. nginx is not on this computer and was not downloaded; a Node.js 24.18.0 program, built by reading the nginx configuration on the screen and behaving as the nginx documentation describes, stood in for nginx. This program does not pass on the Host and Connection of the received request, passes on the other headers as they are, applies the $host (the name written in the Host of the request) and $proxy_add_x_forwarded_for (the received X-Forwarded-For followed by a comma and $remote_addr, or just $remote_addr if nothing was received) of the proxy_set_header lines, and passes the request to the back end as HTTP/1.1 with the default Connection: close added. If it cannot connect to the back end, it returns 502 and the 502 page written in the nginx source. So the nginx side was not run with real nginx; it was carried over by checking against the documentation and the source. What was checked against the documentation is the ngx_http_core_module of nginx.org (the default of listen, server and location, $host, $remote_addr), the ngx_http_proxy_module (proxy_pass; the defaults of proxy_set_header, Host $proxy_host and Connection close; that the Host and Connection of the original request are not passed on; the definition of $proxy_add_x_forwarded_for; and that proxy_http_version defaults to 1.1 from 1.29.7), the nginx source ngx_http_upstream.c (a failure to connect to the back end is handled as an error branch, and if there is no next server to pass to, it ends with 502) and ngx_http_special_response.c (the text of the 502 page), the description of the settings in the Spring Boot 4.1.1 jar (server.address is the network address the server binds to, and server.port defaults to 8080), and section 15.6.3 (502) of RFC 9110. The nginx documentation has no sentence that says "502 if connecting to the back end fails", so this was checked in the source. The last line of the 502 page may have a version number after nginx depending on the server_tokens setting. The user address 203.0.113.7 and the server computer address 192.0.2.10 on the screen are example addresses for documentation, and in the run the user was replaced by 127.0.0.10 and the outside address of the server computer by 127.0.0.2 (both are loopback addresses of this PC). So "calling port 8080 from another computer is refused" was checked as a connection to 127.0.0.2 being refused by a Spring Boot that waits only on 127.0.0.1, and it was not run on a real other computer. The 80 and 8080 on the screen were also free port numbers in the real run, and a program that was stopped was not started, and its port number was replaced by a free port that had just been closed. What was checked against (verify/net/cmp_proxy_basic.js, all 13 cases matched) is what the user received (the status code, the body, or the connection refusal), the getRemoteAddr() and X-Forwarded-For that the controller returned, the number of requests received by the program standing in for nginx and the headers it added, the number of /hello requests Spring Boot received, and whether the code on the screen is the same text that the run read. Tomcat does not put text such as OK on the status line, so the table shows only the status code 200. This lab does not cover HTTPS (port 443) and certificates, server.forward-headers-strategy (which makes Spring Boot read X-Forwarded-For and reflect it in getRemoteAddr()) and forged headers, or 504 for slow responses. The first ones are covered in the in-depth lab "Proxies and reverse proxies", splitting among several servers in "Load balancers and scale out", and keeping copies of responses in "CDN".',
 });

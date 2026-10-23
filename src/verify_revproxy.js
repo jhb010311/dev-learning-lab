@@ -1,1 +1,1 @@
-Lab.verify({ revproxy: ['run', '루프백 주소 셋(127.0.0.10·20·30)에 Node 24로 만든 프록시와 서버를 띄우고 Node http·https와 curl 8.21로 42가지 조합을 실행해 대조. 프록시는 직접 만든 시험용이며 nginx 같은 제품의 동작은 문서 기준'] });
+Lab.verify({ revproxy: ['part', '스프링 부트 쪽은 실제 스프링 부트 4.1.1(내장 톰캣 11.0.24)에 화면의 컨트롤러를 그대로 컴파일해 none·native·framework·설정 안 함으로 띄우고 32가지 조합을 실행해 다섯 열을 대조. nginx는 실행하지 않았고 설정은 nginx 문서(ngx_http_proxy_module)와 대조, 실행에서는 문서대로 헤더를 붙이는 Node 프록시가 nginx 역할을 대신함'] });

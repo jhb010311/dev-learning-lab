@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>열거형(enum): enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나 · 개발 학습 실습실</title>
-<meta name="description" content="enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum…">
+<title>열거형(enum): @Enumerated(EnumType.ORDINAL)로 저장한 enum은 왜 다른 상수가 되어 돌아오나 · 개발 학습 실습실</title>
+<meta name="description" content="enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. JPA 엔티티의 enum 필드를 DB에 저장할 때는 @Enumerated로 저장 방식을 고릅니다. EnumType.ORDINAL은 상수의 선언 순서 번호를, EnumType.STRING은 상수의 이름을…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/enumtype/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/enumtype/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="열거형(enum): enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나 · 개발 학습 실습실">
-<meta property="og:description" content="enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum…">
+<meta property="og:title" content="열거형(enum): @Enumerated(EnumType.ORDINAL)로 저장한 enum은 왜 다른 상수가 되어 돌아오나 · 개발 학습 실습실">
+<meta property="og:description" content="enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. JPA 엔티티의 enum 필드를 DB에 저장할 때는 @Enumerated로 저장 방식을 고릅니다. EnumType.ORDINAL은 상수의 선언 순서 번호를, EnumType.STRING은 상수의 이름을…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/enumtype/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,75 +30,102 @@
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
 <h1>열거형(enum)</h1>
-<p><b>enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나</b></p>
-<p><b>왜 생겼나</b> — enum이 없을 때는 주문 상태 같은 값을 int 상수나 문자열로 나타냈다. 그러면 정해 두지 않은 숫자나 오타 난 문자열을 넘겨도 컴파일러가 막지 못했고, 같은 숫자를 쓰는 다른 종류의 상수와 섞여도 알아채기 어려웠다. enum은 가능한 값을 하나의 타입으로 묶어서, 그 밖의 값이나 다른 종류의 상수를 넘기는 코드를 컴파일 단계에서 막는다.</p>
-<p><b>지금 어디에 쓰나</b> — 주문 상태, 결제 수단, 회원 등급처럼 종류가 미리 정해진 값을 나타낼 때 쓴다. 상수마다 다른 처리는 switch로 나누거나 enum에 메서드를 두어 처리한다. JPA로 DB에 저장할 때는 기본값인 순서 번호 대신 @Enumerated(EnumType.STRING)으로 이름을 저장하거나, 직접 정한 코드 값을 AttributeConverter로 바꿔 저장한다.</p>
-<p>enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다.</p>
-<p>실행으로 대조 · JDK 21에서 마흔다섯 가지 조합을 실제로 컴파일하고 실행해 대조</p>
+<p><b>@Enumerated(EnumType.ORDINAL)로 저장한 enum은 왜 다른 상수가 되어 돌아오나</b></p>
+<p><b>왜 생겼나</b> — enum이 없을 때는 주문 상태 같은 값을 int 상수나 문자열로 나타냈다. 그러면 정해 두지 않은 숫자나 오타 난 문자열을 넘겨도 컴파일러가 막지 못했고, 같은 숫자를 쓰는 다른 종류의 상수와 섞여도 알아채기 어려웠다. enum은 가능한 값을 하나의 타입으로 묶어서, 그 밖의 값이나 다른 종류의 상수를 넘기는 코드를 컴파일 단계에서 막는다. 다만 DB의 컬럼에는 enum 객체를 그대로 넣을 수 없어서, JPA는 저장할 때 숫자나 글자로 바꾸고 읽을 때 되돌리는 방법을 @Enumerated와 AttributeConverter로 정하게 한다.</p>
+<p><b>지금 어디에 쓰나</b> — 주문 상태, 결제 수단, 회원 등급처럼 종류가 미리 정해진 값을 나타낼 때 쓴다. JPA 엔티티의 enum 필드에는 @Enumerated(EnumType.STRING)을 붙여 상수의 이름을 저장하는 것이 보통이다. @Enumerated를 붙이지 않으면 기본값인 ORDINAL(선언 순서 번호)로 저장된다. DB에 P, S 같은 짧은 코드로 저장해야 하면 AttributeConverter를 만들어 @Convert로 지정한다.</p>
+<p>enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. JPA 엔티티의 enum 필드를 DB에 저장할 때는 @Enumerated로 저장 방식을 고릅니다. EnumType.ORDINAL은 상수의 선언 순서 번호를, EnumType.STRING은 상수의 이름을 저장합니다. 번호로 저장한 뒤 enum 선언의 순서를 고치면, DB의 숫자는 그대로인데 그 숫자가 가리키는 상수가 달라집니다. 이 실습은 Hibernate가 실제로 저장하고 다시 읽은 결과를 따라갑니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 마흔다섯 가지 조합을 화면의 코드로 컴파일·실행해 컬럼 정의, 저장된 값, 다시 배포한 뒤 읽은 상수와 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>열거형(enum)</dt>
 <dd>정해진 몇 개의 값만 가질 수 있는 타입을 만드는 문법이다. enum Status { ORDERED, PAID }처럼 선언하면 ORDERED와 PAID가 각각 Status 타입의 객체가 되고, 이 객체들은 한 번만 만들어지며 new로 더 만들 수 없다. 상수마다 객체가 하나뿐이라 ==로 비교할 수 있고 switch에도 쓸 수 있다. enum도 클래스이므로 필드, 생성자, 메서드를 가질 수 있어서 상수마다 표시 이름이나 코드 값을 붙여 둘 수 있다. 문자열이나 숫자로 상태를 나타낼 때와 달리, 정해지지 않은 값을 쓰면 컴파일 오류가 나므로 상태나 종류를 나타내는 데 쓴다.</dd>
+<dt>@Enumerated</dt>
+<dd><b>왜 생겼나</b> — 자바의 enum 값은 JDBC로 바로 넘길 수 없어서, 저장할 때 숫자나 글자로 바꾸고 읽을 때 되돌리는 코드를 직접 써야 했다. JPA는 이 변환을 맡고, @Enumerated는 그 변환을 순서 번호로 할지 이름으로 할지 고르게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 주문 상태, 회원 등급처럼 정해진 몇 가지 값 가운데 하나인 필드에 붙인다. DB에 이름 대신 P, D 같은 짧은 코드로 저장해야 하면 @Enumerated 대신 AttributeConverter를 만들어 쓴다.</dd>
+<dd>enum 타입의 필드를 DB에 어떤 값으로 저장할지 정하는 애너테이션이다. EnumType.ORDINAL은 enum에 적힌 순서 번호(0부터)를 숫자로 저장하고, EnumType.STRING은 상수의 이름을 글자로 저장한다. 붙이지 않았을 때의 기본값은 ORDINAL이다. ORDINAL로 저장한 뒤 enum의 중간이나 앞에 상수를 추가하면 번호가 밀려서, 이미 저장된 값이 다른 상수로 읽힌다. 예외가 나지 않아 알아차리기 어려우므로 STRING으로 쓰는 것이 안전하다.</dd>
+<dt>AttributeConverter</dt>
+<dd><b>왜 생겼나</b> — @Enumerated는 enum을 순서 번호나 이름으로만 저장할 수 있어서, 예전부터 상태를 P, S 같은 코드로 적어 온 DB에 맞추거나 상수 이름을 자유롭게 바꾸기 어려웠다. JPA 2.1에서 AttributeConverter가 들어와, 필드 하나를 어떻게 바꿔 저장할지 클래스 하나로 정하게 되었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — enum을 짧은 코드 값으로 저장할 때, 불리언을 Y/N 글자로 저장할 때, 금액이나 전화번호 같은 값 객체를 컬럼 하나에 글자로 저장할 때 쓴다.</dd>
+<dd>엔티티 필드의 값과 DB 컬럼의 값을 서로 바꾸는 방법을 정하는 JPA 인터페이스다. AttributeConverter&lt;X, Y&gt;를 구현하는 클래스를 만들어 두 메서드를 채운다. convertToDatabaseColumn은 저장할 때 필드 값(X)을 컬럼 값(Y)으로, convertToEntityAttribute는 읽을 때 컬럼 값을 필드 값으로 바꾼다. 클래스에 @Converter를 붙이고 필드에 @Convert(converter = 변환기 클래스)를 붙이면 그 필드에 쓰이고, @Converter(autoApply = true)로 두면 같은 타입의 필드 모두에 쓰인다. enum을 순서 번호나 이름이 아니라 P, S 같은 정해 둔 코드로 저장하면, 상수의 순서나 이름을 바꿔도 저장된 값이 흔들리지 않는다.</dd>
 <dt>ordinal()과 name()</dt>
 <dd><b>왜 생겼나</b> — enum 상수를 파일이나 DB에 남기려면 글자나 숫자로 바꿔야 하는데, 상수마다 바꾸는 코드를 짜면 상수를 늘릴 때마다 고쳐야 한다. name()과 ordinal()은 모든 enum이 java.lang.Enum에서 물려받는 메서드라서, 따로 짜지 않아도 이름과 순번을 얻게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — name()은 다른 시스템에 상수를 글자로 넘길 때처럼 정확한 이름이 필요할 때 쓰고, 로그에 보일 글은 toString()에 맡긴다. ordinal()은 API 문서가 EnumSet, EnumMap 같은 자료구조용이라고 밝혀 두어, 보통 코드에서 직접 쓸 일은 드물다.</dd>
-<dd>모든 enum 상수가 가지고 있는 두 메서드다. ordinal()은 그 상수가 선언에서 몇 번째인지를 0부터 센 번호를 돌려주고, name()은 선언에 적은 상수의 이름을 문자열로 돌려준다. ordinal()은 선언 순서로 정해지므로 상수를 중간에 끼워 넣거나 순서를 바꾸면 값이 달라진다. 그래서 ordinal() 값을 DB나 파일에 저장해 두면 나중에 같은 숫자가 다른 상수로 읽힐 수 있다. 저장할 때는 name()이나, enum에 따로 만들어 둔 필드의 값을 쓴다.</dd>
+<dd>모든 enum 상수가 가지고 있는 두 메서드다. ordinal()은 그 상수가 선언에서 몇 번째인지를 0부터 센 번호를 돌려주고, name()은 선언에 적은 상수의 이름을 문자열로 돌려준다. ordinal()은 선언 순서로 정해지므로 상수를 중간에 끼워 넣거나 순서를 바꾸면 값이 달라진다. 그래서 ordinal() 값을 DB나 파일에 저장해 두면 나중에 같은 숫자가 다른 상수로 읽힐 수 있다. JPA의 @Enumerated(EnumType.ORDINAL)이 DB에 적는 값이 ordinal()이고, EnumType.STRING이 적는 값이 name()이다. 그래서 저장할 때는 STRING이나, enum에 따로 만들어 둔 코드 값을 쓴다.</dd>
 <dt>enum의 valueOf</dt>
 <dd><b>왜 생겼나</b> — 글자로 들어온 값을 enum으로 바꾸려면 상수마다 if로 비교하는 코드를 짜야 하고, 상수를 늘릴 때마다 그 코드도 고쳐야 한다. valueOf는 컴파일러가 모든 enum에 만들어 주어, 이름만으로 상수를 바로 찾게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 요청 파라미터나 설정 파일에서 읽은 글자, DB에 이름으로 저장해 둔 값을 enum 상수로 되돌릴 때 쓴다.</dd>
-<dd>이름 문자열을 받아 그 이름을 가진 enum 상수를 돌려주는 static 메서드로, 모든 enum에 자동으로 만들어진다. Status.valueOf(&quot;PAID&quot;)는 Status.PAID를 돌려준다. 이름은 대소문자까지 정확히 같아야 하고, 그런 상수가 없으면 null을 돌려주는 것이 아니라 IllegalArgumentException을 던진다. 그래서 사용자가 입력한 문자열처럼 믿을 수 없는 값을 넘길 때는 예외에 대비해야 한다. 모든 상수를 선언 순서대로 담은 배열을 돌려주는 values()도 함께 만들어진다.</dd>
-<dt>동일성과 동등성</dt>
-<dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
+<dd>이름 문자열을 받아 그 이름을 가진 enum 상수를 돌려주는 static 메서드로, 모든 enum에 자동으로 만들어진다. Status.valueOf(&quot;PAID&quot;)는 Status.PAID를 돌려준다. 이름은 대소문자까지 정확히 같아야 하고, 그런 상수가 없으면 null을 돌려주는 것이 아니라 IllegalArgumentException을 던진다. 그래서 사용자가 입력한 문자열처럼 믿을 수 없는 값을 넘길 때는 예외에 대비해야 한다. 모든 상수를 선언 순서대로 늘어놓은 배열을 돌려주는 values()도 함께 만들어진다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 번호로 저장한 뒤 상수를 중간에 끼워 넣었습니다. 결제 완료가 주문 취소로 읽힙니다.</li>
+<li><b>처음 설정으로</b> — DB에는 숫자 1이 남아 있고, 지금 선언에서 1번은 CANCELED입니다. 결제 완료 주문이 취소 주문으로 읽힙니다.</li>
 <li><b>순서만 바꿔도</b> — 상수를 추가하지 않고 순서만 바꿔도 번호가 가리키는 상수가 달라집니다.</li>
-<li><b>맨 끝에 추가하면</b> — 기존 상수의 번호가 그대로라서 무사합니다.</li>
+<li><b>맨 끝에 추가하면</b> — 기존 상수의 번호가 그대로라서 같은 상수가 읽힙니다.</li>
 <li><b>운 좋게 무사한 상수</b> — 같은 변경인데 맨 앞의 상수는 번호가 바뀌지 않습니다.</li>
-<li><b>이름으로 저장</b> — 중간에 끼워 넣어도 같은 상수가 나옵니다.</li>
-<li><b>이름으로 저장했는데 이름을 바꾸면</b> — valueOf가 없는 이름을 받아 IllegalArgumentException을 던집니다.</li>
-<li><b>직접 만든 code로 저장</b> — 순서를 바꿔도 이름을 바꿔도 같은 상수가 나옵니다.</li>
+<li><b>STRING으로 저장</b> — DB에 이름이 저장되므로 순서가 달라져도 같은 상수가 읽힙니다.</li>
+<li><b>STRING인데 이름을 바꾸면</b> — DB의 &quot;PAID&quot;에 맞는 상수가 없어 em.find가 예외를 던집니다.</li>
+<li><b>AttributeConverter로 코드 저장</b> — 저장된 것이 이름도 번호도 아닌 코드라서, 이름을 바꿔도 같은 상수가 읽힙니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>예전의 enum 선언은 ORDERED, PAID, SHIPPED 순서였습니다: enum의 상수는 저마다 객체 하나입니다. PAID(&quot;결제 완료&quot;)는 생성자에 &quot;결제 완료&quot;를 넘겨 만든 Status 객체이고, 프로그램 전체에 PAID 객체는 그것 하나뿐입니다. new로 더 만들 수도 없습니다.</li>
-<li>PAID 상태인 주문을 DB에 저장했습니다: enum 객체를 그대로 넣을 수는 없으므로 그 상수를 나타낼 값을 대신 적어 둡니다. 여기서는 PAID.ordinal()의 값(1)을 적었습니다. ordinal()은 그 상수가 선언에서 몇 번째인지를 0부터 센 번호입니다.</li>
-<li>그 뒤 enum 선언을 고쳤습니다: 새 상수 CANCELED를 ORDERED와 PAID 사이에 끼워 넣었습니다. 지금의 순서 번호는 ORDERED(0), CANCELED(1), PAID(2), SHIPPED(3)입니다. DB에 적어 둔 값(1)은 고쳐지지 않고 그대로 남아 있습니다.</li>
-<li>Status.values()[1] 실행: values()는 지금 선언의 순서대로 상수를 담은 배열을 돌려줍니다. 1번 칸에 있는 것은 CANCELED입니다. 저장한 것은 PAID인데 다른 상수가 나왔습니다. 예외도 경고도 없습니다.</li>
-<li>System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;) 실행: 출력은 &quot;CANCELED (주문 취소)&quot;입니다. label()은 enum 안에 직접 만든 메서드로, 그 상수가 만들어질 때 받은 label 값을 돌려줍니다. enum도 클래스라서 이렇게 필드와 메서드를 가질 수 있습니다.</li>
-<li>s == Status.PAID 실행: false입니다. enum 상수는 상수마다 객체가 하나뿐이어서, 어떤 방법으로 얻었든 같은 상수면 같은 객체입니다. 그래서 equals 없이 ==로 비교해도 됩니다. false가 나온 것은 비교 방법 때문이 아니라, s가 정말로 다른 상수(CANCELED)이기 때문입니다. 프로그램은 정상으로 끝납니다.</li>
+<li>처음 배포: enum 선언은 ORDERED, PAID, SHIPPED 순서입니다. Hibernate가 Order 엔티티를 보고 orders 테이블을 만들었고, status 컬럼은 &quot;status tinyint check ((status between 0 and 2))&quot;입니다. EnumType.ORDINAL은 상수의 선언 순서 번호를 저장하는 방식이라 숫자 컬럼이 됩니다. 0부터 2까지만 받는 조건(check)은 Hibernate가 H2용으로 붙인 것입니다.</li>
+<li>em.persist(new Order(1L, OrderStatus.PAID))와 커밋: INSERT가 나가 status 컬럼에 1이 저장됩니다. Hibernate가 PAID.ordinal()의 값을 적은 것입니다. ordinal()은 모든 enum이 java.lang.Enum에서 물려받는 메서드로, 그 상수가 선언에서 몇 번째인지를 0부터 센 번호를 돌려줍니다.</li>
+<li>그 뒤 enum 선언을 고쳐 다시 배포했습니다: 새 상수 CANCELED를 ORDERED와 PAID 사이에 끼워 넣었습니다. 지금의 순서 번호는 ORDERED(0), CANCELED(1), PAID(2), SHIPPED(3)입니다. 테이블은 다시 만들지 않았으므로 status 컬럼의 1은 그대로 남아 있습니다.</li>
+<li>em.find(Order.class, 1L) 실행: SELECT로 행을 읽고 status 컬럼의 1을 상수로 바꿉니다. ORDINAL이므로 Hibernate는 지금 선언에서 1번째 상수를 고릅니다. OrderStatus.values()[1]와 같은 결과입니다(values()는 모든 enum에 자동으로 만들어지는 메서드로, 상수를 지금 선언의 순서대로 늘어놓은 배열을 돌려줍니다). 1번 자리에 있는 것은 CANCELED입니다. 저장한 것은 PAID인데 다른 상수가 나왔습니다. 예외도 경고도 없습니다.</li>
+<li>System.out.println(order.getStatus()) 실행: 출력은 &quot;CANCELED&quot;입니다. enum의 toString()은 따로 고치지 않으면 name()과 같은 이름을 돌려줍니다.</li>
+<li>order.getStatus() == OrderStatus.PAID 실행: false입니다. enum 상수는 상수마다 객체가 하나뿐이어서, Hibernate가 읽어 온 것이든 코드에 적은 것이든 같은 상수면 같은 객체입니다. 그래서 equals 없이 ==로 비교해도 됩니다. false가 나온 것은 비교 방법 때문이 아니라, 읽어 온 상수가 정말로 다른 상수(CANCELED)이기 때문입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>ordinal()은 선언 순서일 뿐이어서, 상수를 중간에 끼워 넣거나 순서를 바꾸면 이미 저장해 둔 숫자가 다른 상수를 가리키게 됩니다. 예외가 나지 않으므로 &quot;결제 완료&quot; 주문이 &quot;주문 취소&quot; 주문으로 보이는 잘못된 데이터가 조용히 쓰입니다. ordinal() 값은 저장하지 않습니다.</li>
-<li>enum 상수의 비교에는 ==를 씁니다. 상수마다 객체가 하나뿐이라 결과가 equals와 같고, 한쪽이 null이어도 예외가 나지 않으며, 서로 다른 enum 타입을 비교하면 컴파일 오류로 알려 줍니다.</li>
+<li>EnumType.ORDINAL은 선언 순서 번호를 저장할 뿐이어서, 상수를 중간에 끼워 넣거나 순서를 바꾸면 이미 저장된 숫자가 다른 상수를 가리키게 됩니다. 예외가 나지 않으므로 &quot;결제 완료&quot; 주문이 &quot;주문 취소&quot; 주문으로 보이는 잘못된 데이터가 조용히 쓰입니다. @Enumerated를 붙이지 않았을 때의 기본값도 ORDINAL이므로, enum 필드에는 @Enumerated(EnumType.STRING)을 적어 둡니다.</li>
+<li>enum 상수의 비교에는 ==를 씁니다. 상수마다 객체가 하나뿐이라 결과가 equals와 같고, 한쪽이 null이어도 예외가 나지 않습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>enum Status {
-    ORDERED(&quot;주문 접수&quot;),
-    CANCELED(&quot;주문 취소&quot;),
-    PAID(&quot;결제 완료&quot;),
-    SHIPPED(&quot;배송 시작&quot;);
+<pre>// 파일: OrderStatus.java
+// 주문 상태를 나타내려고 예시로 만든 enum. 저장할 때의 선언은 ORDERED, PAID, SHIPPED 순서였고, 저장한 뒤에 CANCELED를 ORDERED와 PAID 사이에 끼워 넣었다
+public enum OrderStatus { ORDERED, CANCELED, PAID, SHIPPED }
 
-    private final String label;
+// 파일: Order.java
+// 예시로 만든 엔티티. @Entity, @Table, @Id, @Enumerated, EnumType은 JPA가 주는 것
+import jakarta.persistence.*;
 
-    Status(String label) {
-        this.label = label;
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+
+    @Enumerated(EnumType.ORDINAL)
+    private OrderStatus status;
+
+    protected Order() {
     }
 
-    String label() {
-        return label;
+    public Order(Long id, OrderStatus status) {
+        this.id = id;
+        this.status = status;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
     }
 }
 
-// 예전 선언(ORDERED, PAID, SHIPPED 순서)일 때 PAID.ordinal() 값을 저장해 둔 것 (여기부터 main 안의 줄, 클래스·main 선언은 생략)
-int saved = 1;
-Status s = Status.values()[saved];
-System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;);
-System.out.println(s == Status.PAID);</pre>
+// 파일: OrderReader.java
+// 다시 배포한 뒤 주문을 읽는 예시 클래스. EntityManager는 JPA가 주는 것
+import jakarta.persistence.EntityManager;
+
+public class OrderReader {
+    // 예전 선언일 때 em.persist(new Order(1L, OrderStatus.PAID))로 저장해 둔 주문을 읽는다
+    static void print(EntityManager em) {
+        Order order = em.find(Order.class, 1L);
+        System.out.println(order.getStatus());
+        System.out.println(order.getStatus() == OrderStatus.PAID);
+    }
+}
+</pre>
 <h2>이 모형의 전제</h2>
-<p>마흔다섯 가지 조합 모두를 검증 환경의 JDK 21에서 화면의 코드(고친 뒤의 enum 선언과 그 아래 코드)를 실제로 컴파일하고 실행해서, 저장해 둔 값, 출력 두 줄, 종료 코드, 예외 메시지를 대조했습니다. 저장해 둔 값은 예전 선언의 enum에서 ordinal(), name(), code를 실제로 불러 얻은 것입니다. 화면의 코드에서 enum 선언 아래의 다섯 줄은 main 메서드 안에 들어 있는 것으로, main의 선언은 생략했습니다. 같은 상수는 어떤 방법으로 얻어도 같은 객체라는 것, valueOf가 대소문자가 다른 이름에도 예외를 던진다는 것, ==는 한쪽이 null이어도 예외가 나지 않는다는 것, 서로 다른 enum 타입의 == 비교가 컴파일 오류라는 것도 같은 방법으로 확인했습니다. 실제 DB를 쓰지는 않았고, 저장해 둔 값을 코드에 직접 적어 흉내 냈습니다. 상수를 지우는 변경은 설정에 넣지 않았습니다. 지우면 번호로 읽을 때는 뒤의 상수가 당겨져 나오거나 배열 범위를 벗어난 예외(ArrayIndexOutOfBoundsException)가 나고, 이름으로 읽을 때는 valueOf가 예외를 던집니다(이것도 따로 실행해 확인했습니다).</p>
+<p>마흔다섯 가지 조합 모두를 실제 Hibernate 7.4.5와 H2 데이터베이스(2.4.240)에서 실행해 대조했습니다. 조합마다 화면의 코드를 그대로 컴파일해서, 예전 선언(ORDERED, PAID, SHIPPED)의 Order로 테이블을 만들고 주문 한 건을 persist한 뒤, 테이블은 그대로 두고 지금 선언의 클래스로 화면의 OrderReader.print를 실행했습니다. 대조한 것은 Hibernate가 만든 status 컬럼 정의, DB에 저장된 값(JDBC로 직접 읽음), 콘솔 출력 두 줄, 예외의 종류와 메시지입니다. 예외 메시지에 붙는 패키지 이름은 화면의 코드에 없으므로 빼고 적었습니다. Hibernate가 읽은 상수가 values()[번호], valueOf(이름)를 직접 부른 결과와 같다는 것도 조합마다 확인했습니다. 다음 사실도 같은 방법으로 실행해 확인했습니다: @Enumerated를 붙이지 않은 enum 필드는 ORDINAL과 똑같은 컬럼이 되고 숫자가 저장된다는 것, ORDINAL로 저장한 뒤 그 상수를 지워 번호가 범위를 벗어나면 em.find가 ArrayIndexOutOfBoundsException을 던진다는 것, 변환기가 모르는 코드를 받으면 PersistenceException(원인은 fromCode가 던진 IllegalArgumentException)이 난다는 것, 같은 상수는 어떻게 얻어도 같은 객체라는 것. 컬럼 정의는 DB 종류(방언)와 Hibernate 버전에 따라 다르며, 여기 적힌 tinyint와 check 조건, enum 타입 컬럼은 Hibernate 7.4.5가 H2용으로 만든 것입니다. 이 조건 때문에 Hibernate가 만든 테이블을 그대로 쓰면, CANCELED를 끼워 넣은 뒤 ORDINAL로 SHIPPED(이제 번호 3)를 저장하거나 STRING으로 CANCELED를 저장하는 일도 실패합니다(이것도 실행해 확인). 이 실습은 이미 저장된 행을 읽는 일만 다룹니다. 실제 서비스에서는 테이블을 Flyway 같은 도구로 따로 만드는 경우가 많아 이런 조건이 없을 수 있지만, 다시 배포할 때 저장된 값이 그대로라는 점은 같습니다. 스프링 부트 없이 Hibernate만으로 실행했으며, 스프링 데이터 JPA를 써도 저장과 읽기는 같은 Hibernate가 합니다.</p>
 <p>앞 실습: <a href="../../lab/generic/">제네릭</a> · 다음 실습: <a href="../../lab/annot/">애너테이션</a></p>
   </div>
 
@@ -191,6 +218,6 @@ System.out.println(s == Status.PAID);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

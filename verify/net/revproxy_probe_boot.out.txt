@@ -1,0 +1,38 @@
+# v24.18.0 · spring boot 4.1.1 · spring 7.0.9 · tomcat 11.0.24.0 · 클라이언트 127.0.0.10, 프록시(nginx 모형) 127.0.0.20, 서버 127.0.0.30
+# info none: {"boot":"4.1.1","tomcat":"11.0.24.0","spring":"7.0.9","defaultInternalProxies":"192.168.0.0/16, 172.16.0.0/12, 169.254.0.0/16, fc00::/7, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, fe80::/10, ::1/128","default_10_0_0_5":true,"default_203_0_113_7":false,"default_198_51_100_99":false,"default_127_0_0_10":true,"engineValves":"StandardEngineValve","remoteIpValve":null,"forwardedHeaderFilter":false}
+# info native: {"boot":"4.1.1","tomcat":"11.0.24.0","spring":"7.0.9","defaultInternalProxies":"192.168.0.0/16, 172.16.0.0/12, 169.254.0.0/16, fc00::/7, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, fe80::/10, ::1/128","default_10_0_0_5":true,"default_203_0_113_7":false,"default_198_51_100_99":false,"default_127_0_0_10":true,"engineValves":"RemoteIpValve,StandardEngineValve","remoteIpValve":"127\\.0\\.0\\.20 | remoteIpHeader=X-Forwarded-For | protocolHeader=X-Forwarded-Proto","forwardedHeaderFilter":false}
+# info framework: {"boot":"4.1.1","tomcat":"11.0.24.0","spring":"7.0.9","defaultInternalProxies":"192.168.0.0/16, 172.16.0.0/12, 169.254.0.0/16, fc00::/7, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, fe80::/10, ::1/128","default_10_0_0_5":true,"default_203_0_113_7":false,"default_198_51_100_99":false,"default_127_0_0_10":true,"engineValves":"StandardEngineValve","remoteIpValve":null,"forwardedHeaderFilter":true}
+# info unset: {"boot":"4.1.1","tomcat":"11.0.24.0","spring":"7.0.9","defaultInternalProxies":"192.168.0.0/16, 172.16.0.0/12, 169.254.0.0/16, fc00::/7, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, fe80::/10, ::1/128","default_10_0_0_5":true,"default_203_0_113_7":false,"default_198_51_100_99":false,"default_127_0_0_10":true,"engineValves":"StandardEngineValve","remoteIpValve":null,"forwardedHeaderFilter":false}
+# info manual: {"boot":"4.1.1","tomcat":"11.0.24.0","spring":"7.0.9","defaultInternalProxies":"192.168.0.0/16, 172.16.0.0/12, 169.254.0.0/16, fc00::/7, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, fe80::/10, ::1/128","default_10_0_0_5":true,"default_203_0_113_7":false,"default_198_51_100_99":false,"default_127_0_0_10":true,"engineValves":"StandardEngineValve","remoteIpValve":null,"forwardedHeaderFilter":false}
+reverse|append|false|native => proxy|client|https|client|https|shop.example
+reverse|append|false|framework => proxy|client|https|client|https|shop.example
+reverse|append|false|none => proxy|client|https|proxy|http|shop.example
+reverse|append|false|manual => proxy|client|https|client|http|shop.example
+reverse|append|true|native => proxy|198.51.100.99, client|https|client|https|shop.example
+reverse|append|true|framework => proxy|198.51.100.99, client|https|198.51.100.99|https|shop.example
+reverse|append|true|none => proxy|198.51.100.99, client|https|proxy|http|shop.example
+reverse|append|true|manual => proxy|198.51.100.99, client|https|198.51.100.99|http|shop.example
+reverse|set|false|native => proxy|client|https|client|https|shop.example
+reverse|set|false|framework => proxy|client|https|client|https|shop.example
+reverse|set|false|none => proxy|client|https|proxy|http|shop.example
+reverse|set|false|manual => proxy|client|https|client|http|shop.example
+reverse|set|true|native => proxy|client|https|client|https|shop.example
+reverse|set|true|framework => proxy|client|https|client|https|shop.example
+reverse|set|true|none => proxy|client|https|proxy|http|shop.example
+reverse|set|true|manual => proxy|client|https|client|http|shop.example
+reverse|none|false|native => proxy|-|-|proxy|http|server:18151
+reverse|none|false|framework => proxy|-|-|proxy|http|server:18151
+reverse|none|false|none => proxy|-|-|proxy|http|server:18151
+reverse|none|false|manual => proxy|-|-|proxy|http|server:18151
+reverse|none|true|native => proxy|198.51.100.99|-|198.51.100.99|http|server:18151
+reverse|none|true|framework => proxy|198.51.100.99|-|198.51.100.99|http|server:18151
+reverse|none|true|none => proxy|198.51.100.99|-|proxy|http|server:18151
+reverse|none|true|manual => proxy|198.51.100.99|-|198.51.100.99|http|server:18151
+direct|none|false|native => client|-|-|client|http|shop.example
+direct|none|false|framework => client|-|-|client|http|shop.example
+direct|none|false|none => client|-|-|client|http|shop.example
+direct|none|false|manual => client|-|-|client|http|shop.example
+direct|none|true|native => client|198.51.100.99|-|client|http|shop.example
+direct|none|true|framework => client|198.51.100.99|-|198.51.100.99|http|shop.example
+direct|none|true|none => client|198.51.100.99|-|client|http|shop.example
+direct|none|true|manual => client|198.51.100.99|-|198.51.100.99|http|shop.example

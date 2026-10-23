@@ -1,0 +1,9 @@
+# node v24.18.0 · 127.0.0.1 · 빈 포트 · http 서버 A(B)와 직접 만든 로드 밸런서(번갈아, 거부된 서버는 건너뜀) · 요청 6번, 끄기는 3번째 답 뒤
+lb|false => a=3|b=3|fail=0|reqs=A#1;B#1;A#2;B#2;A#3;B#3|memA=3|memB=3|refused=(없음)|turns=ABABAB|sawA=GET / HTTP/1.1|setup=서버 2대|로드 밸런서 있음|요청 6번|서버 A 끄기 안 함
+lb|true => a=2|b=4|fail=0|reqs=A#1;B#1;A#2;B#2;B#3<A거부>;B#4|memA=2|memB=4|refused=5번째 요청: A:ECONNREFUSED|turns=ABABAB|sawA=GET / HTTP/1.1|setup=서버 2대|로드 밸런서 있음|요청 6번|서버 A 끄기 요청 3번 뒤
+one|false => a=6|b=(서버 B 없음)|fail=0|reqs=A#1;A#2;A#3;A#4;A#5;A#6|memA=6|memB=(서버 B 없음)|refused=(없음)|turns=(로드 밸런서 없음)|sawA=GET / HTTP/1.1|setup=서버 1대|로드 밸런서 없음|요청 6번|서버 A 끄기 안 함
+one|true => a=3|b=(서버 B 없음)|fail=3|reqs=A#1;A#2;A#3;오류ECONNREFUSED;오류ECONNREFUSED;오류ECONNREFUSED|memA=3|memB=(서버 B 없음)|refused=(없음)|turns=(로드 밸런서 없음)|sawA=GET / HTTP/1.1|setup=서버 1대|로드 밸런서 없음|요청 6번|서버 A 끄기 요청 3번 뒤
+# 보낸 코드 lb|false = "# 클라이언트: http://localhost:8080/ 로 요청 6번\n# 8080: 로드 밸런서 (서버 A, 서버 B에 번갈아 보낸다)\n# 서버 A(9001), 서버 B(9002): \"나는 A\", \"나는 B\"라고 답한다\n#   답에는 자기가 받은 요청 수도 적는다"
+# 보낸 코드 lb|true = "# 클라이언트: http://localhost:8080/ 로 요청 6번\n# 8080: 로드 밸런서 (서버 A, 서버 B에 번갈아 보낸다)\n# 서버 A(9001), 서버 B(9002): \"나는 A\", \"나는 B\"라고 답한다\n#   답에는 자기가 받은 요청 수도 적는다\n# 요청 3번을 보낸 뒤 서버 A 프로그램을 끈다"
+# 보낸 코드 one|false = "# 클라이언트: http://localhost:8080/ 로 요청 6번\n# 8080: 서버 A. 로드 밸런서 없이 클라이언트가 직접 접속한다\n# 서버 A: \"나는 A\"라고 답한다\n#   답에는 자기가 받은 요청 수도 적는다"
+# 보낸 코드 one|true = "# 클라이언트: http://localhost:8080/ 로 요청 6번\n# 8080: 서버 A. 로드 밸런서 없이 클라이언트가 직접 접속한다\n# 서버 A: \"나는 A\"라고 답한다\n#   답에는 자기가 받은 요청 수도 적는다\n# 요청 3번을 보낸 뒤 서버 A 프로그램을 끈다"

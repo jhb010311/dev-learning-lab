@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,9 +32,9 @@
 <h1>JWT structure and verification</h1>
 <p><b>How does the server trust a token that anyone can read?</b></p>
 <p><b>Why it exists</b> — The server session approach keeps the login state in server storage and looks it up with the session ID on every request, so if there are several servers, or several services have to check the same login, they all have to share that storage. A JWT writes the user information and a signature into the token itself, so any server that has only the key for checking the signature can verify on its own that the token is exactly as it was issued.</p>
-<p><b>Where it's used today</b> — The ID token in OpenID Connect is a JWT, and a JWT is also commonly used for the access tokens that an OAuth 2.0 authorization server issues. The side that calls the API sends the token in the Authorization: Bearer header, and the OAuth2 resource server feature of Spring Security checks the signature and the expiration time. If you need a logout or an account suspension to take effect right away, you use server sessions or keep the lifetime of the token short.</p>
-<p>A JWT is a string made of three parts joined by dots (.): a header, a payload, and a signature. The first two parts are not encrypted. They are only written in a different notation, so anyone can read and change them. The server can still trust the token because it recalculates the third part, the signature, by itself.</p>
-<p>Checked against real execution · Tokens were actually created with crypto (HMAC-SHA256) in Node.js 24 and the verification results of all 16 combinations were checked, and the Java code on the screen was also run on JDK 21 and checked</p>
+<p><b>Where it's used today</b> — The ID token in OpenID Connect is a JWT, and a JWT is also commonly used for the access tokens that an OAuth 2.0 authorization server issues. The side that calls the API sends the token in the Authorization: Bearer header, and on a Spring server, the OAuth2 resource server feature of Spring Security checks the signature and the expiration time with a JwtDecoder (usually NimbusJwtDecoder). If you need a logout or an account suspension to take effect right away, you use server sessions or keep the lifetime of the token short.</p>
+<p>A JWT is a string made of three parts joined by dots (.): a header, a payload, and a signature. The first two parts are not encrypted. They are only written in a different notation, so anyone can read and change them. The decode(token) method of the JwtDecoder that Spring Security provides checks the algorithm, the signature, and the expiration time in that order, throws an exception if even one of them is wrong, and returns the contents only when all of them are correct. You see where decode throws what when the token is changed or time has passed.</p>
+<p>Partly checked against real execution · The tokens and signature values were actually calculated with Mac of JDK 21 and crypto of Node.js 24 and checked against each other, and the code of &quot;What the decoder does inside&quot; was run as it is on JDK 21 and checked. NimbusJwtDecoder is not in this environment, so it was not run. The order of the decisions and the exception names and messages (including the 60 second expiration margin) were checked against the sources of Spring Security 7.1.1 and nimbus-jose-jwt 10.9.1, and the standard code was only confirmed to compile together with a signature stand-in</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>JSON Web Token (JWT)</dt>
@@ -43,77 +43,76 @@
 <dd><b>Where it's used today</b> — It is used to write byte values that go straight into a URL, such as a token sent in an address or the code_challenge value of OAuth PKCE. In Java, you create it with Base64.getUrlEncoder().withoutPadding().</dd>
 <dd>A notation that writes bytes using only uppercase and lowercase English letters, digits, and the characters - and _. It is Base64 with + and / replaced by - and _ and the trailing = removed, so that the result can be put in a URL or an HTTP header without breaking. All three parts of a JWT are written in this notation. Anyone can turn it back into the original contents without a key, so it is not encryption and does not hide the contents at all.</dd>
 <dt>Claim</dt>
-<dd>A name/value pair written in the payload of a token. Some names are defined by the standard, such as sub (who the token is about), exp (the expiration time), and iss (who issued it), and some are added by a service because it needs them, such as role. exp is written in seconds counted from midnight (0:00) on January 1, 1970 (UTC), and the server accepts the token only while the current time is before exp. Claims can be read by anyone, so you do not put sensitive values such as passwords in them, and you do not trust their contents before the signature has been verified.</dd>
+<dd>A name/value pair written in the payload of a token. Some names are defined by the standard, such as sub (who the token is about), exp (the expiration time), and iss (who issued it), and some are added by a service because it needs them, such as role. exp is written in seconds counted from midnight (0:00) on January 1, 1970 (UTC), and the server accepts the token only while the current time is before exp (a margin of a few tens of seconds is sometimes allowed for clock differences between servers). Claims can be read by anyone, so you do not put sensitive values such as passwords in them, and you do not trust their contents before the signature has been verified. In Spring Security, you take them out of a Jwt object that has finished verification with getSubject(), getExpiresAt(), and getClaimAsString(&quot;role&quot;).</dd>
+<dt>JwtDecoder and NimbusJwtDecoder</dt>
+<dd><b>Why it exists</b> — Verifying a JWT requires getting everything right: decoding base64url, fixing the algorithm, calculating the signature and comparing in constant time, key length, and the expiration time and clock skew. If you write it yourself, missing just one place lets a forged token pass. Spring leaves this work to a well-tested library and provides an interface that returns only the result, as a Jwt object and fixed exceptions.</dd>
+<dd><b>Where it's used today</b> — In Spring Boot, if you register a JwtDecoder as a bean and turn on http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults())), BearerTokenAuthenticationFilter calls decode on every request and answers with 401 if it fails. To check iss or aud too, you pass a validator made with something like JwtValidators.createDefaultWithIssuer to setJwtValidator.</dd>
+<dd>JwtDecoder is an interface that Spring Security (spring-security-oauth2-jose) provides, and with one method, Jwt decode(String token), it verifies the text of a token and turns it into a Jwt object. If verification fails, it throws an exception of the JwtException family. If the format, the algorithm, or the signature is wrong, it throws BadJwtException, and if the signature is correct but a validation rule such as the expiration time fails, it throws JwtValidationException, which inherits from BadJwtException. NimbusJwtDecoder is the default implementation that does this work with the Nimbus JOSE+JWT library. You build one for a symmetric key (HS256) with NimbusJwtDecoder.withSecretKey(key).build(), for a public key with withPublicKey(key), and for the key-list address of an authorization server with withJwkSetUri(uri). The default validator (JwtValidators.createDefault()) checks the typ header and the expiration and start times, and it allows a 60 second margin on the expiration time.</dd>
 <dt>HMAC and digital signatures</dt>
 <dd><b>Why it exists</b> — If you send only a hash value, someone in the middle can change the content, compute a new hash, and attach it, so the forgery cannot be noticed. HMAC and digital signatures attach a value that can be created only with a key, so the receiving side can tell apart a message modified by a party that does not have the key.</dd>
 <dd><b>Where it's used today</b> — They are used for the signature of a JWT (HS256 is HMAC, RS256 is a digital signature), for signatures sent in a request header as with GitHub webhooks, and for verifying HTTPS certificates.</dd>
 <dd>Techniques for confirming that a message was not changed on the way and that the legitimate party sent it. HMAC hashes the message together with a secret key that both sides share to produce an authentication code. With a digital signature, the sender signs with a private key and the receiver verifies with the public key. Only the signer can create the signature, so the sender cannot deny having sent the message.</dd>
 <dt>Algorithm verification</dt>
-<dd><b>Where it's used today</b> — In code that verifies a JWT, you fix the algorithms to accept, such as HS256 or RS256. This also blocks the attack in which alg is changed to HS256 on a server that verifies with a public key, so that the public key is used as if it were a secret key.</dd>
-<dd>The practice of having the server, not the token, decide which signature algorithm is used to verify a token. The header of a JWT has an item called alg that says which algorithm was used to sign it, but the header is text that anyone can change. If the server simply follows this value, the sender can change alg to none (no signature) and make the server skip the signature check. So the server decides the list of algorithms it accepts in advance, and if the alg in the header is not in that list, it rejects the token before even calculating the signature.</dd>
+<dd><b>Where it's used today</b> — When you build a decoder that verifies a JWT, you fix the algorithm to accept, such as HS256 or RS256. This also blocks the attack in which alg is changed to HS256 on a server that verifies with a public key, so that the public key is used as if it were a secret key.</dd>
+<dd>The practice of having the server, not the token, decide which signature algorithm is used to verify a token. The header of a JWT has an item called alg that says which algorithm was used to sign it, but the header is text that anyone can change. If the server simply follows this value, the sender can change alg to none (no signature) and make the server skip the signature check. So the server decides the algorithm it accepts in advance, and if the alg in the header is different from it, it rejects the token before even calculating the signature. NimbusJwtDecoder.withSecretKey(key) of Spring Security builds a decoder that is set to HS256 (you can change it with macAlgorithm), and it rejects a token whose alg is none with a BadJwtException that says &quot;Unsupported algorithm of none&quot;.</dd>
+<dt>Clock skew</dt>
+<dd><b>Why it exists</b> — Even if clocks are set with NTP, each server drifts a little. If you compare without a margin, a short-lived token that was just issued can be rejected at once as expired on a server whose clock is ahead of the issuing server.</dd>
+<dd><b>Where it's used today</b> — It is used by a resource server that verifies JWT access tokens and by a client that checks an OpenID Connect ID token. If the lifetime of the token is very short, you shrink the margin by the same amount.</dd>
+<dd>Clock skew is the margin of a few seconds to a few minutes that a verifier allows when it compares the expiration time (exp) or the start time (nbf) of a token, on the assumption that the clocks of the server that issued the token and the server that verifies it can differ a little. RFC 7519 Section 4.1.4 allows such a margin. JwtTimestampValidator of Spring Security allows 60 seconds by default, and rejects a token with &quot;Jwt expired at …&quot; when the time 60 seconds before now is after exp. So a token 30 seconds past exp still passes, and it is rejected only after 61 seconds have passed. You can change the margin by creating one such as new JwtTimestampValidator(Duration.ofSeconds(10)).</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — This is a token whose role in the payload was changed to ADMIN. Anyone can read and change it, but it gets caught at the signature.</li>
-<li><b>Exactly as issued</b> — The signature matches and the token has not expired, so it passes.</li>
+<li><b>Default settings</b> — Even though the payload can be read and changed, decode throws BadJwtException at the signature.</li>
+<li><b>Exactly as issued</b> — The signature matches and the token has not expired, so a Jwt object is returned.</li>
 <li><b>If a new signature is made with a different key</b> — It differs from the value calculated with the server's key, so it is rejected.</li>
-<li><b>After the expiration time</b> — It is rejected even though the signature is correct.</li>
-<li><b>A token with alg changed to none</b> — A server that has fixed the algorithm rejects it before even looking at the signature.</li>
-<li><b>A server that trusts the alg the token states</b> — The token with no signature passes as ADMIN.</li>
+<li><b>5 minutes after expiration</b> — Even though the signature is correct, JwtValidationException is thrown.</li>
+<li><b>30 seconds after expiration</b> — The decoder with the default settings allows 60 seconds, so it passes.</li>
+<li><b>A token with alg changed to none</b> — The decoder does not accept a token without a signature.</li>
+<li><b>What the decoder does inside</b> — You recalculate the signature yourself with Mac of the JDK and compare.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>Someone changed the middle part of the token before sending it. They rewrote the role from USER to ADMIN and left the original signature at the end as it was.</li>
-<li>token.split(&quot;\\.&quot;): the server cuts the token at the dots (.) into three parts. The first is the header, the second is the payload, and the third is the signature.</li>
-<li>dec.decode(part[0]): the server decodes the first part with a Base64url decoder. No key is needed. The result is {&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}. The alg is what the token says about itself: &quot;this token was signed with this algorithm.&quot;</li>
-<li>dec.decode(part[1]): the server decodes the second part the same way. The result is {&quot;sub&quot;:&quot;7&quot;,&quot;role&quot;:&quot;ADMIN&quot;,&quot;exp&quot;:1767225600}. It is not encrypted, only written in a different notation, so anyone who gets hold of the token can read it. The signature has not been checked yet, so the server does not trust this content.</li>
-<li>Algorithm check: this server has decided to accept only HS256. The alg in the header is HS256, so it moves on to the next check.</li>
-<li>mac.doFinal(part[0] + &quot;.&quot; + part[1]): the server recalculates the signature from the first two parts of the received token and the key only the server knows. The result is _Crl3waj…. The server does not trust the signature that came with the token. It builds one itself.</li>
-<li>MessageDigest.isEqual: it compares the recalculated value (_Crl3waj…) with the third part of the token (5hho4Bt2…). They differ. The attached signature was made from the contents before the change, so it does not match the value calculated from the changed contents. The server rejects the token as a &quot;signature mismatch&quot;.</li>
-<li>Rejected: the server does not use the contents of the token and rejects the request. It usually answers with 401 Unauthorized.</li>
+<li>decoder.decode(token): the decoder cuts the token at the dots (.) into three parts and decodes the first part (the header) with base64url. No key is needed. The result is {&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}. The alg is what the token says about itself: &quot;this token was signed with this algorithm.&quot;</li>
+<li>Decoding the second part (the payload) the same way gives {&quot;sub&quot;:&quot;7&quot;,&quot;role&quot;:&quot;ADMIN&quot;,&quot;exp&quot;:1767225600}. It is not encrypted, only written in a different notation, so anyone who gets hold of the token can read it. The signature has not been checked yet, so this content is not trusted.</li>
+<li>Algorithm check: when this decoder was built with withSecretKey(key), it was set to HS256 (the default). The alg in the header is also HS256, so it goes on to check the signature with the server's key.</li>
+<li>Recalculating the signature: the decoder recalculates HMAC-SHA256 from the first two parts of the received token and the key only the server knows. The result is _Crl3waj…. The server does not trust the signature that came with the token. It builds one itself.</li>
+<li>Comparison: it compares the recalculated value (_Crl3waj…) with the third part of the token (5hho4Bt2…). They differ. The attached signature was made from the contents before the change, so it does not match the value calculated from the changed contents. It throws BadJwtException. The message is &quot;An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature&quot;.</li>
+<li>Rejected: an exception occurred, so the contents of the token are not used. With the resource server setting (oauth2ResourceServer), BearerTokenAuthenticationFilter receives this exception and answers with 401 and a WWW-Authenticate: Bearer error=&quot;invalid_token&quot; header.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>The header and the payload are written in base64url, so they can be read and changed without a key. That is why you do not put things like passwords in a token.</li>
-<li>If you change even one character of the contents, the signature the server recalculates changes. The signature matches only these exact contents.</li>
+<li>If you change even one character of the contents, the signature that is recalculated changes. The signature matches only these exact contents.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Only a method inside the server class is shown (class declaration, serverKey field, and imports omitted)
+<pre>// Part of a server code made as an example (class declaration, serverKey field, and imports omitted)
+// JwtDecoder, NimbusJwtDecoder, Jwt, BadJwtException, and JwtValidationException are
+// provided by Spring Security (spring-security-oauth2-jose).
 // Request header  Authorization: Bearer &lt;token&gt;
 // Token  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 //       .eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ
 //       .5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
-// Now  now = 1767225000   (exp = 1767225600)
+// Verification time  2025-12-31 23:50:00 UTC   (exp = 2026-01-01 00:00:00 UTC)
 
-Claims verify(String token, long now) throws Exception {
-    String[] part = token.split(&quot;\\.&quot;, -1);                 // header . payload . signature
-    if (part.length != 3) throw new BadTokenException(&quot;invalid format&quot;);
-    Base64.Decoder dec = Base64.getUrlDecoder();
-    String header  = new String(dec.decode(part[0]), UTF_8);   // decodes without a key
-    String payload = new String(dec.decode(part[1]), UTF_8);   // decodes without a key
+SecretKey key = new SecretKeySpec(serverKey, &quot;HmacSHA256&quot;);        // a key only the server knows (32 bytes)
+JwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).build();   // accepted algorithm: HS256 (the default)
 
-    // 1. Algorithm: accept only HS256, which the server has set
-    if (!&quot;HS256&quot;.equals(field(header, &quot;alg&quot;)))
-        throw new BadTokenException(&quot;algorithm not allowed&quot;);
-
-    // 2. Signature: the server recalculates it from the first two parts and compares
-    Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);
-    mac.init(new SecretKeySpec(serverKey, &quot;HmacSHA256&quot;));  // a key only the server knows
-    byte[] expected = mac.doFinal((part[0] + &quot;.&quot; + part[1]).getBytes(US_ASCII));
-    if (!MessageDigest.isEqual(expected, dec.decode(part[2])))
-        throw new BadTokenException(&quot;signature mismatch&quot;);
-
-    // 3. Expiration: the current time must be before exp
-    if (now &gt;= Long.parseLong(field(payload, &quot;exp&quot;)))
-        throw new BadTokenException(&quot;expired&quot;);
-    return new Claims(field(payload, &quot;sub&quot;), field(payload, &quot;role&quot;));   // the payload is trusted only after reaching this point
+try {
+    Jwt jwt = decoder.decode(token);   // checks in the order algorithm → signature → expiration (60 second skew)
+    String userId = jwt.getSubject();             // &quot;7&quot;
+    String role = jwt.getClaimAsString(&quot;role&quot;);   // &quot;USER&quot;
+} catch (JwtValidationException e) {   // the signature matched but a check such as expiration failed
+    // do not use the contents of the token
+} catch (BadJwtException e) {          // the algorithm or the signature is wrong   // ← this token: Invalid signature
+    // do not use the contents of the token
 }
 
-// Claims, BadTokenException, and field(json, name) are a class, an exception, and a method made for this example (their declarations are omitted).
-// field is a helper that pulls one value out of the JSON.
-// This code is written by hand to show the principle. A real service uses a well-tested JWT library.</pre>
+// In a Spring Boot server, you do not call decode yourself. If you register this decoder as a bean and turn on
+// http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults())),
+// BearerTokenAuthenticationFilter calls decode on every request and answers with 401 if an exception occurs.</pre>
 <h2>Assumptions of this model</h2>
-<p>The token text, the signature values, and the verification results of all 16 combinations on the screen were checked against the results of actually creating and verifying tokens with crypto (HMAC-SHA256) in Node.js 24 in our test run. The Java code on the screen was also run as is on JDK 21, and the same tokens and the same results came out. No JWT library was used in the test environment, so the verification procedure was run with code written by hand from the standard documents. The basis is as follows. The shape of three parts joined by dots and the base64url notation are in RFC 7515 Section 3 and Section 2, that the signature is calculated over &quot;first part.second part&quot; is in RFC 7515 Section 5.1, the order of verification is in RFC 7515 Section 5.2 and RFC 7519 Section 7.2, that the current time must be before exp is in RFC 7519 Section 4.1.4, and the shape of a token whose alg is none and whose signature is empty is in RFC 7519 Section 6.1. When the current time is exactly equal to exp, the token is rejected (checked by running it). That the server should set the algorithms it accepts is the recommendation of RFC 8725 Section 3.1, and that widely used JWT libraries reject none by default was not verified by execution. A real server may allow a margin of a few seconds to a few minutes on exp to allow for clock skew (RFC 7519 Section 4.1.4 allows this), and it also checks other claims such as iss and aud. The keys and tokens on the screen are values made for this lab. The problem of sending a token with alg changed to HS256 to a server that uses a public-key algorithm (RS256) is not covered.</p>
+<p>The token text and the signature values on the screen were each actually created in our test run with javax.crypto.Mac (HmacSHA256) of JDK 21 and with crypto of Node.js 24, and I confirmed that the same values come out. spring-security-oauth2-jose and nimbus-jose-jwt were not in the test environment, so NimbusJwtDecoder itself was not run. Instead, the order that decode goes through and the exception names and messages were copied from the official source (NimbusJwtDecoder, JwtValidators, and JwtTimestampValidator of Spring Security 7.1.1, and JWTParser, PlainJWT, and DefaultJWTProcessor of nimbus-jose-jwt 10.9.1, which it uses), and whether the signature matches was actually calculated with Mac to produce the results of 12 cases. The expiration margin was calculated exactly as the condition in the source (the token is rejected if the time 60 seconds before now is after exp), and I confirmed that a token passes up to 60 seconds after exp and is rejected from 61 seconds after. JwtTimestampValidator measures with the system clock, so the verification times on the screen are values chosen for this lab (the clock can be fixed with setClock). The standard code on the screen was confirmed to compile with javac together with a stand-in that copies only the official signatures, and the code of &quot;What the decoder does inside&quot; was run as it is on JDK 21 and gave the same results as the decisions on the screen. The standards behind this are as follows. The shape of three parts joined by dots and the base64url notation are in RFC 7515 Section 3 and Section 2, that the signature is calculated over &quot;first part.second part&quot; is in RFC 7515 Section 5.1, the meaning of exp and that a clock skew can be allowed are in RFC 7519 Section 4.1.4, the shape of a token whose alg is none and whose signature is empty is in RFC 7519 Section 6.1, and the recommendation that the server set the algorithms it accepts is in RFC 8725 Section 3.1. A real server may also add validators so that other claims such as iss and aud are checked. The keys and tokens on the screen are values made for this lab. A server that uses a public-key algorithm (RS256) and the attack on it are not covered.</p>
 <p>Previous lab: <a href="../../lab/pwhash/">Password hashing</a> · Next lab: <a href="../../lab/oauth/">OAuth login flow</a></p>
   </div>
 
@@ -206,6 +205,6 @@ Claims verify(String token, long now) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

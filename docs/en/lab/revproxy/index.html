@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Proxies and reverse proxies: How does a server behind a proxy know who sent the request? · Dev Learning Lab</title>
+<title>Proxies and reverse proxies: How does Spring Boot behind nginx know who sent the request? · Dev Learning Lab</title>
 <meta name="description" content="A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side an…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/revproxy/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Proxies and reverse proxies: How does a server behind a proxy know who sent the request? · Dev Learning Lab">
+<meta property="og:title" content="Proxies and reverse proxies: How does Spring Boot behind nginx know who sent the request? · Dev Learning Lab">
 <meta property="og:description" content="A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side an…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,81 +30,97 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>Proxies and reverse proxies</h1>
-<p><b>How does a server behind a proxy know who sent the request?</b></p>
+<p><b>How does Spring Boot behind nginx know who sent the request?</b></p>
 <p><b>Why it exists</b> — If an application server faces the internet directly, every server needs its own certificate and has to handle HTTPS, and when you grow to several servers, there is no separate place to spread the requests among them. A reverse proxy accepts outside connections in one place, decrypts the HTTPS, and passes the requests on to the servers behind it, so certificate management and request distribution are gathered in one place in front of the servers.</p>
-<p><b>Where it's used today</b> — A common setup puts nginx or a cloud load balancer in front of a Spring Boot server to handle HTTPS and to spread requests. In this setup, you set server.forward-headers-strategy so that the server reads the client address and whether the request was https from the X-Forwarded-* headers. To avoid being fooled by values that the client wrote, you make the proxy at the very front rewrite those headers, or you read only the later values added by a proxy you can trust.</p>
-<p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. Either way, it is the proxy that actually opens the connection to the server, so the address the server sees at the other end of the connection is the address of the proxy, not of the client. That is why a proxy passes on the original information in a header such as X-Forwarded-For, but this header is also one that a client can write with any value it likes.</p>
-<p>Checked against real execution · Proxy and server built with Node 24 on three loopback addresses (127.0.0.10, 20, 30); 42 combinations run with the Node http and https modules and curl 8.21 and checked. The proxy is a test one built for this purpose; the behavior of products such as nginx is based on the documentation</p>
+<p><b>Where it's used today</b> — A common setup puts nginx or a cloud load balancer in front of a Spring Boot server to handle HTTPS and to spread requests. nginx adds X-Forwarded-For and X-Forwarded-Proto with proxy_set_header, and Spring Boot reads those headers with server.forward-headers-strategy in application.properties. Then the code that writes access logs, limits the number of requests per address, or builds an https:// redirect address gets the original client's values just by calling request.getRemoteAddr() and request.getScheme().</p>
+<p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. This lab puts nginx, the most common reverse proxy, in front of a Spring Boot server. It is nginx that actually opens the TCP connection to the server, so the peer that Tomcat sees is the address of nginx. That is why nginx passes the original address and protocol in the X-Forwarded-For and X-Forwarded-Proto headers, and Spring Boot reads those headers according to the server.forward-headers-strategy setting and changes the values of request.getRemoteAddr() and request.getScheme(). The trap is that a client can also write these headers with any value it likes.</p>
+<p>Partly checked against real execution · The Spring Boot side was actually run: the controller on the screen was compiled as it is and started with none, native, framework, and with the setting not written, with Spring Boot 4.1.1 (embedded Tomcat 11.0.24), and 32 combinations were run and the five columns were checked. nginx was not run, and its configuration was checked against the nginx documentation (ngx_http_proxy_module); in the run, a Node proxy that adds headers as the documentation describes stood in for nginx</p>
 <h2>Concepts in this lab</h2>
 <dl>
-<dt>Forward proxy</dt>
-<dd><b>Where it's used today</b> — In a company network where you must go through a proxy to get outside, you must write the proxy address in Maven's settings.xml or Gradle's gradle.properties to download libraries. A Java program sets it with system properties such as https.proxyHost.</dd>
-<dd>A forward proxy is an intermediate server that stands on the client side and sends the client's requests on to outside servers on its behalf. The client sets the address of the proxy and goes through it on purpose, and the remote address that a server sees is the proxy, not the client. It is used to collect and log or block the requests that go out from a company or a school in one place, or to hide the address of the client. It is the opposite of a reverse proxy, which stands on the server side and acts for the server, in terms of whom it acts for.</dd>
 <dt>Reverse proxy</dt>
 <dd><b>Why it exists</b> — If slow clients connect straight to an application server, the request processing threads stay tied up with those connections while the clients slowly upload a large request body or slowly take a response. A reverse proxy such as Nginx, in its default configuration, buffers requests and responses and exchanges data quickly with the backend server, so the backend server's threads are not tied up for long by slow connections.</dd>
 <dd><b>Where it's used today</b> — It is used to split static file requests and /api requests by path and send them to different servers, or to reject too-large uploads at the front with Nginx's client_max_body_size. In Kubernetes, an Ingress controller takes this role.</dd>
 <dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
+<dt>Forward proxy</dt>
+<dd><b>Where it's used today</b> — In a company network where you must go through a proxy to get outside, you must write the proxy address in Maven's settings.xml or Gradle's gradle.properties to download libraries. A Java program sets it with system properties such as https.proxyHost.</dd>
+<dd>A forward proxy is an intermediate server that stands on the client side and sends the client's requests on to outside servers on its behalf. The client sets the address of the proxy and goes through it on purpose, and the peer that a server sees at the other end of the connection is the proxy, not the client. It is used to collect and log or block the requests that go out from a company or a school in one place, or to hide the address of the client. It is the opposite of a reverse proxy, which stands on the server side and acts for the server, in terms of whom it acts for.</dd>
 <dt>X-Forwarded-For</dt>
 <dd><b>Where it's used today</b> — You read this value to record the real user IP in an access log, or to block requests that come too often from one IP. In nginx, the proxy_set_header setting attaches this header and passes it on.</dd>
-<dd>X-Forwarded-For is a request header in which a proxy writes the address of the original client when it passes a request on. The remote address that a server behind a proxy sees is the proxy, so the address of the real client is passed on only through this header. When a request goes through several proxies, each proxy appends the address of whoever connected to it at the end, separated by a comma. It is a request header, so a client can also write any value into it; a server must use only the values added by a trusted proxy that it manages (the values on the right), and must not read it at all if it is not behind a proxy. It is a widely used convention, not a standard, and the standard header that does the same job is Forwarded.</dd>
+<dd>X-Forwarded-For is a request header in which a proxy writes the address of the original client when it passes a request on. The peer that a server behind a proxy sees is the proxy, so the address of the real client is passed on only through this header. When a request goes through several proxies, each proxy appends the address of whoever connected to it at the end, separated by a comma. It is a request header, so a client can also write any value into it; a server must use only the values added by a trusted proxy that it manages (the values on the right), and must not read it at all if it is not behind a proxy. It is a widely used convention, not a standard, and the standard header that does the same job is Forwarded.</dd>
 <dt>X-Forwarded-Proto and TLS termination</dt>
 <dd><b>Where it's used today</b> — It is used in a setup where nginx or a cloud load balancer receives HTTPS and the Spring Boot server behind receives only HTTP. For the address that Spring Security redirects to the login page to go out as https://, you make it read this header with server.forward-headers-strategy.</dd>
 <dd>TLS termination is a setup in which a reverse proxy or a load balancer receives the HTTPS connection of the client, removes the encryption, and passes the request on to the server behind it as unencrypted HTTP. Certificate management and encryption work can be gathered in one place. In this setup the server behind sees only an HTTP connection, so the proxy tells it the protocol the client originally used with the X-Forwarded-Proto: https header. If the server does not read this header, it may build redirect addresses with http:// or misjudge the conditions for secure cookies. Like X-Forwarded-For, use only the values added by a trusted proxy.</dd>
+<dt>server.forward-headers-strategy</dt>
+<dd><b>Why it exists</b> — When a server stands behind nginx or a load balancer and the TCP connection peer is always the proxy, Spring Boot bundled the work of restoring the original address and whether it was https from headers into one setting, so that each application does not have to write it by hand.</dd>
+<dd><b>Where it's used today</b> — You write server.forward-headers-strategy=native in Spring Boot behind nginx, so that access logs and request limits use the real user IP and the login redirect address of Spring Security goes out as https://.</dd>
+<dd>server.forward-headers-strategy is an application.properties setting that decides who reads the X-Forwarded-* headers that a proxy adds (or the standard Forwarded header) in Spring Boot. native has the web server read them directly, which registers the RemoteIpValve if it is Tomcat, framework has the ForwardedHeaderFilter of Spring read them, and none means nobody reads them. If they are read, request.getRemoteAddr() returns the address of the original client and request.getScheme() returns the original protocol (https). If you do not set it, it is native on a cloud platform such as Kubernetes and none elsewhere. The setting that makes it read the headers and the setting in which the proxy adds or rewrites the headers must be paired.</dd>
+<dt>RemoteIpValve and internal-proxies</dt>
+<dd><b>Why it exists</b> — Anyone can write a header, so it was created to judge who added a value by the address of the connection peer, and to use only the values added by a trusted proxy.</dd>
+<dd><b>Where it's used today</b> — If the address of nginx or the load balancer is outside the default private address ranges, write that address in server.tomcat.remoteip.internal-proxies. Do not leave it empty on a production server so as to trust every proxy.</dd>
+<dd>RemoteIpValve is a valve that Tomcat provides (a Tomcat component that processes a request before the controller), and in Spring Boot it is registered when server.forward-headers-strategy=native. Only when the TCP connection peer is in the list of trusted proxies (server.tomcat.remoteip.internal-proxies) does it read X-Forwarded-For and X-Forwarded-Proto, and it reads X-Forwarded-For from the back and sets the first address that is not a trusted proxy as the value of getRemoteAddr(). So in a setup where the proxy appends after the received value, it is not fooled by a fake address the client wrote at the front. The default of internal-proxies in Spring Boot 4.1 is private and loopback address ranges such as 10.0.0.0/8, 192.168.0.0/16, and 127.0.0.0/8. If the connection peer is not a trusted proxy, it ignores the headers.</dd>
+<dt>ForwardedHeaderFilter</dt>
+<dd><b>Why it exists</b> — Instead of a different way for each web server, it was created so that Spring handles Forwarded (RFC 7239) and the X-Forwarded-* headers in one way, and so that the code that builds links sees the original address.</dd>
+<dd><b>Where it's used today</b> — You choose framework when the default handling of the web server is not enough (for example when you must also change the front part of the path with X-Forwarded-Prefix). In that case, have nginx write X-Forwarded-For anew with $remote_addr.</dd>
+<dd>ForwardedHeaderFilter is a servlet filter that Spring Framework provides, and in Spring Boot it is registered when server.forward-headers-strategy=framework. It receives the request before the controller, passes it on after replacing it with a request object that returns the values of the Forwarded or X-Forwarded-* headers, and removes those headers. For X-Forwarded-For it uses the first value as the value of getRemoteAddr(), and it does not check whether the connection peer is a trusted proxy. So the Spring documentation says it is safe only if the proxy that touches the outside removes or rewrites these headers.</dd>
 <dt>HTTPS and TLS</dt>
 <dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The fake address that the client wrote stays leftmost, and the server trusts it.</li>
-<li><b>If the server reads the rightmost value</b> — The proxy added this value itself, so the server is not fooled by the spoofing.</li>
-<li><b>If the proxy writes a new value</b> — The value that the client wrote never reaches the server.</li>
-<li><b>If the server looks only at the remote address</b> — Every user appears as the address of the one proxy.</li>
-<li><b>If the proxy adds nothing</b> — The server cannot know the original address, or that the request was originally HTTPS.</li>
-<li><b>Forward proxy</b> — A proxy that the client goes through on purpose. The server sees only the proxy.</li>
-<li><b>If a server with no proxy trusts the header</b> — Even with a direct connection, it is fooled by a fake address.</li>
+<li><b>Default settings</b> — Tomcat reads X-Forwarded-For from the back and picks the value nginx added.</li>
+<li><b>If you do not set it</b> — Every request looks as if it came from the address of the one nginx, over http.</li>
+<li><b>Reading with framework</b> — The ForwardedHeaderFilter uses the first value of X-Forwarded-For.</li>
+<li><b>If nginx writes a new value</b> — The value the client wrote disappears at nginx.</li>
+<li><b>If nginx has no header lines</b> — nginx passes the received header on as it is, so Tomcat receives only the value the client wrote.</li>
+<li><b>Turning on framework without a proxy</b> — The ForwardedHeaderFilter does not check who the connection peer is.</li>
+<li><b>Splitting it yourself</b> — Doing by hand what is done inside makes it easy to trust the forged value at the front.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The client (203.0.113.7) requests https://shop.example/whoami. What the name shop.example points to is actually a reverse proxy. The client has not configured anything, and it takes whatever it just connected to as the server. It does not know that the real server is behind it. This client wrote an X-Forwarded-For: 198.51.100.99 header into the request itself. A request header is just text that the sender can fill in however it likes.</li>
-<li>The reverse proxy decrypts the HTTPS traffic, opens a new TCP connection to the real server on the internal network (10.0.0.9), and passes the request on as HTTP. This proxy writes the address of whoever connected to it (203.0.113.7) into X-Forwarded-For and passes it on. There is already a value, so it appends the address after it, separated by a comma. It also writes the protocol the client originally used as X-Forwarded-Proto: https.</li>
-<li>The server checks the remote address of the connection. It is 10.0.0.5, the address of the proxy, because it is the proxy that opened the TCP connection to the server. The connection alone does not tell who the real client is. The connection it received is also plain HTTP, not encrypted.</li>
-<li>The X-Forwarded-For of the request the server received is &quot;198.51.100.99, 203.0.113.7&quot;. The left value was written by the client, and the right value was appended by the proxy. You cannot tell the two apart from the header alone; you can tell only by their positions. X-Forwarded-Proto: https also arrived.</li>
-<li>The server takes the leftmost value of X-Forwarded-For as the client address. The result is 198.51.100.99. This is a fake address that the client wrote itself. The server trusted a spoofed address.</li>
+<li>The client (203.0.113.7) requests https://shop.example/whoami. What shop.example points to is nginx (10.0.0.5). The client takes nginx to be the server, and does not know that a Spring Boot server (app) is separately behind it. This client wrote an X-Forwarded-For: 198.51.100.99 header into the request itself. A request header is text that the sender can fill in however it likes.</li>
+<li>nginx decrypts the HTTPS, follows proxy_pass http://app:8080 to make a new TCP connection to the Spring Boot server on the internal network, and passes the request on as HTTP. Following the line proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for, it appends the address of the peer that connected to it ($remote_addr, 203.0.113.7) after the received X-Forwarded-For, joined with a comma. So the value the client wrote comes first, and the value nginx added comes after it. The line X-Forwarded-Proto $scheme also writes the protocol the client used (https), and the line Host $host passes on the name the client requested (shop.example) as it is.</li>
+<li>Tomcat receives the request. The TCP connection peer is 10.0.0.5, the address of nginx, because it is nginx that made the connection with Tomcat, and the connection it received is plain HTTP, not encrypted. The X-Forwarded-For that arrived is &quot;198.51.100.99, 203.0.113.7&quot;, and X-Forwarded-Proto is https.</li>
+<li>The RemoteIpValve of Tomcat, before passing the request to the controller, checks the connection peer (10.0.0.5) against server.tomcat.remoteip.internal-proxies. It is an address in the default (private address ranges such as 10.0.0.0/8), so it is treated as a trusted proxy and the headers are read. It reads X-Forwarded-For from the back, and takes the first address that is not a trusted proxy (203.0.113.7) as the value of getRemoteAddr(). It does not look at the values before it. With X-Forwarded-Proto: https, getScheme() becomes https.</li>
+<li>request.getRemoteAddr() is 203.0.113.7, the address of the real client. request.getScheme() is https, the same as the protocol the user used.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>A reverse proxy stands on the server side and acts for the server. The client takes the proxy to be the server and does not know about the real server behind it. The proxy takes over jobs such as handling HTTPS, distributing requests across several servers, and keeping copies of responses, in front of the server.</li>
-<li>X-Forwarded-For is a header that a client can also write. When the proxy appends to it, the leftmost value may have been written by the client. The value you can trust is the rightmost one, which was appended by a proxy you manage.</li>
-<li>The connection the server received is HTTP, but thanks to X-Forwarded-Proto: https it knows that the user originally connected over HTTPS. Like X-Forwarded-For, this header should be used only when it was added by a trusted proxy.</li>
+<li>native has the RemoteIpValve of Tomcat read the headers. It looks at the headers only when the connection peer is a trusted proxy (internal-proxies), and it reads X-Forwarded-For from the back and picks the first address that is not a trusted proxy. The last value was added directly by nginx, so it is not fooled however much the client writes in front of it.</li>
 </ul>
 <h2>Code</h2>
-<pre>// The code below is not Java but a test program written in Node.js (JavaScript), with only the relevant parts kept.
-// Reverse proxy: receives HTTPS and passes requests on to the server behind it (10.0.0.9)
-https.createServer(tls, (req, res) =&gt; {
-    const headers = { ...req.headers };
-    const peer = req.socket.remoteAddress;               // address of whoever connected to this proxy
-    const old = headers['x-forwarded-for'];
-    headers['x-forwarded-for'] = old ? old + ', ' + peer : peer;   // appends it after the received value
-    headers['x-forwarded-proto'] = 'https';                  // the original protocol the client used
-    const to = { host: '10.0.0.9', port: 8080, path: req.url };
-    http.request({ ...to, method: req.method, headers }, up =&gt; {
-        res.writeHead(up.statusCode, up.headers);
-        up.pipe(res);                                      // sends the response of the server back to the client as it is
-    }).end();
-});
+<pre># nginx configuration (receives HTTPS on port 443 of shop.example and passes it to the app server)
+server {
+    listen 443 ssl;
+    server_name shop.example;
+    # … certificate (ssl_certificate) settings omitted
 
-// Server: decides who made the request
-http.createServer((req, res) =&gt; {
-    const xff = req.headers['x-forwarded-for'];
-    const client = xff ? xff.split(',')[0].trim()             // leftmost value
-                       : req.socket.remoteAddress;
-    res.end(client);
-});
+    location / {
+        proxy_pass http://app:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 
-// Client
-// curl -H 'X-Forwarded-For: 198.51.100.99' https://shop.example/whoami</pre>
+# application.properties (Spring Boot)
+# The RemoteIpValve of Tomcat reads the X-Forwarded-* headers
+# The proxy addresses it trusts are in server.tomcat.remoteip.internal-proxies (the default includes private address ranges such as 10.0.0.0/8)
+server.forward-headers-strategy=native
+
+// WhoAmIController.java  (WhoAmIController is a controller made for this example. HttpServletRequest and getRemoteAddr() and getScheme() come from the servlet API)
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class WhoAmIController {
+    @GetMapping(&quot;/whoami&quot;)
+    public String whoami(HttpServletRequest request) {
+        return request.getRemoteAddr() + &quot; &quot; + request.getScheme();
+    }
+}</pre>
 <h2>Assumptions of this model</h2>
-<p>All 42 distinct combinations (proxy settings are not used for a direct connection) were actually run, and all five columns were confirmed to match the model. The client, the proxy, and the server were started on three loopback addresses of one computer (127.0.0.10, 127.0.0.20, 127.0.0.30), requests were sent to a small proxy and server built with Node.js 24 by two kinds of client (the http and https modules of Node, and curl 8.21), and the remote address and the headers that the server actually saw were recorded. The results of the two clients were the same in every combination. The reverse proxy received HTTPS with a test certificate and passed requests on to the server as HTTP, and the forward proxy was sent requests with the -x option of curl, which confirmed that the full address is carried in the request line. The addresses on the screen (203.0.113.7, 198.51.100.99, 192.0.2.50) are addresses set aside for documentation examples, and 10.0.0.x are private network addresses; they are written in place of the loopback addresses used in the test. The proxy is a test one built for this purpose, so it may differ from the default behavior of real products. For example, unless you configure it otherwise, nginx passes the received headers on as they are, and in proxy_set_header X-Forwarded-For, $proxy_add_x_forwarded_for corresponds to &quot;appending&quot; and $remote_addr corresponds to &quot;writing a new value&quot; (based on the nginx documentation; not confirmed by execution). X-Forwarded-For and X-Forwarded-Proto are not standards but widely used conventions, and the standard header that carries the same information is Forwarded (RFC 7239). When an HTTPS request is sent through a forward proxy, the proxy only connects a tunnel (CONNECT) whose content it cannot see, so it cannot add headers; the forward proxy in this lab handled only HTTP requests. That the server uses the remote address of the connection instead when there is no header is a rule set in this model. Chains of several proxies and the distribution by a load balancer were not covered.</p>
+<p>The back end was actually run with Spring Boot 4.1.1 (embedded Tomcat 11.0.24, Spring Framework 7.0.9). The text of the WhoAmIController on the screen was compiled as it is and started with server.forward-headers-strategy changed to none, native, and framework (the controller that splits by hand with none), and in 32 combinations the headers that arrived at Tomcat and the values the controller returned were recorded, and all five columns were confirmed to be the same as the model. A server with the setting not written at all returned the same values as none, and it was also confirmed that the RemoteIpValve is registered in Tomcat only with native, and the ForwardedHeaderFilter only with framework. nginx in front is not on this computer, so it was not run. Instead, a small proxy made with Node.js 24 stood in for nginx, adding headers as the nginx documentation (ngx_http_proxy_module) describes. That $proxy_add_x_forwarded_for is the received X-Forwarded-For followed by $remote_addr joined with a comma, and equal to $remote_addr if there is no received header, and that when there are no proxy_set_header lines only Host and Connection are changed and the other request headers are passed on as they are, are based on the documentation. The run used loopback addresses of one computer (client 127.0.0.10, proxy 127.0.0.20, server 127.0.0.30), and the addresses on the screen (203.0.113.7 and 198.51.100.99 are for documentation examples, 10.0.0.x is a private network) are written in place of them. The default of internal-proxies in Spring Boot 4.1.1 is a list of private and loopback address ranges such as 10.0.0.0/8, 192.168.0.0/16, and 127.0.0.0/8, so it trusts even a loopback client. So in the run, internal-proxies was narrowed to the one proxy address (127.0.0.20) to create the situation on the screen, &quot;nginx (10.0.0.5) is trusted and the client (203.0.113.7) is not&quot;, and in the same run it was confirmed that the default trusts 10.0.0.5 and does not trust 203.0.113.7 and 198.51.100.99. When Spring Boot recognizes a cloud platform such as Kubernetes, it changes the default of this setting to native, and this lab covers only the case where it does not. X-Forwarded-For and X-Forwarded-Proto are not standards but widely used conventions, and the standard header that conveys the same information is Forwarded (RFC 7239). Forward proxies, the case where several proxies are chained, and load balancer distribution are not covered.</p>
 <p>Previous lab: <a href="../../lab/scale/">Load balancers and scale out</a> · Next lab: <a href="../../lab/cdn/">CDN</a></p>
   </div>
 
@@ -197,6 +213,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

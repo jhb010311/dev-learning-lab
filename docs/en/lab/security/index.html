@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Security filter chain: Where is it decided whether the response is 401 or 403? · Dev Learning Lab</title>
-<meta name="description" content="Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it, and a filter near the…">
+<meta name="description" content="Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it in the SecurityContext…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/security/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/security/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Security filter chain: Where is it decided whether the response is 401 or 403? · Dev Learning Lab">
-<meta property="og:description" content="Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it, and a filter near the…">
+<meta property="og:description" content="Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it in the SecurityContext…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/security/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,9 +32,9 @@
 <h1>Security filter chain</h1>
 <p><b>Where is it decided whether the response is 401 or 403?</b></p>
 <p><b>Why it exists</b> — If code that checks login status and permissions is put directly in each controller, missing just one place leaves that path open. Spring Security gathers this check in the filter stage in front of the controllers, so that when rules for each path are written in one place in the configuration, they are applied to all requests in the same way.</p>
-<p><b>Where it's used today</b> — It is used in web services and API servers that require login. This configuration is where you verify users with a JWT or a session, let only the ADMIN role through on admin paths, and decide the shape of the 401 and 403 responses sent when a request is denied. When checking permissions per controller method, annotations such as @PreAuthorize are used together.</p>
-<p>Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it, and a filter near the back decides &quot;whether this user may enter this path&quot;. The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.</p>
-<p>Checked against real execution · All 12 requests were sent to a server running Spring Boot 4.1.1 and Spring Security 7.1.1 and checked against the results</p>
+<p><b>Where it's used today</b> — It is used in web services and API servers that require login. An API server that verifies users with a JWT turns on the token-checking filter with one line of oauth2ResourceServer configuration, and writes the rule that lets only the ADMIN authority through on admin paths in authorizeHttpRequests. When checking permissions per controller method, annotations such as @PreAuthorize are used together.</p>
+<p>Spring Security is a line of filters placed in front of the controller. A filter near the front checks &quot;who this is&quot; and records it in the SecurityContext, and a filter near the back decides &quot;whether this user may enter this path&quot;. For an API server that uses a JWT, the oauth2ResourceServer configuration that Spring Security provides adds the token-checking filter (BearerTokenAuthenticationFilter) together with the parts that make the 401 and 403 responses. The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.</p>
+<p>Partly checked against real execution · The 12 requests were sent to a server running Spring Boot 4.1.1 and Spring Security 7.1.1, and the response codes and the places that produced the responses were checked. The authorization, anonymous, and exception translation filters really ran, and the token-checking filter and the 401 and 403 handlers of oauth2-resource-server, which are not in this environment, were run as stand-ins that copy the behavior from the 7.1.1 source (checked against the source). The configuration code was only confirmed to compile together with a signature stand-in</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Authentication and authorization</dt>
@@ -43,6 +43,10 @@
 <dd><b>Why it exists</b> — If you wrote security checks yourself as Servlet filters, you had to arrange by hand, in every project, the order and the URLs of the filters for login checks, permission checks, and CSRF checks. Spring Security provides such filters in a fixed order, and SecurityFilterChain lets you choose which check to use for which URL.</dd>
 <dd><b>Where it's used today</b> — You configure form login, JWT verification, social login, and restrictions on admin URLs in a SecurityFilterChain bean. For groups with different rules, such as /api/** URLs and page URLs, you use more than one chain to split them.</dd>
 <dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
+<dt>OAuth 2.0 resource server (oauth2ResourceServer)</dt>
+<dd><b>Why it exists</b> — Each API server that verifies users with a JWT wrote its own filters for reading the Authorization header, verifying the token, recording the authentication information, and sending the failure response, and mistakes such as letting a wrong token pass or leaving out a response header were common. This feature lets you turn on that work, which follows the OAuth 2.0 Bearer token specification (RFC 6750), with one line of configuration.</dd>
+<dd><b>Where it's used today</b> — It is used in a REST API server that receives JWT access tokens. If the authorization server publishes a list of public keys, the spring.security.oauth2.resourceserver.jwt.issuer-uri or jwk-set-uri property alone is enough to create the JwtDecoder, and if you use a symmetric key (HS256), you register a JwtDecoder bean created with NimbusJwtDecoder.withSecretKey yourself.</dd>
+<dd>In OAuth 2.0, the server that accepts access tokens and serves an API is called a resource server. In Spring Security, you turn this role on by writing http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults())) in the SecurityFilterChain configuration (spring-boot-starter-oauth2-resource-server is needed). Then BearerTokenAuthenticationFilter, which checks the token in the Authorization: Bearer header, is added to the chain. If there is no token, it simply passes the request on to the next filter. If there is one, it verifies it with a JwtDecoder, and if that succeeds, it puts a JwtAuthenticationToken into the SecurityContext, and if it fails, it ends the request right there with 401 whatever the path. JwtAuthenticationConverter turns the claims of the token into authorities, and by default it makes an authority with the prefix SCOPE_ for each value of the scope (or scp) claim. The response parts for an authentication failure and for a lack of authority (BearerTokenAuthenticationEntryPoint and BearerTokenAccessDeniedHandler) are registered together with it.</dd>
 <dt>SecurityContext</dt>
 <dd><b>Why it exists</b> — To pass the user identified in a filter on to the controller and the service, you would have to pass the user information as a parameter of every method. With a SecurityContext, you can get the current user through SecurityContextHolder in any layer that handles the same request, without passing it that way.</dd>
 <dd><b>Where it's used today</b> — The @AuthenticationPrincipal parameter of a controller and the @PreAuthorize check on a method use the authentication information held here. When execution moves to another thread, as with @Async, it is not carried over by default, so you must pass it separately.</dd>
@@ -50,6 +54,10 @@
 <dt>Servlet filter</dt>
 <dd><b>Where it's used today</b> — In Spring Boot, you apply one by extending OncePerRequestFilter and registering it as a bean. Use it for work unrelated to controllers, such as request logging or attaching a request number, and if you need to know which controller method is involved, an interceptor is the right choice.</dd>
 <dd>This component intercepts and processes requests and responses at the servlet container level, and it is part of the Servlet standard. It acts before a request reaches DispatcherServlet and on the way back of the response, and it is used for work that spans all requests, such as setting the encoding, handling CORS, and authentication. Spring Security also works as a group of these components.</dd>
+<dt>AuthenticationEntryPoint and AccessDeniedHandler</dt>
+<dd><b>Why it exists</b> — The refusal response cannot be created in a controller. This decision is made in a filter before the request reaches DispatcherServlet, so @ControllerAdvice does not reach it. So a separate place for creating the response was provided at the filter stage, so that it can be swapped out.</dd>
+<dd><b>Where it's used today</b> — To make the body of the 401 and 403 responses of an API server a JSON error format, you pass your own implementations with http.exceptionHandling(e -&gt; e.authenticationEntryPoint(…).accessDeniedHandler(…)) or oauth2ResourceServer(o -&gt; o.authenticationEntryPoint(…).accessDeniedHandler(…)). If a handler uses sendError, the request is passed on to /error and goes through the security rules of that path once more, so you write the status code directly or permit /error.</dd>
+<dd>These are the two interfaces by which Spring Security creates the response when it refuses a request. AuthenticationEntryPoint is called when &quot;it has not been confirmed who this is&quot; and usually answers with 401 (or, for form login, sends the user to the login page), and AccessDeniedHandler is called when &quot;the user is authenticated but lacks the authority&quot; and answers with 403. The one that chooses between them is ExceptionTranslationFilter: when the AuthorizationFilter behind it throws an access denied exception, it looks at whether the current user is anonymous, and calls the entry point if so and the handler if not. oauth2ResourceServer registers BearerTokenAuthenticationEntryPoint (401 and a WWW-Authenticate: Bearer header) and BearerTokenAccessDeniedHandler (403 and error=&quot;insufficient_scope&quot;) by default.</dd>
 <dt>HTTP status codes</dt>
 <dd><b>Why it exists</b> — If results were reported only as text in the body, each server would write them differently, and browsers, proxies, and monitoring tools could not tell whether a request succeeded. A status code reports the result as a fixed number, so these tools can do caching, retries, and error counting without being adjusted for each server.</dd>
 <dd><b>Where it's used today</b> — It is used to branch handling by the kind of error, such as a frontend that sends the user to the login screen on a 401 and to a &quot;page not found&quot; notice on a 404. In operations, you watch the ratio of 5xx responses and, if it suddenly rises, treat it as an outage and send an alert.</dd>
@@ -59,48 +67,62 @@
 <ul>
 <li><b>Default settings</b> — A path that requires login is requested without a token. 401.</li>
 <li><b>With a valid token</b> — The request reaches the controller.</li>
-<li><b>USER requests an admin path</b> — It is known who the user is, but the user lacks the permission. 403.</li>
+<li><b>USER requests an admin path</b> — It is known who the user is, but the user lacks the authority. 403.</li>
 <li><b>ADMIN requests an admin path</b> — The request passes.</li>
 <li><b>Admin path without a token</b> — The response is 401, not 403. See why.</li>
-<li><b>Path permitted for everyone</b> — The request passes even without a token.</li>
+<li><b>Path permitted for everyone, with a forged token</b> — The response is 401 even though it is a permitAll path.</li>
+<li><b>Path permitted for everyone, without a token</b> — The request passes even without a token.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>GET /orders comes in and enters the security filter chain. This is the Servlet filter stage, which comes before the controller.</li>
-<li>JwtAuthenticationFilter: There is no token in the Authorization header. The filter does nothing and passes the request on to the next filter. It does not reject the request right here because the path may be one that does not require authentication.</li>
+<li>BearerTokenAuthenticationFilter: There is no Bearer token in the Authorization header. The filter does nothing and passes the request on to the next filter. It does not reject the request right here because the path may be one that does not require authentication.</li>
 <li>AnonymousAuthenticationFilter: If there is still no authentication information at this point, the filter marks the request as coming from an &quot;anonymous user&quot;.</li>
-<li>AuthorizationFilter: The rule for this path is authenticated (authenticated users only). The current user is anonymous, so the condition is not met. The filter throws an access denied exception.</li>
-<li>ExceptionTranslationFilter: The filter catches the exception and checks the user. The user is anonymous, so the filter treats this not as &quot;no permission&quot; but as &quot;say who you are first&quot;, and it calls the AuthenticationEntryPoint to respond with 401.</li>
+<li>AuthorizationFilter: The rule for this path is authenticated (authenticated users only). The current user is anonymous, so the condition is not met. The filter throws an access denied exception (AccessDeniedException).</li>
+<li>ExceptionTranslationFilter: The filter catches the exception and checks the user. The user is anonymous, so the filter treats this not as &quot;no authority&quot; but as &quot;say who you are first&quot;, and it calls the AuthenticationEntryPoint. The BearerTokenAuthenticationEntryPoint that oauth2ResourceServer registered responds with 401 and a WWW-Authenticate: Bearer header.</li>
 <li>The response goes out, and the SecurityContext that was used for this request is cleared. The information is bound to the thread, so it must be removed before the thread is reused for the next request.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>401 means &quot;it has not been confirmed who this is&quot; (authentication failed). A request for an admin path without a token gets 401, not 403, because it is set up to answer 401 when a request from an unknown user is denied (without this setup, 403 is sent).</li>
-<li>This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, register your own AuthenticationEntryPoint and AccessDeniedHandler.</li>
+<li>401 means &quot;it has not been confirmed who this is&quot; (authentication failed). A request for an admin path without a token gets 401, not 403, because ExceptionTranslationFilter turns the access denial of an anonymous user into &quot;say who you are first&quot;. oauth2ResourceServer registers BearerTokenAuthenticationEntryPoint as the entry point used for this, so 401 comes out even if you do not write exceptionHandling separately.</li>
+<li>This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, pass other implementations with oauth2ResourceServer(o -&gt; o.authenticationEntryPoint(…).accessDeniedHandler(…)).</li>
 </ul>
 <h2>Code</h2>
-<pre>// Only the configuration class body is shown (@Configuration class declaration, jwtAuthenticationFilter field, and imports omitted)
+<pre>// Only the configuration class body is shown (@Configuration class declaration and imports omitted)
+// oauth2ResourceServer, JwtDecoder, NimbusJwtDecoder, JwtAuthenticationConverter,
+// and JwtGrantedAuthoritiesConverter are provided by Spring Security (spring-boot-starter-oauth2-resource-server).
 @Bean
 SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http
-        .csrf(csrf -&gt; csrf.disable())
         .sessionManagement(s -&gt; s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -&gt; auth
             .requestMatchers(&quot;/public/**&quot;).permitAll()
             .requestMatchers(&quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;)
             .anyRequest().authenticated())
-        .addFilterBefore(jwtAuthenticationFilter,
-                         UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(e -&gt; e
-            .authenticationEntryPoint((req, res, ex) -&gt; res.setStatus(401))   // not authenticated
-            .accessDeniedHandler((req, res, ex) -&gt; res.setStatus(403)))       // no permission
+        .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))   // adds BearerTokenAuthenticationFilter
         .build();
 }
 
-// JwtAuthenticationFilter (a filter written for this example): verifies the token in the Authorization header and,
-// if it is valid, puts the authentication information into the SecurityContext</pre>
+@Bean   // the decoder that checks the signature of the token (HS256, the key is at least 32 bytes)
+JwtDecoder jwtDecoder(@Value(&quot;${app.jwt.secret}&quot;) String secret) {   // app.jwt.secret is a setting name chosen for this example
+    SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), &quot;HmacSHA256&quot;);
+    return NimbusJwtDecoder.withSecretKey(key).build();
+}
+
+@Bean   // turns the role claim (&quot;USER&quot;) of the token into the authority ROLE_USER (by default, the scope claim becomes SCOPE_ authorities)
+JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter roles = new JwtGrantedAuthoritiesConverter();
+    roles.setAuthoritiesClaimName(&quot;role&quot;);
+    roles.setAuthorityPrefix(&quot;ROLE_&quot;);
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(roles);
+    return converter;
+}
+
+// The 401 and 403 responses are made by BearerTokenAuthenticationEntryPoint and
+// BearerTokenAccessDeniedHandler, which oauth2ResourceServer registers by default (you do not need to write exceptionHandling separately).</pre>
 <h2>Assumptions of this model</h2>
-<p>The model assumes a common JWT-based setup that does not use sessions. The custom JwtAuthenticationFilter is assumed to pass the request on without rejecting it when the token is missing or invalid (some implementations make this filter return 401 right away for an invalid token). For all 12 combinations, HTTP requests were sent to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1, and it was confirmed that the response code, the place that produced the response (AuthenticationEntryPoint, AccessDeniedHandler), and whether the controller ran match the screen. Two things were learned while doing this. First, if the response for an authentication failure is not specified (that is, if there is no exceptionHandling configuration), a request without a token gets 403, not 401. That is why the exceptionHandling configuration was put in the code on the screen. Second, when insufficient authority was left to the default handler of Spring Security, 401, not 403, came back when USER requested the admin path. This is because the default handler passes the request on again to the error page (/error), and that request has no authentication information, so it is handled as an authentication failure once more. To get 403 as on the screen, the handler must respond with the status code directly, or the /error path must be permitted. A real chain has more filters that are not listed here.</p>
+<p>The model assumes a JWT API server that does not use sessions and uses oauth2ResourceServer of Spring Security with an HS256 JwtDecoder. For all 12 combinations, HTTP requests were sent to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1, and it was confirmed that the response code, the place that produced the response, and whether the controller ran match the screen. In these runs, authorizeHttpRequests, AnonymousAuthenticationFilter, ExceptionTranslationFilter, and AuthorizationFilter of the real Spring Security ran. However, spring-security-oauth2-resource-server and oauth2-jose were not in the test environment, so the three parts that oauth2ResourceServer adds (BearerTokenAuthenticationFilter, BearerTokenAuthenticationEntryPoint, and BearerTokenAccessDeniedHandler) were replaced with stand-ins that copy only the behavior from the official 7.1.1 source, and I checked against the source the position of the filter (right before BasicAuthenticationFilter), the way it is registered by default, that a wrong token ends right there with 401 whatever the path, and that the 403 handler writes the status code itself. The token is the value from the lab &quot;JWT structure and verification&quot;, and its signature was actually calculated and checked. The configuration code on the screen was confirmed to compile with javac together with a stand-in that copies only the official signatures. From 7.0 on, JwtAuthenticationConverter adds one more authority, FACTOR_BEARER, besides the authorities made from role, but this does not affect the rules of this lab. A real chain has more filters that are not listed here.</p>
 <p>Previous lab: <a href="../../lab/cacheabs/">Cache abstraction</a></p>
   </div>
 
@@ -193,6 +215,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

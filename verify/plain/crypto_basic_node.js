@@ -1,11 +1,12 @@
-// 기초개념 "암호화" 실습의 계산이 표준대로인지 보려고, 자바(CryptoBasicProbe)와 같은 입력을 Node.js의 crypto(OpenSSL)로 계산한다.
-// 같은 열쇠(0x00..0x1f), 같은 nonce, 같은 글자를 aes-256-gcm으로 암호화해 암호문과 태그를 내고,
-// 인자로 받은 Base64 값(자바가 암호화한 값)을 열쇠 A와 열쇠 B(0x20..0x3f)로 풀어 본 결과, NIST 시험 벡터 한 개를 내놓는다.
-// 사용: node crypto_basic_node.js <자바가 만든 Base64 값>
+// 기초개념 "암호화" 실습(표준 Cipher 중심 판)의 계산이 표준대로인지 보려고, 자바(CryptoBasicProbe)와 같은 입력을 Node.js의 crypto(OpenSSL)로 계산한다.
+// 같은 열쇠, 같은 iv, 같은 글자를 aes-256-gcm으로 암호화해 암호문 뒤에 태그를 붙인 바이트(자바 doFinal의 결과와 같은 모양)를 내고,
+// 자바가 만든 바이트를 같은 열쇠, 다른 열쇠(2c..4b), 17번째 바이트를 바꾼 것으로 풀어 본 결과, NIST 시험 벡터 한 개를 내놓는다.
+// 사용: node crypto_basic_node.js <열쇠 hex> <iv hex> <자바가 만든 sent hex>
+// (옛 판은 Base64 값 하나를 받았다. git 기록에 있다.)
 const crypto = require('crypto');
-const seq = from => Buffer.from(Array.from({ length: 32 }, (_, i) => from + i));
-const KEY = seq(0), KEY_B = seq(32);
-const NONCE = Buffer.from('8a1fc35e27b9d064f13a9c0e', 'hex');
+const [keyHex, ivHex, sentHex] = process.argv.slice(2);
+const KEY = Buffer.from(keyHex, 'hex'), IV = Buffer.from(ivHex, 'hex');
+const OTHER = Buffer.from(Array.from({ length: 32 }, (_, i) => 44 + i));
 const PT = '카드번호 1234';
 
 function enc(key, iv, pt) {
@@ -13,23 +14,18 @@ function enc(key, iv, pt) {
   const ct = Buffer.concat([c.update(pt), c.final()]);
   return { ct, tag: c.getAuthTag() };
 }
-function dec(key, iv, ct, tag) {
+function dec(key, iv, all) {
   const d = crypto.createDecipheriv('aes-256-gcm', key, iv);
-  d.setAuthTag(tag);
-  return Buffer.concat([d.update(ct), d.final()]);
+  d.setAuthTag(all.subarray(all.length - 16));
+  return Buffer.concat([d.update(all.subarray(0, all.length - 16)), d.final()]);
 }
 
-const e = enc(KEY, NONCE, Buffer.from(PT, 'utf8'));
-console.log('NODE enc => ct=' + e.ct.toString('hex') + '|tag=' + e.tag.toString('hex') + '|b64=' + Buffer.concat([NONCE, e.ct, e.tag]).toString('base64'));
-
-// 자바가 만든 값을 Node가 푼다 (열쇠 A, 열쇠 B)
-const b64 = process.argv[2];
-if (b64) {
-  const all = Buffer.from(b64, 'base64'), iv = all.subarray(0, 12), ct = all.subarray(12, all.length - 16), tag = all.subarray(all.length - 16);
-  for (const [name, k] of [['A', KEY], ['B', KEY_B]]) {
-    try { console.log('NODE dec' + name + ' => ' + dec(k, iv, ct, tag).toString('utf8')); }
-    catch (x) { console.log('NODE dec' + name + ' => EX ' + x.message); }
-  }
+const e = enc(KEY, IV, Buffer.from(PT, 'utf8'));
+console.log('NODE enc => ' + Buffer.concat([e.ct, e.tag]).toString('hex'));
+const sent = Buffer.from(sentHex, 'hex'), tam = Buffer.from(sent); tam[16] ^= 1;
+for (const [name, k, v] of [['decSame', KEY, sent], ['decOther', OTHER, sent], ['decTamper', KEY, tam]]) {
+  try { console.log('NODE ' + name + ' => ' + dec(k, IV, v).toString('utf8')); }
+  catch (x) { console.log('NODE ' + name + ' => EX ' + x.message); }
 }
 
 // NIST CAVP gcmEncryptExtIV256.rsp [Keylen=256][IVlen=96][PTlen=128][AADlen=0][Taglen=128] Count 0

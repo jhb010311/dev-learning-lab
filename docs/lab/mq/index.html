@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ OrderDto order(@RequestBody OrderRequest req) {
     return OrderDto.of(order);                     // 메일이 끝나야 응답
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>개념을 설명하기 위한 모델이며 실제 메시지 큐를 실행해 확인한 결과는 아닙니다. 시간 값(저장 0.05초, 큐에 넣기 0.01초, 타임아웃 3초)은 예시입니다. 직접 호출에서도 타임아웃과 예외 처리를 넣어 주문 실패를 막을 수 있고, 큐 자체가 죽는 경우와 메시지 유실, 중복 전달, 순서 문제는 여기서 다루지 않았습니다. 코드의 @RabbitListener는 RabbitMQ를 쓸 때의 예시입니다.</p>
+<p>개념을 설명하기 위한 모델이며 실제 메시지 큐를 실행해 확인한 결과는 아닙니다. 시간 값(저장 0.05초, 큐에 넣기 0.01초, 타임아웃 3초)은 예시입니다. 직접 호출에서도 타임아웃과 예외 처리를 넣어 주문 실패를 막을 수 있고, 큐 자체가 죽는 경우와 메시지 유실, 중복 전달, 순서 문제는 여기서 다루지 않았습니다. 코드의 rabbitTemplate.convertAndSend(스프링 AMQP의 RabbitTemplate)와 @RabbitListener는 RabbitMQ를 쓸 때의 예시이고 실행하지 않았습니다. 이 두 곳은 스프링 AMQP의 공식 시그니처만 옮긴 대역과 함께 컴파일되는 것까지만 확인했습니다(verify/spring/cmp_mq.js).</p>
 <p>앞 실습: <a href="../../lab/ratelimit/">요청 수 제한</a> · 다음 실습: <a href="../../lab/kafka/">Kafka 파티션과 컨슈머</a></p>
   </div>
 
@@ -174,6 +174,6 @@ OrderDto order(@RequestBody OrderRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

@@ -1,1 +1,1 @@
-Lab.verify({ proxy_basic: ['run', 'Node.js 24.18.0의 http 서버 둘(프록시 서버와 진짜 서버)과 http 클라이언트로 여섯 가지 조합을 실행해 대조'] });
+Lab.verify({ proxy_basic: ['part', '스프링 부트 쪽(화면의 HelloController와 application.properties)은 스프링 부트 4.1.1로 실제 실행해 열두 가지 조합을 대조(getRemoteAddr()·X-Forwarded-For·server.address의 효과, verify/net/cmp_proxy_basic.js). nginx는 이 컴퓨터에 없어, nginx 문서·소스대로 움직이게 만든 Node.js 프로그램이 대신함(proxy_pass·proxy_set_header·502는 문서와 소스 대조)'] });

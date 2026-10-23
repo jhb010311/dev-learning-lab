@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,82 +31,111 @@
 <p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
 <h1>Caches</h1>
 <p><b>What is a cache, and what do you gain and lose by using one?</b></p>
-<p><b>Why it exists</b> — If something that takes time, such as a DB query or a call to another server, is done again for every request even though the same answer is known to come out, the user waits every time and the same work piles up on the original source. A cache keeps an answer, once obtained, in a place from which it can be fetched quickly and reuses it, so that slow work is not repeated. In return, when the original changes, you have to separately take care of when to discard the value in the cache.</p>
-<p><b>Where it's used today</b> — Things that are read often but change rarely, such as product information, category lists, and settings, are put in a cache. In Spring, the @Cacheable annotation on a method puts its result in a cache, and to let several servers see the same cache, a separately run store such as Redis is used. Things that must always have the current value, such as remaining stock or an account balance, are not put in a cache, or the value in the cache is deleted immediately when the value changes.</p>
-<p>A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is asked for again. In the code of this lab, the Map named cache is the place where results are written down, and the cache lines inside the find method do this: &quot;if there is a written-down value, give it, and only if there is none, do the slow lookup (slowLoad) and write the result down.&quot; slowLoad is the slow job of reading a value from the source, and slowCount counts how many times it was called. The lab does not measure real time. It shows &quot;how much slow work was done&quot; by the number of calls to slowLoad. In this lab you remove the cache lines, change the value in the source between the two lookups, or erase the cached value with the cache.remove(1) line. The same code is compiled and run, and you see how many slow lookups happen and whether the second value you receive is the same as the value in the source. (static is read as a keyword that lets main call these without creating an object, and it is not covered here.)</p>
-<p>Checked against real execution · Compiled five combinations on JDK 21 with javax.tools, ran them, and checked against the model</p>
+<p><b>Why it exists</b> — If something that takes time, such as a database query or a call to another server, is done again for every request even though the same answer is known to come out, the user waits every time and the same work piles up on the original source. A cache keeps an answer, once obtained, in a place from which it can be fetched quickly and reuses it, so that slow work is not repeated. In return, when the original changes, you have to separately take care of when to discard the value in the cache.</p>
+<p><b>Where it's used today</b> — Things that are read often but change rarely, such as product information, category lists, and settings, are put in a cache. In Spring, you write @EnableCaching on a configuration class, @Cacheable on a method that looks something up, and @CacheEvict on a method that changes the value. Where the cache is kept is chosen with a CacheManager bean, and the same annotations work from the memory of a single server to Redis, which several servers look at together. Things that must always have the current value, such as remaining stock or an account balance, are not put in a cache, or the value in the cache is deleted immediately when the value changes.</p>
+<p>A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is asked for again, without going to the source. A cache is not the source. It is a copy of the value from the moment it was read from the source, so after the source changes, it can hand out an old value. In Spring you do not write the cache yourself. You write annotations that Spring provides. In the code on the screen, @EnableCaching on the CacheConfig class turns the caching feature on, and the ConcurrentMapCacheManager registered with @Bean (a class provided by Spring) keeps a cache named product in memory. If you write @Cacheable(&quot;product&quot;) above the find method of ProductService (an example class we made), Spring looks at the product cache around the call to find and writes down the result. The body of find reads the value from the source (a Map that stands in for a database) and counts the reads from the source with loadCount. The lab does not measure real time. It shows &quot;how many times the slow work was done&quot; by the number of reads from the source. Caller (an example class we made) looks up product 1 twice with the ProductService bean that Spring supplied. You can remove the @Cacheable line, change the source with rename between the two lookups, or write @CacheEvict above rename, and you see how many times the source is read and whether the second value you receive is the same as the source. The last question compares what @Cacheable does with a version written by hand with a Map.</p>
+<p>Checked against real execution · Compiled nine combinations with the same source as the screen on Spring Framework 7.0.9 (spring-context, @EnableCaching + ConcurrentMapCacheManager) and JDK 21, ran them, and checked the output, whether a proxy exists, and the values written in the cache at each step</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Cache</dt>
 <dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
 <dt>Cache hits and misses</dt>
 <dd>When you look for a value in a cache, one of two things happens. If what you look for is already written in the cache, it is called a hit (cache hit), and the written-down value is returned as it is without going to the source. If it is not written, it is called a miss (cache miss), and the value is read from the source, written in the cache, and returned. The cache abstraction of Spring works in the same order: if the method was already called with the same arguments, it returns the cached result without executing the method, and otherwise it executes the method and puts the result in the cache and returns it. The first lookup is always a miss, and the more hits there are, the less slow work goes all the way to the source.</dd>
-<dt>Cache-aside pattern</dt>
-<dd><b>Where it's used today</b> — It is used with Redis for data that is read far more often than it is written, such as a product detail or a member profile. Adding Spring's @Cacheable and @CacheEvict makes it work in this order.</dd>
-<dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
+<dt>@Cacheable</dt>
+<dd>This annotation stores the result of a method in a cache so that, when the method is called again with the same arguments, the value in the cache is returned without running the body. A proxy receives the call and looks up the cache first, and only when the value is not there does it run the body and then store the result. By default, the cache key is the arguments of the method, and cacheNames sets which cache the result goes into. If you write a condition in unless, a result for which the condition is true is not stored (for example, when the result is null). Because this is the work of a proxy, it is not applied when the method is called with this from within the same class.</dd>
+<dt>@CacheEvict and @CachePut</dt>
+<dd><b>Why it exists</b> — If you put code that deletes or fixes the cache directly into every method that changes data, code that handles the cache store gets mixed with business code, and it is easy to miss. @CacheEvict and @CachePut let you do this with only the cache name and key written above the method.</dd>
+<dd><b>Where it's used today</b> — A common use is to put @CacheEvict on a method that edits or deletes product information. When a single key cannot point to the entries, as with a list cache, you empty that cache entirely with allEntries = true.</dd>
+<dd>These are two annotations used to keep the values in a cache in step with the source data. @CacheEvict removes the value for the given key from the cache when the method is called, so that the next lookup runs the body again. Unlike @Cacheable, @CachePut does not skip the body. It always runs the body and puts the returned value in the cache, overwriting the existing value. If neither of them is on a method that changes data, the value from before the change remains in the cache, and the code that looks it up receives the stale value.</dd>
+<dt>@EnableCaching and CacheManager</dt>
+<dd><b>Why it exists</b> — So that the code that uses a cache is not tied to the kind of store, the switch that turns the cache on (@EnableCaching) and the place where the store is chosen (CacheManager) were separated. Even if you change the store from memory to Redis, the methods that have @Cacheable are not changed.</dd>
+<dd><b>Where it's used today</b> — Write @EnableCaching once on a configuration class of a Spring application, and register as a bean the CacheManager of a store such as a memory cache for a single server, or Redis when several servers must see the same values.</dd>
+<dd>@EnableCaching is an annotation that you write on a configuration class to turn on the caching feature of Spring. Only with it does Spring look for methods that have cache annotations such as @Cacheable and @CacheEvict, put a proxy in front of that bean, and insert the work of looking at the cache and writing to it. If you remove the @EnableCaching line, no proxy is created even if you write @Cacheable, and the method body runs every time it is called. CacheManager is a Spring interface that hands out caches by name, and where the values are actually kept is decided by which implementation you register as a bean. ConcurrentMapCacheManager, provided by spring-context, keeps one ConcurrentHashMap in memory for each name, and it has no setting for the validity time of a written-down value.</dd>
 <dt>Stale data in a cache</dt>
 <dd>Stale data in a cache is a value that stays in the cache after the value in the source has changed, so that it differs from the source. The side that uses the cache does not look at the source when there is a hit, so it receives the old value without knowing that it changed. If you also erase the value written in the cache when you change the source, the next lookup is a miss and reads the changed value again (only that one lookup is slow). Another way is to give a written-down value a validity time. The HTTP caching specification (RFC 9111, section 4.2) calls a stored response stale when it is past its determined freshness lifetime, and this word is the term of the specification for a response whose time has passed.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The cache lines are there. You looked up twice, but the slow lookup happens only once.</li>
-<li><b>Looking up twice without a cache</b> — Each lookup goes all the way to the source, so the slow lookup happens twice.</li>
-<li><b>The source changes while the cache is there</b> — The slow lookup happens once, but the second value you receive is different from the source.</li>
-<li><b>Changing the source and also erasing the cached value</b> — The second find cannot find the value in the cache and reads the changed value again.</li>
-<li><b>The source changes without a cache</b> — Every lookup reads the source, so you receive the changed value, but the slow lookup happens twice.</li>
+<li><b>Default settings</b> — find has @Cacheable(&quot;product&quot;). You looked up twice, but the source is read only once.</li>
+<li><b>Removing @Cacheable</b> — The find body runs every time you look up, so the source is read twice.</li>
+<li><b>The source changes between the two lookups</b> — The source is read only once, but the second value you receive is different from the source.</li>
+<li><b>Writing @CacheEvict above rename</b> — The second find cannot find the value in the cache, so the body runs again and you receive the changed value.</li>
+<li><b>The source changes without a cache</b> — Every lookup reads the source, so you receive the changed value, but the source is read twice.</li>
+<li><b>Writing what @Cacheable does by hand</b> — What Spring did around find is written directly in the find body. The number of reads from the source is the same.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>main starts and the first line, source.put(1, &quot;keyboard&quot;);, runs. The source gets the value &quot;keyboard&quot; for key 1. The source is where the values originally are, and it is where slowLoad reads from. cache is an empty Map created by calling new HashMap&lt;&gt;(), so nothing is written in it yet.</li>
-<li>The line find(1); runs. First, find calls cache.containsKey(1) to see whether a value for key 1 is written in the cache. The cache is empty, so there is none. This case, where the value is not written in the cache, is called a miss.</li>
-<li>So find calls the slowLoad method. slowLoad is the slow job of reading the value &quot;keyboard&quot; for key 1 from the source, and it increases slowCount to count how many times it was called. So far slowLoad has been called 1 time.</li>
-<li>find writes the value it read, &quot;keyboard&quot;, into the cache with the call cache.put(1, v), and returns that value. Now the cache holds the value &quot;keyboard&quot; for key 1.</li>
-<li>The line String second = find(1); runs. find calls cache.containsKey(1) to look at the cache, and a value for key 1 is written there. This case, where the value is written in the cache, is called a hit. find does not call slowLoad and returns the written-down value &quot;keyboard&quot; as it is. slowLoad has still been called 1 time.</li>
-<li>The last line, System.out.println, prints slowCount, second, and source.get(1) in that order. The output is &quot;1 / keyboard / keyboard&quot;. The value you received is the same as the value in the source.</li>
+<li>When the program starts, Spring sees @EnableCaching on CacheConfig and turns the caching feature on, and it keeps the ConcurrentMapCacheManager returned by the cacheManager method as a bean. This CacheManager keeps a cache named product in memory, and the product cache is still empty. Because find in ProductService has @Cacheable, Spring does not use the ProductService object itself as the bean. It creates a proxy (an object of the class ProductService$SpringCGLIB$0) that receives calls first, and keeps that as the bean. The proxy holds a reference to the real ProductService object, and the productService field of Caller points to this proxy. The value for key 1 in the source is &quot;keyboard&quot;.</li>
+<li>The run() method of the Caller bean is called, and the line productService.find(1L); runs. The proxy, which received the call first, looks in the product cache for key 1 before entering the find body. The cache is empty, so no value is written there. This case is called a miss.</li>
+<li>So the proxy runs the find body of the real ProductService object. The body increases loadCount to 1 and reads the value &quot;keyboard&quot; for key 1 from the source.</li>
+<li>When the body returns &quot;keyboard&quot;, Spring writes that value into the product cache under key 1 and returns it to Caller. The line that writes it down is not in the code we wrote. It is what @Cacheable(&quot;product&quot;) told Spring to do.</li>
+<li>The line String second = productService.find(1L); runs. The proxy, which received the call first, looks in the product cache for key 1 and finds &quot;keyboard&quot; written there. This case is called a hit. The proxy does not run the find body and returns the written-down &quot;keyboard&quot;. loadCount is still 1.</li>
+<li>The last line, System.out.println, prints the values of loadCount(), second, and source(1L) in that order. The output is &quot;1 / keyboard / keyboard&quot;. The value you received is the same as the value in the source.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>A cache writes down a value it read in a Map, and when the same thing is looked up again it gives the written-down value. The cache lines in find (checking with containsKey, writing with put, taking out with get) did this, and although key 1 was looked up twice, the slow lookup slowLoad was called only once.</li>
-<li>The second find gave the written-down value right away and did not go to the source. The source did not change between the two lookups, so the value you received was the same as the source.</li>
+<li>A cache writes down a result that was read once, and when the same thing is looked up again it gives the written-down value without going to the source. The single line @Cacheable(&quot;product&quot;) above find made Spring do this, and although product 1 was looked up twice, the source was read only once.</li>
+<li>We did not write the code that checks the cache and writes the value down. Around the call to find, Spring looked at the product cache and wrote down the value that the body returned. The source did not change between the two lookups, so the value you received was the same as the source.</li>
 </ul>
 <h2>Code</h2>
-<pre>import java.util.*;
+<pre>// Turn the caching feature on: @Cacheable and @CacheEvict work only with this setting
+@Configuration
+@EnableCaching
+class CacheConfig {
+    // Where the cache is kept: ConcurrentMapCacheManager, provided by Spring (it uses a Map in memory)
+    @Bean
+    CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager(&quot;product&quot;);
+    }
+}
 
-public class Main {
-    // The source: where the values originally are
-    static Map&lt;Integer, String&gt; source = new HashMap&lt;&gt;();
-    static int slowCount = 0;
+// An example product service we made
+@Service
+class ProductService {
+    // The source: the original values of product names (a Map that stands in for a database)
+    private final Map&lt;Long, String&gt; db = new HashMap&lt;&gt;(Map.of(1L, &quot;keyboard&quot;));
+    // How many times the source was read
+    private int loadCount = 0;
 
-    // Slow lookup: reads from the source. Counts how many times it is called
-    static String slowLoad(int id) {
-        slowCount++;
-        return source.get(id);
+    // Writes the result in the product cache by id. If called again with the same id, the body does not run
+    @Cacheable(&quot;product&quot;)
+    public String find(Long id) {
+        // Read from the source (in real code, this is where slow work such as a database query goes)
+        loadCount++;
+        return db.get(id);
     }
 
-    // Cache: the place where values that were read are written down
-    static Map&lt;Integer, String&gt; cache = new HashMap&lt;&gt;();
-
-    static String find(int id) {
-        // If a value is written down, give it; if not, read it and write it down
-        if (cache.containsKey(id)) return cache.get(id);
-        String v = slowLoad(id);
-        cache.put(id, v);
-        return v;
+    public void rename(Long id, String name) {
+        db.put(id, name);
     }
 
-    public static void main(String[] args) {
-        source.put(1, &quot;keyboard&quot;);
-        // Look up key 1 for the first time
-        find(1);
-        // Look up key 1 again
-        String second = find(1);
-        // Slow lookups / second value received / value in the source
+    public int loadCount() {
+        return loadCount;
+    }
+
+    public String source(Long id) {
+        return db.get(id);
+    }
+}
+
+// An example class we made that calls ProductService
+@Component
+class Caller {
+    @Autowired
+    ProductService productService;
+
+    void run() {
+        // Look up product 1 for the first time
+        productService.find(1L);
+        // Look up product 1 again
+        String second = productService.find(1L);
+        // Reads from the source / second value received / value in the source
         System.out.println(
-            slowCount + &quot; / &quot; + second + &quot; / &quot; + source.get(1));
+            productService.loadCount() + &quot; / &quot; + second + &quot; / &quot; + productService.source(1L));
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All five combinations (the two choices of having a cache or not, times the three choices of what happens between the two lookups, minus the one that is left out because you cannot use the cache.remove(1) line without a cache) were checked against real runs: the same source as the code on the screen (identical line by line, including the import line) was compiled with javax.tools, the class file was read by a new class loader, Main.main was run, and the standard output that was captured was compared with the model. What was compared is whether the compile succeeded, the three printed values (the number of calls to slowLoad, the value the second find returned, and the value in the source), and the output text that the last step shows. The fact that the step sentences rely on, that &quot;after one call to find(1) at first, slowLoad has been called 1 time and the value received is keyboard&quot;, was checked by running separate source (one with a cache and one without) changed to print the result of the first find, in the same way. The code on the screen is a program that is really compiled and run, and nothing was shortened. slowLoad does not really take long and no time was measured. &quot;Slow&quot; is shown only by the number of calls to slowLoad, and the time of a real database or network was not measured. This cache is one Map, and it has no rule for when to throw away a written-down value (expiry time, size limit), so a value stays until it is erased with the cache.remove(1) line. I opened the documentation myself. The introduction of the Cache Abstraction chapter of the Spring Framework Reference (https://docs.spring.io/spring-framework/reference/integration/cache.html) opened only as far as the explanation that caching is support that is added transparently to an existing application, and in the lower page of the same documentation (https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html) I confirmed that if the method has already been invoked with the same arguments, the cached result is returned without executing the method, and otherwise the method is executed and its result is put in the cache, and that there are features to update the contents of the cache or evict entries. For RFC 9111 (HTTP Caching), I confirmed section 1 (a cache stores responses to reduce response time and network use), section 4 (conditions for reusing a stored response), and sections 4.2 and 4.2.4 (a stored response that is past its freshness lifetime is called stale), and I did not read the last 7 thousand or so characters of the document. I did not confirm whether those documents use the words hit and miss, and the glossary uses these words only as general terms. The Map cache in this lab is just one example of the approach the documents describe, and it was not checked against real execution of Spring or of an HTTP cache. Not covered: a cache that several threads write at the same time, what to throw away when the cache is full, the validity time (TTL), many requests rushing to the source when a popular value disappears all at once, @Cacheable of Spring, the HTTP cache between a browser and a server (ETag), and Redis. These are covered in the in-depth labs &quot;Caching and TTL&quot;, &quot;Cache abstraction&quot;, &quot;HTTP caching and ETag&quot;, and &quot;Redis single-threaded execution&quot;.</p>
+<p>We checked Spring Framework 7.0.9 (spring-context) by running it on JDK 21.0.12.1. All nine combinations (three ways of putting a cache on find times three things that can happen between the two lookups) were checked in the same way. The source is the same as the code on the screen (only the package and import lines and measurement lines marked with PROBE at the end were added). It was compiled with javac (with -parameters turned on; the build settings of Spring Boot also turn this on), and a new Java process was started for each combination. The classes on the screen were found by AnnotationConfigApplicationContext through component scanning, and the checking program called run() of the Caller bean and captured the line that run() printed. What was compared is the three printed values (the number of reads from the source, the value the second find returned, and the value in the source). As facts that the step sentences rely on, we also checked the class of the ProductService bean (the ProductService$SpringCGLIB$0 proxy when find has @Cacheable or rename has @CacheEvict, and plain ProductService when neither is there or when the cache is written by hand), whether the object that Caller received is that bean, and loadCount and what was written in the cache after the first find, after rename, and at the end (for Spring, the product cache of the CacheManager, and for the hand-written version, the Map in the cache field). As a variation that is not on the screen, we also ran @CacheEvict(&quot;product&quot;) with no key above rename, and in that case the value for key 1 in the product cache was not erased and the second find received &quot;keyboard&quot; (because the key becomes both parameters used together). That ConcurrentMapCacheManager has no method that sets a validity time was checked by opening the public methods of this class with javap. Nothing was shortened in the code on the screen. This lab was run with only spring-context, without Spring Boot, and the setting with which Boot creates a CacheManager automatically was not verified. Reading from the source does not really take long and no time was measured, and &quot;slow&quot; is shown only by the number of reads from the source. For the documentation, we followed what we had confirmed earlier, and did not open it again this time: the Spring Framework Reference, Cache Abstraction section (https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html; if the method was already called with the same arguments, it returns the cached result without executing the method) and RFC 9111 (HTTP Caching) section 4.2 (a stored response that is past its freshness lifetime is called stale). Not covered: calling find from inside the same class so that it does not pass through the proxy and the cache is not used, a null result, @CachePut, a cache that several threads write at the same time, what to throw away when the cache is full, the validity time (TTL), many requests rushing to the source when a popular value disappears all at once, the HTTP cache between a browser and a server (ETag), and Redis. These are covered in the in-depth labs &quot;Cache abstraction&quot;, &quot;Caching and TTL&quot;, &quot;HTTP caching and ETag&quot;, and &quot;Redis single-threaded execution&quot;.</p>
 <p>Previous lab: <a href="../../lab/lb_basic/">Load balancers</a> · Next lab: <a href="../../lab/queue_basic/">Message queues</a></p>
   </div>
 
@@ -199,6 +228,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

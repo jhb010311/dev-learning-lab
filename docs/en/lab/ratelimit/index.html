@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -78,13 +78,14 @@
 </ul>
 <h2>Code</h2>
 <pre>// Only lines inside a method are shown (declarations and imports omitted; tooManyRequests is an example method)
+// redis is a Jedis client object that sends commands to a Redis server (its method names match the Redis commands INCR and EXPIRE)
 // Fixed window: key = user + the current second
 String key = &quot;rate:&quot; + userId + &quot;:&quot; + (now / 1000);
 long count = redis.incr(key);            // add 1 to the request count of this second
 if (count == 1) redis.expire(key, 1);    // disappears after 1 second
 if (count &gt; 5) return tooManyRequests(); // 429</pre>
 <h2>Assumptions of this model</h2>
-<p>The limit is fixed at 5 requests per second. The behavior of the three algorithms follows widely used definitions. The sliding window is implemented by recording the time of every request (a sliding window log), and the token bucket assumes that tokens are refilled continuously as time passes. A real service counts separately for each user, IP address, or API key.</p>
+<p>The limit is fixed at 5 requests per second. The behavior of the three algorithms follows widely used definitions. The sliding window is implemented by recording the time of every request (a sliding window log), and the token bucket assumes that tokens are refilled continuously as time passes. A real service counts separately for each user, IP address, or API key. Java and Spring provide no API of their own for the fixed window and the sliding window, so the code shows them written by hand with Redis commands. The redis in the code is a Jedis client object, and its method names and arguments were only checked against the Jedis documentation, not run against a Redis server.</p>
 <p>Previous lab: <a href="../../lab/infoleak/">Information leakage</a> · Next lab: <a href="../../lab/supplychain/">Dependencies and the supply chain</a></p>
   </div>
 
@@ -177,6 +178,6 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

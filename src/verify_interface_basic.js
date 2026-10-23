@@ -1,1 +1,1 @@
-Lab.verify({ interface_basic: ['run', 'JDK 21에서 열두 가지 조합을 javax.tools로 컴파일하고 실행해 대조'] });
+Lab.verify({ interface_basic: ['run', 'JDK 21에서 화면의 코드 열일곱 가지 조합(List 목록 12, Comparable 정렬 3, 직접 선언 2)을 javax.tools로 컴파일하고 실행해 대조, List·ArrayList·LinkedList·Comparable·Collections.sort의 선언은 리플렉션으로 확인'] });

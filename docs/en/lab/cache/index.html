@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Caching and TTL: How much does a cache reduce database queries, and when do requests pile up again? · Dev Learning Lab</title>
-<meta name="description" content="One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the req…">
+<title>Caching and TTL: If you give @Cacheable a TTL, how much does it reduce database queries, and when do requests pile up again? · Dev Learning Lab</title>
+<meta name="description" content="One popular product is requested continuously for 30 seconds. The lookup method getProduct has Spring's @Cacheable on it, and the cache store is Redis (Re…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Caching and TTL: How much does a cache reduce database queries, and when do requests pile up again? · Dev Learning Lab">
-<meta property="og:description" content="One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the req…">
+<meta property="og:title" content="Caching and TTL: If you give @Cacheable a TTL, how much does it reduce database queries, and when do requests pile up again? · Dev Learning Lab">
+<meta property="og:description" content="One popular product is requested continuously for 30 seconds. The lookup method getProduct has Spring's @Cacheable on it, and the cache store is Redis (Re…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,67 +30,115 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › High traffic</p>
 <h1>Caching and TTL</h1>
-<p><b>How much does a cache reduce database queries, and when do requests pile up again?</b></p>
-<p><b>Why it exists</b> — If product information is read from the database again each time it is viewed, the database repeats the same work even though the result is the same every time, and when requests increase, the database is the first thing that cannot hold up. A cache keeps a result that has been read once in a memory store for a short time and returns it from there from the next request on, so that fewer requests go to the database.</p>
-<p><b>Where it's used today</b> — Data that is read often and changes rarely, such as a product detail, a popular post list, and common codes, is put in Redis or application memory, and in Spring, storing the result of a method with @Cacheable is a common approach. Values that must always be the latest, such as inventory or balance right before payment, are read from the database without going through the cache.</p>
-<p>One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.</p>
-<p>Conceptual model · A model that shows how the behavior works</p>
+<p><b>If you give @Cacheable a TTL, how much does it reduce database queries, and when do requests pile up again?</b></p>
+<p><b>Why it exists</b> — If product information is read from the database again each time it is viewed, the database repeats the same work even though the result is the same every time, and when requests increase, the database is the first thing that cannot hold up. A cache keeps a result that has been read once in a memory store for a short time and returns it from there from the next request on, so that fewer requests go to the database. But if a value is kept forever, the cache never learns that the original changed, so we decide after how long to discard a value (the TTL), and that brought a new problem: at the moment the TTL ends, requests rush to the database all at once.</p>
+<p><b>Where it's used today</b> — It is used for data that is read often and changes occasionally, such as a product detail, a popular post list, and common codes. In Spring, you write @Cacheable on a lookup method, and if several servers must see the same cache, you attach Redis as the store and set the TTL with entryTtl of RedisCacheManager. For a key that many requests rush to, you let only one request query the database by using @Cacheable(sync = true) together with a locking RedisCacheWriter. Values that must always be the latest, such as inventory or balance right before payment, are read from the database without going through the cache.</p>
+<p>One popular product is requested continuously for 30 seconds. The lookup method getProduct has Spring's @Cacheable on it, and the cache store is Redis (RedisCacheManager, provided by Spring Data Redis). @Cacheable looks at the cache first, and only when there is no value does it run the method body (the database query) and store the result in the cache. A stored value disappears from Redis after the time (TTL) set with entryTtl of RedisCacheConfiguration. This lab looks at the operating problems that come after that: requests rushing to the database at the moment the TTL ends (a cache stampede), and the cache giving an old value during the TTL even though the original has changed.</p>
+<p>Partly checked against real execution · The behavior of @Cacheable and sync = true (how many times the body runs when 20 threads call at the same time, and the exception when it is used with unless) was checked by running it on Spring 7.0.9. The Redis side (entryTtl, the locking writer, and the default writer not locking since 3.4) was checked against the official documentation and the source, and the times and counts are a model</p>
 <h2>Concepts in this lab</h2>
 <dl>
-<dt>Cache</dt>
-<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
-<dt>Cache-aside pattern</dt>
-<dd><b>Where it's used today</b> — It is used with Redis for data that is read far more often than it is written, such as a product detail or a member profile. Adding Spring's @Cacheable and @CacheEvict makes it work in this order.</dd>
-<dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
 <dt>TTL (time to live)</dt>
 <dd><b>Where it's used today</b> — In Redis, you set it with EXPIRE or the EX option of SET. Besides caches, it is used for values that must disappear by themselves after a set time, such as phone verification codes, sessions, and distributed locks.</dd>
 <dd>The length of time for which data is valid. If you set it when you put a value in a cache, the value is deleted automatically after that time passes. It is a basic safeguard that stops a value that no longer matches the source from staying in the cache forever.</dd>
+<dt>RedisCacheManager and entryTtl</dt>
+<dd><b>Why it exists</b> — Spring's cache annotations are written so that they do not know the store, so a separate CacheManager that decides the actual store is needed. A memory cache on one server (ConcurrentMapCacheManager) keeps separate values on each server and has no TTL, so to let several servers see the same values and to make a value disappear after some time, a store such as Redis and an expiration setting were needed.</dd>
+<dd><b>Where it's used today</b> — In a Spring application that keeps a cache shared by several servers in Redis, you register it as the cacheManager bean. In Spring Boot, a RedisCacheManager is created automatically and you can set the TTL of all caches with the property spring.cache.redis.time-to-live. To set it differently for each cache, you create the bean yourself as above, or call withCacheConfiguration in a RedisCacheManagerBuilderCustomizer bean.</dd>
+<dd>RedisCacheManager is an implementation of CacheManager provided by Spring Data Redis (spring-data-redis), and it lets Spring cache annotations such as @Cacheable use Redis as the store. You create it with RedisCacheManager.builder(connectionFactory), and the settings for each cache are set with RedisCacheConfiguration. If you give entryTtl, as in RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofSeconds(10)), a value stored in that cache disappears from Redis after that time. If you do not give entryTtl, the value never expires, which is the default of defaultCacheConfig(). To give different settings for each cache name, you use withCacheConfiguration(&quot;product&quot;, settings) of the builder. By default, the key stored in Redis is the cache name followed by :: and then the key (product::1).</dd>
 <dt>Cache stampede</dt>
 <dd>A situation in which, at the moment a heavily read cache entry expires, many requests that arrive at the same time all fail to find the value in the cache and query the database at once. The sudden load on the database can lead to an outage. It is mitigated by locking so that only one request queries the source, or by spreading out the expiration times.</dd>
+<dt>@Cacheable(sync = true)</dt>
+<dd><b>Why it exists</b> — @Cacheable does not lock anything by default, so when the cache was empty, calls that looked for the same key at the same time all ran the body and computed the same value several times. An attribute was added for this case, which asks the cache implementation to let only one call compute.</dd>
+<dd><b>Where it's used today</b> — Write it on a method that many requests rush to and whose computation or database query is expensive. Whether it really blocks depends on the cache implementation, so if you use Redis as the store, you must also configure lockingRedisCacheWriter, and with a server memory cache (ConcurrentMapCacheManager, Caffeine), each server blocks separately.</dd>
+<dd>When the sync attribute of @Cacheable is set to true, Spring does not look at the cache first and run the body only when there is none. Instead, it calls get(key, valueLoader) of the cache implementation and hands the running of the body over as the valueLoader. Letting only one of the calls that look for the same key at the same time run the body, and making the others wait until the value is stored, is done by that cache implementation. With ConcurrentMapCacheManager, provided by Spring, the body ran only 1 time even when 20 threads called with the same key at the same time on an empty cache (20 times without sync). On the other hand, with an implementation that does not lock get(key, valueLoader), it runs 20 times even with sync = true. In Spring Data Redis, up to 3.3 RedisCache blocked only inside one server (JVM) with Java's ReentrantLock, and from 3.4 it leaves this job to RedisCacheWriter, whose default writer does not lock. sync = true cannot be used together with unless (IllegalStateException).</dd>
+<dt>Locking RedisCacheWriter</dt>
+<dd><b>Why it exists</b> — The locking writer was added so that operations on a cache that need several Redis commands (putIfAbsent, erasing) do not overlap, and from Spring Data Redis 3.4, the &quot;only one call computes&quot; of @Cacheable(sync = true) is also done with this lock.</dd>
+<dd><b>Where it's used today</b> — Use it together with @Cacheable(sync = true) when several servers share a Redis cache and you must prevent a cache stampede. If the cost of the lock covering the whole cache is high, block only the key that many requests rush to, separately, with a per-key distributed lock such as RLock of Redisson.</dd>
+<dd>RedisCacheWriter is the component that RedisCacheManager uses to read and write values in Redis. The default writer used by RedisCacheManager.builder(connectionFactory) (nonLockingRedisCacheWriter) does not lock. If you pass a writer made with RedisCacheWriter.lockingRedisCacheWriter(connectionFactory) to the builder, then while a value is being computed and put in, it sets a lock key in Redis with SET NX (a key made of the cache name followed by ~lock, for example product~lock), and the other calls wait, checking every 50 milliseconds by default until that key disappears. Because the lock key is in Redis, it blocks all the servers together even when there are several. But the lock covers the whole cache, not each key, so while the lock is held, requests that read other keys of the same cache also wait.</dd>
+<dt>Stale data in a cache</dt>
+<dd>Stale data in a cache is a value that stays in the cache after the value in the source has changed, so that it differs from the source. The side that uses the cache does not look at the source when there is a hit, so it receives the old value without knowing that it changed. If you also erase the value written in the cache when you change the source, the next lookup is a miss and reads the changed value again (only that one lookup is slow). Another way is to give a written-down value a validity time. The HTTP caching specification (RFC 9111, section 4.2) calls a stored response stale when it is past its determined freshness lifetime, and this word is the term of the specification for a response whose time has passed.</dd>
+<dt>@Cacheable</dt>
+<dd>This annotation stores the result of a method in a cache so that, when the method is called again with the same arguments, the value in the cache is returned without running the body. A proxy receives the call and looks up the cache first, and only when the value is not there does it run the body and then store the result. By default, the cache key is the arguments of the method, and cacheNames sets which cache the result goes into. If you write a condition in unless, a result for which the condition is true is not stored (for example, when the result is null). Because this is the work of a proxy, it is not applied when the method is called with this from within the same class.</dd>
 <dt>Redis</dt>
 <dd>A key-value store that keeps data in memory. It provides not only strings but also data structures such as lists, hashes, sets, and sorted sets. It is very fast because it works in memory, and it is used for caches, session stores, distributed locks, leaderboards, rate limiting, and more. It runs commands one after another on a single thread.</dd>
 <dt>Distributed lock</dt>
 <dd><b>Where it's used today</b> — It is used to run a scheduler job that runs on several servers only once, or to put requests that arrive all at once, such as coupon issuing, into a line. In Java, libraries such as Redisson's RLock and ShedLock, for schedulers, are commonly used.</dd>
 <dd>A lock that lets only one process at a time perform a specific task among processes that run on several servers. Java's synchronized is valid only inside one server, so with several servers it is implemented by placing a &quot;lock marker&quot; in a store that all of them access (such as Redis). It is given an expiration time so that it is released even if the side that took it runs into a problem.</dd>
+<dt>Cache-aside pattern</dt>
+<dd><b>Where it's used today</b> — It is used with Redis for data that is read far more often than it is written, such as a product detail or a member profile. Adding Spring's @Cacheable and @CacheEvict makes it work in this order.</dd>
+<dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
+<dt>RedisTemplate</dt>
+<dd><b>Why it exists</b> — When you use a Redis client (Lettuce, Jedis) directly, you have to write every time the work of getting and returning a connection and of turning Java objects into bytes. RedisTemplate takes over this work, so you only call the methods that correspond to the commands.</dd>
+<dd><b>Where it's used today</b> — It is used for caches that are hard to express with @Cacheable (changing the TTL depending on a condition, or handling several keys at once), and where Redis data structures are used directly, such as counting views, limiting the number of requests, and leaderboards.</dd>
+<dd>RedisTemplate is a class provided by Spring Data Redis (RedisTemplate&lt;K, V&gt;) that lets Java code send Redis commands. You use the string-value commands through the ValueOperations returned by opsForValue(): get(key) reads a value (null if there is none), and set(key, value, Duration.ofSeconds(10)) stores it with a TTL. You use it after deciding the serialization method that turns keys and values into bytes, and Spring Boot creates a RedisTemplate bean whose keys and values are Object and a StringRedisTemplate bean only for strings. Unlike @Cacheable, you write in the code when to read and when to store.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — TTL 10s. Each time the value expires, several requests go to the database at the same time.</li>
-<li><b>Without a cache</b> — Every request queries the database.</li>
-<li><b>Many requests and a slow database</b> — At the moment of expiration, dozens of requests hit the database at the same time (a cache stampede).</li>
-<li><b>Same situation with the lock</b> — Only one request goes to the database, and the others wait for its result.</li>
-<li><b>Shorten the TTL to 5s</b> — The data is fresher, but there are more database queries.</li>
-<li><b>A long TTL</b> — The database is queried only when the cache is first filled. But a change in the source goes unnoticed for a long time.</li>
+<li><b>Default settings</b> — TTL 10s. Each time the value disappears, several requests that arrive before it is filled again go to the database at the same time.</li>
+<li><b>Without a cache</b> — Every request runs the method body and queries the database.</li>
+<li><b>Many requests and a slow database</b> — All 40 requests that arrive from the moment the value disappears until it is filled again query the database (a cache stampede).</li>
+<li><b>Writing only sync = true</b> — The pile-up stays. sync = true leaves the locking to the cache implementation, and the default RedisCacheWriter does not lock.</li>
+<li><b>With a locking writer</b> — Thanks to the lock key in Redis, only one request queries the database, and the others wait for its result.</li>
+<li><b>When the source changes</b> — Until the value in the cache disappears and is read again, requests receive the price from before the change.</li>
+<li><b>Shorten the TTL to 5s</b> — Fewer requests receive an old value, but there are more database queries.</li>
+<li><b>Not writing entryTtl</b> — The database is queried only when the cache is first filled, but every request after the change receives the old price.</li>
+<li><b>How it works underneath</b> — What @Cacheable did in the proxy is written directly in the method body. The result is the same as with @Cacheable, and the same pile-up happens.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>0.0s: The cache has no value (the first request). The request goes to the database to query it. It takes 1s for the result to come back.</li>
-<li>1.0s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 0.0s, all failed to find the value in the cache and each queried the database. The other requests store the same value again as their queries finish, so the TTL is counted from the last store (1.8s).</li>
-<li>11.8s: The TTL has passed, so the value in the cache was removed. From now on, requests that arrive will not find the value in the cache.</li>
-<li>11.8s: The cache has no value (right after expiration). The request goes to the database to query it. It takes 1s for the result to come back.</li>
-<li>12.8s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 11.8s, all failed to find the value in the cache and each queried the database. The other requests store the same value again as their queries finish, so the TTL is counted from the last store (13.6s).</li>
-<li>23.6s: The TTL has passed, so the value in the cache was removed. From now on, requests that arrive will not find the value in the cache.</li>
-<li>23.6s: The cache has no value (right after expiration). The request goes to the database to query it. It takes 1s for the result to come back.</li>
-<li>24.6s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 23.6s, all failed to find the value in the cache and each queried the database. The other requests store the same value again as their queries finish, so the TTL is counted from the last store (25.4s).</li>
+<li>0.0s: The cache has no value (the first request). The request runs the method body to query the database. It takes 1s for the result to come back.</li>
+<li>1.0s: The value read from the database was stored in the product cache in Redis (TTL 10s). Before it was stored, 5 requests, starting at 0.0s, all failed to find the value in the cache, so each ran the method body and queried the database. The other requests store the value again under the same key as their queries finish, so the TTL is counted from the last store (1.8s).</li>
+<li>11.8s: The TTL has passed, so the value in the cache was removed from Redis. From now on, requests that arrive will not find the value in the cache.</li>
+<li>11.8s: The cache has no value (right after expiration). The request runs the method body to query the database. It takes 1s for the result to come back.</li>
+<li>12.8s: The value read from the database was stored in the product cache in Redis (TTL 10s). Before it was stored, 5 requests, starting at 11.8s, all failed to find the value in the cache, so each ran the method body and queried the database. The other requests store the value again under the same key as their queries finish, so the TTL is counted from the last store (13.6s).</li>
+<li>23.6s: The TTL has passed, so the value in the cache was removed from Redis. From now on, requests that arrive will not find the value in the cache.</li>
+<li>23.6s: The cache has no value (right after expiration). The request runs the method body to query the database. It takes 1s for the result to come back.</li>
+<li>24.6s: The value read from the database was stored in the product cache in Redis (TTL 10s). Before it was stored, 5 requests, starting at 23.6s, all failed to find the value in the cache, so each ran the method body and queried the database. The other requests store the value again under the same key as their queries finish, so the TTL is counted from the last store (25.4s).</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>At the moment of expiration, all the requests that arrived before the cache was filled again (during 1s) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, or by refreshing the value before it expires. When many keys expire at the same time, give each key a slightly different TTL.</li>
-<li>The longer the TTL, the fewer the database queries, but even when the source data changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.</li>
+<li>From the moment the cache was empty until it was filled again (during 1s), all the requests that arrived ran the method body and went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede, and @Cacheable alone cannot prevent it. In Spring, you write @Cacheable(sync = true), and if the store is Redis, you make RedisCacheManager with lockingRedisCacheWriter so that only one request queries the database. When many keys expire at the same time, give each key a slightly different TTL.</li>
+<li>The longer the entryTtl, the fewer the database queries, but even when the source changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.</li>
 </ul>
 <h2>Code</h2>
-<pre>// Only one method is shown (class and field declarations, imports, and the example types and methods are omitted)
-public Product getProduct(long id) {
-    String key = &quot;product:&quot; + id;
-    Product cached = redis.get(key);
-    if (cached != null) return cached;          // cache hit
+<pre>// The import lines are omitted.
+// Provided by Spring Data Redis (spring-data-redis): RedisConnectionFactory, RedisCacheManager, RedisCacheConfiguration
+// Example classes we made (declarations omitted): Product, ProductRepository
 
-    Product p = productRepository.findById(id); // database query (1s)
-    redis.set(key, p, Duration.ofSeconds(10));  // TTL 10s
-    return p;
+// Turn the caching feature on and register as a bean a RedisCacheManager that uses Redis as the cache store
+@Configuration
+@EnableCaching
+class CacheConfig {
+    // connectionFactory: a bean that Spring Boot creates from the Redis connection settings (spring.data.redis.host and so on)
+    @Bean
+    RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        // A value in the product cache disappears from Redis 10 seconds after it is stored
+        RedisCacheConfiguration product = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(10));
+        // The default writer used by builder(connectionFactory) does not lock
+        return RedisCacheManager.builder(connectionFactory)
+                .withCacheConfiguration(&quot;product&quot;, product)
+                .build();
+    }
+}
+
+// An example product service we made
+@Service
+class ProductService {
+    private final ProductRepository productRepository;
+
+    ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    // Look for a value with key id in the product cache, and only when there is none, run the body and store the result
+    @Cacheable(cacheNames = &quot;product&quot;, key = &quot;#id&quot;)
+    public Product getProduct(long id) {
+        // Database query (1s)
+        return productRepository.findById(id).orElseThrow();
+    }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. The eviction policy, which removes old keys when the cache is full, is not covered here. With the lock, a waiting request is simplified to receive the value from the cache at the moment the query finishes. The numbers are a model that shows how the behavior works, and they are not values measured on a real Redis.</p>
+<p>Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. With the locking writer, a waiting request is simplified to receive the value at the moment the query finishes (in reality, it checks again every 50 milliseconds by default whether the lock key has disappeared). The eviction policy, which removes keys when the cache is full, is not covered here. What was actually run is the Spring side (spring-context 7.0.9). When 20 threads called with the same key at the same time on an empty cache, @Cacheable ran the body 20 times, sync = true with ConcurrentMapCacheManager ran it 1 time, and even with sync = true, a cache implementation that does not lock get(key, valueLoader) ran it 20 times (verify/spring/cache_probe.out.txt). The Redis server and spring-data-redis were not run. entryTtl, the fact that its default is never expires, the lock key and the lock scope (the whole cache) of lockingRedisCacheWriter, and the fact that since Spring Data Redis 3.4 the default writer does not lock were checked against the official documentation and the source (RedisCache, DefaultRedisCacheWriter). The times and counts are a model that shows how the behavior works, and they are not values measured on a real Redis.</p>
 <p>Previous lab: <a href="../../lab/scale/">Load balancers and scale out</a> · Next lab: <a href="../../lab/redis/">Redis single-threaded execution</a></p>
   </div>
 
@@ -183,6 +231,6 @@ public Product getProduct(long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

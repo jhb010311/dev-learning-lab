@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Annotations: What really happens when you just add an annotation with @? · Dev Learning Lab</title>
-<meta name="description" content="An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on mean…">
+<title>Annotations: What really happens when you just add an @? · Dev Learning Lab</title>
+<meta name="description" content="An annotation (a tag that starts with @, such as @Transactional, @Test, or @Override) is a tag that you put on code. The tag itself does nothing. It takes…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/annot/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Annotations: What really happens when you just add an annotation with @? · Dev Learning Lab">
-<meta property="og:description" content="An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on mean…">
+<meta property="og:title" content="Annotations: What really happens when you just add an @? · Dev Learning Lab">
+<meta property="og:description" content="An annotation (a tag that starts with @, such as @Transactional, @Test, or @Override) is a tag that you put on code. The tag itself does nothing. It takes…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/annot/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,11 +30,11 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Annotations</h1>
-<p><b>What really happens when you just add an annotation with @?</b></p>
-<p><b>Why it exists</b> — Before annotations, information such as &quot;this method is wrapped in a transaction&quot; or &quot;this class is saved to this table&quot; was written in a place separate from the code, such as an XML configuration file, or was expressed by a rule such as a method name starting with test. When you changed the code, it was hard to change the separate configuration along with it. An annotation writes that information right above the class or method concerned and lets a tool read it.</p>
-<p><b>Where it's used today</b> — It is commonly used in Spring to specify bean registration, injection, transactions, and request mapping, as with @Component, @Autowired, @Transactional, and @GetMapping. JPA's @Entity and JUnit's @Test are also annotations. To read an annotation you made yourself while the program is running, with reflection or Spring AOP, you must add @Retention(RetentionPolicy.RUNTIME).</p>
-<p>An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.</p>
-<p>Checked against real execution · 28 combinations were actually compiled and run on JDK 21 and checked against the results (including the contents of the class file and the result of reflection)</p>
+<p><b>What really happens when you just add an @?</b></p>
+<p><b>Why it exists</b> — Before annotations, information such as &quot;wrap this method in a transaction&quot; or &quot;this method is a test&quot; was written in a place apart from the code, such as an XML configuration file, or was expressed by a rule such as a method name that starts with test. When you changed the code, it was hard to change the separate configuration along with it. An annotation writes that information right above the class or method it concerns, and lets the compiler or a framework read it.</p>
+<p><b>Where it's used today</b> — Spring's @Transactional, @Component, and @GetMapping, JPA's @Entity, and JUnit's @Test are read by the framework with reflection while the program runs. Java's @Override, @FunctionalInterface, and @Deprecated are read by the compiler, which reports an error or a warning. The declaration of such an annotation carries @Retention and @Target, which decide how far the tag is kept and where it can be put.</p>
+<p>An annotation (a tag that starts with @, such as @Transactional, @Test, or @Override) is a tag that you put on code. The tag itself does nothing. It takes on meaning only when something reads it, and there are two main kinds of readers: the compiler (@Override, @FunctionalInterface, @Deprecated), and frameworks that read it with reflection while the program runs (Spring's @Transactional, JUnit's @Test). The @Retention on the declaration of each annotation decides how far the tag is kept: only in the source code (SOURCE), up to the class file (CLASS), or until run time (RUNTIME). That also decides who can read it.</p>
+<p>Checked against real execution · On the PC used to write this lab, 24 combinations were compiled and run with the code on the screen on JDK 21, Spring 7.0.9 (H2), and JUnit 6.0.3, and the result table, the compiler messages, the slot of the class file where the annotation was written, whether the object is a proxy and the number of transactions started and committed, and the number of tests JUnit found were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Annotation</dt>
@@ -44,64 +44,97 @@
 <dd><b>Where it's used today</b> — You rarely use it directly in application code; it is used when building frameworks, testing tools, and serialization libraries. If the same job can be done with interfaces and polymorphism, that way is safer because it gets compile-time type checking.</dd>
 <dd>This feature lets a running program inspect information about a class (its fields, methods, constructors, and annotations) and create objects or call methods by name. Spring's dependency injection, JPA's entity handling, and JSON serialization libraries all work on top of it. It is slower than a normal call and does not get compile-time type checking.</dd>
 <dt>@Retention and @Target</dt>
-<dd><b>Why it exists</b> — If there were no way to decide where each annotation may be attached and when it is kept, the compiler could not catch a marker meant for methods being attached to a class by mistake, and a marker meant only for the compiler would remain until run time. @Target and @Retention let the one who creates the annotation decide these two.</dd>
-<dd><b>Where it's used today</b> — You write them together when you create an annotation yourself. Spring's @Component and @Transactional also carry @Retention(RetentionPolicy.RUNTIME) and @Target, so Spring finds and reads these markers at run time.</dd>
-<dd>These are two annotations that you apply to a new annotation, when you create it, to set its properties. @Retention decides how far the annotation is retained. SOURCE retains it only in the source code, CLASS retains it up to the class file, and RUNTIME retains it until run time so that it can be read with reflection. When @Retention is not written, the policy is CLASS, so you must write RUNTIME on an annotation that will be read at run time. @Target decides where the annotation can be applied (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and applying it in a place that does not match is a compile-time error.</dd>
+<dd><b>Why it exists</b> — If there were no way to decide where each annotation can be put and how far it is kept, the compiler could not catch a tag meant for methods being put on a field by mistake, and a tag that only the compiler looks at would remain until run time. @Target and @Retention make whoever creates the annotation decide these two in the declaration.</dd>
+<dd><b>Where it's used today</b> — The side that uses an annotation usually does not write them. They are already written in the declarations of the annotations that Spring, JUnit, and Java provide, so whether it is read at run time (RUNTIME) and where it can be put are already decided. You write them together only when you make an annotation yourself.</dd>
+<dd>These are two annotations that you put on the declaration of an annotation to set the properties of that annotation. @Retention decides how far the tag is kept. SOURCE keeps it only up to the source code (@Override), CLASS keeps it up to the class file (Spring's @Contract), and RUNTIME keeps it until run time so that it can be read with reflection (@Transactional, @Test, @Deprecated). If you do not write it, it is CLASS. @Target decides where it can be put (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and putting it somewhere that does not match is a compile-time error. The declaration of @Transactional has @Target({ElementType.TYPE, ElementType.METHOD}) and @Retention(RetentionPolicy.RUNTIME).</dd>
+<dt>@Transactional</dt>
+<dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
+<dt>Proxy</dt>
+<dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
+<dt>@Test</dt>
+<dd><b>Why it exists</b> — Up to JUnit 3, a method whose name started with test was treated as a test, so method names had to be made to fit that rule. @Test makes tests be found by the attached marker regardless of the name, so you can name the method after what it checks.</dd>
+<dd><b>Where it's used today</b> — You put it above each method that is to be run as a test, and an IDE such as IntelliJ shows a run button next to a method with @Test. To run the same test several times with only the values changed, you attach @ParameterizedTest.</dd>
+<dd>@Test is an annotation that you put above a method to tell JUnit that the method is a test method. According to the documentation, a method with @Test must not be private or static, and must not return a value. JUnit counts a method that has @Test (or an annotation such as @RepeatedTest or @ParameterizedTest) as a test, so a method without the marker is not counted as a test even if its content looks like a test. In the JUnit 6.0.3 that was run, when a class that has a method without @Test was run, the number of tests found was 0, and the method was never run, with no error and no failure.</dd>
 <dt>@Override</dt>
-<dd><b>Why it exists</b> — Overriding happens silently as long as the name and parameters match, so if a parent method's name is later changed, the child method remains as a separate method, not an override, without any error. @Override writes the intent to override in the code, so that such a mismatch shows up as a compile error.</dd>
-<dd><b>Where it's used today</b> — You put it on a method when you override toString, equals, or hashCode, or implement a method of an interface. An IDE also writes it when it generates overriding code.</dd>
-<dd>This is an annotation that indicates that the method right below it overrides a method of a superclass or an interface. The compiler reads it and checks whether the method really overrides, and if it does not, the compiler reports a compile-time error. It catches the mistake of writing the wrong method name or parameters and so creating a new method that is not an override. A method overrides even without it, and the behavior of the program does not change either, but to prevent mistakes you always put it on a method that overrides. It is an annotation that is retained only in the source code, so it is not recorded in the class file.</dd>
-<dt>Overriding</dt>
-<dd><b>Why it exists</b> — When an inherited method does not fit a subclass, creating a new method with a different name means that code calling through the supertype still runs the old inherited behavior. Overriding redefines the method with the same signature so that the new behavior runs even when it is called through the supertype.</dd>
-<dd><b>Where it's used today</b> — It is used when you rewrite toString, equals, and hashCode to suit a class, and when you implement the methods of an interface. If you add @Override, the compiler catches the mistake of writing the name or parameters wrongly and ending up with a new method.</dd>
-<dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
+<dd><b>Why it exists</b> — Overriding happens quietly as long as the name and parameters match, so if the name of the parent's method is changed later, the child's method stays as a separate method that is not an override, with no error at all. @Override writes the intention to override in the code, so that such a mismatch shows up as a compile-time error.</dd>
+<dd><b>Where it's used today</b> — You put it when you override toString, equals, or hashCode, or when you implement a method of an interface. When an IDE generates overriding code for you, it writes it too.</dd>
+<dd>This is an annotation that shows that the method right below it overrides a method of a superclass or an interface. The compiler reads this tag and checks that it really overrides, and if not, it reports a compile-time error. It catches the mistake of misspelling the method name or its parameters and so creating a new method that does not override. It overrides even without it, and the behavior of the program does not change either, but to prevent mistakes you always put it on a method that overrides. It is an annotation that is kept only up to the source code, so it is not written to the class file.</dd>
+<dt>@Deprecated</dt>
+<dd><b>Why it exists</b> — If a library removes an old API right away, the code that was using it breaks all at once. Before removing it, @Deprecated sends the signal &quot;this will disappear soon, so switch to something else&quot; in advance as a compile warning, to give time to move over.</dd>
+<dd><b>Where it's used today</b> — It is on old APIs of Java and Spring (the constructor of Integer, old configuration methods, and so on), and you see it as a compile warning or as a strikethrough in a development tool. A library author uses it to announce an API that will change.</dd>
+<dd>This is an annotation provided by Java that marks something that you should no longer use. You put it on classes, methods, constructors, fields, and so on. since tells from when, and forRemoval tells whether it is planned to be removed. The compiler gives a warning when our code uses an API that has it. Because it has to be read from the class file of a library, its declaration has @Retention(RetentionPolicy.RUNTIME). For example, the constructor Integer(int) of Integer has @Deprecated(since = &quot;9&quot;, forRemoval = true), so compiling new Integer(5) gives the warning &quot;[removal] … has been deprecated and marked for removal&quot;. It is only a warning, so the behavior does not change.</dd>
+<dt>@FunctionalInterface</dt>
+<dd><b>Why it exists</b> — If someone adds one more abstract method to a functional interface, errors are scattered at every place that used the interface as a lambda, and it is hard to find the cause. @FunctionalInterface writes the meaning &quot;for lambdas&quot; in the declaration, so that such a change is blocked right at the place of the declaration.</dd>
+<dd><b>Where it's used today</b> — You put it on an interface that you made to be used as a lambda. It is on all the interfaces in the java.util.function package of the Java standard library.</dd>
+<dd>This is an annotation provided by Java that says this interface is a functional interface to be used as a lambda, that is, that it has exactly one abstract method. The compiler reads it, and if the number of abstract methods is not one, it reports the error &quot;Unexpected @FunctionalInterface annotation&quot; at the place where the interface is declared. Even without it, an interface with one abstract method can be used as a lambda, so it does not change the behavior. It is on Java's Runnable, Comparator, Function, and others.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — @Timed is applied and there is code that reads it, but nothing happens.</li>
-<li><b>Retaining it with RUNTIME</b> — The reading code finds the annotation and adds extra steps before and after work.</li>
-<li><b>With no code that reads it</b> — Nothing happens even though the annotation is retained until run time.</li>
-<li><b>With SOURCE</b> — The annotation is not retained even in the class file.</li>
-<li><b>Applied where it is not allowed</b> — @Target is TYPE, but the annotation is applied to a method. This is a compile-time error.</li>
-<li><b>A misspelled name without @Override</b> — The code compiles without an error, and the superclass method runs instead.</li>
-<li><b>@Override catches it</b> — The compiler reports the same mistake as an error.</li>
+<li><b>Default settings</b> — Spring read the tag and made a proxy, so order() runs inside a transaction.</li>
+<li><b>Create it with new</b> — The tag can be seen at run time too, but the object did not go through Spring, which reads it and acts, so there is no transaction.</li>
+<li><b>Without registering the reader</b> — The part that reads @Transactional and makes a proxy is not registered. The object you get from Spring is a plain OrderService, and there is no transaction.</li>
+<li><b>Methods JUnit finds</b> — JUnit uses reflection and finds only the methods that have @Test and runs them. subtracts() is not called, and there is no error.</li>
+<li><b>Three retention policies</b> — The only one you can see at run time is @Transactional, which is RUNTIME. @Contract remains in the class file but is not visible to reflection.</li>
+<li><b>@Target blocks it</b> — It is a compile-time error. The compiler reads the @Target written in the declaration of @Transactional and blocks it.</li>
+<li><b>@Override catches it</b> — The compiler reports it as an error. If you remove @Override, it compiles with no error and the parent's method runs instead.</li>
+<li><b>A constructor marked for removal</b> — The compiler reads the @Deprecated(forRemoval = true) that remains in Integer.class and gives a warning. It still compiles.</li>
+<li><b>Two abstract methods</b> — The compiler reports as an error, at the place of the declaration, that this has become an interface that cannot be used as a lambda.</li>
+<li><b>An annotation we made</b> — If you do not write @Retention, it is CLASS and cannot be seen at run time. To read it at run time, you have to write RUNTIME.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>Look at the declaration @interface Timed: This is the syntax for creating a new annotation named Timed. Inside the braces there is not a single line of code to run. An annotation is only information that says &quot;this mark is attached here&quot;. It does nothing by itself.</li>
-<li>No @Retention is written: @Retention is the setting that decides how far the annotation is retained. When it is not written, the default, CLASS, applies. CLASS means &quot;record the annotation in the class file, but do not make it visible at run time&quot;.</li>
-<li>The compiler checks the @Timed above the work method: @Target(ElementType.METHOD) means &quot;can be applied only to methods&quot;, and the annotation is applied to a method, so the check passes. It is the compiler that reads @Target and enforces it.</li>
-<li>The code is compiled and Service.class is produced: The @Timed annotation is recorded in the class file. However, it is recorded in the attribute that is &quot;not visible at run time&quot; (RuntimeInvisibleAnnotations).</li>
-<li>Service.class.getDeclaredMethod(&quot;work&quot;) runs: It gets the information about the work method with reflection. Reflection is a feature for examining, at run time, information such as the methods, fields, and annotations that a class has, and it is how frameworks read annotations.</li>
-<li>m.isAnnotationPresent(Timed.class) runs: It asks whether @Timed is present on work. The result is false. The annotation is in the class file, but the JVM does not make an annotation retained with CLASS visible to reflection. The cause is that @Retention was not written.</li>
-<li>found is false, so the reading code adds nothing: It only runs work with m.invoke(service). @Timed is clearly there in the source code, and yet to the reading code this is the same as a method with no annotation. No error occurs either.</li>
+<li>AppConfig and OrderService are classes made as examples. We added @Transactional, which Spring provides, above order(). The real declaration of @Transactional (spring-tx 7.0.9) has @Target({ElementType.TYPE, ElementType.METHOD}) and @Retention(RetentionPolicy.RUNTIME). That means it can be put on classes and methods, and the tag is kept until run time.</li>
+<li>javac compiles it: the compiler only checks that @Transactional is an annotation that may be put on a method (@Target) and passes it. It does nothing about transactions. It is RUNTIME, so the tag is written to RuntimeVisibleAnnotations (the slot that is visible at run time too) of OrderService.class.</li>
+<li>new AnnotationConfigApplicationContext(AppConfig.class): the Spring container reads the configuration class AppConfig. @EnableTransactionManagement is present, so the parts that find @Transactional and apply transactions are registered as beans. They are the auto-proxy creator (InfrastructureAdvisorAutoProxyCreator), which checks whether a proxy is needed when a bean is created, and the transaction advisor, which reads @Transactional.</li>
+<li>When it creates the orderService bean, Spring uses reflection to look at the annotations on the methods of OrderService. It finds @Transactional on order(), so it registers an object of a proxy class made by extending OrderService (OrderService$SpringCGLIB$0) as the bean. The proxy holds a reference to the original OrderService object, and when it receives a method call, it does the transaction work before and after and calls the method of the original object.</li>
+<li>order.isAnnotationPresent(Transactional.class) runs: this asks directly, with reflection, whether @Transactional is on order(). The result is true. It is RUNTIME, so the tag remains until run time. The check Spring made while creating the bean is based on the same reflection information (getDeclaredAnnotations).</li>
+<li>ctx.getBean(OrderService.class): you get the bean from Spring. The class of the object you got is OrderService$SpringCGLIB$0, that is, a proxy that Spring made.</li>
+<li>service.order() runs: service is a proxy. The proxy first starts a transaction with the transaction manager (DataSourceTransactionManager) and then calls order() of the original OrderService object. Inside it, isActualTransactionActive() is true. When order() ends, the proxy commits.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The annotation is applied and there is code that reads it, and yet nothing happens. The reason is that the annotation was not retained until run time. When you create an annotation that will be read with reflection at run time, always write @Retention(RetentionPolicy.RUNTIME). If you do not write it, the default is CLASS, so the annotation is silently ignored without an error.</li>
-<li>CLASS is for tools that read and process class files. A running program cannot read such an annotation itself.</li>
+<li>@Transactional does nothing by itself. When Spring creates the bean, it finds this tag with reflection, makes a proxy, and puts the start and commit of a transaction before and after the method. So that the tag remains until run time, the declaration of @Transactional has @Retention(RetentionPolicy.RUNTIME).</li>
 </ul>
 <h2>Code</h2>
-<pre>@Target(ElementType.METHOD)
-@interface Timed { }
+<pre>// AppConfig and OrderService are classes made as examples
+// The annotations and classes such as DriverManagerDataSource are provided by Spring
+@Configuration
+@EnableTransactionManagement
+class AppConfig {
+    @Bean
+    DataSource dataSource() {
+        return new DriverManagerDataSource(&quot;jdbc:h2:mem:annot&quot;);
+    }
 
-class Service {
-    @Timed
-    void work() {
-        System.out.println(&quot;work runs&quot;);
+    @Bean
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean
+    OrderService orderService() {
+        return new OrderService();
     }
 }
 
-// From here on, the code is inside main: the code that reads the annotation (the Main class, main declaration, and imports are omitted)
-Service service = new Service();
-Method m = Service.class.getDeclaredMethod(&quot;work&quot;);
-boolean found = m.isAnnotationPresent(Timed.class);
-System.out.println(&quot;@Timed visible: &quot; + found);
-if (found) System.out.println(&quot;[timing started]&quot;);
-m.invoke(service);
-if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
+class OrderService {
+    @Transactional
+    public void order() {
+        boolean inTx = TransactionSynchronizationManager.isActualTransactionActive();
+        System.out.println(&quot;order ran, in a transaction: &quot; + inTx);
+    }
+}
+
+// From here on, the code is inside main (the Main class, the main declaration, and imports are omitted)
+try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class)) {
+    Method order = OrderService.class.getMethod(&quot;order&quot;);
+    System.out.println(&quot;Is @Transactional visible: &quot; + order.isAnnotationPresent(Transactional.class));
+    OrderService service = ctx.getBean(OrderService.class);
+    System.out.println(&quot;Class of service: &quot; + service.getClass().getSimpleName());
+    service.order();
+}</pre>
 <h2>Assumptions of this model</h2>
-<p>The 28 combinations (24 on the @Timed side and 4 on the @Override side) were checked by actually compiling and running the code shown on the screen on JDK 21 in our test environment. For each combination, the following were checked directly: whether the code compiles, the line with the error, the compiler message, and the output, and also whether the annotation is recorded in the bytes of the generated class file (and if so, in which of the two attributes, RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) and the result of isAnnotationPresent in reflection. Settings that are hidden on the screen do not affect the result. The code on the screen omits the import statements (those from java.lang.annotation, and java.lang.reflect.Method) and the declaration of the main method. It was also checked that an annotation with @Target(ElementType.TYPE) compiles when it is applied to a class. The statement that a framework such as Spring reads annotations on the same principle as the &quot;reading&quot; code in this model is an explanation, and it was not verified by actually running a framework. Tools that read annotations at compile time and generate code (annotation processors) are not covered.</p>
+<p>Twenty-four combinations (@Transactional 8, @Test 2, retention policies 2, @Override 4, @Deprecated 2, @FunctionalInterface 4, and our own @Timed 2) were compiled and run on JDK 21 with the code on the screen as it is, and checked. For @Transactional, a real container was started with Spring 7.0.9 and an H2 in-memory database, and I also checked whether the object you get is a proxy, whether @EnableTransactionManagement registers the auto-proxy creator, and how many transactions were started and committed by one call to order() (counted with a listener attached to the transaction manager). @Test was run with the Launcher of JUnit 6.0.3, and the number of tests found and the number that passed were checked. The compiler messages were received in English, and in which slot of the class file (RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) an annotation was written was checked with javap -v. The @Retention and @Target of the standard annotations mentioned in the text, and the @Deprecated value on Integer(int), were read with reflection from libraries of the same versions and checked. The code on the screen omits the import statements and the Main class and main declaration (the @Test code shows the imports too). That Spring finds annotations based on getDeclaredAnnotations of Java reflection, that Spring's @Contract is made for static analysis tools to read, and that Spring Boot's auto-configuration takes the place of @EnableTransactionManagement are explanations written after reading the Spring documentation and source, and they were not checked by running. Tools that read annotations at compile time and generate code (annotation processors) are not covered.</p>
 <p>Previous lab: <a href="../../lab/enumtype/">Enum classes</a> · Next lab: <a href="../../lab/list/">ArrayList and LinkedList</a></p>
   </div>
 
@@ -194,6 +227,6 @@ if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

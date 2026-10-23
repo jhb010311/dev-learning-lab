@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>메시지 큐: 메시지 큐는 무엇이고, 직접 부르는 것과 무엇이 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 일을 적어 두는 줄입니다. 코드 칸은 세 줄입니다. 첫 줄의 주문 서버는 알림 서버에 시킬 일을 &quot;주문 N 알림&quot;이라는 짧은 글(메시지)로 적어 큐에 넣고, 결과를 받으면 바로 다음 일로 넘어갑니다(메시지를 보내는…">
+<meta name="description" content="메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 시킬 일을 적어 두는 줄입니다. 실제로는 RabbitMQ나 Kafka 같은 메시지 브로커(메시지를 받아 두었다가 넘겨 주는 서버)가 큐를 맡고, 스프링에서는 스프링 AMQP가 주는 RabbitTemplate과 @R…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/queue_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/queue_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/queue_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="메시지 큐: 메시지 큐는 무엇이고, 직접 부르는 것과 무엇이 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 일을 적어 두는 줄입니다. 코드 칸은 세 줄입니다. 첫 줄의 주문 서버는 알림 서버에 시킬 일을 &quot;주문 N 알림&quot;이라는 짧은 글(메시지)로 적어 큐에 넣고, 결과를 받으면 바로 다음 일로 넘어갑니다(메시지를 보내는…">
+<meta property="og:description" content="메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 시킬 일을 적어 두는 줄입니다. 실제로는 RabbitMQ나 Kafka 같은 메시지 브로커(메시지를 받아 두었다가 넘겨 주는 서버)가 큐를 맡고, 스프링에서는 스프링 AMQP가 주는 RabbitTemplate과 @R…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/queue_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,51 +32,96 @@
 <h1>메시지 큐</h1>
 <p><b>메시지 큐는 무엇이고, 직접 부르는 것과 무엇이 다른가</b></p>
 <p><b>왜 생겼나</b> — 한 서버가 다른 서버에 일을 직접 시키면, 상대가 일을 마칠 때까지 기다려야 하고, 상대가 꺼져 있으면 그 일은 실패해서 누군가 다시 보내 주지 않는 한 처리되지 않는다. 메시지 큐는 두 서버 사이에서 시킬 일을 메시지로 맡아 두어서, 일을 받는 쪽이 지금 켜져 있는지, 얼마나 바쁜지와 상관없이 시키는 쪽이 일을 넘길 수 있게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 주문이 끝난 뒤 보내는 알림 메일이나 문자, 올린 동영상의 변환처럼 시간이 걸리지만 바로 답하지 않아도 되는 일을 넘길 때 쓴다. 실제 서비스에서는 Kafka나 RabbitMQ 같은 제품을 쓰고, 일을 하는 서버를 여러 대 두어 같은 큐에서 나눠 꺼내게 하기도 한다. 결제 승인처럼 결과를 바로 받아야 다음으로 갈 수 있는 일은 큐 대신 요청을 직접 보낸다.</p>
-<p>메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 일을 적어 두는 줄입니다. 코드 칸은 세 줄입니다. 첫 줄의 주문 서버는 알림 서버에 시킬 일을 &quot;주문 N 알림&quot;이라는 짧은 글(메시지)로 적어 큐에 넣고, 결과를 받으면 바로 다음 일로 넘어갑니다(메시지를 보내는 쪽). 둘째 줄의 큐는 넣은 메시지를 넣은 차례대로 보관합니다. 셋째 줄의 알림 서버는 큐에서 메시지를 하나씩 꺼내 처리합니다(메시지를 받는 쪽). 이 실습은 큐 줄을 지우고 주문 서버가 알림 서버에 요청을 직접 보내게 하거나, 알림 서버가 주문 3건을 보내는 동안 꺼져 있다가 나중에 켜지게 해 가며, 주문 서버가 받는 결과와 알림이 처리되는 모습을 봅니다. 코드 칸은 실행한 프로그램의 소스가 아니라 무엇이 무엇을 하는지 적은 글이고, 실행에 쓴 큐는 이 실습을 위해 쓴 아주 작은 큐 서버입니다(Kafka나 RabbitMQ 같은 실제 제품이 아닙니다).</p>
-<p>실행으로 대조 · Node.js 24.18.0의 http 서버 둘(이 실습을 위해 쓴 작은 큐 서버와 직접 요청을 받는 알림 서버)과 주문 서버 역할의 프로그램으로 네 가지 조합을 실행해 대조. Kafka, RabbitMQ 같은 실제 제품은 실행하지 않음</p>
+<p><b>지금 어디에 쓰나</b> — 주문이 끝난 뒤 보내는 알림 메일이나 문자, 올린 동영상의 변환처럼 시간이 걸리지만 바로 답하지 않아도 되는 일을 넘길 때 쓴다. 실제 서비스에서는 RabbitMQ나 Kafka 같은 메시지 브로커가 큐를 맡고, 스프링에서는 RabbitMQ라면 RabbitTemplate으로 보내고 @RabbitListener로 받으며, Kafka라면 KafkaTemplate과 @KafkaListener를 쓴다. 일을 하는 서버를 여러 대 두어 같은 큐에서 나눠 받게 하기도 한다. 결제 승인처럼 결과를 바로 받아야 다음으로 갈 수 있는 일은 큐 대신 요청을 직접 보낸다.</p>
+<p>메시지 큐는 일을 시키는 서버와 일을 하는 서버 사이에 놓인, 시킬 일을 적어 두는 줄입니다. 실제로는 RabbitMQ나 Kafka 같은 메시지 브로커(메시지를 받아 두었다가 넘겨 주는 서버)가 큐를 맡고, 스프링에서는 스프링 AMQP가 주는 RabbitTemplate과 @RabbitListener로 RabbitMQ의 큐를 씁니다. 화면의 코드는 두 서버의 코드입니다. 주문 서버의 QueueConfig는 RabbitMQ에 이름이 order-created인 큐를 만듭니다(Queue는 스프링 AMQP가 주는 클래스입니다). 예시로 만든 OrderService의 order 메서드는 주문이 들어올 때마다 주문 번호를 rabbitTemplate.convertAndSend로 큐 order-created에 넣고 바로 돌아옵니다. 이렇게 큐에 넣는 짧은 데이터를 메시지라고 하고, order는 메시지를 보내는 쪽입니다. 알림 서버의 예시로 만든 Notifier 클래스에서 @RabbitListener(queues = &quot;order-created&quot;)가 붙은 handle 메서드는, 큐에 메시지가 오면 스프링이 불러 줍니다(메시지를 받는 쪽). 이 실습은 큐를 지우고 주문 서버가 스프링이 주는 RestClient로 알림 서버에 요청을 직접 보내게 하거나(이때 알림 서버는 @PostMapping(&quot;/notify&quot;) 메서드로 받습니다), 알림 서버가 주문 3건을 보내는 동안 꺼져 있다가 나중에 켜지게 해 가며, 주문 서버가 받는 결과와 알림이 처리되는 모습을 봅니다. 이 컴퓨터에는 RabbitMQ가 없어서, 큐를 쓰는 쪽의 실행은 RabbitMQ 역할을 대신하는 작은 실행용 모형으로 했습니다. 직접 부르는 쪽은 스프링 부트에서 실제로 실행했습니다.</p>
+<p>일부만 실행으로 확인 · 큐를 지우고 직접 부르는 두 조합은 Spring Boot 4.1.1과 Spring Framework 7.0.9(RestClient, @PostMapping)로 화면과 같은 소스를 컴파일해 실행(ResourceAccessException 확인). 큐를 쓰는 두 조합은 RabbitMQ와 spring-amqp가 없어 화면 코드를 공식 시그니처만 옮긴 대역과 컴파일만 했고, 동작은 RabbitMQ·스프링 AMQP 문서대로 만든 실행용 모형(Node.js)으로 돌려 대조(verify/net/cmp_queue_basic.js)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>메시지 큐</dt>
 <dd>보내는 쪽(생산자)과 받는 쪽(소비자) 사이에서 메시지를 보관했다가 전달하는 중간 저장소다. 생산자는 메시지를 넣고 바로 다음 일을 하며, 소비자는 자신의 속도로 꺼내 처리한다. 두 시스템이 서로를 직접 호출하지 않아 결합이 낮아지고, 순간적으로 몰린 요청을 쌓아 두었다가 처리할 수 있다.</dd>
+<dt>메시지 브로커</dt>
+<dd><b>왜 생겼나</b> — 생산자와 소비자가 서로 직접 연결하면 상대의 주소를 알아야 하고, 소비자를 늘리거나 바꿀 때마다 생산자도 고쳐야 한다. 메시지 브로커는 둘 사이에 따로 떠 있는 서버여서, 양쪽이 브로커의 주소만 알면 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 서버 여러 대가 RabbitMQ나 Kafka 같은 브로커 서버에 연결해 메시지를 보내고 받는다. 브로커를 직접 띄우지 않고 Amazon SQS처럼 클라우드에서 운영해 주는 큐 서비스를 쓰기도 한다.</dd>
+<dd>메시지 브로커는 생산자가 보낸 메시지를 받아 소비자에게 전달해 주는 중간 프로그램이다. RabbitMQ 튜토리얼은 RabbitMQ를 메시지를 받아서 전달하는 메시지 브로커라고 소개한다. 브로커는 받은 메시지를 큐에 보관하고, 같은 튜토리얼은 큐를 호스트의 메모리와 디스크가 허락하는 만큼 메시지를 보관하는 큰 완충 공간으로 설명한다. 생산자와 소비자는 서로 직접 연결하지 않고 브로커를 통해 메시지를 주고받는다.</dd>
+<dt>RabbitTemplate</dt>
+<dd><b>왜 생겼나</b> — RabbitMQ의 자바 클라이언트를 그대로 쓰면 연결과 채널을 열고 닫고, 객체를 바이트로 바꾸는 일을 매번 직접 해야 한다. RabbitTemplate은 이 일을 맡아, 큐 이름과 보낼 객체만 주면 되게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 주문을 저장한 뒤 rabbitTemplate.convertAndSend로 &quot;주문이 생겼다&quot;는 메시지를 큐에 넣고 바로 응답하는 식으로, 메일·알림·통계처럼 나중에 해도 되는 일을 다른 서버에 넘길 때 쓴다.</dd>
+<dd>RabbitTemplate은 스프링 AMQP(spring-rabbit)가 주는 클래스로, 스프링 애플리케이션에서 RabbitMQ에 메시지를 보낼 때 쓴다. rabbitTemplate.convertAndSend(&quot;order-created&quot;, no)처럼 부르면 자바 객체(여기서는 주문 번호)를 메시지로 바꿔, 기본 교환기를 거쳐 routing key가 &quot;order-created&quot;인 곳, 곧 이름이 order-created인 큐로 보낸다. RabbitMQ 문서에 따르면 기본 교환기는 모든 큐를 큐 이름과 같은 routing key로 묶어 두기 때문이다. 메시지를 보내고 바로 돌아오며, 받는 쪽이 그 메시지를 처리했는지는 기다리지 않는다. 스프링 부트는 RabbitMQ 라이브러리가 있으면 RabbitTemplate을 빈으로 만들어 주므로, 필요한 클래스에서 주입받아 쓴다.</dd>
+<dt>@RabbitListener</dt>
+<dd><b>왜 생겼나</b> — 큐에서 메시지를 받으려면 RabbitMQ에 연결해 받을 준비를 하고, 메시지가 올 때마다 바이트를 객체로 바꿔 처리하고, 끝났다고 알리는 일을 반복해야 한다. @RabbitListener는 이 일을 스프링에 맡기고 개발자는 메시지 하나를 처리하는 메서드만 쓰게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 알림 서버의 메서드에 @RabbitListener(queues = &quot;order-created&quot;)를 달아, 주문 서버가 넣은 주문 번호를 받을 때마다 알림 메일을 보내는 식으로 쓴다. Kafka를 쓰면 같은 자리에 @KafkaListener(topics = …)를 쓴다.</dd>
+<dd>@RabbitListener는 스프링 AMQP가 주는 애너테이션으로, 메서드 위에 @RabbitListener(queues = &quot;order-created&quot;)처럼 적으면 그 메서드가 큐 order-created의 메시지를 받는 쪽이 된다. 메시지가 오면 스프링이 메시지를 메서드의 매개변수 타입으로 바꿔 그 메서드를 부른다. 기본 설정(AUTO)에서는 메서드가 예외 없이 끝나면 스프링이 RabbitMQ에 처리를 마쳤다고 알리고, RabbitMQ는 그때 메시지를 큐에서 지운다. 받을 큐는 미리 있거나 Queue 빈으로 만들어 두어야 한다.</dd>
 <dt>생산자와 소비자</dt>
 <dd><b>왜 생겼나</b> — 일을 만드는 쪽이 처리까지 직접 하면, 처리가 느린 만큼 만드는 쪽도 멈춰 기다린다. 생산자와 소비자로 역할을 나누고 사이에 큐를 두면, 각자 자기 속도로 일하고 바쁠 때는 소비자만 늘려 더 많이 처리할 수 있다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 주문 서버가 생산자가 되어 &quot;주문 완료&quot; 메시지를 보내고, 알림 서버가 소비자가 되어 그 메시지를 받아 메일을 보내는 식으로 쓴다. 한 자바 프로그램 안에서도 BlockingQueue를 사이에 두고 스레드끼리 같은 방식으로 일을 나눈다.</dd>
 <dd>생산자(producer)는 메시지를 만들어 보내는 프로그램이고, 소비자(consumer)는 그 메시지를 받아 처리하는 프로그램이다. RabbitMQ 튜토리얼은 메시지를 보내는 프로그램을 producer, 메시지가 오기를 주로 기다리는 프로그램을 consumer라고 부르고, Kafka 문서는 이벤트를 쓰는 클라이언트 애플리케이션을 producer, 이벤트를 읽고 처리하는 쪽을 consumer라고 부른다. 큐를 사이에 두면 생산자는 큐에 메시지를 넣기만 하고, 소비자는 준비됐을 때 큐에서 꺼낸다. Kafka 문서는 둘이 서로를 모르는 채로 완전히 분리되어 있다고 설명한다.</dd>
-<dt>메시지 브로커</dt>
-<dd><b>왜 생겼나</b> — 생산자와 소비자가 서로 직접 연결하면 상대의 주소를 알아야 하고, 소비자를 늘리거나 바꿀 때마다 생산자도 고쳐야 한다. 메시지 브로커는 둘 사이에 따로 떠 있는 서버여서, 양쪽이 브로커의 주소만 알면 되게 한다.</dd>
-<dd><b>지금 어디에 쓰나</b> — 스프링 서버 여러 대가 RabbitMQ나 Kafka 같은 브로커 서버에 연결해 메시지를 보내고 받는다. 브로커를 직접 띄우지 않고 Amazon SQS처럼 클라우드에서 운영해 주는 큐 서비스를 쓰기도 한다.</dd>
-<dd>메시지 브로커는 생산자가 보낸 메시지를 받아 소비자에게 전달해 주는 중간 프로그램이다. RabbitMQ 튜토리얼은 RabbitMQ를 메시지를 받아서 전달하는 메시지 브로커라고 소개한다. 브로커 안에는 메시지를 보관하는 큐가 있고, 같은 튜토리얼은 큐를 호스트의 메모리와 디스크가 허락하는 만큼 메시지를 담는 큰 완충 공간으로 설명한다. 생산자와 소비자는 서로 직접 연결하지 않고 브로커를 통해 메시지를 주고받는다.</dd>
+<dt>ResourceAccessException</dt>
+<dd><b>왜 생겼나</b> — 다른 서버를 부르는 호출은 네트워크 때문에 실패할 수 있는데, 어떤 HTTP 클라이언트 라이브러리를 쓰느냐에 따라 그 오류의 종류가 다르다. 스프링은 이를 한 가지 예외로 던져서, 호출하는 코드가 라이브러리와 상관없이 &quot;응답을 얻지 못했다&quot;를 한 곳에서 받게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 다른 서버를 부르는 코드에서 catch (ResourceAccessException e)로 받아, 다시 보내거나 기본값을 쓰거나 사용자에게 잠시 뒤 다시 하라고 알린다. 실패가 이어지면 서킷 브레이커가 이 예외를 세어 한동안 호출을 멈추게 하기도 한다.</dd>
+<dd>ResourceAccessException은 RestClient로 다른 서버를 부르다가 입출력 오류가 나서 응답을 얻지 못했을 때 스프링(spring-web)이 던지는 예외이다. 상대 서버가 꺼져 있어 연결이 거절되거나, 정해 둔 타임아웃이 지나 기다림을 끊었을 때가 그렇다. RestClientException을 물려받은 RuntimeException이라 catch를 강제하지 않으며, 실제로 무슨 일이 있었는지는 getCause()로 본다. 이 실습의 실행에서는 연결이 거절되면 원인이 java.net.ConnectException, 읽기 타임아웃에 걸리면 java.net.SocketTimeoutException이었다. 상대가 답은 했지만 404나 500처럼 오류 상태 코드로 답한 경우는 이 예외가 아니라 HttpClientErrorException이나 HttpServerErrorException으로 온다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 주문 서버는 메시지를 큐에 넣고 바로 결과를 받습니다. 알림 서버가 그 뒤에 넣은 차례대로 꺼내 처리합니다.</li>
-<li><b>큐 없이 직접 부르면</b> — 주문 서버는 알림 서버가 처리를 마칠 때까지 기다린 뒤에야 결과를 받습니다.</li>
-<li><b>직접 부르는데 알림 서버가 꺼져 있으면</b> — 요청 3건이 모두 실패하고, 알림 서버가 켜져도 처리할 알림이 없습니다.</li>
+<li><b>처음 설정으로</b> — 주문 서버의 convertAndSend는 메시지를 큐에 넣고 바로 돌아옵니다. 알림 서버의 @RabbitListener 메서드가 그 뒤에 넣은 차례대로 받아 처리합니다.</li>
+<li><b>큐 없이 직접 부르면</b> — 주문 서버는 알림 서버가 처리를 마치고 답할 때까지 기다린 뒤에야 결과를 받습니다.</li>
+<li><b>직접 부르는데 알림 서버가 꺼져 있으면</b> — 요청 3건이 모두 ResourceAccessException으로 실패하고, 알림 서버가 켜져도 처리할 알림이 없습니다.</li>
 <li><b>큐에 넣는데 알림 서버가 꺼져 있으면</b> — 주문 3건은 성공하고, 메시지는 큐에 남아 있다가 알림 서버가 켜진 뒤 처리됩니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>주문 서버가 주문 3건을 차례로 받습니다. 코드 칸의 첫 줄대로, 주문 서버는 주문을 받을 때마다 알림 서버에 시킬 일을 &quot;주문 N 알림&quot;이라는 짧은 글로 적어 큐에 넣습니다. 이 짧은 글을 메시지라고 합니다. 큐는 메시지를 넣은 차례대로 보관하는 줄이고, 알림 서버는 큐에서 메시지를 꺼내 처리합니다. 알림 서버는 지금 켜져 있고, 켜질 때 큐는 비어 있었습니다. 알림 서버는 0.1초마다 큐를 들여다보고 메시지가 있으면 꺼냅니다. 알림 하나를 처리하는 데는 이 실행에서 0.3초가 걸리게 했습니다.</li>
-<li>주문 서버가 &quot;주문 1 알림&quot; 메시지를 큐에 넣는 요청을 보냅니다. 큐가 메시지를 맨 뒤에 보관하고 &quot;넣었다&quot;고 답합니다. 주문 서버는 이 답을 받는 즉시 이 주문의 결과(성공)를 받고 다음 주문으로 넘어갑니다. 알림 서버가 이 메시지를 처리했는지는 이 답에 들어 있지 않습니다. 큐에 쌓인 메시지는 1건입니다.</li>
-<li>주문 서버가 &quot;주문 2 알림&quot; 메시지를 큐에 넣고, 큐가 &quot;넣었다&quot;고 답하자 결과(성공)를 바로 받습니다. 큐에 쌓인 메시지는 2건입니다.</li>
-<li>주문 서버가 &quot;주문 3 알림&quot; 메시지를 큐에 넣고, 큐가 &quot;넣었다&quot;고 답하자 결과(성공)를 바로 받습니다. 큐에 쌓인 메시지는 3건입니다.</li>
-<li>주문 서버는 주문 3건의 결과를 모두 받았습니다. 알림 서버는 켜져 있지만 0.1초마다 큐를 들여다보고, 알림 하나를 처리하는 데 0.3초가 걸립니다. 그래서 주문 서버가 결과를 모두 받은 때 알림은 아직 하나도 처리되지 않았고, 메시지 3건이 큐에서 차례를 기다립니다. 주문 서버는 이 알림들이 언제 끝나는지 알 수 없습니다.</li>
-<li>알림 서버가 큐에서 맨 앞 메시지 &quot;주문 1 알림&quot;을 꺼내 처리합니다(0.3초). 큐에는 2건이 남습니다. 메시지는 넣은 차례대로 꺼내집니다.</li>
-<li>알림 서버가 큐에서 다음 메시지 &quot;주문 2 알림&quot;을 꺼내 처리합니다. 큐에는 1건이 남습니다.</li>
-<li>알림 서버가 큐에서 다음 메시지 &quot;주문 3 알림&quot;을 꺼내 처리합니다. 큐에는 0건이 남습니다. 알림 3건이 모두 처리되었습니다. 처리된 차례는 주문 1, 주문 2, 주문 3으로 넣은 차례와 같습니다.</li>
+<li>주문 서버가 주문 3건을 차례로 받습니다. 주문이 들어올 때마다 OrderService의 order 메서드가 불리고, order는 알림 서버에 시킬 일을 rabbitTemplate.convertAndSend(&quot;order-created&quot;, no)로 보냅니다. 보내는 것은 주문 번호 하나이고, 이렇게 보내는 짧은 데이터를 메시지라고 합니다. 메시지가 가는 곳은 알림 서버가 아니라 RabbitMQ의 큐 order-created입니다. 큐는 메시지를 넣은 차례대로 보관하고, 알림 서버에서는 @RabbitListener(queues = &quot;order-created&quot;)가 붙은 handle 메서드가 큐의 메시지를 하나씩 받습니다. handle을 부르는 것은 우리 코드가 아니라 스프링입니다. 알림 서버는 지금 켜져 있고, 켜질 때 큐는 비어 있었습니다. 알림 하나를 보내는 데는 이 실행에서 0.3초가 걸리게 했습니다.</li>
+<li>order(1)이 convertAndSend로 주문 번호 1을 큐 order-created에 보내고, 큐가 이 메시지를 맨 뒤에 보관합니다. convertAndSend는 메시지를 보내고 바로 돌아오므로, order는 알림이 처리되기를 기다리지 않고 끝나고 이 주문의 결과는 성공입니다. 이 결과는 메시지를 큐에 보냈다는 뜻이고, 알림이 처리됐다는 뜻이 아닙니다. 큐는 기다리고 있던 알림 서버의 handle에 이 메시지를 바로 넘겨 주고, handle이 &quot;주문 1 알림&quot; 처리를 시작합니다. 메시지는 처리를 마쳤다는 확인을 받을 때까지 큐에서 지워지지 않으므로, 큐에 있는 메시지는 1건입니다.</li>
+<li>order(2)가 주문 번호 2번을 큐에 보내고 바로 끝나, 이 주문의 결과(성공)를 받습니다. 큐에 있는 메시지는 2건입니다.</li>
+<li>order(3)이 주문 번호 3번을 큐에 보내고 바로 끝나, 이 주문의 결과(성공)를 받습니다. 큐에 있는 메시지는 3건입니다.</li>
+<li>주문 서버는 주문 3건의 결과를 모두 받았습니다. 그때 알림은 아직 하나도 처리되지 않았습니다. &quot;주문 1 알림&quot;은 handle이 처리하는 중이고(0.3초), 주문 번호 2와 3은 큐에서 차례를 기다립니다. 주문 서버는 이 알림들이 언제 끝나는지 알 수 없습니다.</li>
+<li>handle이 &quot;주문 1 알림&quot; 처리를 끝냅니다(0.3초). handle이 예외 없이 끝나면 스프링이 RabbitMQ에 처리를 마쳤다고 알리고(확인), 그때 주문 번호 1 메시지가 큐에서 지워집니다. 큐는 다음 메시지인 주문 번호 2를 넘겨 주고, 큐에는 2건이 남습니다. 메시지는 넣은 차례대로 넘어옵니다.</li>
+<li>handle이 &quot;주문 2 알림&quot; 처리를 끝내고, 주문 번호 2 메시지가 큐에서 지워집니다. 큐에는 1건이 남습니다. 큐는 다음 메시지인 주문 번호 3번 메시지를 넘겨 줍니다.</li>
+<li>handle이 &quot;주문 3 알림&quot; 처리를 끝내고, 주문 번호 3 메시지가 큐에서 지워집니다. 큐가 비었습니다. 알림 3건이 모두 처리되었습니다. 처리된 차례는 주문 1, 주문 2, 주문 3으로 넣은 차례와 같습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>메시지 큐는 주문 서버와 알림 서버 사이에 놓인, 일을 적어 두는 줄입니다. 주문 서버는 메시지를 큐에 넣기만 하고 바로 결과를 받았고, 알림 서버는 자기 속도로 큐에서 넣은 차례대로 꺼내 처리했습니다.</li>
-<li>대신 주문 서버가 결과를 받은 때 알림은 아직 하나도 처리되지 않았습니다. 성공은 큐에 넣었다는 뜻일 뿐이어서, 주문 서버는 알림이 언제 끝나는지 바로 알 수 없습니다.</li>
+<li>메시지 큐는 주문 서버와 알림 서버 사이에 놓인, 시킬 일을 적어 두는 줄입니다. 코드에서는 보내는 쪽의 rabbitTemplate.convertAndSend(&quot;order-created&quot;, no)와 받는 쪽의 @RabbitListener(queues = &quot;order-created&quot;)가 같은 큐 이름으로 이어져 있고, 주문 서버의 코드에는 알림 서버의 주소가 없습니다. 주문 서버는 메시지를 큐에 보내기만 하고 바로 결과를 받았고, 알림 서버는 자기 속도로 넣은 차례대로 받아 처리했습니다.</li>
+<li>대신 주문 서버가 결과를 받은 때 알림은 아직 하나도 처리되지 않았습니다. 성공은 큐에 보냈다는 뜻일 뿐이어서, 주문 서버는 알림이 언제 끝나는지 바로 알 수 없습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre># 주문 서버: 주문마다(3건) &quot;주문 N 알림&quot; 메시지를 큐에 넣는다
-# 큐: 메시지를 넣은 차례대로 보관한다
-# 알림 서버: 큐에서 하나씩 꺼내 처리한다</pre>
+<pre>// 주문 서버의 코드 (import 줄과 실행 클래스는 생략)
+// 큐를 만든다: Queue는 스프링 AMQP가 주는 클래스
+@Configuration
+class QueueConfig {
+    @Bean
+    Queue orderCreatedQueue() {
+        // RabbitMQ에 이름이 order-created인 큐를 만든다
+        return new Queue(&quot;order-created&quot;);
+    }
+}
+
+// 예시로 만든 주문 서비스
+@Service
+class OrderService {
+    // 메시지를 보내는 도구: 스프링 AMQP가 주는 RabbitTemplate
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
+    // 주문이 들어올 때마다 불린다(이 실습은 주문 1, 2, 3을 차례로)
+    void order(int no) {
+        // 큐 order-created에 주문 번호를 메시지로 넣고 바로 돌아온다
+        rabbitTemplate.convertAndSend(&quot;order-created&quot;, no);
+    }
+}
+
+// 알림 서버의 코드 (import 줄과 실행 클래스는 생략)
+// 예시로 만든 알림 담당 클래스
+@Component
+class Notifier {
+    // 받기: 큐 order-created에 메시지가 오면 스프링이 이 메서드를 부른다
+    @RabbitListener(queues = &quot;order-created&quot;)
+    void handle(int no) {
+        // 알림을 보낸다(메일·문자를 보내는 일 대신 화면에 찍는다)
+        System.out.println(&quot;주문 &quot; + no + &quot; 알림 보냄&quot;);
+    }
+}</pre>
 <h2>이 모형의 전제</h2>
-<p>네 가지 조합을 모두 검증 실행에서 127.0.0.1 안에서만 실제로 돌려 대조했습니다. 외부 네트워크에는 연결하지 않았고 새로 내려받은 것도 없습니다. 실행에 쓴 큐는 이 실습을 위해 Node.js 24.18.0의 http 서버로 쓴 아주 작은 큐 서버입니다. 메모리의 배열 하나에 메시지를 넣는 요청과 맨 앞 메시지를 꺼내는 요청, 두 가지만 받고, Kafka나 RabbitMQ 같은 실제 메시지 큐 제품이 아닙니다(검증 실행에는 그런 제품을 설치해 쓰지 않았습니다). 그래서 이 실습이 보이는 것은 &quot;큐가 하는 일&quot;의 가장 단순한 모양이고, 실제 제품의 동작을 확인한 것이 아닙니다. 주문 서버 역할의 프로그램은 주문 3건을 앞 주문의 결과를 받은 뒤에 다음 주문을 보내는 식으로 차례로 보냅니다. 큐에 넣는 조합에서는 큐 서버에 넣는 요청을 보내고 그 답을 결과로 삼으며, 직접 부르는 조합에서는 알림 서버에 요청을 보내 처리가 끝난 뒤의 답을 결과로 삼습니다. 알림 서버는 직접 요청을 받는 http 서버이거나(직접 부르는 조합), 0.1초마다 큐 서버에서 메시지 하나를 꺼내 처리하는 반복(큐에 넣는 조합)이고, 어느 쪽이든 알림 하나를 처리하는 데 0.3초가 걸리게 했으며 한 번에 하나씩 처리합니다. 0.1초와 0.3초는 이 실습에서 정한 값입니다. 알림 서버가 꺼져 있다가 켜지는 조합은 주문 3건의 결과를 모두 받은 뒤에 알림 서버를 켰고, 꺼져 있는 동안 그 번호에는 기다리는 프로그램이 없었습니다. 실행 프로그램은 화면의 코드와 같은 글을 만들어 읽고(몇 건인지, 큐 줄이 있는지, 알림 서버가 어떻게 받는지, 꺼져 있다가 켜지는지) 그 내용대로 띄웠습니다. 대조한 것은 주문 서버가 받은 결과(성공이나 실패, 그리고 알림 처리가 끝난 뒤에 결과를 받았는지 끝나기 전에 받았는지를 사건이 일어난 순서 기록으로 판단), 처리된 알림과 그 차례, 알림 서버가 켜질 때 큐에 있던 메시지 수이고, 큐에서 꺼낸 차례가 넣은 차례와 같았다는 것, 꺼져 있는 알림 서버에 직접 보낸 요청은 연결 거부 오류(ECONNREFUSED)로 모두 실패하고 알림 서버가 켜진 뒤 1초를 지켜봐도 처리된 알림이 없었다는 것도 확인했습니다. 큐에 넣는 조합에서 주문 서버가 결과를 모두 받은 때 큐에는 메시지 3건이 있었는데, 이것은 알림 서버가 켜져 있어도 0.1초마다 큐를 들여다보게 만든 이 실행의 구조 때문입니다. 알림 서버가 켜질 때 큐가 비어 있었다는 것은 이 실행에서 알림 서버를 주문보다 먼저 켰기 때문입니다. 문서로 확인한 것은 RabbitMQ 튜토리얼 1(Hello World)의 Introduction(보내는 프로그램은 producer, 메시지가 오기를 주로 기다리는 프로그램은 consumer, 큐는 메시지를 담는 우체통 같은 것이고 사실상 큰 메시지 완충 공간이며, RabbitMQ는 메시지를 받아서 전달하는 메시지 브로커라는 정의)과 Apache Kafka 문서 Introduction 쪽(https://kafka.apache.org/intro의 Main Concepts and Terminology: producer는 이벤트를 쓰는 클라이언트 애플리케이션, consumer는 이벤트를 읽고 처리하는 쪽이며 둘은 서로를 모르는 채로 완전히 분리되어 있다는 설명)입니다. 문서는 WebFetch가 돌려준 인용문으로 확인했고(페이지 전체를 직접 읽지는 않았습니다) 절 번호는 따로 없습니다. 화면에서 줄인 것이 많습니다. 주문 서버가 메시지를 큐에 넣는 일과 큐가 받아 두는 일은 하나의 요청과 답으로 줄였고, 그 답이 &quot;받아 두었다&quot;는 것만 알려 줄 뿐 알림이 처리됐는지는 알려 주지 않는 것은 이 작은 큐 서버를 그렇게 만들어서 나온 동작입니다. 실제 제품은 메시지를 처리한 쪽이 처리했다고 알리는 확인 응답, 큐를 디스크에 보관하는 것, 큐 자체가 꺼지는 경우, 메시지가 사라지거나 두 번 전달되는 경우, 소비자를 여럿 두었을 때의 순서와 분배, 실패한 처리를 다시 하는 것을 다루는데, 이 실습은 그중 어느 것도 보지 않았습니다. 이런 세부는 &quot;세부 동작 실습: 메시지 큐 기본&quot;, &quot;세부 동작 실습: Kafka 파티션과 컨슈머&quot;, &quot;세부 동작 실습: Saga와 Outbox&quot;에서 다룹니다. 큐가 어울리는 일과 직접 부르는 것이 어울리는 일을 가르는 기준(결과가 바로 필요한가)도 이 실습은 판단하지 않았습니다. 브라우저는 쓰지 않았고, 알림 서버 하나와 주문 서버 하나만 두었습니다.</p>
+<p>검증은 두 갈래로 했습니다. 첫째, 큐를 지우고 직접 부르는 두 조합은 Spring Boot 4.1.1(내장 톰캣)과 Spring Framework 7.0.9를 JDK 21.0.12.1에서 실제로 실행했습니다. 화면의 코드와 같은 소스(package와 import 줄만 더하고, localhost:8081의 8081만 빈 포트 번호로 바꿈)를 javac로 컴파일한 뒤, 알림 서버는 Notifier를 스프링 부트로 127.0.0.1에 띄우고, 주문 서버는 OrderService 빈의 order(1), order(2), order(3)을 차례로 불렀습니다. 켜져 있는 조합에서는 매번 handle이 &quot;주문 N 알림 보냄&quot;을 찍은 뒤에야 order가 끝났고, 꺼져 있는 조합에서는 order가 세 번 모두 ResourceAccessException(원인 java.net.ConnectException)으로 끝났으며, 같은 번호에 알림 서버를 띄운 뒤 1초를 지켜봐도 handle은 한 번도 불리지 않았습니다. 이 실행의 handle은 기다리지 않고 바로 끝나므로, 직접 부를 때의 0.3초는 아래 실행용 모형에서 잰 값입니다. 둘째, 큐를 쓰는 두 조합은 RabbitMQ를 실행하지 않았습니다. 이 컴퓨터에는 RabbitMQ와 스프링 AMQP 라이브러리가 없고, 내려받지 않았습니다. 화면의 Queue, RabbitTemplate.convertAndSend(String, Object), @RabbitListener(queues = …)는 Spring AMQP 4.1.2의 API 문서와 공식 소스에서 이름·인자·타입만 옮긴 대역과 함께 javac로 컴파일만 해 보았습니다. 동작은 RabbitMQ 역할을 대신하는 실행용 모형(Node.js 24.18.0의 작은 http 서버)으로 127.0.0.1 안에서 돌렸습니다. 모형은 문서가 정한 동작만 따르게 만들었습니다. 주문 서버가 처음 연결할 때 QueueConfig의 큐를 만들고, convertAndSend(&quot;order-created&quot;, no)는 기본 교환기를 거쳐 이름이 같은 큐에 들어가며, 보내는 쪽은 처리를 기다리지 않고 돌아옵니다. 큐는 기다리고 있는 받는 쪽에 넣은 차례대로 메시지를 넘겨 주고(받는 쪽이 들여다보는 것이 아니라 큐 쪽이 넘겨 주는 방식), handle이 예외 없이 끝나 처리를 마쳤다는 확인이 와야 그 메시지를 지웁니다. 모형의 받는 쪽은 한 번에 하나만 받는데, 스프링 AMQP의 기본 설정(prefetch 250)은 여러 건을 미리 받아 두고 하나씩 처리합니다. 처리 차례와, 확인 전까지 큐의 메시지 수에 드는 것은 같습니다. 알림 하나에 0.3초는 이 실습에서 정한 값입니다. 모형에서 대조한 것은 결과 표 세 열, 넣은 차례·넘겨준 차례·지운 차례가 같았다는 것, 주문 서버가 결과를 모두 받은 때 큐에 메시지 3건(처리 중인 1건 포함)이 있었다는 것, 알림 서버가 켜지기 전에는 아무것도 넘겨주지 않았다는 것입니다. handle(int no)가 Integer로 온 주문 번호를 int로 받는 것은 실행해 보지 않았고, 스프링 AMQP 소스에서 기본 변환기가 숫자와 문자열은 따로 허용 목록 없이 되살린다는 것까지만 확인했습니다. 문서로 확인한 것: RabbitMQ의 AMQP 0-9-1 Model Explained(https://www.rabbitmq.com/tutorials/amqp-concepts. 기본 교환기는 모든 큐를 큐 이름과 같은 routing key로 묶는다, 받는 쪽에 넘겨 주는 방식을 권한다, 브로커는 확인을 받아야 메시지를 큐에서 완전히 지운다, 어느 큐로도 가지 못한 메시지는 버려지거나 보낸 쪽에 돌려보내진다), RabbitMQ 튜토리얼 1의 Spring AMQP판(convertAndSend로 보내고 @RabbitListener(queues = &quot;hello&quot;)로 받는 예), Spring AMQP 4.1.2 API(convertAndSend(String routingKey, Object message)는 기본 교환기로 그 routing key를 붙여 보낸다, Queue(String name)은 durable·non-exclusive·non auto-delete, @RabbitListener의 queues)와 참조 문서의 Message Listener Container Configuration(acknowledgeMode는 AUTO가 기본이고 리스너가 예외를 던지지 않으면 컨테이너가 확인을 보낸다, prefetchCount 기본 250), Spring Boot 참조 문서 Messaging의 AMQP 절(Queue 빈은 RabbitMQ에 그 큐를 만드는 데 쓰인다, @RabbitListener를 단 빈이 리스너가 된다)과 RabbitAutoConfiguration API(RabbitTemplate을 빈으로 등록한다)입니다. 2026-10-23에 WebFetch가 돌려준 내용으로 확인했고, 페이지 전체를 직접 읽지는 않았습니다. KafkaTemplate과 @KafkaListener는 이 실습에서 다루지 않았습니다. 화면에서 줄인 것: 두 서버의 import 줄과 실행 클래스(@SpringBootApplication이 붙은 main 클래스), RabbitMQ에 연결하는 설정(spring.rabbitmq.host 등)은 보이지 않습니다. 이 실습이 보지 않은 것: 큐를 디스크에 보관하는 것과 RabbitMQ 자체가 꺼지는 경우, 확인 전에 받는 쪽이 꺼졌을 때 다시 넘겨주는 것, 메시지가 두 번 전달되는 경우, 받는 쪽을 여럿 두었을 때의 순서와 분배, 실패한 처리를 다시 하는 것, RestClient의 타임아웃입니다. 이런 세부는 &quot;세부 동작 실습: 메시지 큐 기본&quot;, &quot;세부 동작 실습: Kafka 파티션과 컨슈머&quot;, &quot;세부 동작 실습: Saga와 Outbox&quot;에서 다룹니다. 큐가 어울리는 일과 직접 부르는 것이 어울리는 일을 가르는 기준(결과가 바로 필요한가)도 이 실습은 판단하지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/cache_basic/">캐시</a> · 다음 실습: <a href="../../lab/deploy_basic/">배포</a></p>
   </div>
 
@@ -169,6 +214,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

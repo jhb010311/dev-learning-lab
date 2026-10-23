@@ -20,7 +20,7 @@ Lab.register({
     { t: '짧은 액세스 토큰 + 리프레시 토큰', q: '리프레시 토큰을 함께 쓰는 JWT로 바꾸고 액세스 토큰 만료 시간을 15분으로 줄인 채 25분에 관리자가 강제 로그아웃시키면', d: '15분마다 재발급합니다. 강제 로그아웃이 늦어도 15분 안에 먹힙니다.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
   ],
   code: function (c) {
-    if (c.mode === 'local' || c.mode === 'redis') return (c.mode === 'redis' ? '// spring-session-data-redis 의존성을 추가하면\n// 세션이 서버 메모리 대신 Redis에 저장된다\n\n' : '') + '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)\n\n// 로그인 성공 시\nHttpSession session = request.getSession();\nsession.setAttribute("memberId", member.getId());\n// 응답 헤더: Set-Cookie: JSESSIONID=abc123; HttpOnly\n\n// 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다\nHttpSession session = request.getSession(false);\nif (session == null) {\n    throw new UnauthorizedException();   // 예시로 만든 예외 -> 401\n}';
+    if (c.mode === 'local' || c.mode === 'redis') return (c.mode === 'redis' ? '// spring-session-data-redis 의존성을 추가하면\n// 세션이 서버 메모리 대신 Redis에 저장된다\n\n' : '') + '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)\n\n// 로그인 성공 시\nHttpSession session = request.getSession();\nsession.setAttribute("memberId", member.getId());\n// 응답 헤더: Set-Cookie: JSESSIONID=abc123; HttpOnly\n\n// 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다\nHttpSession session = request.getSession(false);\nif (session == null) {\n    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);   // 스프링이 주는 예외 -> 401 응답\n}';
     return '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)\n\n// 로그인 성공 시: 서명한 토큰을 만들어 응답으로 준다\nString access = Jwts.builder()\n    .subject(memberId)\n    .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(' + c.exp + '))))   // 만료: 지금부터 ' + c.exp + '분 뒤\n    .signWith(key)\n    .compact();\n' + (c.mode === 'refresh' ? '// createRefreshToken은 예시로 만든 메서드 (14일짜리 토큰을 만들고 서버 저장소에도 저장)\nString refresh = createRefreshToken();\n' : '') +
       '\n// 이후 요청마다: 서명과 만료만 확인한다 (저장소 조회 없음)\nClaims claims = Jwts.parser()\n    .verifyWith(key).build()\n    .parseSignedClaims(token)          // 만료됐으면 예외 -> 401\n    .getPayload();' + (c.mode === 'refresh' ? '\n\n// 401을 받으면 클라이언트가 리프레시 토큰으로 재발급 요청\n// 서버는 저장소에서 리프레시 토큰이 유효한지 확인한다' : '');
   },
@@ -95,5 +95,5 @@ Lab.register({
     P.size(680, y + 124 + (s.shared !== null ? 46 + 16 : 8));
     P.note('위쪽은 요청과 응답의 순서, 아래쪽은 로그인 상태가 놓인 곳입니다. 굵은 테두리는 방금 요청을 받은 서버입니다.');
   },
-  assume: '로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다.',
+  assume: '로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다. 세션 코드에서 ResponseStatusException(HttpStatus.UNAUTHORIZED)을 던지면 401 응답이 되는 것은 스프링 부트 4.1.1 서버를 띄워 확인했습니다(세션 없이 요청하면 401, 로그인해 받은 JSESSIONID 쿠키를 보내면 200).',
 });

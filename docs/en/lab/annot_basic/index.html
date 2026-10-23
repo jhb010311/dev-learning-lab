@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Annotations: What is an annotation, and what happens when you add one? · Dev Learning Lab</title>
-<meta name="description" content="An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface…">
+<title>Annotations: What is an annotation, and who does what when you add one? · Dev Learning Lab</title>
+<meta name="description" content="An annotation is a tag that starts with @, such as @Service, @Override, or @Test, and that you put above a class or a method. The tag itself contains no c…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/annot_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="Annotations: What is an annotation, and what happens when you add one? · Dev Learning Lab">
-<meta property="og:description" content="An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface…">
+<meta property="og:title" content="Annotations: What is an annotation, and who does what when you add one? · Dev Learning Lab">
+<meta property="og:description" content="An annotation is a tag that starts with @, such as @Service, @Override, or @Test, and that you put above a class or a method. The tag itself contains no c…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,87 +30,99 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>Annotations</h1>
-<p><b>What is an annotation, and what happens when you add one?</b></p>
-<p><b>Why it exists</b> — In the days before annotations, information such as &quot;this method is a test&quot; or &quot;Spring creates objects of this class&quot; had to be given through a rule, such as a method name that starts with test, or through an XML configuration file separate from the code, so when you changed the code, you also had to fix the configuration file separately. An annotation lets you write such a mark with @ right above the code it belongs to, so the code and the mark are seen in one place and are changed together.</p>
-<p><b>Where it's used today</b> — @Override makes the compiler check that you rewrote the superclass's method correctly. Spring's @Component, @GetMapping, and @Transactional and JUnit's @Test are marks that tell the framework &quot;treat this like this&quot;. You do not make annotations yourself very often, and usually you attach the ones that Java and frameworks have already made.</p>
-<p>An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface Run and put @Run above the work method. But a marker does not run anything by itself. For it to have an effect, something has to read the marker and act on it, and that is done by the compiler, by a framework such as Spring, or by code we write. Here we write a for loop ourselves that &quot;finds the methods that have Run and calls them&quot; to show that relationship. You remove @Run, remove the reader, and remove @Retention, compile and run the same code each time, and you see which methods are called.</p>
-<p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21 and run, and the methods called and the markers read at run time were checked</p>
+<p><b>What is an annotation, and who does what when you add one?</b></p>
+<p><b>Why it exists</b> — Before annotations, information such as &quot;this method is a test&quot; or &quot;Spring creates objects of this class&quot; had to be given through a rule, such as a method name that starts with test, or through an XML configuration file kept apart from the code, so when you changed the code you also had to update the configuration file separately. An annotation lets you write such a mark with @ right above the code it belongs to, so the code and the mark are seen in one place and are changed together.</p>
+<p><b>Where it's used today</b> — @Override makes the compiler check that you rewrote the parent's method correctly. Spring's @Service, @Repository, @Controller, and @Component make Spring create an object of that class and register it as a bean, and Spring reads @GetMapping and @Transactional too and acts on them. JUnit's @Test makes JUnit run that method as a test. You rarely make annotations yourself, and usually you attach the ones that Java and frameworks have already made.</p>
+<p>An annotation is a tag that starts with @, such as @Service, @Override, or @Test, and that you put above a class or a method. The tag itself contains no code that runs, and what it means is decided by whatever reads it. @Override is read by the compiler, @Service by Spring (it creates objects of the classes it finds by component scanning and registers them as beans), and @Test by JUnit. In this lab you add and remove the three annotations, go through or skip the reader (Spring, JUnit), compile and run the same code, and see what changes. Then you look at the real declarations of @Service and @Override to see how far @Retention keeps a tag, and finally you make an annotation and the code that reads it yourself. OrderService, Order, OrderTest, and Job in the code are classes made as examples for this lab.</p>
+<p>Checked against real execution · On the PC used to write this lab, 17 combinations of the code on the screen were compiled and run with JDK 21, Spring 7.0.9, and JUnit 6.0.3 (real component scanning, the JUnit Launcher, javap), and the result table, the exception and compile-time error messages, the bean name, and the real declarations of @Service, @Override, and @Test were checked against them</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Annotation</dt>
 <dd>This is metadata that you attach to code. It does nothing by itself; the compiler or a framework reads it and acts on it. Some, like @Override, are used by the compiler for checks, and others, like @Transactional and @Autowired, are read by a framework at run time through reflection to apply a feature.</dd>
-<dt>@interface</dt>
-<dd><b>Why it exists</b> — If you could use only the annotations that Java has made in advance, you could not attach a marker needed only by your own program. @interface lets you create the marker you need, so that the program can find the places where the marker is attached and handle them separately.</dd>
-<dd><b>Where it's used today</b> — Annotations that Spring provides, such as @Component, are also declared this way with @interface. What you create yourself is for cases like &quot;a method whose execution time is to be measured&quot;, when you want to attach the same marker in several places and handle them all at once.</dd>
-<dd>@interface is a declaration that creates a new annotation (a marker that starts with @). If you put @ before the interface of an ordinary interface declaration and write @interface Run { }, an annotation called Run is created, and after that you can put it above a class or a method as @Run. If the inside of the braces is empty, it is a marker that holds no values (a marker annotation), and if you put in declarations shaped like methods, they become elements that hold values, as in @Name(value). The declaration alone does not create any code that runs, and something else has to read the marker and act on it. If you do not write @Retention on an annotation you created yourself, it is not kept while the program runs.</dd>
-<dt>Reflection</dt>
-<dd><b>Why it exists</b> — A framework cannot know in advance the names of the classes users will write later, so ordinary code cannot create objects of those classes or call their methods. Reflection makes this possible by inspecting classes while the program runs and letting you work with them by name alone.</dd>
-<dd><b>Where it's used today</b> — You rarely use it directly in application code; it is used when building frameworks, testing tools, and serialization libraries. If the same job can be done with interfaces and polymorphism, that way is safer because it gets compile-time type checking.</dd>
-<dd>This feature lets a running program inspect information about a class (its fields, methods, constructors, and annotations) and create objects or call methods by name. Spring's dependency injection, JPA's entity handling, and JSON serialization libraries all work on top of it. It is slower than a normal call and does not get compile-time type checking.</dd>
+<dt>@Override</dt>
+<dd><b>Why it exists</b> — Overriding happens quietly as long as the name and parameters match, so if the name of the parent's method is changed later, the child's method stays as a separate method that is not an override, with no error at all. @Override writes the intention to override in the code, so that such a mismatch shows up as a compile-time error.</dd>
+<dd><b>Where it's used today</b> — You put it when you override toString, equals, or hashCode, or when you implement a method of an interface. When an IDE generates overriding code for you, it writes it too.</dd>
+<dd>This is an annotation that shows that the method right below it overrides a method of a superclass or an interface. The compiler reads this tag and checks that it really overrides, and if not, it reports a compile-time error. It catches the mistake of misspelling the method name or its parameters and so creating a new method that does not override. It overrides even without it, and the behavior of the program does not change either, but to prevent mistakes you always put it on a method that overrides. It is an annotation that is kept only up to the source code, so it is not written to the class file.</dd>
+<dt>@Service and @Repository</dt>
+<dd><b>Why it exists</b> — If every bean had only @Component, the code would not show what role a class has, and there would be no basis for treating roles differently, such as applying exception translation only to data access classes. So Spring made separate annotations that name the role, based on @Component.</dd>
+<dd><b>Where it's used today</b> — In a Spring web application, you put @Service on a service class that handles business rules and @Repository on a class that works with the database. An interface that extends Spring Data JPA's JpaRepository is found and registered by Spring separately, so it does not need @Repository.</dd>
+<dd>@Service and @Repository are annotations that Spring provides. When you put one on a class, component scanning finds that class, creates an object of it, and registers it as a bean. Both have @Component on their declarations (a meta-annotation), so they are found in the same way as a class with @Component, and @Controller is the same. They have different names to show the role of the class (handling business logic, accessing data, handling requests). @Repository has one more effect: if a PersistenceExceptionTranslationPostProcessor is registered (Spring Boot registers it through auto-configuration when you use a data access module), the exceptions that a technology such as JPA throws from that bean are translated and thrown as Spring's DataAccessException hierarchy. The annotation itself is only a tag, so if you create an object with new without starting Spring, it does nothing.</dd>
+<dt>Component scanning</dt>
+<dd><b>Why it exists</b> — If you register beans one by one with XML or @Bean methods for each class, the registration list must also be changed every time you create a class. Component scanning lets Spring find and register classes when you only put an annotation on them.</dd>
+<dd><b>Where it's used today</b> — Services, repositories, and controllers that you write yourself are usually registered this way. So you place the @SpringBootApplication class in the topmost package of the project, and to make scanning reach other packages, you specify them with the scanBasePackages attribute.</dd>
+<dd>This feature finds the classes under a given package that carry @Component or one of its related annotations (such as @Service, @Repository, and @Controller) and registers them as beans automatically. In Spring Boot, the default target is the package of the class annotated with @SpringBootApplication and its subpackages.</dd>
+<dt>@Test</dt>
+<dd><b>Why it exists</b> — Up to JUnit 3, a method whose name started with test was treated as a test, so method names had to be made to fit that rule. @Test makes tests be found by the attached marker regardless of the name, so you can name the method after what it checks.</dd>
+<dd><b>Where it's used today</b> — You put it above each method that is to be run as a test, and an IDE such as IntelliJ shows a run button next to a method with @Test. To run the same test several times with only the values changed, you attach @ParameterizedTest.</dd>
+<dd>@Test is an annotation that you put above a method to tell JUnit that the method is a test method. According to the documentation, a method with @Test must not be private or static, and must not return a value. JUnit counts a method that has @Test (or an annotation such as @RepeatedTest or @ParameterizedTest) as a test, so a method without the marker is not counted as a test even if its content looks like a test. In the JUnit 6.0.3 that was run, when a class that has a method without @Test was run, the number of tests found was 0, and the method was never run, with no error and no failure.</dd>
 <dt>@Retention and @Target</dt>
-<dd><b>Why it exists</b> — If there were no way to decide where each annotation may be attached and when it is kept, the compiler could not catch a marker meant for methods being attached to a class by mistake, and a marker meant only for the compiler would remain until run time. @Target and @Retention let the one who creates the annotation decide these two.</dd>
-<dd><b>Where it's used today</b> — You write them together when you create an annotation yourself. Spring's @Component and @Transactional also carry @Retention(RetentionPolicy.RUNTIME) and @Target, so Spring finds and reads these markers at run time.</dd>
-<dd>These are two annotations that you apply to a new annotation, when you create it, to set its properties. @Retention decides how far the annotation is retained. SOURCE retains it only in the source code, CLASS retains it up to the class file, and RUNTIME retains it until run time so that it can be read with reflection. When @Retention is not written, the policy is CLASS, so you must write RUNTIME on an annotation that will be read at run time. @Target decides where the annotation can be applied (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and applying it in a place that does not match is a compile-time error.</dd>
+<dd><b>Why it exists</b> — If there were no way to decide where each annotation can be put and how far it is kept, the compiler could not catch a tag meant for methods being put on a field by mistake, and a tag that only the compiler looks at would remain until run time. @Target and @Retention make whoever creates the annotation decide these two in the declaration.</dd>
+<dd><b>Where it's used today</b> — The side that uses an annotation usually does not write them. They are already written in the declarations of the annotations that Spring, JUnit, and Java provide, so whether it is read at run time (RUNTIME) and where it can be put are already decided. You write them together only when you make an annotation yourself.</dd>
+<dd>These are two annotations that you put on the declaration of an annotation to set the properties of that annotation. @Retention decides how far the tag is kept. SOURCE keeps it only up to the source code (@Override), CLASS keeps it up to the class file (Spring's @Contract), and RUNTIME keeps it until run time so that it can be read with reflection (@Transactional, @Test, @Deprecated). If you do not write it, it is CLASS. @Target decides where it can be put (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and putting it somewhere that does not match is a compile-time error. The declaration of @Transactional has @Target({ElementType.TYPE, ElementType.METHOD}) and @Retention(RetentionPolicy.RUNTIME).</dd>
+<dt>Meta-annotation</dt>
+<dd><b>Why it exists</b> — If you wrote separate code for each annotation to handle properties such as &quot;where it can be put&quot;, &quot;how far it is kept&quot;, and &quot;whether Spring treats it as a bean&quot;, the reader would have to be changed every time a new annotation appears. A meta-annotation lets you write those properties as tags on the declaration, so that the reader can handle it by looking only at the declaration.</dd>
+<dd><b>Where it's used today</b> — Spring's @Service, @Repository, @Controller, @RestController, and @SpringBootApplication are all made by combining other annotations as meta-annotations. If you often put several annotations together, you can also declare an annotation yourself that has them as meta-annotations, to cut them down to one line.</dd>
+<dd>A meta-annotation is an annotation that is put on the declaration of another annotation. The typical ones are @Target, @Retention, and @Documented, which Java provides, and the @Component on the declaration of Spring's @Service is also a meta-annotation. Spring follows and reads the annotations on a class down to the declarations of those annotations, so it finds a class with @Service through component scanning just like a class with @Component. The reflection method isAnnotationPresent does not follow them this way, so asking isAnnotationPresent(Component.class) about a class with @Service returns false.</dd>
+<dt>@interface</dt>
+<dd><b>Why it exists</b> — If you could use only the annotations that Java has made in advance, you could not attach the tags that a framework or your own program needs. @interface lets anyone declare the tag they need, so that tools such as Spring and JUnit can create their own tags.</dd>
+<dd><b>Where it's used today</b> — Usually you do not write a declaration yourself; you attach the ones that Java, Spring, and JUnit have declared. You read a declaration when you look for the basis of a behavior, such as why @Service makes a bean. You declare one yourself when you attach the same tag in many places, such as &quot;methods whose run time is to be measured&quot;, and use it together with a reader such as Spring AOP.</dd>
+<dd>@interface is the syntax that declares an annotation. You write it by putting @ before the interface of an ordinary interface declaration. Java's @Override, Spring's @Service, and JUnit's @Test are all declared this way, and the @Target (where it can be put) and @Retention (how far it is kept) above the declaration decide the properties of that annotation. If the inside of the braces is empty, it is a tag that takes no values (a marker annotation), and if you put in declarations shaped like methods, they become elements that take values, as in @Service(&quot;name&quot;). The declaration alone does not create any code that runs, and something else has to read the tag and act on it (the compiler, Spring, JUnit, or code we write). If you do not write @Retention when you declare one yourself, it is CLASS, and it cannot be read through reflection while the program runs.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — Only work, which has @Run, is called. What called it is not the marker but our code that read the marker.</li>
-<li><b>Remove @Run from work</b> — The reader code is unchanged, but work is not called.</li>
-<li><b>Put @Run on rest too</b> — The reader code is unchanged, but rest is called too.</li>
-<li><b>Remove the reader code</b> — Even with @Run on the methods, nothing happens.</li>
-<li><b>Remove @Retention</b> — Even with @Run on the method, it cannot be seen while the program runs, so no method is called.</li>
+<li><b>Default settings</b> — Spring reads @Service, creates an object of OrderService, and registers it as a bean. That is why you can get it with getBean.</li>
+<li><b>Remove @Service</b> — Spring does not make OrderService a bean, so getBean stops with a NoSuchBeanDefinitionException.</li>
+<li><b>Create it with new, without Spring</b> — There is no Spring to read it, so @Service does nothing.</li>
+<li><b>Add @Override and misspell the name</b> — The compiler, which reads @Override, reports an error that this does not override anything and stops compiling.</li>
+<li><b>Add @Test and run with JUnit</b> — JUnit reads @Test, finds total() as a test, and calls it.</li>
+<li><b>@Retention: how far the tag is kept</b> — @Service has @Retention(RUNTIME), so it stays in the class file, and @Override has @Retention(SOURCE), so it is discarded once compiling ends.</li>
+<li><b>Our own @Run</b> — @Run, made with @interface, has no predefined meaning, so we have to write the code that reads it and acts on it.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The compiler reads the source from the top. First it reads the @interface Run declaration and creates a new marker called Run. A marker that starts with @ is called an annotation, and what you declare with @interface becomes its name. The inside of the { } of Run is empty, so it is a marker that holds no values. The @Retention(RetentionPolicy.RUNTIME) above it tells the compiler how long to keep this marker. RUNTIME means to record it in the class file and keep it so it can be read while the program runs, through reflection (a feature that examines classes and methods while the program is running).</li>
-<li>The compiler reads the Job class. @Run is put above the work method. The compiler only writes this marker into the class file as markers that can be read while the program runs, and it does not run or call the methods.</li>
-<li>Compilation succeeds. All the compiler did was check the source and create the class file. Neither work nor rest has run even once.</li>
-<li>You run it with java Main. main starts, and new Job() creates a Job object. work and rest did not run on this line. A method runs only when there is code that calls it. The @Run above a method is not code that calls it, only a marker.</li>
-<li>The for loop runs for the first time, and name is &quot;work&quot;. Job.class.getMethod(&quot;work&quot;) gets the work method, and m.isAnnotationPresent(Run.class) asks, while the program runs, whether this method has Run. What asks this is not @Run but this code that we wrote. The answer is true. This is because the @Run put in the source is still kept in a state that can be read while the program runs.</li>
-<li>The answer is true, so execution goes inside the if and m.invoke(job) runs. invoke calls the work method of the job object, and the work method prints &quot;work ran&quot;. What made it print is not @Run itself but our code that saw @Run and ran m.invoke(job).</li>
-<li>The for loop runs again, and name is &quot;rest&quot;. Job.class.getMethod(&quot;rest&quot;) gets the rest method, and m.isAnnotationPresent(Run.class) asks, while the program runs, whether this method has Run. The answer is false. This method does not have @Run.</li>
-<li>The answer is false, so execution does not go inside the if and m.invoke(job) does not run. The rest method was not called, and nothing was printed.</li>
-<li>The for loop ends and main ends. The number of methods called is 1, and the output is &quot;work ran&quot;.</li>
+<li>OrderService is a class made as an example for this lab, and the @Service above it is an annotation provided by Spring. An annotation is a tag that starts with @ and that you put above a class or a method. Writing @Service does not by itself create an object or run a method.</li>
+<li>javac compiles the two files. The compiler only checks that @Service is an annotation that can be put on a class, and records it in the class file. Spring declared @Service with @Retention(RetentionPolicy.RUNTIME), so it stays as a tag that can be read while the program runs.</li>
+<li>new AnnotationConfigApplicationContext(&quot;app&quot;) in main starts Spring. Spring scans the classes in the app package and reads their tags. This is called component scanning. What Spring looks for is @Component, and annotations such as @Service whose declaration has @Component on it.</li>
+<li>OrderService has @Service. Spring creates one OrderService object and registers it as a bean (an object that Spring creates and manages). The bean's name is orderService, the class name with the first letter changed to lowercase. What created the object is Spring, not a new in our code.</li>
+<li>context.getBean(OrderService.class) asks Spring for the OrderService bean. Spring returns the object it made, and &quot;Order service&quot;, which service.name() returned, is printed.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>An annotation is a marker that starts with @ and that you put on code. We created the marker with @interface Run and put @Run above the work method. But a marker does not run anything by itself. work was called because we wrote code that finds the methods that have Run and calls them with m.invoke(job).</li>
-<li>The same is true of Spring's @RestController and @GetMapping: they have an effect because Spring reads those markers. You see how Spring reads them in the Fundamentals lab &quot;Controllers&quot;.</li>
+<li>An annotation is a tag you put on code, and what it means is decided by whatever reads it. What read @Service was Spring's component scanning. Spring created an OrderService object and registered it as a bean, so getBean could get that object.</li>
+<li>@Repository and @Controller also have @Component on their declarations, so they become beans the same way. The following questions show that @Override is read by the compiler and @Test by JUnit.</li>
 </ul>
 <h2>Code</h2>
-<pre>import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Method;
+<pre>// File: app/OrderService.java
+package app;
 
-// Create the marker. Write that it should be kept so it can be read at run time
-@Retention(RetentionPolicy.RUNTIME)
-@interface Run { }
+import org.springframework.stereotype.Service;
 
-class Job {
-    // Marker: put Run on the work method
-    @Run
-    public void work() {
-        System.out.println(&quot;work ran&quot;);
-    }
-    public void rest() {
-        System.out.println(&quot;rest ran&quot;);
+// OrderService is an example class we made; @Service is an annotation provided by Spring
+@Service
+public class OrderService {
+    public String name() {
+        return &quot;Order service&quot;;
     }
 }
 
+// File: app/Main.java
+package app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 public class Main {
-    public static void main(String[] args) throws Exception {
-        Job job = new Job();
-        // Reader: find only the methods that have Run and call them
-        for (String name : new String[] { &quot;work&quot;, &quot;rest&quot; }) {
-            Method m = Job.class.getMethod(name);
-            if (m.isAnnotationPresent(Run.class)) {
-                m.invoke(job);
-            }
-        }
+    public static void main(String[] args) {
+        // Start Spring. It scans the classes in the app package (component scanning)
+        ApplicationContext context =
+                new AnnotationConfigApplicationContext(&quot;app&quot;);
+        // Ask for the OrderService object that Spring made
+        OrderService service = context.getBean(OrderService.class);
+        System.out.println(service.name());
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the source that is the same as the code on the screen was compiled with javax.tools, and for those that compiled, the class file was loaded with a new class loader and Main.main was run, and the results were checked against the standard output that was captured. All twelve combinations compiled. What was checked is whether compilation succeeded, the output when run, the methods called as read from the output, and the &quot;marker read at run time.&quot; The last one is a value measured separately from Main, by a checking program that asks isAnnotationPresent(Run.class) directly about the work and rest methods of the Job class from the same class loader, and it is measured even for combinations that have no reader code. I also checked in what form the marker was written in the class file of Job (RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations), and the step sentences on the screen rely on this result. The documentation was opened and checked directly. I followed the Java Language Specification (Java SE 21), Section 9.6 (an annotation interface is declared with @interface, and one with no elements is a marker annotation interface), Section 9.6.4.2 (if @Retention is absent, it is treated as CLASS; SOURCE is not kept in the class file; CLASS and RUNTIME are recorded in the class file; and RUNTIME must be made readable by reflection at run time), Section 9.7 (an annotation is a marker that associates information with a program element and has no effect at run time) and Section 9.7.2 (marker annotations). I also checked the API documentation of java.lang.annotation.Retention and RetentionPolicy (the default is CLASS, and only RUNTIME can be read by reflection) and of java.lang.reflect.AnnotatedElement (isAnnotationPresent). In what form the compiler writes the marker into the class file is not defined by the specification; it was observed on this javac. The code on the screen uses a for loop to look at the two methods in turn, to explain this lab, and it is different from the way a real framework reads markers. The sentence that Spring's @RestController and @GetMapping have an effect because Spring reads them was not run in this lab, and it points to what was checked in the Fundamentals lab &quot;Controllers&quot;. Elements that hold annotation values, @Target, markers that the compiler reads such as @Override, and the actual implementation of frameworks that read markers at run time are not covered. Other behavior is covered in the in-depth lab &quot;Annotations&quot;.</p>
+<p>The compiler and runtime are JDK 21.0.12.1, Spring Framework 7.0.9 (started with AnnotationConfigApplicationContext, without Spring Boot), and JUnit Jupiter 6.0.3 (run with JUnit Platform Launcher 6.0.3). For the seventeen combinations used in the questions (four for each of @Service, @Override, @Test, and our own @Run, plus one question that looks at the declarations), the code shown on the screen was taken as is from the code function of this lab and compiled with javax.tools. Those that compiled were run in a new Java process (the combinations that run @Test with JUnit were run with the Launcher), and the standard output, the exceptions, and the number of tests JUnit found and the number that passed were captured and checked against the result table. Component scanning is a real scan, and OrderService was not registered by hand. I also checked by running that the message of the NoSuchBeanDefinitionException, the compile-time error message for @Override, the bean name orderService, getBean still succeeding when @Repository, @Controller, or @Component is put in place of @Service, the compile-time error when @Service is put above a method, only Service remaining in RuntimeVisibleAnnotations in OrderService.class seen with javap -v while Override is absent, and Override not remaining in Order.class with @Override either. The declarations of @Service and @Override copied into the comments, and the declaration of @Test in a step sentence (@Retention(RUNTIME)), were checked against the meta-annotations and element names read with reflection while running, and the explanatory comments were not included. The hexadecimal number after Order@ that Object's toString() returns can differ on each run, so only its form was checked. The sentence that without @Retention it is CLASS and cannot be read while the program runs was not run again this time, and it relies on Section 9.6.4.2 of the Java Language Specification (Java SE 21) and on this lab's earlier run record (when a custom annotation has no @Retention, isAnnotationPresent is false). For the documentation, I checked Section 9.6 (@interface declarations), Section 9.6.4.1 (@Target), Section 9.6.4.2 (@Retention), and Section 9.6.4.4 (@Override) of the Java Language Specification, the sections on component scanning and meta-annotations in the Spring Framework reference, and the description of @Test in the JUnit User Guide. The sentence that the ./gradlew test command or the IDE's run button calls JUnit was not run in this lab. How Spring reads tags internally during component scanning, and how to use an annotation you made yourself together with Spring AOP, are not covered, and the detailed behavior of annotations is covered in the in-depth lab &quot;Annotations&quot;.</p>
 <p>Previous lab: <a href="../../lab/stream_basic/">Streams</a> · Next lab: <a href="../../lab/thread_basic/">Threads</a></p>
   </div>
 
@@ -203,6 +215,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

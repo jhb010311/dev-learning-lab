@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실</title>
-<meta name="description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
+<meta name="description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 람다를 적은 줄에서는 본문이 실행되지 않고, 그 객체를 넘겨받은 쪽이 부를 때 실행됩니다. 이 실습에서는 람다를 자바 표준 메서드(ArrayList의 forEach·removeIf·sort, 스트림의 filter·ma…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실">
-<meta property="og:description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.">
+<meta property="og:description" content="람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 람다를 적은 줄에서는 본문이 실행되지 않고, 그 객체를 넘겨받은 쪽이 부를 때 실행됩니다. 이 실습에서는 람다를 자바 표준 메서드(ArrayList의 forEach·removeIf·sort, 스트림의 filter·ma…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,9 +32,9 @@
 <h1>람다와 함수형 인터페이스</h1>
 <p><b>람다에 적은 코드는 언제 실행되나</b></p>
 <p><b>왜 생겼나</b> — 람다가 없을 때는 정렬 기준이나 버튼을 눌렀을 때 할 일처럼 동작 하나를 넘기려 해도, 익명 클래스로 인터페이스를 구현하는 여러 줄을 적어야 했다. 람다는 추상 메서드가 하나뿐인 인터페이스의 구현을 (매개변수) -&gt; 본문 모양으로 줄여서, 넘길 동작 자체만 적게 했다.</p>
-<p><b>지금 어디에 쓰나</b> — 스트림의 filter와 map, 리스트의 sort와 removeIf, Map의 computeIfAbsent처럼 동작을 받는 표준 메서드에 넘길 때 쓴다. Optional의 orElseGet처럼 필요할 때만 값을 만들게 미뤄 둘 때나, 스레드에 넘길 Runnable을 만들 때도 쓴다. 본문이 길어지면 이름 있는 메서드로 빼고 메서드 참조로 넘긴다.</p>
-<p>람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 변수가 그 객체를 가리키게 하고, 숫자나 문자열처럼 다른 메서드에 넘길 수 있습니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.</p>
-<p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 실행해 대조</p>
+<p><b>지금 어디에 쓰나</b> — 스트림의 filter와 map, 리스트의 forEach와 removeIf와 sort, Map의 computeIfAbsent처럼 동작을 받는 표준 메서드에 넘길 때 쓴다. Optional의 orElseGet처럼 필요할 때만 값을 만들게 미뤄 둘 때나, 스레드에 넘길 Runnable을 만들 때도 쓴다. 본문이 길어지면 이름 있는 메서드로 빼고 메서드 참조로 넘긴다.</p>
+<p>람다는 &quot;나중에 실행할 동작&quot;을 객체로 만드는 문법입니다. 람다를 적은 줄에서는 본문이 실행되지 않고, 그 객체를 넘겨받은 쪽이 부를 때 실행됩니다. 이 실습에서는 람다를 자바 표준 메서드(ArrayList의 forEach·removeIf·sort, 스트림의 filter·map, Comparator.comparing, Optional의 orElseGet)에 넘기고, 표준 메서드가 그 람다를 언제 몇 번 부르는지 봅니다. 람다의 타입은 받는 메서드의 매개변수 타입이 정합니다. 여기서는 모두 자바가 java.util.function 패키지에 마련해 둔 Consumer, Predicate, Function, Supplier입니다.</p>
+<p>실행으로 대조 · JDK 21에서 화면의 코드를 열여섯 가지 조합마다 그대로 컴파일·실행해 출력 순서, 람다 실행 횟수, 결과를 대조하고, 표준 메서드의 매개변수 타입(리플렉션)과 옮긴 JDK 소스 줄을 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>람다 표현식</dt>
@@ -43,60 +43,69 @@
 <dd><b>왜 생겼나</b> — 자바에는 함수만 따로 나타내는 타입이 없어서, 람다를 받을 변수나 매개변수에 붙일 타입이 필요했다. 함수형 인터페이스는 추상 메서드가 하나뿐인 인터페이스를 그 타입으로 삼아, Runnable이나 Comparator 같은 기존 인터페이스도 그대로 람다를 받게 했다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 스트림의 filter가 Predicate를, map이 Function을 받는 것처럼 동작을 매개변수로 받는 메서드를 만들 때 쓴다. 직접 정의할 때는 @FunctionalInterface를 붙여 추상 메서드가 하나인지 컴파일러가 검사하게 한다.</dd>
 <dd>추상 메서드가 하나뿐인 인터페이스로(equals처럼 Object의 메서드를 다시 선언한 것은 세지 않고, default·static 메서드는 여러 개 있어도 된다), 람다 표현식이나 메서드 참조를 대입할 수 있는 타입이다. java.util.function 패키지에 Function(입력을 받아 결과 반환), Supplier(값 공급), Consumer(값 소비), Predicate(조건 판별) 등이 미리 정의되어 있다.</dd>
+<dt>람다를 받는 표준 메서드</dt>
+<dd><b>왜 생겼나</b> — 반복, 걸러 내기, 정렬, 기본값 만들기처럼 자주 쓰는 일에서 바뀌는 부분은 &quot;요소 하나로 무엇을 할지&quot;뿐이다. 표준 라이브러리가 나머지(반복과 순서, 실행 시점)를 맡고 바뀌는 부분만 람다로 받게 해서, 같은 반복문을 매번 다시 쓰지 않게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — list.forEach(System.out::println), list.removeIf(s -&gt; s.isBlank()), list.sort(Comparator.comparing(String::length)), map.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()), optional.orElseGet(() -&gt; loadDefault()), new Thread(() -&gt; …) 같은 모양으로 매일 쓴다(loadDefault는 예시로 지은 메서드 이름이다). 메서드의 매개변수 타입을 보면 어떤 모양의 람다를 넘겨야 하는지 알 수 있다.</dd>
+<dd>자바 표준 라이브러리에서 매개변수 타입이 함수형 인터페이스여서 람다나 메서드 참조를 넘길 수 있는 메서드들이다. ArrayList의 forEach는 Consumer를 받아 요소마다 accept를 부르고, removeIf는 Predicate를 받아 요소마다 test를 불러 true인 요소를 지운다. 스트림의 filter는 Predicate를, map은 Function을 받고, 최종 연산(toList 등)이 요소를 흘려보낼 때 그 람다를 부른다. Comparator.comparing은 키를 꺼내는 Function을 받아 Comparator를 만들고, sort가 비교할 때마다 그 Function이 불린다. Optional의 orElseGet은 Supplier를 받아 값이 없을 때만 get을 부른다. 람다를 언제, 몇 번 부를지는 넘겨받은 이 메서드들이 정한다.</dd>
 <dt>메서드 참조</dt>
 <dd><b>지금 어디에 쓰나</b> — 스트림과 정렬에서 map(String::trim), forEach(System.out::println), Comparator.comparing(String::length) 같은 모양으로 흔히 본다. 인자를 가공하거나 메서드를 두 번 부르는 경우에는 람다로 쓴다.</dd>
 <dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
+<dt>Stream API</dt>
+<dd>컬렉션 등의 데이터에 대해 필터링, 변환, 집계를 선언적으로 표현하는 API다. filter, map 같은 중간 연산을 이어 붙이고 collect, forEach 같은 최종 연산으로 마무리한다. 중간 연산은 최종 연산이 호출될 때까지 실행되지 않으며(지연 평가), 스트림은 원본 데이터를 변경하지 않고 한 번만 사용할 수 있다.</dd>
+<dt>지연 평가(Lazy Evaluation)</dt>
+<dd><b>왜 생겼나</b> — 계산을 즉시 하면 결국 쓰이지 않을 값까지 만들고, 단계마다 중간 결과를 모두 저장해야 한다. 지연 평가는 실제로 쓰일 때까지 계산을 미뤄 그 낭비를 없앤다.</dd>
+<dd><b>지금 어디에 쓰나</b> — Optional의 orElseGet은 값이 없을 때만 Supplier를 실행하고, java.util.logging의 Logger는 Supplier를 받으면 그 수준의 로그가 꺼져 있을 때 메시지 문자열을 만들지 않는다.</dd>
+<dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 비로소 실행되고 원소가 하나씩 파이프라인을 지나가며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
+<dt>orElse와 orElseGet</dt>
+<dd><b>왜 생겼나</b> — Optional에서 값을 꺼낼 때마다 isPresent()로 확인하고 get()을 부르는 if문을 쓰면 코드가 길어지고, 확인 없이 get()을 부르는 실수도 생긴다. orElse와 orElseGet은 &quot;비었으면 이것&quot;을 한 번의 호출로 적게 한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 설정값이 없으면 정해 둔 기본값을 쓰는 곳에는 orElse를, 비었을 때 DB를 다시 조회하거나 새 객체를 만들어 저장해야 하는 곳에는 orElseGet을 쓴다. 비었을 때 기본값 대신 예외를 던지려면 orElseThrow를 쓴다.</dd>
+<dd>Optional이 비어 있을 때 대신 쓸 기본값을 정하는 두 메서드다. orElse(값)은 기본값 자체를 인자로 받고, orElseGet(함수)는 기본값을 만들어 내는 함수(람다)를 받는다. 자바는 메서드를 호출하기 전에 인자를 먼저 계산하므로, orElse(makeDefault())라고 쓰면 Optional에 값이 있어도 makeDefault()가 실행된다. orElseGet은 비어 있을 때에만 넘겨받은 함수를 실행한다. 그래서 기본값을 만드는 데 시간이 걸리거나 저장, 기록 같은 다른 일이 함께 일어난다면 orElseGet을 쓴다.</dd>
+<dt>Comparable과 Comparator</dt>
+<dd>객체의 순서를 정하는 두 가지 방법이다. Comparable은 클래스가 스스로 구현하는 인터페이스로, compareTo 메서드 하나에 그 클래스의 기본 순서를 정해 둔다. Comparator는 클래스 바깥에서 따로 만드는 비교 방법으로, 같은 객체들을 그때그때 다른 기준으로 정렬할 수 있게 해 준다. 둘 다 앞의 것이 먼저면 음수, 순서를 가릴 수 없으면 0, 나중이면 양수를 돌려준다. 두 수를 뺀 값을 그대로 돌려주면 오버플로로 부호가 뒤집힐 수 있으므로 Integer.compare나 Comparator.comparingInt를 쓴다.</dd>
 <dt>익명 클래스와 람다의 차이</dt>
 <dd>익명 클래스는 인터페이스나 클래스를 그 자리에서 구현하면서 이름 없이 객체를 만드는 문법으로, new 인터페이스이름() { 메서드 구현 } 형태로 쓴다. 람다는 추상 메서드가 하나뿐인 함수형 인터페이스에 한해 같은 일을 (매개변수) -&gt; 실행문 형태로 짧게 쓰는 문법이다. 함수형 인터페이스를 구현할 때 this를 쓰지 않는 단순한 본문이면 둘 중 어느 것으로 써도 호출한 결과가 같다. 다만 익명 클래스는 메서드가 여러 개인 인터페이스도 구현할 수 있고 필드를 가질 수 있으며, 그 안의 this는 익명 클래스의 객체 자신을 가리킨다. 람다 안의 this는 람다를 적은 바깥 객체를 가리킨다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 람다를 만든 줄에서는 아무 일도 없고, run이 부를 때마다 본문이 실행됩니다.</li>
-<li><b>받기만 하고 부르지 않으면</b> — 람다를 만들고 넘겼는데도 본문은 한 번도 실행되지 않습니다.</li>
-<li><b>익명 클래스로 쓰면</b> — 코드는 길어지지만 결과는 람다와 같습니다.</li>
-<li><b>메서드 참조로 쓰면</b> — 이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.</li>
-<li><b>Supplier를 넘겨 두고 나중에 get</b> — 값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.</li>
-<li><b>Predicate</b> — 조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.</li>
-<li><b>Consumer</b> — 값을 받아 쓰기만 하고 돌려주는 것이 없습니다.</li>
+<li><b>처음 설정으로</b> — forEach를 부르는 줄에서 람다 객체가 만들어져 넘어가고, forEach가 요소마다 accept를 불러 본문이 세 번 실행됩니다.</li>
+<li><b>빈 리스트에 forEach</b> — 요소가 없어서 forEach가 accept를 한 번도 부르지 않습니다. 람다를 넘겼어도 본문은 실행되지 않습니다.</li>
+<li><b>메서드 참조로 넘기면</b> — n -&gt; System.out.println(n)과 같은 Consumer입니다. forEach가 요소마다 불러 이름이 세 줄 출력됩니다.</li>
+<li><b>removeIf에 조건을 넘기면</b> — removeIf가 요소마다 test를 불러 true가 나온 fig만 지웁니다. 남는 것은 [kiwi, banana]입니다.</li>
+<li><b>스트림 filter와 map</b> — toList를 부르면 요소가 하나씩 filter를 지나고, 통과한 요소는 다음 요소보다 먼저 map으로 갑니다. filter는 3번, map은 2번 불립니다.</li>
+<li><b>최종 연산이 없으면</b> — 스트림을 만들기만 하고 요소를 흘려보내지 않으므로 filter와 map의 람다는 한 번도 실행되지 않습니다.</li>
+<li><b>Comparator.comparing으로 정렬하면</b> — sort가 두 요소를 비교할 때마다 Comparator가 키 람다를 두 번 부릅니다. 이 세 요소는 JDK 21에서 비교 3번, 키 람다 6번이었습니다.</li>
+<li><b>orElse에 메서드 호출을 넘기면</b> — 실행됩니다. 자바는 orElse를 부르기 전에 인자 defaultName()을 먼저 계산합니다. 결과는 민수이지만 &quot;기본값 만듦&quot;이 출력됩니다.</li>
+<li><b>orElseGet에 람다를 넘기면</b> — orElseGet은 값이 있으면 get을 부르지 않으므로 defaultName이 실행되지 않습니다.</li>
+<li><b>orElseGet인데 비어 있으면</b> — 값이 없으니 orElseGet이 get을 한 번 불러 람다가 실행되고, defaultName이 돌려준 손님이 결과가 됩니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): 화살표(-&gt;) 오른쪽에 적은 동작을 실행할 수 있는 객체를 만들고, 변수 f가 그 객체를 가리키게 합니다. length 메서드는 아직 불리지 않습니다. 아무것도 출력되지 않습니다.</li>
-<li>System.out.println(&quot;만든 뒤&quot;): &quot;만든 뒤&quot;가 출력됩니다. 동작을 만든 줄을 이미 지났지만 &quot;본문 실행&quot;은 아직 한 번도 출력되지 않았습니다.</li>
-<li>run(f): 변수 f가 가리키는 동작 객체를 run 메서드에 넘깁니다. 숫자나 문자열을 넘기듯이 동작을 넘기는 것입니다. 넘기는 것만으로는 실행되지 않습니다.</li>
-<li>System.out.println(&quot;run 시작&quot;): run 안으로 들어와 &quot;run 시작&quot;이 출력됩니다.</li>
-<li>f.apply(&quot;hello&quot;): 여기서 비로소 동작이 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hello)&quot;가 출력됩니다. 돌려받은 5가 &quot;결과 5&quot;로 출력됩니다.</li>
-<li>f.apply(&quot;hi&quot;): 같은 동작이 한 번 더 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hi)&quot;가 출력됩니다. 돌려받은 2가 &quot;결과 2&quot;로 출력됩니다.</li>
-<li>System.out.println(&quot;run 끝&quot;): &quot;run 끝&quot;이 출력됩니다. &quot;본문 실행&quot;은 모두 2번 출력되었습니다.</li>
+<li>List&lt;String&gt; names = new ArrayList&lt;&gt;(List.of(&quot;kiwi&quot;, &quot;fig&quot;, &quot;banana&quot;)): 요소가 kiwi, fig, banana 순서인 자바 표준 ArrayList를 만듭니다.</li>
+<li>System.out.println(&quot;forEach 부르기 전&quot;): 출력되는 줄은 &quot;forEach 부르기 전&quot;입니다.</li>
+<li>names.forEach(n -&gt; …): 람다로 Consumer&lt;String&gt; 객체를 만들어 forEach에 넘깁니다. forEach의 매개변수 타입이 Consumer&lt;? super E&gt;라서 이 람다는 Consumer의 accept를 구현한 것이 됩니다. 넘기는 순간에는 본문이 실행되지 않습니다.</li>
+<li>action.accept(&quot;kiwi&quot;): 표준 ArrayList.forEach가 요소마다 accept를 부르고, 여기서 비로소 본문이 실행됩니다. 출력되는 줄은 &quot;람다 실행: kiwi&quot;입니다.</li>
+<li>action.accept(&quot;fig&quot;): 다음 요소로 같은 본문이 한 번 더 실행됩니다. 출력되는 줄은 &quot;람다 실행: fig&quot;입니다.</li>
+<li>action.accept(&quot;banana&quot;): 다음 요소로 같은 본문이 한 번 더 실행됩니다. 출력되는 줄은 &quot;람다 실행: banana&quot;입니다.</li>
+<li>System.out.println(&quot;forEach 끝&quot;): 출력되는 줄은 &quot;forEach 끝&quot;입니다. 본문은 모두 3번 실행되었습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>동작을 만든 줄에서는 아무것도 실행되지 않았고, run 안에서 apply 메서드를 부를 때마다 실행되었습니다. 람다 안의 코드는 만들 때가 아니라 불릴 때 실행됩니다.</li>
-<li>Function&lt;T, R&gt;은 T 타입 값 하나를 받아 R 타입 값을 돌려주는 동작이고, apply로 부릅니다. 값을 다른 값으로 바꾸는 일(변환)에 씁니다.</li>
-<li>익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다.</li>
+<li>람다를 넘긴 줄이 아니라, 표준 forEach가 accept를 부를 때마다 본문이 실행되었습니다. 몇 번 부를지는 forEach가 요소 수로 정합니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>class Demo {
-    static int length(String s) {                    // 넘길 동작이 하는 일
-        System.out.println(&quot;본문 실행: length(&quot; + s + &quot;)&quot;);
-        return s.length();
-    }
+<pre>import java.util.ArrayList;
+import java.util.List;
 
-    static void run(Function&lt;String, Integer&gt; f) {      // 동작을 받아서 부르는 쪽
-        System.out.println(&quot;run 시작&quot;);
-        System.out.println(&quot;결과 &quot; + f.apply(&quot;hello&quot;));
-        System.out.println(&quot;결과 &quot; + f.apply(&quot;hi&quot;));
-        System.out.println(&quot;run 끝&quot;);
-    }
-
+public class Main {
     public static void main(String[] args) {
-        Function&lt;String, Integer&gt; f = s -&gt; length(s);        // 동작을 만든다 (아직 실행되지 않는다)
-        System.out.println(&quot;만든 뒤&quot;);
-        run(f);                                   // 동작을 값처럼 넘긴다
+        List&lt;String&gt; names = new ArrayList&lt;&gt;(List.of(&quot;kiwi&quot;, &quot;fig&quot;, &quot;banana&quot;));
+        System.out.println(&quot;forEach 부르기 전&quot;);
+        names.forEach(n -&gt; System.out.println(&quot;람다 실행: &quot; + n));   // Consumer&lt;String&gt;
+        System.out.println(&quot;forEach 끝&quot;);
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>서른여섯 가지 조합의 출력 순서, 본문 실행 횟수, 돌려받은 값을 검증 환경의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 각 인터페이스가 부르는 메서드의 이름, 받는 값의 개수, 돌려주는 타입도 실제 인터페이스를 들여다본 값과 대조했습니다. 익명 클래스, 람다, 메서드 참조는 이 실습에서 보는 결과(출력과 돌려받은 값)가 같다는 뜻이며, 내부에서 객체가 만들어지는 방법과 this가 가리키는 대상은 서로 다릅니다. 람다 안에서 바깥의 지역 변수를 쓸 때는 값이 바뀌지 않는 변수만 쓸 수 있는데, 이 규칙은 &quot;내부 클래스와 익명 클래스&quot; 실습에서 설명합니다.</p>
+<p>열여섯 가지 조합(표준 메서드 8 × 값이 있다/없다 2)마다 화면의 코드를 그대로 Main.java로 써서 검증 환경의 JDK 21로 컴파일하고 실행해, 출력된 줄과 그 순서, 본문이 실행된 횟수, 결과를 대조했습니다(verify/plain/lambda_probe.js, cmp_lambda.js). 표준 메서드의 매개변수 타입은 리플렉션으로, &quot;표준 메서드의 코드에서 부르는 곳&quot;에 옮긴 코드 줄은 JDK 21 소스(src.zip)에 그 글자가 있는지로 확인했습니다. 정렬에서 비교하는 순서와 횟수는 JDK 21의 ArrayList.sort(TimSort)가 이 세 요소에서 실제로 보인 것이고, 자바 명세가 정한 것이 아니어서 다른 JDK나 다른 요소에서는 달라질 수 있습니다. 스트림에서 요소가 하나씩 filter와 map을 지나는 순서도 이 순차 스트림에서 본 것이며, 병렬 스트림에서는 순서가 정해져 있지 않습니다. 람다, 익명 클래스, 메서드 참조는 이 실습에서 보는 결과가 같지만, 내부에서 객체가 만들어지는 방법과 this가 가리키는 대상은 서로 다릅니다. 람다 안에서 바깥의 지역 변수를 쓸 때는 값이 바뀌지 않는 변수만 쓸 수 있는데, 이 규칙은 &quot;내부 클래스와 익명 클래스&quot; 실습에서 설명합니다.</p>
 <p>앞 실습: <a href="../../lab/sorting/">정렬과 Comparator</a> · 다음 실습: <a href="../../lab/stream/">스트림 지연 평가</a></p>
   </div>
 
@@ -189,6 +198,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

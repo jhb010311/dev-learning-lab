@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JWT의 구조와 검증: 누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나 · 개발 학습 실습실</title>
-<meta name="description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니…">
+<meta name="description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 스프링 시큐리티가 주는 JwtDecoder의 decode(token)는 알고리즘, 서명, 만료 시…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jwt/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="JWT의 구조와 검증: 누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나 · 개발 학습 실습실">
-<meta property="og:description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니…">
+<meta property="og:description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 스프링 시큐리티가 주는 JwtDecoder의 decode(token)는 알고리즘, 서명, 만료 시…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,9 +32,9 @@
 <h1>JWT의 구조와 검증</h1>
 <p><b>누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나</b></p>
 <p><b>왜 생겼나</b> — 서버 세션 방식은 로그인 상태를 서버 저장소에 두고 요청마다 세션 ID로 찾아보므로, 서버가 여러 대이거나 여러 서비스가 같은 로그인을 확인해야 하면 모두가 그 저장소를 함께 써야 한다. JWT는 사용자 정보와 서명을 토큰 자체에 적어서, 서명을 확인할 키만 가진 서버라면 어디서든 토큰이 발급된 그대로인지 스스로 확인할 수 있게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — OpenID Connect의 ID 토큰이 JWT이고, OAuth 2.0 인가 서버가 발급하는 액세스 토큰에도 흔히 쓰인다. API를 부르는 쪽은 Authorization: Bearer 헤더로 토큰을 보내고, Spring Security의 OAuth2 리소스 서버 기능이 서명과 만료 시각을 검사한다. 로그아웃이나 계정 정지를 바로 반영해야 하면 서버 세션을 쓰거나 토큰의 유효 시간을 짧게 잡는다.</p>
-<p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다.</p>
-<p>실행으로 대조 · Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들어 열여섯 가지 조합의 검증 결과를 대조했고, 화면의 자바 코드도 JDK 21에서 실행해 대조</p>
+<p><b>지금 어디에 쓰나</b> — OpenID Connect의 ID 토큰이 JWT이고, OAuth 2.0 인가 서버가 발급하는 액세스 토큰에도 흔히 쓰인다. API를 부르는 쪽은 Authorization: Bearer 헤더로 토큰을 보내고, 스프링 서버에서는 Spring Security의 OAuth2 리소스 서버 기능이 JwtDecoder(보통 NimbusJwtDecoder)로 서명과 만료 시각을 검사한다. 로그아웃이나 계정 정지를 바로 반영해야 하면 서버 세션을 쓰거나 토큰의 유효 시간을 짧게 잡는다.</p>
+<p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 스프링 시큐리티가 주는 JwtDecoder의 decode(token)는 알고리즘, 서명, 만료 시각을 차례로 확인해 하나라도 어긋나면 예외를 던지고, 모두 맞을 때만 내용을 돌려줍니다. 토큰을 고치거나 시간이 지났을 때 decode가 어디에서 무엇을 던지는지 봅니다.</p>
+<p>일부만 실행으로 확인 · 토큰과 서명 값은 JDK 21의 Mac과 Node.js 24의 crypto로 실제로 계산해 대조했고, &quot;속에서 하는 일&quot; 코드는 JDK 21에서 그대로 실행해 대조. NimbusJwtDecoder는 이 환경에 없어 실행하지 않았고, 판단 순서와 예외 이름·메시지(60초 만료 여유 포함)는 Spring Security 7.1.1과 nimbus-jose-jwt 10.9.1 소스와 대조, 표준 코드는 시그니처 대역과 함께 컴파일만 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>JWT(JSON Web Token)</dt>
@@ -43,77 +43,76 @@
 <dd><b>지금 어디에 쓰나</b> — 주소에 실어 보내는 토큰이나 OAuth PKCE의 code_challenge 값처럼 URL에 바로 넣을 바이트 값을 적을 때 쓴다. 자바에서는 Base64.getUrlEncoder().withoutPadding()으로 만든다.</dd>
 <dd>바이트를 영문 대소문자와 숫자, 그리고 -와 _만으로 옮겨 적는 표기법이다. 주소(URL)나 HTTP 헤더에 그대로 넣어도 깨지지 않도록 Base64에서 +와 /를 -와 _로 바꾸고 끝의 =를 뺀 것이다. JWT의 세 부분은 모두 이 표기로 적혀 있다. 키가 없어도 누구나 원래 내용으로 되돌릴 수 있으므로 암호화가 아니며, 내용을 숨기는 효과는 전혀 없다.</dd>
 <dt>클레임(Claim)</dt>
-<dd>토큰의 내용(payload)에 적힌 &quot;이름: 값&quot; 한 쌍을 가리키는 말이다. 누구에 관한 토큰인지를 적는 sub, 만료 시각을 적는 exp, 발급한 곳을 적는 iss처럼 표준이 이름을 정해 둔 것이 있고, role처럼 서비스가 필요해서 넣는 것도 있다. exp는 1970년 1월 1일 0시(UTC)부터 센 초로 적으며, 서버는 지금 시각이 exp보다 앞일 때만 토큰을 받는다. 클레임은 누구나 읽을 수 있으므로 비밀번호 같은 민감한 값은 넣지 않고, 서명을 확인하기 전에는 그 내용을 믿지 않는다.</dd>
+<dd>토큰의 내용(payload)에 적힌 &quot;이름: 값&quot; 한 쌍을 가리키는 말이다. 누구에 관한 토큰인지를 적는 sub, 만료 시각을 적는 exp, 발급한 곳을 적는 iss처럼 표준이 이름을 정해 둔 것이 있고, role처럼 서비스가 필요해서 넣는 것도 있다. exp는 1970년 1월 1일 0시(UTC)부터 센 초로 적으며, 서버는 지금 시각이 exp보다 앞일 때만 토큰을 받는다(서버끼리의 시계 차이를 감안해 몇십 초의 여유를 두기도 한다). 클레임은 누구나 읽을 수 있으므로 비밀번호 같은 민감한 값은 넣지 않고, 서명을 확인하기 전에는 그 내용을 믿지 않는다. Spring Security에서는 검증을 마친 Jwt 객체의 getSubject(), getExpiresAt(), getClaimAsString(&quot;role&quot;)로 꺼낸다.</dd>
+<dt>JwtDecoder와 NimbusJwtDecoder</dt>
+<dd><b>왜 생겼나</b> — JWT 검증은 base64url 풀기, 알고리즘 고정, 서명 계산과 시간이 일정한 비교, 키 길이, 만료 시각과 시계 오차 같은 것을 모두 바르게 해야 해서, 직접 짜면 한 군데만 빠뜨려도 위조 토큰이 통과한다. 스프링은 이 일을 검증된 라이브러리에 맡기고 결과만 Jwt 객체와 정해진 예외로 돌려주는 인터페이스를 두었다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 부트에서 JwtDecoder를 빈으로 등록하고 http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))를 켜면, BearerTokenAuthenticationFilter가 요청마다 decode를 불러 실패하면 401로 답한다. iss나 aud도 확인하려면 JwtValidators.createDefaultWithIssuer 등으로 만든 검증기를 setJwtValidator로 넣는다.</dd>
+<dd>JwtDecoder는 Spring Security(spring-security-oauth2-jose)가 주는 인터페이스로, 메서드 Jwt decode(String token) 하나로 토큰 글자를 검증해 Jwt 객체로 바꾼다. 검증에 실패하면 JwtException 계열의 예외를 던진다. 형식이나 알고리즘, 서명이 틀리면 BadJwtException을, 서명은 맞는데 만료 시각 같은 검증 규칙에 걸리면 BadJwtException을 물려받은 JwtValidationException을 던진다. NimbusJwtDecoder는 Nimbus JOSE+JWT 라이브러리로 이 일을 하는 기본 구현이다. 대칭 키(HS256)는 NimbusJwtDecoder.withSecretKey(key).build(), 공개 키는 withPublicKey(key), 인가 서버의 키 목록 주소는 withJwkSetUri(uri)로 만든다. 기본 검증기(JwtValidators.createDefault())는 typ 머리말과 만료·시작 시각을 확인하며, 만료 시각에는 60초 여유를 둔다.</dd>
 <dt>HMAC과 전자서명</dt>
 <dd><b>왜 생겼나</b> — 해시 값만 붙여 보내면 중간에서 내용을 바꾸고 해시도 새로 계산해 붙일 수 있어 위조를 알아챌 수 없다. HMAC과 전자서명은 키가 있어야만 만들 수 있는 값을 붙여, 키가 없는 쪽이 고친 메시지를 받는 쪽이 가려내게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — JWT의 서명(HS256은 HMAC, RS256은 전자서명), GitHub 웹훅처럼 요청 헤더에 붙여 보내는 서명, HTTPS 인증서 검증에 쓰인다.</dd>
 <dd>메시지가 중간에 바뀌지 않았고 정당한 상대가 보냈음을 확인하는 기술이다. HMAC은 양쪽이 공유한 비밀키와 메시지를 함께 해시해 인증 코드를 만든다. 전자서명은 보내는 쪽이 개인키로 서명하고 받는 쪽이 공개키로 검증하며, 서명한 쪽만 만들 수 있으므로 보낸 사실을 부인할 수 없다.</dd>
 <dt>알고리즘 고정(alg 검증)</dt>
-<dd><b>지금 어디에 쓰나</b> — JWT를 검증하는 코드에서 받을 알고리즘을 HS256이나 RS256처럼 정해 둔다. 공개 키로 검증하는 서버에 alg를 HS256으로 바꿔 공개 키를 비밀 키처럼 쓰게 하는 공격도 이것으로 막는다.</dd>
-<dd>토큰을 검증할 때 쓸 서명 알고리즘을 토큰이 아니라 서버가 정해 두는 것이다. JWT의 머리말에는 alg라는 항목이 있어 어떤 알고리즘으로 서명했는지 적혀 있지만, 머리말은 누구나 고칠 수 있는 글자다. 서버가 이 값을 그대로 따르면, 보내는 쪽이 alg를 none(서명 없음)으로 바꿔 서명 확인을 건너뛰게 만들 수 있다. 그래서 서버는 받을 알고리즘의 목록을 미리 정하고, 머리말의 alg가 그 목록에 없으면 서명을 계산해 보기도 전에 거절한다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JWT를 검증하는 디코더를 만들 때 받을 알고리즘을 HS256이나 RS256처럼 정해 둔다. 공개 키로 검증하는 서버에 alg를 HS256으로 바꿔 공개 키를 비밀 키처럼 쓰게 하는 공격도 이것으로 막는다.</dd>
+<dd>토큰을 검증할 때 쓸 서명 알고리즘을 토큰이 아니라 서버가 정해 두는 것이다. JWT의 머리말에는 alg라는 항목이 있어 어떤 알고리즘으로 서명했는지 적혀 있지만, 머리말은 누구나 고칠 수 있는 글자다. 서버가 이 값을 그대로 따르면, 보내는 쪽이 alg를 none(서명 없음)으로 바꿔 서명 확인을 건너뛰게 만들 수 있다. 그래서 서버는 받을 알고리즘을 미리 정하고, 머리말의 alg가 그것과 다르면 서명을 계산해 보기도 전에 거절한다. Spring Security의 NimbusJwtDecoder.withSecretKey(key)는 HS256으로 정해진 디코더를 만들고(macAlgorithm으로 바꿀 수 있음), alg가 none인 토큰은 &quot;Unsupported algorithm of none&quot;이라는 BadJwtException으로 거절한다.</dd>
+<dt>시계 오차 여유(clock skew)</dt>
+<dd><b>왜 생겼나</b> — 서버마다 시계는 NTP로 맞춰도 조금씩 어긋난다. 여유 없이 비교하면 발급 서버보다 시계가 빠른 서버에서 막 발급된 짧은 토큰이 바로 만료로 거절되는 일이 생긴다.</dd>
+<dd><b>지금 어디에 쓰나</b> — JWT 액세스 토큰을 검증하는 리소스 서버, OpenID Connect ID 토큰을 확인하는 클라이언트에서 쓴다. 토큰 유효 시간이 아주 짧으면 여유도 그만큼 줄인다.</dd>
+<dd>토큰의 만료 시각(exp)이나 시작 시각(nbf)을 비교할 때, 토큰을 발급한 서버와 검증하는 서버의 시계가 조금 다를 수 있다고 보고 몇 초에서 몇 분을 봐주는 것이다. RFC 7519 4.1.4절이 이런 여유를 허용한다. Spring Security의 JwtTimestampValidator는 기본으로 60초를 두어, 지금에서 60초를 뺀 시각이 exp보다 뒤일 때 &quot;Jwt expired at …&quot;으로 거절한다. 그래서 exp에서 30초 지난 토큰은 아직 통과하고, 61초가 지나야 거절된다. new JwtTimestampValidator(Duration.ofSeconds(10))처럼 여유를 바꿔 만들 수 있다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 내용의 role을 ADMIN으로 고친 토큰입니다. 읽고 고칠 수는 있어도 서명에서 걸립니다.</li>
-<li><b>발급한 그대로</b> — 서명이 일치하고 만료 전이라 통과합니다.</li>
+<li><b>처음 설정으로</b> — 내용은 읽고 고칠 수 있어도, decode가 서명에서 BadJwtException을 던집니다.</li>
+<li><b>발급한 그대로</b> — 서명이 일치하고 만료 전이라 Jwt 객체가 돌아옵니다.</li>
 <li><b>다른 키로 서명을 새로 만들면</b> — 서버의 키로 계산한 값과 달라 거절됩니다.</li>
-<li><b>만료 시각이 지나면</b> — 서명이 맞아도 거절됩니다.</li>
-<li><b>alg를 none으로 바꾼 토큰</b> — 알고리즘을 정해 둔 서버는 서명을 보기도 전에 거절합니다.</li>
-<li><b>토큰이 말하는 alg를 믿는 서버</b> — 서명이 없는 토큰이 ADMIN으로 통과합니다.</li>
+<li><b>만료 5분 뒤</b> — 서명이 맞아도 JwtValidationException이 납니다.</li>
+<li><b>만료 30초 뒤</b> — 기본 설정의 디코더는 60초까지 봐주므로 통과합니다.</li>
+<li><b>alg를 none으로 바꾼 토큰</b> — 디코더는 서명 없는 토큰을 받지 않습니다.</li>
+<li><b>디코더가 속에서 하는 일</b> — 서명을 JDK의 Mac으로 직접 다시 계산해 비교해 봅니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>누군가 토큰의 가운데 부분을 고쳐서 보냈습니다. role을 USER에서 ADMIN으로 바꿔 다시 적었고, 끝의 서명은 원래 것을 그대로 두었습니다.</li>
-<li>token.split(&quot;\\.&quot;): 서버가 토큰을 점(.)에서 잘라 세 부분으로 나눕니다. 첫째가 머리말(header), 둘째가 내용(payload), 셋째가 서명(signature)입니다.</li>
-<li>dec.decode(part[0]): 첫째 부분을 base64url 디코더로 풉니다. 키는 필요 없습니다. 결과는 {&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;} 입니다. alg는 &quot;이 토큰은 이 알고리즘으로 서명했다&quot;는 토큰 쪽의 주장입니다.</li>
-<li>dec.decode(part[1]): 둘째 부분도 같은 방법으로 풉니다. 결과는 {&quot;sub&quot;:&quot;7&quot;,&quot;role&quot;:&quot;ADMIN&quot;,&quot;exp&quot;:1767225600} 입니다. 암호화한 것이 아니라 표기만 바꿔 적은 것이라, 토큰을 손에 넣은 사람은 누구나 읽습니다. 아직 서명을 확인하지 않았으므로 서버는 이 내용을 믿지 않습니다.</li>
-<li>알고리즘 확인: 이 서버는 HS256만 받기로 정해 두었습니다. 머리말의 alg가 HS256이므로 다음 확인으로 넘어갑니다.</li>
-<li>mac.doFinal(part[0] + &quot;.&quot; + part[1]): 받은 토큰의 앞 두 부분과 서버만 아는 키로 서명을 다시 계산합니다. 결과는 _Crl3waj… 입니다. 토큰에 붙어 온 서명을 그대로 믿지 않고, 서버가 직접 만들어 보는 것입니다.</li>
-<li>MessageDigest.isEqual: 다시 계산한 값(_Crl3waj…)과 토큰의 셋째 부분(5hho4Bt2…)을 비교합니다. 다릅니다. 붙어 온 서명은 고치기 전의 내용으로 만든 것이라, 고친 내용으로 계산한 값과 맞지 않습니다. &quot;서명 불일치&quot;로 거절합니다.</li>
-<li>거절: 서버는 토큰의 내용을 쓰지 않고 요청을 거절합니다. 보통 401 Unauthorized로 답합니다.</li>
+<li>decoder.decode(token): 디코더가 토큰을 점(.)에서 세 부분으로 나누고, 첫째 부분(머리말)을 base64url로 풉니다. 키는 필요 없습니다. 결과는 {&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;} 입니다. alg는 &quot;이 토큰은 이 알고리즘으로 서명했다&quot;는 토큰 쪽의 주장입니다.</li>
+<li>둘째 부분(내용)도 같은 방법으로 풀면 {&quot;sub&quot;:&quot;7&quot;,&quot;role&quot;:&quot;ADMIN&quot;,&quot;exp&quot;:1767225600} 입니다. 암호화한 것이 아니라 표기만 바꿔 적은 것이라, 토큰을 손에 넣은 사람은 누구나 읽습니다. 아직 서명을 확인하지 않았으므로 이 내용을 믿지 않습니다.</li>
+<li>알고리즘 확인: 이 디코더는 withSecretKey(key)로 만들 때 HS256으로 정해졌습니다(기본값). 머리말의 alg도 HS256이므로 서버의 키로 서명을 확인하러 갑니다.</li>
+<li>서명 다시 계산: 디코더가 받은 토큰의 앞 두 부분과 서버만 아는 키로 HMAC-SHA256을 다시 계산합니다. 결과는 _Crl3waj… 입니다. 토큰에 붙어 온 서명을 그대로 믿지 않고, 서버가 직접 만들어 보는 것입니다.</li>
+<li>비교: 다시 계산한 값(_Crl3waj…)과 토큰의 셋째 부분(5hho4Bt2…)을 비교합니다. 다릅니다. 붙어 온 서명은 고치기 전의 내용으로 만든 것이라, 고친 내용으로 계산한 값과 맞지 않습니다. BadJwtException을 던집니다. 메시지는 &quot;An error occurred while attempting to decode the Jwt: Signed JWT rejected: Invalid signature&quot;입니다.</li>
+<li>거절: 예외가 났으므로 토큰의 내용을 쓰지 않습니다. 리소스 서버 설정(oauth2ResourceServer)이라면 BearerTokenAuthenticationFilter가 이 예외를 받아 401과 WWW-Authenticate: Bearer error=&quot;invalid_token&quot; 헤더로 답합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
 <li>머리말과 내용은 base64url로 적은 것이라 키 없이도 읽고 고칠 수 있습니다. 그래서 토큰에는 비밀번호 같은 것을 넣지 않습니다.</li>
-<li>내용을 한 글자라도 고치면 서버가 다시 계산한 서명이 달라집니다. 서명은 &quot;이 내용 그대로&quot;에 대해서만 맞습니다.</li>
+<li>내용을 한 글자라도 고치면 다시 계산한 서명이 달라집니다. 서명은 &quot;이 내용 그대로&quot;에 대해서만 맞습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// 서버 클래스 안의 메서드만 보임 (클래스 선언, serverKey 필드, import는 생략)
+<pre>// 예시로 만든 서버 코드의 일부 (클래스 선언, serverKey 필드, import는 생략)
+// JwtDecoder, NimbusJwtDecoder, Jwt, BadJwtException, JwtValidationException은
+// Spring Security(spring-security-oauth2-jose)가 주는 것이다.
 // 요청 헤더  Authorization: Bearer &lt;토큰&gt;
 // 토큰  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 //       .eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ
 //       .5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
-// 지금  now = 1767225000   (exp = 1767225600)
+// 검증 시각  2025-12-31 23:50:00 UTC   (exp = 2026-01-01 00:00:00 UTC)
 
-Claims verify(String token, long now) throws Exception {
-    String[] part = token.split(&quot;\\.&quot;, -1);                 // 머리말 . 내용 . 서명
-    if (part.length != 3) throw new BadTokenException(&quot;형식 오류&quot;);
-    Base64.Decoder dec = Base64.getUrlDecoder();
-    String header  = new String(dec.decode(part[0]), UTF_8);   // 키 없이 풀린다
-    String payload = new String(dec.decode(part[1]), UTF_8);   // 키 없이 풀린다
+SecretKey key = new SecretKeySpec(serverKey, &quot;HmacSHA256&quot;);        // 서버만 아는 키 (32바이트)
+JwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).build();   // 받는 알고리즘: HS256 (기본값)
 
-    // 1. 알고리즘: 서버가 정해 둔 HS256만 받는다
-    if (!&quot;HS256&quot;.equals(field(header, &quot;alg&quot;)))
-        throw new BadTokenException(&quot;허용하지 않는 알고리즘&quot;);
-
-    // 2. 서명: 앞의 두 부분으로 서버가 직접 다시 계산해 비교한다
-    Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);
-    mac.init(new SecretKeySpec(serverKey, &quot;HmacSHA256&quot;));  // 서버만 아는 키
-    byte[] expected = mac.doFinal((part[0] + &quot;.&quot; + part[1]).getBytes(US_ASCII));
-    if (!MessageDigest.isEqual(expected, dec.decode(part[2])))
-        throw new BadTokenException(&quot;서명 불일치&quot;);
-
-    // 3. 만료: 지금이 exp보다 앞이어야 한다
-    if (now &gt;= Long.parseLong(field(payload, &quot;exp&quot;)))
-        throw new BadTokenException(&quot;만료됨&quot;);
-    return new Claims(field(payload, &quot;sub&quot;), field(payload, &quot;role&quot;));   // 여기까지 와야 내용을 믿는다
+try {
+    Jwt jwt = decoder.decode(token);   // 알고리즘 → 서명 → 만료(60초 여유) 순서로 확인
+    String userId = jwt.getSubject();             // &quot;7&quot;
+    String role = jwt.getClaimAsString(&quot;role&quot;);   // &quot;USER&quot;
+} catch (JwtValidationException e) {   // 서명은 맞았는데 만료 같은 검증에서 걸림
+    // 토큰의 내용을 쓰지 않는다
+} catch (BadJwtException e) {          // 알고리즘이나 서명이 틀림   // ← 이번 토큰: Invalid signature
+    // 토큰의 내용을 쓰지 않는다
 }
 
-// Claims, BadTokenException, field(json, 이름)은 이 예제에서 만든 클래스와 메서드다(선언은 생략).
-// field는 JSON에서 값 하나를 꺼내는 도우미다.
-// 원리를 보이려고 직접 적은 코드다. 실제 서비스에서는 검증된 JWT 라이브러리를 쓴다.</pre>
+// 스프링 부트 서버에서는 decode를 직접 부르지 않는다. 이 decoder를 빈으로 등록하고
+// http.oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))를 켜 두면
+// BearerTokenAuthenticationFilter가 요청마다 decode를 부르고, 예외가 나면 401로 답한다.</pre>
 <h2>이 모형의 전제</h2>
-<p>화면의 토큰 글자, 서명 값, 열여섯 가지 조합의 검증 결과는 검증 실행에서 Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들고 검증해 본 결과와 대조했습니다. 화면의 자바 코드도 JDK 21에서 그대로 실행해 같은 토큰과 같은 결과가 나오는 것을 확인했습니다. 검증 실행 환경에는 JWT 라이브러리를 두지 않아서, 검증 절차는 표준 문서를 보고 직접 적은 코드로 실행했습니다. 근거는 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 &quot;첫째 부분.둘째 부분&quot;이라는 것은 RFC 7515 5.1절, 검증 순서는 RFC 7515 5.2절과 RFC 7519 7.2절, 지금이 exp보다 앞이어야 한다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절입니다. 지금이 exp와 정확히 같을 때는 거절됩니다(직접 실행해 확인). 서버가 받을 알고리즘을 정해 두어야 한다는 것은 RFC 8725 3.1절의 권고이고, 널리 쓰이는 JWT 라이브러리가 none을 기본으로 거절한다는 것은 실행으로 확인하지 못했습니다. 실제 서버는 시계 오차를 감안해 exp에 몇 초에서 몇 분의 여유를 두기도 하고(RFC 7519 4.1.4절이 허용), iss, aud 같은 다른 클레임도 함께 확인합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버에서 alg를 HS256으로 바꿔 보내는 문제는 다루지 않았습니다.</p>
+<p>화면의 토큰 글자와 서명 값은 검증 실행에서 JDK 21의 javax.crypto.Mac(HmacSHA256)과 Node.js 24의 crypto로 각각 실제로 만들어 같은 값이 나오는 것을 확인했습니다. 검증 실행 환경에는 spring-security-oauth2-jose와 nimbus-jose-jwt가 없어서 NimbusJwtDecoder 자체는 실행하지 않았습니다. 대신 decode가 거치는 순서와 예외 이름, 메시지를 공식 소스(Spring Security 7.1.1의 NimbusJwtDecoder, JwtValidators, JwtTimestampValidator와 그것이 쓰는 nimbus-jose-jwt 10.9.1의 JWTParser, PlainJWT, DefaultJWTProcessor)에서 옮기고, 서명이 맞는지는 Mac으로 실제로 계산해 열두 가지 경우의 결과를 냈습니다. 만료 여유는 소스의 조건(지금에서 60초를 뺀 시각이 exp보다 뒤이면 거절) 그대로 계산해, exp에서 60초 뒤까지는 통과하고 61초 뒤부터 거절되는 것을 확인했습니다. JwtTimestampValidator는 시스템 시계로 재므로, 화면의 검증 시각은 이 실습에서 정한 값입니다(setClock으로 고정할 수 있음). 화면의 표준 코드는 공식 시그니처만 옮긴 대역과 함께 javac로 컴파일되는 것을 확인했고, &quot;속에서 하는 일&quot; 코드는 JDK 21에서 그대로 실행해 화면의 판단과 같은 결과가 나오는 것을 확인했습니다. 근거가 된 표준은 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 &quot;첫째 부분.둘째 부분&quot;이라는 것은 RFC 7515 5.1절, exp의 뜻과 시계 오차 여유를 둘 수 있다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절, 받을 알고리즘을 서버가 정해 두라는 권고는 RFC 8725 3.1절입니다. 실제 서버는 iss, aud 같은 다른 클레임도 함께 확인하도록 검증기를 더하기도 합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버와 그때의 공격은 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/pwhash/">비밀번호 해시</a> · 다음 실습: <a href="../../lab/oauth/">OAuth 로그인 흐름</a></p>
   </div>
 
@@ -206,6 +205,6 @@ Claims verify(String token, long now) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

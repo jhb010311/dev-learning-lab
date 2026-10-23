@@ -1,1 +1,1 @@
-Lab.verify({ dep_basic: ['run', 'JDK 21에서 네 가지 조합을 greet.jar를 만들어 javac와 java 명령 그대로 실행해 대조'] });
+Lab.verify({ dep_basic: ['run', 'JDK 21에서 실제 잭슨 jar(jackson-databind·jackson-core 3.1.5, jackson-annotations 2.21)로 아홉 가지 조합을 화면의 javac·java 명령 그대로 실행해 대조(20/20). build.gradle의 implementation 한 줄과 전이 의존성은 Gradle 공식 문서와 대조했고, 잭슨으로 Gradle을 실행하지는 않음(캐시에 있던 Gson으로 Gradle 8.14.3을 오프라인 실행해 전이 의존성이 두 클래스패스 목록에 올라오는 것만 확인)'] });

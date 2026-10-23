@@ -1,45 +1,94 @@
 Lab.register({
   id: 'lb_basic', nav: 'Load balancers', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['scale', 'deploy', 'k8s'],
-  title: 'If you run several servers, which server does a request go to?',
-  why: 'With only one server, that one has to receive all requests even as they increase, and if that server goes down the whole service stops. Merely starting several servers does not decide which server receives which request, or how to avoid a server that is down. A load balancer keeps a single entrance where requests arrive and distributes them among the servers that are alive, so that clients keep using the same address even when servers are added or one goes down.',
-  use: 'Web services with many users run the same server on several machines and put a load balancer in front of them. A load balancer offered by a cloud company, or a program such as Nginx, does this job, and it is also used to take servers out and put them back one at a time when switching to a new version. Values that must carry across requests, such as login state, are not kept only in one server\'s memory but are commonly kept where several servers can see them together, such as Redis or a DB.',
-  intro: 'When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the side that sends requests) has to know several server addresses. So the client connects to one address only, and the load balancer that receives requests at that address spreads them across the servers. The load balancer in this lab sends requests to server A and server B in turn, and skips a server whose connection is refused. The code box is not Java code. It is a configuration that says which program runs at which address and what it does (lines that start with # are comments). Each server counts the requests it has received in its own memory and replies like "I am A, request #1". In this lab you remove the load balancer, and you stop the server A program after 3 requests, and you see how the replies the client receives change.',
-  terms: ['Load balancer', 'Round robin', 'Skipping a failed server', 'Connection refused error'],
+  title: 'Where does a request go when you run several servers?',
+  why: 'If there is only one server, that one server has to receive every request even when requests increase, and if it goes down, the whole service stops. Just starting several servers does not decide which server receives which request, or how to avoid a server that is down. A load balancer makes one entrance for incoming requests and sends them on to the servers that are alive, so even when you add servers or one of them goes down, clients keep using the same address.',
+  use: 'A web service with many users starts the same Spring Boot server on several machines and puts a load balancer in front of them. The most common one is nginx: you write the server addresses in the upstream block of the nginx configuration and pass requests to that group with proxy_pass. Load balancers that cloud companies provide do the same job, and they are also used to take servers out and put them back one at a time when you switch to a new version. A value that must continue across requests, such as a login state, is not kept only in the memory of one server; it is usually kept in a place that several servers look at together, such as Redis or a database.',
+  intro: 'When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the side that sends requests) has to know several server addresses. So the client connects to just one address, and a load balancer that receives requests at that address sends them on to the servers. This lab compares a setup where the client connects directly to one server with a setup that puts a load balancer in front of two servers. For the load balancer it uses nginx, the most common one. The code box has three parts: the nginx configuration (the upstream block lists the addresses of server A and server B, and proxy_pass passes requests to that group), the commands that start the servers (the same app.jar is started twice with only the port changed), and the Spring Boot controller of each server. A line that starts with # is an explanation. The controller counts the requests it received in its own memory and answers like "I am A, request #1". You remove the load balancer and stop server A after 3 requests, and see how the answers the client receives change.',
+  terms: ['Load balancer', 'nginx upstream and proxy_pass', 'Round robin', 'Skipping a failed server', 'Spring Boot command line arguments (--server.port)', 'Connection refused error'],
   controls: [
-    { id: 'servers', label: 'Server setup', type: 'select', value: 'lb', options: [['lb', 'Servers A and B with a load balancer'], ['one', 'Server A only (connect directly, no load balancer)']] },
-    { id: 'down', label: 'Stop the server A program after sending 3 requests', type: 'check', value: false },
+    { id: 'servers', label: 'Server setup', type: 'select', value: 'lb', options: [['lb', 'Servers A and B, with nginx in front'], ['one', 'Server A only (connect directly, without nginx)']] },
+    { id: 'down', label: 'Stop server A after sending 3 requests', type: 'check', value: false },
   ],
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
-    { t: 'Default settings', q: 'What does a load balancer look like, and where do the 6 requests go when it sits in front of server A and server B?', d: 'A load balancer in front of two servers. Requests go to A and B in turn.', v: { servers: 'lb', down: false } },
-    { t: 'Stopping the server A program', q: 'What if you stop the server A program after sending 3 requests?', d: 'The load balancer skips server A, and the client gets replies without any failure.', v: { servers: 'lb', down: true } },
-    { t: 'One server without a load balancer', q: 'What if you remove the load balancer and connect directly to the single server A?', d: 'There is only one server, so that server receives every request.', v: { servers: 'one', down: false } },
-    { t: 'Stopping the only server', q: 'What if there is only server A and you stop the server A program after sending 3 requests?', d: 'No server is left to receive requests, so every later request fails.', v: { servers: 'one', down: true } },
+    { t: 'Default settings', q: 'What does the setup that puts nginx in front of server A and server B as a load balancer look like, and where do the 6 requests go?', d: 'It lists the two servers in upstream and passes requests with proxy_pass. Requests go to A and B in turn.', v: { servers: 'lb', down: false } },
+    { t: 'If server A is stopped', q: 'If server A is stopped after 3 requests, where does nginx send the requests?', d: 'nginx skips server A, whose connection is refused, and the client gets answers with no failure.', v: { servers: 'lb', down: true } },
+    { t: 'One server without a load balancer', q: 'What if you remove nginx and connect directly to the one server A?', d: 'There is only one server, so it receives every request.', v: { servers: 'one', down: false } },
+    { t: 'One server, and it is stopped', q: 'With only the one server A, what if you stop server A after 3 requests?', d: 'There is no server to receive them, so every request after that fails.', v: { servers: 'one', down: true } },
   ],
-  CODE1: '# Client: 6 requests to http://localhost:8080/',
+  // The check program (verify/net/lb_basic_probe_boot.js) reads the code on the screen as it is:
+  // it compiles the Java part as it is and starts it as Spring Boot, starts the servers with the arguments of the java -jar lines, and reads the upstream, listen, and proxy_pass of the nginx configuration and gives them to the model that stands in for nginx.
   code: function (c) {
-    var out = [this.CODE1];
-    if (c.servers === 'lb') out.push('# 8080: load balancer (sends to server A and server B in turn)', '# Server A (9001), server B (9002): reply "I am A" and "I am B"', '#   The reply also includes the number of requests the server has received');
-    else out.push('# 8080: server A. The client connects directly, with no load balancer', '# Server A: replies "I am A"', '#   The reply also includes the number of requests the server has received');
-    if (c.down) out.push('# After sending 3 requests, stop the server A program');
-    return out.join('\n');
+    var o = [], lb = c.servers === 'lb';
+    if (lb) {
+      o.push('# nginx configuration (put it in the http { } block of nginx.conf. It receives on port 8080 and splits requests between server A and server B)',
+        'upstream app {',
+        '    server 127.0.0.1:8081;    # server A',
+        '    server 127.0.0.1:8082;    # server B');
+      if (c.down) o.push('    # not written, but each server has max_fails=1 fail_timeout=10s by default');
+      o.push('}',
+        '',
+        'server {',
+        '    listen 8080;',
+        '',
+        '    location / {',
+        '        proxy_pass http://app;    # splits requests among the servers of upstream app');
+      if (c.down) o.push('        # not written, but proxy_next_upstream error timeout; is the default');
+      o.push('    }',
+        '}',
+        '',
+        '# Start server A and server B: start the same app.jar twice, changing only the port and the name',
+        '# --server.port is a setting that Spring Boot defines (the port the server opens), --app.name is a setting chosen for this example (the name of the server)',
+        'java -jar app.jar --server.port=8081 --app.name=A',
+        'java -jar app.jar --server.port=8082 --app.name=B');
+    } else {
+      o.push('# No nginx: server A alone receives directly on port 8080',
+        '# --server.port is a setting that Spring Boot defines (the port the server opens), --app.name is a setting chosen for this example (the name of the server)',
+        'java -jar app.jar --server.port=8080 --app.name=A');
+    }
+    o.push('',
+      '# Client: curl http://localhost:8080/ sends 6 requests');
+    if (c.down) o.push('# After request #3, server A is stopped (Ctrl+C in the window where server A was started)');
+    o.push('',
+      '// HelloController.java  (HelloController is a controller made for this example. @RestController, @GetMapping, and @Value come from Spring,',
+      '// and AtomicInteger comes from Java. The start class annotated with @SpringBootApplication is omitted)',
+      'import java.util.concurrent.atomic.AtomicInteger;',
+      'import org.springframework.beans.factory.annotation.Value;',
+      'import org.springframework.web.bind.annotation.GetMapping;',
+      'import org.springframework.web.bind.annotation.RestController;',
+      '',
+      '@RestController',
+      'public class HelloController {',
+      '    @Value("${app.name}")',
+      '    private String name;                                       // the --app.name value given at startup (A or B)',
+      '',
+      '    private final AtomicInteger count = new AtomicInteger();  // the number of requests this server received (it exists only in the memory of this server)',
+      '',
+      '    @GetMapping("/")',
+      '    public String hello() {',
+      '        return "I am " + name + ", request #" + count.incrementAndGet();',
+      '    }',
+      '}');
+    return o.join('\n');
   },
-  label: function (c) { return (c.servers === 'lb' ? '2 servers and a load balancer' : '1 server, direct connection') + ' · ' + (c.down ? 'Server A stopped after request #3' : 'Server A kept running'); },
+  label: function (c) { return (c.servers === 'lb' ? '2 servers and nginx' : '1 server, direct connection') + ' · ' + (c.down ? 'server A stopped after request #3' : 'server A stays on'); },
   columns: ['Replies from A', 'Replies from B', 'Failed requests'],
   simulate: function (c) {
     var lb = c.servers === 'lb', down = !!c.down, N = 6, K = 3;
     var ev = [], sum = [], trace = [];
     var st = { n: 0, aUp: true, cntA: 0, cntB: 0, ansA: 0, ansB: 0, fail: 0, to: '', ref: '', say: '', err: false, phase: 'up', rows: [] };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
+    // Behavior from the nginx documentation: round robin with equal weights (A, B, A, B...), on a connection error go to the next server (proxy_next_upstream error),
+    // a server that failed max_fails=1 time is not used for fail_timeout=10 seconds (the 6 requests finish within 10 seconds)
     var up = { A: true, B: true }, marked = {}, rr = 0;
     // Step 1: the servers start
-    push(lb ? 'The servers start. Two copies of the same server program start separately as server A and server B. Each one counts the requests it has received in its own memory, and when a request arrives it replies "I am A" or "I am B" together with that count. A load balancer starts in front of them. The client does not know how many servers there are. It knows only one address, localhost:8080. The program that receives requests at this address is the load balancer.'
-      : 'The server starts. One server (server A) waits for requests at address 8080. Server A counts the requests it has received in its own memory, and when a request arrives it replies "I am A" together with that count. There is no load balancer in front, so the client connects to this server directly at localhost:8080.', '');
+    push(lb ? 'The servers start. The same app.jar is started twice with java -jar, so the same Spring Boot program runs separately as server A (port 8081, --app.name=A) and server B (port 8082, --app.name=B). The HelloController of each server counts the requests it received in its own count field. In front of them, nginx waits for requests on port 8080 as the line listen 8080 says. The client does not know how many servers there are and knows only the one address, localhost:8080. What receives requests at this address is nginx.'
+      : 'The server starts. One server A waits for requests on port 8080 as the argument --server.port=8080 says. The HelloController of server A counts the requests it received in its count field. There is no nginx in front, so the client connects directly to this server at the address localhost:8080.', '');
     for (var i = 1; i <= N; i++) {
       if (down && i === K + 1) {
         up.A = false; st.aUp = false; st.phase = 'kill'; st.to = ''; st.ref = '';
-        push(lb ? 'After request #' + K + ', the server A program is stopped (the last line of the code box). Server A no longer accepts connections. Server B is still running. The load balancer in this lab learns that a server is stopped only when it tries to connect and the connection is refused, so it does not yet know that server A is stopped.'
-          : 'After request #' + K + ', the server A program is stopped (the last line of the code box). Server A is the only server.', 'bad');
+        push(lb ? 'After sending ' + K + ' requests, server A is stopped (the Ctrl+C line in the code box). Server A no longer accepts connections. Server B stays on. This setup has no mechanism that checks the state of the servers beforehand, so nginx does not know that server A is down until it tries to connect to it.'
+          : 'After sending ' + K + ' requests, server A is stopped (the Ctrl+C line in the code box). The only server is server A.', 'bad');
       }
       st.n = i; st.to = ''; st.ref = ''; st.say = ''; st.err = false;
       var ans = null, refused = [], skipped = [], turn = '';
@@ -52,67 +101,69 @@ Lab.register({
           ans = nm; break;
         }
       } else if (up.A) ans = 'A';
-      // The first request is shown in two steps ("sent" and "answered"), so in that case it is counted at the answer step
+      // The first request is shown in two steps, "sent" and "answered", so in that case it is counted in the answering step
       var answer = function () {
         if (ans) { if (ans === 'A') { st.cntA++; st.ansA++; } else { st.cntB++; st.ansB++; } st.say = 'I am ' + ans + ', request #' + (ans === 'A' ? st.cntA : st.cntB); }
         else { st.fail++; st.err = true; }
-        var rowWhere = lb ? (refused.length ? 'Server ' + refused.join(', ') + ' refused the connection → ' : '') + (skipped.length ? 'Server ' + skipped.join(', ') + ' skipped → ' : '') + 'Server ' + ans : 'Server A';
+        var rowWhere = lb ? 'nginx → ' + (refused.length ? 'server ' + refused.join(', ') + ' connection refused → ' : '') + (skipped.length ? 'server ' + skipped.join(', ') + ' skipped → ' : '') + 'server ' + ans : 'Server A (direct)';
         st.rows.push(['Request #' + i, rowWhere, ans ? st.say : 'Connection refused error']);
         trace.push(ans ? ans + '#' + (ans === 'A' ? st.cntA : st.cntB) + (refused.length ? '<' + refused.join(',') + ' refused>' : '') : 'error ECONNREFUSED');
       };
       if (!(lb && i === 1)) answer();
-      var hd = 'The client sends request #' + i + ', GET /. ';
+      var hd = 'The client sends a GET / request (request #' + i + '). ';
       if (lb) {
         st.to = ans; st.ref = refused.length ? refused[0] : '';
         if (i === 1) {
           st.phase = 'sent'; st.to = turn; st.say = ''; var keepSay = 'I am ' + ans + ', request #1';
-          push(hd + 'What receives the request at address 8080 is not a server but the load balancer. The load balancer passes this request to server ' + turn + ', the first server in its list.', '');
+          push(hd + 'What receives this request on port 8080 is not a Spring Boot server but nginx. Following the line proxy_pass http://app; in location /, nginx passes the request to one of the servers listed in upstream app. No method of splitting was written, so it uses the default method, round robin (going around in turn, one server at a time), and the first request goes to the first server in the list, server ' + turn + ' (port 8081).', '');
           answer(); st.phase = 'answer'; st.say = keepSay; st.to = ans;
-          push('Server ' + ans + ' adds one to the number of received requests it keeps in its own memory and replies "' + keepSay + '". The load balancer returns this reply to the client unchanged. The text the client receives says which server replied.', 'good');
+          push('The hello() method of server ' + ans + ' adds 1 to count and returns "' + keepSay + '". nginx returns this answer to the client as it is. The text the client received says which server answered.', 'good');
         } else if (refused.length) {
           st.phase = 'req';
-                    push(hd + 'This time it is the turn of server ' + turn + ', so the load balancer tries to connect to server ' + turn + ', but the server ' + turn + ' program has been stopped, so the connection is refused (a connection refused error). The load balancer skips server ' + turn + ' and sends the same request to the next server, server ' + ans + '. Server ' + ans + ' adds one to the count it keeps in its own memory and replies "' + st.say + '", and the load balancer returns this reply. The client does not experience the refusal and gets a normal reply.', 'good');
+          push(hd + 'By round robin it is the turn of server ' + turn + ', so nginx tries to connect to server ' + turn + ' (port 8081), but server ' + turn + ' was stopped, so the connection is refused (a connection refused error). Following the default error of proxy_next_upstream, nginx passes the same request to the next server, server ' + ans + '. Also, since the default of max_fails is 1, this one failure marks server ' + turn + ' as a server not to be used for fail_timeout (10 seconds by default). Server ' + ans + ' adds 1 to count and returns "' + st.say + '", and nginx returns this answer. The client does not know about the refusal and receives a normal answer.', 'good');
         } else {
           st.phase = 'req';
           var extra = '';
-          if (i === 2) extra = ' Server A has already replied once, but server B\'s count starts at "request #1". Each server counts the requests it has received separately, in its own memory.';
-          if (skipped.length) extra = ' Server ' + skipped[0] + ' is skipped because its connection was refused earlier.';
-          push(hd + 'The load balancer sends requests in turn, so this time it is the turn of server ' + ans + '. Server ' + ans + ' adds one to the count it keeps in its own memory and replies "' + st.say + '", and the load balancer returns this reply.' + extra, 'good');
+          if (i === 2) extra = ' Server A has already replied once, but the count of server B starts at "request #1". This is because each server has its own count in its own memory.';
+          if (skipped.length) extra = ' By round robin it is the turn of server ' + skipped[0] + ', but it is a server that is not used for 10 seconds because its connection was refused earlier, so nginx skips it without even trying to connect.';
+          var outs = Object.keys(marked).filter(function (x) { return x !== ans && skipped.indexOf(x) < 0; });
+          if (outs.length) extra += ' Server ' + outs.join(', ') + ' is a server that is not used for 10 seconds because of an earlier failure, so it is out of the candidates nginx picks from.';
+          push(hd + (skipped.length ? 'nginx passes this request to server ' + ans + '. ' : 'nginx passes requests going around in turn, so this time it is the turn of server ' + ans + '. ') + 'Server ' + ans + ' adds 1 to count and returns "' + st.say + '", and nginx returns this answer.' + extra, 'good');
         }
       } else {
         st.to = ans || ''; st.phase = 'req';
-        if (ans) push(hd + (i === 1 ? 'There is no load balancer in front, so this request reaches server A directly. ' : 'This request also reaches server A directly. ') + 'Server A adds one to the number of received requests it keeps in its own memory and replies "' + st.say + '".', 'good');
-        else if (i === K + 1) push(hd + 'The server A program has been stopped, so no program accepts connections at address 8080, and the client gets a connection refused error. The request did not reach a server and there is no reply. There is no load balancer in front, so there is no other server to take over.', 'bad');
-        else push(hd + 'For the same reason, a connection refused error occurs. There is no reply.', 'bad');
+        if (ans) push(hd + (i === 1 ? 'There is no nginx in front, so this request reaches server A directly. ' : 'This request also reaches server A directly. ') + 'The hello() method of server A adds 1 to count and returns "' + st.say + '".', 'good');
+        else if (i === K + 1) push(hd + 'Server A was stopped, so no program accepts connections on port 8080, and the client gets a connection refused error. The request did not reach a server and there is no answer. There is no load balancer in front, so there is no other server to receive it either.', 'bad');
+        else push(hd + 'For the same reason, a connection refused error occurs. There is no answer.', 'bad');
       }
     }
     // Last step
     st.phase = 'end'; st.to = ''; st.ref = '';
-    var tail = lb ? 'Server A replied ' + st.ansA + ' times and server B replied ' + st.ansB + ' times' : 'Server A replied ' + st.ansA + ' times';
-    push('The ' + N + ' requests are finished. ' + tail + ', and ' + st.fail + ' requests failed. The count of received requests kept by server A is ' + st.cntA + (lb ? ', and the count kept by server B is ' + st.cntB : '') + '.', st.fail ? 'bad' : 'good');
+    var tail = lb ? 'Replies from server A: ' + st.ansA + ', from server B: ' + st.ansB : 'Replies from server A: ' + st.ansA;
+    push('All ' + N + ' requests are finished. ' + tail + '. Failed requests: ' + st.fail + '. The count of server A is ' + st.cntA + (lb ? ', and the count of server B is ' + st.cntB : '') + '.', st.fail ? 'bad' : 'good');
     // Summary
     if (lb && !down) {
-      sum.push('The load balancer receives requests at the one address the client connects to and sends them to server A and server B in turn. Of the 6 requests, server A replied to 3 and server B replied to 3.');
-      sum.push('Each server counts received requests separately in its own memory. The first request server B received was "request #1", even though server A had already replied, and each of the two servers counted 3. A value kept in a server\'s memory exists only in that server\'s memory, and the other server does not know it.');
+      sum.push('If you list two servers in upstream app in the nginx configuration and pass requests with proxy_pass http://app;, nginx receives requests at the one address the client connects to (port 8080) and sends them to server A and server B in turn (round robin, the default method). Of the 6 requests, server A replied to 3 and server B replied to 3.');
+      sum.push('Each server counts the requests it received separately in its own count, in its own memory. The first request server B received was "request #1" even though server A had already replied, and the count of each server is 3. A value kept in the memory of one server is unknown to the other server.');
     } else if (lb && down) {
-      sum.push('Even though the server A program was stopped after 3 requests, all 6 requests got a reply and 0 requests failed. The load balancer skipped server A, whose connection was refused, and sent the requests to the remaining server B.');
-      sum.push('If one server stops and another is left, the service continues. But server B has to take all the rest by itself, so the count server B kept went on as request #2, #3, and #4, and reached 4.');
+      sum.push('Even though server A was stopped after 3 requests, all 6 requests got an answer and 0 requests failed. With the defaults that apply even when not written (proxy_next_upstream error timeout, max_fails=1, fail_timeout=10s), nginx skipped server A, whose connection was refused, passed the same request to server B, and marked server A as not to be used for 10 seconds.');
+      sum.push('Even if one server goes down, the service continues as long as another server remains. But server B had to take all the rest by itself, so the answers of server B continued as request #2, #3, and #4.');
     } else if (!down) {
-      sum.push('When you connect directly to the single server A without a load balancer, server A replied to all 6 requests. The count of received requests kept by server A also continued on one server, from request #1 to request #6.');
-      sum.push('While the server is alive, there is no problem. When there was a load balancer, this count was kept separately for each server.');
+      sum.push('If you connect directly to the one server A without nginx, server A replied to all 6 requests. The count of server A also continued from #1 to #6 in the one server.');
+      sum.push('While the server is alive, there is no problem. With nginx in front of two servers, the requests were split between the two servers and each server counted separately.');
     } else {
-      sum.push('When server A is the only server and you stop the server A program after 3 requests, the 3 requests before that get replies, but the 3 requests after that (the 4th to the 6th) all fail with a connection refused error. After the stop, the client never got a reply.');
-      sum.push('No other server is there to take over. If you depend on a single server without a load balancer, the whole service stops the moment that one server stops.');
+      sum.push('If you stop server A when it is the only server, after request #3, the 3 requests before stopping get answers, but the 3 requests after stopping (#4 to #6) all fail with a connection refused error. After stopping, the client never got an answer.');
+      sum.push('There is no server to receive them instead. If you rely on one server without a load balancer, the whole service stops the moment that one server goes down. In the setup with nginx in front of two servers, stopping server A at the same point left 0 failed requests.');
     }
     return { events: ev, summary: sum, trace: trace, row: [String(st.ansA), lb ? String(st.ansB) : 'No server B', String(st.fail) + (st.fail ? ' (connection refused error)' : '')] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
-    if (!s) { H.text(v, 'Click Run to start from the servers starting.'); return; }
+    if (!s) { H.text(v, 'Click Run to start with the servers starting.'); return; }
     if (s.rows.length) H.table(v, ['Request', 'Sent to', 'What the client received'], s.rows.map(function (r) { return { cls: '', cells: [r[0], r[1], { v: r[2], cls: r[2].indexOf('I am') === 0 ? 'good' : 'bad' }] }; }), 'Requests and replies');
     H.counters(v, [[s.ansA, 'Replies from A'], [sim.c.servers === 'lb' ? s.ansB : '-', 'Replies from B'], [s.fail, 'Failed requests']]);
   },
-  // Diagram: on the left the client, in the middle the load balancer (dotted when absent), on the right servers A and B. Arrows show which server a request reaches and where the connection is refused.
+  // Diagram: the client on the left, nginx in the middle (faded if absent), and servers A and B on the right. Arrows show which server a request reaches and where the connection is refused.
   draw: function (P, sim, shown) {
     var c = sim.c, lb = c.servers === 'lb', last = shown[shown.length - 1], s = last ? last.snap : null;
     var sending = s && (s.phase === 'sent' || s.phase === 'answer' || s.phase === 'req');
@@ -122,14 +173,14 @@ Lab.register({
     if (!s || !s.n) cs = ['Request 0 of 6', 'Waiting'];
     else if (s.phase === 'sent') cs = ['Request ' + s.n + ' of 6', 'Awaiting reply'];
     else if (s.phase === 'kill') cs = ['Request ' + s.n + ' of 6', 'Next not sent'];
-    else if (s.err) cs = ['Request ' + s.n + ' of 6', 'Connection', 'refused', 'error'];
+    else if (s.err) cs = ['Request ' + s.n + ' of 6', 'Connection', 'refused error'];
     else cs = ['Request ' + s.n + ' of 6', 'Reply received:'].concat(s.say.split(', '));
     P.box('c', 20, 44, 130, 162, { cls: s && s.err && sending ? 'bad' : sending ? 'wait' : 'plain', title: 'Requests', sub: cs });
-    P.box('lb', 220, 95, 120, 62, { cls: lb ? (sending ? 'hot' : 'plain') : 'ghost', title: 'Load balancer', sub: lb ? ['Address 8080'] : ['(none)'] });
-    P.region('sv', 440, 16, 230, 206, 'Servers');
+    P.box('lb', 220, 88, 120, 76, { cls: lb ? (sending ? 'hot' : 'plain') : 'ghost', title: 'nginx', sub: lb ? ['Load balancer', 'Port 8080'] : ['(none)'] });
+    P.region('sv', 440, 16, 230, 206, 'Spring Boot servers');
     var aOn = s && sending && s.to === 'A', bOn = s && sending && s.to === 'B';
-    P.box('a', 450, 36, 210, 70, { cls: s && !s.aUp ? 'bad' : aOn ? (s.phase === 'sent' ? 'hot now' : 'good now') : 'plain', title: 'Server A', sub: ['Requests received: ' + (s ? s.cntA : 0), s && !s.aUp ? 'Stopped' : 'Running'] });
-    P.box('b', 450, 132, 210, 70, { cls: lb ? (bOn ? (s.phase === 'sent' ? 'hot now' : 'good now') : 'plain') : 'ghost', title: 'Server B', sub: lb ? ['Requests received: ' + (s ? s.cntB : 0), 'Running'] : ['(none)'] });
+    P.box('a', 450, 36, 210, 70, { cls: s && !s.aUp ? 'bad' : aOn ? (s.phase === 'sent' ? 'hot now' : 'good now') : 'plain', title: 'Server A (port ' + (lb ? '8081' : '8080') + ')', sub: ['count ' + (s ? s.cntA : 0), s && !s.aUp ? 'Stopped' : 'Running'] });
+    P.box('b', 450, 132, 210, 70, { cls: lb ? (bOn ? (s.phase === 'sent' ? 'hot now' : 'good now') : 'plain') : 'ghost', title: 'Server B' + (lb ? ' (port 8082)' : ''), sub: lb ? ['count ' + (s ? s.cntB : 0), 'Running'] : ['(none)'] });
     if (sending) {
       if (lb) {
         P.arrow('rq', 'c:r:0.5', 'lb:l', {});
@@ -143,5 +194,5 @@ Lab.register({
     P.box('n2', 233, 240, 214, 36, { cls: lb && s && s.ansB ? 'good' : 'ghost', title: 'Replies from B', right: lb ? String(s ? s.ansB : 0) : 'None' });
     P.box('n3', 452, 240, 214, 36, { cls: s && s.fail ? 'bad' : 'ghost', title: 'Failed requests', right: String(s ? s.fail : 0) });
   },
-  assume: 'Server A (and server B) is an http server of Node.js 24.18.0, and each server counts the requests it has received in its own variable and replies like "I am A, request #1". The load balancer is not a product such as NGINX but one built by hand as an http server of the same Node.js. For each request it moves the starting position in the server list by one (A, B, A, B...), forwards the request to that server on a new connection, skips a server whose connection is refused and sends the same request to the next server, and does not try a server again after it has refused once. The client sent a GET / request 6 times in a row with the http module, on a new connection for each request. Stopping server A was done by closing that server\'s listening socket and its open connections instead of ending the process, and after it was closed, a connection from the client or the load balancer gave ECONNREFUSED (a connection refused error). I ran all four combinations and checked against the model the number of replies from server A and server B, the number of failed requests, which server replied to each of the 6 requests and as which request number, the counts the servers kept in memory, the requests and servers for which the load balancer had its connection refused, and the request text the server received. I also checked for each combination that the code on the screen has the same content as that setup. The code on the screen is a description of that setup, not the program that was run, and 8080, 9001, and 9002 on the screen are example addresses; the real runs used free ports. These are behaviors observed in this implementation. What I checked against documentation is RFC 9110 section 3.7 (the definition that a gateway, that is a reverse proxy, is an intermediary that forwards received requests to another server or to several servers inside) and the NGINX documentation (ngx_http_upstream_module at nginx.org: requests are distributed among the servers by weighted round robin by default, and max_fails with a default of 1 and fail_timeout with a default of 10 seconds make a failed server be considered unavailable for that time; ngx_http_proxy_module: the default of proxy_next_upstream is error timeout, and error includes an error that occurred while establishing a connection with the server). In our test run, we did not run NGINX itself. The load balancer in this lab was only built to act in the same spirit as NGINX, and it was not checked against the real behavior of NGINX. Not covered: the case where the load balancer itself stops, the case where a stopped server starts again and comes back, health checks that check the state of servers periodically, servers with different processing power or weights, sending requests from the same user to the same server, and the limit a server can bear when there are very many requests. How far throughput grows when you add servers is covered in the in-depth lab "Load balancers and scale out", how to replace servers one at a time in a deployment is covered in "Deployment strategies", and automatically starting a dead server again is covered in "Kubernetes self-healing".',
+  assume: 'Server A and server B are real Spring Boot 4.1.1 (Spring 7.0.9, embedded Tomcat 11.0.24, JDK 21). The HelloController on the screen was compiled as it is, and the servers were started with the --server.port and --app.name arguments written in the java -jar lines on the screen, given as they are. However, instead of packing them into a jar, they were started from the compiled classes, and the start class that the screen omits was kept separately for the test. nginx is not on this computer, so it was not run. Instead, a model for running that stands in for nginx (a small program written in Node.js 24.18.0) read the server lines of upstream, listen, and proxy_pass from the nginx configuration on the screen, and passed requests on as the nginx documentation describes. It picks servers by round robin with equal weights, passes the same request to the next server on a connection error or timeout (the default of proxy_next_upstream, error timeout), and does not pick a server that failed max_fails (default 1) times for fail_timeout (default 10 seconds). That the first request goes to the first server in the list (server A) is not written in the documentation, so it was decided by carrying over the way the nginx source (ngx_http_upstream_round_robin.c) picks servers (the server earlier in the list when the weights are equal). The client sent the GET / request 6 times in turn, each time on a new connection. Stopping server A was done by ending the process of server A instead of Ctrl+C, and connecting after that gave ECONNREFUSED (a connection refused error). The ports 8080, 8081, and 8082 on the screen were replaced in the run with other free ports (18270 to 18272). All four combinations were run, and we checked against the model the number of replies from server A and server B, the number of failed requests, which server answered each of the 6 requests and as its how-manyth answer, the text the client received, the count of the servers, and the requests whose connection was refused. So the answers of the Spring Boot servers are real run results, while the splitting of requests and the skipping of a stopped server are results of a model built to follow the documentation, and were not checked with real nginx. The nginx configuration was checked against the nginx.org documentation. ngx_http_upstream_module: upstream goes in the http block, the default distribution is weighted round robin, the default of max_fails is 1, and the default of fail_timeout is 10 seconds. ngx_http_proxy_module: the name of a server group (upstream) can be used in proxy_pass, the default of proxy_next_upstream is error timeout, and error is an error that occurs while making a connection with the server, passing a request to it, or reading the response header. The round robin turn is counted separately by each nginx worker process (the default of worker_processes is 1, and if you put a zone in upstream, the worker processes count together). With several worker processes, the order A, B, A, B may differ from this lab. Not covered: the case where nginx itself stops, the case where the stopped server starts again and comes back after 10 seconds, health checks that check the state of the servers periodically, giving each server a different share with weight, other ways of splitting such as least_conn and ip_hash, the case where a server stops while sending an answer, and the limit a server can hold out when there are very many requests. You can also write a load balancer yourself as a program. The model used to run this lab is such an example, and in a few dozen lines you can try round robin and skipping a failed server. But in a real service you use nginx or a cloud load balancer. How far throughput grows when you add servers is covered in the in-depth lab "Load balancers and scale out", how to deploy by replacing servers one at a time in "Deployment strategies", and automatically restarting a dead server in "Kubernetes self-healing".',
 });

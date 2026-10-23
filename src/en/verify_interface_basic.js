@@ -1,1 +1,1 @@
-Lab.verify({ interface_basic: ['run', 'Twelve combinations were compiled with javax.tools and run on JDK 21, and the results were checked against the model'] });
+Lab.verify({ interface_basic: ['run', 'Seventeen combinations of the code on the screen (12 for the List list, 3 for Comparable sorting, 2 for declaring an interface yourself) were compiled with javax.tools and run on JDK 21 and checked against the model, and the declarations of List, ArrayList, LinkedList, Comparable, and Collections.sort were checked by reflection'] });

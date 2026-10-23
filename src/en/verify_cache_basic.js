@@ -1,1 +1,1 @@
-Lab.verify({ cache_basic: ['run', 'Compiled five combinations on JDK 21 with javax.tools, ran them, and checked against the model'] });
+Lab.verify({ cache_basic: ['run', 'Compiled nine combinations with the same source as the screen on Spring Framework 7.0.9 (spring-context, @EnableCaching + ConcurrentMapCacheManager) and JDK 21, ran them, and checked the output, whether a proxy exists, and the values written in the cache at each step'] });

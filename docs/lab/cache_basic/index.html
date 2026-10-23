@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>캐시: 캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가 · 개발 학습 실습실</title>
-<meta name="description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린…">
+<meta name="description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 원본까지 가지 않고 적어 둔 것을 주는 장치입니다. 캐시는 원본이 아니라 원본을 읽어 온 그때의 값을 적어 둔 것이어서, 원본이 바뀐 뒤에는 옛 값을 줄 수 있습니다. 스프링에서는 캐시를…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="캐시: 캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가 · 개발 학습 실습실">
-<meta property="og:description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린…">
+<meta property="og:description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 원본까지 가지 않고 적어 둔 것을 주는 장치입니다. 캐시는 원본이 아니라 원본을 읽어 온 그때의 값을 적어 둔 것이어서, 원본이 바뀐 뒤에는 옛 값을 줄 수 있습니다. 스프링에서는 캐시를…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8b40b0d075">
+<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -32,81 +32,110 @@
 <h1>캐시</h1>
 <p><b>캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가</b></p>
 <p><b>왜 생겼나</b> — DB 조회나 다른 서버 호출처럼 시간이 드는 일을, 같은 답이 나올 것을 알면서도 요청마다 다시 하면 사용자는 매번 기다리고 원본 쪽에는 같은 일이 쌓인다. 캐시는 한 번 얻은 답을 빨리 꺼낼 수 있는 곳에 두었다가 다시 쓰게 해서, 느린 일을 되풀이하지 않게 한다. 그 대가로 원본이 바뀌면 캐시의 값을 언제 버릴지를 따로 챙겨야 한다.</p>
-<p><b>지금 어디에 쓰나</b> — 자주 읽히지만 잘 바뀌지 않는 상품 정보, 카테고리 목록, 설정값 같은 것을 캐시에 둔다. 스프링에서는 메서드에 @Cacheable 애너테이션을 붙여 결과를 캐시에 두고, 여러 서버가 같은 캐시를 보게 하려면 Redis 같은 따로 띄운 저장소를 쓴다. 남은 재고나 계좌 잔액처럼 늘 지금 값이어야 하는 것은 캐시에 두지 않거나, 값이 바뀔 때 캐시의 값을 바로 지운다.</p>
-<p>캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린 조회(slowLoad)를 한 뒤 적어 둔다&quot;는 일을 합니다. slowLoad는 원본(source)에서 값을 읽어 오는 느린 일이고, 부른 횟수를 slowCount로 셉니다. 실제 시간은 재지 않고 slowLoad가 불린 횟수로 &quot;얼마나 느린 일을 했는가&quot;를 보입니다. 이 실습은 cache 줄을 지워 보고, 두 번 찾는 사이에 원본의 값을 바꾸거나 cache.remove(1) 줄로 캐시의 값을 지워 가며 같은 코드를 컴파일해 실행하고, 느린 조회가 몇 번 일어나는지와 두 번째로 받은 값이 원본과 같은지를 봅니다. (static은 main이 객체를 만들지 않고 바로 부를 수 있게 붙인 것으로 보고, 이 실습에서는 다루지 않습니다.)</p>
-<p>실행으로 대조 · JDK 21에서 다섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
+<p><b>지금 어디에 쓰나</b> — 자주 읽히지만 잘 바뀌지 않는 상품 정보, 카테고리 목록, 설정값 같은 것을 캐시에 둔다. 스프링에서는 설정 클래스에 @EnableCaching을 적고, 조회 메서드에 @Cacheable, 값을 바꾸는 메서드에 @CacheEvict를 적어 쓴다. 캐시를 보관하는 곳은 CacheManager 빈으로 고르며, 서버 한 대의 메모리부터 여러 서버가 함께 보는 Redis까지 같은 애너테이션으로 쓴다. 남은 재고나 계좌 잔액처럼 늘 지금 값이어야 하는 것은 캐시에 두지 않거나, 값이 바뀔 때 캐시의 값을 바로 지운다.</p>
+<p>캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 원본까지 가지 않고 적어 둔 것을 주는 장치입니다. 캐시는 원본이 아니라 원본을 읽어 온 그때의 값을 적어 둔 것이어서, 원본이 바뀐 뒤에는 옛 값을 줄 수 있습니다. 스프링에서는 캐시를 직접 짜지 않고 스프링이 주는 애너테이션을 적습니다. 화면의 코드에서 CacheConfig 클래스의 @EnableCaching은 캐시 기능을 켜고, @Bean으로 등록한 ConcurrentMapCacheManager(스프링이 주는 클래스)는 이름이 product인 캐시를 메모리에 둡니다. 예시로 만든 ProductService 클래스의 find 메서드 위에 @Cacheable(&quot;product&quot;)을 적으면, 스프링이 find를 부르는 앞뒤에서 캐시 product를 보고 결과를 적어 두는 일을 합니다. find의 본문은 원본(DB 대신 쓰는 Map)에서 값을 읽고, loadCount로 원본에서 읽은 횟수를 셉니다. 실제 시간은 재지 않고, 원본에서 읽은 횟수로 &quot;느린 일을 몇 번 했는가&quot;를 봅니다. 예시로 만든 Caller 클래스는 스프링이 넣어 준 ProductService 빈으로 1번 상품을 두 번 찾습니다. 이 실습은 @Cacheable 줄을 지워 보고, 두 번 찾는 사이에 rename으로 원본을 바꾸거나 rename 위에 @CacheEvict를 적어 가며, 원본에서 몇 번 읽는지와 두 번째로 받은 값이 원본과 같은지를 봅니다. 마지막 물음에서는 @Cacheable이 하는 일을 Map으로 직접 쓴 모양과 견주어 봅니다.</p>
+<p>실행으로 대조 · Spring Framework 7.0.9(spring-context, @EnableCaching + ConcurrentMapCacheManager)와 JDK 21에서 아홉 가지 조합을 화면과 같은 소스로 컴파일하고 실행해, 출력과 프록시 여부, 단계마다 캐시에 적힌 값을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>캐시</dt>
 <dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
 <dt>캐시 적중과 미스</dt>
 <dd>캐시에서 값을 찾을 때 두 가지 일이 일어난다. 찾는 것이 캐시에 이미 적혀 있으면 적중(hit)이라고 하며, 적어 둔 값을 그대로 돌려주고 원본까지 가지 않는다. 적혀 있지 않으면 미스(miss)라고 하며, 원본에서 값을 읽어 와 캐시에 적어 두고 돌려준다. 스프링의 캐시 추상화도 같은 순서로, 같은 인자로 이미 호출한 적이 있으면 메서드를 실행하지 않고 캐시된 결과를 돌려주고, 아니면 메서드를 실행해 그 결과를 캐시에 넣어 돌려준다. 처음 찾는 것은 늘 미스이고, 적중이 많을수록 원본까지 가는 느린 일이 줄어든다.</dd>
-<dt>Cache-Aside 패턴</dt>
-<dd><b>지금 어디에 쓰나</b> — 상품 상세나 회원 프로필처럼 읽기가 쓰기보다 훨씬 많은 데이터에 Redis와 함께 쓴다. Spring의 @Cacheable과 @CacheEvict를 붙이면 이 순서로 동작한다.</dd>
-<dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
+<dt>@Cacheable</dt>
+<dd>메서드의 결과를 캐시에 넣어 두고, 같은 인자로 다시 부르면 본문을 실행하지 않고 캐시의 값을 돌려주게 하는 애너테이션이다. 프록시가 호출을 받아 캐시를 먼저 찾아보고, 값이 없을 때만 본문을 실행한 뒤 결과를 저장한다. 캐시의 키는 기본으로 메서드의 인자이며, cacheNames로 어느 캐시에 넣을지 정한다. unless에 조건을 쓰면 그 조건이 참인 결과는 저장하지 않는다(예: 결과가 null일 때). 프록시가 하는 일이므로 같은 클래스 안에서 this로 부르면 적용되지 않는다.</dd>
+<dt>@CacheEvict와 @CachePut</dt>
+<dd><b>왜 생겼나</b> — 데이터를 바꾸는 메서드마다 캐시를 지우거나 고치는 코드를 직접 넣으면, 캐시 저장소를 다루는 코드가 업무 코드와 섞이고 빠뜨리기도 쉽다. @CacheEvict와 @CachePut은 이 일을 메서드 위에 적은 캐시 이름과 키만으로 하게 했다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 상품 정보를 고치거나 지우는 메서드에 @CacheEvict를 붙이는 것이 흔한 쓰임이다. 목록 캐시처럼 키 하나로 가리키기 어려우면 allEntries = true로 그 캐시를 통째로 비운다.</dd>
+<dd>캐시의 값을 원본 데이터와 맞추는 데 쓰는 두 애너테이션이다. @CacheEvict는 메서드가 불리면 캐시에서 해당 키의 값을 지워, 다음 조회가 본문을 다시 실행하게 한다. @CachePut은 @Cacheable과 달리 본문을 건너뛰지 않고 항상 실행하며, 돌려준 값을 캐시에 넣어 기존 값을 덮어쓴다. 데이터를 바꾸는 메서드에 둘 중 하나를 붙이지 않으면 캐시에 바뀌기 전의 값이 남아, 조회하는 쪽이 옛 값을 받게 된다.</dd>
+<dt>@EnableCaching과 CacheManager</dt>
+<dd><b>왜 생겼나</b> — 캐시를 쓰는 코드가 저장소의 종류에 묶이지 않게 하려고, 캐시를 켜는 스위치(@EnableCaching)와 저장소를 고르는 자리(CacheManager)를 나누었다. 저장소를 메모리에서 Redis로 바꿔도 @Cacheable을 적은 메서드는 고치지 않는다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 애플리케이션의 설정 클래스에 @EnableCaching을 한 번 적고, 서버 한 대라면 메모리 캐시, 여러 서버가 같은 값을 봐야 하면 Redis 같은 저장소의 CacheManager를 빈으로 쓴다.</dd>
+<dd>@EnableCaching은 설정 클래스에 적어 스프링의 캐시 기능을 켜는 애너테이션이다. 이것이 있어야 스프링이 @Cacheable, @CacheEvict 같은 캐시 애너테이션이 붙은 메서드를 찾아, 그 빈 앞에 프록시를 두고 캐시를 보고 적는 일을 끼워 넣는다. @EnableCaching 줄을 빼면 @Cacheable을 적어 두어도 프록시가 생기지 않고, 메서드 본문이 부를 때마다 실행된다. CacheManager는 이름으로 캐시를 내주는 스프링의 인터페이스이고, 값을 실제로 어디에 보관할지는 어떤 구현을 빈으로 등록하느냐로 정한다. spring-context가 주는 ConcurrentMapCacheManager는 이름마다 메모리의 ConcurrentHashMap을 하나씩 두며, 적어 둔 값의 유효 시간을 정하는 설정이 없다.</dd>
 <dt>캐시의 옛 값(Stale)</dt>
 <dd>캐시에 적어 둔 뒤 원본의 값이 바뀌어, 원본과 달라진 채 캐시에 남아 있는 값이다. 캐시를 쓰는 쪽은 적중하면 원본을 보지 않으므로 바뀐 줄 모르고 옛 값을 받는다. 원본을 바꿀 때 캐시에 적어 둔 그 값도 함께 지우면, 다음에 찾을 때 미스가 되어 바뀐 값을 새로 읽어 온다(대신 그 한 번은 느리다). 적어 둔 값에 유효 시간을 두는 방법도 있다. HTTP 캐시 명세(RFC 9111 4.2절)는 저장한 응답이 정해진 유효 기간을 넘기면 stale이라고 부르며, 이 말은 시간이 지난 응답을 가리키는 명세의 용어이다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — cache 줄이 있는 모습. 두 번 찾았는데 느린 조회는 한 번만 일어납니다.</li>
-<li><b>캐시 없이 두 번 찾으면</b> — 찾을 때마다 원본까지 가서 느린 조회가 두 번 일어납니다.</li>
-<li><b>캐시가 있는데 그 사이에 원본이 바뀌면</b> — 느린 조회는 한 번이지만, 두 번째로 받은 값이 원본과 다릅니다.</li>
-<li><b>원본을 바꾸면서 캐시의 값도 지우면</b> — 두 번째 find가 캐시에서 값을 찾지 못해 바뀐 값을 새로 읽어 옵니다.</li>
-<li><b>캐시 없이 그 사이에 원본이 바뀌면</b> — 매번 원본에서 읽으므로 바뀐 값을 받지만, 느린 조회가 두 번입니다.</li>
+<li><b>처음 설정으로</b> — @Cacheable(&quot;product&quot;)이 붙은 find. 두 번 찾았는데 원본에서는 한 번만 읽습니다.</li>
+<li><b>@Cacheable을 지우면</b> — 찾을 때마다 find 본문이 실행되어 원본에서 두 번 읽습니다.</li>
+<li><b>두 번 찾는 사이에 원본이 바뀌면</b> — 원본에서는 한 번만 읽지만, 두 번째로 받은 값이 원본과 다릅니다.</li>
+<li><b>rename 위에 @CacheEvict를 적으면</b> — 두 번째 find가 캐시에서 값을 찾지 못해 본문이 다시 실행되고, 바뀐 값을 받습니다.</li>
+<li><b>캐시 없이 그 사이에 원본이 바뀌면</b> — 매번 원본에서 읽으므로 바뀐 값을 받지만, 원본에서 두 번 읽습니다.</li>
+<li><b>@Cacheable이 하는 일을 직접 쓰면</b> — 스프링이 find의 앞뒤에서 하던 일을 find 본문에 직접 씁니다. 원본에서 읽는 횟수는 같습니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>main이 시작되고 첫 줄 source.put(1, &quot;키보드&quot;); 줄이 실행됩니다. 원본에 1번 값 &quot;키보드&quot;가 들어갑니다. 원본은 값이 원래 들어 있는 곳이고, slowLoad가 읽어 오는 곳입니다. cache는 new HashMap&lt;&gt;() 호출로 만든 빈 Map이어서 아직 아무것도 적혀 있지 않습니다.</li>
-<li>find(1); 줄이 실행됩니다. find는 먼저 cache.containsKey(1) 호출로 캐시에 1번 값이 적혀 있는지 봅니다. 캐시가 비어 있으므로 적혀 있지 않습니다. 캐시에 적혀 있지 않은 이런 경우를 미스라고 합니다.</li>
-<li>그래서 find가 slowLoad 메서드를 부릅니다. slowLoad는 원본에서 1번 값 &quot;키보드&quot;를 읽어 오는 느린 일이고, slowCount를 올려 부른 횟수를 셉니다. 지금까지 slowLoad가 불린 횟수는 1번입니다.</li>
-<li>find는 읽어 온 값 &quot;키보드&quot;를 cache.put(1, v) 호출로 캐시에 적어 두고, 그 값을 돌려줍니다. 이제 캐시에 1번 값 &quot;키보드&quot;가 적혀 있습니다.</li>
-<li>String second = find(1); 줄이 실행됩니다. find가 cache.containsKey(1) 호출로 캐시를 보니 1번 값이 적혀 있습니다. 캐시에 적혀 있는 이런 경우를 적중이라고 합니다. find는 slowLoad를 부르지 않고 적어 둔 값 &quot;키보드&quot;를 그대로 돌려줍니다. slowLoad가 불린 횟수는 1번 그대로입니다.</li>
-<li>마지막 줄 System.out.println이 slowCount, second, source.get(1) 값을 차례로 출력합니다. 출력은 &quot;1 / 키보드 / 키보드&quot;입니다. 받은 값과 원본의 값이 같습니다.</li>
+<li>프로그램이 시작되면 스프링이 CacheConfig의 @EnableCaching을 보고 캐시 기능을 켜고, cacheManager 메서드가 돌려준 ConcurrentMapCacheManager를 빈으로 보관합니다. 이 CacheManager가 이름이 product인 캐시를 메모리에 두며, 캐시 product는 아직 비어 있습니다. ProductService의 find 위에 @Cacheable이 있으므로, 스프링은 ProductService 객체를 그대로 빈으로 쓰지 않고 그 앞에서 호출을 먼저 받을 프록시(ProductService$SpringCGLIB$0 클래스의 객체)를 만들어 빈으로 보관합니다. 프록시는 진짜 ProductService 객체를 참조로 갖고 있고, Caller의 productService 칸이 가리키는 것은 이 프록시입니다. 원본의 1번 값은 &quot;키보드&quot;입니다.</li>
+<li>Caller 빈의 run()이 불리고, productService.find(1L); 줄이 실행됩니다. 호출을 먼저 받은 프록시가, find 본문에 들어가기 전에 캐시 product에서 키 1을 찾습니다. 캐시가 비어 있으므로 적혀 있지 않습니다. 이런 경우를 미스라고 합니다.</li>
+<li>그래서 프록시가 진짜 ProductService 객체의 find 본문을 실행합니다. 본문은 loadCount를 1로 올리고 원본에서 1번 값 &quot;키보드&quot;를 읽습니다.</li>
+<li>본문이 &quot;키보드&quot;를 돌려주면, 스프링이 그 값을 캐시 product에 키 1로 적어 두고 Caller에게 돌려줍니다. 적어 두는 줄은 우리가 쓴 코드에 없습니다. @Cacheable(&quot;product&quot;)이 스프링에게 시킨 일입니다.</li>
+<li>String second = productService.find(1L); 줄이 실행됩니다. 호출을 먼저 받은 프록시가 캐시 product에서 키 1을 찾으니 &quot;키보드&quot;가 적혀 있습니다. 이런 경우를 적중이라고 합니다. 프록시는 find 본문을 실행하지 않고 적어 둔 &quot;키보드&quot;를 돌려줍니다. loadCount는 1 그대로입니다.</li>
+<li>마지막 줄 System.out.println이 loadCount(), second, source(1L)의 값을 차례로 출력합니다. 출력은 &quot;1 / 키보드 / 키보드&quot;입니다. 받은 값과 원본의 값이 같습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>캐시는 읽어 온 값을 Map에 적어 두었다가, 같은 것을 다시 찾으면 적어 둔 값을 주는 것입니다. find 안의 cache 줄들(containsKey로 확인, put으로 적기, get으로 꺼내기)이 그 일을 했고, 1번 값을 두 번 찾았는데 느린 조회 slowLoad는 1번만 불렸습니다.</li>
-<li>두 번째 find는 적어 둔 값을 바로 주어서 원본까지 가지 않았습니다. 두 번 찾는 사이에 원본이 바뀌지 않았으므로 받은 값은 원본과 같았습니다.</li>
+<li>캐시는 한 번 읽어 온 결과를 적어 두었다가, 같은 것을 다시 찾으면 원본까지 가지 않고 적어 둔 값을 주는 것입니다. find 위의 @Cacheable(&quot;product&quot;) 한 줄로 스프링이 그 일을 했고, 1번 상품을 두 번 찾았는데 원본에서는 1번만 읽었습니다.</li>
+<li>캐시를 확인하고 적어 두는 코드는 우리가 쓰지 않았습니다. 스프링이 find를 부르는 앞뒤에서 캐시 product를 보고, 본문이 돌려준 값을 적어 두었습니다. 두 번 찾는 사이에 원본이 바뀌지 않았으므로 받은 값은 원본과 같았습니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>import java.util.*;
+<pre>// 캐시 기능을 켠다: 이 설정이 있어야 @Cacheable, @CacheEvict가 동작한다
+@Configuration
+@EnableCaching
+class CacheConfig {
+    // 캐시를 보관하는 곳: 스프링이 주는 ConcurrentMapCacheManager(메모리의 Map을 쓴다)
+    @Bean
+    CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager(&quot;product&quot;);
+    }
+}
 
-public class Main {
-    // 원본: 값이 원래 들어 있는 곳
-    static Map&lt;Integer, String&gt; source = new HashMap&lt;&gt;();
-    static int slowCount = 0;
+// 예시로 만든 상품 서비스
+@Service
+class ProductService {
+    // 원본: 상품 이름의 원래 값(DB 대신 쓰는 Map)
+    private final Map&lt;Long, String&gt; db = new HashMap&lt;&gt;(Map.of(1L, &quot;키보드&quot;));
+    // 원본에서 읽은 횟수
+    private int loadCount = 0;
 
-    // 느린 조회: 원본에서 읽어 온다. 부른 횟수를 센다
-    static String slowLoad(int id) {
-        slowCount++;
-        return source.get(id);
+    // 결과를 캐시 product에 id별로 적어 둔다. 같은 id로 다시 부르면 본문을 실행하지 않는다
+    @Cacheable(&quot;product&quot;)
+    public String find(Long id) {
+        // 원본에서 읽는다(실제로는 DB 조회 같은 느린 일이 오는 자리)
+        loadCount++;
+        return db.get(id);
     }
 
-    // 캐시: 읽어 온 값을 적어 두는 곳
-    static Map&lt;Integer, String&gt; cache = new HashMap&lt;&gt;();
-
-    static String find(int id) {
-        // 적어 둔 값이 있으면 주고, 없으면 읽어 와서 적어 둔다
-        if (cache.containsKey(id)) return cache.get(id);
-        String v = slowLoad(id);
-        cache.put(id, v);
-        return v;
+    public void rename(Long id, String name) {
+        db.put(id, name);
     }
 
-    public static void main(String[] args) {
-        source.put(1, &quot;키보드&quot;);
-        // 1번 값을 처음 찾는다
-        find(1);
-        // 1번 값을 다시 찾는다
-        String second = find(1);
-        // 느린 조회 횟수 / 두 번째로 받은 값 / 원본의 값
+    public int loadCount() {
+        return loadCount;
+    }
+
+    public String source(Long id) {
+        return db.get(id);
+    }
+}
+
+// 예시로 만든, ProductService를 부르는 쪽
+@Component
+class Caller {
+    @Autowired
+    ProductService productService;
+
+    void run() {
+        // 1번 상품을 처음 찾는다
+        productService.find(1L);
+        // 1번 상품을 다시 찾는다
+        String second = productService.find(1L);
+        // 원본에서 읽은 횟수 / 두 번째로 받은 값 / 원본의 값
         System.out.println(
-            slowCount + &quot; / &quot; + second + &quot; / &quot; + source.get(1));
+            productService.loadCount() + &quot; / &quot; + second + &quot; / &quot; + productService.source(1L));
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 다섯 가지 조합(캐시를 두는가 두 가지와 두 번 찾는 사이에 하는 일 세 가지에서, 캐시가 없으면 cache.remove(1) 줄을 쓸 수 없어 빠지는 한 가지를 뺀 것)을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글, import 줄까지 포함)를 javax.tools로 컴파일하고, 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 출력된 세 값(slowLoad가 불린 횟수, 두 번째 find가 돌려준 값, 원본의 값)과 마지막 단계 문장이 보이는 출력 글입니다. 단계 문장이 기대는 &quot;처음 find(1) 호출을 한 번 한 뒤 slowLoad는 1번 불렸고 받은 값은 키보드&quot;라는 사실은, 처음 find의 결과를 출력하도록 고친 별도의 소스(캐시가 있는 것과 없는 것)를 같은 방식으로 실행해 확인했습니다. 화면의 코드는 실제로 컴파일되고 실행되는 프로그램이며 줄인 것은 없습니다. slowLoad는 실제로 오래 걸리지 않고 시간도 재지 않았습니다. &quot;느리다&quot;는 slowLoad가 불린 횟수로만 나타냈고, 실제 DB나 네트워크의 시간은 측정하지 않았습니다. 이 캐시는 Map 하나이고, 적어 둔 값을 언제 버릴지 정하는 규칙(유효 시간, 크기 제한)이 없어서 cache.remove(1) 줄로 지우기 전까지 값이 남습니다. 문서는 직접 열어 확인했습니다. Spring Framework Reference의 Cache Abstraction 도입부(https://docs.spring.io/spring-framework/reference/integration/cache.html)는 캐싱을 기존 애플리케이션에 투명하게 더하는 지원이라는 설명까지만 열렸고, 같은 문서의 하위 쪽(https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html)에서 같은 인자로 이미 호출했으면 메서드를 실행하지 않고 캐시된 결과를 돌려주며 아니면 실행해 결과를 캐시에 넣는다는 것, 캐시의 내용을 갱신하거나 항목을 지우는 기능이 있다는 것을 확인했습니다. RFC 9111(HTTP Caching)은 1절(캐시가 응답을 저장해 응답 시간과 네트워크 사용을 줄인다), 4절(저장한 응답을 다시 쓰는 조건), 4.2절과 4.2.4절(유효 기간을 넘긴 저장 응답을 stale이라 부른다)을 확인했고, 문서의 끝 7천 자 가량은 읽지 못했습니다. 적중과 미스라는 낱말을 그 문서들이 쓰는지는 확인하지 못했고, 설명집에는 이 낱말을 일반적인 용어로만 적었습니다. 이 실습의 Map 캐시는 문서가 말하는 방식의 한 예일 뿐 스프링이나 HTTP 캐시의 동작을 실행해 대조한 것은 아닙니다. 이 밖에 여러 스레드가 동시에 쓰는 캐시, 캐시가 가득 찼을 때 무엇을 버릴지, 유효 시간(TTL), 인기 있는 값이 한꺼번에 사라질 때 원본에 요청이 몰리는 일, 스프링의 @Cacheable, 브라우저와 서버 사이의 HTTP 캐시(ETag), Redis는 다루지 않았습니다. 이들은 &quot;세부 동작 실습: 캐시와 TTL, 캐시 추상화, ETag, Redis&quot;에서 다룹니다.</p>
+<p>Spring Framework 7.0.9(spring-context)를 JDK 21.0.12.1에서 실행해 대조했습니다. 아홉 가지 조합(캐시를 두는 방법 세 가지와 두 번 찾는 사이에 하는 일 세 가지)을 모두, 화면의 코드와 같은 소스(package와 import 줄, 그리고 끝에 PROBE 표시를 붙인 측정 줄만 더함)를 javac로 컴파일하고(-parameters를 켬. 스프링 부트의 빌드 설정도 이것을 켭니다) 자바 프로세스를 조합마다 새로 띄워 확인했습니다. 화면의 클래스는 AnnotationConfigApplicationContext가 컴포넌트 스캔으로 찾게 했고, 대조 프로그램이 Caller 빈의 run()을 부른 뒤 run()이 출력한 줄을 잡았습니다. 대조한 것은 출력된 세 값(원본에서 읽은 횟수, 두 번째 find가 돌려준 값, 원본의 값)입니다. 단계 문장이 기대는 사실로 ProductService 빈의 클래스(find에 @Cacheable이 있거나 rename에 @CacheEvict가 있으면 ProductService$SpringCGLIB$0 프록시, 둘 다 없거나 Map으로 직접 쓴 모양이면 ProductService 그대로), Caller가 받은 객체가 그 빈인지, 첫 find 뒤와 rename 뒤와 끝에서 loadCount와 캐시에 적힌 것(스프링 쪽은 CacheManager의 product 캐시, 직접 쓴 모양은 cache 필드의 Map)도 확인했습니다. 화면에는 없는 변형으로, key를 적지 않은 @CacheEvict(&quot;product&quot;)를 rename 위에 둔 것도 실행해 보았고, 이때는 캐시 product의 키 1 값이 지워지지 않아 두 번째 find가 &quot;키보드&quot;를 받았습니다(키가 매개변수 둘을 함께 쓴 것이 되기 때문입니다). ConcurrentMapCacheManager에 유효 시간을 정하는 메서드가 없는 것은 javap로 이 클래스의 공개 메서드를 열어 확인했습니다. 화면의 코드는 줄인 것이 없습니다. 이 실습은 스프링 부트 없이 spring-context만으로 실행했고, 부트가 CacheManager를 자동으로 만들어 주는 설정은 확인하지 않았습니다. 원본에서 읽는 일은 실제로 오래 걸리지 않고 시간도 재지 않았으며, &quot;느리다&quot;는 원본에서 읽은 횟수로만 나타냈습니다. 문서는 Spring Framework Reference의 Cache Abstraction 쪽(https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html, 같은 인자로 이미 호출했으면 메서드를 실행하지 않고 캐시된 결과를 돌려준다)과 RFC 9111(HTTP Caching) 4.2절(유효 기간을 넘긴 저장 응답을 stale이라 부른다)을 이전에 확인한 그대로 따랐고, 이번에 다시 열지는 않았습니다. 같은 클래스 안에서 find를 부르면 프록시를 거치지 않아 캐시가 쓰이지 않는 일, 결과가 null일 때, @CachePut, 여러 스레드가 동시에 쓰는 캐시, 캐시가 가득 찼을 때 무엇을 버릴지, 유효 시간(TTL), 인기 있는 값이 한꺼번에 사라질 때 원본에 요청이 몰리는 일, 브라우저와 서버 사이의 HTTP 캐시(ETag), Redis는 다루지 않았습니다. 이들은 &quot;세부 동작 실습: 캐시 추상화, 캐시와 TTL, ETag, Redis&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/lb_basic/">로드 밸런서</a> · 다음 실습: <a href="../../lab/queue_basic/">메시지 큐</a></p>
   </div>
 
@@ -199,6 +228,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8b40b0d075"></script>
+<script src="../../app.js?v=07d0b0cacc"></script>
 </body>
 </html>

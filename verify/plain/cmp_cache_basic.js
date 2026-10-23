@@ -1,3 +1,4 @@
+// [옛 실습용] 2026-10-22에 실습을 @Cacheable 중심으로 다시 짜서 이 도구는 더 맞지 않는다. 지금의 대조는 verify/spring/cmp_cache_basic.js.
 // 기초개념 "캐시" 실습의 모형 결과를 실제 컴파일과 실행 결과(CacheBasicProbe.out.txt)와 대조한다
 // 대조: 결과 표 세 열(느린 조회 횟수, 두 번째로 받은 값, 원본의 값), 마지막 단계가 보이는 출력 글,
 //       화면의 코드(code 함수)가 Probe가 컴파일한 소스(verify/out/cache_basic/<조합>/Main.java)와 같은 글인지,

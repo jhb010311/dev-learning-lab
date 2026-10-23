@@ -1,1 +1,1 @@
-Lab.verify({ remote_basic: ['run', 'Started an order server and a payment server on Node.js 24.18.0, ran six combinations, and checked them'] });
+Lab.verify({ remote_basic: ['run', 'Compiled and ran the code on the screen as it is with the RestClient of Spring Framework 7.0.9, with a small HTTP server standing in for the payment server (normal, slow, and off), and checked twelve combinations (verify/spring/cmp_remote_basic.js)'] });

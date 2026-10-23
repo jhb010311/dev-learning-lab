@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ecc1a00f8f">
+<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -85,10 +85,10 @@ session.setAttribute(&quot;memberId&quot;, member.getId());
 // On every later request: find the session by the session ID in the cookie
 HttpSession session = request.getSession(false);
 if (session == null) {
-    throw new UnauthorizedException();   // an example exception -&gt; 401
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);   // an exception provided by Spring -&gt; 401 response
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>It assumes that the load balancer sends requests to the servers in turn (the login goes to Server 1, the next request to Server 2, and so on). The session expiration time and the refresh token expiration (usually days to weeks) are assumed not to be reached within these 50 minutes. Verifying a JWT signature uses only the key the server holds, with no store. Keeping the refresh token in a server store and checking it there is a widely used setup, but no standard requires it.</p>
+<p>It assumes that the load balancer sends requests to the servers in turn (the login goes to Server 1, the next request to Server 2, and so on). The session expiration time and the refresh token expiration (usually days to weeks) are assumed not to be reached within these 50 minutes. Verifying a JWT signature uses only the key the server holds, with no store. Keeping the refresh token in a server store and checking it there is a widely used setup, but no standard requires it. That throwing ResponseStatusException(HttpStatus.UNAUTHORIZED) in the session code produces a 401 response was checked by running a Spring Boot 4.1.1 server (a request without a session returns 401, and a request that sends the JSESSIONID cookie received at login returns 200).</p>
 <p>Next lab: <a href="../../lab/cookie/">Cookies</a></p>
   </div>
 
@@ -181,6 +181,6 @@ if (session == null) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ecc1a00f8f"></script>
+<script src="../../app.js?v=cffe3f81e8"></script>
 </body>
 </html>

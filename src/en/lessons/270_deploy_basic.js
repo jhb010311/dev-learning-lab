@@ -1,134 +1,200 @@
 Lab.register({
   id: 'deploy_basic', nav: 'Deployment', cat: 'Fundamentals', mode: 'step', basic: true, deep: ['deploy', 'cicd', 'k8s'],
   title: 'When does a running server change after you edit the code?',
-  why: 'If, each time a new version is released, files are moved to the server by hand and the server is turned off and on as needed, it is easy to forget a file to move or for the order to differ from person to person, and it also becomes unclear which version is running on the server now. If the deployment steps are decided in advance and followed exactly, putting the new version on the server and restarting it is always done in the same order, so forgotten steps decrease, and you can tell which version has been running since when.',
-  use: 'Deployment happens each time a new feature is released or a bug is fixed. These days it is common to set things up so that when code is pushed to a repository, a tool such as GitHub Actions or Jenkins goes on to build, test, and put it on the server. If there are several servers, they are replaced one at a time, so that other servers keep receiving requests while one is restarted.',
-  intro: 'The server in this lab (Node.js) is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.',
-  terms: ['Deployment', 'Server restart', 'Code loaded at startup', 'Connection refused error'],
+  why: 'A Java server does not run source files as they are. It compiles the source files into a jar file, and the process that ran that jar with java -jar answers requests. So even after you edit the code, building a new jar and stopping and starting the server are still left to do. If you do these by hand each time, it is easy to forget one or for the order to differ from person to person, and it also becomes unclear which version is running on the server now. If the deployment steps are decided in advance and followed exactly, the new version is put on the server in the same order every time, so forgotten steps decrease, and you can tell which version has been running since when.',
+  use: 'Deployment happens each time a new feature is released or a bug is fixed. A Spring Boot project usually builds a jar file with ./gradlew bootJar (./mvnw package for Maven) and runs it on the server with java -jar. These days it is common to set things up so that when code is pushed to a repository, a tool such as GitHub Actions or Jenkins goes on through the build and the tests to putting it on the server. If there are several servers, they are replaced one at a time, so that other servers keep receiving requests while one is restarted.',
+  intro: 'A Spring Boot server does not run source files (.java) as they are. It compiles the source files into .class files, bundles them into one jar file, and runs that jar file with the java -jar command. When it runs, one process (a running program) is created, and when this process starts, it reads in the classes from the jar file and answers requests with that code. So the code is in three separate places: the source file that a person edits, the jar file made by the build, and the running server process. Even if you edit the source file, the jar file does not change by itself, and even if you build a new jar file, the process that is already running does not change. Compiling and building the jar file is done by the ./gradlew bootJar command (the bootJar task provided by the Spring Boot Gradle plugin), and only after you stop the running server and start it again with java -jar does the new code answer requests. Making a new version really run like this is called deployment. The first part of the code box is two Java files, and the second part is what is done in the terminal (lines that start with # are numbered to-do items, and the lines under them are the commands you type in the terminal). In this lab you change "Version 1" to "Version 2" in HelloController, a class we made as an example, then remove or reorder building a new jar file and stopping and starting the server, and you see which version answers the request.',
+  terms: ['Deployment', 'Server restart', 'Executable JAR', './gradlew bootJar', 'Programs and processes', 'Connection refused error'],
   controls: [
-    { id: 'edit', label: 'Include line 2, "Change "Version 1" to "Version 2" in the source file"', type: 'check', value: true },
-    { id: 'restart', label: 'Include line 3, "Stop and start the server"', type: 'check', value: true },
-    { id: 'when', label: 'When to send the request in line 4', type: 'select', value: 'after', show: function (c) { return c.restart; }, options: [['after', 'After the server is stopped and started'], ['during', 'After the server is stopped and before it is started again (line 3 stops, line 4 sends the request, line 5 starts)']] },
+    { id: 'edit', label: 'Change "Version 1" to "Version 2" in HelloController.java', type: 'check', value: true },
+    { id: 'build', label: 'After editing, build a new jar file with ./gradlew bootJar', type: 'check', value: true },
+    { id: 'restart', label: 'Stop the running server and start it again with java -jar', type: 'check', value: true },
+    { id: 'when', label: 'When to send the request', type: 'select', value: 'after', show: function (c) { return c.restart; }, options: [['after', 'After the server is started again'], ['during', 'After the server is stopped and before it is started again']] },
   ],
-  // Without the line that starts the server again, you cannot choose when to send the request, so go back to the first value
+  // Without the step that starts the server again, you cannot choose when to send the request, so go back to the first value
   fix: function (c) { if (!c.restart && c.when !== 'after') return { when: 'after' }; },
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
-    { t: 'Default settings', q: 'What does deployment (putting the new version of the edited source file into the server) look like, and which version answers the request in line 4?', d: 'Edit the file, stop and start the server, and then send the request. The new version answers.', v: { edit: true, restart: true, when: 'after' } },
-    { t: 'Removing line 3', q: 'What if you remove line 3 (stop and start the server)?', d: 'Only the file is edited and the server stays as it is. The old version keeps answering.', v: { edit: true, restart: false, when: 'after' } },
-    { t: 'Requesting while the server is stopped', q: 'What if you send the request after the server is stopped and before it is started again (line 3 stops the server, line 4 sends the request, line 5 starts the server again)?', d: 'A request that arrives while the server is stopped gets no reply.', v: { edit: true, restart: true, when: 'during' } },
-    { t: 'Removing line 2', q: 'What if you remove line 2 (edit the source file) and only stop and start the server?', d: 'If nothing was edited, the same version answers even after the restart.', v: { edit: false, restart: true, when: 'after' } },
-    { t: 'Removing both line 2 and line 3', q: 'What if you remove both line 2 and line 3?', d: 'Nothing changes, so the first version answers.', v: { edit: false, restart: false, when: 'after' } },
+    { t: 'Default settings', q: 'If you edit the source, build a new jar with ./gradlew bootJar, and then stop the server and start it again with java -jar, which version answers the request?', d: 'A new jar file is built from the edited source, the running server is stopped, and it is started again with the new jar. The new process answers "Version 2".', v: { edit: true, build: true, restart: true, when: 'after' } },
+    { t: 'Only the source file is edited', q: 'What if you only edit and save HelloController.java, without building a new jar and leaving the server as it is?', d: 'Only the source file says "Version 2", and the jar file and the running server stay as they are. The server answers "Version 1".', v: { edit: true, build: false, restart: false, when: 'after' } },
+    { t: 'Only the jar is built and the server is not stopped', q: 'What if you build a new jar file with ./gradlew bootJar but do not stop the running server?', d: 'The jar file becomes "Version 2", but the running process keeps answering "Version 1" with the code it read in when it started.', v: { edit: true, build: true, restart: false, when: 'after' } },
+    { t: 'Starting again without building a new jar', q: 'What if you edit the source and stop and start the server, but skip ./gradlew bootJar?', d: 'The process that was started again reads the old jar file. The source file says "Version 2", but "Version 1" answers.', v: { edit: true, build: false, restart: true, when: 'after' } },
+    { t: 'Requesting between stopping and starting', q: 'What if a request arrives after the server is stopped and before it is started again?', d: 'No process accepts connections at that port, so the request fails with a connection refused error. A request that arrives after the server is started again gets "Version 2".', v: { edit: true, build: true, restart: true, when: 'during' } },
+    { t: 'Building and starting without editing', q: 'What if you do not edit the source, and only build the jar again and start the server again?', d: 'It only builds the same jar from the same source and starts again with the same code, so "Version 1" answers.', v: { edit: false, build: true, restart: true, when: 'after' } },
   ],
+  // The code on the screen. The comparison program (verify/net/deploy_basic_probe_jdk.js) uses the text that this function makes as it is.
+  // The two Java files are written out as files and compiled as they are, and the to-do items and commands under the line "# What you do in the terminal" are really done line by line.
   code: function (c) {
-    var out = ['# 1. Start the server (its code answers "Version 1")'];
-    if (c.edit) out.push('# 2. Change "Version 1" to "Version 2" in the source file');
+    var o = [
+      '// File: src/main/java/com/example/demo/DemoApplication.java',
+      '// DemoApplication and HelloController are classes made as examples for this lab',
+      '// @SpringBootApplication, SpringApplication, @RestController, and @GetMapping are provided by Spring Boot and Spring',
+      'package com.example.demo;',
+      '',
+      'import org.springframework.boot.SpringApplication;',
+      'import org.springframework.boot.autoconfigure.SpringBootApplication;',
+      '',
+      '@SpringBootApplication',
+      'public class DemoApplication {',
+      '    // When the jar file is run with java -jar, this main is called, and Spring Boot starts the web server',
+      '    public static void main(String[] args) {',
+      '        SpringApplication.run(DemoApplication.class, args);',
+      '    }',
+      '}',
+      '',
+      '// File: src/main/java/com/example/demo/HelloController.java',
+      'package com.example.demo;',
+      '',
+      'import org.springframework.web.bind.annotation.GetMapping;',
+      'import org.springframework.web.bind.annotation.RestController;',
+      '',
+      '@RestController',
+      'public class HelloController {',
+      '    // When a GET /hello request arrives, Spring calls this method, and the text it returns becomes the response',
+      '    @GetMapping("/hello")',
+      '    public String hello() {',
+      c.edit ? '        return "Version 1"; // Changed to "Version 2" in step 2 below' : '        return "Version 1";',
+      '    }',
+      '}',
+      '',
+      '# What you do in the terminal (in the project folder; the jar name is shortened to app.jar)',
+    ];
+    var n = 0;
+    function step(s) { n++; o.push('# ' + n + '. ' + s); }
+    step('Build the jar file and start the server with that jar');
+    o.push('./gradlew bootJar', 'java -jar build/libs/app.jar');
+    if (c.edit) step('Change "Version 1" to "Version 2" in HelloController.java and save it');
+    if (c.build) { step('Build the jar file again (with the server left running)'); o.push('./gradlew bootJar'); }
+    var req = function () { step('Send a request from another terminal'); o.push('curl http://localhost:8080/hello'); };
     if (c.restart) {
-      if (c.when === 'during') out.push('# 3. Stop the server', '# 4. Send a request', '# 5. Start the server again');
-      else out.push('# 3. Stop and start the server', '# 4. Send a request');
-    } else out.push('# 4. Send a request');
-    return out.join('\n');
+      step('Stop the running server (Ctrl+C in the terminal where you started it)');
+      if (c.when === 'during') req();
+      step(c.build ? 'Start it again with the newly built jar' : 'Start it again, leaving the jar file as it is');
+      o.push('java -jar build/libs/app.jar');
+      if (c.when !== 'during') req();
+    } else req();
+    return o.join('\n');
   },
-  label: function (c) { return (c.edit ? 'Source file edited' : 'Source file not edited') + ' · ' + (!c.restart ? 'Server not started again' : c.when === 'during' ? 'Request while the server is stopped' : 'Request after the server is stopped and started'); },
-  columns: ['Response', 'Code running', 'Source on disk'],
+  label: function (c) {
+    return (c.edit ? 'Source edited' : 'Source not edited') + ' · ' + (c.build ? 'New jar built' : 'No new jar built') + ' · ' + (!c.restart ? 'Server not started again' : c.when === 'during' ? 'Request while the server is stopped' : 'Request after the server is stopped and started');
+  },
+  columns: ['Response', 'Code in the running server', 'Code in the jar file', 'Code in the source file'],
   simulate: function (c) {
-    var edit = !!c.edit, rs = !!c.restart, during = rs && c.when === 'during';
-    var V1 = 'Version 1', V2 = 'Version 2', dnow = edit ? V2 : V1;
-    var ev = [], sum = [];
-    var st = { proc: 'none', mem: '', disk: V1, starts: 0, req: '', ans: '', rd: false, ed: false };
+    var edit = !!c.edit, build = !!c.build, rs = !!c.restart, during = rs && c.when === 'during';
+    var V1 = 'Version 1', V2 = 'Version 2';
+    var ev = [], sum = [], n = 0;
+    var st = { proc: 'none', mem: '', jar: '', src: V1, starts: 0, builds: 0, req: '', ans: '', rd: false, bd: false, ed: false };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     function q(v) { return '"' + v + '"'; }
     function J(v) { return q(v); }
-    var result = { response: '', running: '' };
-    // Line 1: start the server
-    st.proc = 'up'; st.mem = st.disk; st.starts = 1; st.rd = true;
-    push('Line 1: start the server. The computer runs the server program and creates one process (a running program). When it starts, this process reads in the source file server.js on the disk. The code written in the file says to answer ' + J(V1) + ' when a request arrives, and the process waits for requests holding this code that it has read in.', '');
-    st.rd = false;
-    // Line 2: edit the source file
+    function clear() { st.rd = false; st.bd = false; st.ed = false; }
+    var result = { response: '', running: '' }, beforeStop = '';
+    // Step 1: build the jar and start the server
+    n++;
+    st.jar = st.src; st.builds = 1; st.bd = true;
+    push('Step ' + n + ': ./gradlew bootJar compiles the source files into .class files and bundles them into the jar file build/libs/app.jar. The HelloController in this jar file is code that returns ' + J(V1) + '.', '');
+    clear();
+    st.proc = 'up'; st.mem = st.jar; st.starts = 1; st.rd = true;
+    push('Step ' + n + ': java -jar build/libs/app.jar runs the jar file and creates one process. When it starts, this process reads in the classes from the jar file, and Spring Boot starts the web server, which waits for requests on port 8080. Now it answers GET /hello with ' + J(V1) + '.', '');
+    clear();
+    // Edit the source
     if (edit) {
-      st.disk = V2; st.ed = true;
-      push('Line 2: a person opens the source file server.js, changes ' + J(V1) + ' to ' + J(V2) + ', and saves it. Now the file on the disk says ' + J(V2) + '. But the running server already read in the file when it started, and it does not pick up that the file changed afterward. Even when 0.5s had passed after the edit and the running server was asked directly, the code the server held was still ' + J(V1) + '. The file and the code inside the server are in different places.', '');
-      st.ed = false;
+      n++;
+      st.src = V2; st.ed = true;
+      push('Step ' + n + ': a person opens HelloController.java, changes ' + J(V1) + ' to ' + J(V2) + ', and saves it. The only thing that changed is the one source file on the disk. The jar file is still ' + J(V1) + ', and the running server still answers ' + J(V1) + '. Saving the source file does not make compiling and building the jar happen by itself.', '');
+      clear();
     }
-    // Line 3: stop the server (and start it again)
-    if (rs) {
-      st.proc = 'down'; st.mem = '';
-      push('Line 3: stop the server. The server process ends, and the code it had read in and was holding disappears with it.' + (during ? ' It is before the server is started again, so no program is receiving requests at address 8080 right now.' : ''), '');
-      if (!during) {
-        st.proc = 'up'; st.mem = st.disk; st.starts++; st.rd = true;
-        push('Line 3, continued: start the server again. The server program is run again and creates a new process, and the new process reads in the source file from the beginning when it starts. The file now says ' + J(st.disk) + ', so the new process holds code that answers ' + J(st.disk) + '.' + (edit ? ' The edited code has now come inside the server.' : ' You did not edit the file, so it is the same code as at first.'), edit ? 'good' : '');
-        st.rd = false;
+    // Build the jar again
+    if (build) {
+      n++;
+      st.jar = st.src; st.builds++; st.bd = true;
+      push('Step ' + n + ': ./gradlew bootJar builds the jar file again from the current source file. Now the code in the jar file returns ' + J(st.jar) + '.' + (edit ? ' But the server was left running, so even when a request was sent at this point, the running process answered ' + J(V1) + '. A process only runs on the classes it read in when it started, and it does not pick up that the jar file on the disk changed.' : ' You did not edit the source file, so it is the same code as at first.'), '');
+      clear();
+    }
+    function request() {
+      n++;
+      st.req = 'sent'; st.ans = '';
+      push('Step ' + n + ': in another terminal, curl sends a GET /hello request. It is the same as the request a browser sends when you type localhost:8080/hello in the address bar.', '');
+      if (st.proc !== 'up') {
+        st.req = 'fail'; st.ans = 'Connection refused error';
+        push('The server was stopped, so no process accepts connections at port 8080. curl gets a connection refused error and receives no answer. Whatever the source file and the jar file say, it does not matter for this request.', 'bad');
+        result.response = 'Connection refused error'; result.running = 'None (server stopped)';
+      } else {
+        st.req = 'got'; st.ans = st.mem;
+        if (st.mem !== st.src) push('The code of the running process returns ' + J(st.mem) + ', so curl receives ' + J(st.mem) + '. The source file says ' + J(st.src) + ', but ' + (st.jar !== st.src ? 'a new jar file was not built, so the jar file the process read in was the old code.' : 'the process was not started again, so it did not read the new jar file.'), 'bad');
+        else push('The running process answers ' + J(st.mem) + ' with its own code, and curl receives ' + J(st.mem) + '. The source file, the jar file, and the code of the running server are all the same, ' + q(st.mem) + '.' + (edit ? ' The edited new version answered the request.' : ' Nothing was edited, so it is still the first version.'), edit ? 'good' : '');
+        result.response = st.mem; result.running = st.mem;
       }
     }
-    // Line 4: send the request
-    st.req = 'sent';
-    push('Line 4: the client sends a GET /hello request to the server. It is the same as the request a browser sends when you type the address localhost:8080/hello in the address bar.', '');
-    if (during) {
-      st.req = 'fail'; st.ans = 'Connection refused error';
-      push('The server was stopped, so no program accepts connections at address 8080. The client gets a connection refused error and receives no reply. The file on the disk says ' + J(dnow) + ', but that does not matter for this request.', 'bad');
-      result.response = 'Connection refused error'; result.running = 'None (server stopped)';
-    } else {
-      var stale = st.mem !== st.disk;
-      st.req = 'got'; st.ans = st.mem;
-      if (stale) push('The code the server process holds answers ' + J(st.mem) + ', so the client receives ' + J(st.mem) + '. The file on the disk says ' + J(st.disk) + ', but the server did not read the file again, so it is not reflected in the answer.', 'bad');
-      else push('The server answers ' + J(st.mem) + ' with the code its process holds, and the client receives ' + J(st.mem) + '. The text in the file on the disk is also still ' + q(st.disk) + ', so the file and the code inside the server are the same.' + (edit ? ' The edited new version answered the request.' : ' You never edited the file, so it is still the first version.'), edit ? 'good' : '');
-      result.response = st.mem; result.running = st.mem;
-    }
-    // Line 5: start the server again (after the request)
-    if (during) {
-      st.proc = 'up'; st.mem = st.disk; st.starts++; st.rd = true; st.req = 'sent'; st.ans = '';
-      push('Line 5: start the server again. The new process reads in the source file when it starts. The file now says ' + J(st.disk) + ', so the new process holds code that answers ' + J(st.disk) + '. The request in line 4, sent while the server was stopped, had already failed. A request sent after the server started again got the answer ' + J(st.disk) + '.' + (edit ? '' : ' You did not edit the file, so it is the same version as at first.'), 'good');
-      st.rd = false; st.req = 'got'; st.ans = st.mem;
-    }
+    if (rs) {
+      beforeStop = st.mem;
+      n++;
+      st.proc = 'down'; st.mem = ''; st.req = ''; st.ans = '';
+      push('Step ' + n + ': press Ctrl+C in the terminal where you started the server to stop it. When the process ends, the code it had read in disappears with it. The source file and the jar file on the disk stay as they are.' + (during ? ' It is before the server is started again, so no process is receiving requests at port 8080 right now.' : ''), '');
+      if (during) request();
+      n++;
+      st.proc = 'up'; st.mem = st.jar; st.starts++; st.rd = true;
+      if (during) { st.req = ''; st.ans = ''; }
+      push('Step ' + n + ': java -jar build/libs/app.jar starts it again. A new process is created, and when it starts, it reads in the classes from the beginning from the jar file that is on the disk now. The code in that jar file returns ' + J(st.jar) + '.' + (build && edit ? ' The edited code has now become the code of the running server.' : edit ? ' A new jar file was not built, so the edit to the source file did not get this far.' : ' You did not edit the source, so it is the same code as at first.') + (during ? ' The request sent while the server was stopped had already failed, and if you send one more request after finishing the steps, it receives ' + J(st.jar) + '.' : ''), build && edit ? 'good' : edit ? 'bad' : '');
+      clear();
+      if (during) { st.req = 'got'; st.ans = st.mem; }
+      else request();
+    } else request();
     // Summary
-    if (edit && rs && !during) {
-      sum.push('A running server runs on the code it read in when it started. After you edit the source file, if you stop the server and start it again, the new process reads the edited file and answers ' + J(V2) + '. Making a new version really run like this is deployment. What is different from only editing the code is line 3 (stop and start the server).');
-      sum.push('Editing (line 2) and starting again (line 3) are different jobs. You need both for the new code to answer requests.');
-    } else if (edit && !rs) {
-      sum.push('The source file changed to ' + J(V2) + ', but the server keeps answering ' + J(V1) + '. A running server runs on the code it read in when it started, so even if you edit the file, it does not change until you start the server again.');
-      sum.push('The file on the disk and the code that is running are separate. A state where you only edited the file is not yet a deployment.');
-    } else if (edit && during) {
-      sum.push('A request sent while the server is stopped fails with a connection refused error, because there is no process to receive it. A request that arrived after the server started again got the answer ' + J(V2) + ', the edited code.');
+    if (during) {
+      sum.push('A request that arrives after the server is stopped and before it is started again fails with a connection refused error, because there is no process to receive it. A request that arrived after the server was started again received ' + J(st.jar) + ' from the new jar file.');
       sum.push('If there is only one server, the service stops while it is stopped and started. How to remove this gap is covered in the in-depth lab "Deployment strategies".');
-    } else if (!edit && rs && !during) {
-      sum.push('If you stop and start the server without editing the source file, the new process reads the same file, so ' + J(V1) + ' answers. Stopping and starting does not change the code.');
-      sum.push('For new code to run, you need both editing the file and starting the server again.');
+    } else if (edit && build && rs) {
+      sum.push('You edit the source (step 2), build the jar file again (step 3), and stop the running server and start it again (steps 4 and 5), and only then does the new process answer ' + J(V2) + ' with the edited code. Making a new version really run like this is deployment.');
+      sum.push('The code is in three separate places: the source file, the jar file, and the running process. ./gradlew bootJar makes the jar file from the code in the source file, and starting again makes the process read in the code in the jar file.');
+    } else if (edit && !build && !rs) {
+      sum.push('The source file changed to ' + J(V2) + ', but the jar file and the running server stay as they are, so ' + J(V1) + ' answers. A state where you only edited the file is not yet a deployment.');
+      sum.push('For the new code to answer, you have to build the jar file again (./gradlew bootJar) and stop and start the server (java -jar).');
+    } else if (edit && build && !rs) {
+      sum.push('The jar file was built again as ' + J(V2) + ', but the server that was left running keeps answering ' + J(V1) + ' with the code it read in when it started. Changing the jar file and changing the running process are different jobs.');
+      sum.push('To make the new jar answer, you have to stop the running server and start it again with java -jar.');
+    } else if (edit && !build && rs) {
+      sum.push('The server was started again, but a new jar file was not built, so the new process reads the old jar file and answers ' + J(V1) + '. This is because a Java server runs the jar file, not the source file.');
+      sum.push('For the edited source to reach the server, it has to go through both building the jar file again (./gradlew bootJar) and starting again (java -jar).');
     } else if (!edit && !rs) {
-      sum.push('You changed nothing, so ' + J(V1) + ' answers. The server keeps running on the code it read in at first.');
-      sum.push('In this lab, the code inside the server changes only when you start the server again, and what it reads then is the source file at that moment. If either one is missing, the new version does not reach the requests.');
+      sum.push('You did not edit the source, so ' + J(V1) + ' answers. ' + (build ? 'Even if you build the jar file again, it is the same code made from the same source.' : 'The server keeps running on the code it read in at first.'));
+      sum.push('For the code of the running server to change, you have to build the jar file again from the edited source and start the server again.');
     } else {
-      sum.push('A request sent while the server is stopped fails with a connection refused error. Even after the server started again, you had not edited the source file, so ' + J(V1) + ' answers.');
-      sum.push('If you stop and start the server without changing the code, you gain nothing and only create a time when the service is cut off.');
+      sum.push('If you ' + (build ? 'build the jar again and ' : '') + 'start the server again without editing the source, the new process reads the same code and ' + J(V1) + ' answers. Stopping and starting does not change the code.');
+      sum.push('If you stop and start the server without changing the code, you gain nothing and only create a time when it cannot receive requests.');
     }
-    return { events: ev, summary: sum, row: [result.response, result.running, dnow], later: during ? dnow : '', starts: st.starts, afterEdit: edit ? V1 : '', sameProc: during ? '(not applicable)' : String(!rs) };
+    return { events: ev, summary: sum, row: [result.response, result.running, st.jar, st.src], later: during ? st.mem : '', starts: st.starts, builds: st.builds, beforeStop: beforeStop, sameProc: during ? '(not applicable)' : String(!rs) };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
-    if (!s) { H.text(v, 'Click Run to start from starting the server.'); return; }
+    if (!s) { H.text(v, 'Click Run to start from building the jar file and starting the server.'); return; }
     var mem = s.proc === 'up' ? s.mem : s.proc === 'down' ? 'None (server stopped)' : 'Not yet';
-    H.table(v, ['Item', 'Now'], [
-      { cls: '', cells: ['Source file on disk', s.disk] },
-      { cls: s.proc === 'down' ? 'gone' : '', cells: ['Code running', s.proc === 'up' && s.mem !== s.disk ? { v: mem + ' (differs from the file)', cls: 'bad' } : mem] },
-      { cls: s.ans ? '' : 'gone', cells: ['Response to the request', s.ans ? { v: s.ans, cls: s.req === 'fail' ? 'bad' : s.ans === s.disk ? 'good' : 'bad' } : 'Not yet'] },
+    H.table(v, ['Place', 'Text the code returns'], [
+      { cls: '', cells: ['Source file HelloController.java', s.src] },
+      { cls: '', cells: ['Jar file build/libs/app.jar', s.jar ? (s.jar !== s.src ? { v: s.jar + ' (differs from source)', cls: 'bad' } : s.jar) : 'Not yet'] },
+      { cls: s.proc === 'down' ? 'gone' : '', cells: ['Running server process', s.proc === 'up' && s.mem !== s.src ? { v: mem + ' (differs from source)', cls: 'bad' } : mem] },
+      { cls: s.ans ? '' : 'gone', cells: ['Response to the request', s.ans ? { v: s.ans, cls: s.req === 'fail' ? 'bad' : s.ans === s.src ? 'good' : 'bad' } : 'Not yet'] },
     ], 'Current state');
-    H.counters(v, [[s.starts, 'Times the server was started']]);
+    H.counters(v, [[s.builds, 'Times the jar was built'], [s.starts, 'Times the server was started']]);
   },
-  // Diagram: on the left the client, in the middle the server process (the code it has read in), on the right the source file on the disk. The file is read into the process only when it starts, and a request goes through the process only. If the server is stopped, the request is cut off.
+  // Diagram: on the left the client (curl), in the middle the server process, and on the right the source file and the jar file on the disk. A build makes the jar file from the source file, and classes are read from the jar file into the process only when it starts. A request goes through the process only.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
-    var up = s && s.proc === 'up', down = s && s.proc === 'down', stale = up && s.mem !== s.disk;
-    P.size(680, 228);
-    P.region('cl', 10, 16, 150, 146, 'Client');
-    P.box('req', 20, 44, 130, 108, { cls: s && s.req === 'fail' ? 'bad' : s && s.req === 'sent' ? 'wait' : s && s.req === 'got' ? 'good' : 'plain', title: 'Request', sub: !s || !s.req ? ['Idle'] : s.req === 'sent' ? ['GET /hello', 'Awaiting reply'] : s.req === 'fail' ? ['GET /hello', 'Connection', 'refused'] : ['GET /hello', 'Reply received:', s.ans] });
-    P.region('sv', 220, 16, 200, 146, 'Server');
-    P.box('proc', 230, 44, 180, 108, { cls: down ? 'ghost' : stale && s.req === 'got' ? 'bad' : up ? (s.rd ? 'hot' : 'wait') : 'ghost', title: 'Server process', sub: up ? ['Running', 'Code read in:', s.mem] : down ? ['Stopped'] : ['Not started'] });
-    P.region('dk', 480, 16, 190, 146, 'Disk');
-    P.box('src', 490, 44, 170, 108, { cls: s && s.ed ? 'hot' : 'plain', title: 'server.js', sub: ['Contents:', s ? s.disk : 'Version 1'] });
+    var up = s && s.proc === 'up', down = s && s.proc === 'down', stale = up && s.mem !== s.src;
+    P.size(680, 262);
+    P.region('cl', 10, 16, 150, 182, 'Client');
+    P.box('req', 20, 50, 130, 112, { cls: s && s.req === 'fail' ? 'bad' : s && s.req === 'sent' ? 'wait' : s && s.req === 'got' ? 'good' : 'plain', title: 'curl', sub: !s || !s.req ? ['Idle'] : s.req === 'sent' ? ['GET /hello', 'Awaiting reply'] : s.req === 'fail' ? ['GET /hello', 'Refused'] : ['GET /hello', 'Reply received:', s.ans] });
+    P.region('sv', 210, 16, 190, 182, 'Server');
+    P.box('proc', 220, 50, 170, 112, { cls: down ? 'ghost' : stale && s.req === 'got' ? 'bad' : up ? (s.rd ? 'hot' : 'wait') : 'ghost', title: 'java process', sub: up ? ['Running', 'Code read in:', s.mem] : down ? ['Stopped'] : ['Not started'] });
+    P.region('dk', 450, 16, 220, 182, 'Disk');
+    P.box('src', 460, 44, 200, 64, { cls: s && s.ed ? 'hot' : 'plain', title: 'HelloController.java', sub: [s ? s.src : 'Version 1'] });
+    P.box('jar', 460, 124, 200, 64, { cls: s && s.bd ? 'hot' : s && s.jar ? 'plain' : 'ghost', title: 'app.jar', sub: [s && s.jar ? s.jar : 'Not yet built'] });
+    if (s && s.bd) P.arrow('bd', 'src:b:0.5', 'jar:t:0.5', { cls: 'hot' });
     if (s && s.req) P.arrow('rq', 'req:r:0.3', 'proc:l:0.3', { cls: s.req === 'fail' ? 'bad' : 'hot' });
     if (s && s.req === 'got') P.arrow('rs', 'proc:l:0.75', 'req:r:0.75', { cls: stale ? 'bad' : 'good' });
-    if (s && s.rd) P.arrow('rd', 'src:l:0.5', 'proc:r:0.5', { cls: 'hot' });
-    P.box('n1', 14, 180, 322, 36, { cls: s && s.starts ? 'wait' : 'ghost', title: 'Times the server was started', right: String(s ? s.starts : 0) });
-    P.box('n2', 344, 180, 322, 36, { cls: s && s.ans ? (s.req === 'fail' ? 'bad' : s.ans === s.disk ? 'good' : 'bad') : 'ghost', title: 'Response', right: s && s.ans ? s.ans : 'Not yet' });
+    if (s && s.rd) P.arrow('rd', 'jar:l:0.5', 'proc:r:0.7', { cls: 'hot' });
+    P.box('n1', 14, 214, 322, 36, { cls: s && s.starts ? 'wait' : 'ghost', title: 'Times the server was started', right: String(s ? s.starts : 0) });
+    P.box('n2', 344, 214, 322, 36, { cls: s && s.ans ? (s.req === 'fail' ? 'bad' : s.ans === s.src ? 'good' : 'bad') : 'ghost', title: 'Response', right: s && s.ans ? s.ans : 'Not yet' });
   },
-  assume: 'The server is an http server of Node.js 24.18.0. For each combination I really wrote the server.js file (a short program that reads in the line const answer = \'Version 1\' when it starts and answers that value when a request arrives) and really started node server.js as a child process. The code on the screen is not the program that was run but a list of what a person does, and the Probe ran this list line by line as it is. Starting means starting the child process, editing means really rewriting the server.js file, stopping means ending that process, and the request is GET /hello with the http module. I ran all six combinations (the different ones among the eight settings, since without the line that starts the server again you cannot choose when to send the request) and checked against the model the response to the request (or the connection refused error), the value the live process held at that time (asked with a separate request), the value written in the file on the disk at that time, whether the process after stopping and starting is a different process from the first, the number of times the server was started, whether the value held by the first process was still the same even after waiting 0.5s after editing the file, and, for the combination that sent the request while the server was stopped, the answer to one more request sent after it was started again. I also checked for each combination that the code on the screen is the same text as the list the Probe ran. Within one combination, the same port was used after stopping and starting, and localhost:8080 on the screen is an example address; in the real runs a free port was taken once. The server in this lab is a short program that reads the file only once, when it starts, so tools that read it in again by themselves when the file changes (such as automatic restart tools for development) and programs that read the file at every request were not covered. What I checked against documentation is the Caching section of Modules in the Node.js documentation (a module is cached after it is first loaded, and unless the require cache is changed, calling the same module several times does not run the module code several times) and Deployments in the Kubernetes documentation (the introduction that a Deployment manages declarative updates of Pods, and in the Strategy section that Recreate ends all the existing Pods before creating new Pods and RollingUpdate replaces them gradually). I only read the two documents, and that a server runs on the code it read in when it started was checked not by the documents but by the runs above. The Caching section of the Node.js documentation is about modules loaded with require, and the server.js of this lab is a start file run directly with the node command, so I do not write that the documentation decides the behavior of server.js. Not covered: how to remove the gap while a server is stopped and started (rolling several machines one after another, blue-green, which builds a whole new environment, and so on) is covered in the in-depth lab "Deployment strategies", the automation that builds, tests, and puts the edited code on a server is covered in "CI/CD pipelines", and the way that Kubernetes replaces servers packed in containers is covered in "Kubernetes self-healing". In a compiled language such as Java there is one more step, compiling again after you edit the source file, and this lab showed only a Node.js source file, which has no compile step.',
+  assume: 'The environment was JDK 21.0.12.1, Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11.0.24), curl 8.21.0, and Windows 11. For each of the 12 combinations, I took the code on the screen as it is from the code function of this lab, wrote the two Java files in the first part out as files, and really did the to-do items and commands in the second part line by line. java -jar build/libs/app.jar and curl http://localhost:8080/hello were run exactly as the commands on the screen, and the server started on the default port 8080. I did not run ./gradlew bootJar, because it needs to download the Gradle plugin, and I did the same job with JDK commands. I compiled src/main/java with javac and made build/libs/app.jar with the jar command; unlike bootJar, which puts the dependency libraries into BOOT-INF/lib of the jar file, this jar pointed to the library jar files with the Class-Path of the manifest. On Windows, the jar command could not newly write the app.jar that the running java process had open (an error that another process is using the file), so in the six combinations that build the jar while the server is left running, I made the new jar under another name and then overwrote the contents of app.jar in place. Stopping the server was done by forcibly ending the process, not by Ctrl+C. At each request I recorded the output of curl, the process ID that had port 8080 open at that time (netstat), the text returned by the HelloController in app.jar read with javap, and the text written in the source file on the disk, and checked them against the result table. I also checked the answer of the running server right after the jar was built again, the answer of the server just before it was stopped, the number of times it was started, the number of times the jar was built, and, for the combination that requested while the server was stopped, the answer after it was started again, and all 12 combinations matched (verify/net/cmp_deploy_basic.js). The connection refused error is what curl reported with exit code 7 (Failed to connect … Could not connect to server). What I checked against documentation is Packaging Executable Archives in the Spring Boot Gradle plugin documentation (the description that the bootJar task builds an executable jar, puts the classes and dependency libraries into BOOT-INF/classes and BOOT-INF/lib, and that the jar can be run with java -jar), Running Your Application in the Spring Boot reference (the description that an executable jar is run with java -jar), the Java Plugin in the Gradle documentation (the description that the jar task depends on classes, and classes depends on compileJava), and the Base Plugin (the description that the jar is created in build/libs by default and its name is decided by the project name and the version). The app.jar on the screen is a shortened name. Not covered: the behavior when you overwrite the jar of a running server on a Linux server, the cleanup work Spring Boot does when you stop it with Ctrl+C, and Spring Boot DevTools, which restarts the application by itself when a file changes, were not run in this lab. How to remove the gap while a server is stopped and started (rolling several machines one after another, blue-green, which builds a whole new environment, and so on) is covered in the in-depth lab "Deployment strategies", the automation that builds, tests, and puts the edited code on a server is covered in "CI/CD pipelines", and the way that Kubernetes replaces servers packed in containers is covered in "Kubernetes self-healing".',
 });

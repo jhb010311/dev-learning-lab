@@ -1,1 +1,1 @@
-Lab.verify({ tcp_basic: ['run', 'Ran all 4 combinations on 127.0.0.1 with net and dgram of Node.js 24.18.0 and checked against the results'] });
+Lab.verify({ tcp_basic: ['run', 'Compiled the ServerSocket, Socket and DatagramSocket code on the screen as it is with JDK 21 (Windows 11), started the receiving side and the sending side as separate processes, ran each of the 4 combinations 5 times on localhost, and checked against the results'] });

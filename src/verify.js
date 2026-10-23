@@ -58,7 +58,6 @@ Lab.verify({
   kafka: ['doc', 'Kafka 공식 문서'],
   deploy: ['doc', 'Kubernetes와 스프링 부트 공식 문서'],
   container: ['doc', 'Docker와 리눅스 커널 문서'],
-  security: ['run', '스프링 부트 4.1.1과 시큐리티 7.1.1 서버에 열두 가지 요청을 보내 대조'],
   compidx: ['doc', 'MySQL 공식 문서'],
   oauth: ['doc', 'OAuth 2.0 표준(RFC 6749)'],
   tcp: ['doc', 'TCP 표준(RFC 9293)'],
@@ -80,7 +79,6 @@ Lab.verify({
 
   auth: ['model', '널리 쓰이는 구성을 옮긴 모형'],
   index: ['model', '경험칙에 맞춘 비용 모형'],
-  cache: ['model', '동작 방식을 보이는 모형'],
   scale: ['model', '관계를 보이는 예시 수치'],
   replica: ['model', '원리를 보이는 모형'],
   ratelimit: ['model', '널리 쓰이는 알고리즘 정의대로 만든 모형'],

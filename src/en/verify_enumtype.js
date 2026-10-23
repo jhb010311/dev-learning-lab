@@ -1,1 +1,1 @@
-Lab.verify({ enumtype: ['run', '45 combinations were actually compiled and run on JDK 21 and checked against the results'] });
+Lab.verify({ enumtype: ['run', 'On Hibernate 7.4.5 and H2, 45 combinations were compiled and run with the code on the screen, and the column definition, the saved value, and the constant or exception read after deploying again were checked'] });

@@ -1,1 +1,1 @@
-Lab.verify({ lambda_basic: ['run', 'Eighteen combinations were compiled with javax.tools on JDK 21, run, and checked'] });
+Lab.verify({ lambda_basic: ['run', 'On the PC used to write this lab, 21 combinations (Runnable, Thread, List.sort, and the Task we made) were compiled with javax.tools on JDK 21 and run with java Main, and checked (verify/plain/LambdaBasicProbe.java, cmp_lambda_basic.js)'] });

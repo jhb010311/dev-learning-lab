@@ -1,1 +1,1 @@
-Lab.verify({ aop_basic: ['run', 'Ran all four combinations with real @Aspect proxies on Spring 7.0.9 and AspectJ weaver 1.9.25.1, and checked the printed lines and the class of the called object'] });
+Lab.verify({ aop_basic: ['run', 'Ran all six combinations on Spring 7.0.9, H2 2.4.240, and AspectJ weaver 1.9.25.1 with a real @Transactional proxy (transaction manager plus H2) and a real @Aspect proxy, and checked the printed lines, the class of the called object, and the number and order of transaction starts and commits'] });
