@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>References: What does it mean to store an object in a variable? · Dev Learning Lab</title>
+<title>References: What does it mean for a variable to refer to an object? · Dev Learning Lab</title>
 <meta name="description" content="Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
-<meta property="og:title" content="References: What does it mean to store an object in a variable? · Dev Learning Lab">
+<meta property="og:title" content="References: What does it mean for a variable to refer to an object? · Dev Learning Lab">
 <meta property="og:description" content="Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,10 +30,10 @@
 <p>The labs on this site need JavaScript to run. The same content is written out below.</p>
 <p><a href="../../basics/">Fundamentals</a> › Java</p>
 <h1>References</h1>
-<p><b>What does it mean to store an object in a variable?</b></p>
+<p><b>What does it mean for a variable to refer to an object?</b></p>
 <p><b>Why it exists</b> — An object can be large because it has many fields, so if you copy the whole object every time you assign it to a variable or pass it to a method, it costs time and memory, and a change made on one side is not reflected in the other copy. A reference makes a variable hold a value that points to the object instead of the object itself, so that when you assign or pass it, only this value is copied and several variables share one same object.</p>
 <p><b>Where it's used today</b> — When you pass an object to a method, the reference is copied and passed, so if that method changes a field of the object, the caller sees the changed value too. So where the received object must not be changed, you create a new object and move the values into it, or you use an object like String whose contents do not change once it is made. == only checks whether two variables point to the same object, so to compare whether two Strings have the same characters, you use equals.</p>
-<p>Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.</p>
+<p>Card is a class made as an example for this lab. In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you assign a to another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is assigned to b: a reference copied from a, a reference to an object newly created with new, a reference to an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.</p>
 <p>Checked against real execution · Four combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -49,19 +49,19 @@
 <h2>Try these</h2>
 <ul>
 <li><b>Default settings</b> — b refers to the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.</li>
-<li><b>Store new Card() in b</b> — One more new object is created, and a and b refer to different objects. Changing b leaves a unchanged.</li>
-<li><b>Create, then only copy the value</b> — Even if you copy the text of owner over, there are 2 objects. The contents were the same at first, but they are different objects.</li>
+<li><b>Assign new Card() to b</b> — One more new object is created, and a and b refer to different objects. Changing b leaves a unchanged.</li>
+<li><b>Create, then only copy the value</b> — Even if you copy the value of owner over, there are 2 objects. The contents were the same at first, but they are different objects.</li>
 <li><b>Use int</b> — A variable of a primitive type holds the value itself, so assigning copies the value. Changing b leaves a unchanged.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>The line Card a = new Card(); runs. new Card() creates one Card object (object A in the diagram), and a value that refers to that object is stored in variable a. This value is called a reference. The object is not inside a. a refers to object A.</li>
-<li>The line a.owner = &quot;Alice&quot;; runs. It goes to the object A that a refers to and stores Alice in the owner of that object.</li>
+<li>The line a.owner = &quot;Alice&quot;; runs. It goes to the object A that a refers to and assigns Alice to the owner of that object.</li>
 <li>The line Card b = a; runs. What is inside a is &quot;a reference to object A,&quot; and this reference is copied to b. Object A is not copied. No new object was created, and there is still 1 object. a and b refer to the same object A.</li>
-<li>The line b.owner = &quot;Bob&quot;; runs. It goes to the object that b refers to and stores Bob in its owner. The object that b refers to is object A, and the object that a refers to is also object A. So the owner of object A changes from Alice to Bob.</li>
+<li>The line b.owner = &quot;Bob&quot;; runs. It goes to the object that b refers to and assigns Bob to its owner. The object that b refers to is object A, and the object that a refers to is also object A. So the owner of object A changes from Alice to Bob.</li>
 <li>The line System.out.println(a.owner); runs. It reads the owner of the object A that a refers to and prints Bob. Nothing was changed through a, yet it has changed, because the object changed through b is the very object that a refers to.</li>
 <li>The line System.out.println(a == b); runs. When you use == on two variables, it compares whether the values inside them refer to the same object. a and b both refer to object A, so it prints true. It does not compare the text in owner.</li>
-<li>main ends. In this run, new Card() ran 1 time and 1 Card object was created. A line that stores a value in a variable did not increase the number of objects. In this code, objects were created only by new Card().</li>
+<li>main ends. In this run, new Card() ran 1 time and 1 Card object was created. A line that assigns a value to a variable did not increase the number of objects. In this code, objects were created only by new Card().</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -85,7 +85,7 @@ public class Main {
     }
 }</pre>
 <h2>Assumptions of this model</h2>
-<p>The runtime environment is JDK 21.0.12.1 (javac 21). All four combinations were compiled with javax.tools from the same source as the code on the screen, loaded with a new class loader, and Main.main was run, and the results were checked against the captured standard output. In the source of the Probe (the checking program), only lines that count Card objects (an increment of a static variable and in the constructor, and a few output lines) were added, and for every combination it was confirmed that, with those lines removed, the text is identical to the code on the screen line by line. What was checked is the two output lines, the number of Card objects created, and the facts that the step sentences rely on. The facts are the number of objects right after the line Card b = ...; ran (for the combination that stores new Card(), right after the owner was copied over), the value of a == b, the values of the owner of the objects that the two variables refer to, and whether those two values are the same. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That there are reference values that refer to objects, that when two variables refer to the same object a state changed through one variable can be read through the other, and that an int value is copied on assignment so that the two are separate follow sections 4.2 and 4.3.1 (example 4.3.1-2); that a variable of a primitive type holds a value of that primitive type, and a variable of a class type holds null or a reference to an object of that class, follows sections 4.12.1 and 4.12.2; and that == on references is true when both are null or refer to the same object follows section 15.21.3. That == on int variables compares values (section 15.21.1) was not confirmed by opening the documentation, and was confirmed only by the result of this run. The screen draws the texts of owner, Alice and Bob, as if they were values inside the object, but owner is also a reference that refers to a String object. This lab does not cover that difference, and it does not cover how string constants come to refer to the same object. equals, which asks whether the contents of objects are the same, is covered in &quot;In-depth lab: == and equals&quot;. Where variables and objects are placed in memory is not something this lab covers or checked. What this lab showed is the behavior that the value stored in a variable refers to an object, and that assigning copies that value.</p>
+<p>The runtime environment is JDK 21.0.12.1 (javac 21). All four combinations were compiled with javax.tools from the same source as the code on the screen, loaded with a new class loader, and Main.main was run, and the results were checked against the captured standard output. In the source of the Probe (the checking program), only lines that count Card objects (an increment of a static variable and in the constructor, and a few output lines) were added, and for every combination it was confirmed that, with those lines removed, the text is identical to the code on the screen line by line. What was checked is the two output lines, the number of Card objects created, and the facts that the step sentences rely on. The facts are the number of objects right after the line Card b = ...; ran (for the combination that assigns new Card() and then copies the owner, right after b.owner = a.owner; ran), the value of a == b, the values of the owner of the objects that the two variables refer to, and whether those two values are the same. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That there are reference values that refer to objects, that when two variables refer to the same object a state changed through one variable can be read through the other, and that an int value is copied on assignment so that the two are separate follow sections 4.2 and 4.3.1 (example 4.3.1-2); that a variable of a primitive type holds a value of that primitive type, and a variable of a class type holds null or a reference to an object of that class, follows sections 4.12.1 and 4.12.2; and that == on references is true when both are null or refer to the same object follows section 15.21.3. That == on int variables compares values (section 15.21.1) was not confirmed by opening the documentation, and was confirmed only by the result of this run. The screen draws the texts of owner, Alice and Bob, as if they were values inside the object, but owner is also a reference that refers to a String object. This lab does not cover that difference, and it does not cover how string constants come to refer to the same object. equals, which asks whether the contents of objects are the same, is covered in &quot;In-depth lab: == and equals&quot;. Where variables and objects are placed in memory is not something this lab covers or checked. What this lab showed is the behavior that the value stored in a variable refers to an object, and that assigning copies that value.</p>
 <p>Previous lab: <a href="../../lab/class_basic/">Classes and objects</a> · Next lab: <a href="../../lab/null_basic/">null</a></p>
   </div>
 
@@ -178,6 +178,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

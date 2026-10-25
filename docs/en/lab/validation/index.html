@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>BindingResult</dt>
 <dd><b>Why it exists</b> — If an exception is thrown every time validation fails, the controller does not run, so it is hard to show the same screen again with the values the user entered kept and error messages attached. BindingResult passes the failure to the controller as a list of errors by field instead of cutting it off with an exception, so that the screen can be redrawn.</dd>
 <dd><b>Where it's used today</b> — You use it in an input form made with a template such as Thymeleaf, to show an error message next to the field that was entered wrongly and show the form again. In an API that exchanges JSON, BindingResult is often not used, and the exception for a validation failure is handled in one place.</dd>
-<dd>BindingResult is an object that collects the errors that occur while the values of a request are put into an object and validated. In a controller method, when a BindingResult parameter is placed immediately after the parameter annotated with @Valid, Spring does not throw an exception even if validation fails. It puts the errors in this object and runs the controller as usual. The controller checks whether there are errors with hasErrors() and decides for itself how to respond. If it does not check, the invalid value is handled as it is, so when you receive a BindingResult, you must check it. Its position also matters: if it is placed anywhere other than immediately after the parameter to validate, an error occurs when the request is handled.</dd>
+<dd>BindingResult is an object that collects the errors that occur while the values of a request are put into an object and validated. In a controller method, when a BindingResult parameter is placed immediately after the parameter annotated with @Valid, Spring does not throw an exception even if validation fails. It records the errors in this object and runs the controller as usual. The controller checks whether there are errors with hasErrors() and decides for itself how to respond. If it does not check, the invalid value is handled as it is, so when you receive a BindingResult, you must check it. Its position also matters: if it is placed anywhere other than immediately after the parameter to validate, an error occurs when the request is handled.</dd>
 <dt>MethodArgumentNotValidException</dt>
 <dd><b>Why it exists</b> — If you check a validation failure with BindingResult in every controller, the same if statement and error response code is repeated everywhere. This exception throws the failure out of the controller so that the validation errors of several controllers are handled in one place in the same form.</dd>
 <dd><b>Where it's used today</b> — In a REST API, you put a method that catches this exception in an @RestControllerAdvice class and make a 400 response body that says which field is wrong and why.</dd>
@@ -193,6 +193,6 @@ class ItemController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

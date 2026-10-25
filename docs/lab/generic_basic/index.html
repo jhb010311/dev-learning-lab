@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>제네릭: List&lt;String&gt;의 &lt;String&gt;은 무엇을 해 주는가 · 개발 학습 실습실</title>
-<meta name="description" content="List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 담는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 담으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 담게…">
+<meta name="description" content="List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 넣는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 넣으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 대입…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/generic_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/generic_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="제네릭: List&lt;String&gt;의 &lt;String&gt;은 무엇을 해 주는가 · 개발 학습 실습실">
-<meta property="og:description" content="List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 담는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 담으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 담게…">
+<meta property="og:description" content="List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 넣는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 넣으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 대입…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/generic_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,41 +33,41 @@
 <p><b>List&lt;String&gt;의 &lt;String&gt;은 무엇을 해 주는가</b></p>
 <p><b>왜 생겼나</b> — 같은 리스트 클래스를 String에도 Integer에도 쓰려면 아무 객체나 받게 만들어야 하는데, 그러면 무엇을 넣기로 했는지 컴파일러가 확인해 줄 수 없다. 종류마다 리스트를 따로 만들면 같은 코드를 되풀이해야 한다. 제네릭은 ArrayList 같은 클래스를 한 번만 만들고 쓰는 쪽이 &lt;String&gt;처럼 종류를 적게 해서, 코드 하나로 여러 종류를 다루면서도 컴파일러가 검사하게 한다.</p>
 <p><b>지금 어디에 쓰나</b> — List&lt;String&gt;, Map&lt;String, Integer&gt;처럼 자바의 컬렉션을 쓸 때 거의 언제나 본다. 스프링에서도 응답을 돌려줄 때 쓰는 ResponseEntity&lt;String&gt; 같은 꼴로 나온다. &lt;&gt;를 빼고 쓰는 로 타입은 제네릭이 없던 예전 코드와 함께 쓰려고 남겨 둔 것이라, 새 코드에서는 쓰지 않는다.</p>
-<p>List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 담는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 담으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 담게 해 줍니다. 표시를 지우면 리스트는 아무 객체나 받고, 컴파일러는 꺼낸 것이 무엇인지 알지 못합니다. 그래서 꺼낼 때마다 (String)이라고 직접 적어야 하고, 잘못 담은 것은 컴파일할 때가 아니라 실행 중에 꺼내는 순간에야 드러납니다. 이 실습은 &lt;String&gt;, 담는 값, (String)을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
+<p>List&lt;String&gt;의 &lt;String&gt;은 &quot;이 리스트에는 String만 넣는다&quot;고 컴파일러에게 알려 주는 표시입니다. 이 표시가 있으면 컴파일러는 String이 아닌 것을 넣으려는 줄을 막고, 리스트에서 꺼낸 것이 String이라는 것도 알아서 바로 String 변수에 대입하게 해 줍니다. 표시를 지우면 리스트는 아무 객체나 받고, 컴파일러는 꺼낸 것이 무엇인지 알지 못합니다. 그래서 꺼낼 때마다 (String)이라고 직접 적어야 하고, 잘못 넣은 것은 컴파일할 때가 아니라 실행 중에 꺼내는 순간에야 드러납니다. 이 실습은 &lt;String&gt;, 넣는 값, (String)을 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>제네릭</dt>
 <dd>클래스나 메서드가 다룰 타입을 매개변수로 받는 기능이다. List&lt;String&gt;처럼 타입을 지정하면 컴파일 시점에 타입이 검사되어 잘못된 타입을 넣는 실수를 막고 형 변환 코드가 필요 없다. 타입 정보는 컴파일 후 지워지므로(타입 소거) 실행 중에는 List&lt;String&gt;과 List&lt;Integer&gt;를 구분할 수 없다.</dd>
 <dt>타입 인자(&lt;String&gt;)</dt>
-<dd>타입 인자는 List&lt;String&gt;처럼 제네릭 클래스나 인터페이스의 이름 뒤에 꺾쇠괄호 &lt;&gt; 안에 적는 타입이다. List&lt;String&gt;은 &quot;String을 담는 List&quot;를 뜻하고, 이렇게 타입 인자를 붙인 타입을 매개변수화된 타입이라고 한다. 컴파일러는 이 표시를 보고 add로 담는 값이 String인지 확인하며, get으로 꺼낸 값을 String으로 다루므로 꺼낼 때 (String)을 직접 적지 않아도 된다. 타입 인자에는 참조 타입만 쓸 수 있어서 List&lt;int&gt;는 오류이고 List&lt;Integer&gt;라고 적어야 한다. 타입 인자를 빼고 List라고만 적으면 로 타입이 된다.</dd>
+<dd>타입 인자는 List&lt;String&gt;처럼 제네릭 클래스나 인터페이스의 이름 뒤에 꺾쇠괄호 &lt;&gt; 안에 적는 타입이다. List&lt;String&gt;은 &quot;String을 넣는 List&quot;(String 객체를 가리키는 참조를 갖는 List)를 뜻하고, 이렇게 타입 인자를 붙인 타입을 매개변수화된 타입이라고 한다. 컴파일러는 이 표시를 보고 add로 넣는 값이 String인지 확인하며, get으로 꺼낸 값을 String으로 다루므로 꺼낼 때 (String)을 직접 적지 않아도 된다. 타입 인자에는 참조 타입만 쓸 수 있어서 List&lt;int&gt;는 오류이고 List&lt;Integer&gt;라고 적어야 한다. 타입 인자를 빼고 List라고만 적으면 로 타입이 된다.</dd>
 <dt>로 타입(raw type)</dt>
 <dd>List&lt;String&gt;처럼 타입을 적을 수 있는 제네릭 클래스를 &lt;...&gt; 없이 List라고만 쓴 것이다. 제네릭이 없던 Java 5 이전의 코드와 함께 쓸 수 있도록 남겨 둔 방식이다. 컴파일러는 로 타입 변수에 무엇을 넣는지 검사하지 못하고 unchecked 경고만 내므로, List&lt;Integer&gt;가 가리키는 리스트에 String을 넣는 코드도 컴파일된다. 그 잘못은 나중에 값을 꺼내는 자리에서 ClassCastException으로 드러난다. 새로 쓰는 코드에서는 쓰지 않으며, 원소 타입을 모를 때는 List&lt;?&gt;를 쓴다.</dd>
 <dt>ClassCastException</dt>
-<dd>ClassCastException은 객체를 그 객체의 타입이 아닌 타입으로 바꾸려 할 때 실행 중에 일어나는 예외이다. (String) names.get(0)처럼 캐스팅을 적으면 컴파일러는 바꿀 수 있는 관계의 타입인지만 보고 통과시키고, 꺼낸 객체가 실제로 그 타입인지는 실행 중에 JVM이 확인한다. 꺼낸 객체가 Integer인데 (String)으로 바꾸려 하면 이 예외가 일어나고, 처리하는 코드가 없으면 프로그램이 그 줄에서 멈춘다. 잘못된 객체를 담은 줄이 아니라 꺼내서 바꾸는 줄에서 드러나는 것이 특징이다. 제네릭의 타입 인자를 쓰면 잘못 담는 줄을 컴파일러가 미리 막아 주므로 이런 예외를 만날 일이 줄어든다.</dd>
+<dd>ClassCastException은 객체를 그 객체의 타입이 아닌 타입으로 바꾸려 할 때 실행 중에 일어나는 예외이다. (String) names.get(0)처럼 캐스팅을 적으면 컴파일러는 바꿀 수 있는 관계의 타입인지만 보고 통과시키고, 꺼낸 객체가 실제로 그 타입인지는 실행 중에 JVM이 확인한다. 꺼낸 객체가 Integer인데 (String)으로 바꾸려 하면 이 예외가 일어나고, 처리하는 코드가 없으면 프로그램이 그 줄에서 멈춘다. 잘못된 객체를 넣은 줄이 아니라 꺼내서 바꾸는 줄에서 드러나는 것이 특징이다. 제네릭의 타입 인자를 쓰면 잘못 넣는 줄을 컴파일러가 미리 막아 주므로 이런 예외를 만날 일이 줄어든다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — &lt;String&gt;이 있으면 컴파일러가 담는 값과 꺼낸 값의 타입을 알아서 처리합니다. 컴파일에 성공하고 3이 출력됩니다.</li>
-<li><b>&lt;String&gt;을 지우면</b> — 컴파일러가 꺼낸 것이 무엇인지 몰라 Object라고만 알고, String 변수에 담는 줄에서 컴파일 오류가 납니다.</li>
+<li><b>처음 설정으로</b> — &lt;String&gt;이 있으면 컴파일러가 넣는 값과 꺼낸 값의 타입을 알아서 처리합니다. 컴파일에 성공하고 3이 출력됩니다.</li>
+<li><b>&lt;String&gt;을 지우면</b> — 컴파일러가 꺼낸 것이 무엇인지 몰라 Object라고만 알고, String 변수에 대입하는 줄에서 컴파일 오류가 납니다.</li>
 <li><b>&lt;String&gt;을 지우고 (String)을 적으면</b> — 컴파일러가 하던 일을 사람이 (String)으로 직접 적은 것입니다. 컴파일에 성공하고 3이 출력됩니다.</li>
-<li><b>숫자를 담으면</b> — 컴파일러가 담는 줄에서 막습니다. 컴파일 오류이고, 실행되지 않습니다.</li>
-<li><b>&lt;String&gt;을 지우고 숫자를 담으면</b> — 컴파일은 성공하지만 실행 중 꺼내는 줄에서 ClassCastException으로 멈춥니다.</li>
+<li><b>숫자를 넣으면</b> — 컴파일러가 넣는 줄에서 막습니다. 컴파일 오류이고, 실행되지 않습니다.</li>
+<li><b>&lt;String&gt;을 지우고 숫자를 넣으면</b> — 컴파일은 성공하지만 실행 중 꺼내는 줄에서 ClassCastException으로 멈춥니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>컴파일러가 소스를 위에서부터 읽습니다. List&lt;String&gt; names = new ArrayList&lt;&gt;(); 줄에서 List 뒤의 &lt;String&gt;을 읽고, &quot;names에는 String만 담는다&quot;고 기억합니다. &lt;String&gt;은 이 리스트에 담을 것의 타입을 컴파일러에게 알려 주는 표시입니다.</li>
-<li>컴파일러가 names.add(&quot;김철수&quot;); 줄을 확인합니다. 담으려는 &quot;김철수&quot;는 String이고, names는 String만 담는 리스트이므로 통과합니다.</li>
-<li>컴파일러가 String first = names.get(0); 줄을 확인합니다. names에는 String만 담기로 했으므로, 꺼낸 것이 String이라는 것을 컴파일러가 알고 있습니다. 그래서 String 변수 first에 바로 담아도 됩니다. (String)을 적지 않아도 됩니다.</li>
+<li>컴파일러가 소스를 위에서부터 읽습니다. List&lt;String&gt; names = new ArrayList&lt;&gt;(); 줄에서 List 뒤의 &lt;String&gt;을 읽고, &quot;names가 가리킬 리스트에는 String만 넣는다&quot;고 기억합니다. &lt;String&gt;은 이 리스트에 넣을 것의 타입을 컴파일러에게 알려 주는 표시입니다.</li>
+<li>컴파일러가 names.add(&quot;김철수&quot;); 줄을 확인합니다. 넣으려는 &quot;김철수&quot;는 String이고, names의 타입은 String만 넣는 리스트이므로 통과합니다.</li>
+<li>컴파일러가 String first = names.get(0); 줄을 확인합니다. names에는 String만 넣기로 했으므로, 꺼낸 것이 String이라는 것을 컴파일러가 알고 있습니다. 그래서 String 변수 first에 바로 대입해도 됩니다. (String)을 적지 않아도 됩니다.</li>
 <li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다.</li>
 <li>java Main으로 실행합니다. main이 시작되고, new ArrayList가 빈 리스트를 만들어 names가 가리키게 합니다.</li>
-<li>names.add(&quot;김철수&quot;); 줄이 실행됩니다. &quot;김철수&quot;가 리스트에 담깁니다.</li>
-<li>String first = names.get(0); 줄이 실행됩니다. 리스트에서 &quot;김철수&quot;를 꺼내 first에 담습니다.</li>
+<li>names.add(&quot;김철수&quot;); 줄이 실행됩니다. &quot;김철수&quot;가 리스트에 추가됩니다.</li>
+<li>String first = names.get(0); 줄이 실행됩니다. 리스트에서 &quot;김철수&quot;를 꺼내 first에 대입합니다.</li>
 <li>System.out.println(first.length()); 줄이 실행됩니다. first는 &quot;김철수&quot;이고, length()가 글자 수 3을 돌려주므로 3을 출력합니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>&lt;String&gt;은 &quot;names에는 String만 담는다&quot;고 컴파일러에게 알려 주는 표시입니다. 컴파일러는 이 표시를 보고 add 줄에서 담는 값이 String인지 확인했고, get 줄에서 꺼낸 것이 String이라는 것도 알아서 (String) 없이 바로 String 변수에 담게 해 주었습니다.</li>
+<li>&lt;String&gt;은 &quot;names가 가리키는 리스트에는 String만 넣는다&quot;고 컴파일러에게 알려 주는 표시입니다. 컴파일러는 이 표시를 보고 add 줄에서 넣는 값이 String인지 확인했고, get 줄에서 꺼낸 것이 String이라는 것도 알아서 (String) 없이 바로 String 변수에 대입하게 해 주었습니다.</li>
 <li>&lt;String&gt;은 프로그램이 실행할 코드가 아니라 컴파일러가 컴파일하면서 확인하는 표시입니다. 이 표시가 있어서 잘못된 줄을 실행하기 전에 막을 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -76,7 +76,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        // &lt;String&gt;: 이 리스트에는 String만 담는다는 표시
+        // &lt;String&gt;: 이 리스트에는 String만 넣는다는 표시
         List&lt;String&gt; names = new ArrayList&lt;&gt;();
         names.add(&quot;김철수&quot;);
         String first = names.get(0);
@@ -84,7 +84,7 @@ public class Main {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)이고, 컴파일은 경고 옵션을 켜지 않은 기본 옵션으로 했습니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(import 줄까지 줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드와 영어 메시지(compiler.err.prob.found.req의 &quot;int cannot be converted to String&quot;과 &quot;Object cannot be converted to String&quot;을 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 컴파일러가 오류 말고 남긴 노트, 실행했을 때의 출력, 실행 중 예외의 종류와 메시지와 예외가 난 줄입니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. &lt;String&gt;이 없는 리스트에 123을 담는 줄은 실행 중에도 예외 없이 지나가고 리스트에 1개가 담기며, 꺼내는 (String) 줄에서야 ClassCastException이 났습니다(메시지: Integer를 String으로 바꿀 수 없음). &lt;String&gt;이 없어도 꺼낸 것을 Object 변수에 담는 줄은 컴파일되고, 꺼낸 것에 캐스팅 없이 length()를 부르는 줄은 컴파일되지 않습니다. &lt;String&gt;이 있으면 꺼낸 것에 length()를 바로 부를 수 있습니다. 기본 옵션에서 로 타입이 든 조합(컴파일에 성공한 것은 물론 오류가 난 것도)은 오류가 아니라 노트 두 줄(안전하지 않은 작업을 쓴다는 것과 -Xlint:unchecked로 다시 컴파일하라는 것)만 남겼고, 경고(warning)로는 나오지 않았습니다. 경고 옵션 -Xlint:unchecked와 -Xlint:rawtypes를 켜서 따로 컴파일하면 List와 ArrayList를 &lt;&gt; 없이 쓴 선언 줄에 로 타입 경고가, names.add 줄에 unchecked 호출 경고가 났고, (String)으로 꺼내는 줄에는 경고가 없었습니다. &lt;String&gt;이 있고 (String)도 적은 조합은 기본 옵션에서 노트도 없이 컴파일되고, -Xlint:all을 켜면 불필요한 캐스트라는 경고가 났습니다. &lt;String&gt;이 있는 리스트에 123을 담는 오류는 javac가 줄여 알린 것으로(노트: Some messages have been simplified), -Xdiags:verbose로 다시 컴파일하면 add(int)에 맞는 메서드가 없다는 compiler.err.cant.apply.symbols 오류였습니다. 문서는 WebFetch로 열어 확인했습니다. Java Language Specification(Java SE 21)의 4.5절과 4.5.1절(List&lt;String&gt;처럼 제네릭 클래스에 타입 인자를 붙인 것이 매개변수화된 타입이고, 타입 인자는 참조 타입이어야 해서 List&lt;int&gt;는 쓸 수 없음), 4.8절(&lt;&gt;를 붙이지 않은 이름이 로 타입이고 옛 코드와의 호환을 위해서만 허용되며, 로 타입 멤버의 일부 접근이 unchecked 경고를 낸다는 것), 5.5절과 5.1.6절(검사가 필요한 참조 타입 변환은 실행 중에 객체의 클래스를 확인하고 틀리면 ClassCastException이 날 수 있다는 것), 그리고 자바 튜토리얼 &quot;Why Use Generics?&quot;(제네릭은 컴파일할 때 더 강하게 검사하고, 꺼낼 때의 캐스팅을 없애 준다는 것)를 따랐습니다. 열린 문서는 요약된 답으로 돌아와 원문을 모두 직접 읽지는 못했고, jls-4.html은 앞쪽 100000자까지만 읽었습니다(4.5절과 4.8절은 그 안에 있었습니다). 123이 Integer 객체로 리스트에 담긴다는 것은 명세 5.1.7절(박싱)을 열어 확인한 것이 아니라, 실행 중 예외 메시지에서 관찰한 것입니다. 오류의 종류, 개수, 어느 줄에서 나는지, 노트가 남는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 화면의 코드는 클래스 하나에 main만 둔 모양입니다. &lt;String&gt;이 있어도 컴파일러의 검사를 피하는 방법이 있고, 제네릭 클래스나 메서드를 직접 만드는 것, 와일드카드, 실행 중에는 &lt;String&gt;이 남지 않는다는 것(타입 소거)도 이 실습은 다루지 않았습니다. 이것들은 &quot;세부 동작 실습: 제네릭&quot;에서 다룹니다.</p>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)이고, 컴파일은 경고 옵션을 켜지 않은 기본 옵션으로 했습니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(import 줄까지 줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드와 영어 메시지(compiler.err.prob.found.req의 &quot;int cannot be converted to String&quot;과 &quot;Object cannot be converted to String&quot;을 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 컴파일러가 오류 말고 남긴 노트, 실행했을 때의 출력, 실행 중 예외의 종류와 메시지와 예외가 난 줄입니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. &lt;String&gt;이 없는 리스트에 123을 넣는 줄은 실행 중에도 예외 없이 지나가고 리스트의 개수가 1이 되며, 꺼내는 (String) 줄에서야 ClassCastException이 났습니다(메시지: Integer를 String으로 바꿀 수 없음). &lt;String&gt;이 없어도 꺼낸 것을 Object 변수에 대입하는 줄은 컴파일되고, 꺼낸 것에 캐스팅 없이 length()를 부르는 줄은 컴파일되지 않습니다. &lt;String&gt;이 있으면 꺼낸 것에 length()를 바로 부를 수 있습니다. 기본 옵션에서 로 타입이 든 조합(컴파일에 성공한 것은 물론 오류가 난 것도)은 오류가 아니라 노트 두 줄(안전하지 않은 작업을 쓴다는 것과 -Xlint:unchecked로 다시 컴파일하라는 것)만 남겼고, 경고(warning)로는 나오지 않았습니다. 경고 옵션 -Xlint:unchecked와 -Xlint:rawtypes를 켜서 따로 컴파일하면 List와 ArrayList를 &lt;&gt; 없이 쓴 선언 줄에 로 타입 경고가, names.add 줄에 unchecked 호출 경고가 났고, (String)으로 꺼내는 줄에는 경고가 없었습니다. &lt;String&gt;이 있고 (String)도 적은 조합은 기본 옵션에서 노트도 없이 컴파일되고, -Xlint:all을 켜면 불필요한 캐스트라는 경고가 났습니다. &lt;String&gt;이 있는 리스트에 123을 넣는 오류는 javac가 줄여 알린 것으로(노트: Some messages have been simplified), -Xdiags:verbose로 다시 컴파일하면 add(int)에 맞는 메서드가 없다는 compiler.err.cant.apply.symbols 오류였습니다. 문서는 WebFetch로 열어 확인했습니다. Java Language Specification(Java SE 21)의 4.5절과 4.5.1절(List&lt;String&gt;처럼 제네릭 클래스에 타입 인자를 붙인 것이 매개변수화된 타입이고, 타입 인자는 참조 타입이어야 해서 List&lt;int&gt;는 쓸 수 없음), 4.8절(&lt;&gt;를 붙이지 않은 이름이 로 타입이고 옛 코드와의 호환을 위해서만 허용되며, 로 타입 멤버의 일부 접근이 unchecked 경고를 낸다는 것), 5.5절과 5.1.6절(검사가 필요한 참조 타입 변환은 실행 중에 객체의 클래스를 확인하고 틀리면 ClassCastException이 날 수 있다는 것), 그리고 자바 튜토리얼 &quot;Why Use Generics?&quot;(제네릭은 컴파일할 때 더 강하게 검사하고, 꺼낼 때의 캐스팅을 없애 준다는 것)를 따랐습니다. 열린 문서는 요약된 답으로 돌아와 원문을 모두 직접 읽지는 못했고, jls-4.html은 앞쪽 100000자까지만 읽었습니다(4.5절과 4.8절은 그 안에 있었습니다). 123이 Integer 객체로 바뀌어 리스트에 추가된다는 것은 명세 5.1.7절(박싱)을 열어 확인한 것이 아니라, 실행 중 예외 메시지에서 관찰한 것입니다. 오류의 종류, 개수, 어느 줄에서 나는지, 노트가 남는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 화면의 코드는 클래스 하나에 main만 둔 모양입니다. &lt;String&gt;이 있어도 컴파일러의 검사를 피하는 방법이 있고, 제네릭 클래스나 메서드를 직접 만드는 것, 와일드카드, 실행 중에는 &lt;String&gt;이 남지 않는다는 것(타입 소거)도 이 실습은 다루지 않았습니다. 이것들은 &quot;세부 동작 실습: 제네릭&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/exception_basic/">예외</a> · 다음 실습: <a href="../../lab/collection_basic/">List와 Map</a></p>
   </div>
 
@@ -177,6 +177,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

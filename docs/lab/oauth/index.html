@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dd><b>지금 어디에 쓰나</b> — JWT로 로그인을 유지하는 모바일 앱과 SPA에서 흔히 쓴다. 리프레시 토큰은 HttpOnly 쿠키나 앱의 보안 저장소에 두고, 서버도 기록해 두었다가 로그아웃하면 폐기하는 구성이 많다.</dd>
 <dd>액세스 토큰은 API를 호출할 때 제시하는 토큰으로, 탈취되었을 때의 피해를 줄이기 위해 유효 기간을 짧게 둔다. 리프레시 토큰은 액세스 토큰이 만료되었을 때 새 액세스 토큰을 발급받는 데 쓰는 토큰으로, 유효 기간이 길고 더 안전하게 보관한다. 서버는 리프레시 토큰을 폐기해 재발급을 막을 수 있다.</dd>
 <dt>CSRF(사이트 간 요청 위조)</dt>
-<dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측 불가능한 토큰을 요청에 포함하게 하거나 쿠키의 SameSite 속성으로 막는다.</dd>
+<dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측할 수 없는 토큰(CSRF 토큰)을 요청에 함께 보내게 해 막는 것이 기본 방어이고(스프링 시큐리티는 기본으로 검사한다), 쿠키의 SameSite 속성은 함께 쓰는 보조 방어다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -186,6 +186,6 @@ spring.security.oauth2.client:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

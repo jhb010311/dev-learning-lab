@@ -91,7 +91,7 @@ Lab.register({
       push('At this time Spring Data reads the name of the findByName method. Following the rule that findBy means "find" and the Name after it is the name field of Member, it prepares "a query that finds by name". Member has a name field, so it passes. If a name does not follow the rule, it fails here.', '');
     }
     st.phase = 'get'; st.hot = 'if';
-    push('main gets a bean of the MemberRepository type from Spring and puts it in memberRepository (the part shortened on the screen). What it holds is the implementation object that Spring has just made. It is not an object made with new. SQL is counted from here on.', '');
+    push('main gets a bean of the MemberRepository type from Spring and makes the variable memberRepository refer to it (the part shortened on the screen). What it refers to is the implementation object that Spring has just made. It is not an object made with new. SQL is counted from here on.', '');
 
     // 4. save
     st.phase = 'save'; st.hot = 'im';
@@ -109,7 +109,7 @@ Lab.register({
       push('println prints the 1 that count returned.', 'good');
     } else {
       send(SEL_NAME);
-      push('memberRepository.findByName("Alice") runs. The implementation object sends a SELECT following the naming rule that it read at startup: ' + SEL_NAME + ' (the "Alice" we passed goes in the place of name=?). We wrote no query. The 1 row it found becomes a Member object and goes into the List.', 'good');
+      push('memberRepository.findByName("Alice") runs. The implementation object sends a SELECT following the naming rule that it read at startup: ' + SEL_NAME + ' (the "Alice" we passed goes in the place of name=?). We wrote no query. The 1 row it found becomes a Member object, and a List that refers to that object is returned.', 'good');
       st.out = '1'; st.phase = 'done';
       push('println prints found.size(). It found 1 Member, so it is 1. All we wrote were the two declaration lines of the interface (the interface declaration and the findByName line).', 'good');
     }

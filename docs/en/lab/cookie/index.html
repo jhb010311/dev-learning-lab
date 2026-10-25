@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>HttpOnly, Secure, and SameSite</dt>
 <dd><b>Why it exists</b> — A cookie could originally be read by scripts on the page, and it was sent along even over unencrypted HTTP connections and with requests that started from other sites. The server attaches these attributes to each cookie in the Set-Cookie header to choose and block these paths.</dd>
 <dd><b>Where it's used today</b> — It is usual to attach all three to a login session cookie. In Spring Boot, they are attached to the session cookie with the http-only, secure, and same-site settings under server.servlet.session.cookie.</dd>
-<dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks.</dd>
+<dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks, but it is a secondary defense used together with a CSRF token, not a replacement for it.</dd>
 <dt>Session</dt>
 <dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot change its contents (having the session ID stolen is a different problem). When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
 </dl>
@@ -183,6 +183,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

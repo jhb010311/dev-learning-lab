@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Variables and types: What is a variable, and what does a type decide? · Dev Learning Lab</title>
-<meta name="description" content="A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds o…">
+<meta name="description" content="A variable is a name given to a storage location where a value is stored. A variable of a primitive type such as int stores the value itself, and a variab…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/var_basic/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Variables and types: What is a variable, and what does a type decide? · Dev Learning Lab">
-<meta property="og:description" content="A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds o…">
+<meta property="og:description" content="A variable is a name given to a storage location where a value is stored. A variable of a primitive type such as int stores the value itself, and a variab…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,12 +33,12 @@
 <p><b>What is a variable, and what does a type decide?</b></p>
 <p><b>Why it exists</b> — If you write the values used in a calculation directly as numbers every time, then when the same value is used in several places, there are several places to fix, and a value that changes while the program runs, such as an age that goes up by one, cannot be carried on. A variable stores a value under a name and lets you read and change it again by that name. Java has you decide a type for each variable, so the compiler catches the mistake of using the wrong kind of value before you run the program.</p>
 <p><b>Where it's used today</b> — You see variables everywhere in Java code. The name a user typed, the number of items and the total in a shopping cart, and i, which counts which pass of a loop you are on, are all handled as variables. A value that must not change after you decide it is declared with final so that it cannot be assigned again.</p>
-<p>A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds only integers. age is the name. 20 is the value to store first. This line is called a declaration. When the compiler reads a declaration, it remembers that &quot;age is an int variable,&quot; and before the program runs it checks that the lines after it fit what it remembered. In this lab you remove the type int, change the value that is stored, and store no value at all. Each time, the same code is compiled and run, so you can see what the compiler reports and what is printed.</p>
+<p>A variable is a name given to a storage location where a value is stored. A variable of a primitive type such as int stores the value itself, and a variable of a reference type such as String stores a reference that points to an object, not the object. The single line int age = 20; has three parts. int is the type, which means that this variable holds only integers. age is the name. 20 is the value to store first. This line is called a declaration. When the compiler reads a declaration, it remembers that &quot;age is an int variable,&quot; and before the program runs it checks that the lines after it fit what it remembered. In this lab you remove the type int, change the value that is stored, and store no value at all. Each time, the same code is compiled and run, so you can see what the compiler reports and what is printed.</p>
 <p>Checked against real execution · Six combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Variable</dt>
-<dd>A variable is a name for a storage location that holds a value. Every variable has a type that is already fixed at compile time, and the type decides what kind of value the variable can hold. For example, a variable declared as int age; can hold only integers, and int is a 32-bit integer from -2147483648 to 2147483647. A value is stored in a variable with =, and age = age + 1; means &quot;store the value calculated on the right in the variable on the left.&quot; The stored value can change, but the name and the type of the variable do not change. Trying to store a value that does not fit the type is a compile-time error.</dd>
+<dd>A variable is a name for a storage location where a value is stored. A variable of a primitive type such as int stores the value itself, and a variable of a reference type such as String stores a reference that points to an object, not the object. Every variable has a type that is already fixed at compile time, and the type decides what kind of value the variable can hold. For example, a variable declared as int age; can hold only integers, and int is a 32-bit integer from -2147483648 to 2147483647. A value is stored in a variable with =, and age = age + 1; means &quot;store the value calculated on the right in the variable on the left.&quot; The stored value can change, but the name and the type of the variable do not change. Trying to store a value that does not fit the type is a compile-time error.</dd>
 <dt>Declaration and initialization</dt>
 <dd><b>Why it exists</b> — If you could use a name right away without declaring it, a line with a misspelled name would be treated as creating one more new variable, and the mistake would not show. Java makes you declare the name and type first before use, so that the compiler finds such typos before running.</dd>
 <dd><b>Where it's used today</b> — When you keep a value that changes as it is calculated, such as a total or a count, inside a method, the form that gives the first value right at the declaration, as in int count = 0;, is commonly used. If the value differs for each branch of an if statement, you only declare first and decide the value in each branch.</dd>
@@ -70,7 +70,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>A variable is a name under which a value is stored. int age = 20; has three parts: the type int (which means only integers are stored), the name age, and the value to store, 20. At this line the compiler remembered that &quot;age is an int variable,&quot; and it checked that the lines after it fit what it remembered before the program ran.</li>
+<li>A variable is a name given to a storage location where a value is stored. int age = 20; has three parts: the type int (which means only integers are stored), the name age, and the value to store, 20. At this line the compiler remembered that &quot;age is an int variable,&quot; and it checked that the lines after it fit what it remembered before the program ran.</li>
 <li>When run, 20 was stored in the age slot, age = age + 1; changed the value in the same slot to 21, and 21 was printed. The name and the slot of a variable stay the same, and only the value inside can change.</li>
 </ul>
 <h2>Code</h2>
@@ -176,6 +176,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

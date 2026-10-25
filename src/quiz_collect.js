@@ -1,7 +1,7 @@
 // "스트림으로 모으기" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
 Lab.quiz([
   { lv: 1, id: 'collect', q: '주문 스트림을 Collectors.groupingBy(Order::customer)로 모으면 어떤 모양의 결과가 나옵니까?',
-    a: ['고객을 키로, 그 고객의 주문 목록을 값으로 하는 Map', '고객을 키로, 그 고객의 마지막 주문 하나를 값으로 하는 Map', '고객 이름만 나온 순서대로 빠짐없이 담아 놓은 List', '고객 이름을 쉼표로 이어 붙여 만든 문자열 하나'],
+    a: ['고객을 키로, 그 고객의 주문 목록을 값으로 하는 Map', '고객을 키로, 그 고객의 마지막 주문 하나를 값으로 하는 Map', '고객 이름만 나온 순서대로 빠짐없이 모아 놓은 List', '고객 이름을 쉼표로 이어 붙여 만든 문자열 하나'],
     why: 'groupingBy는 원소마다 키를 계산해 키가 같은 원소끼리 묶습니다. 두 번째 인자를 주지 않으면 값은 그 키에 해당하는 원소들의 List입니다.',
     sim: { c: { how: 'group', data: 'dup' }, col: 0, has: 'Map<String, List<Order>>' } },
   { lv: 1, id: 'collect', q: 'groupingBy(Order::customer, Collectors.counting())의 결과를 받을 변수의 타입은 무엇입니까?',
@@ -10,7 +10,7 @@ Lab.quiz([
     sim: { c: { how: 'count', data: 'dup' }, col: 0, has: 'Map<String, Long>' } },
   { lv: 2, id: 'collect', q: 'Collectors.toMap(Order::customer, Order::price)로 모으는데 같은 고객의 주문이 두 건 들어 있으면 어떻게 됩니까?',
     a: ['IllegalStateException이 난다', '나중에 나온 주문의 값으로 덮어쓴다', '먼저 나온 주문의 값이 그대로 남는다', '두 주문의 값이 자동으로 더해진다'],
-    why: 'toMap은 한 키에 값 하나만 담고, 같은 키가 또 나오면 어느 값을 남길지 스스로 정하지 않습니다. 병합 함수를 세 번째 인자로 주지 않았다면 IllegalStateException(Duplicate key)을 던집니다. map.put처럼 덮어쓰지 않는다는 점이 헷갈리기 쉽습니다.',
+    why: 'toMap은 한 키에 값 하나만 짝짓고, 같은 키가 또 나오면 어느 값을 남길지 스스로 정하지 않습니다. 병합 함수를 세 번째 인자로 주지 않았다면 IllegalStateException(Duplicate key)을 던집니다. map.put처럼 덮어쓰지 않는다는 점이 헷갈리기 쉽습니다.',
     sim: { c: { how: 'toMap', data: 'dup' }, col: 2, has: 'IllegalStateException' } },
   { lv: 2, id: 'collect', q: '주문이 하나도 없는 목록을 partitioningBy(o -> o.price() >= 300)로 모으면 결과는 어떻게 됩니까?',
     a: ['false와 true 두 키가 모두 있고, 값은 둘 다 빈 목록이다', '나눌 원소가 없으므로 키가 하나도 없는 빈 Map이 된다', '모을 것이 없으므로 Map 대신 null을 돌려주게 된다', '원소가 없으므로 NoSuchElementException이 나게 된다'],

@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>참조: 변수에 객체를 담는다는 것은 무슨 뜻인가 · 개발 학습 실습실</title>
-<meta name="description" content="Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 변수를 다른 변수에 담으면 객체는 복…">
+<title>참조: 변수가 객체를 가리킨다는 것은 무슨 뜻인가 · 개발 학습 실습실</title>
+<meta name="description" content="Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 a를 다른 변수에 대입하면 객체는 복…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="참조: 변수에 객체를 담는다는 것은 무슨 뜻인가 · 개발 학습 실습실">
-<meta property="og:description" content="Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 변수를 다른 변수에 담으면 객체는 복…">
+<meta property="og:title" content="참조: 변수가 객체를 가리킨다는 것은 무슨 뜻인가 · 개발 학습 실습실">
+<meta property="og:description" content="Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 a를 다른 변수에 대입하면 객체는 복…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,10 +30,10 @@
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../basics/">기초개념</a> › Java</p>
 <h1>참조</h1>
-<p><b>변수에 객체를 담는다는 것은 무슨 뜻인가</b></p>
+<p><b>변수가 객체를 가리킨다는 것은 무슨 뜻인가</b></p>
 <p><b>왜 생겼나</b> — 객체는 필드가 많아 클 수 있어서, 변수에 대입하거나 메서드에 넘길 때마다 객체를 통째로 복사하면 시간과 메모리가 들고, 한쪽에서 바꾼 내용이 다른 복사본에는 반영되지 않는다. 참조는 변수가 객체 자체 대신 그 객체를 가리키는 값을 갖게 해서, 대입하거나 넘길 때는 이 값만 복사되고 여러 변수가 같은 객체 하나를 함께 쓰게 한다.</p>
 <p><b>지금 어디에 쓰나</b> — 메서드에 객체를 넘기면 참조가 복사되어 넘어가므로, 그 메서드가 객체의 필드를 바꾸면 부른 쪽에서도 바뀐 값이 보인다. 그래서 받은 객체를 바꾸면 안 되는 곳에서는 새 객체를 만들어 값을 옮기거나, String처럼 만든 뒤에는 내용이 바뀌지 않는 객체를 쓴다. ==는 두 변수가 같은 객체를 가리키는지만 보므로, 두 String의 글자가 같은지는 equals로 비교한다.</p>
-<p>Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 변수를 다른 변수에 담으면 객체는 복사되지 않고 가리키는 값만 복사되어, a와 b가 같은 객체를 가리키게 됩니다. 한쪽으로 객체의 내용을 바꾸면 다른 쪽으로 봐도 바뀌어 있습니다. int 같은 기본 타입 변수는 다릅니다. 값 자체가 들어 있어서 int b = a;는 값을 복사합니다. 이 실습은 b에 담는 것을 a에서 복사한 참조, new로 새로 만든 객체, 새로 만든 뒤 owner만 옮겨 담은 객체, int 값으로 바꿔 가며 같은 줄을 실행해, b를 바꾼 뒤 a가 어떻게 되는지와 만들어진 Card 객체가 몇 개인지를 봅니다.</p>
+<p>Card는 이 실습에서 예시로 만든 클래스입니다. Card a = new Card();에서 변수 a에 들어 있는 것은 Card 객체 자체가 아니라, 그 객체를 가리키는 값입니다. 이 값을 참조라고 부릅니다. 그래서 Card b = a;처럼 a를 다른 변수에 대입하면 객체는 복사되지 않고 가리키는 값만 복사되어, a와 b가 같은 객체를 가리키게 됩니다. 한쪽으로 객체의 내용을 바꾸면 다른 쪽으로 봐도 바뀌어 있습니다. int 같은 기본 타입 변수는 다릅니다. 값 자체가 들어 있어서 int b = a;는 값을 복사합니다. 이 실습은 b에 대입하는 것을 a에서 복사한 참조, new로 새로 만든 객체의 참조, 새로 만든 뒤 owner만 대입한 객체의 참조, int 값으로 바꿔 가며 같은 줄을 실행해, b를 바꾼 뒤 a가 어떻게 되는지와 만들어진 Card 객체가 몇 개인지를 봅니다.</p>
 <p>실행으로 대조 · JDK 21에서 네 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -49,19 +49,19 @@
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
 <li><b>처음 설정으로</b> — b도 a가 가리키는 같은 객체를 가리킵니다. b로 바꾸면 a로 봐도 바뀌어 있고, 객체는 1개뿐입니다.</li>
-<li><b>b에 new Card()를 담으면</b> — 새 객체가 하나 더 만들어져 a와 b는 서로 다른 객체를 가리킵니다. b를 바꿔도 a는 그대로입니다.</li>
-<li><b>새로 만든 뒤 값만 옮기면</b> — owner의 글을 옮겨 담아도 객체는 둘입니다. 처음엔 내용이 같았지만 서로 다른 객체입니다.</li>
+<li><b>b에 new Card()를 대입하면</b> — 새 객체가 하나 더 만들어져 a와 b는 서로 다른 객체를 가리킵니다. b를 바꿔도 a는 그대로입니다.</li>
+<li><b>새로 만든 뒤 값만 옮기면</b> — owner 값을 대입해도 객체는 둘입니다. 처음엔 내용이 같았지만 서로 다른 객체입니다.</li>
 <li><b>int로 바꾸면</b> — 기본 타입 변수에는 값 자체가 들어 있어서 대입하면 값이 복사됩니다. b를 바꿔도 a는 그대로입니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>Card a = new Card(); 줄이 실행됩니다. new Card()가 Card 객체를 하나 만들고(그림의 객체 A), 변수 a에는 그 객체를 가리키는 값이 담깁니다. 이 값을 참조라고 부릅니다. a 안에 객체가 들어 있는 것이 아니라, a가 객체 A를 가리키고 있습니다.</li>
-<li>a.owner = &quot;김철수&quot;; 줄이 실행됩니다. a가 가리키는 객체 A를 찾아가, 그 객체의 owner에 김철수를 담습니다.</li>
+<li>a.owner = &quot;김철수&quot;; 줄이 실행됩니다. a가 가리키는 객체 A를 찾아가, 그 객체의 owner에 김철수를 대입합니다.</li>
 <li>Card b = a; 줄이 실행됩니다. a 안에 들어 있는 것은 &quot;객체 A를 가리키는 값&quot;이고, 이 값이 b에 복사됩니다. 객체 A가 복사되는 것이 아닙니다. 새 객체는 만들어지지 않았고 객체는 여전히 1개입니다. a와 b가 같은 객체 A를 가리킵니다.</li>
-<li>b.owner = &quot;이영희&quot;; 줄이 실행됩니다. b가 가리키는 객체를 찾아가 owner에 이영희를 담습니다. b가 가리키는 객체는 객체 A이고, a가 가리키는 객체도 객체 A입니다. 그래서 객체 A의 owner가 김철수에서 이영희로 바뀝니다.</li>
+<li>b.owner = &quot;이영희&quot;; 줄이 실행됩니다. b가 가리키는 객체를 찾아가 owner에 이영희를 대입합니다. b가 가리키는 객체는 객체 A이고, a가 가리키는 객체도 객체 A입니다. 그래서 객체 A의 owner가 김철수에서 이영희로 바뀝니다.</li>
 <li>System.out.println(a.owner); 줄이 실행됩니다. a가 가리키는 객체 A의 owner를 읽어 이영희를 출력합니다. a로는 아무것도 바꾸지 않았는데 바뀌어 있는 것은, b로 바꾼 객체가 a가 가리키는 바로 그 객체이기 때문입니다.</li>
 <li>System.out.println(a == b); 줄이 실행됩니다. 두 변수에 ==를 쓰면 들어 있는 값이 같은 객체를 가리키는지를 비교합니다. a와 b는 모두 객체 A를 가리키므로 true를 출력합니다. owner의 글을 비교하는 것이 아닙니다.</li>
-<li>main이 끝납니다. 이 실행에서 new Card()가 1번 실행되어 Card 객체가 1개 만들어졌습니다. 변수에 값을 담는 줄이 객체를 늘린 것은 아니고, 이 코드에서 객체는 new Card()로만 만들어졌습니다.</li>
+<li>main이 끝납니다. 이 실행에서 new Card()가 1번 실행되어 Card 객체가 1개 만들어졌습니다. 변수에 값을 대입하는 줄이 객체를 늘린 것은 아니고, 이 코드에서 객체는 new Card()로만 만들어졌습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -85,7 +85,7 @@ public class Main {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>실행 환경은 JDK 21.0.12.1(javac 21)입니다. 네 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일해 새 클래스 로더로 읽어 Main.main을 실행하고, 표준 출력을 잡은 결과와 대조했습니다. 대조할 때 Probe의 소스에는 Card 객체를 세는 줄(static 변수와 생성자의 증가, 그리고 몇 줄의 출력)만 더했고, 그 줄을 빼면 화면의 코드와 줄 단위로 같은 글임을 조합마다 확인했습니다. 대조한 것은 두 출력 줄, 만들어진 Card 객체의 수, 그리고 단계 문장이 기대는 사실입니다. 사실은 Card b = ...; 줄을 실행한 직후(new Card()를 담은 조합은 owner를 옮겨 담은 직후)의 객체 수, a == b의 값, 두 변수가 가리키는 객체의 owner 값과 그 두 값이 같은지입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 객체를 가리키는 참조 값이 있다는 것, 두 변수가 같은 객체를 가리키면 한 변수로 바꾼 상태를 다른 변수로 읽을 수 있다는 것, int 값은 대입하면 복사되어 둘이 따로라는 것은 4.2절과 4.3.1절(예제 4.3.1-2)을, 기본 타입 변수는 그 기본 타입의 값을 담고 클래스 타입 변수는 null이나 그 클래스의 객체에 대한 참조를 담는다는 것은 4.12.1절과 4.12.2절을, 참조에 쓴 ==가 둘 다 null이거나 같은 객체를 가리킬 때 true라는 것은 15.21.3절을 따랐습니다. int 변수의 ==가 값을 비교한다는 것(15.21.1절)은 문서를 열어 확인하지 않았고, 이 실행의 결과로만 확인했습니다. 화면은 owner의 글 김철수와 이영희를 객체 안에 들어 있는 값처럼 그렸지만, owner도 String 객체를 가리키는 참조입니다. 이 실습은 그 차이를 다루지 않고, 문자열 상수가 같은 객체를 가리키게 되는 일도 다루지 않았습니다. 객체의 내용이 같은지를 묻는 equals는 &quot;세부 동작 실습: ==와 equals&quot;에서 다룹니다. 변수와 객체가 메모리의 어디에 놓이는지는 이 실습이 다루거나 확인한 것이 아닙니다. 이 실습에서 본 것은 변수에 담긴 값이 객체를 가리키고, 대입하면 그 값이 복사된다는 동작입니다.</p>
+<p>실행 환경은 JDK 21.0.12.1(javac 21)입니다. 네 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일해 새 클래스 로더로 읽어 Main.main을 실행하고, 표준 출력을 잡은 결과와 대조했습니다. 대조할 때 Probe의 소스에는 Card 객체를 세는 줄(static 변수와 생성자의 증가, 그리고 몇 줄의 출력)만 더했고, 그 줄을 빼면 화면의 코드와 줄 단위로 같은 글임을 조합마다 확인했습니다. 대조한 것은 두 출력 줄, 만들어진 Card 객체의 수, 그리고 단계 문장이 기대는 사실입니다. 사실은 Card b = ...; 줄을 실행한 직후(new Card()를 대입한 뒤 owner를 옮기는 조합은 b.owner = a.owner;를 실행한 직후)의 객체 수, a == b의 값, 두 변수가 가리키는 객체의 owner 값과 그 두 값이 같은지입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 객체를 가리키는 참조 값이 있다는 것, 두 변수가 같은 객체를 가리키면 한 변수로 바꾼 상태를 다른 변수로 읽을 수 있다는 것, int 값은 대입하면 복사되어 둘이 따로라는 것은 4.2절과 4.3.1절(예제 4.3.1-2)을, 기본 타입 변수는 그 기본 타입의 값을 담고 클래스 타입 변수는 null이나 그 클래스의 객체에 대한 참조를 담는다는 것은 4.12.1절과 4.12.2절을, 참조에 쓴 ==가 둘 다 null이거나 같은 객체를 가리킬 때 true라는 것은 15.21.3절을 따랐습니다. int 변수의 ==가 값을 비교한다는 것(15.21.1절)은 문서를 열어 확인하지 않았고, 이 실행의 결과로만 확인했습니다. 화면은 owner의 글 김철수와 이영희를 객체 안에 들어 있는 값처럼 그렸지만, owner도 String 객체를 가리키는 참조입니다. 이 실습은 그 차이를 다루지 않고, 문자열 상수가 같은 객체를 가리키게 되는 일도 다루지 않았습니다. 객체의 내용이 같은지를 묻는 equals는 &quot;세부 동작 실습: ==와 equals&quot;에서 다룹니다. 변수와 객체가 메모리의 어디에 놓이는지는 이 실습이 다루거나 확인한 것이 아닙니다. 이 실습에서 본 것은 변수에 담긴 값이 객체를 가리키고, 대입하면 그 값이 복사된다는 동작입니다.</p>
 <p>앞 실습: <a href="../../lab/class_basic/">클래스와 객체</a> · 다음 실습: <a href="../../lab/null_basic/">null</a></p>
   </div>
 
@@ -178,6 +178,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

@@ -76,13 +76,13 @@ Lab.register({
       } else {
         st.repo = '주입됨'; st.stage.ctor = 'repository를 인자로 받음'; st.stage.inject = '생성자에서 함께 끝남'; mark('ctor:set', '생성자 (repository 있음)');
         push('생성자: ' + how + ' 생성자 주입에서는 객체를 만드는 일과 의존성을 넣는 일이 한 번에 이루어지므로, 생성자 안에서 repository가 이미 들어 있습니다.', 'good');
-        if (inCtor) { st.prices = '읽어 둠'; push('생성자 안의 this.repository.findAll(): repository가 들어 있으므로 가격표를 읽어 prices에 담아 둡니다.', 'good'); }
+        if (inCtor) { st.prices = '읽어 둠'; push('생성자 안의 this.repository.findAll(): repository 필드가 이미 리포지토리 객체를 가리키고 있으므로 가격표를 읽어 와 prices가 그 Map을 가리키게 합니다.', 'good'); }
       }
       st.cur = 'init';
       if (!k.inits.length) { st.stage.init = '콜백 없음'; return true; }
       k.inits.forEach(function (cbk, i) {
         mark(cbk[0] + ':set', cbk[1]); st.stage.init = k.inits.slice(0, i + 1).map(function (x) { return x[1]; }).join(' → ');
-        if (i === 0) { st.prices = '읽어 둠'; push('초기화 콜백: 컨테이너가 ' + cbk[2] + '를 부릅니다. 의존성 주입이 끝난 뒤에 불리므로 repository를 쓸 수 있습니다. 가격표를 읽어 prices에 담아 둡니다.', 'good'); }
+        if (i === 0) { st.prices = '읽어 둠'; push('초기화 콜백: 컨테이너가 ' + cbk[2] + '를 부릅니다. 의존성 주입이 끝난 뒤에 불리므로 repository를 쓸 수 있습니다. 가격표를 읽어 와 prices가 그 Map을 가리키게 합니다.', 'good'); }
         else push('초기화 콜백: 이어서 ' + cbk[2] + '를 부릅니다.' + (i === 1 ? ' 애너테이션으로 표시한 것이 먼저, 그다음이 인터페이스의 메서드입니다.' : ' @Bean에 이름으로 지정한 메서드가 가장 나중입니다.'), '');
       });
       return true;

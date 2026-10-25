@@ -74,13 +74,13 @@ Lab.register({
     } else {
       st.got = true;
       st.checks.push(['bytes.length', { v: String(N), cls: '' }]);
-      push('The line that calls the Files.readAllBytes method reads the file memo.txt. This method has no rule for reading; it puts the bytes stored in the file into the variable bytes as they are. The bytes put in are ' + N + ' (' + hexTxt + '), the same as the bytes just stored.', '');
+      push('The line that calls the Files.readAllBytes method reads the file memo.txt. This method has no rule for reading; it reads the bytes stored in the file as they are into an array, and the variable bytes refers to that array. The array has ' + N + ' bytes (' + hexTxt + '), the same as the bytes just stored.', '');
       st.hot = 'rd'; st.rule = iso ? 'ISO_8859_1' : 'UTF-8'; st.total = n;
       var bad = 0, hidden = 0, disp = '';
       if (!iso) {
         st.rd = chars.slice();
         st.checks.push(['Text read', { v: T, cls: 'good' }]);
-        push('The line that calls the Files.readString method turns the bytes of the file memo.txt back into text. The rule for reading is the StandardCharsets.UTF_8 rule, the same as when writing. Because the bytes are grouped and read by the same rule, the original characters come back as they were and are put in the variable text: ' + chars.map(function (ch) { return H[ch].join(' ') + ' → "' + ch + '"'; }).join(', ') + '.', 'good');
+        push('The line that calls the Files.readString method turns the bytes of the file memo.txt back into text. The rule for reading is the StandardCharsets.UTF_8 rule, the same as when writing. Because the bytes are grouped and read by the same rule, the original characters come back as they were, and the variable text refers to them: ' + chars.map(function (ch) { return H[ch].join(' ') + ' → "' + ch + '"'; }).join(', ') + '.', 'good');
         disp = T;
       } else {
         st.total = N;
@@ -94,7 +94,7 @@ Lab.register({
       st.hot = '';
       st.out = [String(N), disp];
       st.checks.push(['Output', { v: N + ' / ' + disp + (hidden ? ' (invisible characters: ' + hidden + ')' : ''), cls: '' }]);
-      push('The two System.out.println lines print the number of bytes in the variable bytes and the text in the variable text. The first line is ' + N + ', and the second line is ' + disp + (hidden ? ' (plus invisible characters: ' + hidden + ')' : '') + '.' + (n !== N ? ' There are ' + n + ' characters, but the number on the first line is ' + N + ', so the value of bytes.length is the number of bytes, not the number of characters.' : ''), bad ? 'bad' : 'good');
+      push('The two System.out.println lines print the number of bytes in the array that bytes refers to and the text that the variable text refers to. The first line is ' + N + ', and the second line is ' + disp + (hidden ? ' (plus invisible characters: ' + hidden + ')' : '') + '.' + (n !== N ? ' There are ' + n + ' characters, but the number on the first line is ' + N + ', so the value of bytes.length is the number of bytes, not the number of characters.' : ''), bad ? 'bad' : 'good');
     }
 
     // Summary: the first line is the answer to this setting (the question)

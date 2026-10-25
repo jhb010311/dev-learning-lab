@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Rolling, blue-green, and canary deployments</dt>
 <dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
 <dt>Graceful shutdown</dt>
-<dd><b>Where it's used today</b> — Spring Boot sets this behavior with the server.shutdown setting (recent versions have it on by default) and sets the maximum time to wait with spring.lifecycle.timeout-per-shutdown-phase. Kubernetes sends SIGTERM when it takes a Pod down and ends it forcibly after a set time, so you adjust things so that cleanup finishes before then.</dd>
+<dd><b>Where it's used today</b> — Spring Boot sets this behavior with the server.shutdown setting (since Spring Boot 3.4 the default is graceful, so you do not need to turn it on; set immediate to turn it off) and sets the maximum time to wait with spring.lifecycle.timeout-per-shutdown-phase. Kubernetes sends SIGTERM when it takes a Pod down and ends it forcibly after a set time, so you adjust things so that cleanup finishes before then.</dd>
 <dd>Stopping an application by accepting no new requests, finishing the requests that are already in progress, and only then exiting. It prevents errors caused by in-progress requests being cut off when a server is taken down, for example for a deployment.</dd>
 <dt>Health check (liveness, readiness)</dt>
 <dd><b>Why it exists</b> — If you do the check in only one way, the server may be restarted just because the database was briefly slow, or conversely requests keep being sent to a server that cannot take requests. Separating liveness and readiness lets you decide separately whether to restart it and whether to send requests.</dd>
@@ -58,7 +58,7 @@
 <li><b>Blue-green</b> — You need twice the servers, but switching and rolling back are instant.</li>
 <li><b>A version with a bug, deployed by rolling</b> — Until you notice the problem, the range of impact keeps growing.</li>
 <li><b>A version with a bug, deployed as a canary</b> — Only some requests are affected, and then you roll back.</li>
-<li><b>Without graceful shutdown</b> — Requests in progress are cut off when a server is taken down.</li>
+<li><b>Immediate shutdown</b> — Requests in progress are cut off when a server is taken down.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
@@ -82,21 +82,26 @@
 <li>This deploys with no downtime and no extra servers. During the deployment the processing capacity drops, and since v1 and v2 receive requests at the same time, the database schema and the API must be compatible with both versions.</li>
 </ul>
 <h2>Code</h2>
-<pre># Kubernetes Deployment (replicas: 4)
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxUnavailable: 1           # takes down at most 1 server at a time
-    maxSurge: 0
-
-readinessProbe:                 # receives requests only when ready
-  httpGet: { path: /actuator/health/readiness, port: 8080 }
+<pre># Kubernetes Deployment (only the parts needed here; selector, image, and so on are left out)
+spec:
+  replicas: 4                     # runs 4 copies of the same server
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1           # takes down at most 1 server at a time
+      maxSurge: 0
+  template:                       # settings used for each server (Pod)
+    spec:
+      containers:
+        - name: app               # container name (an example)
+          readinessProbe:         # receives requests only when ready
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
 
 # application.yml
-server.shutdown: graceful         # finishes the requests in progress, then exits
-spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
+server.shutdown: graceful         # the default. finishes the requests in progress, then exits
+spring.lifecycle.timeout-per-shutdown-phase: 30s   # the time limit for waiting (the default is also 30s)</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a simple setup with 4 servers, replaced one at a time. The bug is assumed to be of a kind that the health check does not filter out and that shows up only after the server receives real requests, and in the rolling deployment it is assumed to be found at the point when 2 servers have been replaced. The requests in progress when a server is taken down are set to 2 per server. The definition of each strategy follows the explanations in the official Kubernetes and Spring Boot documentation.</p>
+<p>This is a simple setup with 4 servers, replaced one at a time. The bug is assumed to be of a kind that the health check does not filter out and that shows up only after the server receives real requests, and in the rolling deployment it is assumed to be found at the point when 2 servers have been replaced. The requests in progress when a server is taken down are set to 2 per server. The definition of each strategy follows the explanations in the official Kubernetes and Spring Boot documentation. Since Spring Boot 3.4, the default of server.shutdown is graceful, so the server finishes the requests in progress before exiting even if you write nothing; to turn it off, change it to immediate (checked against the official Spring Boot documentation on graceful shutdown, the 3.4 release notes, and the configuration metadata in the Spring Boot 4.1.1 jar, which gives graceful as the default of server.shutdown and 30s as the default of spring.lifecycle.timeout-per-shutdown-phase). The Deployment on the screen keeps only the parts needed here; as in the official Kubernetes documentation, readinessProbe goes under each container in spec.template.spec.containers. The server behavior is a model, not a result of actually running Kubernetes and servers.</p>
 <p>Previous lab: <a href="../../lab/cicd/">CI/CD pipelines</a> · Next lab: <a href="../../lab/container/">Containers and virtual machines</a></p>
   </div>
 
@@ -189,6 +194,6 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

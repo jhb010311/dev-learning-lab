@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ ssh prod-server &quot;systemctl restart app&quot;
 
 # No record is left of who uploaded what code, or when</pre>
 <h2>Assumptions of this model</h2>
-<p>This is a model made to explain the concept, and it is not a result checked by running real CI/CD tools. In &quot;By hand&quot;, skipping the tests assumes a common accident; if you run the tests when working by hand, you can catch the same problem. The automatic rollback when the health check fails is the behavior you get when the pipeline and the deployment tool are configured that way. The workflow in the code is an example to show the structure; steps that real use needs, such as authentication and caching, are left out.</p>
+<p>This is a model made to explain the concept, and it is not a result checked by running real CI/CD tools. In &quot;By hand&quot;, skipping the tests assumes a common accident; if you run the tests when working by hand, you can catch the same problem. The automatic rollback when the health check fails is the behavior you get when the pipeline and the deployment tool are configured that way. The workflow in the code is an example to show the structure; steps that real use needs, such as authentication and caching, are left out. The major versions actions/checkout@v7 and actions/setup-java@v6 in the workflow were checked on 2026-10-26 against the usage examples in the README of the GitHub repository of each action (github.com/actions/checkout, github.com/actions/setup-java). The setup-java README calls v6 the latest stable release and marks v1 through v4 as deprecated, telling you to upgrade to v6.</p>
 <p>Previous lab: <a href="../../lab/gateway/">Gateway and gradual migration</a> · Next lab: <a href="../../lab/deploy/">Deployment strategies</a></p>
   </div>
 
@@ -174,6 +174,6 @@ ssh prod-server &quot;systemctl restart app&quot;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

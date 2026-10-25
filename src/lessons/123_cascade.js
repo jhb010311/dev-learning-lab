@@ -6,12 +6,12 @@ Lab.register({
   intro: '게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.',
   terms: ['영속성 전이(cascade)', '고아 객체 제거(orphanRemoval)', '영속성 컨텍스트', '쓰기 지연과 flush', '엔티티'],
   controls: [
-    { id: 'act', label: '해 볼 동작', type: 'select', value: 'persist', options: [['persist', '댓글 둘을 담은 게시글만 persist'], ['remove', '게시글을 remove'], ['orphan', '댓글 목록에서 댓글 하나를 뺌']] },
+    { id: 'act', label: '해 볼 동작', type: 'select', value: 'persist', options: [['persist', '댓글 둘을 목록에 넣은 게시글만 persist'], ['remove', '게시글을 remove'], ['orphan', '댓글 목록에서 댓글 하나를 뺌']] },
     { id: 'cas', label: '@OneToMany의 cascade', type: 'select', value: 'none', options: [['none', '적지 않음'], ['PERSIST', 'CascadeType.PERSIST'], ['REMOVE', 'CascadeType.REMOVE'], ['ALL', 'CascadeType.ALL']] },
     { id: 'orphan', label: 'orphanRemoval = true', type: 'check', value: false, hint: '부모와 연결이 끊긴 자식을 DB에서도 지우라는 설정입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'cascade를 적지 않은 @OneToMany에서 댓글 둘을 담은 게시글만 persist하면', d: 'cascade 없이 게시글만 persist. 예외도 없이 댓글만 저장에서 빠집니다.', v: { act: 'persist', cas: 'none', orphan: false } },
+    { t: '처음 설정으로', q: 'cascade를 적지 않은 @OneToMany에서 댓글 둘을 목록에 넣은 게시글만 persist하면', d: 'cascade 없이 게시글만 persist. 예외도 없이 댓글만 저장에서 빠집니다.', v: { act: 'persist', cas: 'none', orphan: false } },
     { t: 'CascadeType.PERSIST', q: '@OneToMany의 cascade를 CascadeType.PERSIST로 바꾸면', d: 'persist가 댓글에게 전달되어 INSERT가 3번 나갑니다.', v: { act: 'persist', cas: 'PERSIST', orphan: false } },
     { t: 'cascade 없이 게시글 삭제', q: 'cascade를 적지 않은 채 이미 댓글 둘이 있는 게시글을 remove하면', d: '댓글이 게시글을 가리키고 있어서 DB가 삭제를 거절합니다.', v: { act: 'remove', cas: 'none', orphan: false } },
     { t: 'CascadeType.REMOVE로 삭제', q: 'cascade를 CascadeType.REMOVE로 두고 게시글을 remove하면', d: '댓글을 먼저 지우고 게시글을 지웁니다.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
@@ -105,7 +105,7 @@ Lab.register({
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 때'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, q.at] }; }), 'DB로 나간 SQL'); else { H.title(v, 'DB로 나간 SQL'); H.text(v, '아직 없습니다.'); }
     if (s.ex) H.text(v, '예외: ' + s.ex + ' (외래 키 제약 위반). 트랜잭션이 롤백되어 DB는 처음 그대로입니다.');
   },
-  // 그림: 왼쪽에 자바 객체(게시글과 그 목록에 담긴 댓글 둘)와 상태, 오른쪽에 DB의 행. SQL이 나간 단계에만 가운데 화살표가 생긴다.
+  // 그림: 왼쪽에 자바 객체(게시글과 그 목록이 가리키는 댓글 둘)와 상태, 오른쪽에 DB의 행. SQL이 나간 단계에만 가운데 화살표가 생긴다.
   draw: function (P, sim, shown) {
     var self = this, last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
     function cls(k) { return { none: 'ghost', 'new': 'plain', lazy: 'ghost', managed: 'good', removed: 'bad', out: 'hot', deleted: 'ghost' }[k]; }

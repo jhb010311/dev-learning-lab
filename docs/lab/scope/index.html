@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -44,7 +44,7 @@
 <dt>ObjectProvider</dt>
 <dd><b>왜 생겼나</b> — 싱글톤 빈에 프로토타입 빈을 그냥 주입하면 처음 넣은 객체 하나만 계속 쓰인다. ApplicationContext의 getBean()을 직접 부르면 코드가 컨테이너 전체에 묶이므로, ObjectProvider는 필요한 빈 하나를 그때그때 꺼내는 일만 하는 좁은 창구를 준다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 싱글톤 빈에서 프로토타입이나 request 스코프 빈을 쓸 때, 그리고 없을 수도 있는 빈을 getIfAvailable()로 받을 때 쓴다. 빈을 꺼내기만 하면 되고 스프링에 묶이지 않으려면 jakarta.inject.Provider를 쓸 수 있다.</dd>
-<dd>빈 객체를 바로 주입받지 않고, 필요한 시점에 컨테이너에서 꺼낼 수 있게 해 주는 스프링의 도구다. 생성자나 필드의 타입을 ObjectProvider&lt;Cart&gt;처럼 적으면 컨테이너가 넣어 주고, getObject()를 부를 때마다 컨테이너에 그 타입의 빈을 달라고 요청한다. 그래서 프로토타입 빈은 부를 때마다 새 객체가, request 스코프 빈은 지금 처리 중인 요청의 객체가 나온다. 싱글톤 빈이 자기보다 수명이 짧은 빈을 쓸 때 주로 쓴다. 한 번의 작업 안에서 같은 객체를 계속 써야 하면 한 번만 꺼내 지역 변수에 담아 둔다.</dd>
+<dd>빈 객체를 바로 주입받지 않고, 필요한 시점에 컨테이너에서 꺼낼 수 있게 해 주는 스프링의 도구다. 생성자나 필드의 타입을 ObjectProvider&lt;Cart&gt;처럼 적으면 컨테이너가 넣어 주고, getObject()를 부를 때마다 컨테이너에 그 타입의 빈을 달라고 요청한다. 그래서 프로토타입 빈은 부를 때마다 새 객체가, request 스코프 빈은 지금 처리 중인 요청의 객체가 나온다. 싱글톤 빈이 자기보다 수명이 짧은 빈을 쓸 때 주로 쓴다. 한 번의 작업 안에서 같은 객체를 계속 써야 하면 한 번만 꺼내고 지역 변수가 그 객체를 가리키게 해 둔다.</dd>
 <dt>스코프 프록시</dt>
 <dd><b>왜 생겼나</b> — 싱글톤 빈이 수명이 짧은 빈을 쓸 때마다 컨테이너에서 직접 꺼내면, 쓰는 쪽 코드 곳곳에 꺼내는 호출을 적어야 한다. 스코프 프록시는 메서드가 불릴 때마다 프록시가 그 일을 대신해서, 쓰는 쪽은 평범한 빈처럼 주입받아 쓰게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 요청마다 따로인 로그인 사용자 정보나 요청 추적 번호를 가진 빈을 싱글톤 서비스에 주입할 때 쓴다. 장바구니처럼 세션마다 따로 두는 빈에 붙이는 @SessionScope도 같은 방식의 프록시를 쓴다.</dd>
@@ -220,6 +220,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

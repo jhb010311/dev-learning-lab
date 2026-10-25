@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ ssh prod-server &quot;systemctl restart app&quot;
 
 # 누가, 언제, 어떤 코드를 올렸는지 기록이 남지 않는다</pre>
 <h2>이 모형의 전제</h2>
-<p>개념을 설명하기 위한 모델이며 실제 CI/CD 도구를 실행해 확인한 결과는 아닙니다. &quot;손으로&quot;에서 테스트를 건너뛴 것은 흔한 사고를 가정한 것이고, 손으로 해도 테스트를 돌리면 같은 문제를 잡을 수 있습니다. 헬스 체크 실패 시의 자동 되돌리기는 파이프라인과 배포 도구에 그렇게 구성했을 때의 동작입니다. 코드의 워크플로는 구조를 보여 주기 위한 예시로, 인증과 캐시 같은 실제에 필요한 단계는 뺐습니다.</p>
+<p>개념을 설명하기 위한 모델이며 실제 CI/CD 도구를 실행해 확인한 결과는 아닙니다. &quot;손으로&quot;에서 테스트를 건너뛴 것은 흔한 사고를 가정한 것이고, 손으로 해도 테스트를 돌리면 같은 문제를 잡을 수 있습니다. 헬스 체크 실패 시의 자동 되돌리기는 파이프라인과 배포 도구에 그렇게 구성했을 때의 동작입니다. 코드의 워크플로는 구조를 보여 주기 위한 예시로, 인증과 캐시 같은 실제에 필요한 단계는 뺐습니다. 워크플로의 actions/checkout@v7과 actions/setup-java@v6은 2026-10-26에 각 액션의 GitHub 저장소 README(github.com/actions/checkout, github.com/actions/setup-java)의 사용 예시와 대조한 메이저 버전입니다. setup-java README는 v6을 최신 안정 버전이라 하고 v1~v4는 사용 중단(deprecated)으로 표시하고 v6으로 올리라고 적고 있습니다.</p>
 <p>앞 실습: <a href="../../lab/gateway/">게이트웨이와 점진적 전환</a> · 다음 실습: <a href="../../lab/deploy/">배포 전략</a></p>
   </div>
 
@@ -174,6 +174,6 @@ ssh prod-server &quot;systemctl restart app&quot;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

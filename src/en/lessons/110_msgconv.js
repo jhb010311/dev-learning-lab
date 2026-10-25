@@ -57,7 +57,7 @@ Lab.register({
         push('Reading the JSON: Jackson finds the values with the same names in the JSON of the body and creates an OrderRequest object (item is "book", qty is 2). The text has become a Java object.');
 
         st.stage = 4; st.ctrl = true; st.ret = { obj: 'OrderResponse object', entity: 'ResponseEntity (201)', str: '"orders/done"', view: '"orders/done"' }[K];
-        push('create(req) runs: The controller method creates the order and returns ' + { obj: 'an OrderResponse object', entity: 'a ResponseEntity', str: 'the string "orders/done"', view: 'the string "orders/done"' }[K] + '.' + (K === 'entity' ? ' The ResponseEntity holds the status code 201, the Location header /orders/1, and the OrderResponse object to write as the body.' : ''));
+        push('create(req) runs: The controller method creates the order and returns ' + { obj: 'an OrderResponse object', entity: 'a ResponseEntity', str: 'the string "orders/done"', view: 'the string "orders/done"' }[K] + '.' + (K === 'entity' ? ' The ResponseEntity has the status code 201 and the Location header /orders/1, and refers to the OrderResponse object to write as the body.' : ''));
 
         st.stage = 5;
         if (K === 'view') {
@@ -66,7 +66,7 @@ Lab.register({
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = 'View (HTML page)'; view = 'orders/done'; st.wr = 'the view writes HTML'; st.body = '(HTML of the orders/done view)';
           push('Rendering the view: ViewResolver finds the view named "orders/done", and that view produces HTML and writes it to the response body. The Content-Type is text/html, and Spring responds with 200. The Accept of the request was ' + q.accept + ', but on the path that returns a view, the request was not rejected because of it.', 'good');
         } else {
-          if (K === 'entity') { st.wr = 'status, headers copied'; push('Handling the ResponseEntity: Spring copies the status code 201 and the Location header held in the ResponseEntity to the response. The OrderResponse object held as the body is passed to a message converter.'); }
+          if (K === 'entity') { st.wr = 'status, headers copied'; push('Handling the ResponseEntity: Spring copies the status code 201 and the Location header that the ResponseEntity has to the response. The OrderResponse object it refers to as the body is passed to a message converter.'); }
           else { st.wr = 'to be written as body'; push('@RestController: This annotation is @Controller plus @ResponseBody. With @ResponseBody, the returned value is not treated as a view name, and a message converter writes it directly to the response body.'); }
           st.stage = 6;
           if (K === 'str') {

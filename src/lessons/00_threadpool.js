@@ -24,7 +24,7 @@ Lab.register({
   ],
   code: function (c) {
     var q = c.unb ? 'new LinkedBlockingQueue<>());      // 대기 큐 무제한' : c.cap === 0 ? 'new SynchronousQueue<>());         // 대기 칸 없음' : 'new ArrayBlockingQueue<>(' + c.cap + '));     // 대기 큐 ' + c.cap + '칸';
-    return '// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 handle()의 선언은 생략)\nExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // 기본 스레드 수\n    ' + c.max + ',                        // 최대 스레드 수\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    pool.execute(() -> handle());   // 요청 하나에 ' + Lab.fmt(c.work) + '초\n' +
+    return '// main 메서드 안의 줄만 보임 (클래스·main 선언, import, 예시로 만든 handle()의 선언은 생략)\nExecutorService pool = new ThreadPoolExecutor(\n    ' + c.core + ',                        // 기본 스레드 수\n    ' + c.max + ',                        // 최대 스레드 수\n    60, TimeUnit.SECONDS,\n    ' + q + '\n\nfor (int i = 1; i <= ' + c.n + '; i++) {\n    try {\n        pool.execute(() -> handle());   // 요청 하나에 ' + Lab.fmt(c.work) + '초\n    } catch (RejectedExecutionException e) {\n        // 스레드와 큐가 모두 차 있으면 기본 정책(AbortPolicy)이 이 예외를 던진다\n    }\n' +
       (c.gap > 0 ? '    Thread.sleep(' + Math.round(c.gap * 1000) + ');            // ' + Lab.fmt(c.gap) + '초마다 도착\n' : '') + '}';
   },
   label: function (c) { return '기본 ' + c.core + ' / 최대 ' + c.max + ' / 큐 ' + (c.unb ? '무제한' : c.cap) + ' · 요청 ' + c.n + '개 · ' + Lab.fmt(c.work) + '초 · 간격 ' + Lab.fmt(c.gap) + '초'; },

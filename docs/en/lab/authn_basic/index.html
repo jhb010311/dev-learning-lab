@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>Authority (role)</dt>
 <dd><b>Why it exists</b> — If you decide per person that &quot;this person may use the member management screen&quot;, the rules must be changed whenever users increase. Authority and role give a name to what can be done and give users that name, so that rules can be written only with names.</dd>
 <dd><b>Where it's used today</b> — It is used to block an address for administrators only by writing hasRole(&quot;ADMIN&quot;), or to divide the menus a user can see by member grade.</dd>
-<dd>An authority is a label for what an authenticated user is allowed to do, and a role is one use of an authority, such as ADMIN or USER, that stands for the position the user holds. In Spring Security, the authorities a user has are held in the Authentication as GrantedAuthority objects. hasRole(&quot;ADMIN&quot;) is a shorter form of hasAuthority: it puts the prefix ROLE_ in front of the name and checks whether the user has the authority ROLE_ADMIN. An authority has meaning only after it is confirmed who the user is, so you cannot weigh authorities for a request that has not gone through authentication.</dd>
+<dd>An authority is a label for what an authenticated user is allowed to do, and a role is one use of an authority, such as ADMIN or USER, that stands for the position the user holds. In Spring Security, the authorities a user has are represented as GrantedAuthority objects, which you get from the Authentication with getAuthorities(). hasRole(&quot;ADMIN&quot;) is a shorter form of hasAuthority: it puts the prefix ROLE_ in front of the name and checks whether the user has the authority ROLE_ADMIN. An authority has meaning only after it is confirmed who the user is, so you cannot weigh authorities for a request that has not gone through authentication.</dd>
 <dt>HTTP Basic authentication</dt>
 <dd><b>Why it exists</b> — If every server decides its own way of verifying who someone is, browsers and programs have to adjust differently for each server. HTTP Basic fixes in the HTTP rules how to send a username and password, so that any browser or program sends them the same way.</dd>
 <dd><b>Where it's used today</b> — It is used in places that only need simple protection, such as internal admin tools and servers under development, or for requests exchanged between programs. It is rarely used in web services that members use, because it is hard to build logout with it.</dd>
@@ -197,6 +197,6 @@ public class AdminController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>List, Set, Map</dt>
 <dd>자바 컬렉션의 세 가지 기본 유형이다. List는 순서가 있고 중복을 허용하며 인덱스로 접근한다. Set은 중복을 허용하지 않는다. Map은 키와 값의 쌍을 저장하며 키는 중복될 수 없다. 데이터의 성격(순서 필요 여부, 중복 허용 여부, 키로 찾는지)에 따라 고른다.</dd>
 <dt>ArrayList</dt>
-<dd>내부에 배열을 두고 가득 차면 더 큰 배열로 옮겨 담는 리스트다. 인덱스로 원소에 접근하는 속도가 O(1)로 빠르고, 끝에 추가하는 것도 분할 상환으로 O(1)이다. 중간에 삽입하거나 삭제하면 뒤의 원소들을 한 칸씩 옮겨야 해서 O(n)이 걸린다.</dd>
+<dd>필드로 배열을 가리키고, 그 배열이 가득 차면 더 큰 배열을 새로 만들어 원소를 옮겨 적는 리스트다. 인덱스로 원소에 접근하는 속도가 O(1)로 빠르고, 끝에 추가하는 것도 분할 상환으로 O(1)이다. 중간에 삽입하거나 삭제하면 뒤의 원소들을 한 칸씩 옮겨야 해서 O(n)이 걸린다.</dd>
 <dt>LinkedList</dt>
 <dd><b>지금 어디에 쓰나</b> — 순회하면서 ListIterator의 add, remove로 중간 원소를 자주 넣고 지울 때나, null도 넣어야 하는 큐가 필요할 때(ArrayDeque는 null을 받지 않는다) 고른다. 그 밖의 목록과 큐는 대개 ArrayList와 ArrayDeque로 충분하다.</dd>
 <dd>각 원소(노드)가 앞뒤 원소의 위치를 가리키는 방식으로 연결된 리스트다. 특정 위치를 알고 있으면 삽입과 삭제가 O(1)이지만, n번째 원소를 찾으려면 처음부터 따라가야 해서 O(n)이다. 노드마다 추가 메모리가 들고 메모리상에 흩어져 있어 실제 순회 성능은 배열 기반보다 떨어지는 경우가 많다.</dd>
@@ -203,6 +203,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

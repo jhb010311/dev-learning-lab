@@ -74,13 +74,13 @@ Lab.register({
     } else {
       st.got = true;
       st.checks.push(['bytes.length', { v: String(N), cls: '' }]);
-      push('Files.readAllBytes 메서드를 부르는 줄이 memo.txt 파일을 읽습니다. 이 메서드는 읽을 때 쓰는 규칙이 없고, 파일에 저장된 바이트를 그대로 bytes 변수에 담습니다. 담긴 바이트는 ' + N + '개(' + hexTxt + ')로, 방금 저장한 바이트와 같습니다.', '');
+      push('Files.readAllBytes 메서드를 부르는 줄이 memo.txt 파일을 읽습니다. 이 메서드는 읽을 때 쓰는 규칙이 없고, 파일에 저장된 바이트를 그대로 배열로 읽어 돌려주고, bytes 변수가 그 배열을 가리킵니다. 배열의 바이트는 ' + N + '개(' + hexTxt + ')로, 방금 저장한 바이트와 같습니다.', '');
       st.hot = 'rd'; st.rule = iso ? 'ISO_8859_1' : 'UTF-8'; st.total = n;
       var bad = 0, hidden = 0, disp = '';
       if (!iso) {
         st.rd = chars.slice();
         st.checks.push(['읽은 글자', { v: T, cls: 'good' }]);
-        push('Files.readString 메서드를 부르는 줄이 memo.txt 파일의 바이트를 글자로 되돌립니다. 읽을 때의 규칙은 StandardCharsets.UTF_8 규칙으로, 쓸 때와 같습니다. 같은 규칙으로 바이트를 묶어 읽으므로 ' + chars.map(function (ch) { return H[ch].join(' ') + ' → "' + ch + '"'; }).join(', ') + '처럼 원래 글자가 그대로 돌아와 text 변수에 담깁니다.', 'good');
+        push('Files.readString 메서드를 부르는 줄이 memo.txt 파일의 바이트를 글자로 되돌립니다. 읽을 때의 규칙은 StandardCharsets.UTF_8 규칙으로, 쓸 때와 같습니다. 같은 규칙으로 바이트를 묶어 읽으므로 ' + chars.map(function (ch) { return H[ch].join(' ') + ' → "' + ch + '"'; }).join(', ') + '처럼 원래 글자가 그대로 돌아오고, text 변수가 그 글자를 가리킵니다.', 'good');
         disp = T;
       } else {
         st.total = N;
@@ -94,7 +94,7 @@ Lab.register({
       st.hot = '';
       st.out = [String(N), disp];
       st.checks.push(['출력', { v: N + ' / ' + disp + (hidden ? ' (보이지 않는 글자 ' + hidden + '자 포함)' : ''), cls: '' }]);
-      push('System.out.println 두 줄이 bytes 변수에 담긴 바이트의 수와 text 변수의 글자를 출력합니다. 첫 줄은 ' + N + '이고, 둘째 줄은 ' + disp + (hidden ? '(화면에 보이지 않는 글자 ' + hidden + '자가 더 있습니다)' : '') + '입니다.' + (n !== N ? ' 글자는 ' + n + '개인데 첫 줄의 수는 ' + N + '이므로, bytes.length 값은 글자 수가 아니라 바이트 수입니다.' : ''), bad ? 'bad' : 'good');
+      push('System.out.println 두 줄이 bytes가 가리키는 배열의 바이트 수와 text가 가리키는 글자를 출력합니다. 첫 줄은 ' + N + '이고, 둘째 줄은 ' + disp + (hidden ? '(화면에 보이지 않는 글자 ' + hidden + '자가 더 있습니다)' : '') + '입니다.' + (n !== N ? ' 글자는 ' + n + '개인데 첫 줄의 수는 ' + N + '이므로, bytes.length 값은 글자 수가 아니라 바이트 수입니다.' : ''), bad ? 'bad' : 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답

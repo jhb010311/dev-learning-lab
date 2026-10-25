@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>다형성</dt>
-<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수에 여러 하위 타입 객체를 담을 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
+<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수가 여러 하위 타입 객체를 가리킬 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
 <dt>오버라이딩</dt>
 <dd><b>왜 생겼나</b> — 물려받은 메서드가 하위 클래스에 맞지 않을 때 다른 이름의 메서드를 새로 만들면, 상위 타입으로 부르는 코드는 여전히 물려받은 옛 동작을 실행한다. 오버라이딩은 같은 시그니처로 다시 정의해 상위 타입으로 불러도 새 동작이 실행되게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — toString, equals, hashCode를 클래스에 맞게 다시 쓸 때와 인터페이스의 메서드를 구현할 때 쓴다. @Override를 붙이면 이름이나 매개변수를 잘못 적어 새 메서드가 되는 실수를 컴파일러가 잡는다.</dd>
@@ -188,6 +188,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

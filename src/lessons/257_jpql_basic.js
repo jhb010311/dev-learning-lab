@@ -3,10 +3,10 @@ Lab.register({
   title: 'JPQL은 무엇이고, SQL과 무엇이 다른가',
   why: 'SQL을 글자로 직접 쓰면 테이블과 열 이름이 코드 곳곳에 퍼지고, 돌아온 행을 객체로 옮기는 일도 손으로 해야 한다. JPQL은 자바 코드에서 쓰는 엔티티 클래스와 필드 이름으로 조건을 적게 하고, SQL로 바꾸는 일과 결과를 엔티티 객체로 만드는 일은 JPA가 맡는다.',
   use: '조건에 맞는 목록 찾기, 정렬, 개수 세기처럼 번호 하나로 한 건을 찾는 것 말고 다른 조회에 쓴다. 스프링 데이터 JPA에서는 리포지토리 메서드 위의 @Query 애너테이션에 JPQL을 적는다. 특정 DB에만 있는 기능이 꼭 필요하면 @Query에 nativeQuery = true를 붙여 SQL을 직접 적는다.',
-  intro: 'em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수에 담은 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어 list에 담습니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.',
+  intro: 'em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수가 가리키는 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어, 그 객체들을 모은 리스트를 돌려줍니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.',
   terms: ['JPQL', 'em.createQuery와 getResultList', '엔티티 이름과 필드 이름', '@Table'],
   controls: [
-    { id: 'q', label: 'jpql 변수에 담는 JPQL', type: 'select', value: 'ok', options: [
+    { id: 'q', label: 'jpql 변수에 대입하는 JPQL', type: 'select', value: 'ok', options: [
       ['ok', 'select m from Member m where m.age >= 20'],
       ['table', 'select m from member_tbl m where m.age >= 20 (테이블 이름을 씀)'],
       ['col', "select m from Member m where m.user_name = 'kim' (열 이름을 씀)"],
@@ -39,7 +39,7 @@ Lab.register({
     var q = c.q, f = this.facts[q], ev = [], sum = [], bad = q === 'table' || q === 'col';
     var rows = [{ id: 1, n: 'kim', a: 25 }, { id: 2, n: 'lee', a: 17 }, { id: 3, n: 'park', a: 30 }];
     var jtext = { ok: 'select m from Member m where m.age >= 20', table: 'select m from member_tbl m where m.age >= 20', col: "select m from Member m where m.user_name = 'kim'", field: "select m from Member m where m.name = 'kim'" }[q];
-    // 상태: cur는 지금 실행 중인 줄(l1~l3), done은 실행을 마친 줄, jl은 JPA 상자의 글, jc는 그 색, sent는 SQL이 나갔는가, back은 돌아온 행의 id, nsql은 나간 SQL 수, nobj는 list에 담긴 객체 수, err는 오류가 났는가
+    // 상태: cur는 지금 실행 중인 줄(l1~l3), done은 실행을 마친 줄, jl은 JPA 상자의 글, jc는 그 색, sent는 SQL이 나갔는가, back은 돌아온 행의 id, nsql은 나간 SQL 수, nobj는 list로 받은 객체 수, err는 오류가 났는가
     var st = { cur: '', done: { l1: false, l2: false, l3: false }, jl: ['(Hibernate)', '대기 중'], jc: '', sent: false, back: [], nsql: 0, nobj: 0, err: false, madeq: false };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
 
@@ -52,7 +52,7 @@ Lab.register({
       : q === 'table' ? '이 글에서 from 뒤에는 클래스 이름 Member가 아니라 DB의 테이블 이름 member_tbl을 적었습니다.'
       : q === 'col' ? '이 글의 조건에는 Member 클래스의 필드 이름이 아니라 DB의 열 이름 user_name을 적었습니다.'
       : '이 글에서 Member는 우리가 쓴 클래스의 이름이고 m.name은 그 클래스의 name 필드입니다.';
-    push('String jpql = "' + jtext + '": JPQL로 쓴 쿼리를 글자로 적어 jpql 변수에 담습니다. 아직 글자일 뿐이라서 JPA도 DB도 이 글을 읽지 않았고, SQL은 나가지 않았습니다. ' + what, '');
+    push('String jpql = "' + jtext + '": JPQL로 쓴 쿼리를 글자로 적고, jpql 변수가 그 글자를 가리키게 합니다. 아직 글자일 뿐이라서 JPA도 DB도 이 글을 읽지 않았고, SQL은 나가지 않았습니다. ' + what, '');
 
     // 2. createQuery
     st.cur = 'l2'; st.done.l2 = true;
@@ -63,11 +63,11 @@ Lab.register({
         : '조건의 m.user_name이 Member 클래스의 필드인지 찾아보는데, Member에는 user_name이라는 필드가 없습니다. user_name은 name 필드가 짝이 된 DB의 열 이름이고, 열 이름은 JPQL이 알아보는 이름이 아닙니다.')
         + ' IllegalArgumentException이 던져지고, 원인으로 붙은 ' + f.ex + '의 메시지는 ' + f.msg + '로 시작합니다. 오류는 SQL을 DB에 보내는 줄이 아니라 이 줄에서 났고, DB에는 아무것도 나가지 않았습니다.', 'bad');
       st.cur = '';
-      push('예외가 던져져서 다음 줄 List<Member> list = query.getResultList()는 실행되지 않습니다. query 변수도 list 변수도 값이 담기지 않았고, 나간 SQL은 0번, list에 담긴 Member 객체는 0개입니다.', 'bad');
+      push('예외가 던져져서 다음 줄 List<Member> list = query.getResultList()는 실행되지 않습니다. query 변수도 list 변수도 값을 받지 못했고, 나간 SQL은 0번, list로 받은 Member 객체는 0개입니다.', 'bad');
     } else {
       st.jc = 'hot'; st.jl = ['(Hibernate)', '글을 읽음', '이름을 확인'];
       st.madeq = true;
-      push('TypedQuery<Member> query = em.createQuery(jpql, Member.class): em이 jpql 글을 JPA에 넘기고, JPA가 글을 읽으면서 적힌 이름을 확인합니다. Member는 JPA가 아는 엔티티의 이름이고(엔티티의 이름은 기본으로 클래스 이름입니다), ' + (q === 'ok' ? 'm.age는 그 엔티티의 필드입니다' : 'm.name은 그 엔티티의 필드입니다') + '. 이름이 모두 맞으므로 JPA가 쿼리 객체를 만들어 query에 담습니다. 이 줄까지 나간 SQL은 0번입니다. 쿼리 객체를 만든 것이지 아직 DB에 묻지 않았습니다.', '');
+      push('TypedQuery<Member> query = em.createQuery(jpql, Member.class): em이 jpql 글을 JPA에 넘기고, JPA가 글을 읽으면서 적힌 이름을 확인합니다. Member는 JPA가 아는 엔티티의 이름이고(엔티티의 이름은 기본으로 클래스 이름입니다), ' + (q === 'ok' ? 'm.age는 그 엔티티의 필드입니다' : 'm.name은 그 엔티티의 필드입니다') + '. 이름이 모두 맞으므로 JPA가 쿼리 객체를 만들고, query 변수가 그 객체를 가리킵니다. 이 줄까지 나간 SQL은 0번입니다. 쿼리 객체를 만든 것이지 아직 DB에 묻지 않았습니다.', '');
 
       // 3. getResultList: SQL이 나간다
       st.cur = 'l3'; st.done.l3 = true; st.sent = true; st.nsql = 1; st.jl = ['(Hibernate)', 'SQL로 바꿔', 'DB에 보냄']; st.jc = 'hot';
@@ -76,7 +76,7 @@ Lab.register({
       // 4. 행이 객체가 되어 돌아온다
       var want = f.got, ids = rows.filter(function (r) { return want.indexOf(r.n) >= 0; }).map(function (r) { return r.id; });
       st.back = ids; st.nobj = ids.length; st.jl = ['(Hibernate)', '행을 Member', '객체로 만듦']; st.jc = 'good'; st.cur = '';
-      push('DB가 조건에 맞는 행 ' + ids.length + '개(' + want.join(', ') + ')를 돌려주고, JPA가 행마다 Member 객체를 만들어 열의 값을 필드에 채웁니다. user_name 열의 값은 name 필드로 들어갑니다. 이 객체들이 list에 담겨 돌아옵니다. 돌아온 것은 행이 아니라 Member 클래스의 객체 ' + ids.length + '개이고, 이 실행에서 list에 담긴 객체의 클래스는 모두 Member였습니다.' + (q === 'ok' ? ' 나이가 17인 lee는 조건에 맞지 않아 돌아오지 않았습니다.' : ' 조건에 맞지 않는 lee와 park은 돌아오지 않았습니다.'), 'good');
+      push('DB가 조건에 맞는 행 ' + ids.length + '개(' + want.join(', ') + ')를 돌려주고, JPA가 행마다 Member 객체를 만들어 열의 값을 필드에 채웁니다. user_name 열의 값은 name 필드로 들어갑니다. 이 객체들을 모은 리스트가 돌아오고, list 변수가 그 리스트를 가리킵니다. 돌아온 것은 행이 아니라 Member 클래스의 객체 ' + ids.length + '개이고, 이 실행에서 list로 받은 객체의 클래스는 모두 Member였습니다.' + (q === 'ok' ? ' 나이가 17인 lee는 조건에 맞지 않아 돌아오지 않았습니다.' : ' 조건에 맞지 않는 lee와 park은 돌아오지 않았습니다.'), 'good');
     }
 
     // 요약: 첫 줄은 물음의 답
@@ -109,7 +109,7 @@ Lab.register({
       var back = s.back.indexOf(r.id) >= 0;
       return { cls: '', cells: ['id ' + r.id, r.n, String(r.a), back ? { v: 'Member 객체', cls: 'good' } : (s.nobj || s.err ? { v: '돌아오지 않음', cls: '' } : '-')] };
     }), 'DB의 행');
-    H.counters(v, [[s.nsql, '나간 SQL'], [s.nobj, 'list에 담긴 Member 객체']]);
+    H.counters(v, [[s.nsql, '나간 SQL'], [s.nobj, 'list로 받은 Member 객체']]);
   },
   // 그림: 왼쪽에 코드 세 줄(jpql 변수, createQuery, getResultList), 가운데에 JPA, 오른쪽에 DB의 행 세 개. 오류가 나면 JPA 앞에서 멈추고 DB 쪽 화살표가 생기지 않는다. SQL이 나가면 JPA에서 DB로, 돌아온 행에서 JPA로 화살표가 생긴다.
   draw: function (P, sim, shown) {
@@ -134,7 +134,7 @@ Lab.register({
     if (s && s.sent) P.arrow('sql', 'jpa:r:0.15', 'r1:l:0.5', { cls: 'hot' });
     if (s) s.back.forEach(function (id, i) { P.arrow('ret' + id, 'r' + id + ':l:0.5', 'jpa:r:' + (0.45 + i * 0.3), { cls: 'good' }); });
     P.box('n1', 14, 244, 322, 36, { cls: s && s.nsql ? 'wait' : 'ghost', title: 'DB에 나간 SQL', right: (s ? s.nsql : 0) + '번' });
-    P.box('n2', 344, 244, 322, 36, { cls: s && s.nobj ? 'good' : 'ghost', title: 'list에 담긴 Member 객체', right: (s ? s.nobj : 0) + '개' });
+    P.box('n2', 344, 244, 322, 36, { cls: s && s.nobj ? 'good' : 'ghost', title: 'list로 받은 Member 객체', right: (s ? s.nobj : 0) + '개' });
   },
   assume: 'Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 JDK 21로 실행해 대조했습니다. 스프링은 쓰지 않고 Hibernate를 코드로 직접 시작했습니다(Configuration에 클래스를 등록, hbm2ddl.auto=create-drop으로 테이블을 만듦). 네 가지 조합을 모두, 화면의 코드를 글자 그대로 컴파일해 실행했습니다. 화면의 Member 클래스는 import 줄만 더해 Member.java로, "조회하는 쪽" 네 줄은 EntityManager를 받는 메서드의 본문으로 넣었습니다. 화면에 보이지 않는 것은 import 줄, DB 연결 설정, EntityManager를 얻고 닫는 코드이고, 이 실습은 읽기만 하므로 트랜잭션은 시작하지 않았습니다. 조합마다 DB를 새로 만들고, 실행 전에 JDBC로 member_tbl에 세 행((1, kim, 25), (2, lee, 17), (3, park, 30))을 미리 넣었습니다. 이 준비의 SQL은 세지 않았습니다. 대조한 것은 오류가 났는지와 어느 줄에서 났는지(코드 줄을 스택 트레이스로 찾음), 예외의 종류와 메시지, Hibernate의 StatementInspector로 잡은 SQL의 글자와 수와 그 SQL이 나간 줄, 돌아온 list의 크기와 원소의 클래스와 값입니다. 단계 문장이 기대는 사실도 코드 줄마다 바로 아래에 측정 줄을 끼운 두 번째 실행에서 쟀습니다. jpql 변수와 createQuery 줄을 지난 시점에 나간 SQL은 0번이고 getResultList 줄을 지난 뒤 1번이라는 것, 오류가 나는 두 조합에서는 오류가 createQuery 줄에서 나고 다음 줄은 실행되지 않으며 SQL이 한 번도 나가지 않는다는 것, 돌아온 객체의 클래스가 Member 그대로라는 것입니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세 4.1절(JPQL은 문자열로 쓰는 동적 쿼리의 언어), 4.3절(쿼리의 대상은 엔티티와 임베더블의 추상 스키마 타입), 4.3.1절(쿼리 문자열에서는 엔티티를 엔티티 이름으로 가리키며, 이름은 @Entity의 name이고 기본은 엔티티 클래스의 비한정 이름)과 EntityManager.createQuery, TypedQuery.getResultList, Table, EntityManager.find의 API 문서(createQuery는 질의 문자열이 잘못되면 IllegalArgumentException을 던지고, getResultList는 SELECT 질의를 실행해 목록을 돌려주며, @Table의 name은 기본이 엔티티 이름, find는 기본 키로 하나를 찾는다는 것), Hibernate Query Language 안내서 1.1절(HQL과 JPQL에서는 테이블과 열을 직접 가리킬 수 없고 엔티티 클래스와 그 필드를 가리킨다는 것)입니다. 명세 페이지는 요약으로만 돌아와 해당 절의 문장만 확인했고 절 전체를 읽지는 못했습니다. 문서가 정하지 않고 이 버전에서 관찰한 것은 JPQL을 읽어 이름을 확인하는 일이 createQuery 줄에서 일어난다는 것(오류가 그 줄에서 난 것)과, SQL이 getResultList 줄에서 나간다는 것, 오류의 예외 종류와 메시지, 나간 SQL의 글자(별칭 m1_0 등)입니다. 이 글자들은 Hibernate 버전에 따라 다를 수 있습니다. MySQL에서의 실행 대조는 하지 않았습니다. 이 실습은 조인과 페치 조인, UPDATE와 DELETE를 하는 벌크 쿼리, 조건이 바뀌는 동적 쿼리, 파라미터 바인딩, 결과를 받는 여러 방법은 다루지 않으며, 공부 탭의 "JPQL과 페치 조인", "벌크 연산", "동적 쿼리: Specification과 Querydsl" 실습에서 다룹니다.',
 });

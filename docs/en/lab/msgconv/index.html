@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <dt>ResponseEntity</dt>
 <dd><b>Why it exists</b> — In a controller that returns only an object, to change the status code from case to case or to add a header, you have to receive HttpServletResponse separately and work on it. ResponseEntity lets you decide these too with a single return value, so that you can tell the shape of the response just by looking at the return statement.</dd>
 <dd><b>Where it's used today</b> — It is used to send 201 and a Location header after a post is newly created, or to send 404 with ResponseEntity.notFound().build() when there is no target. If the status code is always the same, return the object as it is and add @ResponseStatus if needed.</dd>
-<dd>This is an object returned by a controller that holds the status code, the headers, and the body of a response all together. When you return only an object, the status code is set to 200, but when you write ResponseEntity.status(201).body(object) or ResponseEntity.created(location).body(object), the controller can set the status code and the headers itself. A message converter converts the object held as the body to JSON or another format, exactly as when the object is returned as it is. It is mostly used in methods that have to return different status codes depending on the case, and in @ExceptionHandler methods.</dd>
+<dd>This is an object returned by a controller that sets the status code, the headers, and the body of a response all together. When you return only an object, the status code is set to 200, but when you write ResponseEntity.status(201).body(object) or ResponseEntity.created(location).body(object), the controller can set the status code and the headers itself. A message converter converts the object set as the body to JSON or another format, exactly as when the object is returned as it is. It is mostly used in methods that have to return different status codes depending on the case, and in @ExceptionHandler methods.</dd>
 <dt>ViewResolver</dt>
 <dd><b>Why it exists</b> — If a controller writes the template file path and the view technology itself, every controller must be changed when you change the template location or the engine. ViewResolver lets the controller return only a name, and it gathers the job of linking that name to the actual template in one place in the configuration.</dd>
 <dd><b>Where it's used today</b> — When you use Thymeleaf in Spring Boot, a ViewResolver that looks for templates/home.html when a controller returns the name home is registered automatically. It is used for pages where the server renders HTML, such as an admin screen.</dd>
@@ -190,6 +190,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

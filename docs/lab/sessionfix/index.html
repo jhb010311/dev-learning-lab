@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>HttpOnly, Secure, SameSite</dt>
 <dd><b>왜 생겼나</b> — 쿠키는 원래 페이지의 스크립트가 읽을 수 있었고, 암호화되지 않은 HTTP 연결에도, 다른 사이트에서 시작된 요청에도 함께 실려 갔다. 이 속성들은 서버가 Set-Cookie 헤더에 쿠키마다 붙여, 이 길을 골라 막게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 로그인 세션 쿠키에는 셋을 함께 붙이는 것이 보통이다. Spring Boot에서는 server.servlet.session.cookie 아래의 http-only, secure, same-site 설정으로 세션 쿠키에 붙인다.</dd>
-<dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄인다.</dd>
+<dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄이지만, CSRF 토큰을 대신하지 않고 함께 쓰는 보조 방어다.</dd>
 <dt>쿠키</dt>
 <dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
 </dl>
@@ -196,6 +196,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

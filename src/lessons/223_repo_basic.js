@@ -91,7 +91,7 @@ Lab.register({
       push('이때 스프링 데이터가 findByName 메서드의 이름을 읽습니다. findBy는 "찾는다", 그 뒤의 Name은 Member의 name 필드라는 규칙에 따라 "name으로 찾는 쿼리"를 준비합니다. Member에 name 필드가 있어서 통과합니다. 이름이 규칙에 맞지 않으면 여기서 실패합니다.', '');
     }
     st.phase = 'get'; st.hot = 'if';
-    push('main이 스프링에서 MemberRepository 타입의 빈을 받아 memberRepository에 담습니다(화면에서는 줄여 둔 부분). 담긴 것은 방금 스프링이 만든 구현 객체입니다. new로 만든 객체가 아닙니다. 이 뒤에 나가는 SQL부터 셉니다.', '');
+    push('main이 스프링에서 MemberRepository 타입의 빈을 받아 memberRepository 변수가 가리키게 합니다(화면에서는 줄여 둔 부분). 가리키는 것은 방금 스프링이 만든 구현 객체입니다. new로 만든 객체가 아닙니다. 이 뒤에 나가는 SQL부터 셉니다.', '');
 
     // 4. save
     st.phase = 'save'; st.hot = 'im';
@@ -109,7 +109,7 @@ Lab.register({
       push('println이 count가 돌려준 1을 출력합니다.', 'good');
     } else {
       send(SEL_NAME);
-      push('memberRepository.findByName("김철수")가 실행됩니다. 구현 객체가 시작할 때 읽어 둔 이름 규칙대로 SELECT를 보냅니다: ' + SEL_NAME + ' (name=? 자리에는 넘긴 "김철수"가 들어갑니다). 우리가 쓴 쿼리는 없습니다. 찾은 행 1개가 Member 객체가 되어 List에 담깁니다.', 'good');
+      push('memberRepository.findByName("김철수")가 실행됩니다. 구현 객체가 시작할 때 읽어 둔 이름 규칙대로 SELECT를 보냅니다: ' + SEL_NAME + ' (name=? 자리에는 넘긴 "김철수"가 들어갑니다). 우리가 쓴 쿼리는 없습니다. 찾은 행 1개로 Member 객체를 만들고, 그 객체를 가리키는 List를 돌려줍니다.', 'good');
       st.out = '1'; st.phase = 'done';
       push('println이 found.size()를 출력합니다. 찾은 Member가 1개이므로 1입니다. 우리가 쓴 것은 인터페이스의 선언 두 줄(인터페이스 선언과 findByName 한 줄)뿐이었습니다.', 'good');
     }

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -44,7 +44,7 @@
 <dt>박싱과 언박싱</dt>
 <dd><b>왜 생겼나</b> — 자동 박싱이 없던 때는 int를 컬렉션에 넣을 때마다 new Integer(n)으로 객체를 만들고, 꺼낼 때마다 intValue()를 직접 불러야 했다. 자동 박싱·언박싱은 이 변환을 컴파일러가 대신 넣게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — List&lt;Integer&gt;나 Map&lt;String, Integer&gt;에 숫자를 넣고 꺼낼 때 늘 일어난다. 많은 수를 되풀이해 더하는 계산에서는 박싱 비용을 피하려고 int 배열이나 IntStream을 쓴다.</dd>
-<dd>기본형(int 등)을 래퍼 객체(Integer 등)로 바꾸는 것이 박싱, 그 반대가 언박싱이다. 컬렉션은 객체만 담을 수 있어 기본형을 넣으면 자동으로 박싱된다. 객체 생성과 변환 비용이 들고, null인 래퍼를 언박싱하면 NullPointerException이 발생한다.</dd>
+<dd>기본형(int 등)을 래퍼 객체(Integer 등)로 바꾸는 것이 박싱, 그 반대가 언박싱이다. 컬렉션에는 객체(를 가리키는 참조)만 넣을 수 있어 기본형을 넣으면 자동으로 박싱된다. 객체 생성과 변환 비용이 들고, null인 래퍼를 언박싱하면 NullPointerException이 발생한다.</dd>
 <dt>불변 객체</dt>
 <dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
 </dl>
@@ -171,6 +171,6 @@ System.out.println(a.equals(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

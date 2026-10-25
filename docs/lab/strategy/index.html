@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -43,7 +43,7 @@
 <dd><b>지금 어디에 쓰나</b> — 스프링 코드를 읽을 때도 자주 보인다. JdbcTemplate은 템플릿 메서드, @Transactional이 동작하는 방식은 프록시, @EventListener로 이벤트를 받는 구조는 옵저버 패턴의 발상을 따른다.</dd>
 <dd>소프트웨어 설계에서 반복적으로 나타나는 문제에 대한 검증된 해결 방법에 이름을 붙여 정리한 것이다. 개발자들 사이의 공통 용어 역할을 해 설계 의도를 짧게 전달할 수 있게 한다. 특정 문제를 해결하기 위한 수단이므로 필요 없는 곳에 적용하면 복잡도만 높아진다.</dd>
 <dt>다형성</dt>
-<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수에 여러 하위 타입 객체를 담을 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
+<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수가 여러 하위 타입 객체를 가리킬 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
 <dt>SOLID</dt>
 <dd><b>왜 생겼나</b> — SOLID는 기능 하나를 더하거나 고칠 때 관련 없는 클래스까지 손대야 하는 구조를 피하려는 설계 기준이다. 원칙마다 이름이 있어 '이 클래스는 맡은 일이 너무 많다' 같은 판단을 팀에서 같은 말로 나눌 수 있다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 코드 리뷰나 리팩터링에서 클래스를 나눌지, 인터페이스를 둘지 정할 때 근거로 쓴다. 스프링에서 클래스가 구현 클래스 대신 인터페이스 타입을 생성자로 주입받게 짜는 것이 의존 역전의 흔한 예다.</dd>
@@ -187,6 +187,6 @@ class PaymentService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

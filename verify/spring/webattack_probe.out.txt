@@ -1,0 +1,23 @@
+# spring boot 4.1.1 | spring security 7.1.1 | java 21.0.12.1
+token|login-page hidden _csrf input => true
+token|login => 302 /
+token|session Set-Cookie => JSESSIONID=…; Path=/; HttpOnly
+token|attack POST /transfer (cookie, no _csrf) => 403|transfer=false
+token|attack POST /transfer (cookie, wrong _csrf) => 403|transfer=false
+token|form token attribute => _csrf=(값 96자)
+token|own form POST /transfer (cookie, right _csrf) => 200|transfer=true
+token|POST /transfer without cookie => 302 /login;jsessionid=…|transfer=false
+disable|login-page hidden _csrf input => false
+disable|login => 302 /
+disable|session Set-Cookie => JSESSIONID=…; Path=/; HttpOnly
+disable|attack POST /transfer (cookie, no _csrf) => 200|transfer=true
+disable|attack POST /transfer (cookie, wrong _csrf) => 200|transfer=true
+disable|form token attribute => none
+disable|POST /transfer without cookie => 302 /login|transfer=false
+lax|login-page hidden _csrf input => false
+lax|login => 302 /
+lax|session Set-Cookie => JSESSIONID=…; Path=/; HttpOnly; SameSite=Lax
+lax|attack POST /transfer (cookie, no _csrf) => 200|transfer=true
+lax|attack POST /transfer (cookie, wrong _csrf) => 200|transfer=true
+lax|form token attribute => none
+lax|POST /transfer without cookie => 302 /login|transfer=false

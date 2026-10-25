@@ -3,12 +3,12 @@ Lab.register({
   title: '같은 값을 넣었는데 꺼내는 순서가 왜 다른가',
   why: 'HashSet과 HashMap은 해시값으로 자리를 정해 빨리 찾는 대신, 꺼내는 순서가 넣은 순서와도 정렬 순서와도 상관없다. 순서가 필요할 때마다 따로 정렬하거나 순서를 기록할 List를 함께 관리하면 번거롭다. 그래서 자바는 넣은 순서를 기억하는 LinkedHashSet·LinkedHashMap과, 늘 정렬된 상태를 유지하는 TreeSet·TreeMap을 함께 제공한다.',
   use: '순서와 상관없이 중복을 없애거나 키로 찾기만 하면 HashSet·HashMap을 쓴다. 넣은 순서대로 보여 줘야 하는 목록이나 오래 안 쓴 것부터 지우는 캐시(LinkedHashMap의 접근 순서 모드)에는 Linked 계열을, 이름순 목록이나 ceilingKey·subMap 같은 범위 검색에는 Tree 계열을 쓴다.',
-  intro: 'Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.',
+  intro: 'Set은 같은 값을 한 번만 넣을 수 있는 컬렉션이고, Map은 키와 값을 짝지어 두는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.',
   terms: ['List, Set, Map', '해시 테이블과 HashMap', 'LinkedHashSet과 LinkedHashMap', 'TreeSet과 TreeMap', '시간 복잡도(Big-O)'],
   controls: [
     { id: 'kind', label: '컬렉션의 종류', type: 'select', value: 'hash', options: [['hash', 'HashSet / HashMap'], ['linked', 'LinkedHashSet / LinkedHashMap'], ['tree', 'TreeSet / TreeMap']] },
     { id: 'data', label: '넣는 값 (적힌 순서대로 넣습니다)', type: 'select', value: 'words', options: [['words', '문자열: grape, apple, date, apple, fig'], ['small', '작은 정수: 3, 1, 2, 1, 5'], ['big', '정수: 40, 5, 17, 5, 100'], ['null', 'null이 섞인 문자열: grape, apple, null, apple, fig'], ['obj', '직접 만든 Task 객체: id가 40, 5, 17, 5, 100']], hint: '어느 것이든 네 번째에 이미 넣은 값을 한 번 더 넣습니다.' },
-    { id: 'shape', label: 'Set인가 Map인가', type: 'select', value: 'set', options: [['set', 'Set (값만 담는다)'], ['map', 'Map (키와 값을 담는다. 값은 넣은 차례 번호)']] },
+    { id: 'shape', label: 'Set인가 Map인가', type: 'select', value: 'set', options: [['set', 'Set (값만 넣는다)'], ['map', 'Map (키와 값을 짝지어 넣는다. 값은 넣은 차례 번호)']] },
   ],
   presets: [
     { t: '처음 설정으로', q: 'HashSet에 문자열 grape, apple, date, apple, fig를 차례로 넣으면 어떤 순서로 나오나', d: 'HashSet에 문자열을 넣습니다. 넣은 순서도 정렬된 순서도 아닌 순서로 나옵니다.', v: { kind: 'hash', data: 'words', shape: 'set' } },
@@ -17,7 +17,7 @@ Lab.register({
     { t: 'HashSet에 작은 정수', q: 'HashSet인데 넣는 값을 작은 정수 3, 1, 2, 1, 5로 바꾸면', d: '정렬해 준 것처럼 보입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꿔 비교해 보세요.', v: { kind: 'hash', data: 'small', shape: 'set' } },
     { t: 'TreeSet에 null', q: 'TreeSet인데 넣는 값을 null이 섞인 문자열 grape, apple, null, apple, fig로 바꾸면', d: '비교할 수 없어 NullPointerException이 납니다.', v: { kind: 'tree', data: 'null', shape: 'set' } },
     { t: 'TreeSet에 직접 만든 객체', q: 'TreeSet인데 넣는 값을 직접 만든 Task 객체(id가 40, 5, 17, 5, 100)로 바꾸면', d: 'Comparable을 구현하지 않은 객체는 ClassCastException이 납니다.', v: { kind: 'tree', data: 'obj', shape: 'set' } },
-    { t: 'LinkedHashMap에 같은 키를 다시', q: '넣은 차례 번호를 값으로 담는 LinkedHashMap에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
+    { t: 'LinkedHashMap에 같은 키를 다시', q: '넣은 차례 번호를 값으로 넣는 LinkedHashMap에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
   ],
   DATA: {
     words: [['s', 'grape'], ['s', 'apple'], ['s', 'date'], ['s', 'apple'], ['s', 'fig']],
@@ -62,13 +62,13 @@ Lab.register({
       if (kind === 'tree' && x[0] === 'n') { ex = 'NullPointerException'; push(call(i) + ': ' + cls + '은 넣을 때마다 ' + what + '끼리 compareTo로 비교해야 하는데, null로는 비교할 수 없습니다. NullPointerException이 나고 프로그램이 여기서 멈춥니다.', 'bad', i, 'ex'); break; }
       if (kind === 'tree' && x[0] === 'o') { ex = 'ClassCastException'; push(call(i) + ': ' + cls + '은 ' + whatObj + ' Comparable로 바꿔 compareTo를 부르려 합니다. Task는 Comparable을 구현하지 않았으므로 바꿀 수 없어 ClassCastException이 납니다. 첫 번째로 넣는 순간에 바로 멈춥니다.', 'bad', i, 'ex'); break; }
       if (old) {
-        if (m) { var prev = old.val; old.val = i + 1; dup = 'put이 예전 값(' + prev + ')을 돌려줌'; out.push(String(prev)); push(call(i) + ': 같은 키가 이미 들어 있습니다. Map은 같은 키를 두 번 담지 않으므로 키는 그대로 두고 값만 ' + prev + '에서 ' + (i + 1) + '로 바꿉니다. put이 돌려준 예전 값 ' + prev + '가 출력됩니다.' + (kind === 'linked' ? ' 자리는 처음 넣었던 ' + old.seq + '번째 그대로입니다.' : ''), '', i, 'dup'); }
-        else { dup = 'add가 false를 돌려줌'; out.push('false'); push(call(i) + ': 같은 값이 이미 들어 있습니다. Set은 같은 값을 두 번 담지 않으므로 넣지 않고 false를 돌려주며, 그 false가 출력됩니다. 크기는 그대로 ' + items.length + '개입니다.', '', i, 'dup'); }
+        if (m) { var prev = old.val; old.val = i + 1; dup = 'put이 예전 값(' + prev + ')을 돌려줌'; out.push(String(prev)); push(call(i) + ': 같은 키가 이미 들어 있습니다. Map은 같은 키를 두 번 갖지 않으므로 키는 그대로 두고 값만 ' + prev + '에서 ' + (i + 1) + '로 바꿉니다. put이 돌려준 예전 값 ' + prev + '가 출력됩니다.' + (kind === 'linked' ? ' 자리는 처음 넣었던 ' + old.seq + '번째 그대로입니다.' : ''), '', i, 'dup'); }
+        else { dup = 'add가 false를 돌려줌'; out.push('false'); push(call(i) + ': 같은 값이 이미 들어 있습니다. Set은 같은 값을 두 번 갖지 않으므로 넣지 않고 false를 돌려주며, 그 false가 출력됩니다. 크기는 그대로 ' + items.length + '개입니다.', '', i, 'dup'); }
         continue;
       }
       var it = { x: x, val: i + 1, cell: this.cell(x), seq: i + 1 }; items.push(it);
       var s;
-      if (kind === 'hash') s = (x[0] === 's' ? self.lit(x) + '의 hashCode로 계산한 칸 번호는 ' + it.cell + '번입니다.' : x[0] === 'n' ? 'null에는 hashCode를 부를 수 없어서 ' + cls + '은 null을 0번 칸에 넣기로 정해 두었습니다. ' + (m ? 'null인 키도' : 'null도') + ' 하나는 담을 수 있습니다.' : x[0] === 'o' ? 'record가 만들어 준 hashCode로 계산한 칸 번호는 ' + it.cell + '번입니다.' : 'Integer의 hashCode는 그 숫자 자신이고 칸이 16개이므로, ' + x[1] + ' ÷ 16의 나머지인 ' + it.cell + '번 칸에 들어갑니다.') + ' 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 ' + listStr() + '입니다.';
+      if (kind === 'hash') s = (x[0] === 's' ? self.lit(x) + '의 hashCode로 계산한 칸 번호는 ' + it.cell + '번입니다.' : x[0] === 'n' ? 'null에는 hashCode를 부를 수 없어서 ' + cls + '은 null을 0번 칸에 넣기로 정해 두었습니다. ' + (m ? 'null인 키도' : 'null도') + ' 하나는 넣을 수 있습니다.' : x[0] === 'o' ? 'record가 만들어 준 hashCode로 계산한 칸 번호는 ' + it.cell + '번입니다.' : 'Integer의 hashCode는 그 숫자 자신이고 칸이 16개이므로, ' + x[1] + ' ÷ 16의 나머지인 ' + it.cell + '번 칸에 들어갑니다.') + ' 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 ' + listStr() + '입니다.';
       else if (kind === 'linked') s = '맨 뒤에 이어 붙입니다. 꺼내는 순서는 넣은 순서와 같은 ' + listStr() + '입니다.';
       else s = items.length === 1 ? '처음 넣는 ' + what + '이므로 그대로 넣습니다.' : '이미 있는 ' + what + '들과 compareTo로 ' + (x[0] === 's' ? '사전 순서' : '크기') + '를 비교해 정렬된 자리에 넣습니다. 꺼내는 순서는 ' + listStr() + '입니다.';
       push(call(i) + ': ' + s, '', i, 'new');
@@ -83,13 +83,13 @@ Lab.register({
       push('System.out.println(' + n.v + '.size()): 다섯 번 넣었지만 같은 ' + what + ' 하나는 다시 들어가지 않았으므로 크기는 ' + items.length + '입니다.', '', -1);
       if (kind === 'hash') sum.push(looksSorted ? 'HashSet과 HashMap은 정렬해 주지 않습니다. 작은 정수가 정렬된 것처럼 나온 것은 칸 번호가 숫자와 같아서입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꾸면 17, 100, 5, 40 순서로 나옵니다.' : 'HashSet과 HashMap의 순회 순서는 hashCode가 정한 칸 번호 순서입니다. 사람이 보기에는 뒤섞인 순서이고, 자바 버전이나 들어 있는 개수에 따라 달라질 수 있으므로 이 순서에 기대는 코드를 쓰면 안 됩니다.');
       if (kind === 'linked') sum.push('넣은 순서를 지켜야 할 때는 LinkedHashSet과 LinkedHashMap을 씁니다. 화면에 보여 줄 목록의 순서, 설정 항목의 순서처럼 "넣은 대로 나와야 하는" 경우입니다.' + (m ? ' 이미 있는 키에 다시 put을 해도 그 키의 자리는 바뀌지 않습니다.' : ''));
-      if (kind === 'tree') sum.push('정렬된 순서가 필요하거나 가장 작은 값, 어떤 값 이상인 것들을 찾아야 할 때는 TreeSet과 TreeMap을 씁니다. 그 대신 넣고 찾을 때마다 비교를 여러 번 하므로 Hash 종류보다 느립니다.');
-      if (kind !== 'tree' && c.data === 'null') sum.push('Hash 종류와 LinkedHash 종류는 null을 하나 담을 수 있습니다. 컬렉션의 종류를 Tree로 바꾸면 같은 코드에서 예외가 납니다.');
-      if (kind !== 'tree' && c.data === 'obj') sum.push('Hash 종류와 LinkedHash 종류는 equals와 hashCode만 있으면 어떤 객체든 담습니다. Tree 종류는 크기를 비교할 방법이 더 필요합니다.');
+      if (kind === 'tree') sum.push('정렬된 순서가 필요하거나 가장 작은 값, 어떤 값 이상인 것들을 찾아야 할 때는 TreeSet과 TreeMap을 씁니다. 그 대신 넣고 찾을 때마다 compareTo로 비교를 여러 번 합니다. Java API 문서는 이 연산들에 log n에 비례하는 시간(O(log n))이 걸린다고 적고 있습니다.');
+      if (kind !== 'tree' && c.data === 'null') sum.push('Hash 종류와 LinkedHash 종류는 null을 하나 넣을 수 있습니다. 컬렉션의 종류를 Tree로 바꾸면 같은 코드에서 예외가 납니다.');
+      if (kind !== 'tree' && c.data === 'obj') sum.push('Hash 종류와 LinkedHash 종류는 equals와 hashCode만 있으면 어떤 객체든 넣을 수 있습니다. Tree 종류는 크기를 비교할 방법이 더 필요합니다.');
     } else {
-      sum.push(ex === 'NullPointerException' ? 'TreeSet의 원소와 TreeMap의 키는 서로 비교해 자리를 정하므로 (기본 정렬에서) null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
+      sum.push(ex === 'NullPointerException' ? 'TreeSet의 원소와 TreeMap의 키는 서로 비교해 자리를 정하므로 (기본 정렬에서) null을 넣을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 넣을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
     }
-    sum.push('고르는 기준: 순서가 필요 없으면 Hash 종류(가장 빠름), 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다.');
+    sum.push('고르는 기준: 순서가 필요 없으면 Hash 종류, 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다. Java API 문서는 넣기·찾기에 걸리는 시간을, Hash와 LinkedHash 종류는 해시값이 고르게 퍼지면 원소 수와 상관없는 상수 시간(O(1))으로, Tree 종류는 log n에 비례하는 시간(O(log n))으로 적고 있습니다. 이 실습은 성능을 측정하지 않았습니다.');
     var cells = kind === 'hash' ? ordered().map(function (it) { return it.cell; }).join(',') : '-';
     return { events: ev, summary: sum, cells: cells, stopAt: ex ? done : 0, row: [ex ? '(출력 전에 멈춤)' : res, ex ? '-' : items.length + '개', dup, ex || '없음'] };
   },
@@ -121,5 +121,5 @@ Lab.register({
     else P.box('r1', 16, 246, 648, 38, { cls: s.out.length ? 'good' : 'ghost', title: '출력', right: s.out.length ? s.out.join('   /   ') : '아직 없음' });
     P.note(c.kind === 'hash' ? 'Hash 종류는 hashCode로 계산한 칸 번호가 작은 것부터 꺼냅니다. 칸은 처음에 16개이고, 이 실습은 그 상태에서의 순서를 보여 줍니다.' : c.kind === 'linked' ? 'LinkedHash 종류는 넣은 순서대로 이어 둔 연결을 따라 꺼냅니다. 이미 있는 것을 다시 넣어도 자리는 바뀌지 않습니다.' : 'Tree 종류는 넣을 때마다 compareTo로 비교해 정렬된 자리에 둡니다.');
   },
-  assume: '서른 가지 조합의 출력, 크기, 중복을 넣었을 때 돌려주는 값, 예외의 종류를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. HashSet과 HashMap의 칸 번호도 실제 객체의 내부 배열을 들여다본 값과 대조했습니다. 다만 Hash 종류의 순회 순서는 자바 명세가 보장하지 않습니다. 여기에 보이는 순서는 JDK 21에서 칸이 16개(원소 12개 이하)일 때의 것이며, 버전이나 원소 개수가 달라지면 바뀔 수 있습니다. record의 hashCode가 내는 구체적인 값도 명세가 정하지 않으며, JDK 21에서는 Task(int id)의 hashCode가 id와 같았습니다. TreeSet이 같은 값인지 판단하는 기준은 equals가 아니라 compareTo의 결과가 0인지입니다. 성능 차이(Hash 종류가 Tree 종류보다 빠름)는 측정하지 않았고 문서에 적힌 시간 복잡도를 따랐습니다.',
+  assume: '서른 가지 조합의 출력, 크기, 중복을 넣었을 때 돌려주는 값, 예외의 종류를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. HashSet과 HashMap의 칸 번호도 실제 객체의 내부 배열을 들여다본 값과 대조했습니다. 다만 Hash 종류의 순회 순서는 자바 명세가 보장하지 않습니다. 여기에 보이는 순서는 JDK 21에서 칸이 16개(원소 12개 이하)일 때의 것이며, 버전이나 원소 개수가 달라지면 바뀔 수 있습니다. record의 hashCode가 내는 구체적인 값도 명세가 정하지 않으며, JDK 21에서는 Task(int id)의 hashCode가 id와 같았습니다. TreeSet이 같은 값인지 판단하는 기준은 equals가 아니라 compareTo의 결과가 0인지입니다. 성능은 측정하지 않았습니다. 시간 복잡도는 Java API 문서에 적힌 것(HashSet·HashMap·LinkedHashSet·LinkedHashMap은 해시값이 고르게 퍼지면 기본 연산이 상수 시간, TreeSet·TreeMap은 log n 시간)을 따랐습니다.',
 });

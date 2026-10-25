@@ -7,7 +7,7 @@ Lab.register({
   terms: ['클래스와 객체', '필드', 'new', '필드의 기본값', 'NullPointerException'],
   controls: [
     { id: 'decl', label: 'class Card 선언이 있다', type: 'check', value: true },
-    { id: 'make', label: '변수 a에 담는 것', type: 'select', value: 'new', options: [['new', 'Card a = new Card(); 객체를 만든다'], ['none', 'Card a; 변수만 선언한다'], ['null', 'Card a = null; 아무것도 가리키지 않게 한다']] },
+    { id: 'make', label: '변수 a에 대입하는 것', type: 'select', value: 'new', options: [['new', 'Card a = new Card(); 객체를 만든다'], ['none', 'Card a; 변수만 선언한다'], ['null', 'Card a = null; 아무것도 가리키지 않게 한다']] },
     { id: 'two', label: '객체를 하나 더 만든다 (Card b)', type: 'check', value: false },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
@@ -26,11 +26,11 @@ Lab.register({
     var o = [];
     if (c.decl) o.push('// 설계도: Card는 owner라는 값(필드)과 show라는 메서드를 가진다', 'class Card {', '    String owner;', '    void show() {', '        System.out.println(owner + "의 카드");', '    }', '}', '');
     o.push('public class Main {', '    public static void main(String[] args) {');
-    if (c.make === 'new') o.push('        // 객체: 설계도대로 실제 카드를 하나 만들어 변수 a에 담는다');
-    else if (c.make === 'none') o.push('        // 카드를 담을 변수 a만 선언한다');
+    if (c.make === 'new') o.push('        // 객체: 설계도대로 실제 카드를 하나 만들고, 변수 a가 그 객체를 가리키게 한다');
+    else if (c.make === 'none') o.push('        // 카드 객체를 가리킬 변수 a만 선언한다');
     else o.push('        // 변수 a에 null을 담는다. 가리키는 객체가 없다');
     o.push('        ' + this.aLine(c), '        a.owner = "김철수";', '        a.show();');
-    if (c.two) o.push('', '        // 객체를 하나 더 만들어 변수 b에 담는다', '        Card b = new Card();', '        b.owner = "이영희";', '        b.show();', '', '        // a가 가리키는 객체의 owner가 그대로인지 다시 불러 본다', '        a.show();');
+    if (c.two) o.push('', '        // 객체를 하나 더 만들고, 변수 b가 그 객체를 가리키게 한다', '        Card b = new Card();', '        b.owner = "이영희";', '        b.show();', '', '        // a가 가리키는 객체의 owner가 그대로인지 다시 불러 본다', '        a.show();');
     o.push('    }', '}');
     return o.join('\n');
   },
@@ -78,7 +78,7 @@ Lab.register({
     } else if (mk === 'none') {
       st.va = 'none';
       st.checks.push([A + ' 줄', { v: '통과: 변수만 선언', cls: '' }]);
-      push('컴파일러가 ' + A + ' 줄을 확인합니다. Card 객체를 담을 변수 a를 선언하는 줄입니다. 값을 담는 줄이 아니라 변수만 선언한 것이므로, 이 줄 자체는 오류가 아닙니다.', '');
+      push('컴파일러가 ' + A + ' 줄을 확인합니다. Card 객체를 가리킬 변수 a를 선언하는 줄입니다. 값을 대입하는 줄이 아니라 변수만 선언한 것이므로, 이 줄 자체는 오류가 아닙니다.', '');
     } else {
       st.checks.push([A + ' 줄', { v: '통과', cls: 'good' }]);
       push('컴파일러가 ' + A + ' 줄을 확인합니다. null은 가리키는 객체가 없다는 값입니다. 변수 a에 값(null)을 담는 줄이고 Card 클래스도 있으므로, 컴파일러는 이 줄을 통과시킵니다.', 'good');
@@ -130,18 +130,18 @@ Lab.register({
       push('java Main으로 실행합니다. 실행은 main 메서드부터 시작합니다. 설계도인 Card 클래스는 코드에 있지만, 만들어진 Card 객체는 아직 0개입니다.', '');
       if (mk === 'new') {
         st.hot = 'o0'; st.objs.push(null); st.made = 1;
-        push('Card a = new Card(); 줄이 실행됩니다. new Card()가 Card 설계도대로 객체를 하나 만듭니다. 이 객체의 owner에는 아직 값을 담지 않아서 null, 즉 비어 있습니다.', 'good');
+        push('Card a = new Card(); 줄이 실행됩니다. new Card()가 Card 설계도대로 객체를 하나 만듭니다. 이 객체의 owner에는 아직 값을 대입하지 않아서 null, 즉 아무 객체도 가리키지 않습니다.', 'good');
         st.hot = 'va'; st.va = 'ref';
-        push('같은 줄에서 = 가 만들어진 객체를 변수 a에 담습니다. 변수 a에 담기는 것은 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조여서, a가 그 객체를 가리키게 됩니다.', '');
+        push('같은 줄에서 = 가 변수 a에 값을 저장합니다. 변수 a에 저장되는 것은 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조여서, a가 그 객체를 가리키게 됩니다.', '');
         st.hot = 'o0'; st.objs[0] = '김철수';
-        push('a.owner = "김철수"; 줄이 실행됩니다. a가 가리키는 객체의 owner에 "김철수"를 담습니다.', '');
+        push('a.owner = "김철수"; 줄이 실행됩니다. a가 가리키는 객체의 owner에 "김철수"를 대입합니다.', '');
         st.out.push('김철수의 카드');
-        push('a.show(); 줄이 실행됩니다. a가 가리키는 객체의 show 메서드가 실행되어, 그 객체의 owner를 읽고 "김철수의 카드"를 출력합니다. show는 설계도에 적힌 메서드이고, 읽는 owner는 객체에 담긴 값입니다.', 'good');
+        push('a.show(); 줄이 실행됩니다. a가 가리키는 객체의 show 메서드가 실행되어, 그 객체의 owner를 읽고 "김철수의 카드"를 출력합니다. show는 설계도에 적힌 메서드이고, 읽는 owner는 그 객체의 필드입니다.', 'good');
         if (c.two) {
           st.hot = 'o1'; st.objs.push(null); st.made = 2; st.vb = 'ref';
           push('Card b = new Card(); 줄이 실행됩니다. new Card()가 Card 설계도대로 객체를 하나 더 만들어 변수 b가 가리키게 합니다. 이 객체의 owner도 비어 있고, a가 가리키는 객체와는 별개입니다. new를 실행할 때마다 객체가 하나씩 생깁니다.', 'good');
           st.objs[1] = '이영희';
-          push('b.owner = "이영희"; 줄이 실행됩니다. b가 가리키는 객체의 owner에 "이영희"를 담습니다. a가 가리키는 객체의 owner는 바뀌지 않습니다.', '');
+          push('b.owner = "이영희"; 줄이 실행됩니다. b가 가리키는 객체의 owner에 "이영희"를 대입합니다. a가 가리키는 객체의 owner는 바뀌지 않습니다.', '');
           st.out.push('이영희의 카드');
           push('b.show(); 줄이 실행됩니다. b가 가리키는 객체의 owner를 읽어 "이영희의 카드"를 출력합니다. 같은 show 메서드라도 어느 객체에게 시켰는지에 따라 읽는 owner가 다릅니다.', 'good');
           st.hot = 'o0'; st.out.push('김철수의 카드');
@@ -151,7 +151,7 @@ Lab.register({
         st.hot = 'va'; st.va = 'null';
         push('Card a = null; 줄이 실행됩니다. 변수 a에 null이 담깁니다. new를 실행하지 않았으므로 만들어진 Card 객체는 0개이고, a는 아무것도 가리키지 않습니다.', '');
         st.exc = 'NullPointerException'; st.bad.va = true;
-        push('a.owner = "김철수"; 줄이 실행됩니다. a가 가리키는 객체가 없는데 그 객체의 owner에 값을 담으려 해서 NullPointerException이 일어납니다. 예외를 처리하는 코드가 없으므로 프로그램은 여기서 멈춥니다. 컴파일러는 이 줄을 통과시켰지만, 객체가 없다는 것은 실행하는 중에야 드러났습니다.', 'bad');
+        push('a.owner = "김철수"; 줄이 실행됩니다. a가 가리키는 객체가 없는데 그 객체의 owner에 값을 대입하려 해서 NullPointerException이 일어납니다. 예외를 처리하는 코드가 없으므로 프로그램은 여기서 멈춥니다. 컴파일러는 이 줄을 통과시켰지만, 객체가 없다는 것은 실행하는 중에야 드러났습니다.', 'bad');
         if (c.two) {
           st.hot = '';
           push('프로그램이 멈췄으므로 그 아래 줄들은 실행되지 않습니다. Card b = new Card(); 줄도 실행되지 않아서, 만들어진 Card 객체는 끝까지 0개입니다.', 'bad');
@@ -164,17 +164,17 @@ Lab.register({
       sum.push('class Card 선언이 없으면 Card라는 설계도가 없습니다. 컴파일러가 Card라는 클래스를 찾을 수 없다고 알려 주어 컴파일에 실패했고, new Card()로 객체를 만들 수도, 실행할 수도 없었습니다.');
       sum.push('오류가 난 곳은 Card를 쓴 줄입니다(알린 오류 ' + nerr + '개). 객체를 만들려면 먼저 클래스로 설계도를 선언해야 합니다.');
     } else if (mk === 'none') {
-      sum.push('변수만 선언하고 new로 객체를 만들지 않으면 변수에 담긴 것이 없습니다. 컴파일러가 값을 담지 않은 변수 a를 썼다고 알려 주어 컴파일에 실패했고, 실행할 수 없었습니다. 만들어진 Card 객체는 0개입니다.');
+      sum.push('변수만 선언하고 new로 객체를 만들지 않으면 변수에 대입된 값이 없습니다. 컴파일러가 값을 담지 않은 변수 a를 썼다고 알려 주어 컴파일에 실패했고, 실행할 수 없었습니다. 만들어진 Card 객체는 0개입니다.');
       sum.push('class Card 선언이 있어도 객체는 저절로 생기지 않습니다. 객체는 new를 실행해야 생깁니다.' + (c.two ? ' b 줄에는 문제가 없었지만 컴파일이 실패해 실행되지 않았습니다.' : ''));
     } else if (mk === 'null') {
       sum.push('null을 담으면 컴파일은 성공하지만, a가 가리키는 객체가 없어서 a.owner 줄에서 NullPointerException으로 멈췄습니다. 만들어진 Card 객체는 0개입니다.');
       sum.push('변수가 있는 것과 객체가 있는 것은 다릅니다. 객체 없이는 그 객체의 필드나 메서드를 쓸 수 없고, 컴파일러는 이를 미리 알려 주지 않아 실행하는 중에 드러납니다.' + (c.two ? ' 멈춘 뒤의 줄은 실행되지 않아 b의 객체도 만들어지지 않았습니다.' : ''));
     } else if (c.two) {
       sum.push('new Card()를 실행할 때마다 객체가 하나씩 생겨, 같은 Card 클래스로 객체 2개가 만들어졌습니다. 객체마다 owner를 따로 가져서 a가 가리키는 객체는 김철수, b가 가리키는 객체는 이영희였습니다.');
-      sum.push('b의 owner에 값을 담아도 a가 가리키는 객체의 owner는 바뀌지 않았습니다. 설계도는 하나여도 객체는 서로 별개이고, show 메서드는 부른 객체의 owner를 읽습니다.');
+      sum.push('b의 owner에 값을 대입해도 a가 가리키는 객체의 owner는 바뀌지 않았습니다. 설계도는 하나여도 객체는 서로 별개이고, show 메서드는 부른 객체의 owner를 읽습니다.');
     } else {
       sum.push('클래스는 class로 적는 설계도이고, 객체는 new로 그 설계도대로 만든 실제 것입니다. class Card는 owner와 show를 갖는다고 적어 둘 뿐 객체를 만들지 않았고, new Card()를 실행하자 Card 객체가 하나 생겼습니다.');
-      sum.push('변수 a는 그 객체를 가리킬 뿐이고, owner의 값은 객체에 담겼습니다. a.show()는 설계도에 적힌 메서드를 a가 가리키는 객체에게 시킨 것이어서, 그 객체의 owner를 읽어 출력했습니다.');
+      sum.push('변수 a는 그 객체를 가리킬 뿐이고, owner는 그 객체의 필드입니다. a.show()는 설계도에 적힌 메서드를 a가 가리키는 객체에게 시킨 것이어서, 그 객체의 owner를 읽어 출력했습니다.');
     }
     var run = !ok ? '실행할 수 없음' : st.exc ? 'NullPointerException으로 멈춤' : st.out.join(' / ');
     return { events: ev, summary: sum, nerr: nerr, errAt: errAt, row: [ok ? '성공' : '오류', ok ? '없음' : first, run, st.made + '개'] };
@@ -204,5 +204,5 @@ Lab.register({
     P.box('r2', 14, 212, 652, 36, { cls: s && s.exc ? 'bad' : s && s.ran ? 'good' : err ? 'bad' : 'ghost', title: '실행 결과', right: s && s.exc ? s.exc + '으로 멈춤' : s && s.ran ? (s.out.length ? s.out.join(' / ') : '(아직 출력 없음)') : err ? '실행할 수 없음' : '' });
     P.box('n1', 14, 256, 652, 36, { cls: s && s.made ? 'good' : 'ghost', title: '만들어진 Card 객체', right: (s ? s.made : 0) + '개' });
   },
-  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, var.might.not.have.been.initialized를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 실행 중 예외의 종류입니다. 만들어진 Card 객체의 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Card 안에 객체가 만들어질 때마다 숫자를 올리는 줄(인스턴스 초기화 블록)을 더해 실행 뒤에 읽었고, 대조 스크립트는 화면의 코드와 견줄 때 그 한 줄을 뺍니다. 컴파일에 실패한 조합은 실행하지 않았으므로 0개입니다. null을 담은 조합의 예외는 NullPointerException이고 메시지는 a.owner에 값을 담으려다 변수가 null이었다는 내용이었으며, 이 예외가 a.owner 줄에서 나므로 그 아래의 b 줄은 실행되지 않아 객체는 0개였습니다. 새로 만든 객체의 owner가 값을 담기 전에는 null이라는 단계 문장의 설명도 따로 실행해(new Card().show()가 null의 카드를 출력) 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 클래스 선언이 클래스를 정하는 것은 8.1절, 필드와, static이 아닌 필드는 인스턴스가 만들어질 때마다 인스턴스마다 새로 생긴다는 것은 8.3절과 8.3.1.1절, 객체가 클래스 인스턴스 또는 배열이고 참조는 객체를 가리키는 포인터이며 아무것도 가리키지 않는 null 참조가 있다는 것은 4.3.1절, new를 평가할 때마다 새 객체가 만들어지고 필드는 기본값으로 채워진다는 것은 15.9.4절, 참조 타입의 기본값이 null이라는 것은 4.12.5절, 객체 없이(null로) 인스턴스 필드에 접근하거나 인스턴스 메서드를 부르면 NullPointerException이라는 것은 15.11.1절과 15.12.4.4절, 값을 담지 않은 지역 변수를 읽으면 컴파일 오류라는 것은 16장 서두를 따랐습니다. 명세 15.26.1절(필드에 값을 담는 식의 평가 순서)은 열어 확인하지 못했고, 이 실습은 그 순서에 기대지 않습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. class Card 선언이 없을 때는 Card를 쓴 자리마다 오류가 하나씩 났고(new가 있는 줄은 변수의 타입과 new 뒤, 두 개), Card의 필드나 메서드를 쓰는 줄은 따로 오류가 나지 않았습니다. 값을 담지 않은 변수는 처음 쓴 줄에서만 오류가 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 패키지와 접근 제어자는 줄였습니다. 클래스는 필드와 메서드 말고도 생성자 등을 가질 수 있고 객체가 메모리의 어디에 놓이는지 같은 내용도 있지만 이 실습은 다루지 않았습니다. 변수와 객체가 놓이는 곳은 "세부 동작 실습: 스택과 힙"에서 다룹니다.',
+  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, var.might.not.have.been.initialized를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 실행 중 예외의 종류입니다. 만들어진 Card 객체의 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Card 안에 객체가 만들어질 때마다 숫자를 올리는 줄(인스턴스 초기화 블록)을 더해 실행 뒤에 읽었고, 대조 스크립트는 화면의 코드와 견줄 때 그 한 줄을 뺍니다. 컴파일에 실패한 조합은 실행하지 않았으므로 0개입니다. null을 담은 조합의 예외는 NullPointerException이고 메시지는 a.owner에 값을 대입하려다 변수가 null이었다는 내용이었으며, 이 예외가 a.owner 줄에서 나므로 그 아래의 b 줄은 실행되지 않아 객체는 0개였습니다. 새로 만든 객체의 owner가 값을 대입하기 전에는 null이라는 단계 문장의 설명도 따로 실행해(new Card().show()가 null의 카드를 출력) 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 클래스 선언이 클래스를 정하는 것은 8.1절, 필드와, static이 아닌 필드는 인스턴스가 만들어질 때마다 인스턴스마다 새로 생긴다는 것은 8.3절과 8.3.1.1절, 객체가 클래스 인스턴스 또는 배열이고 참조는 객체를 가리키는 포인터이며 아무것도 가리키지 않는 null 참조가 있다는 것은 4.3.1절, new를 평가할 때마다 새 객체가 만들어지고 필드는 기본값으로 채워진다는 것은 15.9.4절, 참조 타입의 기본값이 null이라는 것은 4.12.5절, 객체 없이(null로) 인스턴스 필드에 접근하거나 인스턴스 메서드를 부르면 NullPointerException이라는 것은 15.11.1절과 15.12.4.4절, 값을 담지 않은 지역 변수를 읽으면 컴파일 오류라는 것은 16장 서두를 따랐습니다. 명세 15.26.1절(필드에 값을 대입하는 식의 평가 순서)은 열어 확인하지 못했고, 이 실습은 그 순서에 기대지 않습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. class Card 선언이 없을 때는 Card를 쓴 자리마다 오류가 하나씩 났고(new가 있는 줄은 변수의 타입과 new 뒤, 두 개), Card의 필드나 메서드를 쓰는 줄은 따로 오류가 나지 않았습니다. 값을 담지 않은 변수는 처음 쓴 줄에서만 오류가 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 패키지와 접근 제어자는 줄였습니다. 클래스는 필드와 메서드 말고도 생성자 등을 가질 수 있고 객체가 메모리의 어디에 놓이는지 같은 내용도 있지만 이 실습은 다루지 않았습니다. 변수와 객체가 놓이는 곳은 "세부 동작 실습: 스택과 힙"에서 다룹니다.',
 });

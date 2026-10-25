@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>웹 공격 세 가지: 입력값을 그대로 믿으면 생기는 일 · 개발 학습 실습실</title>
-<meta name="description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.">
+<meta name="description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. CSRF는 스프링 시큐리티가 기본으로 하는…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/webattack/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="웹 공격 세 가지: 입력값을 그대로 믿으면 생기는 일 · 개발 학습 실습실">
-<meta property="og:description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.">
+<meta property="og:description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. CSRF는 스프링 시큐리티가 기본으로 하는…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,10 +31,10 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>웹 공격 세 가지</h1>
 <p><b>입력값을 그대로 믿으면 생기는 일</b></p>
-<p><b>왜 생겼나</b> — 사용자 입력을 SQL 문자열이나 HTML에 그대로 이어 붙이면 입력이 값이 아니라 명령이나 스크립트로 해석되고, 쿠키만으로 로그인을 확인하면 다른 사이트에서 일으킨 요청도 본인 요청처럼 처리된다. 파라미터 바인딩과 출력 이스케이프는 입력을 값과 글자로만 다루게 하고, CSRF 토큰은 요청이 그 사이트의 화면에서 나왔는지 확인하며, SameSite 쿠키는 그런 요청에 쿠키가 붙지 않게 한다.</p>
-<p><b>지금 어디에 쓰나</b> — PreparedStatement, MyBatis의 #{} 바인딩, Thymeleaf의 th:text처럼 이스케이프하는 출력, 스프링 시큐리티의 CSRF 보호가 이 방어를 맡는다. MyBatis의 ${}나 th:utext에 사용자 입력을 넣는 곳에서 구멍이 생긴다. 쿠키 대신 Authorization 헤더로 토큰을 보내는 API는 브라우저가 토큰을 자동으로 붙이지 않아 CSRF 보호를 끄기도 한다.</p>
-<p>SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.</p>
-<p>일부만 실행으로 확인 · 세 공격의 일부를 SQLite와 브라우저로 확인</p>
+<p><b>왜 생겼나</b> — 사용자 입력을 SQL 문자열이나 HTML에 그대로 이어 붙이면 입력이 값이 아니라 명령이나 스크립트로 해석되고, 쿠키만으로 로그인을 확인하면 다른 사이트에서 일으킨 요청도 본인 요청처럼 처리된다. 파라미터 바인딩과 출력 이스케이프는 입력을 값과 글자로만 다루게 하고, CSRF 토큰은 브라우저가 자동으로 붙이지 않는 값을 요구해 요청이 그 사이트의 화면에서 나왔는지 확인한다. 쿠키의 SameSite 속성은 다른 사이트에서 시작된 요청에 브라우저가 쿠키를 붙이지 않게 하는 것으로, CSRF 토큰을 대신하지 않고 함께 쓰는 보조 방어다.</p>
+<p><b>지금 어디에 쓰나</b> — PreparedStatement, MyBatis의 #{} 바인딩, Thymeleaf의 th:text처럼 이스케이프하는 출력, 스프링 시큐리티의 CSRF 보호(기본으로 켜져 있어 POST 같은 요청에 CSRF 토큰을 요구한다)가 이 방어를 맡고, 세션 쿠키의 SameSite=Lax는 그 위에 겹쳐 두는 설정이다. MyBatis의 ${}나 th:utext에 사용자 입력을 넣는 곳에서 구멍이 생긴다. 쿠키 대신 Authorization 헤더로 토큰을 보내는 API는 브라우저가 토큰을 자동으로 붙이지 않아 CSRF 보호를 끄기도 한다.</p>
+<p>SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. CSRF는 스프링 시큐리티가 기본으로 하는 CSRF 토큰 검사로 막고, 쿠키의 SameSite는 함께 쓰는 보조 방어로 비교합니다.</p>
+<p>일부만 실행으로 확인 · 세 공격의 일부를 SQLite, 브라우저, 스프링 시큐리티 서버로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>SQL Injection</dt>
@@ -42,11 +42,15 @@
 <dt>XSS(크로스 사이트 스크립팅)</dt>
 <dd>공격자가 웹 페이지에 악성 스크립트를 삽입해 다른 사용자의 브라우저에서 실행되게 하는 공격이다. 게시글이나 댓글에 넣은 스크립트가 그대로 출력될 때 발생하며, 사용자의 쿠키를 훔치거나 사용자 권한으로 요청을 보낼 수 있다. 사용자 입력을 화면에 출력할 때 특수 문자를 변환(이스케이프)하는 것이 기본 방어다.</dd>
 <dt>CSRF(사이트 간 요청 위조)</dt>
-<dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측 불가능한 토큰을 요청에 포함하게 하거나 쿠키의 SameSite 속성으로 막는다.</dd>
+<dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측할 수 없는 토큰(CSRF 토큰)을 요청에 함께 보내게 해 막는 것이 기본 방어이고(스프링 시큐리티는 기본으로 검사한다), 쿠키의 SameSite 속성은 함께 쓰는 보조 방어다.</dd>
+<dt>스프링 시큐리티의 CSRF 보호(CsrfFilter)</dt>
+<dd><b>왜 생겼나</b> — 쿠키로 로그인을 유지하는 사이트는 다른 사이트에서 일으킨 요청에도 브라우저가 쿠키를 붙여 주기 때문에, 쿠키만 보고는 본인이 우리 화면에서 보낸 요청인지 알 수 없었다. 쿠키의 SameSite 속성은 브라우저가 지원하고 설정이 맞아야만 효과가 있고, 링크로 넘어가는 GET이나 같은 사이트로 치는 서브도메인의 요청에는 쿠키가 붙는다. 그래서 서버가 직접 확인할 수 있는 토큰을 기본 방어로 두고, SameSite는 함께 쓰는 보조 방어로 둔다.</dd>
+<dd><b>지금 어디에 쓰나</b> — 스프링 시큐리티를 쓰면 설정하지 않아도 켜져 있다. Thymeleaf처럼 RequestDataValueProcessor와 이어진 화면 기술은 POST 폼에 _csrf 숨은 입력을 자동으로 넣고, 자바스크립트로 요청하는 화면은 토큰을 헤더에 실어 보낸다. 브라우저가 아닌 클라이언트만 부르고 Authorization 헤더로 인증하는 API 서버는 http.csrf(csrf -&gt; csrf.disable())로 끄기도 한다.</dd>
+<dd>스프링 시큐리티가 기본으로 켜 두는 CSRF 방어다. 서버가 세션마다 예측할 수 없는 값(CSRF 토큰)을 만들어 화면의 폼에 숨은 입력 _csrf로 심고, POST·PUT·DELETE처럼 상태를 바꾸는 요청에는 그 값을 요청 파라미터 _csrf나 X-CSRF-TOKEN 헤더로 함께 보내게 한다. 보안 필터 체인의 CsrfFilter가 기대한 값과 비교해, 없거나 틀리면 컨트롤러로 넘기지 않고 403으로 거절한다. 쿠키는 브라우저가 자동으로 붙이지만 이 값은 화면이 직접 넣어야 하므로, 다른 사이트의 페이지가 일으킨 요청에는 들어갈 수 없다. 기대한 값은 기본으로 HttpSession에 둔다(HttpSessionCsrfTokenRepository).</dd>
 <dt>HttpOnly, Secure, SameSite</dt>
 <dd><b>왜 생겼나</b> — 쿠키는 원래 페이지의 스크립트가 읽을 수 있었고, 암호화되지 않은 HTTP 연결에도, 다른 사이트에서 시작된 요청에도 함께 실려 갔다. 이 속성들은 서버가 Set-Cookie 헤더에 쿠키마다 붙여, 이 길을 골라 막게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 로그인 세션 쿠키에는 셋을 함께 붙이는 것이 보통이다. Spring Boot에서는 server.servlet.session.cookie 아래의 http-only, secure, same-site 설정으로 세션 쿠키에 붙인다.</dd>
-<dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄인다.</dd>
+<dd>쿠키를 보호하는 속성들이다. HttpOnly는 자바스크립트가 쿠키를 읽지 못하게 해 스크립트 삽입 공격으로 쿠키가 탈취되는 것을 막는다. Secure는 HTTPS 연결에서만 쿠키를 전송하게 한다. SameSite는 다른 사이트에서 시작된 요청에 쿠키가 함께 전송되는 것을 제한해 CSRF 공격을 줄이지만, CSRF 토큰을 대신하지 않고 함께 쓰는 보조 방어다.</dd>
 <dt>쿠키</dt>
 <dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
 </dl>
@@ -58,7 +62,8 @@
 <li><b>XSS, 출력 이스케이프</b> — 스크립트가 글자로만 보입니다.</li>
 <li><b>XSS, HttpOnly만</b> — 쿠키는 못 훔치지만 스크립트는 여전히 실행됩니다.</li>
 <li><b>CSRF, 방어 없음</b> — 다른 사이트를 열었을 뿐인데 내 계정으로 요청이 나갑니다.</li>
-<li><b>CSRF, SameSite=Lax</b> — 다른 사이트에서 보낸 POST에는 쿠키가 붙지 않습니다.</li>
+<li><b>CSRF, CSRF 토큰</b> — 쿠키는 붙어 와도 _csrf 값이 없는 요청을 403으로 거절합니다.</li>
+<li><b>CSRF, SameSite=Lax만</b> — 이 POST에는 브라우저가 쿠키를 붙이지 않아 막힙니다. 서버의 검사가 아니라 브라우저에 기댄 보조 방어입니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
@@ -76,7 +81,7 @@ String sql = &quot;SELECT * FROM member WHERE email = '&quot; + email
            + &quot;' AND password = '&quot; + password + &quot;'&quot;;
 ResultSet rs = statement.executeQuery(sql);</pre>
 <h2>이 모형의 전제</h2>
-<p>세 공격 모두 원리를 보이기 위한 교과서적인 예이며, OWASP의 설명과 스프링 시큐리티 문서의 방어 방식을 따랐습니다. 비밀번호를 SQL에서 직접 비교하는 로그인 코드는 SQL Injection을 설명하기 위한 것으로, 실제로는 비밀번호를 해시로 저장하고 애플리케이션에서 검증합니다. 방어는 한 가지만 켠 상태를 비교했지만 실무에서는 여러 방어를 겹쳐 씁니다. 세 공격 모두 일부를 실제로 실행해 확인했습니다. SQL Injection은 실제 SQL 엔진(SQLite)에서 문자열 연결은 1행이 조회되고 바인딩은 0행이었습니다. XSS는 실제 브라우저(크로미움 기반)에서 그대로 출력한 댓글의 스크립트가 실행되어 쿠키를 읽었고, 이스케이프하면 실행되지 않았으며, HttpOnly 쿠키는 스크립트가 실행돼도 보이지 않았습니다. CSRF는 다른 사이트에서 자동 제출한 POST에 SameSite=None 쿠키는 붙었고 SameSite=Lax 쿠키는 붙지 않았습니다. SameSite를 지정하지 않은 쿠키는 발급 직후에는 붙었지만 2분쯤 지난 뒤에는 붙지 않았습니다. CSRF 토큰 검증은 서버 쪽 로직이라 따로 실행하지 않았습니다.</p>
+<p>세 공격 모두 원리를 보이기 위한 교과서적인 예이며, OWASP의 설명과 스프링 시큐리티 문서의 방어 방식을 따랐습니다. 비밀번호를 SQL에서 직접 비교하는 로그인 코드는 SQL Injection을 설명하기 위한 것으로, 실제로는 비밀번호를 해시로 저장하고 애플리케이션에서 검증합니다. 방어는 한 가지만 켠 상태를 비교했지만 실무에서는 여러 방어를 겹쳐 씁니다. 세 공격 모두 일부를 실제로 실행해 확인했습니다. SQL Injection은 실제 SQL 엔진(SQLite)에서 문자열 연결은 1행이 조회되고 바인딩은 0행이었습니다. XSS는 실제 브라우저(크로미움 기반)에서 그대로 출력한 댓글의 스크립트가 실행되어 쿠키를 읽었고, 이스케이프하면 실행되지 않았으며, HttpOnly 쿠키는 스크립트가 실행돼도 보이지 않았습니다. CSRF는 다른 사이트에서 자동 제출한 POST에 SameSite=None 쿠키는 붙었고 SameSite=Lax 쿠키는 붙지 않았습니다. SameSite를 지정하지 않은 쿠키는 발급 직후에는 붙었지만 2분쯤 지난 뒤에는 붙지 않았습니다. CSRF의 서버 쪽은 스프링 부트 4.1.1·스프링 시큐리티 7.1.1 서버를 띄워 확인했습니다. CSRF 보호를 끄지 않은 서버는 세션 쿠키가 붙었지만 _csrf 값이 없거나 틀린 POST를 403으로 거절해 이체 메서드가 실행되지 않았고, 화면이 받은 _csrf 값을 함께 보낸 POST는 200으로 처리했습니다. csrf.disable()로 끈 서버는 세션 쿠키만 붙은 POST를 그대로 이체했고, same-site=lax 설정은 Set-Cookie에 SameSite=Lax를 붙일 뿐 서버의 처리는 같았습니다. 쿠키가 붙지 않은 POST는 로그인 화면으로 돌려보냈습니다(302). Thymeleaf가 th:action을 쓴 POST 폼에 _csrf 숨은 입력을 넣는 것은 스프링 시큐리티 문서를 따랐습니다(실행 환경에 Thymeleaf가 없음). CSRF 토큰을 기본 방어로, SameSite를 함께 쓰는 보조 방어로 둔 것은 OWASP CSRF Prevention Cheat Sheet와 스프링 시큐리티 문서(Cross Site Request Forgery)를 따랐습니다.</p>
 <p>앞 실습: <a href="../../lab/methodsec/">메서드 보안</a> · 다음 실습: <a href="../../lab/cors/">CORS</a></p>
   </div>
 
@@ -169,6 +174,6 @@ ResultSet rs = statement.executeQuery(sql);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

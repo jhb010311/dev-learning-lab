@@ -3,16 +3,16 @@ Lab.register({
   title: 'null은 무엇이고, 왜 NullPointerException이 나는가',
   why: '"아직 가리킬 객체가 없다"를 나타낼 방법이 따로 없다면, 빈 문자열 같은 값을 "없음"의 뜻으로 정해 써야 하고, 그러면 정말로 글자가 0개인 값과 구별되지 않는다. null은 String이든 직접 만든 클래스든 객체를 가리키는 변수라면 모두 쓸 수 있는 "없음" 표시여서, 찾는 회원이 없을 때나 아직 정하지 않은 값을 진짜 값과 섞이지 않게 나타낸다.',
   use: 'Map의 get이 없는 키에 null을 돌려주는 것처럼, 자바의 여러 메서드는 "찾는 것이 없음"을 null로 알린다. 그래서 받은 값을 쓰기 전에 if (x != null)로 먼저 확인하는 코드를 자주 본다. 스프링 데이터 JPA의 findById처럼, 없을 수도 있는 값을 null 대신 Optional로 돌려주어 부르는 쪽이 확인을 빠뜨리지 않게 하는 방법도 쓴다.',
-  intro: '변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 "아무 객체도 가리키지 않는다"를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 name이 가리키는 객체에게 일을 시킨다는 표시인데, null이면 시킬 객체가 없어서 NullPointerException이라는 예외가 납니다. if (name != null)은 name이 객체를 가리키는지 먼저 묻는 확인입니다. 글자가 하나도 없는 빈 문자열 ""는 null이 아니라 글자가 0개인 문자열 객체입니다. 이 실습은 name에 담는 값을 "kim", null, ""로 바꾸고 if 확인을 붙였다 떼며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 예외가 나는지를 봅니다.',
+  intro: '변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 "아무 객체도 가리키지 않는다"를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 name이 가리키는 객체에게 일을 시킨다는 표시인데, null이면 시킬 객체가 없어서 NullPointerException이라는 예외가 납니다. if (name != null)은 name이 객체를 가리키는지 먼저 묻는 확인입니다. 글자가 하나도 없는 빈 문자열 ""는 null이 아니라 글자가 0개인 문자열 객체입니다. 이 실습은 name에 대입하는 값을 "kim", null, ""로 바꾸고 if 확인을 붙였다 떼며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 예외가 나는지를 봅니다.',
   terms: ['null', 'NullPointerException', 'null 검사', '빈 문자열'],
   controls: [
-    { id: 'value', label: 'name에 담는 값', type: 'select', value: 'kim', options: [['kim', '문자열 "kim"'], ['null', 'null (아무 객체도 가리키지 않음)'], ['empty', '빈 문자열 ""']] },
+    { id: 'value', label: 'name에 대입하는 값', type: 'select', value: 'kim', options: [['kim', '문자열 "kim"'], ['null', 'null (아무 객체도 가리키지 않음)'], ['empty', '빈 문자열 ""']] },
     { id: 'check', label: 'if (name != null)로 length() 호출을 감싼다', type: 'check', value: false },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
     { t: '처음 설정으로', q: 'name 변수가 문자열 "kim"을 가리키면, name.length() 줄은 무슨 일을 하나', d: 'name이 가리키는 "kim" 객체가 글자 수 3을 돌려줍니다.', v: { value: 'kim', check: false } },
-    { t: 'null을 담으면', q: 'name에 "kim" 대신 null을 담으면', d: 'name이 가리키는 객체가 없어 name.length()에서 NullPointerException이 납니다.', v: { value: 'null', check: false } },
+    { t: 'null을 대입하면', q: 'name에 "kim" 대신 null을 대입하면', d: 'name이 가리키는 객체가 없어 name.length()에서 NullPointerException이 납니다.', v: { value: 'null', check: false } },
     { t: 'null인데 확인하면', q: 'null인데 name.length() 앞에 if (name != null)로 먼저 확인하면', d: '확인에서 걸러져 length()를 부르지 않고, 예외도 나지 않습니다.', v: { value: 'null', check: true } },
     { t: '"kim"인데 확인하면', q: 'name이 "kim"을 가리키는데 if (name != null)로 확인하면', d: '확인을 통과해 length()가 실행되고 결과는 같습니다.', v: { value: 'kim', check: true } },
     { t: '빈 문자열을 가리키면', q: 'null이 아니라 빈 문자열 ""을 가리키게 하면', d: '빈 문자열도 객체여서 length()가 0을 돌려주고 예외는 나지 않습니다.', v: { value: 'empty', check: false } },
@@ -96,7 +96,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
-    if (!s) { H.text(v, '실행을 누르면 name 변수에 값을 담는 줄부터 시작합니다.'); return; }
+    if (!s) { H.text(v, '실행을 누르면 name 변수에 값을 대입하는 줄부터 시작합니다.'); return; }
     var rows = [
       ['name이 가리키는 것', s.val ? { v: sim.pt[s.val], cls: s.val === 'null' ? 'hot' : 'good' } : '아직 담기 전'],
       ['if (name != null)', !c.check ? { v: '쓰지 않음', cls: '' } : s.ifres ? { v: s.ifres === 'true' ? 'true (객체를 가리킴)' : 'false (null)', cls: s.ifres === 'true' ? 'good' : 'hot' } : '아직 실행 전'],

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>ArrayList</dt>
-<dd>This is a list that keeps an array inside and moves the elements to a larger array when the array is full. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
+<dd>This is a list that refers to an array through a field, and when that array is full, it creates a larger array and copies the elements over. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
 <dt>LinkedList</dt>
 <dd><b>Where it's used today</b> — You choose it when you often insert and remove middle elements while iterating with ListIterator's add and remove, or when you need a queue that must also hold null (ArrayDeque does not accept null). For other lists and queues, ArrayList and ArrayDeque are usually enough.</dd>
 <dd>This is a list in which each element (node) is linked by pointing to the locations of the elements before and after it. If the position is already known, insertion and removal are O(1), but finding the nth element is O(n) because you must follow the links from the start. Each node needs extra memory and the nodes are scattered in memory, so real traversal performance is often worse than that of an array-based list.</dd>
@@ -169,6 +169,6 @@ list.add(0, 99);        // beginning</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

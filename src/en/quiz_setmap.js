@@ -2,7 +2,7 @@
 Lab.quiz([
   { lv: 1, id: 'setmap', q: 'You add the same values to a HashSet, a LinkedHashSet, and a TreeSet and then iterate over each. Which statement about the order is correct?',
     a: ['HashSet has no guaranteed order, LinkedHashSet uses insertion order, and TreeSet uses sorted order', 'HashSet uses insertion order, LinkedHashSet uses sorted order, and TreeSet has no guaranteed order', 'HashSet uses sorted order, LinkedHashSet uses insertion order, and TreeSet uses the reverse of insertion order', 'All three return the values in insertion order, and they differ only in whether they allow duplicates'],
-    why: 'A HashSet iterates in the order of the bucket numbers determined by hashCode, so the order is not one that a person would expect. A LinkedHashSet keeps track of insertion order separately, and a TreeSet compares on every addition and puts the new element in its sorted position. All three hold each value only once.',
+    why: 'A HashSet iterates in the order of the bucket numbers determined by hashCode, so the order is not one that a person would expect. A LinkedHashSet keeps track of insertion order separately, and a TreeSet compares on every addition and puts the new element in its sorted position. All three take each value only once.',
     sim: { c: { kind: 'linked', data: 'words', shape: 'set' }, col: 0, has: '[grape, apple, date, fig]' } },
   { lv: 2, id: 'setmap', q: 'You add 3, 1, 2, and 5 to a HashSet and print it, and the output is [1, 2, 3, 5]. How should you understand this result?',
     a: ['It is a coincidence that arises because the bucket number of a small integer is the same as the number, and HashSet does not guarantee sorting', 'HashSet sorts automatically only when numbers are added, and it does not sort strings', 'HashSet compares values on every addition and puts each one in its sorted position, so the output always looks like this', 'The output looks like this because println sorts the collection when it prints it'],
@@ -14,7 +14,7 @@ Lab.quiz([
     sim: { c: { kind: 'linked', data: 'words', shape: 'map' }, col: 0, has: '{grape=1, apple=4, date=3' } },
   { lv: 3, id: 'setmap', q: 'What happens when you add null to a TreeSet<String> after adding "grape" and "apple"?',
     a: ['A NullPointerException is thrown', 'null goes in at the front as the smallest value', 'null goes in at the end as the largest value', 'It is ignored with no exception, and false is returned'],
-    why: 'A TreeSet decides the position on every addition by comparing the values with compareTo. null cannot be compared, so a NullPointerException is thrown. HashSet and LinkedHashSet can hold one null.',
+    why: 'A TreeSet decides the position on every addition by comparing the values with compareTo. null cannot be compared, so a NullPointerException is thrown. HashSet and LinkedHashSet can take one null.',
     sim: { c: { kind: 'tree', data: 'null', shape: 'set' }, col: 3, has: 'NullPointerException' } },
   { lv: 3, id: 'setmap', q: 'What happens when you add a Task object that does not implement Comparable to a Set<Task> created with new TreeSet<>()?',
     a: ['The code compiles, but the first add throws a ClassCastException at run time', 'A compile-time error occurs, so the program cannot even be run', 'It goes in with no exception, and iteration returns the objects in insertion order', 'It goes in with no exception, and iteration returns the objects sorted from the smallest hashCode'],

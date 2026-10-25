@@ -43,7 +43,7 @@ Lab.verify({
   httpver: ['part', 'HTTP/1.1·2는 브라우저로 확인, HTTP/3와 유실은 재현 못 함'],
   pwhash: ['part', 'SHA-256은 실제 계산, bcrypt는 재지 못함'],
   journey: ['part', 'curl로 순서와 연결 재사용 확인, 프록시 뒤 구간은 미확인'],
-  webattack: ['part', '세 공격의 일부를 SQLite와 브라우저로 확인'],
+  webattack: ['part', '세 공격의 일부를 SQLite, 브라우저, 스프링 시큐리티 서버로 확인'],
   httpmsg: ['part', '메시지 구조는 실제 원문과 대조, 상태 코드는 표준 기준'],
   ctx: ['part', 'JDK 21 실측과 방향이 같음(수치는 모형)'],
   cookie: ['part', '브라우저와 시험 서버로 확인(브라우저 종료 시 삭제는 미확인)'],
@@ -77,7 +77,7 @@ Lab.verify({
   gateway: ['doc', 'Spring Cloud Gateway의 설정 조건'],
   connpool: ['doc', 'HikariCP·Hibernate의 기본 동작(수치는 모형)'],
 
-  auth: ['model', '널리 쓰이는 구성을 옮긴 모형'],
+  auth: ['model', '널리 쓰이는 구성을 옮긴 모형(JWT 코드는 Spring Security 시그니처 대역으로 컴파일만 확인)'],
   index: ['model', '경험칙에 맞춘 비용 모형'],
   scale: ['model', '관계를 보이는 예시 수치'],
   replica: ['model', '원리를 보이는 모형'],

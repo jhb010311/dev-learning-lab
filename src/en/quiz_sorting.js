@@ -12,7 +12,7 @@ Lab.quiz([
     a: ['Because List.sort is a stable sort, which keeps the original order of elements whose comparison result is 0', 'Because when the balances are equal, List.sort compares the names lexicographically on its own', 'Because when the balances are equal, List.sort decides the order by comparing the hashCode of the two objects', 'Because the order normally differs from run to run, and this time it happened to come out the same'],
     why: 'List.sort and Collections.sort, which sort objects in Java, are stable sorts. Elements whose comparison result is 0 keep the relative order they had before the sort. If you also want them in order by name, you must supply a second sort key with thenComparing.',
     sim: { c: { by: 'cmp', data: 'normal', rev: false }, col: 0, has: 'choi, lee, han, park, kim' } },
-  { lv: 3, id: 'sorting', q: 'A list holds park(300), choi(100), kim(300), lee(100), han(200) in that order. What order results when it is sorted with Comparator.comparingInt(Account::balance).reversed()?',
+  { lv: 3, id: 'sorting', q: 'A list has park(300), choi(100), kim(300), lee(100), han(200) in that order. What order results when it is sorted with Comparator.comparingInt(Account::balance).reversed()?',
     a: ['park, kim, han, choi, lee', 'kim, park, han, lee, choi', 'park, kim, han, lee, choi', 'choi, lee, han, park, kim'],
     why: 'The accounts run from the largest balance. park and kim, and choi and lee, have the same balance, so their comparison result is 0, and reversing 0 still gives 0, so they keep the order they had before the sort (park before kim, and choi before lee).',
     sim: { c: { by: 'cmp', data: 'normal', rev: true }, col: 0, has: 'park, kim, han, choi, lee' } },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -45,7 +45,7 @@
 <dt>Primitive types and reference types</dt>
 <dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
 <dt>ArrayList</dt>
-<dd>This is a list that keeps an array inside and moves the elements to a larger array when the array is full. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
+<dd>This is a list that refers to an array through a field, and when that array is full, it creates a larger array and copies the elements over. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -175,6 +175,6 @@ System.out.println(Arrays.toString(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

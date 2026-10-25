@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dd><b>Where it's used today</b> — It is commonly used in mobile apps and SPAs that keep a login with a JWT. The refresh token is often kept in an HttpOnly cookie or in the app's secure storage, and the server also records it and revokes it when the user logs out.</dd>
 <dd>An access token is the token that a client presents when it calls an API. Its lifetime is kept short to reduce the damage if it is stolen. A refresh token is the token used to get a new access token when the access token expires. It has a long lifetime and is stored more securely. The server can revoke a refresh token to stop new access tokens from being issued.</dd>
 <dt>Cross-site request forgery (CSRF)</dt>
-<dd>An attack that takes advantage of the fact that a user is logged in: a page made by the attacker causes the user's browser to send an unintended request to the target site. The browser attaches cookies automatically, so the server treats it as a normal request. To block it, require requests to include an unpredictable token issued by the server, or use the SameSite attribute of cookies.</dd>
+<dd>An attack that takes advantage of the fact that a user is logged in: a page made by the attacker causes the user's browser to send an unintended request to the target site. The browser attaches cookies automatically, so the server treats it as a normal request. The primary defense is to require requests to include an unpredictable token issued by the server (a CSRF token, which Spring Security checks by default), and the SameSite attribute of cookies is a secondary defense used together with it.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -186,6 +186,6 @@ spring.security.oauth2.client:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

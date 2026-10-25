@@ -1,7 +1,7 @@
 // "Optional" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
 Lab.quiz([
   { lv: 1, id: 'optional', q: 'name이 null일 때 Optional.of(name)을 실행하면 어떻게 됩니까?',
-    a: ['NullPointerException이 발생한다', '비어 있는 Optional이 만들어진다', 'null을 담은 Optional이 만들어진다', 'NoSuchElementException이 발생한다'],
+    a: ['NullPointerException이 발생한다', '비어 있는 Optional이 만들어진다', '값이 null인 Optional이 만들어진다', 'NoSuchElementException이 발생한다'],
     why: 'Optional.of는 값이 반드시 있을 때 쓰는 메서드라서 null을 받으면 그 자리에서 NullPointerException을 던집니다. null일 수도 있는 값은 Optional.ofNullable로 감싸야 비어 있는 Optional이 됩니다.',
     sim: { c: { val: 'null', make: 'of', take: 'get' }, col: 0, has: 'NullPointerException' } },
   { lv: 2, id: 'optional', q: 'Optional에 값이 들어 있는데도 opt.orElse(makeDefault())를 실행하면 makeDefault()가 실행됩니다. 까닭은 무엇입니까?',
@@ -9,7 +9,7 @@ Lab.quiz([
     why: 'orElse의 괄호 안은 평범한 인자입니다. 자바는 메서드를 부르기 전에 인자를 먼저 계산하므로, Optional에 값이 있든 없든 makeDefault()가 실행됩니다. 비어 있을 때만 실행되게 하려면 orElseGet(() -> makeDefault())처럼 코드를 람다로 넘깁니다.',
     sim: { c: { val: 'kim', make: 'nullable', take: 'orElse' }, col: 2, has: '실행됨' } },
   { lv: 2, id: 'optional', q: '비어 있는 Optional<String>에 map(s -> s.toUpperCase())를 호출하면 어떻게 됩니까?',
-    a: ['함수를 실행하지 않고 비어 있는 Optional을 돌려준다', '함수에 null을 넘겨 NullPointerException이 발생한다', '함수에 빈 문자열을 넘기고 그 결과를 담아 돌려준다', '값이 없다는 뜻으로 NoSuchElementException을 던진다'],
+    a: ['함수를 실행하지 않고 비어 있는 Optional을 돌려준다', '함수에 null을 넘겨 NullPointerException이 발생한다', '함수에 빈 문자열을 넘기고 그 결과로 Optional을 만들어 돌려준다', '값이 없다는 뜻으로 NoSuchElementException을 던진다'],
     why: 'map은 값이 들어 있을 때만 함수를 적용합니다. 비어 있으면 함수를 건너뛰고 비어 있는 Optional을 넘기므로, null 검사를 적지 않아도 예외 없이 이어 갈 수 있습니다. 값이 없을 때의 처리는 끝의 orElse에 적습니다.',
     sim: { c: { val: 'null', make: 'nullable', take: 'map' }, col: 1, has: '이름 없음' } },
   { lv: 3, id: 'optional', q: 'Optional.ofNullable(null)로 만든 opt에 대해 String result = opt.get();을 실행하면 어떻게 됩니까?',

@@ -11,15 +11,15 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
-// 기초개념 "List와 Map" 실습의 여섯 가지 조합(담는 그릇 2 x 꺼내거나 넣는 것 3)을 실제로 실행한다.
+// 기초개념 "List와 Map" 실습의 여섯 가지 조합(컬렉션 종류 2 x 꺼내거나 넣는 것 3)을 실제로 실행한다.
 // 조합마다 화면에 보이는 것과 같은 소스를 문자열로 만들어 javax.tools로 컴파일하고,
 // 컴파일이 성공하면 이 JDK의 java를 자식 프로세스로 띄워 Main을 실행해 표준 출력, 표준 오류, 종료 코드를 잡는다.
 //   kind : list(List<String> names) / map(Map<String, Integer> ages)
 //   ask  : has(있는 것을 꺼냄) / none(없는 것을 꺼냄: names.get(5) 또는 ages.get("park")) / dup("kim"을 한 번 더 넣음)
 // 출력: kind|ask => 컴파일(OK/ERR)|오류 개수|종료 코드|표준 출력(여러 줄이면 " / ", 없으면 (없음))|
 //        표준 오류의 첫 줄(없으면 -)|표준 오류의 줄 수|표준 출력 줄 수   (한 줄로 출력한다)
-// 끝에 FACT 줄을 더한다: 단계 문장이 기대는 사실(번호는 0부터 담는 순서대로, get은 값을 없애지 않음,
-// 같은 값을 또 담으면 List는 번호 2 자리에 따로 담김, Map의 put은 이전 값을 돌려주고 값을 바꿈, 없는 키는 containsKey가 false)을
+// 끝에 FACT 줄을 더한다: 단계 문장이 기대는 사실(번호는 0부터 넣는 순서대로, get은 값을 없애지 않음,
+// 같은 값을 또 넣으면 List는 번호 2 자리가 따로 생김, Map의 put은 이전 값을 돌려주고 값을 바꿈, 없는 키는 containsKey가 false)을
 // 따로 컴파일해 실행한 결과. 조합마다 만든 소스는 verify/out/collection_basic/<조합>/Main.java에, 실제 출력은 stdout.txt와 stderr.txt에 남긴다.
 public class CollectionBasicProbe {
     // 화면의 코드(실습의 code 함수)와 같은 글
@@ -32,26 +32,26 @@ public class CollectionBasicProbe {
             + "public class Main {\n"
             + "    public static void main(String[] args) {\n");
         if (list) {
-            s.append("        // List: 넣은 순서대로 줄 세워 담는 그릇. 처음에는 비어 있다\n"
+            s.append("        // List: 넣은 순서대로 값을 줄 세우는 컬렉션. 처음에는 비어 있다\n"
                 + "        List<String> names = new ArrayList<>();\n"
-                + "        // 담기: add는 맨 뒤에 붙인다. 번호는 0부터 매겨진다\n"
+                + "        // 넣기: add는 맨 뒤에 붙인다. 번호는 0부터 매겨진다\n"
                 + "        names.add(\"kim\");\n"
                 + "        names.add(\"lee\");\n");
-            if (dup) s.append("        // 같은 값 \"kim\"을 한 번 더 담는다\n"
+            if (dup) s.append("        // 같은 값 \"kim\"을 한 번 더 넣는다\n"
                 + "        names.add(\"kim\");\n");
-            s.append("        // 개수: size는 담긴 값의 개수를 돌려준다\n"
+            s.append("        // 개수: size는 리스트가 가진 값의 개수를 돌려준다\n"
                 + "        System.out.println(names.size());\n"
                 + "        // 꺼내기: get은 그 번호 자리의 값을 돌려준다\n"
                 + "        System.out.println(names.get(" + (none ? "5" : "0") + "));\n");
         } else {
-            s.append("        // Map: 키와 값을 짝지어 담는 그릇. 처음에는 비어 있다\n"
+            s.append("        // Map: 키와 값을 짝지어 두는 컬렉션. 처음에는 비어 있다\n"
                 + "        Map<String, Integer> ages = new HashMap<>();\n"
-                + "        // 담기: put은 키와 값을 짝지어 담는다\n"
+                + "        // 넣기: put은 키와 값을 짝지어 넣는다\n"
                 + "        ages.put(\"kim\", 20);\n"
                 + "        ages.put(\"lee\", 30);\n");
-            if (dup) s.append("        // 같은 키 \"kim\"으로 한 번 더 담는다\n"
+            if (dup) s.append("        // 같은 키 \"kim\"으로 한 번 더 넣는다\n"
                 + "        ages.put(\"kim\", 25);\n");
-            s.append("        // 개수: size는 담긴 짝의 개수를 돌려준다\n"
+            s.append("        // 개수: size는 맵이 가진 짝의 개수를 돌려준다\n"
                 + "        System.out.println(ages.size());\n"
                 + "        // 꺼내기: get은 그 키와 짝지어진 값을 돌려준다\n"
                 + "        System.out.println(ages.get(\"" + (none ? "park" : "kim") + "\"));\n");

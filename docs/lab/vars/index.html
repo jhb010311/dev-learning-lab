@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>변수와 타입: 변수를 다른 변수에 대입하면 무엇이 복사되나 · 개발 학습 실습실</title>
-<meta name="description" content="변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서…">
+<meta name="description" content="변수는 값을 저장해 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="변수와 타입: 변수를 다른 변수에 대입하면 무엇이 복사되나 · 개발 학습 실습실">
-<meta property="og:description" content="변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서…">
+<meta property="og:description" content="변수는 값을 저장해 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,7 +33,7 @@
 <p><b>변수를 다른 변수에 대입하면 무엇이 복사되나</b></p>
 <p><b>왜 생겼나</b> — 숫자 하나까지 모두 객체로 만들면 값마다 객체를 따로 만들고 참조를 거쳐 읽어야 해서 계산이 느려지고 메모리도 더 든다. 기본형은 int, double 같은 작은 값을 객체 없이 바로 계산하기 위한 타입이고, 참조형은 큰 객체를 대입하거나 메서드에 넘길 때 객체 전체 대신 참조만 복사하게 한다.</p>
 <p><b>지금 어디에 쓰나</b> — int, long, boolean은 개수, 반복 횟수, 참/거짓 표시처럼 값 하나를 다룰 때 쓰고, String, List와 직접 만든 클래스는 모두 참조형으로 다룬다. 메서드에 객체를 넘기면 그 메서드가 같은 객체를 고칠 수 있으므로, 원본을 지켜야 하면 복사본이나 불변 객체를 넘긴다. List&lt;Integer&gt;처럼 꺾쇠(&lt;&gt;) 안에는 기본형을 쓸 수 없어 int 대신 래퍼 클래스 Integer를 쓴다.</p>
-<p>변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기본형은 복사본을 바꿔도 원래 변수가 그대로이고, 참조형은 두 변수가 같은 객체 하나를 함께 보게 됩니다.</p>
+<p>변수는 값을 저장해 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기본형은 복사본을 바꿔도 원래 변수가 그대로이고, 참조형은 두 변수가 같은 객체 하나를 함께 보게 됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 열다섯 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -178,6 +178,6 @@ System.out.println(a.x);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

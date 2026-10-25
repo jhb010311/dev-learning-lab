@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <dt>ResponseEntity</dt>
 <dd><b>왜 생겼나</b> — 객체만 돌려주는 컨트롤러에서 상태 코드를 경우마다 바꾸거나 헤더를 붙이려면 HttpServletResponse를 따로 받아 손대야 한다. ResponseEntity는 이것까지 반환값 하나로 정하게 해서, return 문만 보고 응답의 모양을 알 수 있게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 글을 새로 만든 뒤 201과 Location 헤더를 보내거나, 대상이 없을 때 ResponseEntity.notFound().build()로 404를 보낼 때 쓴다. 상태 코드가 늘 같으면 객체를 그대로 돌려주고 필요하면 @ResponseStatus를 붙인다.</dd>
-<dd>응답의 상태 코드와 헤더, 본문을 한꺼번에 담아 컨트롤러가 돌려주는 객체다. 객체만 돌려주면 상태 코드는 200으로 정해지지만, ResponseEntity.status(201).body(객체)나 ResponseEntity.created(주소).body(객체)처럼 쓰면 상태 코드와 헤더를 컨트롤러가 직접 정할 수 있다. 본문으로 담은 객체는 그냥 돌려줄 때와 똑같이 메시지 컨버터가 JSON 등으로 바꾼다. 경우에 따라 다른 상태 코드를 돌려줘야 하는 메서드나 @ExceptionHandler에서 주로 쓴다.</dd>
+<dd>응답의 상태 코드와 헤더, 본문을 한꺼번에 정해 컨트롤러가 돌려주는 객체다. 객체만 돌려주면 상태 코드는 200으로 정해지지만, ResponseEntity.status(201).body(객체)나 ResponseEntity.created(주소).body(객체)처럼 쓰면 상태 코드와 헤더를 컨트롤러가 직접 정할 수 있다. 본문으로 정한 객체는 그냥 돌려줄 때와 똑같이 메시지 컨버터가 JSON 등으로 바꾼다. 경우에 따라 다른 상태 코드를 돌려줘야 하는 메서드나 @ExceptionHandler에서 주로 쓴다.</dd>
 <dt>ViewResolver</dt>
 <dd><b>왜 생겼나</b> — 컨트롤러가 템플릿 파일 경로와 화면 기술을 직접 적으면, 템플릿 위치나 엔진을 바꿀 때 컨트롤러를 모두 고쳐야 한다. ViewResolver는 컨트롤러가 이름만 돌려주게 하고, 그 이름을 실제 템플릿으로 잇는 일을 설정 한곳에 모았다.</dd>
 <dd><b>지금 어디에 쓰나</b> — Spring Boot에서 Thymeleaf를 쓰면 컨트롤러가 home이라는 이름을 돌려줄 때 templates/home.html을 찾는 ViewResolver가 자동으로 등록된다. 관리자 화면처럼 서버에서 HTML을 그리는 페이지에 쓴다.</dd>
@@ -190,6 +190,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

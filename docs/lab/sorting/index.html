@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>List&lt;Account&gt; list = new ArrayList&lt;&gt;(List.of(...)): 계좌 다섯 개를 park, choi, kim, lee, han 순서로 담습니다. park와 kim의 잔액이 20억으로 같고, choi와 lee의 잔액이 -20억으로 같습니다.</li>
+<li>List&lt;Account&gt; list = new ArrayList&lt;&gt;(List.of(...)): 계좌 다섯 개를 park, choi, kim, lee, han 순서로 넣은 새 리스트를 만들고, list가 그 리스트를 가리킵니다. park와 kim의 잔액이 20억으로 같고, choi와 lee의 잔액이 -20억으로 같습니다.</li>
 <li>Comparator&lt;Account&gt; order = (a, b) -&gt; a.balance() - b.balance(): 두 잔액을 뺀 값을 비교 결과로 씁니다. a가 작으면 음수, 같으면 0, 크면 양수가 나올 것이라고 생각하고 쓴 코드입니다.</li>
 <li>order.compare(park, choi): 2000000000 - (-2000000000)을 계산합니다. 수학으로는 4000000000이지만, int는 -2147483648부터 2147483647까지만 담을 수 있어 범위를 넘칩니다(오버플로). 실제로 나오는 값은 -294967296입니다. 음수이므로 park가 choi보다 앞에 놓입니다. 잔액이 더 큰 park를 앞에 놓으라는 틀린 답입니다.</li>
 <li>order.compare(park, kim): 두 잔액이 같으므로 결과는 0입니다. 0은 &quot;순서를 가릴 수 없다&quot;는 뜻이고, 정렬은 이런 둘의 순서를 바꾸지 않습니다.</li>
@@ -186,6 +186,6 @@ System.out.println(list);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

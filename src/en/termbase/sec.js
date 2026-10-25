@@ -127,4 +127,10 @@ module.exports = [
   { ko: "AuthenticationEntryPoint와 AccessDeniedHandler", en: "AuthenticationEntryPoint and AccessDeniedHandler", how: "composed",
     src: "Spring Security Reference, Handling Security Exceptions — https://docs.spring.io/spring-security/reference/servlet/architecture.html",
     note: "인터페이스 이름 그대로(security)." },
+  { ko: "JwtEncoder와 NimbusJwtEncoder", en: "JwtEncoder and NimbusJwtEncoder", how: "composed",
+    src: "Spring Security source 7.1.1, oauth2-jose JwtEncoder.java, NimbusJwtEncoder.java — https://github.com/spring-projects/spring-security/tree/7.1.1/oauth2/oauth2-jose/src/main/java/org/springframework/security/oauth2/jwt",
+    note: "인터페이스·클래스 이름 그대로(auth). JwtDecoder와 NimbusJwtDecoder와 같은 짜임." },
+  { ko: "스프링 시큐리티의 CSRF 보호(CsrfFilter)", en: "Spring Security CSRF protection (CsrfFilter)", how: "composed",
+    src: "Spring Security Reference, Cross Site Request Forgery (CSRF) — https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html",
+    note: "문서의 \"CSRF protection\"(\"Spring Security protects against CSRF attacks by default for unsafe HTTP methods\")과 필터 클래스 이름 CsrfFilter(webattack)." },
 ];

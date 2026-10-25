@@ -6,12 +6,12 @@ Lab.register({
   intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.',
   terms: ['Cascade', 'Orphan removal (orphanRemoval)', 'Persistence context', 'Transactional write-behind and flush', 'Entity'],
   controls: [
-    { id: 'act', label: 'Action to try', type: 'select', value: 'persist', options: [['persist', 'Persist only the post, which holds two comments'], ['remove', 'Remove the post'], ['orphan', 'Take one comment out of the comment list']] },
+    { id: 'act', label: 'Action to try', type: 'select', value: 'persist', options: [['persist', 'Persist only the post, with two comments added to its list'], ['remove', 'Remove the post'], ['orphan', 'Take one comment out of the comment list']] },
     { id: 'cas', label: 'cascade of @OneToMany', type: 'select', value: 'none', options: [['none', 'Not written'], ['PERSIST', 'CascadeType.PERSIST'], ['REMOVE', 'CascadeType.REMOVE'], ['ALL', 'CascadeType.ALL']] },
     { id: 'orphan', label: 'orphanRemoval = true', type: 'check', value: false, hint: 'This setting tells JPA to also delete from the DB a child that has been disconnected from its parent.' },
   ],
   presets: [
-    { t: 'Default settings', q: 'What happens when you persist only a post that holds two comments, and cascade is not written on @OneToMany?', d: 'Persist only the post, with no cascade. There is no exception, but only the comments are left out of the save.', v: { act: 'persist', cas: 'none', orphan: false } },
+    { t: 'Default settings', q: 'What happens when you persist only a post that has two comments added to its list, and cascade is not written on @OneToMany?', d: 'Persist only the post, with no cascade. There is no exception, but only the comments are left out of the save.', v: { act: 'persist', cas: 'none', orphan: false } },
     { t: 'CascadeType.PERSIST', q: 'What if you set cascade of @OneToMany to CascadeType.PERSIST?', d: 'The persist is passed on to the comments, so 3 INSERTs are sent.', v: { act: 'persist', cas: 'PERSIST', orphan: false } },
     { t: 'Remove the post without cascade', q: 'What if you remove a post that already has two comments, and cascade is not written?', d: 'The comments point to the post, so the DB refuses the deletion.', v: { act: 'remove', cas: 'none', orphan: false } },
     { t: 'Remove with CascadeType.REMOVE', q: 'What if cascade is CascadeType.REMOVE and you remove the post?', d: 'It deletes the comments first and then the post.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
@@ -105,7 +105,7 @@ Lab.register({
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, q.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
     if (s.ex) H.text(v, 'Exception: ' + s.ex + ' (foreign key constraint violation). The transaction was rolled back, so the DB is as it was at the start.');
   },
-  // Diagram: on the left are the Java objects (the post and the two comments in its list) and their states, and on the right are the rows in the DB. The arrow in the middle appears only in a step where SQL is sent.
+  // Diagram: on the left are the Java objects (the post and the two comments its list refers to) and their states, and on the right are the rows in the DB. The arrow in the middle appears only in a step where SQL is sent.
   draw: function (P, sim, shown) {
     var self = this, last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
     function cls(k) { return { none: 'ghost', 'new': 'plain', lazy: 'ghost', managed: 'good', removed: 'bad', out: 'hot', deleted: 'ghost' }[k]; }

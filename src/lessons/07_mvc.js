@@ -48,7 +48,7 @@ Lab.register({
         go('F2', 'false를 반환한 인터셉터 자신의 afterCompletion도 호출되지 않습니다(그보다 앞서 true를 반환한 인터셉터가 있었다면 그것들만 호출됩니다). 응답은 필터 체인을 거꾸로 지나 나갑니다.', '');
       } else {
         go('IP', '인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.', '');
-        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.', '');
+        go('AR', rest ? 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.' : 'ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 넣어 둘 빈 Model 객체를 줍니다. 여기에 넣는 데이터가 MVC의 모델(M)입니다.', '');
         if (c.what === 'ex') {
           go('CT', '컨트롤러 메서드가 실행되다가 예시로 만든 예외 OutOfStockException을 던집니다. 반환값 처리와 postHandle은 건너뜁니다.', 'bad');
           if (c.advice) {
@@ -63,14 +63,14 @@ Lab.register({
             go('F2', '예외가 필터를 지나 서블릿 컨테이너까지 올라갑니다. 스프링 부트에서는 컨테이너가 /error 경로로 요청을 다시 보내고, 기본 오류 컨트롤러가 500 응답을 만듭니다.', 'bad');
           }
         } else {
-          go('CT', rest ? '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 실제 업무를 처리하고, 결과를 OrderResponse 객체(예시로 만든 클래스)로 돌려줍니다.' : '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 "orders/list"를 돌려줍니다.', '');
+          go('CT', rest ? '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 실제 업무를 처리하고, 결과를 OrderResponse 객체(예시로 만든 클래스)로 돌려줍니다.' : '컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 넣은 뒤 화면 이름 "orders/list"를 돌려줍니다.', '');
           if (rest) { resp = '200 OK + JSON'; maker = '컨트롤러 반환값';
-            go('RV', '반환값을 처리합니다. @RestController이므로 화면을 찾지 않고, HttpMessageConverter(Jackson)가 OrderResponse 객체를 JSON으로 바꿔 응답 본문에 바로 씁니다. 모델에 담아 뷰로 넘기는 과정이 없으므로, 이 경로에는 뷰(V)가 일하는 단계가 없습니다.', '');
+            go('RV', '반환값을 처리합니다. @RestController이므로 화면을 찾지 않고, HttpMessageConverter(Jackson)가 OrderResponse 객체를 JSON으로 바꿔 응답 본문에 바로 씁니다. 모델에 넣어 뷰로 넘기는 과정이 없으므로, 이 경로에는 뷰(V)가 일하는 단계가 없습니다.', '');
             go('PO', '인터셉터의 postHandle이 호출됩니다. 응답 본문은 앞 단계에서 이미 쓰였으므로, 여기서 응답 내용을 바꾸기에는 늦습니다.', '');
           } else { resp = '200 OK + HTML'; maker = '뷰(템플릿)';
             go('RV', '반환값을 처리합니다. @Controller가 돌려준 문자열 "orders/list"는 화면 이름으로 해석되고, 모델과 함께 ModelAndView로 묶입니다.', '');
             go('PO', '인터셉터의 postHandle이 호출됩니다. 아직 화면을 그리기 전이라 모델에 공통 데이터를 추가할 수 있습니다.', '');
-            go('VR', 'ViewResolver가 화면 이름 "orders/list"를 실제 템플릿 파일로 바꾸고, 뷰가 모델 데이터를 넣어 HTML을 그려 응답에 씁니다. MVC의 뷰(V)가 일하는 단계이고, 컨트롤러가 모델에 담아 둔 orders를 여기서 꺼내 씁니다.', '');
+            go('VR', 'ViewResolver가 화면 이름 "orders/list"를 실제 템플릿 파일로 바꾸고, 뷰가 모델 데이터를 넣어 HTML을 그려 응답에 씁니다. MVC의 뷰(V)가 일하는 단계이고, 컨트롤러가 모델에 넣어 둔 orders를 여기서 꺼내 씁니다.', '');
           }
           go('AC', '인터셉터의 afterCompletion이 호출됩니다. 응답 작성이 끝난 뒤이며 예외 여부와 관계없이 호출됩니다.', '');
           go('F2', '응답이 필터 체인을 거꾸로 지나 클라이언트로 나갑니다. chain.doFilter 호출 뒤에 적어 둔 필터 코드가 이때 실행됩니다.', 'end');
@@ -82,7 +82,7 @@ Lab.register({
     if (c.what === 'filter') sum.push('필터는 DispatcherServlet 앞에 있으므로, 필터에서 던진 예외나 거절은 @ControllerAdvice로 처리할 수 없습니다.');
     if (c.what === 'ex') sum.push('컨트롤러에서 예외가 나면 postHandle은 호출되지 않고 afterCompletion은 호출됩니다. 그래서 "반드시 실행돼야 하는 정리 작업"은 afterCompletion에 둡니다.');
     if (c.what === 'none' && rest) sum.push('@RestController에서는 ViewResolver를 거치지 않습니다. 반환 객체가 HttpMessageConverter를 통해 곧바로 응답 본문이 됩니다.');
-    if (c.what === 'none' && !rest) sum.push('컨트롤러는 요청을 처리해 모델에 데이터를 담고 화면 이름만 돌려줍니다. 뷰는 그 모델을 받아 HTML을 그립니다. 둘을 이어 주는 것은 DispatcherServlet입니다.');
+    if (c.what === 'none' && !rest) sum.push('컨트롤러는 요청을 처리해 모델에 데이터를 넣고 화면 이름만 돌려줍니다. 뷰는 그 모델을 받아 HTML을 그립니다. 둘을 이어 주는 것은 DispatcherServlet입니다.');
     if (!sum.length) sum.push('최종 응답은 ' + resp + '이고, 응답을 만든 곳은 ' + maker + '입니다.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
@@ -109,7 +109,7 @@ Lab.register({
     P.region('path', 16, 16, 396, 42 + stages.length * 29, '요청이 지나는 길 (위에서 아래로)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? '지금 여기' : id === s.end ? '여기서 문제 발생' : seen ? '지나감' : done ? '건너뜀' : (group[id] || '') }); });
     P.region('roles', 440, 114, 224, 246, 'MVC의 세 역할');
-    var mSub = rest ? ['Model 객체는 쓰지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '담기 전에 예외 발생'] : [num('CT') + 'orders가 담김']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
+    var mSub = rest ? ['Model 객체는 쓰지 않음', '반환 객체가 JSON이 됨'] : !at('AR') ? [done ? '만들어지지 않음' : '아직 없음'] : [num('AR') + '빈 모델이 만들어짐'].concat(!at('CT') ? [] : ex ? [num('CT') + '추가 전에 예외 발생'] : [num('CT') + 'orders가 추가됨']).concat(at('VR') ? [num('VR') + '뷰가 꺼내 씀'] : []);
     var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? '호출되지 않음' : '아직 호출 전') : num('CT') + (ex ? '예외를 던짐' : s.cur === 'CT' ? '실행 중' : '실행 끝')];
     var vSub = rest ? ['없음', at('RV') ? num('RV') + '뷰 없이 JSON을 씀' : 'JSON 응답에는 쓰이지 않음'] : ['orders/list 템플릿', at('VR') ? num('VR') + '모델로 HTML을 그림' : done ? '그려지지 않음' : at('RV') ? '화면 이름이 정해짐' : '아직 쓰이지 않음'];
     var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };

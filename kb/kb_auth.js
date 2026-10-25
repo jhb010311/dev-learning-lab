@@ -1,0 +1,7 @@
+// "세션과 JWT" 실습의 JWT 코드를 Spring Security 표준(JwtEncoder로 발급, JwtDecoder로 검증)으로 바꾸면서 추가한 용어
+// JwtEncoder·NimbusJwtEncoder·JwtClaimsSet·JwsHeader·JwtEncoderParameters의 시그니처와 동작은 Spring Security 7.1.1 소스와 대조했다
+// (https://github.com/spring-projects/spring-security/tree/7.1.1/oauth2/oauth2-jose/src/main/java/org/springframework/security/oauth2/jwt).
+// 이 컴퓨터에는 spring-security-oauth2-jose와 nimbus-jose-jwt가 없어 실행하지 않았고, 화면 코드는 verify/spring/jwt_stubs의 대역으로 컴파일만 확인했다.
+module.exports = [
+  ['보안', 'JwtEncoder와 NimbusJwtEncoder', 'JwtEncoder는 Spring Security(spring-security-oauth2-jose)가 주는 인터페이스로, 메서드 Jwt encode(JwtEncoderParameters parameters) 하나로 토큰을 만들어 서명한다. 넘기는 값은 JwtClaimsSet.builder()로 적은 클레임(sub, iat, exp 등)과 JwsHeader.with(MacAlgorithm.HS256)처럼 서명 알고리즘을 정한 머리말이고, 돌려받은 Jwt의 getTokenValue()가 사용자에게 내려 줄 토큰 글자다. 실패하면 JwtEncodingException을 던진다. NimbusJwtEncoder는 Nimbus JOSE+JWT 라이브러리로 이 일을 하는 기본 구현이다. 대칭 키(HS256)는 NimbusJwtEncoder.withSecretKey(key).build(), RSA·EC 키 쌍은 withKeyPair(publicKey, privateKey)로 만든다(둘 다 Spring Security 7.0부터).', { why: '토큰을 직접 만들면 머리말과 클레임을 JSON으로 적고 base64url로 바꾸고, 알맞은 알고리즘으로 서명해 이어 붙이는 일을 모두 손으로 맞춰야 한다. 스프링은 검증 쪽의 JwtDecoder와 짝이 되도록 발급 쪽에도 인터페이스를 두어, 클레임만 정하면 같은 라이브러리가 서명까지 해 주게 했다.', use: '로그인 API가 액세스 토큰을 직접 발급하는 서버에서 쓴다. 같은 키로 만든 JwtDecoder를 빈으로 등록하고 http.oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))를 켜 두면, 발급한 토큰을 이후 요청에서 검증한다. 구글이나 키클록 같은 인가 서버가 토큰을 발급하는 구성에서는 서비스 서버가 JwtEncoder 없이 JwtDecoder만 쓴다.' }],
+];

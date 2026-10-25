@@ -55,7 +55,7 @@ Lab.register({
     function num(v) { return v < 0 ? '(' + v + ')' : String(v); }
     function mean(v, other) { return v < 0 ? '음수이므로 park가 ' + other + '보다 앞에 놓입니다.' : v > 0 ? '양수이므로 park가 ' + other + '보다 뒤에 놓입니다.' : '0은 "순서를 가릴 수 없다"는 뜻이고, 정렬은 이런 둘의 순서를 바꾸지 않습니다.'; }
     var park = D[0], choi = D[1], kim = D[2];
-    push('List<Account> list = new ArrayList<>(List.of(...)): 계좌 다섯 개를 park, choi, kim, lee, han 순서로 담습니다. park와 kim의 잔액이 ' + this.money(park[1]) + '으로 같고, choi와 lee의 잔액이 ' + this.money(choi[1]) + '으로 같습니다.', '');
+    push('List<Account> list = new ArrayList<>(List.of(...)): 계좌 다섯 개를 park, choi, kim, lee, han 순서로 넣은 새 리스트를 만들고, list가 그 리스트를 가리킵니다. park와 kim의 잔액이 ' + this.money(park[1]) + '으로 같고, choi와 lee의 잔액이 ' + this.money(choi[1]) + '으로 같습니다.', '');
     st.has = true;
     push({ natural: 'Comparator<Account> order = Comparator.naturalOrder(): Account가 Comparable을 구현하면서 스스로 정해 둔 순서(compareTo, 이름순)를 그대로 쓰는 Comparator입니다. Collections.sort(list)처럼 Comparator를 주지 않고 정렬할 때 쓰이는 순서와 같습니다.',
       cmp: 'Comparator<Account> order = Comparator.comparingInt(Account::balance): 바깥에서 주는 순서입니다. 두 계좌에서 잔액을 꺼내 크기를 비교합니다. Account 클래스의 compareTo(이름순)는 쓰이지 않습니다.',

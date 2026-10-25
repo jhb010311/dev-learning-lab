@@ -14,7 +14,7 @@ Lab.quiz([
     sim: { c: { kind: 'obj', req: 'text' }, col: 0, has: '415' } },
   { lv: 2, id: 'msgconv', q: 'Why would you wrap an object in a ResponseEntity instead of returning the object as it is?',
     a: ['So that the controller can set the status code and the response headers itself', 'To make the conversion of the object to JSON faster', 'To respond without going through a message converter', 'To return JSON even without @RestController'],
-    why: 'When you return only an object, the status code is 200. A ResponseEntity can hold the status code, the headers, and the body together, so you can build a response that fits the situation, such as 201 with a Location header. The body is converted by a message converter in the same way.',
+    why: 'When you return only an object, the status code is 200. A ResponseEntity lets you set the status code, the headers, and the body together, so you can build a response that fits the situation, such as 201 with a Location header. The body is converted by a message converter in the same way.',
     sim: { c: { kind: 'entity', req: 'ok' }, col: 0, has: '201' } },
   { lv: 3, id: 'msgconv', q: 'You sent a request with Accept: application/xml to POST /orders, which creates an order, and 406 came back. The server cannot produce XML, and produces is not written on the method. What happened to the order?',
     a: ['The controller had already run, so the order was created', 'The controller did not run, so there is no order', 'Spring rolled back the transaction, so the order was canceled', 'The order was created, and only the response body came as JSON'],

@@ -76,13 +76,13 @@ Lab.register({
       } else {
         st.repo = 'injected'; st.stage.ctor = 'repository received as an argument'; st.stage.inject = 'Finished together in the constructor'; mark('ctor:set', 'Constructor (repository set)');
         push('Constructor: ' + how + ' With constructor injection, creating the object and injecting the dependency happen in one step, so repository is already set inside the constructor.', 'good');
-        if (inCtor) { st.prices = 'loaded'; push('this.repository.findAll() inside the constructor: repository is set, so the price list is read and stored in prices.', 'good'); }
+        if (inCtor) { st.prices = 'loaded'; push('this.repository.findAll() inside the constructor: repository is set, so the price list is read, and prices is set to refer to that Map.', 'good'); }
       }
       st.cur = 'init';
       if (!k.inits.length) { st.stage.init = 'No callback'; return true; }
       k.inits.forEach(function (cbk, i) {
         mark(cbk[0] + ':set', cbk[1]); st.stage.init = k.inits.slice(0, i + 1).map(function (x) { return x[1]; }).join(' → ');
-        if (i === 0) { st.prices = 'loaded'; push('Initialization callback: The container calls ' + cbk[2] + '. It is called after dependency injection finishes, so repository can be used. The price list is read and stored in prices.', 'good'); }
+        if (i === 0) { st.prices = 'loaded'; push('Initialization callback: The container calls ' + cbk[2] + '. It is called after dependency injection finishes, so repository can be used. The price list is read, and prices is set to refer to that Map.', 'good'); }
         else push('Initialization callback: Next, the container calls ' + cbk[2] + '.' + (i === 1 ? ' The method marked with an annotation comes first, and the interface method comes next.' : ' The method specified by name in @Bean comes last.'), '');
       });
       return true;

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Polymorphism</dt>
-<dd>This is the property that calling the same method through a reference of the same type runs different behavior depending on the kind of the actual object. A variable of a supertype (an interface or a superclass) can hold objects of several subtypes, and which implementation runs is decided at run time (dynamic method lookup). It lets you add a new implementation without changing the calling code.</dd>
+<dd>This is the property that calling the same method through a reference of the same type runs different behavior depending on the kind of the actual object. A variable of a supertype (an interface or a superclass) can refer to objects of several subtypes, and which implementation runs is decided at run time (dynamic method lookup). It lets you add a new implementation without changing the calling code.</dd>
 <dt>Overriding</dt>
 <dd><b>Why it exists</b> — When an inherited method does not fit a subclass, creating a new method with a different name means that code calling through the supertype still runs the old inherited behavior. Overriding redefines the method with the same signature so that the new behavior runs even when it is called through the supertype.</dd>
 <dd><b>Where it's used today</b> — It is used when you rewrite toString, equals, and hashCode to suit a class, and when you implement the methods of an interface. If you add @Override, the compiler catches the mistake of writing the name or parameters wrongly and ending up with a new method.</dd>
@@ -188,6 +188,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

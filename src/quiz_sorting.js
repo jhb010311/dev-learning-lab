@@ -12,7 +12,7 @@ Lab.quiz([
     a: ['List.sort는 비교 결과가 0인 원소들의 원래 순서를 지키는 안정 정렬이기 때문이다', '잔액이 같으면 List.sort가 알아서 이름의 사전 순서를 비교해 주기 때문이다', '잔액이 같으면 List.sort가 두 객체의 hashCode를 비교해 순서를 정하기 때문이다', '원래는 실행할 때마다 달라지는데 이번에는 우연히 같은 순서로 나온 것이다'],
     why: '자바에서 객체를 정렬하는 List.sort와 Collections.sort는 안정 정렬입니다. 비교 결과가 0인 원소들은 정렬 전의 앞뒤 순서를 그대로 지킵니다. 이름순까지 원한다면 thenComparing으로 두 번째 기준을 주어야 합니다.',
     sim: { c: { by: 'cmp', data: 'normal', rev: false }, col: 0, has: 'choi, lee, han, park, kim' } },
-  { lv: 3, id: 'sorting', q: 'park(300), choi(100), kim(300), lee(100), han(200) 순서로 담긴 목록을 Comparator.comparingInt(Account::balance).reversed()로 정렬하면 어떤 순서가 됩니까?',
+  { lv: 3, id: 'sorting', q: 'park(300), choi(100), kim(300), lee(100), han(200) 순서로 넣은 목록을 Comparator.comparingInt(Account::balance).reversed()로 정렬하면 어떤 순서가 됩니까?',
     a: ['park, kim, han, choi, lee', 'kim, park, han, lee, choi', 'park, kim, han, lee, choi', 'choi, lee, han, park, kim'],
     why: '잔액이 큰 것부터 놓입니다. 잔액이 같은 park와 kim, choi와 lee는 비교 결과가 0이고, 0은 뒤집어도 0이므로 정렬 전의 순서(park가 kim보다 앞, choi가 lee보다 앞)를 그대로 지킵니다.',
     sim: { c: { by: 'cmp', data: 'normal', rev: true }, col: 0, has: 'park, kim, han, choi, lee' } },

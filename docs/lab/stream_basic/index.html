@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스트림: 스트림은 무엇이고, for 문과 무엇이 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="스트림은 컬렉션(여러 값을 담은 리스트 같은 것)에 든 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ... 는 값…">
+<meta name="description" content="스트림은 컬렉션(여러 값을 모아 다루는 리스트 같은 것)이 가진 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ...…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/stream_basic/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/stream_basic/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stream_basic/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스트림: 스트림은 무엇이고, for 문과 무엇이 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="스트림은 컬렉션(여러 값을 담은 리스트 같은 것)에 든 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ... 는 값…">
+<meta property="og:description" content="스트림은 컬렉션(여러 값을 모아 다루는 리스트 같은 것)이 가진 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ...…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/stream_basic/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,7 +33,7 @@
 <p><b>스트림은 무엇이고, for 문과 무엇이 다른가</b></p>
 <p><b>왜 생겼나</b> — for 문으로 거르고 바꾸는 코드는 반복, 조건 검사, add가 한데 섞여 있어서, 읽는 사람이 &quot;결국 무엇을 골라 무엇으로 바꾸나&quot;를 줄마다 따라가며 짐작해야 한다. 스트림은 filter, map처럼 이름이 붙은 단계를 차례로 이어 적게 해서, 코드의 줄 순서가 곧 일의 순서로 읽히게 한다.</p>
 <p><b>지금 어디에 쓰나</b> — DB에서 읽어 온 목록에서 조건에 맞는 것만 고르기, 회원 목록을 화면에 보낼 이름 목록으로 바꾸기, 합계나 개수 구하기처럼 목록을 한 번 훑어 결과를 만드는 곳에 흔히 쓴다. 반복하면서 바깥의 변수를 여러 개 고치거나 단계가 복잡하게 얽힌 일은 for 문이 더 읽기 쉬워서 그대로 for 문을 쓴다.</p>
-<p>스트림은 컬렉션(여러 값을 담은 리스트 같은 것)에 든 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ... 는 값 n을 받아 계산한 답을 돌려주는 짧은 함수(람다)이고, 여기서는 n을 2로 나눈 나머지가 0인지(짝수인지) 보아 true인 값만 통과시킵니다. .map(n -&gt; n * 10)은 바꾸는 단계로, 통과한 값을 10배로 바꿉니다. .toList()는 흘러나온 값을 모아 리스트로 만드는 마지막 단계입니다. 같은 일을 for 문으로 쓰려면 결과를 담을 새 리스트를 만들고, 값을 하나씩 꺼내고, if로 조건을 보고, add로 담는 일을 모두 직접 적어야 합니다. 이 실습은 스트림과 for 문을 나란히 놓고 filter 줄과 map 줄을 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, result에 무엇이 담기는지와 원래 리스트 nums가 바뀌는지를 봅니다. (import 줄과 main 메서드는 줄여서 보입니다.)</p>
+<p>스트림은 컬렉션(여러 값을 모아 다루는 리스트 같은 것)이 가진 값을 하나씩 흘려보내면서 거르고 바꾸는 방법입니다. 코드에서는 nums.stream()으로 시작해 점(.)으로 단계를 이어 붙입니다. .filter(n -&gt; n % 2 == 0)은 거르는 단계로, n -&gt; ... 는 값 n을 받아 계산한 답을 돌려주는 짧은 함수(람다)이고, 여기서는 n을 2로 나눈 나머지가 0인지(짝수인지) 보아 true인 값만 통과시킵니다. .map(n -&gt; n * 10)은 바꾸는 단계로, 통과한 값을 10배로 바꿉니다. .toList()는 흘러나온 값을 모아 리스트로 만드는 마지막 단계입니다. 같은 일을 for 문으로 쓰려면 결과를 모을 새 리스트를 만들고, 값을 하나씩 꺼내고, if로 조건을 보고, add로 넣는 일을 모두 직접 적어야 합니다. 이 실습은 스트림과 for 문을 나란히 놓고 filter 줄과 map 줄을 하나씩 지워 가며 같은 코드를 컴파일하고 실행해, result가 가리키는 리스트에 무엇이 모이는지와 원래 리스트 nums가 바뀌는지를 봅니다. (import 줄과 main 메서드는 줄여서 보입니다.)</p>
 <p>실행으로 대조 · JDK 21에서 여덟 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -43,41 +43,41 @@
 <dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
 <dt>filter와 map</dt>
 <dd><b>지금 어디에 쓰나</b> — 입력받은 글자 목록에서 빈 글자를 걸러 내거나(filter), 가격 목록을 할인한 가격 목록으로 바꿀(map) 때 쓴다. 고르기와 바꾸기를 함께 해야 하면 filter 뒤에 map을 이어 붙인다.</dd>
-<dd>filter와 map은 스트림에 이어 붙이는 두 가지 중간 연산이다. filter(조건)는 조건이 true인 값만 남긴 스트림을 돌려주고, 조건을 담은 n -&gt; n % 2 == 0 같은 람다는 값 하나를 받아 true나 false를 돌려준다. map(함수)은 스트림의 값마다 함수를 적용한 결과로 이루어진 스트림을 돌려주므로, 값을 바꾸지만 값의 개수는 그대로이다. 둘 다 원본 컬렉션에서 값을 지우거나 고치지 않고 새 스트림을 돌려주며, 결과를 얻으려면 끝에 toList 같은 최종 연산이 필요하다.</dd>
+<dd>filter와 map은 스트림에 이어 붙이는 두 가지 중간 연산이다. filter(조건)는 조건이 true인 값만 남긴 스트림을 돌려주고, 조건을 적은 n -&gt; n % 2 == 0 같은 람다는 값 하나를 받아 true나 false를 돌려준다. map(함수)은 스트림의 값마다 함수를 적용한 결과로 이루어진 스트림을 돌려주므로, 값을 바꾸지만 값의 개수는 그대로이다. 둘 다 원본 컬렉션에서 값을 지우거나 고치지 않고 새 스트림을 돌려주며, 결과를 얻으려면 끝에 toList 같은 최종 연산이 필요하다.</dd>
 <dt>toList()와 스트림의 결과</dt>
 <dd><b>왜 생겼나</b> — 예전에는 스트림의 결과를 리스트로 받으려면 collect(Collectors.toList())라고 길게 적어야 했고, 받은 리스트를 고칠 수 있는지도 정해져 있지 않았다. toList()는 더 짧게 쓰게 하면서 고칠 수 없는 리스트를 돌려준다고 정해 두어, 결과가 나중에 다른 코드에서 바뀌지 않게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — filter, map으로 만든 결과를 메서드에서 돌려주거나 다른 곳에 넘길 때 끝에 붙인다. 받은 뒤에 값을 더 넣어야 하면 new ArrayList&lt;&gt;(결과)처럼 고칠 수 있는 리스트를 새로 만든다.</dd>
-<dd>toList()는 스트림이 흘려보낸 값을 스트림에서 만난 순서대로 List에 모으는 최종 연산이다. 중간 연산인 filter와 map은 새 스트림을 돌려줄 뿐이어서, 값을 담은 리스트는 toList() 같은 최종 연산을 거쳐야 얻는다. toList()가 돌려주는 List는 수정할 수 없어서 add 같은 메서드를 부르면 UnsupportedOperationException이 난다. 스트림은 값을 저장하는 자료구조가 아니라 원본에서 값을 전달하는 통로이고, 연산은 원본을 바꾸지 않는다.</dd>
+<dd>toList()는 스트림이 흘려보낸 값을 스트림에서 만난 순서대로 List에 모으는 최종 연산이다. 중간 연산인 filter와 map은 새 스트림을 돌려줄 뿐이어서, 값을 모은 리스트는 toList() 같은 최종 연산을 거쳐야 얻는다. toList()가 돌려주는 List는 수정할 수 없어서 add 같은 메서드를 부르면 UnsupportedOperationException이 난다. 스트림은 값을 저장하는 자료구조가 아니라 원본에서 값을 전달하는 통로이고, 연산은 원본을 바꾸지 않는다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
 <li><b>처음 설정으로</b> — filter와 map이 있는 스트림. 짝수만 남아 10배가 되고, nums는 그대로입니다.</li>
-<li><b>같은 일을 for 문으로 쓰면</b> — 결과는 같고, 코드는 새 리스트 만들기부터 담기까지 모두 직접 적습니다.</li>
-<li><b>.filter 줄을 지우면</b> — 거르는 단계가 없어 모든 값이 10배가 되어 담깁니다.</li>
-<li><b>.map 줄을 지우면</b> — 바꾸는 단계가 없어 통과한 값이 그대로 담깁니다.</li>
-<li><b>둘 다 지우면</b> — 거르지도 바꾸지도 않아 nums와 같은 값이 담깁니다.</li>
+<li><b>같은 일을 for 문으로 쓰면</b> — 결과는 같고, 코드는 새 리스트 만들기부터 넣기까지 모두 직접 적습니다.</li>
+<li><b>.filter 줄을 지우면</b> — 거르는 단계가 없어 모든 값이 10배가 되어 결과 리스트에 모입니다.</li>
+<li><b>.map 줄을 지우면</b> — 바꾸는 단계가 없어 통과한 값이 그대로 결과 리스트에 모입니다.</li>
+<li><b>둘 다 지우면</b> — 거르지도 바꾸지도 않아 nums와 같은 값이 결과 리스트에 모입니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6); 줄이 값 6개를 이 순서대로 담은 리스트 nums를 만듭니다. 이 리스트가 앞으로 거르고 바꿀 값의 출처입니다.</li>
+<li>List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6); 줄이 값 6개를 이 순서대로 가진 리스트를 만들고, nums가 그 리스트를 가리킵니다. 이 리스트가 앞으로 거르고 바꿀 값의 출처입니다.</li>
 <li>nums.stream() 줄이 nums에 든 값을 하나씩 흘려보내는 흐름, 곧 스트림을 만듭니다. 스트림은 값을 따로 저장하는 곳이 아니라, nums에서 값을 하나씩 꺼내 다음 단계로 전해 주는 통로입니다. 아래에 이어 붙인 .filter, .map, .toList 줄은 그 통로에 단계를 더한 것입니다. 끝의 .toList() 줄이 실행되면 값이 하나씩 흘러갑니다.</li>
-<li>값 1: filter가 n % 2 == 0 식을 계산합니다. 1 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 result에 담기지 않습니다.</li>
+<li>값 1: filter가 n % 2 == 0 식을 계산합니다. 1 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 결과 리스트에 모이지 않습니다.</li>
 <li>값 2: filter가 n % 2 == 0 식을 계산합니다. 2 % 2의 나머지는 0이어서 true이고, 이 값은 다음 단계로 통과합니다.</li>
 <li>값 2: map이 n * 10 식을 계산해 값을 바꿉니다. n * 10은 20이고, 바뀐 값은 toList 쪽으로 흘러가 모입니다.</li>
-<li>값 3: filter가 n % 2 == 0 식을 계산합니다. 3 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 result에 담기지 않습니다.</li>
+<li>값 3: filter가 n % 2 == 0 식을 계산합니다. 3 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 결과 리스트에 모이지 않습니다.</li>
 <li>값 4: filter가 n % 2 == 0 식을 계산합니다. 4 % 2의 나머지는 0이어서 true이고, 이 값은 다음 단계로 통과합니다.</li>
 <li>값 4: map이 n * 10 식을 계산해 값을 바꿉니다. n * 10은 40이고, 바뀐 값은 toList 쪽으로 흘러가 모입니다.</li>
-<li>값 5: filter가 n % 2 == 0 식을 계산합니다. 5 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 result에 담기지 않습니다.</li>
+<li>값 5: filter가 n % 2 == 0 식을 계산합니다. 5 % 2의 나머지는 1이어서 false이고, 이 값은 버려집니다. 버려진 값은 map에 닿지 않고 결과 리스트에 모이지 않습니다.</li>
 <li>값 6: filter가 n % 2 == 0 식을 계산합니다. 6 % 2의 나머지는 0이어서 true이고, 이 값은 다음 단계로 통과합니다.</li>
 <li>값 6: map이 n * 10 식을 계산해 값을 바꿉니다. n * 10은 60이고, 바뀐 값은 toList 쪽으로 흘러가 모입니다.</li>
-<li>nums의 값 6개가 모두 흘러갔습니다. .toList() 줄이 모인 값으로 리스트를 만들어 result에 담습니다. result는 [20, 40, 60]입니다.</li>
+<li>nums의 값 6개가 모두 흘러갔습니다. .toList() 줄이 모인 값으로 리스트를 만들고, result가 그 리스트를 가리킵니다. result는 [20, 40, 60]입니다.</li>
 <li>System.out.println(result) 줄의 출력은 [20, 40, 60]입니다.</li>
 <li>System.out.println(nums) 줄의 출력은 [1, 2, 3, 4, 5, 6]입니다. 스트림은 nums에서 값을 흘려보내기만 했고 nums를 고치지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>스트림은 컬렉션의 값을 하나씩 흘려보내며 거르고(filter) 바꾸는(map) 방법입니다. nums의 값이 하나씩 흘러 짝수만 남고 10배가 되어, result에 담긴 값은 [20, 40, 60]입니다. for 문과 다른 곳은 &quot;무엇을 거르고 무엇으로 바꿀지&quot;만 적었다는 점입니다.</li>
-<li>새 리스트를 만들고 값을 하나씩 꺼내고 담는 일은 코드에 적지 않았습니다. nums는 [1, 2, 3, 4, 5, 6] 그대로입니다. 모으는 줄을 빼면 어떻게 되는지는 세부 동작 실습 &quot;스트림 지연 평가&quot;에서 다룹니다.</li>
+<li>스트림은 컬렉션의 값을 하나씩 흘려보내며 거르고(filter) 바꾸는(map) 방법입니다. nums의 값이 하나씩 흘러 짝수만 남고 10배가 되어, result가 가리키는 리스트는 [20, 40, 60]입니다. for 문과 다른 곳은 &quot;무엇을 거르고 무엇으로 바꿀지&quot;만 적었다는 점입니다.</li>
+<li>새 리스트를 만들고 값을 하나씩 꺼내고 넣는 일은 코드에 적지 않았습니다. nums는 [1, 2, 3, 4, 5, 6] 그대로입니다. 모으는 줄을 빼면 어떻게 되는지는 세부 동작 실습 &quot;스트림 지연 평가&quot;에서 다룹니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)
@@ -88,7 +88,7 @@ List&lt;Integer&gt; result = nums.stream()
     .filter(n -&gt; n % 2 == 0)
     // 바꾸기: 통과한 값을 10배로 바꾼다
     .map(n -&gt; n * 10)
-    // 모으기: 흘러나온 값을 새 리스트에 담는다
+    // 모으기: 흘러나온 값을 새 리스트에 모은다
     .toList();
 System.out.println(result);
 System.out.println(nums);</pre>
@@ -186,6 +186,6 @@ System.out.println(nums);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

@@ -82,7 +82,7 @@ Lab.register({
 
         if (how === 'br') {
           st.stage = 5; st.errors = violates ? 1 : 0; st.after = violates ? 'errors has 1 error' : 'errors is empty';
-          push('BindingResult errors: A BindingResult parameter comes immediately after the parameter annotated with @Valid. Spring puts the validation result in this object and passes it to the controller. ' + (violates ? 'One constraint is violated, so the object holds 1 error. No exception is thrown.' : 'No constraint is violated, so the object is empty.'));
+          push('BindingResult errors: A BindingResult parameter comes immediately after the parameter annotated with @Valid. Spring records the validation result in this object and passes it to the controller. ' + (violates ? 'One constraint is violated, so 1 error is recorded in it. No exception is thrown.' : 'No constraint is violated, so the object is empty.'));
         } else if (violates) {
           st.stage = 5; st.fail = 5; status = '400 Bad Request'; ex = isParam ? 'HandlerMethodValidationException' : 'MethodArgumentNotValidException'; st.status = status; st.after = ex;
           push('Handling the validation failure: ' + (isParam ? 'Spring throws a HandlerMethodValidationException and responds with 400 Bad Request. The name of the exception is different from when an object is validated with @Valid (MethodArgumentNotValidException).' : 'A constraint is violated, and the method has no BindingResult parameter to receive that result. Spring throws a MethodArgumentNotValidException and responds with 400 Bad Request.') + NOT_RUN, 'bad');
@@ -130,7 +130,7 @@ Lab.register({
     P.region('cl', 16, 150, 220, 102, isParam ? 'Constraint on the parameter' : 'Constraint in ItemForm');
     P.box('con', 28, 186, 196, 50, { cls: s.check === 'violated' ? 'bad' : s.check ? 'good' : skipped ? 'ghost' : s.gate ? 'hot' : 'plain', title: C.a, sub: isParam ? 'String name' : 'private String name;' });
     P.region('sp', 306, 16, 358, 236, 'Until Spring calls the controller');
-    P.box('obj', 318, 48, 334, 30, { cls: s.fail === 2 ? 'bad' : s.stage >= 2 ? 'wait' : 'ghost', title: isParam ? 'Value in name' : 'Value in name of form', right: s.name });
+    P.box('obj', 318, 48, 334, 30, { cls: s.fail === 2 ? 'bad' : s.stage >= 2 ? 'wait' : 'ghost', title: isParam ? 'Value of name' : 'Value of name in form', right: s.name });
     P.box('gate', 318, 84, 334, 30, { cls: !s.gate ? 'ghost' : skipped ? 'plain' : s.stage === 3 ? 'hot now' : 'hot', title: 'Validate?', right: !s.gate ? '' : skipped ? 'no @Valid: skipped' : isParam ? 'direct constraint: validated' : '@Valid present: validated' });
     P.box('chk', 318, 120, 334, 30, { cls: s.check === 'violated' ? 'bad' : s.check ? 'good' : 'ghost', title: C.a + ' check', right: s.check || (skipped || s.fail === 2 ? 'not done' : '') });
     P.box('aft', 318, 156, 334, 30, { cls: !s.after ? 'ghost' : s.fail ? 'bad' : s.errors === 1 ? 'hot' : 'plain', title: c.how === 'br' ? 'Where the result goes' : 'Rejected', right: s.after });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,15 +61,15 @@
 <li>stream(), filter(), map() were called in order. These calls only link together &quot;what to do&quot;. They do not take a single element out. No lambda expression has run yet.</li>
 <li>toList() was called. Execution starts now. The terminal operation pulls the elements through one at a time.</li>
 <li>filter(5): It is greater than 3, so it passes. It goes straight on to the next operation, map.</li>
-<li>map(5): The value is changed to 50 and put into the result.</li>
+<li>map(5): The value is changed to 50 and collected into the result list.</li>
 <li>filter(2): It is not greater than 3, so it is dropped. This element does not go to map.</li>
 <li>filter(8): It is greater than 3, so it passes. It goes straight on to the next operation, map.</li>
-<li>map(8): The value is changed to 80 and put into the result.</li>
+<li>map(8): The value is changed to 80 and collected into the result list.</li>
 <li>filter(1): It is not greater than 3, so it is dropped. This element does not go to map.</li>
 <li>filter(9): It is greater than 3, so it passes. It goes straight on to the next operation, map.</li>
-<li>map(9): The value is changed to 90 and put into the result.</li>
+<li>map(9): The value is changed to 90 and collected into the result list.</li>
 <li>filter(4): It is greater than 3, so it passes. It goes straight on to the next operation, map.</li>
-<li>map(4): The value is changed to 40 and put into the result.</li>
+<li>map(4): The value is changed to 40 and collected into the result list.</li>
 <li>Result: [50, 80, 90, 40]</li>
 </ol>
 <h3>Result of this run</h3>
@@ -176,6 +176,6 @@ List.of(5, 2, 8, 1, 9, 4).stream()
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

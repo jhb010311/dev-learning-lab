@@ -49,7 +49,7 @@ Lab.register({
     function printed() { return h === 'toList' ? '[' + list.join(', ') + ']' : h === 'join' ? list.join(', ') : '{' + keys().map(function (k) { return k + '=' + val(k); }).join(', ') + '}'; }
     function push(s, k, idx, hit) { ev.push({ s: s, k: k, snap: { idx: idx, hit: hit || '', done: done, list: list.slice(), ents: keys().map(function (key) { return [key, val(key)]; }), ex: ex, out: out } }); }
     push(D.length ? 'orders.stream(): This creates a stream from which the 5 orders come out one at a time, in the order ' + D.map(function (x) { return x[0] + ':' + x[1]; }).join(', ') + '. Nothing has been collected yet.' : 'orders.stream(): orders is empty, so this is a stream from which no element comes out.', '', -1);
-    var pre = 'collect is a terminal operation that receives the elements one at a time as they come out and puts them into a container, and the Collector in the parentheses decides which container is used and how the elements are put in. ';
+    var pre = 'collect is a terminal operation that receives the elements one at a time as they come out and gathers them into a result object, and the Collector in the parentheses decides which result object is made and how the elements are gathered into it. ';
     push({ toList: '.collect(Collectors.toList()): ' + pre + 'toList prepares an empty List. The map(Order::customer) before it takes only the customer name out of each order and passes it on.',
       group: '.collect(Collectors.groupingBy(Order::customer)): ' + pre + 'groupingBy prepares an empty Map. For each element, it uses customer as the key and collects the elements that have the same key into one list.',
       count: '.collect(Collectors.groupingBy(Order::customer, Collectors.counting())): ' + pre + 'groupingBy prepares an empty Map and collects the elements that have the same customer together. Because of the second argument, counting(), it only counts the elements instead of keeping a list.',
@@ -84,7 +84,7 @@ Lab.register({
     if (h === 'sum') sum.push('summingInt takes an int value out of each of the grouped elements and adds the values up. This shape is used often, as in a sum per customer or a sum per category.');
     if (h === 'part') sum.push('partitioningBy splits the elements into a true group and a false group by a single condition. Even when no element belongs to a group, the two keys, false and true, are always present. groupingBy does not create a key that has no elements.');
     if (h === 'join') sum.push('joining concatenates strings into a single String with a delimiter between them. Elements that are not strings must first be converted to strings with map.');
-    if (h === 'toMap') sum.push(ex ? 'toMap holds only one value per key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.' : D.length ? 'No key was duplicated, so the code finished without an exception. If you change the list of orders to "The same customers order several times", the same code throws an exception. It is common for code to pass because the test data has no duplicate keys and then to throw an exception on real data.' : 'With no elements, there are no keys that can be duplicated, so the result is an empty Map.');
+    if (h === 'toMap') sum.push(ex ? 'toMap pairs only one value with each key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.' : D.length ? 'No key was duplicated, so the code finished without an exception. If you change the list of orders to "The same customers order several times", the same code throws an exception. It is common for code to pass because the test data has no duplicate keys and then to throw an exception on real data.' : 'With no elements, there are no keys that can be duplicated, so the result is an empty Map.');
     if (h === 'toMapMerge') sum.push('When the same key appears again, the merge function receives the existing value and the new value and returns the value to keep. (a, b) -> a + b keeps the sum, (a, b) -> a keeps the value that came first, and (a, b) -> b keeps the value that came later.' + (c.data === 'uniq' ? ' This time no key was duplicated, so the merge function was never called.' : ''));
     if (!D.length && h !== 'part' && h !== 'toMap') sum.push('Even when there are no orders at all, no exception is thrown and the result is empty.');
     return { events: ev, summary: sum, msg: msg, keysAll: keys(), row: [H.type, ex ? '(stopped before the output)' : shown, ex || 'none'] };
@@ -93,11 +93,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     var ln = H.lanes(v);
-    if (h === 'toList') { H.title(v, 'Contents of the List (in order)'); H.slots(v, s.list.map(function (x) { return [x, 'd']; }), 'empty'); }
+    if (h === 'toList') { H.title(v, 'Values the List has (in order)'); H.slots(v, s.list.map(function (x) { return [x, 'd']; }), 'empty'); }
     else if (h === 'join') H.lane(ln, 'Joined string', s.list.length ? '"' + s.list.join(', ') + '"' : 'empty', s.list.length ? 'good' : 'none');
-    else H.table(v, ['Key', h === 'count' ? 'Value (count)' : h === 'sum' ? 'Value (sum)' : h === 'group' || h === 'part' ? 'Value (list of orders)' : 'Value (price)'], s.ents.map(function (e) { return { cells: [e[0], { v: e[1], cls: e[0] === s.hit ? (s.ex ? 'bad' : 'hot') : '' }] }; }), 'Contents of the Map (shown sorted by key)');
+    else H.table(v, ['Key', h === 'count' ? 'Value (count)' : h === 'sum' ? 'Value (sum)' : h === 'group' || h === 'part' ? 'Value (list of orders)' : 'Value (price)'], s.ents.map(function (e) { return { cells: [e[0], { v: e[1], cls: e[0] === s.hit ? (s.ex ? 'bad' : 'hot') : '' }] }; }), 'Pairs the Map has (shown sorted by key)');
   },
-  // Diagram: at the top, the orders that come out of the stream; at the bottom, the container that they are collected into (a List, a string, or a Map with one box per key). Each time an element goes in, an arrow goes to its box.
+  // Diagram: at the top, the orders that come out of the stream; at the bottom, the result that they are collected into (a List, a string, or a Map with one box per key). Each time an element goes in, an arrow goes to its box.
   draw: function (P, sim, shown) {
     var c = sim.c, h = c.how, D = this.DATA[c.data], last = shown[shown.length - 1];
     var s = last ? last.snap : { idx: -1, hit: '', done: 0, list: [], ents: h === 'part' ? [['false', '[]'], ['true', '[]']] : [], ex: '', out: null };
@@ -108,7 +108,7 @@ Lab.register({
       P.box('o' + i, 28 + i * 126, 46, 118, 44, { cls: i >= s.done ? 'ghost' : i === s.idx ? (s.ex ? 'bad now' : 'hot now') : 'wait', title: x[0] + ':' + x[1], sub: sub });
     });
     if (!D.length) P.text('none', 340, 66, 'no elements at all', { cls: 'mut', anchor: 'middle' });
-    P.region('res', 16, 112, 648, 114, 'Result container: ' + this.HOW[h].type);
+    P.region('res', 16, 112, 648, 114, 'Collected result: ' + this.HOW[h].type);
     var word = { toList: 'added', join: 'appended', group: 'put in', count: 'count +1', sum: 'added', part: 'put in', toMap: 'put in', toMapMerge: 'put in' }[h];
     if (h === 'toList' || h === 'join') {
       var txt = h === 'toList' ? '[' + s.list.join(', ') + ']' : '"' + s.list.join(', ') + '"';
@@ -125,7 +125,7 @@ Lab.register({
     }
     if (s.ex) P.box('r1', 16, 238, 648, 50, { cls: 'bad', title: 'Stopped by an exception', sub: s.ex + ': ' + sim.msg });
     else P.box('r1', 16, 238, 648, 50, { cls: s.out === null ? 'ghost' : 'good', title: 'Output', sub: s.out === null ? 'none yet' : s.out });
-    P.note(h === 'toList' || h === 'join' ? 'The elements go into the container one at a time, in the order in which they came out.' : h === 'part' ? 'The container of partitioningBy has a false entry and a true entry from the start. Each element goes to the entry that matches the result of the condition.' : 'A Map has one entry for each key. When a key appears for the first time, a new entry is created, and when a key that is already present appears, the element goes to that entry. The entries are drawn sorted in lexicographic order of the keys.');
+    P.note(h === 'toList' || h === 'join' ? 'The elements are added to the result one at a time, in the order in which they came out.' : h === 'part' ? 'The Map that partitioningBy makes has a false entry and a true entry from the start. Each element goes to the entry that matches the result of the condition.' : 'A Map has one entry for each key. When a key appears for the first time, a new entry is created, and when a key that is already present appears, the element goes to that entry. The entries are drawn sorted in lexicographic order of the keys.');
   },
   assume: 'The output and the exceptions (kind and message) of the 24 combinations were checked against the result of running the same code on JDK 21 in our test environment. The type of the result was confirmed by whether code that declares the result with that type actually compiles, and it was also confirmed that assigning the result of counting() to a Map<String, Integer> does not compile. The Map that groupingBy and toMap return does not guarantee an order (on JDK 21 it is a HashMap). This lab shows a Map sorted in lexicographic order of the keys, and for the customer names used here, the actual output order on JDK 21 was the same as that. With other names, the actual output order can differ. The wording of the exception message can differ between JDK versions. The lab covers only the case in which a stream handles its elements one at a time in order (a stream that is not parallel).',
 });

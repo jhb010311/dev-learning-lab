@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>BindingResult</dt>
 <dd><b>왜 생겼나</b> — 검증에 실패할 때마다 예외가 나면 컨트롤러가 실행되지 않아, 사용자가 입력한 값을 살린 채 오류 메시지를 붙여 같은 화면을 다시 보여 주기 어렵다. BindingResult는 실패를 예외로 끊지 않고 필드별 오류 목록으로 컨트롤러에 넘겨, 그 화면을 다시 그릴 수 있게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — Thymeleaf 같은 템플릿으로 만든 입력 폼에서, 잘못 입력한 필드 옆에 오류 메시지를 띄우고 폼을 다시 보여 줄 때 쓴다. JSON을 주고받는 API에서는 BindingResult를 두지 않고, 검증 실패 예외를 한곳에서 처리하는 경우가 많다.</dd>
-<dd>BindingResult는 요청의 값을 객체에 담고 검증하는 과정에서 생긴 오류를 모아 두는 객체이다. 컨트롤러 메서드에서 @Valid가 붙은 파라미터 바로 뒤에 BindingResult 파라미터를 두면, 검증에 실패해도 스프링이 예외를 던지지 않고 오류를 여기에 담아 컨트롤러를 그대로 실행한다. 컨트롤러는 hasErrors()로 오류가 있는지 확인하고 어떻게 응답할지 직접 정한다. 확인하지 않으면 잘못된 값이 그대로 처리되므로, BindingResult를 받았다면 반드시 확인해야 한다. 자리도 중요해서, 검증할 파라미터의 바로 다음이 아닌 곳에 두면 요청을 처리할 때 오류가 난다.</dd>
+<dd>BindingResult는 요청의 값을 객체에 담고 검증하는 과정에서 생긴 오류를 모아 두는 객체이다. 컨트롤러 메서드에서 @Valid가 붙은 파라미터 바로 뒤에 BindingResult 파라미터를 두면, 검증에 실패해도 스프링이 예외를 던지지 않고 오류를 여기에 기록하고 컨트롤러를 그대로 실행한다. 컨트롤러는 hasErrors()로 오류가 있는지 확인하고 어떻게 응답할지 직접 정한다. 확인하지 않으면 잘못된 값이 그대로 처리되므로, BindingResult를 받았다면 반드시 확인해야 한다. 자리도 중요해서, 검증할 파라미터의 바로 다음이 아닌 곳에 두면 요청을 처리할 때 오류가 난다.</dd>
 <dt>MethodArgumentNotValidException</dt>
 <dd><b>왜 생겼나</b> — 검증 실패를 컨트롤러마다 BindingResult로 확인하면 같은 if 문과 오류 응답 코드가 곳곳에 되풀이된다. 이 예외는 실패를 컨트롤러 밖으로 던져, 여러 컨트롤러의 검증 오류를 한곳에서 같은 모양으로 처리하게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — REST API에서 @RestControllerAdvice 클래스에 이 예외를 받는 메서드를 두어, 어느 필드가 왜 틀렸는지를 적은 400 응답 본문을 만든다.</dd>
@@ -193,6 +193,6 @@ class ItemController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

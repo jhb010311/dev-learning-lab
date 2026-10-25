@@ -3,16 +3,16 @@ Lab.register({
   title: 'What is null, and why does NullPointerException happen?',
   why: 'If there were no separate way to express "there is no object to point to yet," you would have to decide to use a value such as an empty string to mean "nothing," and then it could not be told apart from a value that really has 0 characters. null is a "nothing" marker that any variable pointing to an object can use, whether it is a String or a class you made yourself, so it expresses, without mixing with real values, the case where the member you look for does not exist or a value that is not yet decided.',
   use: 'Many Java methods report "nothing found" with null, as Map\'s get returns null for a key that does not exist. So you often see code that first checks with if (x != null) before using a received value. There is also a way, as with Spring Data JPA\'s findById, to return a value that may be absent as an Optional instead of null, so that the caller does not miss the check.',
-  intro: 'The variable name does not hold an object such as a string itself. It holds a value that refers to that object (a reference). null is a special value that you store in this place to say "refers to no object," and in code you write it like String name = null;. In name.length(), the dot (.) means "ask the object that name refers to," but if name is null there is no object to ask, so an exception called NullPointerException is thrown. if (name != null) is a check that first asks whether name refers to an object. The empty string "", which has no characters at all, is not null. It is a string object with 0 characters. In this lab you change the value stored in name to "kim", null, or "", and you add or remove the if check. The same code is compiled and run, and you see what is printed and whether an exception is thrown.',
+  intro: 'The variable name does not hold an object such as a string itself. It holds a value that refers to that object (a reference). null is a special value that you store in this place to say "refers to no object," and in code you write it like String name = null;. In name.length(), the dot (.) means "ask the object that name refers to," but if name is null there is no object to ask, so an exception called NullPointerException is thrown. if (name != null) is a check that first asks whether name refers to an object. The empty string "", which has no characters at all, is not null. It is a string object with 0 characters. In this lab you change the value assigned to name to "kim", null, or "", and you add or remove the if check. The same code is compiled and run, and you see what is printed and whether an exception is thrown.',
   terms: ['null', 'NullPointerException', 'Checking for null', 'Empty string'],
   controls: [
-    { id: 'value', label: 'Value stored in name', type: 'select', value: 'kim', options: [['kim', 'String "kim"'], ['null', 'null (refers to no object)'], ['empty', 'Empty string ""']] },
+    { id: 'value', label: 'Value assigned to name', type: 'select', value: 'kim', options: [['kim', 'String "kim"'], ['null', 'null (refers to no object)'], ['empty', 'Empty string ""']] },
     { id: 'check', label: 'Wrap the length() call in if (name != null)', type: 'check', value: false },
   ],
   // q is the question shown on the question-style screen. t and d are the name and the description used in the text-only reading
   presets: [
     { t: 'Default settings', q: 'If the variable name refers to the string "kim", what does the name.length() line do?', d: 'The "kim" object that name refers to returns its number of characters, 3.', v: { value: 'kim', check: false } },
-    { t: 'Storing null', q: 'What if you store null in name instead of "kim"?', d: 'name refers to no object, so name.length() throws a NullPointerException.', v: { value: 'null', check: false } },
+    { t: 'Assigning null', q: 'What if you assign null to name instead of "kim"?', d: 'name refers to no object, so name.length() throws a NullPointerException.', v: { value: 'null', check: false } },
     { t: 'Checking when it is null', q: 'What if name is null and you check with if (name != null) before name.length()?', d: 'The check filters it out, so length() is not called and no exception is thrown.', v: { value: 'null', check: true } },
     { t: 'Checking when it is "kim"', q: 'What if name refers to "kim" and you check with if (name != null)?', d: 'It passes the check, length() runs, and the result is the same.', v: { value: 'kim', check: true } },
     { t: 'Referring to an empty string', q: 'What if name refers to the empty string "" instead of null?', d: 'The empty string is also an object, so length() returns 0 and no exception is thrown.', v: { value: 'empty', check: false } },
@@ -96,7 +96,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
-    if (!s) { H.text(v, 'Click Run to start from the line that stores a value in the name variable.'); return; }
+    if (!s) { H.text(v, 'Click Run to start from the line that assigns a value to the name variable.'); return; }
     var rows = [
       ['What name refers to', s.val ? { v: sim.pt[s.val], cls: s.val === 'null' ? 'hot' : 'good' } : 'Not assigned yet'],
       ['if (name != null)', !c.check ? { v: 'Not used', cls: '' } : s.ifres ? { v: s.ifres === 'true' ? 'true (refers to an object)' : 'false (null)', cls: s.ifres === 'true' ? 'good' : 'hot' } : 'Not run yet'],

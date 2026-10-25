@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,7 +33,7 @@
 <p><b>JPQL은 무엇이고, SQL과 무엇이 다른가</b></p>
 <p><b>왜 생겼나</b> — SQL을 글자로 직접 쓰면 테이블과 열 이름이 코드 곳곳에 퍼지고, 돌아온 행을 객체로 옮기는 일도 손으로 해야 한다. JPQL은 자바 코드에서 쓰는 엔티티 클래스와 필드 이름으로 조건을 적게 하고, SQL로 바꾸는 일과 결과를 엔티티 객체로 만드는 일은 JPA가 맡는다.</p>
 <p><b>지금 어디에 쓰나</b> — 조건에 맞는 목록 찾기, 정렬, 개수 세기처럼 번호 하나로 한 건을 찾는 것 말고 다른 조회에 쓴다. 스프링 데이터 JPA에서는 리포지토리 메서드 위의 @Query 애너테이션에 JPQL을 적는다. 특정 DB에만 있는 기능이 꼭 필요하면 @Query에 nativeQuery = true를 붙여 SQL을 직접 적는다.</p>
-<p>em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수에 담은 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어 list에 담습니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.</p>
+<p>em.find는 기본 키 하나로 엔티티 하나만 찾습니다. 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리(DB에 묻는 글)를 써야 하고, JPA에서는 그 쿼리를 JPQL이라는 글로 적습니다. JPQL은 SQL과 모양이 비슷하지만 테이블과 열이 아니라 엔티티 클래스와 필드의 이름으로 씁니다. 화면의 Member 클래스는 @Table로 member_tbl 테이블과, @Column으로 name 필드와 user_name 열과 짝이 되어 있어서 두 이름이 다릅니다. 코드의 jpql 변수가 가리키는 글을 em.createQuery가 JPA에 넘기면 JPA가 그 글을 읽고, query.getResultList()를 부르면 JPA가 JPQL을 SQL로 바꿔 DB에 보내고, 돌아온 행을 Member 객체로 만들어, 그 객체들을 모은 리스트를 돌려줍니다. 이 실습은 JPQL에 적는 이름을 엔티티 이름에서 테이블 이름, 열 이름으로 바꿔 가며 같은 코드를 실행해, DB에 나간 SQL과 list에 돌아온 것, 그리고 오류를 봅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 화면의 코드째 컴파일해 실행하고, 나간 SQL과 돌아온 객체와 오류가 난 줄을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -59,10 +59,10 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>DB의 준비: 코드가 실행되기 전에 DB에는 member_tbl 테이블이 있고, 행이 세 개 들어 있습니다. (id 1, user_name kim, age 25), (id 2, user_name lee, age 17), (id 3, user_name park, age 30)입니다. 화면의 Member 클래스는 이 테이블과 짝이 됩니다. @Table이 테이블 이름 member_tbl을 정하고, @Column이 name 필드의 열 이름 user_name을 정합니다. 코드의 em은 EntityManager이고 JPA에 일을 시키는 객체입니다. em.find 메서드는 기본 키(id) 하나로 행 하나만 찾아 주므로, 나이가 20 이상인 회원 모두처럼 조건으로 여럿을 찾으려면 쿼리를 써야 합니다.</li>
-<li>String jpql = &quot;select m from Member m where m.age &gt;= 20&quot;: JPQL로 쓴 쿼리를 글자로 적어 jpql 변수에 담습니다. 아직 글자일 뿐이라서 JPA도 DB도 이 글을 읽지 않았고, SQL은 나가지 않았습니다. 이 글에서 Member는 우리가 쓴 클래스의 이름이고 m.age는 그 클래스의 age 필드입니다.</li>
-<li>TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class): em이 jpql 글을 JPA에 넘기고, JPA가 글을 읽으면서 적힌 이름을 확인합니다. Member는 JPA가 아는 엔티티의 이름이고(엔티티의 이름은 기본으로 클래스 이름입니다), m.age는 그 엔티티의 필드입니다. 이름이 모두 맞으므로 JPA가 쿼리 객체를 만들어 query에 담습니다. 이 줄까지 나간 SQL은 0번입니다. 쿼리 객체를 만든 것이지 아직 DB에 묻지 않았습니다.</li>
+<li>String jpql = &quot;select m from Member m where m.age &gt;= 20&quot;: JPQL로 쓴 쿼리를 글자로 적고, jpql 변수가 그 글자를 가리키게 합니다. 아직 글자일 뿐이라서 JPA도 DB도 이 글을 읽지 않았고, SQL은 나가지 않았습니다. 이 글에서 Member는 우리가 쓴 클래스의 이름이고 m.age는 그 클래스의 age 필드입니다.</li>
+<li>TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class): em이 jpql 글을 JPA에 넘기고, JPA가 글을 읽으면서 적힌 이름을 확인합니다. Member는 JPA가 아는 엔티티의 이름이고(엔티티의 이름은 기본으로 클래스 이름입니다), m.age는 그 엔티티의 필드입니다. 이름이 모두 맞으므로 JPA가 쿼리 객체를 만들고, query 변수가 그 객체를 가리킵니다. 이 줄까지 나간 SQL은 0번입니다. 쿼리 객체를 만든 것이지 아직 DB에 묻지 않았습니다.</li>
 <li>List&lt;Member&gt; list = query.getResultList(): 이제 JPA가 JPQL을 SQL로 바꿔 DB에 보냅니다. 이 실행에서 Hibernate 7.4.5가 만들어 보낸 SQL은 &quot;select m1_0.id,m1_0.age,m1_0.user_name from member_tbl m1_0 where m1_0.age&gt;=20&quot;입니다. JPQL의 Member가 테이블 이름 member_tbl로, 조건의 m.age가 열 이름 age로 바뀌어 있습니다. 우리가 쓴 코드에는 이 SQL이 없고, JPQL을 SQL로 옮기는 일은 JPA가 했습니다. SQL의 글자는 Hibernate 버전에 따라 다를 수 있습니다.</li>
-<li>DB가 조건에 맞는 행 2개(kim, park)를 돌려주고, JPA가 행마다 Member 객체를 만들어 열의 값을 필드에 채웁니다. user_name 열의 값은 name 필드로 들어갑니다. 이 객체들이 list에 담겨 돌아옵니다. 돌아온 것은 행이 아니라 Member 클래스의 객체 2개이고, 이 실행에서 list에 담긴 객체의 클래스는 모두 Member였습니다. 나이가 17인 lee는 조건에 맞지 않아 돌아오지 않았습니다.</li>
+<li>DB가 조건에 맞는 행 2개(kim, park)를 돌려주고, JPA가 행마다 Member 객체를 만들어 열의 값을 필드에 채웁니다. user_name 열의 값은 name 필드로 들어갑니다. 이 객체들을 모은 리스트가 돌아오고, list 변수가 그 리스트를 가리킵니다. 돌아온 것은 행이 아니라 Member 클래스의 객체 2개이고, 이 실행에서 list로 받은 객체의 클래스는 모두 Member였습니다. 나이가 17인 lee는 조건에 맞지 않아 돌아오지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -183,6 +183,6 @@ List&lt;Member&gt; list = query.getResultList();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

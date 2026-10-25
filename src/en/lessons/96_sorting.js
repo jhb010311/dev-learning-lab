@@ -55,7 +55,7 @@ Lab.register({
     function num(v) { return v < 0 ? '(' + v + ')' : String(v); }
     function mean(v, other) { return v < 0 ? 'It is negative, so park goes before ' + other + '.' : v > 0 ? 'It is positive, so park goes after ' + other + '.' : 'Zero means that the order of the two cannot be decided, and the sort does not reorder such a pair.'; }
     var park = D[0], choi = D[1], kim = D[2];
-    push('List<Account> list = new ArrayList<>(List.of(...)): Five accounts are stored in the order park, choi, kim, lee, han. park and kim have the same balance, ' + this.money(park[1]) + ', and choi and lee have the same balance, ' + this.money(choi[1]) + '.', '');
+    push('List<Account> list = new ArrayList<>(List.of(...)): A new list is created with five accounts in the order park, choi, kim, lee, han, and list refers to it. park and kim have the same balance, ' + this.money(park[1]) + ', and choi and lee have the same balance, ' + this.money(choi[1]) + '.', '');
     st.has = true;
     push({ natural: 'Comparator<Account> order = Comparator.naturalOrder(): This Comparator uses the order that Account defines for itself by implementing Comparable (compareTo, by name). It is the same order that is used when you sort without supplying a Comparator, as in Collections.sort(list).',
       cmp: 'Comparator<Account> order = Comparator.comparingInt(Account::balance): This is an order supplied from outside. It takes the balance out of each of the two accounts and compares the two numbers. The compareTo of the Account class (by name) is not used.',

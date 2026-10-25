@@ -36,10 +36,10 @@ public class GenericBasicProbe {
             + "\n"
             + "public class Main {\n"
             + "    public static void main(String[] args) {\n");
-        if (gen) s.append("        // <String>: 이 리스트에는 String만 담는다는 표시\n");
+        if (gen) s.append("        // <String>: 이 리스트에는 String만 넣는다는 표시\n");
         s.append(gen ? "        List<String> names = new ArrayList<>();\n" : "        List names = new ArrayList();\n");
         s.append(put.equals("str") ? "        names.add(\"김철수\");\n" : "        names.add(123);\n");
-        if (cast) s.append("        // (String): 꺼낸 것을 String으로 바꾼다고 직접 적는다\n");
+        if (cast) s.append("        // (String): 꺼낸 것을 String으로 다루겠다고 직접 적는다\n");
         s.append(cast ? "        String first = (String) names.get(0);\n" : "        String first = names.get(0);\n");
         s.append("        System.out.println(first.length());\n"
             + "    }\n"

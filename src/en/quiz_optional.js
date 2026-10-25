@@ -1,7 +1,7 @@
 // Quiz questions for the "Optional" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
 Lab.quiz([
   { lv: 1, id: 'optional', q: 'What happens when Optional.of(name) runs while name is null?',
-    a: ['A NullPointerException is thrown', 'An empty Optional is created', 'An Optional that contains null is created', 'A NoSuchElementException is thrown'],
+    a: ['A NullPointerException is thrown', 'An empty Optional is created', 'An Optional whose value is null is created', 'A NoSuchElementException is thrown'],
     why: 'Optional.of is the method to use when the value is certain to be present, so when it receives null, it throws a NullPointerException on the spot. A value that may be null must be wrapped with Optional.ofNullable, which gives an empty Optional.',
     sim: { c: { val: 'null', make: 'of', take: 'get' }, col: 0, has: 'NullPointerException' } },
   { lv: 2, id: 'optional', q: 'makeDefault() runs when opt.orElse(makeDefault()) is executed, even though the Optional contains a value. Why?',

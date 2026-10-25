@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Variables and types: What is copied when you assign one variable to another? · Dev Learning Lab</title>
-<meta name="description" content="A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference ty…">
+<meta name="description" content="A variable is a storage location where a value is stored. A variable of a primitive type such as int holds the value itself, and a variable of a reference…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Variables and types: What is copied when you assign one variable to another? · Dev Learning Lab">
-<meta property="og:description" content="A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference ty…">
+<meta property="og:description" content="A variable is a storage location where a value is stored. A variable of a primitive type such as int holds the value itself, and a variable of a reference…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,7 +33,7 @@
 <p><b>What is copied when you assign one variable to another?</b></p>
 <p><b>Why it exists</b> — If even a single number were made into an object, each value would need its own object and would have to be read through a reference, which makes calculation slower and uses more memory. Primitive types are types such as int and double for calculating small values directly without an object, and reference types make it so that when a large object is assigned or passed to a method, only the reference is copied instead of the whole object.</p>
 <p><b>Where it's used today</b> — int, long, and boolean are used when handling a single value, such as a count, a number of repetitions, or a true/false flag, and String, List, and classes you write yourself are all handled as reference types. When you pass an object to a method, that method can modify the same object, so if you must protect the original, pass a copy or an immutable object. Primitive types cannot be used inside angle brackets (&lt;&gt;), as in List&lt;Integer&gt;, so the wrapper class Integer is used instead of int.</p>
-<p>A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference type such as a class type holds a reference that points to where an object is. Whether you assign a variable or pass it to a method, what is copied is always &quot;what the variable holds&quot;. So with a primitive type the original variable stays the same when you change the copy, and with a reference type the two variables end up looking at the same single object.</p>
+<p>A variable is a storage location where a value is stored. A variable of a primitive type such as int holds the value itself, and a variable of a reference type such as a class type holds a reference that points to where an object is. Whether you assign a variable or pass it to a method, what is copied is always &quot;what the variable holds&quot;. So with a primitive type the original variable stays the same when you change the copy, and with a reference type the two variables end up looking at the same single object.</p>
 <p>Checked against real execution · Checked by running 15 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -178,6 +178,6 @@ System.out.println(a.x);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

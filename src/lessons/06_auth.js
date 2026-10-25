@@ -2,9 +2,9 @@ Lab.register({
   id: 'auth', nav: '세션과 JWT', cat: '인증', mode: 'step',
   title: '로그인 상태는 어디에 저장되나',
   why: 'HTTP 요청은 앞선 요청을 모르므로, 요청마다 비밀번호를 다시 보내지 않으려면 "이미 로그인한 사용자"임을 알릴 표시가 필요하다. 세션은 서버가 로그인 기록을 저장해 두고 세션 ID로 찾아 이 문제를 풀고, JWT는 서버가 서명한 토큰을 검증만 하면 되게 해서 서버가 여러 대여도 로그인 기록을 함께 볼 저장소 없이 사용자를 확인하게 한다.',
-  use: '서버가 화면을 만들어 보내는 웹 서비스는 세션을 흔히 쓰고, 서버가 여러 대이면 Redis 같은 공용 저장소에 세션을 둔다. 모바일 앱이나 여러 서비스가 같은 로그인을 확인해야 하는 API에서는 JWT를 흔히 쓰며, 이미 발급한 토큰은 만료 전에 무효로 만들기 어려우므로 액세스 토큰을 짧게 두고 리프레시 토큰으로 다시 발급한다.',
+  use: '서버가 화면을 만들어 보내는 웹 서비스는 세션을 흔히 쓰고, 서버가 여러 대이면 Redis 같은 공용 저장소에 세션을 둔다. 모바일 앱이나 여러 서비스가 같은 로그인을 확인해야 하는 API에서는 JWT를 흔히 쓰며, 이미 발급한 토큰은 만료 전에 무효로 만들기 어려우므로 액세스 토큰을 짧게 두고 리프레시 토큰으로 다시 발급한다. 스프링 서버에서는 Spring Security가 주는 JwtEncoder(NimbusJwtEncoder)로 토큰을 발급하고, OAuth2 리소스 서버 설정(oauth2ResourceServer)이 JwtDecoder(NimbusJwtDecoder)로 요청마다 서명과 만료 시각을 검사한다.',
   intro: '로그인한 사용자가 10분 간격으로 요청을 보내고, 로드밸런서가 요청을 서버에 돌아가며 나눠 줍니다. 로그인 상태를 서버가 기억하는 방식(세션)과 클라이언트가 들고 다니는 방식(JWT)에서, 서버를 늘리거나 강제 로그아웃을 시킬 때 무슨 일이 생기는지 보세요.',
-  terms: ['쿠키', '세션', 'JWT(JSON Web Token)', '액세스 토큰과 리프레시 토큰', 'HTTP와 무상태(Stateless)'], ranks: ['auth', 'http'],
+  terms: ['쿠키', '세션', 'JWT(JSON Web Token)', 'JwtEncoder와 NimbusJwtEncoder', 'JwtDecoder와 NimbusJwtDecoder', '액세스 토큰과 리프레시 토큰', 'HTTP와 무상태(Stateless)'], ranks: ['auth', 'http'],
   controls: [
     { id: 'mode', label: '인증 방식', type: 'select', value: 'local', options: [['local', '세션 (각 서버 메모리에 저장)'], ['redis', '세션 (공용 저장소 Redis에 저장)'], ['jwt', 'JWT (액세스 토큰만)'], ['refresh', 'JWT (액세스 토큰 + 리프레시 토큰)']] },
     { id: 'servers', label: '서버 수', type: 'range', min: 1, max: 3, value: 2, fmt: function (v) { return v + '대'; } },
@@ -21,8 +21,10 @@ Lab.register({
   ],
   code: function (c) {
     if (c.mode === 'local' || c.mode === 'redis') return (c.mode === 'redis' ? '// spring-session-data-redis 의존성을 추가하면\n// 세션이 서버 메모리 대신 Redis에 저장된다\n\n' : '') + '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)\n\n// 로그인 성공 시\nHttpSession session = request.getSession();\nsession.setAttribute("memberId", member.getId());\n// 응답 헤더: Set-Cookie: JSESSIONID=abc123; HttpOnly\n\n// 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다\nHttpSession session = request.getSession(false);\nif (session == null) {\n    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);   // 스프링이 주는 예외 -> 401 응답\n}';
-    return '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드)\n\n// 로그인 성공 시: 서명한 토큰을 만들어 응답으로 준다\nString access = Jwts.builder()\n    .subject(memberId)\n    .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(' + c.exp + '))))   // 만료: 지금부터 ' + c.exp + '분 뒤\n    .signWith(key)\n    .compact();\n' + (c.mode === 'refresh' ? '// createRefreshToken은 예시로 만든 메서드 (14일짜리 토큰을 만들고 서버 저장소에도 저장)\nString refresh = createRefreshToken();\n' : '') +
-      '\n// 이후 요청마다: 서명과 만료만 확인한다 (저장소 조회 없음)\nClaims claims = Jwts.parser()\n    .verifyWith(key).build()\n    .parseSignedClaims(token)          // 만료됐으면 예외 -> 401\n    .getPayload();' + (c.mode === 'refresh' ? '\n\n// 401을 받으면 클라이언트가 리프레시 토큰으로 재발급 요청\n// 서버는 저장소에서 리프레시 토큰이 유효한지 확인한다' : '');
+    return '// 필요한 부분만 남김 (로그인 처리와 이후 요청 처리는 서로 다른 메서드. 클래스 선언, import, serverKey·memberId·token의 선언은 생략)\n// JwtEncoder, NimbusJwtEncoder, JwtClaimsSet, JwsHeader, MacAlgorithm, JwtEncoderParameters,\n// JwtDecoder, NimbusJwtDecoder, Jwt는 Spring Security(spring-security-oauth2-jose)가 주는 것이다.\nSecretKey key = new SecretKeySpec(serverKey, "HmacSHA256");      // 서버만 아는 키 (서명과 검증에 같은 키)\nJwtEncoder encoder = NimbusJwtEncoder.withSecretKey(key).build();\nJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).build();\n\n' +
+      '// 로그인 성공 시: 서명한 토큰을 만들어 응답으로 준다\nInstant now = Instant.now();\nJwtClaimsSet claims = JwtClaimsSet.builder()\n    .subject(memberId)\n    .issuedAt(now)\n    .expiresAt(now.plus(Duration.ofMinutes(' + c.exp + ')))   // 만료: 지금부터 ' + c.exp + '분 뒤\n    .build();\nJwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();\nString access = encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();\n' + (c.mode === 'refresh' ? '// createRefreshToken은 예시로 만든 메서드 (14일짜리 토큰을 만들고 서버 저장소에도 저장)\nString refresh = createRefreshToken();\n' : '') +
+      '\n// 이후 요청마다: 서명과 만료만 확인한다 (저장소 조회 없음)\nJwt jwt = decoder.decode(token);      // 서명이 틀리거나 만료됐으면 예외 -> 401\nString userId = jwt.getSubject();' + (c.mode === 'refresh' ? '\n\n// 401을 받으면 클라이언트가 리프레시 토큰으로 재발급 요청\n// 서버는 저장소에서 리프레시 토큰이 유효한지 확인한다' : '') +
+      '\n\n// 스프링 부트 서버에서는 decode를 직접 부르지 않는다. decoder를 빈으로 등록하고\n// http.oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))를 켜 두면\n// BearerTokenAuthenticationFilter가 요청마다 decode를 부르고, 예외가 나면 401로 답한다.';
   },
   label: function (c) { return { local: '서버 메모리 세션', redis: 'Redis 세션', jwt: 'JWT ' + c.exp + '분', refresh: 'JWT ' + c.exp + '분 + 리프레시' }[c.mode] + ' · 서버 ' + c.servers + '대' + (c.kick ? ' · 강제 로그아웃' : ''); },
   columns: ['성공한 요청', '401 응답', '공용 저장소 접근', '강제 로그아웃 뒤 통과한 요청'],
@@ -37,7 +39,7 @@ Lab.register({
     // 0분: 로그인 (서버 1)
     if (M === 'local') { local[0] = 1; client.cookie = 1; row(0, '서버 1', '아이디·비밀번호', '로그인 성공, 세션 생성', 'good'); push('0분: 서버 1에서 로그인했습니다. 서버 1이 자기 메모리에 세션을 만들고, 세션 ID를 쿠키로 내려 줍니다. 서버 1만 이 사용자를 기억합니다.', '', 0); }
     if (M === 'redis') { redis = 1; client.cookie = 1; look++; row(0, '서버 1', '아이디·비밀번호', '로그인 성공, 세션 생성', 'good'); push('0분: 서버 1에서 로그인했습니다. 세션은 서버 메모리가 아니라 모든 서버가 함께 쓰는 Redis에 저장되고, 세션 ID를 쿠키로 내려 줍니다.', '', 0); }
-    if (M === 'jwt' || M === 'refresh') { client.access = 1; accessExp = exp; if (M === 'refresh') { refreshStore = 1; look++; } row(0, '서버 1', '아이디·비밀번호', '로그인 성공, 토큰 발급', 'good'); push('0분: 서버 1에서 로그인했습니다. 서버는 회원 번호와 만료 시각(' + exp + '분)을 담아 서명한 액세스 토큰을 내려 줍니다. 서버 쪽에는 세션을 남기지 않습니다.' + (M === 'refresh' ? ' 리프레시 토큰도 함께 발급하고, 이것만 저장소에 기록합니다.' : ''), '', 0); }
+    if (M === 'jwt' || M === 'refresh') { client.access = 1; accessExp = exp; if (M === 'refresh') { refreshStore = 1; look++; } row(0, '서버 1', '아이디·비밀번호', '로그인 성공, 토큰 발급', 'good'); push('0분: 서버 1에서 로그인했습니다. 서버는 JwtEncoder로 회원 번호(sub)와 만료 시각(exp, ' + exp + '분)을 적고 서명한 액세스 토큰을 내려 줍니다. 서버 쪽에는 세션을 남기지 않습니다.' + (M === 'refresh' ? ' 리프레시 토큰도 함께 발급하고, 이것만 저장소에 기록합니다.' : ''), '', 0); }
     [10, 20, 30, 40, 50].forEach(function (t, j) {
       var si = (j + 1) % S, name = '서버 ' + (si + 1);
       if (c.kick && !kicked && t > 25) {
@@ -58,10 +60,10 @@ Lab.register({
         else { fail++; row(t, name, '쿠키 abc123', '401 로그인 필요', 'bad'); push(t + '분: 요청이 ' + name + '로 갔습니다. Redis에 세션이 없으므로 바로 거절합니다. 강제 로그아웃이 다음 요청부터 즉시 적용됐습니다.', 'bad', si); }
       }
       if (M === 'jwt' || M === 'refresh') {
-        if (t < accessExp) { ok++; if (kicked) leaked++; row(t, name, '액세스 토큰', '200 성공', kicked ? 'hot' : 'good'); push(t + '분: 요청이 ' + name + '로 갔습니다. 서버는 토큰의 서명과 만료 시각만 확인합니다. 저장소를 조회하지 않고 어느 서버에서나 통과합니다.' + (kicked ? ' 강제 로그아웃된 사용자인데도 토큰이 아직 유효해서 통과했습니다.' : ''), kicked ? 'bad' : 'good', si); }
-        else if (M === 'jwt') { fail++; loggedOut = true; client.access = null; row(t, name, '액세스 토큰(만료)', '401 다시 로그인', 'bad'); push(t + '분: 요청이 ' + name + '로 갔습니다. 토큰의 만료 시각(' + accessExp + '분)이 지났습니다. 401을 받고, 사용자는 다시 로그인해야 합니다.', 'bad', si); }
+        if (t < accessExp) { ok++; if (kicked) leaked++; row(t, name, '액세스 토큰', '200 성공', kicked ? 'hot' : 'good'); push(t + '분: 요청이 ' + name + '로 갔습니다. JwtDecoder의 decode가 토큰의 서명과 만료 시각만 확인합니다. 저장소를 조회하지 않고 어느 서버에서나 통과합니다.' + (kicked ? ' 강제 로그아웃된 사용자인데도 토큰이 아직 유효해서 통과했습니다.' : ''), kicked ? 'bad' : 'good', si); }
+        else if (M === 'jwt') { fail++; loggedOut = true; client.access = null; row(t, name, '액세스 토큰(만료)', '401 다시 로그인', 'bad'); push(t + '분: 요청이 ' + name + '로 갔습니다. 토큰의 만료 시각(' + accessExp + '분)이 지나 decode가 JwtValidationException을 던지고, 응답은 401입니다. 사용자는 다시 로그인해야 합니다.', 'bad', si); }
         else {
-          fail++; row(t, name, '액세스 토큰(만료)', '401 토큰 만료', 'bad'); push(t + '분: 요청이 ' + name + '로 갔습니다. 액세스 토큰의 만료 시각(' + accessExp + '분)이 지나 401을 받았습니다. 클라이언트가 리프레시 토큰으로 재발급을 요청합니다.', '', si);
+          fail++; row(t, name, '액세스 토큰(만료)', '401 토큰 만료', 'bad'); push(t + '분: 요청이 ' + name + '로 갔습니다. 액세스 토큰의 만료 시각(' + accessExp + '분)이 지나 decode가 예외를 던지고 401을 받았습니다. 클라이언트가 리프레시 토큰으로 재발급을 요청합니다.', '', si);
           look++;
           if (refreshStore) { accessExp = t + exp; ok++; row(t, name, '리프레시 토큰', '새 액세스 토큰 발급 → 재요청 성공', 'good'); push(t + '분: 서버가 저장소에서 리프레시 토큰 r-001이 유효한지 확인하고 새 액세스 토큰(' + accessExp + '분에 만료)을 발급했습니다. 원래 요청을 다시 보내 성공합니다. 사용자는 로그인이 끊긴 것을 느끼지 못합니다.', 'good', si); }
           else { loggedOut = true; client.access = null; row(t, name, '리프레시 토큰', '401 다시 로그인', 'bad'); push(t + '분: 서버가 저장소를 확인했지만 리프레시 토큰이 지워져 있습니다. 재발급을 거절합니다. 강제 로그아웃이 여기서 비로소 적용됐습니다.', 'bad', si); }
@@ -95,5 +97,5 @@ Lab.register({
     P.size(680, y + 124 + (s.shared !== null ? 46 + 16 : 8));
     P.note('위쪽은 요청과 응답의 순서, 아래쪽은 로그인 상태가 놓인 곳입니다. 굵은 테두리는 방금 요청을 받은 서버입니다.');
   },
-  assume: '로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다. 세션 코드에서 ResponseStatusException(HttpStatus.UNAUTHORIZED)을 던지면 401 응답이 되는 것은 스프링 부트 4.1.1 서버를 띄워 확인했습니다(세션 없이 요청하면 401, 로그인해 받은 JSESSIONID 쿠키를 보내면 200).',
+  assume: '로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다. 세션 코드에서 ResponseStatusException(HttpStatus.UNAUTHORIZED)을 던지면 401 응답이 되는 것은 스프링 부트 4.1.1 서버를 띄워 확인했습니다(세션 없이 요청하면 401, 로그인해 받은 JSESSIONID 쿠키를 보내면 200). JWT 코드는 Spring Security 7.1.1이 주는 JwtEncoder·NimbusJwtEncoder(발급)와 JwtDecoder·NimbusJwtDecoder(검증)를 썼습니다. 검증 실행 환경에는 spring-security-oauth2-jose와 nimbus-jose-jwt가 없어서 발급과 검증은 실행하지 않았고, 화면의 JWT 코드는 공식 시그니처만 옮긴 대역과 함께 javac로 컴파일되는 것만 확인했습니다. 디코더는 만료 시각에 기본으로 60초 여유를 두지만, 이 실습의 요청은 모두 만료 시각과 5분 이상 떨어져 있어 결과가 바뀌지 않습니다. 만료된 토큰에 decode가 JwtValidationException을 던지고 리소스 서버 설정이 401로 답하는 것은 "JWT의 구조와 검증" 실습에서 공식 소스와 대조한 내용을 따랐습니다.',
 });

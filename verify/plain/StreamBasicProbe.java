@@ -36,15 +36,15 @@ public class StreamBasicProbe {
             s.append("List<Integer> result = nums.stream()\n");
             if (filter) s.append("    // 거르기: 짝수인 값만 통과시킨다\n    .filter(n -> n % 2 == 0)\n");
             if (map) s.append("    // 바꾸기: 통과한 값을 10배로 바꾼다\n    .map(n -> n * 10)\n");
-            s.append("    // 모으기: 흘러나온 값을 새 리스트에 담는다\n    .toList();\n");
+            s.append("    // 모으기: 흘러나온 값을 새 리스트에 모은다\n    .toList();\n");
         } else {
-            s.append("// 새 리스트: 결과를 담을 빈 리스트를 직접 만든다\n");
+            s.append("// 새 리스트: 결과를 모을 빈 리스트를 직접 만든다\n");
             s.append("List<Integer> result = new ArrayList<>();\n");
-            s.append("// 반복: nums에서 값을 하나씩 꺼내 n에 담는다\n");
+            s.append("// 반복: nums에서 값을 하나씩 꺼내 n에 넣는다\n");
             s.append("for (int n : nums) {\n");
             String ind = filter ? "        " : "    ";
             if (filter) s.append("    // 거르기: 짝수인 값만 통과시킨다\n    if (n % 2 == 0) {\n");
-            s.append(ind).append(map ? "// 바꾸기와 담기: 10배로 바꿔 result에 담는다\n" : "// 담기: 그대로 result에 담는다\n");
+            s.append(ind).append(map ? "// 바꾸기와 넣기: 10배로 바꿔 result 리스트에 추가한다\n" : "// 넣기: 그대로 result 리스트에 추가한다\n");
             s.append(ind).append(map ? "result.add(n * 10);\n" : "result.add(n);\n");
             if (filter) s.append("    }\n");
             s.append("}\n");

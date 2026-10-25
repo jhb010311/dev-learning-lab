@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 <dt>권한(역할)</dt>
 <dd><b>왜 생겼나</b> — &quot;이 사람은 회원 관리 화면을 써도 된다&quot;를 사람마다 정하면 사용자가 늘 때마다 규칙을 고쳐야 한다. 권한과 역할은 할 수 있는 일에 이름을 붙여 두고 사용자에게 그 이름을 주게 해서, 규칙은 이름으로만 적으면 되게 했다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 관리자만 쓰는 주소에 hasRole(&quot;ADMIN&quot;)을 적어 막거나, 회원 등급에 따라 볼 수 있는 메뉴를 나누는 데 쓴다.</dd>
-<dd>권한(authority)은 인증된 사용자에게 허락된 일을 나타내는 이름표이고, 역할(role)은 ADMIN, USER처럼 사용자가 맡은 자리를 나타내는 권한의 한 가지 쓰임이다. 스프링 시큐리티에서는 사용자가 가진 권한이 GrantedAuthority 객체로 Authentication에 담긴다. hasRole(&quot;ADMIN&quot;)은 hasAuthority의 줄임 형태로, 이름 앞에 ROLE_ 접두어를 붙여 ROLE_ADMIN이라는 권한이 있는지 본다. 권한은 누구인지 확인된 뒤에야 의미가 있으므로, 인증을 거치지 않은 요청에는 권한을 따질 수 없다.</dd>
+<dd>권한(authority)은 인증된 사용자에게 허락된 일을 나타내는 이름표이고, 역할(role)은 ADMIN, USER처럼 사용자가 맡은 자리를 나타내는 권한의 한 가지 쓰임이다. 스프링 시큐리티에서는 사용자가 가진 권한을 GrantedAuthority 객체로 나타내고, Authentication의 getAuthorities()로 얻는다. hasRole(&quot;ADMIN&quot;)은 hasAuthority의 줄임 형태로, 이름 앞에 ROLE_ 접두어를 붙여 ROLE_ADMIN이라는 권한이 있는지 본다. 권한은 누구인지 확인된 뒤에야 의미가 있으므로, 인증을 거치지 않은 요청에는 권한을 따질 수 없다.</dd>
 <dt>HTTP Basic 인증</dt>
 <dd><b>왜 생겼나</b> — 서버마다 누구인지 확인하는 방식을 따로 정하면 브라우저나 프로그램이 서버마다 다르게 맞춰야 한다. HTTP Basic은 아이디와 비밀번호를 보내는 방법을 HTTP 규칙으로 정해 두어, 어느 브라우저나 프로그램이든 같은 방식으로 보내게 했다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 사내 관리 도구나 개발 중인 서버처럼 간단히 막아 두면 되는 곳, 또는 프로그램끼리 주고받는 요청에 쓴다. 회원이 쓰는 웹 서비스에는 로그아웃을 만들기 어려워 잘 쓰지 않는다.</dd>
@@ -197,6 +197,6 @@ public class AdminController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

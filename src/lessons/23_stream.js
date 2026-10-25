@@ -41,7 +41,7 @@ Lab.register({
       var x = +l.replace(/\D/g, ''), isF = l.indexOf('filter') === 0, next = tr.log[i + 1] || '';
       done.push(l);
       if (isF) { var pass = x > 3; push('filter(' + x + '): ' + (pass ? '3보다 큽니다. 통과.' + (c.sorted ? ' sorted()가 받아서 모아 둡니다. 전부 모일 때까지 다음 단계로 넘기지 않습니다.' : ' 곧바로 다음 연산인 map으로 넘어갑니다.') : '3보다 크지 않습니다. 버립니다. 이 원소는 map에 가지 않습니다.'), '', D.indexOf(x)); }
-      else { out.push(x * 10); push('map(' + x + '): ' + x * 10 + '으로 바꿔서 ' + (c.term === 'findFirst' ? 'findFirst에 전달합니다.' : c.limit ? 'limit을 거쳐 결과에 담습니다.' : '결과에 담습니다.'), 'good', D.indexOf(x)); }
+      else { out.push(x * 10); push('map(' + x + '): ' + x * 10 + '으로 바꿔서 ' + (c.term === 'findFirst' ? 'findFirst에 전달합니다.' : c.limit ? 'limit을 거쳐 결과 리스트에 모읍니다.' : '결과 리스트에 모읍니다.'), 'good', D.indexOf(x)); }
       if (isF && c.sorted && next.indexOf('map') === 0) push('원소가 다 떨어졌습니다. sorted()가 모아 둔 값을 정렬합니다. 정렬은 전체를 알아야 할 수 있어서, 앞의 filter가 모든 원소에 대해 먼저 실행됐습니다.', '', -1);
     });
     var fN = tr.log.filter(function (l) { return l.indexOf('filter') === 0; }).length, mN = tr.log.length - fN, early = fN < D.length;

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,15 +61,15 @@
 <li>stream(), filter(), map()을 차례로 호출했습니다. 이 호출들은 &quot;무엇을 할지&quot;를 연결해 둘 뿐, 원소를 하나도 꺼내지 않습니다. 람다는 아직 한 번도 실행되지 않았습니다.</li>
 <li>toList()가 호출됐습니다. 이제 실행이 시작됩니다. 최종 연산이 원소를 하나씩 끌어당깁니다.</li>
 <li>filter(5): 3보다 큽니다. 통과. 곧바로 다음 연산인 map으로 넘어갑니다.</li>
-<li>map(5): 50으로 바꿔서 결과에 담습니다.</li>
+<li>map(5): 50으로 바꿔서 결과 리스트에 모읍니다.</li>
 <li>filter(2): 3보다 크지 않습니다. 버립니다. 이 원소는 map에 가지 않습니다.</li>
 <li>filter(8): 3보다 큽니다. 통과. 곧바로 다음 연산인 map으로 넘어갑니다.</li>
-<li>map(8): 80으로 바꿔서 결과에 담습니다.</li>
+<li>map(8): 80으로 바꿔서 결과 리스트에 모읍니다.</li>
 <li>filter(1): 3보다 크지 않습니다. 버립니다. 이 원소는 map에 가지 않습니다.</li>
 <li>filter(9): 3보다 큽니다. 통과. 곧바로 다음 연산인 map으로 넘어갑니다.</li>
-<li>map(9): 90으로 바꿔서 결과에 담습니다.</li>
+<li>map(9): 90으로 바꿔서 결과 리스트에 모읍니다.</li>
 <li>filter(4): 3보다 큽니다. 통과. 곧바로 다음 연산인 map으로 넘어갑니다.</li>
-<li>map(4): 40으로 바꿔서 결과에 담습니다.</li>
+<li>map(4): 40으로 바꿔서 결과 리스트에 모읍니다.</li>
 <li>결과: [50, 80, 90, 40]</li>
 </ol>
 <h3>실행 결과</h3>
@@ -176,6 +176,6 @@ List.of(5, 2, 8, 1, 9, 4).stream()
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

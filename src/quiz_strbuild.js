@@ -5,7 +5,7 @@ Lab.quiz([
     why: 'String은 내용이 바뀌지 않는 객체입니다. toUpperCase()는 원본을 고치지 않고 새 문자열 "JAVA"를 돌려주는데, 그것을 받지 않았으므로 s는 처음 객체를 그대로 가리킵니다.',
     sim: { c: { type: 'str', op: 'drop', m: 'upper' }, col: 0, has: 'java' } },
   { lv: 2, id: 'strbuild', q: 'String first = s;로 같은 객체를 가리키게 한 뒤 s = s.concat("!");를 실행했습니다. first를 출력하면 여전히 java가 나오는 까닭은 무엇입니까?',
-    a: ['concat이 원래 객체를 고치지 않고 새 문자열 객체를 돌려주기 때문이다', 'first에 대입할 때 문자열 전체가 복사되어 따로 저장되기 때문이다', 'concat이 원래 객체를 고친 뒤 first만 이전 내용으로 되돌리기 때문이다', '문자열 리터럴은 final 변수에만 담을 수 있어 바뀌지 않기 때문이다'],
+    a: ['concat이 원래 객체를 고치지 않고 새 문자열 객체를 돌려주기 때문이다', 'first에 대입할 때 문자열 전체가 복사되어 따로 저장되기 때문이다', 'concat이 원래 객체를 고친 뒤 first만 이전 내용으로 되돌리기 때문이다', '문자열 리터럴은 final 변수에만 대입할 수 있어 바뀌지 않기 때문이다'],
     why: 'first = s는 내용을 복사하지 않고 같은 객체를 가리키게 할 뿐입니다. concat은 그 객체를 고치지 않고 새 객체를 돌려주므로, s만 새 객체로 옮겨 가고 first가 가리키는 처음 객체는 그대로입니다.',
     sim: { c: { type: 'str', op: 'assign', m: 'concat' }, col: 1, has: 'java' } },
   { lv: 3, id: 'strbuild', q: 'StringBuilder first = sb;로 기억해 둔 뒤, 반복문에서 sb.append(i)를 세 번 호출했습니다. sb == first의 결과와 first를 출력한 내용으로 알맞은 것은 무엇입니까?',

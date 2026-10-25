@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Collector and collect</dt>
 <dd><b>Why it exists</b> — reduce combines two values and returns a new value, so building a List or Map by its rule creates a new collection for each element and copies the previous one over. collect creates one collection in advance and adds the elements to it in turn, so there is no such waste when turning a stream's result into a collection or a string.</dd>
 <dd><b>Where it's used today</b> — It is used to receive the filtered and transformed result back as a List or Set (toList, toSet), or to join names with commas into a single line (joining). If you need only a List, you can also get it with Stream's toList() without collect, and the List received this way cannot be modified.</dd>
-<dd>collect is the terminal operation that gathers the elements that come out of a stream into a single result, and a Collector is the object that represents how they are gathered (which container is used and how the elements are put in). The Collectors class provides the Collectors that are used often. toList and toSet put the elements into a collection, joining concatenates them into a single string, and toMap puts them into a Map with the key and the value that you specify. toMap throws an IllegalStateException when the same key appears twice, so if keys can be duplicated, give a merge function that combines the two values as the third argument.</dd>
+<dd>collect is the terminal operation that gathers the elements that come out of a stream into a single result, and a Collector is the object that represents how they are gathered (which result object is made and how the elements are gathered into it). The Collectors class provides the Collectors that are used often. toList and toSet put the elements into a collection, joining concatenates them into a single string, and toMap puts them into a Map with the key and the value that you specify. toMap throws an IllegalStateException when the same key appears twice, so if keys can be duplicated, give a merge function that combines the two values as the third argument.</dd>
 <dt>groupingBy and partitioningBy</dt>
 <dd><b>Why it exists</b> — filter discards the elements that do not meet a condition, so if you need both the matching and the non-matching ones, you have to create and run the stream twice. partitioningBy goes through the stream once and splits it into two groups, true and false, and groupingBy computes a key for each element and splits them into several groups.</dd>
 <dd><b>Where it's used today</b> — It is used to group orders by date and count the orders per day (groupingBy and counting), or to split members into adults and minors (partitioningBy).</dd>
@@ -66,14 +66,14 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>orders.stream(): This creates a stream from which the 5 orders come out one at a time, in the order kim:300, han:100, kim:200, choi:400, han:500. Nothing has been collected yet.</li>
-<li>.collect(Collectors.toMap(Order::customer, Order::price)): collect is a terminal operation that receives the elements one at a time as they come out and puts them into a container, and the Collector in the parentheses decides which container is used and how the elements are put in. toMap prepares an empty Map. For each element, it puts in customer as the key and price as the value. A key can have only one value.</li>
+<li>.collect(Collectors.toMap(Order::customer, Order::price)): collect is a terminal operation that receives the elements one at a time as they come out and gathers them into a result object, and the Collector in the parentheses decides which result object is made and how the elements are gathered into it. toMap prepares an empty Map. For each element, it puts in customer as the key and price as the value. A key can have only one value.</li>
 <li>Order kim:300: The key kim and the value 300 are put into the Map.</li>
 <li>Order han:100: The key han and the value 100 are put into the Map.</li>
 <li>Order kim:200: The same key (kim) is already in the Map. The code does not say which to keep, the existing value 300 or the new value 200, so an IllegalStateException is thrown and the program stops here. The exception message is &quot;Duplicate key kim (attempted merging values 300 and 200)&quot;.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>toMap holds only one value per key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.</li>
+<li>toMap pairs only one value with each key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.</li>
 </ul>
 <h2>Code</h2>
 <pre>record Order(String customer, int price) {
@@ -186,6 +186,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

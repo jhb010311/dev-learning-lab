@@ -82,7 +82,7 @@ Lab.register({
 
         if (how === 'br') {
           st.stage = 5; st.errors = violates ? 1 : 0; st.after = violates ? 'errors에 오류 1개' : 'errors는 비어 있음';
-          push('BindingResult errors: @Valid가 붙은 파라미터 바로 뒤에 BindingResult 파라미터가 있습니다. 스프링은 검증 결과를 이 객체에 담아 컨트롤러에 넘깁니다. ' + (violates ? '어긴 제약이 하나 있으므로 오류 1개가 담깁니다. 예외는 던지지 않습니다.' : '어긴 제약이 없으므로 비어 있습니다.'));
+          push('BindingResult errors: @Valid가 붙은 파라미터 바로 뒤에 BindingResult 파라미터가 있습니다. 스프링은 검증 결과를 이 객체에 기록해 컨트롤러에 넘깁니다. ' + (violates ? '어긴 제약이 하나 있으므로 오류 1개가 기록됩니다. 예외는 던지지 않습니다.' : '어긴 제약이 없으므로 비어 있습니다.'));
         } else if (violates) {
           st.stage = 5; st.fail = 5; status = '400 Bad Request'; ex = isParam ? 'HandlerMethodValidationException' : 'MethodArgumentNotValidException'; st.status = status; st.after = ex;
           push('검증 실패 처리: ' + (isParam ? '스프링이 HandlerMethodValidationException을 던지고 400 Bad Request로 응답합니다. 객체를 @Valid로 검증했을 때(MethodArgumentNotValidException)와는 예외의 이름이 다릅니다.' : '어긴 제약이 있는데 메서드에 그 결과를 받아 줄 BindingResult 파라미터가 없습니다. 스프링이 MethodArgumentNotValidException을 던지고 400 Bad Request로 응답합니다.') + NOT_RUN, 'bad');
@@ -130,10 +130,10 @@ Lab.register({
     P.region('cl', 16, 150, 220, 102, isParam ? '메서드 파라미터에 적힌 제약' : 'ItemForm 클래스에 적힌 제약');
     P.box('con', 28, 186, 196, 50, { cls: s.check === '어김' ? 'bad' : s.check ? 'good' : skipped ? 'ghost' : s.gate ? 'hot' : 'plain', title: C.a, sub: isParam ? 'String name' : 'private String name;' });
     P.region('sp', 306, 16, 358, 236, '스프링이 컨트롤러를 부르기까지');
-    P.box('obj', 318, 48, 334, 30, { cls: s.fail === 2 ? 'bad' : s.stage >= 2 ? 'wait' : 'ghost', title: isParam ? 'name에 담긴 값' : 'form의 name에 담긴 값', right: s.name });
+    P.box('obj', 318, 48, 334, 30, { cls: s.fail === 2 ? 'bad' : s.stage >= 2 ? 'wait' : 'ghost', title: isParam ? 'name의 값' : 'form의 name 값', right: s.name });
     P.box('gate', 318, 84, 334, 30, { cls: !s.gate ? 'ghost' : skipped ? 'plain' : s.stage === 3 ? 'hot now' : 'hot', title: '검증할지 정하기', right: !s.gate ? '' : skipped ? '@Valid 없음: 건너뜀' : isParam ? '제약이 직접 붙음: 검증' : '@Valid 있음: 검증' });
     P.box('chk', 318, 120, 334, 30, { cls: s.check === '어김' ? 'bad' : s.check ? 'good' : 'ghost', title: C.a + ' 검사', right: s.check || (skipped || s.fail === 2 ? '하지 않음' : '') });
-    P.box('aft', 318, 156, 334, 30, { cls: !s.after ? 'ghost' : s.fail ? 'bad' : s.errors === 1 ? 'hot' : 'plain', title: c.how === 'br' ? '결과를 담는 곳' : '거절', right: s.after });
+    P.box('aft', 318, 156, 334, 30, { cls: !s.after ? 'ghost' : s.fail ? 'bad' : s.errors === 1 ? 'hot' : 'plain', title: c.how === 'br' ? '결과를 적는 곳' : '거절', right: s.after });
     P.box('ctrl', 318, 192, 334, 46, { cls: s.ctrl ? (leaked ? 'bad now' : s.errors === 1 ? 'hot now' : 'good now') : s.fail ? 'ghost' : 'plain', title: (isParam ? 'find(name)' : c.how === 'br' ? 'add(form, errors)' : 'add(form)') + ' 실행', sub: s.ctrl ? '돌려준 글: ' + s.ret : s.fail ? '실행되지 않음' : '아직' });
     if (s.stage >= 2) P.arrow('take', 'r_val:r', 'obj:l', { cls: s.fail === 2 ? 'bad' : 'good', label: s.fail === 2 ? '값이 없음' : '값을 담음' });
     if (s.gate) P.arrow('read', 'con:r', 'chk:l', { cls: skipped ? 'mut dash' : s.check === '어김' ? 'bad' : s.check ? 'good' : 'hot', label: skipped ? '읽지 않음' : '제약을 읽음' });

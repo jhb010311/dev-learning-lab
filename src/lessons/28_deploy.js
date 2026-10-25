@@ -8,21 +8,22 @@ Lab.register({
   controls: [
     { id: 'st', label: '배포 방식', type: 'select', value: 'rolling', options: [['recreate', '전부 내리고 새로 올리기'], ['rolling', '롤링 (한 대씩 교체)'], ['bluegreen', '블루-그린 (새 환경을 통째로 준비 후 전환)'], ['canary', '카나리 (일부에만 먼저 배포)']] },
     { id: 'bug', label: '새 버전(v2)에 버그가 있다', type: 'check', value: false },
-    { id: 'grace', label: 'Graceful Shutdown을 설정했다', type: 'check', value: true },
+    { id: 'grace', label: '종료 방식을 기본값인 graceful로 둔다 (해제하면 server.shutdown=immediate)', type: 'check', value: true },
   ],
   presets: [
-    { t: '처음 설정으로', q: '새 버전 v2에 버그가 없고 Graceful Shutdown을 설정한 채 한 대씩 교체하는 롤링으로 배포하면 서비스는 어떻게 되나', d: '롤링 배포. 한 대씩 바꾸므로 서비스가 끊기지 않습니다.', v: { st: 'rolling', bug: false, grace: true } },
+    { t: '처음 설정으로', q: '새 버전 v2에 버그가 없고 종료 방식을 기본인 graceful로 둔 채 한 대씩 교체하는 롤링으로 배포하면 서비스는 어떻게 되나', d: '롤링 배포. 한 대씩 바꾸므로 서비스가 끊기지 않습니다.', v: { st: 'rolling', bug: false, grace: true } },
     { t: '전부 내리고 올리기', q: '전부 내렸다가 새로 올리는 방식으로 배포하면', d: '가장 단순하지만 그동안 서비스가 멈춥니다.', v: { st: 'recreate', bug: false, grace: true } },
     { t: '블루-그린', q: '새 환경을 통째로 준비한 뒤 전환하는 블루-그린으로 배포하면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: '버그가 있는 버전을 롤링으로', q: '롤링 배포 그대로 새 버전 v2에 버그가 있으면', d: '문제를 알아챌 때까지 영향 범위가 점점 커집니다.', v: { st: 'rolling', bug: true, grace: true } },
     { t: '버그가 있는 버전을 카나리로', q: '카나리로 일부에만 먼저 배포하는데 새 버전 v2에 버그가 있으면', d: '일부 요청만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
-    { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown을 설정하지 않으면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
+    { t: '즉시 종료로 두면', q: '기본인 graceful 대신 즉시 종료(server.shutdown=immediate)로 두면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
     var k = { recreate: 'strategy:\n  type: Recreate                # 기존 것을 모두 내린 뒤 새로 올림', rolling: 'strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 1           # 한 번에 1대까지만 내림\n    maxSurge: 0', bluegreen: '# 새 버전 Deployment(green)를 따로 띄운 뒤\n# Service의 selector를 version: v2로 바꿔 한 번에 전환', canary: '# v2를 1대만 띄워 전체 요청의 25%만 받게 한 뒤\n# 오류율과 응답 시간을 지켜보고 나머지를 교체' }[c.st];
-    return '# Kubernetes Deployment (replicas: 4)\n' + k + '\n\nreadinessProbe:                 # 준비됐을 때만 요청을 받음\n  httpGet: { path: /actuator/health/readiness, port: 8080 }\n\n# application.yml\nserver.shutdown: ' + (c.grace ? 'graceful         # 처리 중인 요청을 끝내고 종료' : 'immediate        # 즉시 종료') + (c.grace ? '\nspring.lifecycle.timeout-per-shutdown-phase: 30s' : '');
+    k = k.split('\n').map(function (l) { return '  ' + l; }).join('\n');   // spec 아래로 들여 씀
+    return '# Kubernetes Deployment (필요한 부분만. selector, image 등은 생략)\nspec:\n  replicas: 4                     # 같은 서버를 4대 띄움\n' + k + '\n  template:                       # 서버(파드)마다 쓰는 설정\n    spec:\n      containers:\n        - name: app               # 컨테이너 이름(예시)\n          readinessProbe:         # 준비됐을 때만 요청을 받음\n            httpGet: { path: /actuator/health/readiness, port: 8080 }\n\n# application.yml\nserver.shutdown: ' + (c.grace ? 'graceful         # 기본값. 처리 중인 요청을 끝내고 종료' : 'immediate        # 기본값 graceful 대신 즉시 종료') + (c.grace ? '\nspring.lifecycle.timeout-per-shutdown-phase: 30s   # 기다리는 한도(기본값도 30s)' : '');
   },
-  label: function (c) { return { recreate: '전부 내리고 올리기', rolling: '롤링', bluegreen: '블루-그린', canary: '카나리' }[c.st] + (c.bug ? ' · v2에 버그' : '') + (c.grace ? '' : ' · Graceful 없음'); },
+  label: function (c) { return { recreate: '전부 내리고 올리기', rolling: '롤링', bluegreen: '블루-그린', canary: '카나리' }[c.st] + (c.bug ? ' · v2에 버그' : '') + (c.grace ? '' : ' · 즉시 종료'); },
   columns: ['서비스 중단', '가장 많이 떠 있던 서버', '버그에 노출된 요청', '되돌리는 방법', '끊긴 요청'],
   simulate: function (c) {
     var ev = [], S = ['v1', 'v1', 'v1', 'v1'], G = [], lb = 'v1 서버 4대', down = '없음', maxUp = 4, exposed = '해당 없음', back = '해당 없음', cut = 0, sum = [];
@@ -62,7 +63,7 @@ Lab.register({
       else { push('지표에 이상이 없습니다. 나머지 3대도 차례로 v2로 바꿉니다.', 'good'); for (var q = 1; q < 4; q++) { stop(q); S[q] = 'v2'; } lb = 'v2 서버 4대'; push('4대 모두 v2가 됐습니다.', 'good'); }
       sum.push('실제 사용자 요청의 일부로 새 버전을 검증하므로, 문제가 있어도 영향 범위가 작습니다. 대신 지표를 비교하고 판단하는 체계(모니터링, 자동 롤백)가 갖춰져 있어야 의미가 있습니다.');
     }
-    if (!c.grace) sum.push('Graceful Shutdown이 없으면 서버를 내리는 순간 처리 중이던 요청이 끊깁니다(' + cut + '건). 무중단 배포라도 사용자는 오류를 봅니다. 새 요청을 먼저 끊고, 받은 요청은 끝까지 처리한 뒤 종료해야 합니다.');
+    if (!c.grace) sum.push('즉시 종료(server.shutdown=immediate)로 두면 서버를 내리는 순간 처리 중이던 요청이 끊깁니다(' + cut + '건). 무중단 배포라도 사용자는 오류를 봅니다. 스프링 부트의 기본값인 graceful은 새 요청을 먼저 끊고, 받은 요청은 끝까지 처리한 뒤 종료합니다.');
     return { events: ev, summary: sum, row: [down, maxUp + '대', exposed, back, cut + '건'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -83,5 +84,5 @@ Lab.register({
     P.box('cut', 16, s.G.length ? 288 : 200, 648, 40, { cls: s.cut ? 'bad' : 'good', title: '처리 도중 끊긴 요청', right: s.cut + '건' });
     P.note('파랑은 기존 버전(v1), 초록은 새 버전(v2), 노랑은 내리거나 올리는 중인 서버입니다. 로드밸런서의 화살표가 닿은 서버만 요청을 받습니다.');
   },
-  assume: '서버 4대, 한 번에 한 대씩 교체하는 단순한 구성입니다. 버그는 헬스 체크로는 걸러지지 않고 실제 요청을 받아 봐야 드러나는 종류라고 가정했고, 롤링에서는 2대를 바꾼 시점에 발견한다고 보았습니다. 서버를 내릴 때 처리 중인 요청은 서버당 2건으로 두었습니다. 각 방식의 정의는 Kubernetes와 스프링 부트 공식 문서의 설명을 따랐습니다.',
+  assume: '서버 4대, 한 번에 한 대씩 교체하는 단순한 구성입니다. 버그는 헬스 체크로는 걸러지지 않고 실제 요청을 받아 봐야 드러나는 종류라고 가정했고, 롤링에서는 2대를 바꾼 시점에 발견한다고 보았습니다. 서버를 내릴 때 처리 중인 요청은 서버당 2건으로 두었습니다. 각 방식의 정의는 Kubernetes와 스프링 부트 공식 문서의 설명을 따랐습니다. 스프링 부트는 3.4부터 server.shutdown의 기본값이 graceful이라 따로 적지 않아도 처리 중인 요청을 끝내고 종료하고, 끄려면 immediate로 바꿉니다(스프링 부트 공식 문서 Graceful Shutdown, 3.4 릴리스 노트, 스프링 부트 4.1.1 jar의 설정 메타데이터에서 server.shutdown의 기본값 graceful과 spring.lifecycle.timeout-per-shutdown-phase의 기본값 30s를 확인했습니다). 화면의 Deployment는 필요한 부분만 남긴 것으로, readinessProbe는 쿠버네티스 공식 문서대로 spec.template.spec.containers의 각 컨테이너 아래에 적습니다. 서버 동작은 쿠버네티스와 서버를 실제로 돌린 결과가 아니라 모형입니다.',
 });

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Set과 Map의 종류: 같은 값을 넣었는데 꺼내는 순서가 왜 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.">
+<meta name="description" content="Set은 같은 값을 한 번만 넣을 수 있는 컬렉션이고, Map은 키와 값을 짝지어 두는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/setmap/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/setmap/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/setmap/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="Set과 Map의 종류: 같은 값을 넣었는데 꺼내는 순서가 왜 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.">
+<meta property="og:description" content="Set은 같은 값을 한 번만 넣을 수 있는 컬렉션이고, Map은 키와 값을 짝지어 두는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/setmap/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -33,7 +33,7 @@
 <p><b>같은 값을 넣었는데 꺼내는 순서가 왜 다른가</b></p>
 <p><b>왜 생겼나</b> — HashSet과 HashMap은 해시값으로 자리를 정해 빨리 찾는 대신, 꺼내는 순서가 넣은 순서와도 정렬 순서와도 상관없다. 순서가 필요할 때마다 따로 정렬하거나 순서를 기록할 List를 함께 관리하면 번거롭다. 그래서 자바는 넣은 순서를 기억하는 LinkedHashSet·LinkedHashMap과, 늘 정렬된 상태를 유지하는 TreeSet·TreeMap을 함께 제공한다.</p>
 <p><b>지금 어디에 쓰나</b> — 순서와 상관없이 중복을 없애거나 키로 찾기만 하면 HashSet·HashMap을 쓴다. 넣은 순서대로 보여 줘야 하는 목록이나 오래 안 쓴 것부터 지우는 캐시(LinkedHashMap의 접근 순서 모드)에는 Linked 계열을, 이름순 목록이나 ceilingKey·subMap 같은 범위 검색에는 Tree 계열을 쓴다.</p>
-<p>Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.</p>
+<p>Set은 같은 값을 한 번만 넣을 수 있는 컬렉션이고, Map은 키와 값을 짝지어 두는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 서른 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -48,7 +48,7 @@
 <dt>TreeSet과 TreeMap</dt>
 <dd><b>왜 생겼나</b> — HashMap에 넣은 값을 순서대로 보려면 꺼낼 때마다 따로 정렬해야 하고, 어떤 값 이상인 것만 고르려면 전부 훑어야 한다. TreeSet과 TreeMap은 넣을 때마다 자리를 정해 늘 정렬된 상태로 두어, 순서대로 꺼내기와 범위 찾기를 바로 하게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 날짜별 기록을 시간순으로 보여 주거나, 점수 구간표에서 floorKey로 &quot;이 점수 이하인 기준 가운데 가장 큰 것&quot;을 찾을 때 쓴다. 순서가 필요 없으면 더 빠른 HashMap과 HashSet을 쓴다.</dd>
-<dd>값(TreeMap은 키)을 항상 정렬된 상태로 유지하는 Set과 Map이다. 내부는 레드-블랙 트리이며, 넣을 때마다 compareTo(또는 생성자에 준 Comparator)로 비교해 자리를 정하므로 순회하면 작은 것부터 나온다. 넣기, 찾기, 지우기가 모두 O(log n)이라 HashMap보다 느리지만, 가장 작은 값이나 어떤 값 이상인 범위를 바로 구할 수 있다. Comparator를 주지 않았거나 준 Comparator가 null을 허용하지 않으면 null을 넣을 때 NullPointerException이 난다. Comparator를 주지 않고 Comparable을 구현하지 않은 객체를 넣으면 ClassCastException이 난다. 두 값이 같은지는 equals가 아니라 비교 결과가 0인지로 판단한다.</dd>
+<dd>값(TreeMap은 키)을 항상 정렬된 상태로 유지하는 Set과 Map이다. 내부는 레드-블랙 트리이며, 넣을 때마다 compareTo(또는 생성자에 준 Comparator)로 비교해 자리를 정하므로 순회하면 작은 것부터 나온다. Java API 문서는 넣기, 찾기, 지우기를 log n에 비례하는 시간(O(log n))으로 적고 있고(HashMap은 해시가 고르게 퍼지면 상수 시간), 가장 작은 값이나 어떤 값 이상인 범위를 바로 구할 수 있다. Comparator를 주지 않았거나 준 Comparator가 null을 허용하지 않으면 null을 넣을 때 NullPointerException이 난다. Comparator를 주지 않고 Comparable을 구현하지 않은 객체를 넣으면 ClassCastException이 난다. 두 값이 같은지는 equals가 아니라 비교 결과가 0인지로 판단한다.</dd>
 <dt>시간 복잡도(Big-O)</dt>
 <dd><b>왜 생겼나</b> — 실행 시간을 초로 재면 컴퓨터와 입력에 따라 값이 달라서, 두 방식 중 어느 쪽이 나은지 말하기 어렵다. Big-O 표기는 상수와 작은 항을 버리고 입력이 커질 때 늘어나는 모양만 남겨, 환경과 관계없이 방식끼리 비교하게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 자료구조를 고를 때(ArrayList의 contains는 O(n), HashSet은 평균 O(1)), 이중 반복문이 데이터 증가를 버틸지 따질 때, 코딩 테스트에서 풀이가 시간 안에 끝날지 가늠할 때 쓴다.</dd>
@@ -70,7 +70,7 @@
 <li>set.add(&quot;grape&quot;): &quot;grape&quot;의 hashCode로 계산한 칸 번호는 11번입니다. 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 grape입니다.</li>
 <li>set.add(&quot;apple&quot;): &quot;apple&quot;의 hashCode로 계산한 칸 번호는 1번입니다. 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 apple, grape입니다.</li>
 <li>set.add(&quot;date&quot;): &quot;date&quot;의 hashCode로 계산한 칸 번호는 0번입니다. 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 date, apple, grape입니다.</li>
-<li>set.add(&quot;apple&quot;): 같은 값이 이미 들어 있습니다. Set은 같은 값을 두 번 담지 않으므로 넣지 않고 false를 돌려주며, 그 false가 출력됩니다. 크기는 그대로 3개입니다.</li>
+<li>set.add(&quot;apple&quot;): 같은 값이 이미 들어 있습니다. Set은 같은 값을 두 번 갖지 않으므로 넣지 않고 false를 돌려주며, 그 false가 출력됩니다. 크기는 그대로 3개입니다.</li>
 <li>set.add(&quot;fig&quot;): &quot;fig&quot;의 hashCode로 계산한 칸 번호는 5번입니다. 꺼낼 때는 칸 번호가 작은 것부터이므로 지금 순서는 date, apple, fig, grape입니다.</li>
 <li>System.out.println(set): 들어 있는 값을 처음부터 차례로 꺼내(순회) 출력합니다. HashSet은 칸 번호가 작은 칸부터 꺼냅니다. 넣은 순서(grape, apple, date, fig)도, 정렬된 순서(apple, date, fig, grape)도 아닙니다. 출력은 [date, apple, fig, grape]입니다.</li>
 <li>System.out.println(set.size()): 다섯 번 넣었지만 같은 값 하나는 다시 들어가지 않았으므로 크기는 4입니다.</li>
@@ -78,7 +78,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>HashSet과 HashMap의 순회 순서는 hashCode가 정한 칸 번호 순서입니다. 사람이 보기에는 뒤섞인 순서이고, 자바 버전이나 들어 있는 개수에 따라 달라질 수 있으므로 이 순서에 기대는 코드를 쓰면 안 됩니다.</li>
-<li>고르는 기준: 순서가 필요 없으면 Hash 종류(가장 빠름), 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다.</li>
+<li>고르는 기준: 순서가 필요 없으면 Hash 종류, 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다. Java API 문서는 넣기·찾기에 걸리는 시간을, Hash와 LinkedHash 종류는 해시값이 고르게 퍼지면 원소 수와 상관없는 상수 시간(O(1))으로, Tree 종류는 log n에 비례하는 시간(O(log n))으로 적고 있습니다. 이 실습은 성능을 측정하지 않았습니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// main 메서드 안의 줄만 보임 (클래스·main 선언과 import는 생략)
@@ -92,7 +92,7 @@ set.add(&quot;fig&quot;);
 System.out.println(set);                   // 처음부터 차례로 꺼내 출력
 System.out.println(set.size());</pre>
 <h2>이 모형의 전제</h2>
-<p>서른 가지 조합의 출력, 크기, 중복을 넣었을 때 돌려주는 값, 예외의 종류를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. HashSet과 HashMap의 칸 번호도 실제 객체의 내부 배열을 들여다본 값과 대조했습니다. 다만 Hash 종류의 순회 순서는 자바 명세가 보장하지 않습니다. 여기에 보이는 순서는 JDK 21에서 칸이 16개(원소 12개 이하)일 때의 것이며, 버전이나 원소 개수가 달라지면 바뀔 수 있습니다. record의 hashCode가 내는 구체적인 값도 명세가 정하지 않으며, JDK 21에서는 Task(int id)의 hashCode가 id와 같았습니다. TreeSet이 같은 값인지 판단하는 기준은 equals가 아니라 compareTo의 결과가 0인지입니다. 성능 차이(Hash 종류가 Tree 종류보다 빠름)는 측정하지 않았고 문서에 적힌 시간 복잡도를 따랐습니다.</p>
+<p>서른 가지 조합의 출력, 크기, 중복을 넣었을 때 돌려주는 값, 예외의 종류를 검증 환경의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. HashSet과 HashMap의 칸 번호도 실제 객체의 내부 배열을 들여다본 값과 대조했습니다. 다만 Hash 종류의 순회 순서는 자바 명세가 보장하지 않습니다. 여기에 보이는 순서는 JDK 21에서 칸이 16개(원소 12개 이하)일 때의 것이며, 버전이나 원소 개수가 달라지면 바뀔 수 있습니다. record의 hashCode가 내는 구체적인 값도 명세가 정하지 않으며, JDK 21에서는 Task(int id)의 hashCode가 id와 같았습니다. TreeSet이 같은 값인지 판단하는 기준은 equals가 아니라 compareTo의 결과가 0인지입니다. 성능은 측정하지 않았습니다. 시간 복잡도는 Java API 문서에 적힌 것(HashSet·HashMap·LinkedHashSet·LinkedHashMap은 해시값이 고르게 퍼지면 기본 연산이 상수 시간, TreeSet·TreeMap은 log n 시간)을 따랐습니다.</p>
 <p>앞 실습: <a href="../../lab/hashmap/">HashMap 내부</a> · 다음 실습: <a href="../../lab/sqh/">스택·큐·우선순위 큐</a></p>
   </div>
 
@@ -185,6 +185,6 @@ System.out.println(set.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

@@ -41,7 +41,7 @@ Lab.register({
       var x = +l.replace(/\D/g, ''), isF = l.indexOf('filter') === 0, next = tr.log[i + 1] || '';
       done.push(l);
       if (isF) { var pass = x > 3; push('filter(' + x + '): ' + (pass ? 'It is greater than 3, so it passes.' + (c.sorted ? ' sorted() receives it and keeps it. sorted() passes nothing to the next stage until all the elements have arrived.' : ' It goes straight on to the next operation, map.') : 'It is not greater than 3, so it is dropped. This element does not go to map.'), '', D.indexOf(x)); }
-      else { out.push(x * 10); push('map(' + x + '): The value is changed to ' + x * 10 + ' and ' + (c.term === 'findFirst' ? 'passed to findFirst.' : c.limit ? 'put into the result by way of limit.' : 'put into the result.'), 'good', D.indexOf(x)); }
+      else { out.push(x * 10); push('map(' + x + '): The value is changed to ' + x * 10 + ' and ' + (c.term === 'findFirst' ? 'passed to findFirst.' : c.limit ? 'collected into the result list by way of limit.' : 'collected into the result list.'), 'good', D.indexOf(x)); }
       if (isF && c.sorted && next.indexOf('map') === 0) push('The elements have run out. sorted() sorts the values that it has kept. Sorting is possible only when all the elements are known, so the filter before it ran on every element first.', '', -1);
     });
     var fN = tr.log.filter(function (l) { return l.indexOf('filter') === 0; }).length, mN = tr.log.length - fN, early = fN < D.length;

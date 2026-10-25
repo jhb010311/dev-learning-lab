@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -44,7 +44,7 @@
 <dt>Type erasure</dt>
 <dd><b>Why it exists</b> — When generics were added to Java, code and libraries compiled before had to keep running together without being changed. Type erasure uses the type marks only for the compile-time check and then removes them, so that old code could be mixed with new code without creating a separate class for List&lt;String&gt;.</dd>
 <dd><b>Where it's used today</b> — Because of type erasure, an API that needs a type at run time takes a Class object as a separate argument. JPA's em.find receiving the class of the entity to find, and Jackson's readValue receiving the class to convert the JSON into, are examples.</dd>
-<dd>This is what the compiler does when it uses the type arguments of generics (the Integer in List&lt;Integer&gt;) only for the checks at compile time and does not keep them in the code that runs. As a result, at run time a List&lt;String&gt; and a List&lt;Integer&gt; are objects of the same class, and a list object does not remember what type it was meant to hold. At the places where values are taken out, the compiler inserts the casts for you. Because of this, you cannot ask a list for its element type at run time, and you cannot create an object from a type parameter, as in new T(). If you bypass the check of the compiler with a raw type and add a wrong value, nothing stops it at run time.</dd>
+<dd>This is what the compiler does when it uses the type arguments of generics (the Integer in List&lt;Integer&gt;) only for the checks at compile time and does not keep them in the code that runs. As a result, at run time a List&lt;String&gt; and a List&lt;Integer&gt; are objects of the same class, and a list object does not remember what type it was meant to take. At the places where values are taken out, the compiler inserts the casts for you. Because of this, you cannot ask a list for its element type at run time, and you cannot create an object from a type parameter, as in new T(). If you bypass the check of the compiler with a raw type and add a wrong value, nothing stops it at run time.</dd>
 <dt>Wildcard (? extends and ? super)</dt>
 <dd><b>Where it's used today</b> — You often see it in method declarations in the standard library. addAll(Collection&lt;? extends E&gt;) of Collection also accepts a collection of elements of a subtype, and Collections.copy(List&lt;? super T&gt;, List&lt;? extends T&gt;) uses super on the side that is put into and extends on the side that is taken from.</dd>
 <dd>This is the syntax that uses ? inside the &lt;&gt; of a generic type to express that &quot;the type is not fixed&quot;. List&lt;? extends Number&gt; accepts a list of Number or of any subtype of Number, and a value taken out of it can be used as a Number, but no value can be added to it. List&lt;? super Integer&gt; accepts a list of Integer or of any supertype of Integer, and an Integer can be added to it, but a value taken out of it can be received only as an Object. Because a List&lt;Integer&gt; cannot be assigned to a List&lt;Number&gt; variable, wildcards are needed when you write a method that accepts lists of several types. Use extends for a parameter that only has values taken out of it, and super for a parameter that only has values put into it.</dd>
@@ -183,6 +183,6 @@ System.out.println(&quot;last value: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=cffe3f81e8">
+<link rel="stylesheet" href="../../app.css?v=687ea7b3d1">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Byte</dt>
-<dd>A byte is the basic unit that makes up what is stored in a file, and it is one 8-bit value. The Java byte type shows values from -128 to 127, but the same 8 bits can also be read as a value from 0 to 255 (Byte.toUnsignedInt). A file stores not the text or the picture itself but such bytes one after another, and which character they become depends on the rule by which you read those bytes. In Java, a byte[] array is a container that holds the contents of a file as they are, with no rule, and Files.readAllBytes reads the bytes of a file into this array. The size of a file is also counted in bytes, not in characters.</dd>
+<dd>A byte is the basic unit that makes up what is stored in a file, and it is one 8-bit value. The Java byte type shows values from -128 to 127, but the same 8 bits can also be read as a value from 0 to 255 (Byte.toUnsignedInt). A file stores not the text or the picture itself but such bytes one after another, and which character they become depends on the rule by which you read those bytes. In Java, a byte[] array stores the contents of a file as they are, one byte per element, with no rule, and Files.readAllBytes reads the bytes of a file into this array. The size of a file is also counted in bytes, not in characters.</dd>
 <dt>Character encoding and UTF-8</dt>
 <dd><b>Why it exists</b> — If every country uses a different encoding (Korea uses EUC-KR and others), characters are garbled when you open a file written in another encoding, and it is hard to mix characters of several countries in one text. UTF-8 writes every Unicode character by one rule, and keeps English letters as 1 byte, the same as ASCII.</dd>
 <dd><b>Where it's used today</b> — It is commonly used as the encoding of web pages, JSON, and Java source files. To store even emoji in MySQL, specify the character set as utf8mb4, not utf8.</dd>
@@ -61,9 +61,9 @@
 <ol>
 <li>The line that calls the Files.writeString method runs. At this point the file memo.txt does not exist yet. A file stores not text but bytes (values you can see as numbers from 0 to 255), so the 2 characters to write must first be turned into bytes. The rule for turning them (character encoding) is the StandardCharsets.UTF_8 rule passed as the third argument, that is, UTF-8.</li>
 <li>The text is turned into bytes by the UTF-8 rule. &quot;가&quot;: 3 bytes (EA B0 80), &quot;A&quot;: 1 byte (41). In this rule, a Korean character is 3 bytes and an English letter is 1 byte. There are 2 characters, but the bytes come to 4. These bytes are stored in the file memo.txt. These numbers are all that is stored in the file.</li>
-<li>The line that calls the Files.readAllBytes method reads the file memo.txt. This method has no rule for reading; it puts the bytes stored in the file into the variable bytes as they are. The bytes put in are 4 (EA B0 80 41), the same as the bytes just stored.</li>
-<li>The line that calls the Files.readString method turns the bytes of the file memo.txt back into text. The rule for reading is the StandardCharsets.UTF_8 rule, the same as when writing. Because the bytes are grouped and read by the same rule, the original characters come back as they were and are put in the variable text: EA B0 80 → &quot;가&quot;, 41 → &quot;A&quot;.</li>
-<li>The two System.out.println lines print the number of bytes in the variable bytes and the text in the variable text. The first line is 4, and the second line is 가A. There are 2 characters, but the number on the first line is 4, so the value of bytes.length is the number of bytes, not the number of characters.</li>
+<li>The line that calls the Files.readAllBytes method reads the file memo.txt. This method has no rule for reading; it reads the bytes stored in the file as they are into an array, and the variable bytes refers to that array. The array has 4 bytes (EA B0 80 41), the same as the bytes just stored.</li>
+<li>The line that calls the Files.readString method turns the bytes of the file memo.txt back into text. The rule for reading is the StandardCharsets.UTF_8 rule, the same as when writing. Because the bytes are grouped and read by the same rule, the original characters come back as they were, and the variable text refers to them: EA B0 80 → &quot;가&quot;, 41 → &quot;A&quot;.</li>
+<li>The two System.out.println lines print the number of bytes in the array that bytes refers to and the text that the variable text refers to. The first line is 4, and the second line is 가A. There are 2 characters, but the number on the first line is 4, so the value of bytes.length is the number of bytes, not the number of characters.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -179,6 +179,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=cffe3f81e8"></script>
+<script src="../../app.js?v=687ea7b3d1"></script>
 </body>
 </html>

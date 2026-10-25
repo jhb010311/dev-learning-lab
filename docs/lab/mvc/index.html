@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>MVC(Model-View-Controller)</dt>
 <dd><b>왜 생겼나</b> — 화면을 그리는 코드와 데이터를 처리하는 코드가 한곳에 섞이면, 화면 모양만 바꾸려 해도 처리 로직을 함께 건드리게 된다. MVC는 데이터, 보여 주기, 입력 받기를 서로 다른 코드가 맡게 해서 한쪽을 고칠 때 다른 쪽을 덜 건드리게 한다.</dd>
 <dd><b>지금 어디에 쓰나</b> — 스프링 MVC에서는 @Controller 클래스가 컨트롤러를, Thymeleaf 같은 템플릿이 뷰를 맡는다. 서버는 JSON만 돌려주고 화면은 브라우저의 JavaScript가 그리는 곳에서는 뷰의 일이 브라우저 쪽으로 옮겨 간다.</dd>
-<dd>프로그램을 모델(Model), 뷰(View), 컨트롤러(Controller) 세 역할로 나누는 설계 방식이다. 모델은 데이터와 그 데이터를 다루는 로직을 맡고, 뷰는 데이터를 화면으로 보여 주는 일을 맡으며, 컨트롤러는 들어온 입력을 받아 모델과 뷰를 움직인다. 스프링 MVC는 이 방식을 따르는 웹 프레임워크다. DispatcherServlet이 모든 요청을 받아 알맞은 컨트롤러 메서드를 부르고, 컨트롤러가 화면에 보여 줄 데이터를 모델에 담아 뷰 이름과 함께 돌려주면, 뷰가 그 데이터로 응답 화면을 만든다. JSON을 응답하는 REST API에서는 뷰가 화면을 그리는 대신 HttpMessageConverter가 컨트롤러의 반환값을 응답 본문으로 바꾼다.</dd>
+<dd>프로그램을 모델(Model), 뷰(View), 컨트롤러(Controller) 세 역할로 나누는 설계 방식이다. 모델은 데이터와 그 데이터를 다루는 로직을 맡고, 뷰는 데이터를 화면으로 보여 주는 일을 맡으며, 컨트롤러는 들어온 입력을 받아 모델과 뷰를 움직인다. 스프링 MVC는 이 방식을 따르는 웹 프레임워크다. DispatcherServlet이 모든 요청을 받아 알맞은 컨트롤러 메서드를 부르고, 컨트롤러가 화면에 보여 줄 데이터를 모델에 넣어 뷰 이름과 함께 돌려주면, 뷰가 그 데이터로 응답 화면을 만든다. JSON을 응답하는 REST API에서는 뷰가 화면을 그리는 대신 HttpMessageConverter가 컨트롤러의 반환값을 응답 본문으로 바꾼다.</dd>
 <dt>DispatcherServlet과 프론트 컨트롤러</dt>
 <dd><b>지금 어디에 쓰나</b> — Spring Boot가 자동으로 등록해 모든 경로의 요청을 받게 하므로 직접 만들 일은 거의 없다. 요청이 어느 컨트롤러로 가는지 디버거로 따라갈 때 doDispatch 메서드가 출발점이 된다.</dd>
 <dd>Spring MVC에서 모든 HTTP 요청을 가장 먼저 받는 서블릿이다. 요청을 처리할 컨트롤러를 찾아 호출하고 그 결과를 응답으로 만드는 전체 흐름을 조율한다. 이렇게 하나의 진입점이 모든 요청을 받아 공통 처리를 한 뒤 각 담당에게 넘기는 구조를 프론트 컨트롤러 패턴이라 한다.</dd>
@@ -84,17 +84,17 @@
 <li>HandlerMapping이 GET /orders를 처리할 핸들러를 찾습니다. @GetMapping(&quot;/orders&quot;)가 붙은 list 메서드와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.</li>
 <li>HandlerAdapter를 고릅니다. 애너테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.</li>
 <li>인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.</li>
-<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 Model 객체를 넣어 줍니다. 여기에 담기는 데이터가 MVC의 모델(M)입니다.</li>
-<li>컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 &quot;orders/list&quot;를 돌려줍니다.</li>
+<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 넣어 둘 빈 Model 객체를 줍니다. 여기에 넣는 데이터가 MVC의 모델(M)입니다.</li>
+<li>컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 넣은 뒤 화면 이름 &quot;orders/list&quot;를 돌려줍니다.</li>
 <li>반환값을 처리합니다. @Controller가 돌려준 문자열 &quot;orders/list&quot;는 화면 이름으로 해석되고, 모델과 함께 ModelAndView로 묶입니다.</li>
 <li>인터셉터의 postHandle이 호출됩니다. 아직 화면을 그리기 전이라 모델에 공통 데이터를 추가할 수 있습니다.</li>
-<li>ViewResolver가 화면 이름 &quot;orders/list&quot;를 실제 템플릿 파일로 바꾸고, 뷰가 모델 데이터를 넣어 HTML을 그려 응답에 씁니다. MVC의 뷰(V)가 일하는 단계이고, 컨트롤러가 모델에 담아 둔 orders를 여기서 꺼내 씁니다.</li>
+<li>ViewResolver가 화면 이름 &quot;orders/list&quot;를 실제 템플릿 파일로 바꾸고, 뷰가 모델 데이터를 넣어 HTML을 그려 응답에 씁니다. MVC의 뷰(V)가 일하는 단계이고, 컨트롤러가 모델에 넣어 둔 orders를 여기서 꺼내 씁니다.</li>
 <li>인터셉터의 afterCompletion이 호출됩니다. 응답 작성이 끝난 뒤이며 예외 여부와 관계없이 호출됩니다.</li>
 <li>응답이 필터 체인을 거꾸로 지나 클라이언트로 나갑니다. chain.doFilter 호출 뒤에 적어 둔 필터 코드가 이때 실행됩니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>컨트롤러는 요청을 처리해 모델에 데이터를 담고 화면 이름만 돌려줍니다. 뷰는 그 모델을 받아 HTML을 그립니다. 둘을 이어 주는 것은 DispatcherServlet입니다.</li>
+<li>컨트롤러는 요청을 처리해 모델에 데이터를 넣고 화면 이름만 돌려줍니다. 뷰는 그 모델을 받아 HTML을 그립니다. 둘을 이어 주는 것은 DispatcherServlet입니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// 필요한 부분만 남김: import와, 예시로 만든 필드·클래스·메서드의 선언은 줄였다.
@@ -201,6 +201,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

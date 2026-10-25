@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -45,7 +45,7 @@
 <dt>기본형과 참조형</dt>
 <dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
 <dt>ArrayList</dt>
-<dd>내부에 배열을 두고 가득 차면 더 큰 배열로 옮겨 담는 리스트다. 인덱스로 원소에 접근하는 속도가 O(1)로 빠르고, 끝에 추가하는 것도 분할 상환으로 O(1)이다. 중간에 삽입하거나 삭제하면 뒤의 원소들을 한 칸씩 옮겨야 해서 O(n)이 걸린다.</dd>
+<dd>필드로 배열을 가리키고, 그 배열이 가득 차면 더 큰 배열을 새로 만들어 원소를 옮겨 적는 리스트다. 인덱스로 원소에 접근하는 속도가 O(1)로 빠르고, 끝에 추가하는 것도 분할 상환으로 O(1)이다. 중간에 삽입하거나 삭제하면 뒤의 원소들을 한 칸씩 옮겨야 해서 O(n)이 걸린다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -175,6 +175,6 @@ System.out.println(Arrays.toString(b));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

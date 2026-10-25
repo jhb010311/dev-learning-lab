@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07d0b0cacc">
+<link rel="stylesheet" href="../../app.css?v=95723cab6b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,11 @@ ExecutorService pool = new ThreadPoolExecutor(
     new ArrayBlockingQueue&lt;&gt;(2));     // 대기 큐 2칸
 
 for (int i = 1; i &lt;= 10; i++) {
-    pool.execute(() -&gt; handle());   // 요청 하나에 2.0초
+    try {
+        pool.execute(() -&gt; handle());   // 요청 하나에 2.0초
+    } catch (RejectedExecutionException e) {
+        // 스레드와 큐가 모두 차 있으면 기본 정책(AbortPolicy)이 이 예외를 던진다
+    }
     Thread.sleep(200);            // 0.2초마다 도착
 }</pre>
 <h2>이 모형의 전제</h2>
@@ -186,6 +190,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07d0b0cacc"></script>
+<script src="../../app.js?v=95723cab6b"></script>
 </body>
 </html>

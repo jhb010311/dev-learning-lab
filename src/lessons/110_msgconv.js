@@ -57,7 +57,7 @@ Lab.register({
         push('JSON 읽기: Jackson이 본문의 JSON에서 이름이 같은 값을 찾아 OrderRequest 객체(item은 "book", qty는 2)를 만듭니다. 글자가 자바 객체가 됐습니다.');
 
         st.stage = 4; st.ctrl = true; st.ret = { obj: 'OrderResponse 객체', entity: 'ResponseEntity (201)', str: '"orders/done"', view: '"orders/done"' }[K];
-        push('create(req) 실행: 컨트롤러 메서드가 주문을 만들고 ' + { obj: 'OrderResponse 객체를', entity: 'ResponseEntity를', str: '문자열 "orders/done"을', view: '문자열 "orders/done"을' }[K] + ' 돌려줍니다.' + (K === 'entity' ? ' ResponseEntity에는 상태 코드 201, Location 헤더 /orders/1, 본문으로 쓸 OrderResponse 객체가 함께 담겨 있습니다.' : ''));
+        push('create(req) 실행: 컨트롤러 메서드가 주문을 만들고 ' + { obj: 'OrderResponse 객체를', entity: 'ResponseEntity를', str: '문자열 "orders/done"을', view: '문자열 "orders/done"을' }[K] + ' 돌려줍니다.' + (K === 'entity' ? ' ResponseEntity는 상태 코드 201과 Location 헤더 /orders/1을 가지고, 본문으로 쓸 OrderResponse 객체를 가리킵니다.' : ''));
 
         st.stage = 5;
         if (K === 'view') {
@@ -66,7 +66,7 @@ Lab.register({
           st.stage = 7; status = '200 OK'; st.status = status; type = 'text/html'; st.type = type; maker = '뷰 (화면)'; view = 'orders/done'; st.wr = '뷰가 HTML을 씀'; st.body = '(orders/done 화면의 HTML)';
           push('화면 그리기: ViewResolver가 이름이 "orders/done"인 화면을 찾고, 그 화면이 HTML을 만들어 응답 본문에 씁니다. Content-Type은 text/html이고 200으로 응답합니다. 요청의 Accept는 ' + q.accept + '이었지만, 화면을 돌려주는 길에서는 그것 때문에 거절되지 않았습니다.', 'good');
         } else {
-          if (K === 'entity') { st.wr = '상태와 헤더를 옮김'; push('ResponseEntity 처리: 스프링이 ResponseEntity에 담긴 상태 코드 201과 Location 헤더를 응답에 옮겨 적습니다. 본문으로 담긴 OrderResponse 객체는 메시지 컨버터로 넘깁니다.'); }
+          if (K === 'entity') { st.wr = '상태와 헤더를 옮김'; push('ResponseEntity 처리: 스프링이 ResponseEntity가 가진 상태 코드 201과 Location 헤더를 응답에 옮겨 적습니다. 본문으로 가리키는 OrderResponse 객체는 메시지 컨버터로 넘깁니다.'); }
           else { st.wr = '본문으로 쓰기로 함'; push('@RestController: 이 애너테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.'); }
           st.stage = 6;
           if (K === 'str') {
