@@ -20,8 +20,9 @@ Lab.quiz([
     a: ['이어 붙인 코드는 회원 전체를 내주고, Specification은 0명을 조회한다', '두 코드 모두 따옴표 때문에 문법 오류로 실패한다', '두 코드 모두 이름이 그 글자인 회원을 찾아 0명을 조회한다', '이어 붙인 코드는 0명을 조회하고, Specification은 전체를 내준다'],
     why: '직접 이어 붙이면 입력의 따옴표가 문자열을 닫아 or \'1\'=\'1\'이 조건이 되고, 언제나 참이라 7명이 모두 조회됩니다(SQL Injection). Specification, Criteria API, Querydsl은 값을 ? 자리에 따로 바인딩하므로 그 글자는 이름 값일 뿐이고 0명이 조회됩니다.',
     sim: { c: { how: 'concat', name: 'quote', age: false }, col: 4, has: '7명' } },
-  { lv: 3, id: 'dynquery', q: '코드가 "select m from Member m where"로 시작하고, 이름이 있으면 이름 조건을, 나이가 있으면 " and m.age >= " + age를 뒤에 붙입니다. 나이만 입력해 검색하면 어떻게 됩니까?',
+  { lv: 3, id: 'dynquery', q: '아래 코드에서 search(null, 20)을 부르면 어떻게 됩니까?',
+    code: '// 필요한 부분만 남김 (클래스 선언, EntityManager em 필드, 예시로 만든 Member 엔티티, import는 생략)\n// 부르는 쪽: search(null, 20);   이름은 비우고 나이만 20으로 검색한다\nList<Member> search(String name, Integer age) {\n    String jpql = "select m from Member m where";\n    if (name != null) jpql += " m.name = \'" + name + "\'";\n    if (age != null)  jpql += " and m.age >= " + age;\n    return em.createQuery(jpql, Member.class).getResultList();\n}',
     a: ['where 바로 뒤에 and가 와서 문법 오류로 실패한다', '나이 조건만 걸린 쿼리가 정상적으로 실행된다', '이름 조건이 null과 비교되어 결과가 0건이 된다', 'and가 무시되고 전체 회원이 조회된다'],
-    why: '조립된 문장은 "select m from Member m where and m.age >= 20"입니다. and 앞에 있어야 할 첫 조건이 없어서 JPQL 문법에 맞지 않고, createQuery가 예외를 던집니다. SQL은 DB로 나가지도 않습니다. 조건을 둘 다 넣어 시험하면 정상이라 놓치기 쉽습니다.',
+    why: 'name이 null이라 이름 조건을 붙이는 줄은 건너뛰고 나이 조건을 붙이는 줄만 실행되므로, 조립된 문장은 "select m from Member m where and m.age >= 20"입니다. and 앞에 있어야 할 첫 조건이 없어서 JPQL 문법에 맞지 않고, createQuery가 예외를 던집니다. SQL은 DB로 나가지도 않습니다. 이름과 나이를 둘 다 넣어 시험하면 정상이라 놓치기 쉽습니다.',
     sim: { c: { how: 'concat', name: 'none', age: true }, col: 1, has: '실패' } },
 ]);

@@ -730,14 +730,15 @@ var Lab = (function () {
       return { lv: 0, src: src, tag: src[0], q: '다음 설명에 해당하는 용어는 무엇입니까?', body: maskTerm(src[1], src[2]), opts: shuffle([{ t: src[1], ok: true }].concat(others.map(function (o) { return { t: o[1], ok: false }; }))), why: src[1] + ': ' + src[2], id: termLesson[src[1]] || null, picked: -1 };
     }
     var tk = placeOf(src.id); tk = tk ? tk.cat : null;
-    return { lv: lv, src: src, tag: tk ? tk.name : '', q: src.q, body: '', opts: shuffle(src.a.map(function (t, i) { return { t: t, ok: i === 0 }; })), why: src.why, id: src.id, picked: -1 };
+    return { lv: lv, src: src, tag: tk ? tk.name : '', q: src.q, body: '', code: src.code || '', opts: shuffle(src.a.map(function (t, i) { return { t: t, ok: i === 0 }; })), why: src.why, id: src.id, picked: -1 };
   }
   function right(it) { return it.picked >= 0 && it.opts[it.picked].ok; }
   // 복습 상자: 문제마다 { s: 몇 번째 간격인지, due: 다시 풀 시각 }. 틀리면 처음 간격으로 돌아가고, 풀 차례에 맞히면 다음 간격으로 넘어간다.
   var review = {}, REV_DAYS = [1, 3, 7], DAY = 864e5;
-  function revKey(it) { return it.lv === 0 ? 't:' + it.src[1] : 'q:' + it.src.q; }
+  function qKey(x) { return x.q + (x.code ? '|' + x.code : ''); }   // 코드를 보이는 문제는 질문 글이 같을 수 있어 코드까지 붙여 구분한다
+  function revKey(it) { return it.lv === 0 ? 't:' + it.src[1] : 'q:' + qKey(it.src); }
   function revSave() { try { localStorage.setItem('lab-review', JSON.stringify(review)); } catch (e) {} }
-  function revSrc(k) { var name = k.slice(2); if (k.slice(0, 2) === 't:') { var t = kbTerms.filter(function (x) { return x[1] === name; })[0]; return t ? { lv: 0, src: t } : null; } var q = quizBank.filter(function (x) { return x.q === name; })[0]; return q ? { lv: q.lv, src: q } : null; }
+  function revSrc(k) { var name = k.slice(2); if (k.slice(0, 2) === 't:') { var t = kbTerms.filter(function (x) { return x[1] === name; })[0]; return t ? { lv: 0, src: t } : null; } var q = quizBank.filter(function (x) { return qKey(x) === name; })[0]; return q ? { lv: q.lv, src: q } : null; }
   function revList(dueOnly) { var now = Date.now(); return Object.keys(review).filter(function (k) { return (!dueOnly || review[k].due <= now) && revSrc(k); }); }
   function revNote(it) {
     var k = revKey(it), e = review[k], now = Date.now();
@@ -806,6 +807,7 @@ var Lab = (function () {
     var card = el('div', 'panel qcard');
     card.appendChild(el('h2', 'qtext', it.q));
     if (it.body) card.appendChild(el('p', 'qbody', it.body));
+    if (it.code) card.appendChild(el('pre', 'code qcode', it.code));   // 문제가 가리키는 코드(어디에 무엇이 적혔는지 말로 풀지 않고 그대로 보인다)
     var ol = el('div', 'opts');
     it.opts.forEach(function (o, k) {
       var b = el('button', 'opt' + (done ? (o.ok ? ' good' : k === it.picked ? ' bad' : ' dim') : '')); b.type = 'button';
@@ -32461,13 +32463,15 @@ Lab.quiz([
   { lv: 2, id: 'access', q: '필드를 private으로 두고 값을 바꾸는 일은 public 메서드로만 하게 만드는 이유로 가장 알맞은 것은 무엇입니까?',
     a: ['바깥 코드가 값을 마음대로 바꾸지 못하게 하고, 바꿀 때 거치는 검사를 한곳에 둘 수 있어서', 'private 필드는 메모리를 적게 쓰고 public 필드보다 읽는 속도가 훨씬 빨라서', 'private 필드는 실행 중에 값이 절대로 바뀌지 않는 상수가 되어서', '컴파일러가 public 필드를 가진 클래스는 객체로 만들지 못하게 막아서'],
     why: '필드를 숨기면 값을 바꾸는 길이 그 클래스의 메서드로 좁혀집니다. 메서드 안에서 잘못된 값을 걸러 낼 수 있고, 내부 구조를 바꿔도 바깥 코드를 고칠 필요가 없습니다. 이것이 캡슐화입니다. private은 속도나 상수 여부와는 관계가 없습니다.' },
-  { lv: 2, id: 'access', q: 'bank 패키지의 Account에 protected int balance가 있습니다. 같은 bank 패키지에 있지만 Account를 상속하지 않은 Teller 클래스에서 acc.balance를 읽으면 어떻게 됩니까?',
+  { lv: 2, id: 'access', q: '아래 코드에서 Teller의 return acc.balance; 줄은 어떻게 됩니까?',
+    code: '// Account와 Teller는 예시로 만든 클래스\n// 파일: bank/Account.java\npackage bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\n// 파일: bank/Teller.java\npackage bank;\n\npublic class Teller {              // Account를 상속하지 않았다\n    int read(Account acc) {\n        return acc.balance;\n    }\n}',
     a: ['같은 패키지이므로 컴파일된다', '자식 클래스가 아니므로 컴파일 오류가 난다', '컴파일은 되지만 실행 중에 예외가 난다', '읽기는 되지만 값을 바꾸는 것은 안 된다'],
-    why: 'protected는 자식 클래스뿐 아니라 같은 패키지의 모든 클래스에도 열려 있습니다. 패키지 전용보다 넓은 범위이기 때문입니다. 접근 검사는 컴파일할 때 이루어지며, 읽기와 쓰기를 따로 구분하지 않습니다.',
+    why: '두 파일의 첫 줄이 모두 package bank;이므로 Teller는 Account와 같은 패키지에 있습니다. protected는 자식 클래스뿐 아니라 같은 패키지의 모든 클래스도 쓸 수 있게 하는 범위(패키지 전용보다 넓음)라서, extends가 없어도 acc.balance는 컴파일됩니다. 접근 검사는 컴파일할 때 이루어지며, 읽기와 쓰기를 따로 구분하지 않습니다.',
     sim: { c: { mod: 'protected', from: 'pkg' }, col: 0, has: '성공' } },
-  { lv: 3, id: 'access', q: 'bank.Account에 protected int balance가 있고, 다른 패키지의 SavingAccount가 Account를 상속합니다. SavingAccount의 메서드 int read(Account other) 안에서 other.balance를 읽으면 어떻게 됩니까?',
+  { lv: 3, id: 'access', q: '아래 코드에서 SavingAccount의 return other.balance; 줄은 어떻게 됩니까?',
+    code: '// Account와 SavingAccount는 예시로 만든 클래스\n// 파일: bank/Account.java\npackage bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\n// 파일: app/SavingAccount.java\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(Account other) {\n        return other.balance;\n    }\n}',
     a: ['부모 타입 변수로 접근했으므로 컴파일 오류가 난다', '자식 클래스 안의 코드이므로 문제없이 컴파일된다', '컴파일은 되고 other가 SavingAccount가 아닐 때만 예외가 난다', 'other가 null이 아닌 것이 확인되면 컴파일된다'],
-    why: '다른 패키지의 자식 클래스는 protected 멤버를 자기 타입을 통해서만 쓸 수 있습니다. this.balance나 SavingAccount 타입 변수의 balance는 되지만, Account 타입 변수로는 안 됩니다. 컴파일러는 실제 객체가 아니라 변수의 선언 타입을 보고 판단합니다.',
+    why: 'SavingAccount는 package app;이라서 Account(package bank;)와 다른 패키지에 있는 자식 클래스입니다. 다른 패키지의 자식 클래스는 protected 멤버를 자기 타입을 통해서만 쓸 수 있습니다. 같은 메서드에서 return balance;(this.balance)나 SavingAccount 타입 변수의 balance는 컴파일되지만, 매개변수 other의 선언 타입이 Account이므로 other.balance는 컴파일 오류입니다. 컴파일러는 실제 객체가 아니라 변수의 선언 타입을 보고 판단합니다.',
     sim: { c: { mod: 'protected', from: 'subParent' }, col: 2, has: 'balance has protected access' } },
 ]);
 
@@ -32560,13 +32564,15 @@ Lab.quiz([
   { lv: 2, id: 'aop', q: '@Around 어드바이스에서 pjp.proceed() 아래에 로그를 찍는 줄을 적었습니다. 대상 메서드가 예외를 던지면 그 줄이 실행되지 않는 이유는 무엇입니까?',
     a: ['pjp.proceed()가 그 예외를 그대로 던지므로 그 아래 줄에 닿지 못하기 때문이다', '스프링이 예외가 나면 @Around 어드바이스 전체를 건너뛰기 때문이다', '@AfterThrowing이 예외를 대신 처리해 @Around를 끝내 버리기 때문이다', '@Around의 뒷부분은 @After가 없을 때만 실행되기 때문이다'],
     why: '@Around 어드바이스는 평범한 메서드이고 pjp.proceed()는 그 안의 메서드 호출입니다. 호출이 예외를 던지면 그 아래 줄은 실행되지 않고 예외가 밖으로 나갑니다. 예외에도 실행하려면 try-finally로 감쌉니다.' },
-  { lv: 3, id: 'aop', q: '한 애스펙트에 다섯 가지 어드바이스가 모두 있고, 대상 메서드가 예외를 던집니다. @Around는 try-finally 없이 pjp.proceed() 앞뒤에 로그를 찍습니다. 메서드 본문 다음에 찍히는 로그는 무엇입니까?',
+  { lv: 3, id: 'aop', q: '아래 코드에서 다른 빈이 orderService.order("키보드")를 부르면, "order 본문" 다음에 찍히는 로그는 무엇입니까?',
+    code: '// LogAspect와 OrderService는 예시로 만든 클래스이며 shop 패키지에 있다\n// 스프링 설정(@Configuration, @EnableAspectJAutoProxy, @ComponentScan)과 import는 생략\n\n@Aspect\n@Component\nclass LogAspect {\n    @Pointcut("execution(* shop.OrderService.order(..))")\n    void pick() { }                          // 어느 메서드에 끼어들지 고른다\n\n    @Around("pick()")\n    Object around(ProceedingJoinPoint pjp) throws Throwable {\n        System.out.println("@Around 앞");\n        Object result = pjp.proceed();       // 대상 메서드를 실행한다\n        System.out.println("@Around 뒤");\n        return result;\n    }\n\n    @Before("pick()")\n    void before() { System.out.println("@Before"); }\n\n    @AfterReturning("pick()")\n    void afterReturning() { System.out.println("@AfterReturning"); }\n\n    @AfterThrowing("pick()")\n    void afterThrowing() { System.out.println("@AfterThrowing"); }\n\n    @After("pick()")\n    void after() { System.out.println("@After"); }\n}\n\n@Service\nclass OrderService {\n    public String order(String item) {\n        System.out.println("order 본문");\n        throw new IllegalStateException("실패");\n    }\n}',
     a: ['@AfterThrowing, 그다음 @After', '@After, 그다음 @AfterThrowing, 그다음 @Around 뒤', '@AfterThrowing, 그다음 @After, 그다음 @Around 뒤', '@AfterThrowing 하나뿐'],
-    why: '예외가 나면 @AfterThrowing이 실행되고 그다음 @After가 실행됩니다. @AfterReturning은 실행되지 않고, @Around에서 pjp.proceed() 아래에 적은 줄도 예외 때문에 실행되지 않습니다.',
+    why: '출력은 @Around 앞, @Before, order 본문, @AfterThrowing, @After 순서입니다. order 본문이 예외를 던지면 @AfterThrowing이 실행되고 그다음 @After가 실행됩니다. @AfterReturning은 정상으로 값을 돌려줬을 때만 실행되므로 건너뜁니다. @Around의 pjp.proceed()는 평범한 메서드 호출이라 예외를 그대로 던지고, try-finally가 없으므로 그 아래의 "@Around 뒤" 줄에는 닿지 못합니다.',
     sim: { c: { pc: 'cls', m: 'order', out: 'ex', second: 'none' }, col: 1, has: 'order 본문 → Log @AfterThrowing → Log @After' } },
-  { lv: 3, id: 'aop', q: 'LogAspect에 @Order(1), TimeAspect에 @Order(2)를 붙였고 둘 다 같은 메서드에 걸립니다. 가장 먼저 실행되는 것과 가장 나중에 실행되는 것은 각각 어느 애스펙트의 코드입니까?',
+  { lv: 3, id: 'aop', q: '아래 코드에서 다른 빈이 orderService.order("키보드")를 부르면, 가장 먼저 출력되는 줄과 가장 나중에 출력되는 줄은 각각 어느 애스펙트의 코드입니까?',
+    code: '// TimeAspect, LogAspect, OrderService는 예시로 만든 클래스이며 shop 패키지에 있다\n// 스프링 설정(@Configuration, @EnableAspectJAutoProxy, @ComponentScan)과 import는 생략\n// @Order는 스프링이 주는 org.springframework.core.annotation.Order\n\n@Aspect\n@Component\n@Order(2)\nclass TimeAspect {\n    @Around("execution(* shop.OrderService.order(..))")\n    Object time(ProceedingJoinPoint pjp) throws Throwable {\n        System.out.println("Time 앞");\n        Object result = pjp.proceed();\n        System.out.println("Time 뒤");\n        return result;\n    }\n}\n\n@Aspect\n@Component\n@Order(1)\nclass LogAspect {\n    @Around("execution(* shop.OrderService.order(..))")\n    Object log(ProceedingJoinPoint pjp) throws Throwable {\n        System.out.println("Log 앞");\n        Object result = pjp.proceed();\n        System.out.println("Log 뒤");\n        return result;\n    }\n}\n\n@Service\nclass OrderService {\n    public String order(String item) {\n        System.out.println("order 본문");\n        return "주문 완료";\n    }\n}',
     a: ['둘 다 LogAspect의 코드', '둘 다 TimeAspect의 코드', '처음은 LogAspect, 마지막은 TimeAspect의 코드', '처음은 TimeAspect, 마지막은 LogAspect의 코드'],
-    why: '@Order의 숫자가 작은 애스펙트가 바깥쪽에서 감쌉니다. 바깥쪽 애스펙트는 들어갈 때 가장 먼저, 나올 때 가장 나중에 실행되므로 처음과 마지막이 모두 LogAspect의 코드입니다.',
+    why: '출력은 Log 앞, Time 앞, order 본문, Time 뒤, Log 뒤입니다. 순서는 코드에 적은 순서(여기서는 TimeAspect가 위)가 아니라 @Order의 숫자로 정해지며, 숫자가 작은 LogAspect가 바깥쪽에서 감쌉니다. 바깥쪽 애스펙트는 들어갈 때 가장 먼저, 나올 때 가장 나중에 실행되므로 처음과 마지막이 모두 LogAspect의 코드입니다.',
     sim: { c: { pc: 'cls', m: 'order', out: 'ok', second: 'log1' }, col: 1, has: 'Log @Around 앞 → Log @Before → Time 시작' } },
 ]);
 
@@ -32805,49 +32811,59 @@ Lab.quiz([
     a: ['컴파일 오류가 나서 프로그램을 실행할 수 없다', '컴파일은 되고 실행 중에 예외가 나면 멈춘다', '컴파일러가 경고만 하고 실행은 그대로 된다', '컴파일러가 알아서 throws를 붙여 컴파일한다'],
     why: 'IOException은 체크 예외입니다. 체크 예외가 나올 수 있는 줄은 잡거나 throws로 선언해야만 컴파일됩니다. 둘 다 하지 않으면 class 파일이 만들어지지 않아 실행할 수 없습니다.',
     sim: { c: { ex: 'io', how: 'none', occur: true }, col: 0, has: '오류' } },
-  { lv: 1, id: 'chkex', q: '같은 코드에서 던지는 예외를 IllegalStateException(RuntimeException의 하위 클래스)으로 바꾸고 아무 처리도 하지 않았습니다. 컴파일은 어떻게 됩니까?',
+  { lv: 1, id: 'chkex', q: '아래 코드는 컴파일됩니까? (IllegalStateException은 RuntimeException의 하위 클래스입니다)',
+    code: 'public class Main {\n    // read는 예시로 만든 메서드. missing이 true면 파일이 없는 경우처럼 예외를 던진다\n    static String read(boolean missing) {\n        if (missing) throw new IllegalStateException("파일 없음");\n        return "내용";\n    }\n\n    public static void main(String[] args) {\n        String s = read(true);\n        System.out.println("읽음: " + s);\n    }\n}',
     a: ['컴파일된다. 언체크 예외는 처리를 강제하지 않는다', '컴파일 오류다. 모든 예외는 잡거나 선언해야 한다', '컴파일 오류다. main에는 반드시 try-catch가 있어야 한다', '컴파일된다. 대신 실행 중에 예외가 나지 않게 막아 준다'],
-    why: 'RuntimeException과 그 하위 클래스는 언체크 예외라서 컴파일러가 잡았는지, 선언했는지 검사하지 않습니다. 그 대신 실행 중에 예외가 나면 잡는 곳이 없어 프로그램이 멈춥니다.',
+    why: 'read에도 main에도 try-catch나 throws가 없지만 컴파일됩니다. RuntimeException과 그 하위 클래스는 언체크 예외라서 컴파일러가 잡았는지, 선언했는지 검사하지 않기 때문입니다. 그 대신 실행하면 read(true)가 던진 예외를 잡는 곳이 없어서, "읽음:" 줄은 출력되지 않고 프로그램이 멈춥니다.',
     sim: { c: { ex: 'rt', how: 'none', occur: true }, col: 0, has: '성공' } },
-  { lv: 2, id: 'chkex', q: 'read 메서드에 throws IOException을 붙였더니 read 안의 오류는 사라지고, read를 호출한 main에서 같은 컴파일 오류가 났습니다. 이유는 무엇입니까?',
+  { lv: 2, id: 'chkex', q: '아래 코드를 컴파일하면 read가 아니라 main의 String s = read(true); 줄에서 컴파일 오류가 납니다. 이유는 무엇입니까?',
+    code: 'import java.io.IOException;\n\npublic class Main {\n    // read는 예시로 만든 메서드. missing이 true면 파일이 없는 경우처럼 예외를 던진다\n    static String read(boolean missing) throws IOException {\n        if (missing) throw new IOException("파일 없음");\n        return "내용";\n    }\n\n    public static void main(String[] args) {\n        String s = read(true);\n        System.out.println("읽음: " + s);\n    }\n}',
     a: ['throws는 예외를 처리하는 것이 아니라 처리할 의무를 호출한 쪽으로 넘기는 선언이기 때문이다', 'throws는 main 메서드에만 쓸 수 있는 선언이라서 다른 메서드에 붙이면 안 되기 때문이다', 'main 메서드는 어떤 경우에도 예외를 밖으로 내보낼 수 없도록 정해져 있기 때문이다', 'throws를 붙인 메서드는 같은 클래스 안에서는 호출할 수 없도록 정해져 있기 때문이다'],
-    why: 'throws는 "이 메서드는 이 예외를 밖으로 던질 수 있다"는 알림입니다. 그러면 그 메서드를 호출하는 줄에서 체크 예외가 나올 수 있게 되므로, 호출한 쪽이 다시 잡거나 선언해야 합니다.',
+    why: 'read 선언의 throws IOException은 예외를 처리하는 코드가 아니라 "이 메서드는 IOException을 밖으로 던질 수 있다"는 알림입니다. 그래서 read 안의 throw 줄은 통과하지만, read를 부르는 main의 String s = read(true); 줄에서 체크 예외가 나올 수 있게 됩니다. main이 그 줄을 try-catch로 감싸거나 main 선언에 throws IOException을 적어야 컴파일됩니다.',
     sim: { c: { ex: 'io', how: 'throws', occur: true }, col: 1, has: 'read(true)' } },
-  { lv: 2, id: 'chkex', q: 'read(false)로 호출해서 실행하면 예외가 나지 않을 코드입니다. 그런데도 체크 예외를 처리하지 않았다는 컴파일 오류가 납니다. 이유는 무엇입니까?',
+  { lv: 2, id: 'chkex', q: '아래 코드는 read(false)로 부르므로 실행하더라도 예외가 나지 않습니다. 그런데도 컴파일 오류가 나는 이유는 무엇입니까?',
+    code: 'import java.io.IOException;\n\npublic class Main {\n    // read는 예시로 만든 메서드. missing이 true면 파일이 없는 경우처럼 예외를 던진다\n    static String read(boolean missing) {\n        if (missing) throw new IOException("파일 없음");\n        return "내용";\n    }\n\n    public static void main(String[] args) {\n        String s = read(false);\n        System.out.println("읽음: " + s);\n    }\n}',
     a: ['컴파일러는 예외가 실제로 나는지가 아니라 날 수 있는지를 코드만 보고 판단하기 때문이다', '컴파일러가 프로그램을 미리 한 번 실행해 보는데 그때는 예외가 나기 때문이다', 'boolean 값을 넘겨받는 메서드는 항상 예외를 던지는 것으로 정해져 있기 때문이다', '컴파일 오류가 아니라 경고이며 무시하고 실행하면 정상으로 동작하기 때문이다'],
-    why: '체크 예외 검사는 실행 전에 코드의 모양(throw 문과 throws 선언)만 보고 이루어집니다. 그래서 실제로는 예외가 나지 않을 코드여도 컴파일 오류는 똑같이 납니다.',
+    why: '오류는 read 안의 if (missing) throw new IOException(...) 줄에서 납니다. 체크 예외 검사는 실행 전에 코드의 모양(throw 문과 throws 선언)만 보고 이루어지고, main이 false를 넘긴다는 것은 따지지 않습니다. throw 줄이 있는 한 그 예외가 나올 수 있다고 보므로, 실제로는 예외가 나지 않을 코드여도 컴파일 오류는 똑같이 납니다.',
     sim: { c: { ex: 'io', how: 'none', occur: false }, col: 0, has: '오류' } },
-  { lv: 3, id: 'chkex', q: 'read 안에서 catch (IOException e) { throw new RuntimeException(e); }로 감싸 다시 던지고, main은 아무 처리 없이 read를 호출합니다. 파일이 없을 때 어떻게 됩니까?',
+  { lv: 3, id: 'chkex', q: '아래 코드를 실행하면 어떻게 됩니까? (read(true)는 파일이 없는 경우를 흉내 냅니다)',
+    code: 'import java.io.IOException;\n\npublic class Main {\n    // read는 예시로 만든 메서드. missing이 true면 파일이 없는 경우처럼 예외를 던진다\n    static String read(boolean missing) {\n        try {\n            if (missing) throw new IOException("파일 없음");\n            return "내용";\n        } catch (IOException e) {\n            throw new RuntimeException(e);\n        }\n    }\n\n    public static void main(String[] args) {\n        String s = read(true);\n        System.out.println("읽음: " + s);\n    }\n}',
     a: ['컴파일은 되고, 실행 중에 RuntimeException으로 프로그램이 멈춘다', '컴파일은 되고, 예외가 없어져 프로그램이 정상으로 끝난다', 'main에 throws 선언이 없으므로 컴파일 오류가 난다', '컴파일은 되고, IOException이 그대로 JVM까지 올라간다'],
-    why: 'RuntimeException은 언체크 예외라서 throws 없이도 컴파일됩니다. 하지만 예외가 사라진 것은 아니어서, 잡는 곳이 없으면 JVM까지 올라가 프로그램을 끝냅니다. 원래의 IOException은 원인(cause)으로 안에 들어 있습니다.',
+    why: 'read 안에서 IOException을 잡아 언체크 예외인 RuntimeException으로 바꿔 던지므로, read와 main에 throws가 없어도 컴파일됩니다. 하지만 예외가 사라진 것은 아닙니다. main의 read(true) 줄에서 RuntimeException이 나오는데 잡는 곳이 없으므로, "읽음:" 줄은 실행되지 않고 프로그램이 멈춥니다. 원래의 IOException은 원인(cause)으로 함께 출력되며 getCause()로 꺼낼 수 있습니다.',
     sim: { c: { ex: 'io', how: 'wrap', occur: true }, col: 3, has: 'java.lang.RuntimeException: java.io.IOException' } },
 ]);
 
 // "클래스 로딩과 초기화" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
 Lab.quiz([
-  { lv: 1, id: 'classload', q: 'static 초기화 블록이 있는 클래스 Parent로 new Parent()를 두 번 실행했습니다. static 블록은 몇 번 실행됩니까?',
+  { lv: 1, id: 'classload', q: '아래 코드를 실행하면 Parent의 static 블록은 몇 번 실행됩니까?',
+    code: 'class Parent {                       // 예시로 만든 클래스\n    static {                         // static 초기화 블록\n        System.out.println("Parent 초기화");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        Parent a = new Parent();\n        System.out.println("첫 번째 new 끝");\n        Parent b = new Parent();\n        System.out.println("두 번째 new 끝");\n    }\n}',
     a: ['처음 객체를 만들 때 한 번만 실행된다', '객체를 만들 때마다 실행되어 두 번 실행된다', '프로그램이 시작될 때 미리 한 번 실행된다', 'static 메서드를 부르기 전에는 실행되지 않는다'],
-    why: 'static 블록은 클래스가 초기화될 때 실행되고, 초기화는 클래스 하나에 한 번뿐입니다. 프로그램 시작 때가 아니라 그 클래스가 처음 쓰이는 순간에 일어납니다.',
+    why: '출력은 main 시작, Parent 초기화, 첫 번째 new 끝, 두 번째 new 끝입니다. static 블록은 클래스가 초기화될 때 실행되고, 초기화는 클래스 하나에 한 번뿐입니다. main은 Main 클래스에 있으므로 Parent는 프로그램이 시작될 때가 아니라 첫 new Parent()에서 처음 쓰일 때 초기화됩니다. main이 Parent 클래스에 있었다면 main을 실행하기 전에 Parent가 초기화되어 Parent 초기화가 main 시작보다 먼저 나옵니다.',
     sim: { c: { cls: 'parent', use: 'new', decl: 'own' }, col: 0, has: '1번 실행' } },
-  { lv: 1, id: 'classload', q: 'Parent[] arr = new Parent[3];만 실행했습니다. Parent의 static 블록은 어떻게 됩니까?',
+  { lv: 1, id: 'classload', q: '아래 코드를 실행하면 Parent의 static 블록은 어떻게 됩니까?',
+    code: 'class Parent {                       // 예시로 만든 클래스\n    static {                         // static 초기화 블록\n        System.out.println("Parent 초기화");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        Parent[] arr = new Parent[3];\n        System.out.println("배열 길이: " + arr.length);\n    }\n}',
     a: ['한 번도 실행되지 않는다', '칸이 세 개이므로 세 번 실행된다', '배열을 만들 때 한 번 실행된다', '컴파일 오류가 나서 실행할 수 없다'],
-    why: 'new Parent[3]은 Parent 객체를 가리킬 수 있는 칸 세 개를 만들 뿐, Parent 객체를 만들지 않습니다. 클래스를 읽어 들이기만 하고 초기화하지 않으므로 static 블록은 실행되지 않습니다.',
+    why: '출력은 main 시작, 배열 길이: 3뿐입니다. new Parent[3]은 Parent 객체를 가리킬 수 있는 칸 세 개를 만들 뿐 Parent 객체를 만들지 않으며, 세 칸은 모두 null입니다. Parent 클래스를 읽어 들이기는 하지만 초기화하지 않으므로 static 블록은 실행되지 않습니다. main이 Parent가 아니라 Main 클래스에 있다는 점도 함께 보세요. main이 Parent에 있었다면 main을 실행하려고 Parent가 먼저 초기화됩니다.',
     sim: { c: { cls: 'parent', use: 'array', decl: 'own' }, col: 0, has: '실행 안 됨' } },
-  { lv: 2, id: 'classload', q: 'static final int MAX = 10;을 읽을 때는 static 블록이 실행되지 않는데, static final int SIZE = Integer.parseInt("10");을 읽을 때는 실행됩니다. 왜 다릅니까?',
+  { lv: 2, id: 'classload', q: '아래 코드에서 Parent.MAX를 읽을 때는 static 블록이 실행되지 않고, Parent.SIZE를 읽을 때 실행됩니다. 왜 다릅니까?',
+    code: 'class Parent {                       // 예시로 만든 클래스\n    static final int MAX = 10;\n    static final int SIZE = Integer.parseInt("10");\n    static {                         // static 초기화 블록\n        System.out.println("Parent 초기화");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        int a = Parent.MAX;\n        System.out.println("MAX를 읽음");\n        int b = Parent.SIZE;\n        System.out.println("SIZE를 읽음");\n    }\n}',
     a: ['MAX는 컴파일할 때 값이 정해져 쓰는 곳에 10이 직접 들어가지만, SIZE는 실행해야 값이 정해지기 때문이다', 'final 필드는 원래 초기화 없이 읽을 수 있는데, SIZE는 메서드 호출 때문에 final이 풀리기 때문이다', 'int는 초기화가 필요 없지만 Integer.parseInt의 결과는 객체라서 초기화가 필요하기 때문이다', 'MAX는 값이 작아 JVM이 미리 만들어 둔 숫자를 쓰지만, SIZE는 그 범위를 벗어나기 때문이다'],
-    why: '컴파일 시점 상수는 컴파일러가 쓰는 쪽 코드에 값을 직접 넣어 두므로 실행할 때 그 클래스가 쓰이지 않습니다. 메서드를 호출해야 값이 나오는 필드는 상수가 아니어서, 클래스가 초기화돼야 값이 생깁니다.',
+    why: '출력은 main 시작, MAX를 읽음, Parent 초기화, SIZE를 읽음입니다. MAX = 10은 컴파일할 때 값이 정해지는 상수라서, 컴파일러가 int a = Parent.MAX; 줄에 10을 직접 넣어 둡니다. 실행할 때 그 줄은 Parent를 쓰지 않으므로 초기화가 일어나지 않습니다. SIZE는 Integer.parseInt를 실행해야 값이 나오므로 상수가 아니고, Parent가 초기화되어야 값이 생깁니다.',
     sim: { c: { cls: 'parent', use: 'finalrt', decl: 'own' }, col: 0, has: '1번 실행' } },
-  { lv: 2, id: 'classload', q: 'Child가 Parent를 상속합니다. new Child()를 처음 실행하면 두 클래스의 static 블록은 어떤 순서로 실행됩니까?',
+  { lv: 2, id: 'classload', q: '아래 코드를 실행하면 두 클래스의 static 블록은 어떤 순서로 실행됩니까?',
+    code: 'class Child extends Parent {         // Child와 Parent는 예시로 만든 클래스\n    static {\n        System.out.println("Child 초기화");\n    }\n}\n\nclass Parent {\n    static {\n        System.out.println("Parent 초기화");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        Child c = new Child();\n        System.out.println("new Child() 끝");\n    }\n}',
     a: ['Parent의 static 블록이 먼저, 그다음 Child의 static 블록', 'Child의 static 블록이 먼저, 그다음 Parent의 static 블록', 'Child의 static 블록만 실행되고 Parent는 실행되지 않음', '실행할 때마다 순서가 달라지며 미리 정해져 있지 않음'],
-    why: '자식 클래스를 초기화하려면 부모 클래스가 먼저 초기화돼 있어야 합니다. 그래서 순서는 항상 부모, 자식입니다.',
+    why: '출력은 main 시작, Parent 초기화, Child 초기화, new Child() 끝입니다. 자식 클래스를 초기화하려면 부모 클래스가 먼저 초기화돼 있어야 합니다. 그래서 파일에 적은 순서(여기서는 Child가 위)와 상관없이 순서는 항상 부모, 자식입니다.',
     sim: { c: { cls: 'child', use: 'new', decl: 'own' }, col: 3, has: 'Parent 초기화 → Child 초기화' } },
-  { lv: 3, id: 'classload', q: 'static int count는 Parent에 선언돼 있고, Child는 Parent를 상속합니다. 프로그램에서 Child.count만 읽었습니다. 어떤 static 블록이 실행됩니까?',
+  { lv: 3, id: 'classload', q: '아래 코드를 실행하면 어떤 static 블록이 실행됩니까?',
+    code: 'class Parent {                       // Parent와 Child는 예시로 만든 클래스\n    static int count = 0;\n    static {\n        System.out.println("Parent 초기화");\n    }\n}\n\nclass Child extends Parent {\n    static {\n        System.out.println("Child 초기화");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("main 시작");\n        int n = Child.count;\n        System.out.println("count: " + n);\n    }\n}',
     a: ['Parent의 static 블록만 실행된다', 'Child의 static 블록만 실행된다', 'Parent와 Child의 static 블록이 모두 실행된다', '어느 static 블록도 실행되지 않는다'],
-    why: 'static 필드를 읽을 때는 그 필드를 실제로 선언한 클래스만 초기화됩니다. Child라는 이름으로 썼더라도 count의 선언은 Parent에 있으므로 Parent만 초기화됩니다.',
+    why: '출력은 main 시작, Parent 초기화, count: 0입니다. static 필드를 읽을 때는 그 필드를 실제로 선언한 클래스만 초기화됩니다. 코드에는 Child.count라고 적었지만 count는 Parent에 선언돼 있으므로 Parent만 초기화되고, Child의 static 블록은 실행되지 않습니다.',
     sim: { c: { cls: 'child', use: 'sfield', decl: 'parent' }, col: 1, has: '실행 안 됨' } },
-  { lv: 3, id: 'classload', q: 'Config 클래스의 static 블록에서 설정 파일을 읽습니다. 다른 클래스는 Config.TIMEOUT(static final int TIMEOUT = 30)만 읽습니다. 프로그램을 실행했더니 설정 파일을 읽었다는 로그가 나오지 않습니다. 원인은 무엇입니까?',
+  { lv: 3, id: 'classload', q: '아래 코드를 실행하면 "설정 파일을 읽음"이 출력되지 않습니다. 원인은 무엇입니까?',
+    code: 'class Config {                       // 예시로 만든 설정 클래스\n    static final int TIMEOUT = 30;\n    static {\n        System.out.println("설정 파일을 읽음");   // 여기서 설정 파일을 읽는다고 하자\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("타임아웃: " + Config.TIMEOUT);\n    }\n}',
     a: ['TIMEOUT이 컴파일 시점 상수라서, 읽어도 Config가 초기화되지 않기 때문이다', 'static 블록은 객체를 new로 만들 때에만 실행되기 때문이다', 'static final 필드는 static 블록보다 나중에 준비되기 때문이다', 'static 블록은 main 메서드가 있는 클래스에서만 실행되기 때문이다'],
-    why: '컴파일 시점 상수를 읽는 코드에는 값 30이 직접 들어가 있어서, 실행할 때 Config 클래스가 쓰이지 않습니다. 초기화가 일어나지 않으므로 static 블록도 실행되지 않습니다.',
+    why: '출력은 타임아웃: 30 한 줄입니다. TIMEOUT = 30은 컴파일할 때 값이 정해지는 상수라서, 컴파일러가 main의 그 줄에 30을 직접 넣어 둡니다. 실행할 때 Config 클래스는 쓰이지 않으므로 초기화가 일어나지 않고, static 블록도 실행되지 않습니다. 코드에 Config.TIMEOUT이라고 적었다고 해서 Config가 초기화되는 것은 아닙니다.',
     sim: { c: { cls: 'parent', use: 'const', decl: 'own' }, col: 0, has: '실행 안 됨' } },
 ]);
 
@@ -32985,9 +33001,10 @@ Lab.quiz([
     a: ['생성자를 하나라도 직접 적으면 컴파일러가 기본 생성자를 넣어 주지 않기 때문이다', '생성자가 둘이 되면 어느 것을 부를지 컴파일러가 정하지 못하기 때문이다', '인자 있는 생성자가 있으면 new에는 항상 인자를 넘겨야 하는 규칙 때문이다', '기본 생성자는 필드 초기화식이 없는 클래스에만 만들어지는 것이기 때문이다'],
     why: '기본 생성자는 생성자를 하나도 적지 않았을 때만 컴파일러가 넣어 줍니다. Order(int extra)를 적는 순간 인자 없는 생성자는 없어지므로 new Order()에 맞는 생성자가 없습니다. 계속 쓰려면 Order() 생성자를 직접 적어야 합니다.',
     sim: { c: { ctors: 'arg', call: 'noarg', first: 'field' }, col: 0, has: '오류' } },
-  { lv: 3, id: 'ctor', q: '필드 int qty = 10 아래에 초기화 블록 { qty = 20; }이 있고, 생성자 Order()는 첫 줄에서 this(1)로 Order(int extra)를 부릅니다. Order(int extra)는 qty = qty + extra를 합니다. new Order()를 한 뒤 qty는 얼마입니까?',
+  { lv: 3, id: 'ctor', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'class Order {\n    int qty = 10;      // 필드 초기화식\n    { qty = 20; }      // 초기화 블록\n\n    Order() {\n        this(1);       // 같은 클래스의 Order(int extra)를 부른다\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Order o = new Order();\n        System.out.println(o.qty);\n    }\n}',
     a: ['21', '11', '1', '41'],
-    why: 'qty는 기본값 0에서 초기화식으로 10, 그 아래 블록으로 20이 된 뒤에 생성자 본문이 실행됩니다. this(1)로 불린 Order(int extra)가 1을 더해 21이 됩니다. 초기화식과 블록은 this(...)로 생성자를 거쳐 가도 한 번만 실행됩니다.',
+    why: 'new Order()는 Order 클래스 밖(main)에서 부릅니다. 필드 초기화식과 초기화 블록은 클래스에 적어 둔 것이라, 위에서부터 한 번 읽히고 끝나는 줄이 아니라 객체를 만들 때마다 실행됩니다. 그래서 new Order()를 하면 qty가 기본값 0에서 초기화식으로 10, 그 아래 블록으로 20이 된 뒤에 생성자 본문이 실행됩니다. this(1)로 불린 Order(int extra)가 1을 더해 21이 됩니다. 초기화식과 블록은 this(...)로 생성자를 거쳐 가도 한 번만 실행됩니다.',
     sim: { c: { ctors: 'chain', call: 'noarg', first: 'field' }, col: 2, has: '21' } },
   { lv: 3, id: 'ctor', q: '생성자를 적지 않은 클래스에 초기화식이 없는 필드 String memo가 있습니다. new로 객체를 만든 직후 memo를 출력하면 무엇이 나옵니까?',
     a: ['null이 출력된다', '빈 문자열이 출력된다', '초기화하지 않아 컴파일 오류가 난다', 'NullPointerException이 난다'],
@@ -33032,9 +33049,10 @@ Lab.quiz([
     a: ['컴파일은 되지만 실행 중에 예외가 난다', '컴파일 오류가 나서 실행할 수 없다', '하루를 24시간으로 쳐서 계산해 준다', '시각을 0시로 보고 알아서 계산해 준다'],
     why: 'Duration은 초 단위로 간격을 재는데 LocalDate에는 시각이 없어 초 단위의 차이를 구할 수 없습니다. 그래서 실행 중에 UnsupportedTemporalTypeException이 납니다. 날짜 사이의 간격은 Period.between이나 ChronoUnit.DAYS.between으로 구합니다.',
     sim: { c: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' }, col: 0, has: 'UnsupportedTemporalTypeException' } },
-  { lv: 3, id: 'datetime', q: '서울 시간 2024년 1월 1일 0시 30분과 같은 순간을 America/New_York 시간대의 ZonedDateTime으로 바꾼 뒤 toLocalDate()를 호출했습니다. 어떤 날짜가 나옵니까?',
+  { lv: 3, id: 'datetime', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'import java.time.ZoneId;\nimport java.time.ZonedDateTime;\n\npublic class Main {\n    public static void main(String[] args) {\n        ZonedDateTime seoul = ZonedDateTime.of(2024, 1, 1, 0, 30, 0, 0, ZoneId.of("Asia/Seoul"));\n        ZonedDateTime ny = seoul.withZoneSameInstant(ZoneId.of("America/New_York"));\n        System.out.println(ny.toLocalDate());\n    }\n}',
     a: ['2023-12-31', '2024-01-01', '2024-01-02', '2023-12-30'],
-    why: '이 날짜에 서울은 UTC보다 9시간 빠르고 뉴욕은 UTC보다 5시간 느립니다. 서울의 0시 30분은 뉴욕에서 전날 오전 10시 30분이므로 날짜는 2023년 12월 31일입니다. 같은 순간이어도 시간대에 따라 날짜가 다릅니다.',
+    why: 'withZoneSameInstant는 날짜와 시각의 숫자가 아니라 가리키는 순간을 그대로 두고 시간대만 바꿉니다. 이 날짜에 서울은 UTC보다 9시간 빠르고 뉴욕은 UTC보다 5시간 느리므로, 서울의 0시 30분은 뉴욕에서 전날 오전 10시 30분이고 toLocalDate()는 2023-12-31입니다. withZoneSameLocal을 쓰면 순간이 아니라 날짜와 시각의 숫자를 그대로 두므로 2024-01-01이 나옵니다.',
     sim: { c: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' }, col: 1, has: '2023-12-31' } },
   { lv: 3, id: 'datetime', q: 'Period p = Period.between(LocalDate.of(2024, 1, 31), LocalDate.of(2024, 3, 1));을 실행한 뒤 p.getDays()를 출력하면 무엇이 나옵니까? 두 날짜 사이는 모두 30일입니다.',
     a: ['1', '30', '29', '31'],
@@ -33129,9 +33147,10 @@ Lab.quiz([
     a: ['이어 붙인 코드는 회원 전체를 내주고, Specification은 0명을 조회한다', '두 코드 모두 따옴표 때문에 문법 오류로 실패한다', '두 코드 모두 이름이 그 글자인 회원을 찾아 0명을 조회한다', '이어 붙인 코드는 0명을 조회하고, Specification은 전체를 내준다'],
     why: '직접 이어 붙이면 입력의 따옴표가 문자열을 닫아 or \'1\'=\'1\'이 조건이 되고, 언제나 참이라 7명이 모두 조회됩니다(SQL Injection). Specification, Criteria API, Querydsl은 값을 ? 자리에 따로 바인딩하므로 그 글자는 이름 값일 뿐이고 0명이 조회됩니다.',
     sim: { c: { how: 'concat', name: 'quote', age: false }, col: 4, has: '7명' } },
-  { lv: 3, id: 'dynquery', q: '코드가 "select m from Member m where"로 시작하고, 이름이 있으면 이름 조건을, 나이가 있으면 " and m.age >= " + age를 뒤에 붙입니다. 나이만 입력해 검색하면 어떻게 됩니까?',
+  { lv: 3, id: 'dynquery', q: '아래 코드에서 search(null, 20)을 부르면 어떻게 됩니까?',
+    code: '// 필요한 부분만 남김 (클래스 선언, EntityManager em 필드, 예시로 만든 Member 엔티티, import는 생략)\n// 부르는 쪽: search(null, 20);   이름은 비우고 나이만 20으로 검색한다\nList<Member> search(String name, Integer age) {\n    String jpql = "select m from Member m where";\n    if (name != null) jpql += " m.name = \'" + name + "\'";\n    if (age != null)  jpql += " and m.age >= " + age;\n    return em.createQuery(jpql, Member.class).getResultList();\n}',
     a: ['where 바로 뒤에 and가 와서 문법 오류로 실패한다', '나이 조건만 걸린 쿼리가 정상적으로 실행된다', '이름 조건이 null과 비교되어 결과가 0건이 된다', 'and가 무시되고 전체 회원이 조회된다'],
-    why: '조립된 문장은 "select m from Member m where and m.age >= 20"입니다. and 앞에 있어야 할 첫 조건이 없어서 JPQL 문법에 맞지 않고, createQuery가 예외를 던집니다. SQL은 DB로 나가지도 않습니다. 조건을 둘 다 넣어 시험하면 정상이라 놓치기 쉽습니다.',
+    why: 'name이 null이라 이름 조건을 붙이는 줄은 건너뛰고 나이 조건을 붙이는 줄만 실행되므로, 조립된 문장은 "select m from Member m where and m.age >= 20"입니다. and 앞에 있어야 할 첫 조건이 없어서 JPQL 문법에 맞지 않고, createQuery가 예외를 던집니다. SQL은 DB로 나가지도 않습니다. 이름과 나이를 둘 다 넣어 시험하면 정상이라 놓치기 쉽습니다.',
     sim: { c: { how: 'concat', name: 'none', age: true }, col: 1, has: '실패' } },
 ]);
 
@@ -33215,9 +33234,10 @@ Lab.quiz([
   { lv: 2, id: 'eqhash', q: 'equals는 id를 비교하도록 재정의하고, hashCode는 어떤 객체든 42를 돌려주도록 만들었습니다. 이 클래스를 HashMap의 키로 쓰면 어떻게 됩니까?',
     a: ['결과는 맞지만 모든 키가 한 자리에 몰려 키가 많아질수록 느려진다', '규약을 어겼으므로 내용이 같은 키로 값을 꺼낼 수 없다', '키가 하나만 저장되고 나머지는 덮어써진다', 'HashMap이 실행 중에 예외를 던진다'],
     why: 'equals가 같은 객체는 hashCode도 같아야 한다는 규약은 지켰으므로 결과는 맞습니다. 하지만 모든 키의 hashCode가 같아 한 자리에 몰리고, 찾을 때마다 그 자리의 키를 하나씩 equals로 비교해야 합니다.' },
-  { lv: 3, id: 'eqhash', q: 'Order 클래스에서 equals만 id를 비교하도록 재정의했습니다. new Order(1)을 키로 map.put을 한 뒤, 또 다른 new Order(1)로 map.get을 하면 무엇이 나옵니까?',
+  { lv: 3, id: 'eqhash', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'import java.util.HashMap;\nimport java.util.Map;\n\nclass Order {                            // 예시로 만든 클래스\n    final int id;\n    Order(int id) { this.id = id; }\n\n    @Override\n    public boolean equals(Object o) {    // id가 같으면 같다고 본다\n        return o instanceof Order other && id == other.id;\n    }\n    // hashCode는 재정의하지 않았다\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Map<Order, String> map = new HashMap<>();\n        map.put(new Order(1), "주문 내역");\n        System.out.println(map.get(new Order(1)));\n    }\n}',
     a: ['null', '넣어 둔 값', 'ClassCastException', '실행할 때마다 값이 나오기도 하고 null이 나오기도 하며, 대체로 값이 나온다'],
-    why: 'hashCode를 재정의하지 않았으므로 두 객체의 hashCode가 (거의 항상) 다릅니다. HashMap은 다른 자리를 찾아보고 equals는 불러 보지도 않은 채 null을 돌려줍니다.',
+    why: 'map.put과 map.get에 넘긴 new Order(1)은 id가 같은 서로 다른 객체입니다. hashCode를 재정의하지 않았으므로 두 객체는 Object가 주는 hashCode를 쓰고, 그 값은 (거의 항상) 서로 다릅니다. HashMap은 hashCode로 찾을 자리를 먼저 정하므로 다른 자리를 찾아보고, 재정의한 equals는 불러 보지도 않은 채 null을 돌려줍니다.',
     sim: { c: { how: 'eq', same: 'same' }, col: 2, has: 'null' } },
 ]);
 
@@ -33343,9 +33363,10 @@ Lab.quiz([
     a: ['list가 실제로는 List<Double>일 수도 있어서 컴파일러가 null 말고는 무엇도 넣게 두지 않기 때문이다', '와일드카드로 선언한 변수는 대입한 뒤에 어떤 메서드도 호출할 수 없기 때문이다', '3은 기본형 int이고 제네릭 리스트에는 기본형 값을 절대 넣을 수 없기 때문이다', 'extends를 쓴 리스트는 Number의 상위 타입인 Object만 넣을 수 있기 때문이다'],
     why: '? extends Number는 "Number의 하위 타입 가운데 어떤 것"이라는 뜻이라, 컴파일러는 실제 원소 타입을 모릅니다. 꺼낸 값을 Number로 쓰는 것은 안전하지만, 넣는 것은 어떤 타입이든 안전하다고 할 수 없어 막습니다.',
     sim: { c: { decl: 'ext', op: 'addInt' }, col: 0, has: '오류' } },
-  { lv: 3, id: 'generic', q: 'List<Integer> ints를 제네릭 없는 변수 List list에 대입하고 list.add("삼")을 한 뒤, 맨 끝에서 Integer last = ints.get(2)를 실행합니다. 어떻게 됩니까?',
+  { lv: 3, id: 'generic', q: '아래 코드를 컴파일하고 실행하면 어떻게 됩니까?',
+    code: 'import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> ints = new ArrayList<>();\n        ints.add(1);\n        ints.add(2);\n\n        List list = ints;              // 제네릭 없이 선언한 변수(로 타입)\n        list.add("삼");\n\n        System.out.println(ints);\n        Integer last = ints.get(2);\n    }\n}',
     a: ['컴파일은 되고, 값을 꺼내는 마지막 줄에서 ClassCastException이 난다', '컴파일은 되고, 문자열을 넣는 줄에서 ClassCastException이 난다', 'list.add("삼") 줄에서 컴파일 오류가 나서 실행되지 않는다', '컴파일은 되고, last에 null이 들어간 채 정상으로 끝난다'],
-    why: '로 타입 변수로 넣는 코드는 경고만 나고 컴파일됩니다. 실행 중의 리스트는 원소 타입을 기억하지 않아 넣을 때는 아무 일이 없고, Integer로 꺼내는 줄에 컴파일러가 넣어 둔 형 변환에서 예외가 납니다.',
+    why: 'list와 ints는 같은 리스트 객체를 가리킵니다. 로 타입 변수 list로 넣는 줄은 경고만 나고 컴파일되며, 실행 중의 리스트는 원소 타입을 기억하지 않아 "삼"이 그대로 들어갑니다. 그래서 System.out.println(ints)는 [1, 2, 삼]을 출력합니다. 예외는 마지막 줄 Integer last = ints.get(2);에서 납니다. 컴파일러가 이 줄에 Integer로 바꾸는 형 변환을 넣어 두었는데 꺼낸 값이 String이라 ClassCastException이 됩니다.',
     sim: { c: { decl: 'raw', op: 'addStr' }, col: 3, has: 'ClassCastException' } },
 ]);
 
@@ -33387,9 +33408,10 @@ Lab.quiz([
     a: ['컴파일러가 넣어 주는 super()가 부를 인자 없는 부모 생성자가 없기 때문이다', '자식 클래스는 부모와 똑같은 인자를 받는 생성자만 가질 수 있기 때문이다', 'super(...)는 어떤 경우든 생략할 수 없고 반드시 직접 적어야 하기 때문이다', '부모의 생성자는 상속되지 않아서 자식에서는 부를 방법이 없기 때문이다'],
     why: 'super(...)를 쓰지 않으면 컴파일러가 첫 줄에 인자 없는 super()를 넣습니다. 부모에 생성자를 직접 적었으므로 인자 없는 기본 생성자는 생기지 않았고, super()가 부를 대상이 없습니다. super("바둑이")처럼 인자를 넘겨 직접 부르면 해결됩니다.',
     sim: { c: { pctor: 'arg', sup: 'omit', pcall: false, sm: false }, col: 0, has: '오류' } },
-  { lv: 3, id: 'inherit', q: 'Animal의 생성자가 describe()를 부릅니다. Dog는 필드 String sound = "멍멍"을 선언하고 describe()를 오버라이딩해 sound를 출력합니다. new Dog()를 하는 동안 describe()는 무엇을 출력합니까?',
+  { lv: 3, id: 'inherit', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'class Animal {                       // Animal과 Dog는 예시로 만든 클래스\n    Animal() {\n        describe();                  // 생성자에서 describe()를 부른다\n    }\n\n    void describe() {\n        System.out.println("동물");\n    }\n}\n\nclass Dog extends Animal {\n    String sound = "멍멍";\n\n    @Override\n    void describe() {\n        System.out.println("sound=" + sound);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new Dog();\n    }\n}',
     a: ['sound=null을 출력한다', 'sound=멍멍을 출력한다', 'Animal의 describe()가 대신 실행된다', '컴파일 오류가 나서 실행되지 않는다'],
-    why: '부모 생성자 안에서 불러도 실제 객체가 Dog이므로 Dog의 describe()가 실행됩니다. 그런데 Dog의 필드 초기화식은 부모 생성자가 끝난 뒤에 실행되므로, 그 시점의 sound는 기본값 null입니다. 그래서 생성자에서는 오버라이딩될 수 있는 메서드를 부르지 않는 것이 좋습니다.',
+    why: 'Dog에는 생성자를 적지 않았으므로 컴파일러가 넣어 준 기본 생성자가 실행되고, 그 첫 줄에서 부모의 Animal()을 부릅니다. Animal() 안의 describe()는 실제 객체가 Dog이므로 Dog의 describe()를 실행합니다. 그런데 String sound = "멍멍"은 클래스에 적혀 있어도 이 순간에 이미 실행된 줄이 아닙니다. Dog의 필드 초기화식은 부모 생성자가 끝난 뒤에 실행되므로, describe()가 불린 시점의 sound는 기본값 null입니다. 그래서 생성자에서는 오버라이딩될 수 있는 메서드를 부르지 않는 것이 좋습니다.',
     sim: { c: { pctor: 'arg', sup: 'arg', pcall: true, sm: false }, col: 1, has: 'sound=null' } },
   { lv: 2, id: 'inherit', q: 'Dog가 오버라이딩한 describe() 안에서 super.describe()를 부르면 어떻게 됩니까?',
     a: ['Animal에 적힌 원래의 describe()가 실행된다', 'Dog의 describe()가 자기 자신을 다시 부른다', 'Animal 객체가 새로 하나 더 만들어진다', '오버라이딩이 취소되어 컴파일 오류가 난다'],
@@ -33429,9 +33451,10 @@ Lab.quiz([
     a: ['람다가 변수의 값을 복사해 가므로 원본이 바뀌면 복사본과 달라지기 때문이다', '람다가 지역 변수를 static 필드로 옮겨 모든 객체가 함께 쓰기 때문이다', '지역 변수는 원래 선언할 때 한 번만 값을 넣을 수 있기 때문이다', '람다가 실행될 때마다 지역 변수를 처음 값으로 새로 만들기 때문이다'],
     why: '람다와 익명 클래스는 지역 변수 자체가 아니라 그 값을 복사해 갖습니다. 지역 변수는 메서드가 끝나면 사라지기 때문입니다. 원본을 바꿀 수 있게 두면 복사본과 값이 달라져 혼란스러우므로, 값이 바뀌지 않는(사실상 final인) 변수만 쓰게 합니다.',
     sim: { c: { kind: 'lambda', use: 'alone', loc: 'change' }, col: 0, has: 'effectively final' } },
-  { lv: 3, id: 'inner', q: 'Outer 클래스의 메서드 안에서 Runnable을 익명 클래스로 만들고, run() 안에서 this.getClass().getName()을 출력했습니다. 무엇이 출력됩니까?',
+  { lv: 3, id: 'inner', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'class Outer {                        // 예시로 만든 클래스\n    void start() {\n        Runnable r = new Runnable() {          // 익명 클래스\n            @Override\n            public void run() {\n                System.out.println(this.getClass().getName());\n            }\n        };\n        r.run();\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new Outer().start();\n    }\n}',
     a: ['Outer$1', 'Outer', 'Runnable', 'Object'],
-    why: '익명 클래스 안의 this는 그 익명 클래스로 만든 객체 자신입니다. 이름이 없는 클래스라서 컴파일러가 Outer$1이라는 이름을 붙입니다. 같은 코드를 람다로 쓰면 this가 바깥 객체를 가리켜 Outer가 출력됩니다.',
+    why: '익명 클래스의 run() 안에서 this는 바깥의 Outer 객체가 아니라 new Runnable() { ... }로 만든 익명 클래스의 객체 자신입니다. 이 클래스는 이름이 없어서 컴파일러가 바깥 클래스 이름에 번호를 붙여 Outer$1이라는 이름을 줍니다. 같은 코드를 람다(Runnable r = () -> ...)로 쓰면 this가 바깥의 Outer 객체를 가리켜 Outer가 출력됩니다.',
     sim: { c: { kind: 'anon', use: 'alone', loc: 'keep' }, col: 1, has: 'this = Outer$1' } },
   { lv: 3, id: 'inner', q: 'static 중첩 클래스 Nested의 메서드에서 바깥 클래스 Outer의 인스턴스 필드 name을 그대로 읽으려고 합니다. 어떻게 됩니까?',
     a: ['컴파일 오류가 나서 실행되지 않는다', '값이 없는 것으로 보아 null이 읽힌다', '가장 최근에 만든 Outer 객체의 값이 읽힌다', '실행 중에 NullPointerException이 난다'],
@@ -33441,9 +33464,10 @@ Lab.quiz([
 
 // "입출력 스트림과 버퍼" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
 Lab.quiz([
-  { lv: 1, id: 'iobuf', q: 'BufferedOutputStream으로 감싼 스트림에 9바이트를 write로 쓰고, flush도 close도 부르지 않았습니다. 이때 파일 크기는 얼마입니까?',
+  { lv: 1, id: 'iobuf', q: '아래 코드를 실행하면 출력되는 파일 크기는 얼마입니까?',
+    code: 'import java.io.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Main {\n    public static void main(String[] args) throws IOException {\n        byte[] data = "가나다".getBytes(StandardCharsets.UTF_8);   // 9바이트\n        OutputStream out = new BufferedOutputStream(new FileOutputStream("out.txt"));\n        for (byte b : data) out.write(b);                          // 한 바이트씩 9번\n        // flush()도 close()도 부르지 않았다\n\n        System.out.println(Files.size(Path.of("out.txt")));        // 파일 크기\n    }\n}',
     a: ['0바이트. 데이터가 아직 버퍼에만 있다', '9바이트. write를 부르면 바로 파일에 쓰인다', '4바이트. 버퍼가 절반씩 나누어 내려보낸다', '알 수 없다. 실행할 때마다 달라진다'],
-    why: '버퍼를 쓰는 스트림은 버퍼가 가득 차거나 flush, close를 부를 때에만 아래로 내려보냅니다. 9바이트는 버퍼를 채우지 못하므로 메모리에만 남아 있고 파일은 비어 있습니다.',
+    why: 'BufferedOutputStream의 write는 받은 바이트를 메모리의 버퍼에 모을 뿐이고, 버퍼가 가득 차거나 flush, close를 부를 때에만 아래의 FileOutputStream으로 내려보냅니다. 9바이트는 버퍼를 채우지 못하고 flush도 close도 부르지 않았으므로, Files.size를 부르는 시점에 파일은 비어 있어 0이 출력됩니다.',
     sim: { c: { buf: 'buf', end: 'none', fail: false, read: 'char' }, col: 1, has: '0 / 9' } },
   { lv: 1, id: 'iobuf', q: '한글 "가"를 UTF-8로 저장한 파일을 FileInputStream으로 한 바이트씩 읽어 (char)로 바꾸었습니다. 글자는 몇 개가 나옵니까?',
     a: ['깨진 글자 3개', '"가" 1개', '깨진 글자 2개', '아무 글자도 나오지 않음'],
@@ -33456,13 +33480,15 @@ Lab.quiz([
     a: ['flush는 스트림을 열어 둔 채 버퍼만 비우고, close는 버퍼를 비운 뒤 스트림을 닫는다', 'flush는 파일까지 쓰고, close는 버퍼에 남은 데이터를 버린 뒤 닫는다', 'flush는 버퍼가 가득 찼을 때만 동작하고, close는 언제나 동작한다', 'flush는 문자 스트림에서만, close는 바이트 스트림에서만 쓸 수 있다'],
     why: 'flush는 지금 버퍼에 모인 것을 내려보내기만 하고 스트림은 계속 쓸 수 있습니다. close는 먼저 flush를 한 뒤 스트림과 파일을 닫습니다.',
     sim: { c: { buf: 'buf', end: 'flush', fail: false, read: 'char' }, col: 2, has: '열린 채로' } },
-  { lv: 3, id: 'iobuf', q: 'BufferedOutputStream에 데이터를 쓴 뒤 맨 아래 줄에서 out.close()를 부르는 코드가 있습니다. 쓰기를 마친 직후, close에 닿기 전에 예외가 발생했습니다. 파일은 어떻게 됩니까?',
+  { lv: 3, id: 'iobuf', q: '아래 코드를 실행하면 out.txt 파일은 어떻게 됩니까?',
+    code: 'import java.io.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Main {\n    public static void main(String[] args) throws IOException {\n        byte[] data = "가나다".getBytes(StandardCharsets.UTF_8);   // 9바이트\n        OutputStream out = new BufferedOutputStream(new FileOutputStream("out.txt"));\n        try {\n            for (byte b : data) out.write(b);\n            process();                   // 쓰기를 마친 직후 여기서 예외가 난다\n            out.close();\n        } catch (IllegalStateException e) {\n            System.out.println("예외: " + e.getMessage());\n        }\n\n        System.out.println(Files.size(Path.of("out.txt")));        // 파일 크기\n    }\n\n    static void process() {              // 예시로 만든 메서드. 처리 중 오류를 흉내 낸다\n        throw new IllegalStateException("처리 중 오류");\n    }\n}',
     a: ['버퍼에 남아 있던 데이터가 쓰이지 않아 파일이 비어 있다', '예외가 나면 JVM이 버퍼를 대신 비워 주어 모두 쓰인다', '쓴 데이터 가운데 앞쪽 절반만 파일에 쓰여 있다', '예외가 난 순간에 파일이 자동으로 삭제된다'],
-    why: '예외가 나면 그 아래의 out.close()는 실행되지 않습니다. 버퍼는 저절로 비워지지 않으므로 데이터는 파일에 쓰이지 않습니다. try-with-resources를 쓰면 예외가 나도 close가 불립니다.',
+    why: 'process()에서 예외가 나면 try 블록의 나머지 줄인 out.close()는 실행되지 않고 바로 catch로 넘어갑니다. 버퍼는 저절로 비워지지 않으므로 write로 모은 9바이트는 파일에 쓰이지 않고, 마지막 줄은 0을 출력합니다. close를 finally에 두거나 try-with-resources를 쓰면 예외가 나도 close가 불립니다.',
     sim: { c: { buf: 'buf', end: 'close', fail: true, read: 'char' }, col: 1, has: '0 / 9' } },
-  { lv: 3, id: 'iobuf', q: '같은 코드를 try (OutputStream out = new BufferedOutputStream(...)) { ... } 모양으로 바꾸었습니다. 블록 안에서 쓰기를 마친 직후 예외가 발생하면 파일은 어떻게 됩니까?',
+  { lv: 3, id: 'iobuf', q: '아래 코드를 실행하면 out.txt 파일은 어떻게 됩니까?',
+    code: 'import java.io.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Main {\n    public static void main(String[] args) throws IOException {\n        byte[] data = "가나다".getBytes(StandardCharsets.UTF_8);   // 9바이트\n        try (OutputStream out = new BufferedOutputStream(new FileOutputStream("out.txt"))) {\n            for (byte b : data) out.write(b);\n            process();                   // 쓰기를 마친 직후 여기서 예외가 난다\n        } catch (IllegalStateException e) {\n            System.out.println("예외: " + e.getMessage());\n        }\n\n        System.out.println(Files.size(Path.of("out.txt")));        // 파일 크기\n    }\n\n    static void process() {              // 예시로 만든 메서드. 처리 중 오류를 흉내 낸다\n        throw new IllegalStateException("처리 중 오류");\n    }\n}',
     a: ['블록을 벗어날 때 close가 자동으로 불려 데이터가 모두 쓰인다', '예외가 났으므로 close가 불리지 않아 파일이 비어 있다', 'close는 불리지만 버퍼는 비워지지 않아 파일이 비어 있다', '예외가 사라지고 프로그램이 정상으로 계속 실행된다'],
-    why: 'try-with-resources는 블록을 정상으로 끝내든 예외로 벗어나든 close를 부릅니다. close가 버퍼에 남은 데이터를 내려보낸 뒤 닫으므로 파일에 모두 쓰입니다. 예외는 그 뒤에 그대로 전달됩니다.',
+    why: 'try (...) 괄호 안에서 만든 out은 블록을 정상으로 끝내든 예외로 벗어나든 close가 자동으로 불립니다. process()에서 예외가 나면 catch로 가기 전에 out.close()가 먼저 실행되고, close가 버퍼에 남은 9바이트를 내려보낸 뒤 닫으므로 마지막 줄은 9를 출력합니다. 예외는 사라지지 않고 그다음 catch로 전달되어 "예외: 처리 중 오류"가 출력됩니다.',
     sim: { c: { buf: 'buf', end: 'twr', fail: true, read: 'char' }, col: 1, has: '9 / 9' } },
 ]);
 
@@ -33508,9 +33534,10 @@ Lab.quiz([
     a: ['EmptyResultDataAccessException이 던져진다', 'null이 반환된다', '빈 문자열이 반환된다', 'BadSqlGrammarException이 던져진다'],
     why: 'queryForObject는 결과가 정확히 1건이어야 하는 메서드입니다. 0건이면 null을 돌려주지 않고 EmptyResultDataAccessException을 던집니다. DB의 오류가 아니라 스프링이 건수를 보고 던지는 예외입니다.',
     sim: { c: { how: 'tmpl', op: 'zero' }, col: 0, has: 'EmptyResultDataAccessException' } },
-  { lv: 3, id: 'jdbctmpl', q: '같은 조회의 결과가 2건일 때, rs.next()로 첫 행만 읽는 JDBC 코드와 JdbcTemplate의 queryForObject는 각각 어떻게 됩니까?',
+  { lv: 3, id: 'jdbctmpl', q: '아래 두 메서드를 각각 "서울"로 부르면 어떻게 됩니까? (city가 서울인 행은 2건입니다)',
+    code: '// MemberDao는 예시로 만든 클래스. 그 안의 두 메서드만 보임\n// (클래스 선언, dataSource와 jdbcTemplate 필드, import는 생략)\n// member 테이블: (1, kim, 서울), (2, lee, 부산), (3, park, 서울)\n\n// JDBC를 직접 쓴 메서드\nString findNameJdbc(String city) throws SQLException {\n    String sql = "select name from member where city = ? order by id";\n    try (Connection con = dataSource.getConnection();\n         PreparedStatement ps = con.prepareStatement(sql)) {\n        ps.setString(1, city);\n        try (ResultSet rs = ps.executeQuery()) {\n            rs.next();                       // 첫 행으로 옮긴다\n            return rs.getString("name");\n        }\n    }\n}\n\n// JdbcTemplate을 쓴 메서드\nString findNameTemplate(String city) {\n    return jdbcTemplate.queryForObject(\n        "select name from member where city = ? order by id", String.class, city);\n}',
     a: ['JDBC 코드는 첫 행의 값을 돌려주고, queryForObject는 예외를 던진다', '둘 다 첫 행의 값을 돌려준다', '둘 다 예외를 던진다', 'JDBC 코드는 예외를 던지고, queryForObject는 첫 행의 값을 돌려준다'],
-    why: '직접 쓴 코드는 적은 대로만 동작하므로 첫 행을 읽고 끝납니다. queryForObject는 결과가 2건 이상이면 IncorrectResultSizeDataAccessException을 던져, 1건이어야 하는 조회에서 여러 건이 나왔다는 것을 알려 줍니다.',
+    why: '직접 쓴 findNameJdbc는 적은 대로만 동작합니다. rs.next()로 첫 행(kim)으로 옮겨 이름을 읽고 끝나므로, 두 번째 행이 있다는 것은 알리지 않은 채 kim을 돌려줍니다. queryForObject는 결과가 정확히 1건이어야 하는 메서드라서, 2건이 나오면 IncorrectResultSizeDataAccessException을 던져 1건이어야 하는 조회에서 여러 건이 나왔다는 것을 알려 줍니다.',
     sim: { c: { how: 'tmpl', op: 'two' }, col: 0, has: 'IncorrectResultSizeDataAccessException' } },
 ]);
 
@@ -34083,9 +34110,10 @@ Lab.quiz([
     a: ['NotSerializableException이 발생한다', '모든 필드가 기본값으로 바뀐 채로 저장된다', '컴파일 오류가 나서 실행조차 할 수 없다', '클래스 이름만 저장되고 필드 값은 빠진다'],
     why: '자바의 기본 직렬화는 Serializable을 구현한 클래스의 객체만 저장합니다. writeObject의 매개변수 타입은 Object라서 컴파일은 되고, 실행 중에 NotSerializableException이 발생합니다.',
     sim: { c: { cls: 'no', fld: 'plain', chg: 'same' }, col: 0, has: 'NotSerializableException' } },
-  { lv: 2, id: 'serial', q: 'static int point를 50으로 두고 객체를 저장한 뒤, 같은 프로그램에서 70으로 바꾸고 나서 되살렸습니다. User.point를 읽으면 70이 나옵니다. 왜 50이 아닙니까?',
+  { lv: 2, id: 'serial', q: '아래 코드를 실행하면 kim 70이 출력됩니다. User.point가 50이 아니라 70인 이유는 무엇입니까?',
+    code: 'import java.io.*;\n\nclass User implements Serializable {     // 예시로 만든 클래스\n    String name;\n    static int point;\n\n    User(String name) { this.name = name; }\n}\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        User u = new User("kim");\n        User.point = 50;\n        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("user.ser"))) {\n            out.writeObject(u);                      // 객체를 파일에 저장한다\n        }\n\n        User.point = 70;                             // 저장한 뒤에 바꾼다\n\n        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("user.ser"))) {\n            User r = (User) in.readObject();         // 파일에서 객체를 되살린다\n            System.out.println(r.name + " " + User.point);\n        }\n    }\n}',
     a: ['static 필드는 클래스에 속해 저장되지 않고, 지금 클래스가 가진 값이 보이기 때문이다', 'static 필드는 저장되지만, 되살릴 때 더 큰 값이 우선하도록 정해져 있기 때문이다', '되살린 객체가 원래 객체와 같은 객체라서 바뀐 값이 그대로 보이기 때문이다', 'static 필드는 저장할 때가 아니라 되살릴 때의 값을 파일에 다시 써넣기 때문이다'],
-    why: '직렬화는 객체 하나의 상태, 곧 인스턴스 필드를 저장합니다. static 필드는 클래스에 하나만 있는 값이라서 파일에 들어가지 않고, 되살리는 과정도 그 값을 건드리지 않습니다.',
+    why: '직렬화는 객체 하나의 상태, 곧 인스턴스 필드(여기서는 name)를 파일에 씁니다. point는 static이라 객체가 아니라 User 클래스에 하나만 있는 값이므로 파일에 들어가지 않고, readObject로 되살리는 과정도 그 값을 건드리지 않습니다. 그래서 마지막 줄의 User.point는 저장한 뒤에 넣은 70, 곧 지금 클래스가 가진 값입니다.',
     sim: { c: { cls: 'ok', fld: 'static', chg: 'same' }, col: 2, has: '70 (저장 뒤에 바꾼 값)' } },
   { lv: 2, id: 'serial', q: 'Serializable을 구현한 클래스의 객체를 readObject로 되살릴 때, 그 클래스의 생성자는 어떻게 됩니까?',
     a: ['실행되지 않는다. 저장된 값을 필드에 직접 채워 넣는다', '매개변수 없는 생성자가 반드시 한 번 실행된다', '저장할 때 썼던 생성자가 같은 인자로 다시 실행된다', '모든 생성자가 선언된 순서대로 한 번씩 실행된다'],
@@ -34194,9 +34222,10 @@ Lab.quiz([
     a: ['static 메서드는 객체 없이 불리므로 어느 객체의 필드인지 정할 수 없기 때문이다', 'static 메서드는 클래스가 준비되기 전에 실행되어 필드가 아직 없기 때문이다', 'static 메서드에서는 private 필드에 접근하는 것이 금지되어 있기 때문이다', 'static 메서드는 값을 읽기만 할 수 있고 필드를 바꿀 수 없기 때문이다'],
     why: '인스턴스 필드는 객체마다 따로 있어서 "어느 객체의 것인가"가 정해져야 읽을 수 있습니다. static 메서드는 Counter.report()처럼 객체 없이 불리므로 그 대상(this)이 없습니다. 객체를 인자로 받아 c.count처럼 쓰는 것은 됩니다.',
     sim: { c: { decl: 'inst', extra: 'sm', nb: '1' }, col: 0, has: 'non-static variable count' } },
-  { lv: 3, id: 'static', q: 'Counter에 static int count가 있고, 인스턴스 메서드 hit()은 count++를 합니다. 객체 a와 b를 만들어 a.hit()을 2번, b.hit()을 1번 부른 뒤 a.count와 b.count를 차례로 출력하면 무엇이 나옵니까?',
+  { lv: 3, id: 'static', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'class Counter {                      // 예시로 만든 클래스\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Counter a = new Counter();\n        Counter b = new Counter();\n        a.hit();\n        a.hit();\n        b.hit();\n        System.out.println(a.count + " " + b.count);\n    }\n}',
     a: ['3 3', '2 1', '3 1', '2 3'],
-    why: 'count가 static이므로 클래스에 하나뿐이고, a.hit()과 b.hit()이 모두 그 하나를 올립니다. 세 번 올라가 3이 되었고, a.count와 b.count는 둘 다 같은 count를 읽습니다. static을 떼면 2 1이 나옵니다.',
+    why: 'count에 static이 붙어 있으므로 count는 객체마다 따로 생기지 않고 Counter 클래스에 하나뿐입니다. a.hit()과 b.hit()은 모두 그 하나를 올리므로 세 번 올라가 3이 되고, a.count와 b.count는 둘 다 같은 count를 읽습니다. static을 떼면 count가 객체마다 따로 생겨 2 1이 나옵니다.',
     sim: { c: { decl: 'static', extra: 'none', nb: '1' }, col: 1, has: '3 3' } },
   { lv: 3, id: 'static', q: 'Counter의 count는 static 필드이고 hit()은 static이 붙지 않은 메서드입니다. 객체를 만들지 않고 Counter.hit()이라고 쓰면 어떻게 됩니까?',
     a: ['hit()이 인스턴스 메서드라서 컴파일 오류가 난다', 'count가 static이므로 정상적으로 1이 늘어난다', '컴파일은 되고 실행 중에 예외가 발생한다', '컴파일러가 객체를 하나 만들어서 불러 준다'],
@@ -34214,13 +34243,15 @@ Lab.quiz([
     a: ['concat이 원래 객체를 고치지 않고 새 문자열 객체를 돌려주기 때문이다', 'first에 대입할 때 문자열 전체가 복사되어 따로 저장되기 때문이다', 'concat이 원래 객체를 고친 뒤 first만 이전 내용으로 되돌리기 때문이다', '문자열 리터럴은 final 변수에만 대입할 수 있어 바뀌지 않기 때문이다'],
     why: 'first = s는 내용을 복사하지 않고 같은 객체를 가리키게 할 뿐입니다. concat은 그 객체를 고치지 않고 새 객체를 돌려주므로, s만 새 객체로 옮겨 가고 first가 가리키는 처음 객체는 그대로입니다.',
     sim: { c: { type: 'str', op: 'assign', m: 'concat' }, col: 1, has: 'java' } },
-  { lv: 3, id: 'strbuild', q: 'StringBuilder first = sb;로 기억해 둔 뒤, 반복문에서 sb.append(i)를 세 번 호출했습니다. sb == first의 결과와 first를 출력한 내용으로 알맞은 것은 무엇입니까?',
+  { lv: 3, id: 'strbuild', q: '아래 코드를 실행하면 sb == first의 결과와 first를 출력한 내용은 어떻게 됩니까?',
+    code: 'public class Main {\n    public static void main(String[] args) {\n        StringBuilder sb = new StringBuilder("java");\n        StringBuilder first = sb;      // 처음 객체를 기억해 둔다\n\n        for (int i = 1; i <= 3; i++) {\n            sb.append(i);\n        }\n\n        System.out.println(sb == first);\n        System.out.println(first);\n    }\n}',
     a: ['true이고, first를 출력해도 이어 붙인 내용이 보인다', 'true이지만, first를 출력하면 처음 내용만 보인다', 'false이고, first를 출력하면 처음 내용만 보인다', 'false이지만, first를 출력해도 이어 붙인 내용이 보인다'],
-    why: 'StringBuilder의 append는 새 객체를 만들지 않고 같은 객체의 내용을 고칩니다. sb와 first는 끝까지 같은 객체를 가리키므로 ==는 true이고, first로 보아도 바뀐 내용이 보입니다.',
+    why: 'StringBuilder의 append는 새 객체를 만들지 않고 같은 객체의 내용을 고칩니다. 반복문 안에 sb에 다른 객체를 대입하는 줄이 없으므로 sb와 first는 끝까지 같은 객체를 가리킵니다. 그래서 sb == first는 true이고, first를 출력해도 이어 붙인 내용인 java123이 보입니다.',
     sim: { c: { type: 'sb', op: 'loop', m: 'upper' }, col: 2, has: '같은 객체' } },
-  { lv: 3, id: 'strbuild', q: 'String s = "java";에 대해 반복문에서 s = s + i;를 세 번 실행하면서, 매번 실행 직전의 s와 실행 뒤의 s를 !=로 비교해 다르면 changed를 1씩 늘렸습니다. changed는 얼마가 됩니까?',
+  { lv: 3, id: 'strbuild', q: '아래 코드를 실행하면 무엇이 출력됩니까?',
+    code: 'public class Main {\n    public static void main(String[] args) {\n        String s = "java";\n        int changed = 0;\n\n        for (int i = 1; i <= 3; i++) {\n            String before = s;           // 이번 줄을 실행하기 직전의 s\n            s = s + i;\n            if (s != before) changed++;  // 다른 객체를 가리키게 됐으면 센다\n        }\n\n        System.out.println(changed);\n    }\n}',
     a: ['3', '0', '1', '2'],
-    why: 'String은 내용을 고칠 수 없으므로 +로 이어 붙일 때마다 새 문자열 객체가 만들어지고 s가 그 객체를 가리키게 됩니다. 세 번 모두 직전과 다른 객체이므로 changed는 3입니다.',
+    why: 'String은 내용을 고칠 수 없으므로 s = s + i;를 실행할 때마다 새 문자열 객체가 만들어지고 s가 그 객체를 가리키게 됩니다. before는 그 줄을 실행하기 직전의 객체를 가리키고 있으므로 세 번 모두 s != before가 true이고, changed는 3입니다. 같은 반복을 StringBuilder의 append로 바꾸면 객체가 그대로라서 0이 됩니다.',
     sim: { c: { type: 'str', op: 'loop', m: 'upper' }, col: 3, has: '3번' } },
 ]);
 

@@ -330,6 +330,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 .qcard { gap: 16px; max-width: 860px; }
 .qtext { font-family: var(--font-head); font-weight: 600; font-size: 1.2rem; line-height: 1.5; text-wrap: pretty; }
 .qbody { padding: 10px 14px; background: var(--bg); border-radius: 3px; max-width: 72ch; }
+.qcode { margin-top: 10px; max-width: 72ch; }
 .opts { display: flex; flex-direction: column; gap: 8px; }
 .opt { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; gap: 8px; align-items: start; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 10px 12px; cursor: pointer; }
 .opt .num { font-family: var(--font-code); font-size: .82rem; color: var(--muted); padding-top: 1px; }
@@ -1220,14 +1221,15 @@ var Lab = (function () {
       return { lv: 0, src: src, tag: src[0], q: '다음 설명에 해당하는 용어는 무엇입니까?', body: maskTerm(src[1], src[2]), opts: shuffle([{ t: src[1], ok: true }].concat(others.map(function (o) { return { t: o[1], ok: false }; }))), why: src[1] + ': ' + src[2], id: termLesson[src[1]] || null, picked: -1 };
     }
     var tk = placeOf(src.id); tk = tk ? tk.cat : null;
-    return { lv: lv, src: src, tag: tk ? tk.name : '', q: src.q, body: '', opts: shuffle(src.a.map(function (t, i) { return { t: t, ok: i === 0 }; })), why: src.why, id: src.id, picked: -1 };
+    return { lv: lv, src: src, tag: tk ? tk.name : '', q: src.q, body: '', code: src.code || '', opts: shuffle(src.a.map(function (t, i) { return { t: t, ok: i === 0 }; })), why: src.why, id: src.id, picked: -1 };
   }
   function right(it) { return it.picked >= 0 && it.opts[it.picked].ok; }
   // 복습 상자: 문제마다 { s: 몇 번째 간격인지, due: 다시 풀 시각 }. 틀리면 처음 간격으로 돌아가고, 풀 차례에 맞히면 다음 간격으로 넘어간다.
   var review = {}, REV_DAYS = [1, 3, 7], DAY = 864e5;
-  function revKey(it) { return it.lv === 0 ? 't:' + it.src[1] : 'q:' + it.src.q; }
+  function qKey(x) { return x.q + (x.code ? '|' + x.code : ''); }   // 코드를 보이는 문제는 질문 글이 같을 수 있어 코드까지 붙여 구분한다
+  function revKey(it) { return it.lv === 0 ? 't:' + it.src[1] : 'q:' + qKey(it.src); }
   function revSave() { try { localStorage.setItem('lab-review', JSON.stringify(review)); } catch (e) {} }
-  function revSrc(k) { var name = k.slice(2); if (k.slice(0, 2) === 't:') { var t = kbTerms.filter(function (x) { return x[1] === name; })[0]; return t ? { lv: 0, src: t } : null; } var q = quizBank.filter(function (x) { return x.q === name; })[0]; return q ? { lv: q.lv, src: q } : null; }
+  function revSrc(k) { var name = k.slice(2); if (k.slice(0, 2) === 't:') { var t = kbTerms.filter(function (x) { return x[1] === name; })[0]; return t ? { lv: 0, src: t } : null; } var q = quizBank.filter(function (x) { return qKey(x) === name; })[0]; return q ? { lv: q.lv, src: q } : null; }
   function revList(dueOnly) { var now = Date.now(); return Object.keys(review).filter(function (k) { return (!dueOnly || review[k].due <= now) && revSrc(k); }); }
   function revNote(it) {
     var k = revKey(it), e = review[k], now = Date.now();
@@ -1296,6 +1298,7 @@ var Lab = (function () {
     var card = el('div', 'panel qcard');
     card.appendChild(el('h2', 'qtext', it.q));
     if (it.body) card.appendChild(el('p', 'qbody', it.body));
+    if (it.code) card.appendChild(el('pre', 'code qcode', it.code));   // 문제가 가리키는 코드(어디에 무엇이 적혔는지 말로 풀지 않고 그대로 보인다)
     var ol = el('div', 'opts');
     it.opts.forEach(function (o, k) {
       var b = el('button', 'opt' + (done ? (o.ok ? ' good' : k === it.picked ? ' bad' : ' dim') : '')); b.type = 'button';

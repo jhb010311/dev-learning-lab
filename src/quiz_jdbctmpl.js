@@ -18,8 +18,9 @@ Lab.quiz([
     a: ['EmptyResultDataAccessException이 던져진다', 'null이 반환된다', '빈 문자열이 반환된다', 'BadSqlGrammarException이 던져진다'],
     why: 'queryForObject는 결과가 정확히 1건이어야 하는 메서드입니다. 0건이면 null을 돌려주지 않고 EmptyResultDataAccessException을 던집니다. DB의 오류가 아니라 스프링이 건수를 보고 던지는 예외입니다.',
     sim: { c: { how: 'tmpl', op: 'zero' }, col: 0, has: 'EmptyResultDataAccessException' } },
-  { lv: 3, id: 'jdbctmpl', q: '같은 조회의 결과가 2건일 때, rs.next()로 첫 행만 읽는 JDBC 코드와 JdbcTemplate의 queryForObject는 각각 어떻게 됩니까?',
+  { lv: 3, id: 'jdbctmpl', q: '아래 두 메서드를 각각 "서울"로 부르면 어떻게 됩니까? (city가 서울인 행은 2건입니다)',
+    code: '// MemberDao는 예시로 만든 클래스. 그 안의 두 메서드만 보임\n// (클래스 선언, dataSource와 jdbcTemplate 필드, import는 생략)\n// member 테이블: (1, kim, 서울), (2, lee, 부산), (3, park, 서울)\n\n// JDBC를 직접 쓴 메서드\nString findNameJdbc(String city) throws SQLException {\n    String sql = "select name from member where city = ? order by id";\n    try (Connection con = dataSource.getConnection();\n         PreparedStatement ps = con.prepareStatement(sql)) {\n        ps.setString(1, city);\n        try (ResultSet rs = ps.executeQuery()) {\n            rs.next();                       // 첫 행으로 옮긴다\n            return rs.getString("name");\n        }\n    }\n}\n\n// JdbcTemplate을 쓴 메서드\nString findNameTemplate(String city) {\n    return jdbcTemplate.queryForObject(\n        "select name from member where city = ? order by id", String.class, city);\n}',
     a: ['JDBC 코드는 첫 행의 값을 돌려주고, queryForObject는 예외를 던진다', '둘 다 첫 행의 값을 돌려준다', '둘 다 예외를 던진다', 'JDBC 코드는 예외를 던지고, queryForObject는 첫 행의 값을 돌려준다'],
-    why: '직접 쓴 코드는 적은 대로만 동작하므로 첫 행을 읽고 끝납니다. queryForObject는 결과가 2건 이상이면 IncorrectResultSizeDataAccessException을 던져, 1건이어야 하는 조회에서 여러 건이 나왔다는 것을 알려 줍니다.',
+    why: '직접 쓴 findNameJdbc는 적은 대로만 동작합니다. rs.next()로 첫 행(kim)으로 옮겨 이름을 읽고 끝나므로, 두 번째 행이 있다는 것은 알리지 않은 채 kim을 돌려줍니다. queryForObject는 결과가 정확히 1건이어야 하는 메서드라서, 2건이 나오면 IncorrectResultSizeDataAccessException을 던져 1건이어야 하는 조회에서 여러 건이 나왔다는 것을 알려 줍니다.',
     sim: { c: { how: 'tmpl', op: 'two' }, col: 0, has: 'IncorrectResultSizeDataAccessException' } },
 ]);

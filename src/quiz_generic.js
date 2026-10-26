@@ -16,8 +16,9 @@ Lab.quiz([
     a: ['list가 실제로는 List<Double>일 수도 있어서 컴파일러가 null 말고는 무엇도 넣게 두지 않기 때문이다', '와일드카드로 선언한 변수는 대입한 뒤에 어떤 메서드도 호출할 수 없기 때문이다', '3은 기본형 int이고 제네릭 리스트에는 기본형 값을 절대 넣을 수 없기 때문이다', 'extends를 쓴 리스트는 Number의 상위 타입인 Object만 넣을 수 있기 때문이다'],
     why: '? extends Number는 "Number의 하위 타입 가운데 어떤 것"이라는 뜻이라, 컴파일러는 실제 원소 타입을 모릅니다. 꺼낸 값을 Number로 쓰는 것은 안전하지만, 넣는 것은 어떤 타입이든 안전하다고 할 수 없어 막습니다.',
     sim: { c: { decl: 'ext', op: 'addInt' }, col: 0, has: '오류' } },
-  { lv: 3, id: 'generic', q: 'List<Integer> ints를 제네릭 없는 변수 List list에 대입하고 list.add("삼")을 한 뒤, 맨 끝에서 Integer last = ints.get(2)를 실행합니다. 어떻게 됩니까?',
+  { lv: 3, id: 'generic', q: '아래 코드를 컴파일하고 실행하면 어떻게 됩니까?',
+    code: 'import java.util.ArrayList;\nimport java.util.List;\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> ints = new ArrayList<>();\n        ints.add(1);\n        ints.add(2);\n\n        List list = ints;              // 제네릭 없이 선언한 변수(로 타입)\n        list.add("삼");\n\n        System.out.println(ints);\n        Integer last = ints.get(2);\n    }\n}',
     a: ['컴파일은 되고, 값을 꺼내는 마지막 줄에서 ClassCastException이 난다', '컴파일은 되고, 문자열을 넣는 줄에서 ClassCastException이 난다', 'list.add("삼") 줄에서 컴파일 오류가 나서 실행되지 않는다', '컴파일은 되고, last에 null이 들어간 채 정상으로 끝난다'],
-    why: '로 타입 변수로 넣는 코드는 경고만 나고 컴파일됩니다. 실행 중의 리스트는 원소 타입을 기억하지 않아 넣을 때는 아무 일이 없고, Integer로 꺼내는 줄에 컴파일러가 넣어 둔 형 변환에서 예외가 납니다.',
+    why: 'list와 ints는 같은 리스트 객체를 가리킵니다. 로 타입 변수 list로 넣는 줄은 경고만 나고 컴파일되며, 실행 중의 리스트는 원소 타입을 기억하지 않아 "삼"이 그대로 들어갑니다. 그래서 System.out.println(ints)는 [1, 2, 삼]을 출력합니다. 예외는 마지막 줄 Integer last = ints.get(2);에서 납니다. 컴파일러가 이 줄에 Integer로 바꾸는 형 변환을 넣어 두었는데 꺼낸 값이 String이라 ClassCastException이 됩니다.',
     sim: { c: { decl: 'raw', op: 'addStr' }, col: 3, has: 'ClassCastException' } },
 ]);

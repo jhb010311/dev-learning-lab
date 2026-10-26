@@ -95,7 +95,7 @@ if (require.main === module) {
     if (!q.q || !q.why || !Array.isArray(q.a) || q.a.length !== 4 || new Set(q.a).size !== 4 || q.a.some(x => !x)) throw new Error(at + ': 질문, 해설, 보기 4개 형식 오류');
     if (q.sim) { const l = list.find(x => x.id === (q.sim.id || q.id)), row = l.simulate(Object.assign({}, q.sim.c)).row; if (!String(row[q.sim.col]).includes(q.sim.has)) throw new Error(at + ': 실습 결과와 다름. 실습=' + row[q.sim.col] + ' 기대=' + q.sim.has); simChecked++; }
   });
-  if (new Set(bank.map(q => q.q)).size !== bank.length) throw new Error('quiz: 같은 질문이 두 번 있음');
+  if (new Set(bank.map(q => q.q + (q.code ? '|' + q.code : ''))).size !== bank.length) throw new Error('quiz: 같은 질문이 두 번 있음');   // 코드를 보이는 문제는 질문 글이 같아도 코드가 다르면 다른 문제
   const perLv = [1, 2, 3].map(lv => bank.filter(q => q.lv === lv).length);
   tracks.forEach(t => [1, 2, 3].forEach(lv => { if (bank.filter(q => q.tr === t.id && q.lv === lv).length < 4) throw new Error('quiz: ' + t.id + ' 경로의 ' + lv + '단계 문제가 4개 미만'); }));
   console.log('테스트 문제', bank.length + '개 (초급 ' + perLv[0] + ', 중급 ' + perLv[1] + ', 응용 ' + perLv[2] + '), 실습 결과와 대조한 문제', simChecked + '개, 기초용 용어', kb.length + '개');

@@ -325,6 +325,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 .qcard { gap: 16px; max-width: 860px; }
 .qtext { font-family: var(--font-head); font-weight: 600; font-size: 1.2rem; line-height: 1.5; text-wrap: pretty; }
 .qbody { padding: 10px 14px; background: var(--bg); border-radius: 3px; max-width: 72ch; }
+.qcode { margin-top: 10px; max-width: 72ch; }
 .opts { display: flex; flex-direction: column; gap: 8px; }
 .opt { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; gap: 8px; align-items: start; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 10px 12px; cursor: pointer; }
 .opt .num { font-family: var(--font-code); font-size: .82rem; color: var(--muted); padding-top: 1px; }
